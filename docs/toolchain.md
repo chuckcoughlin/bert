@@ -1,6 +1,7 @@
-# Toolchain and Build Notes
+# Architecture and Toolchain
 
-This document contains design for all "Bert" components and summarizes the construction process, both hardware and software.
+This document describes the tools used to develop "Bert" and summarizes the construction process, both hardware and software.
+In addition we discuss the core-architecture and interfaces between the main components.
 
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>
