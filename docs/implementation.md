@@ -1,13 +1,14 @@
-# Discussions of Core Feature Implementations
+## Feature Implementation
 
-This document is a "how-to" summarizing hardware, software and configuration details required to implement specific features of the Bert robot.
-Refer to [features](http://github.com/chuckcoughlin/bert/tree/master/docs/features.md) for general usage descriptions.
+This document describes custom features of "Bert" and their design.
+
+For usage information refer to the [User Guide](http://github.com/chuckcoughlin/bert/tree/master/docs/user-guide.md)
 
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>
   * [Speech](#speech)
 
-
 *********************************************************
 ### a - Speech <a id="speech"></a>
+[toc](#table-of-contents)
 All voice recognition and speech abilities are provided directly by an embedded Android tablet.
