@@ -41,7 +41,7 @@ The following sections describe modifications to the original parts.
 The development host is an iMac running OSX High Sierra (10.13). The code repository resides here. As shown below, code is cross-compiled and downloaded onto the robot target over a WiFi connection.
 An auxiliary application resides on an Android tablet. It translates voice commands for control of the robot.
 
-![System Setup for Development](/images/development-layout.png)
+![System Setup for Development](images/development_layout.png)
 ````                        Development - System Setup ````
 
 
