@@ -53,7 +53,7 @@ An auxiliary application resides on an Android tablet. It translates voice comma
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
 
-*** General ***<br/>
+***General***<br/>
 The tablet application, ***BertOp*** is the Human Machine Interface (HMI) in normal operation.  Most importantly it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
 
 The control application is a standard Android application built using Android Studio 3.0. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
@@ -71,10 +71,10 @@ Pairing with the robot must be completed before the ***BertOp*** application is 
 
 Note that the emulator does not support Bluetooth and is, therefore, not available as a test tool.
 
-*** Persistent Storage ***<br/>
+***Persistent Storage***<br/>
 Configuration parameters, vocabulary and other data that are meant to be stored long-term reside in a SQLite database accessible through the tablet application.
 
-*** Transfer to Tablet ***<br/>
+***Transfer to Tablet***<br/>
 In order for the application to be transferred to the tablet from the build system, the tablet must be connected via USB. Use the same USB that is used to charge the device.
 
 The tablet must also be set in "developer" mode. This is accomplished under Settings->About Tablet. Tap on "Build number" 7 times. (Yes, really). Under Settings->Developer options, enable USB debugging. Once the cable is connected a dialog should popup asking you to allow file transfer. (If this does not appear, you may have to fiddle with Developer options->USB Configuration).
