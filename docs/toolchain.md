@@ -48,7 +48,7 @@ An auxiliary application resides on an Android tablet. It translates voice comma
 ### Eclipse <a id="eclipse"></a>
 [toc](#table-of-contents)
 
-*** General ***<br/>
+***General***<br/>
 
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
@@ -59,12 +59,12 @@ The tablet application, ***BertOp*** is the Human Machine Interface (HMI) in nor
 The control application is a standard Android application built using Android Studio 3.0. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
     ```ANDROID_HOME=~/Library/Androd/sdk```
 
-*** Voice Commands ***<br/>
+***Voice Commands***<br/>
 Voice commands are implemented purely via the Android tablet using the builtin speech-to-text features of Android. On the tablet, the ***BertOp*** app must be given microphone permissions.
 
 For production of speech from robot output,  text-to-speech can be configured in the settings under "Accessibility". Parameters include languages supported and characteristics of the speaker such as volume.
 
-*** Network Configuration ***<br/>
+***Network Configuration***<br/>
 Communication between the tablet and main robot processor is over Bluetooth. On the tablet's settings "Connections" page, make sure that bluetooth is enabled. Under "More Connection Settings", enable "Nearby device scanning". Network or device pairing selections are made from menus accessed from the main screen.
 
 Pairing with the robot must be completed before the ***BertOp*** application is started. Pairing may be initiated either from the robot or the tablet.
