@@ -1,0 +1,384 @@
+/**
+ * @page yarp_config_files YARP config files
+
+\author Paul Fitzpatrick
+
+This tutorial covers how to write and read configuration files
+in YARP's native format.  In brief, YARP config files look
+a lot like
+<a href="http://en.wikipedia.org/wiki/INI_file">INI files</a>
+but are actually closer in spirit to
+<a href="http://en.wikipedia.org/wiki/S-expression">S-expressions</a>.
+YARP config files translate into yarp::os::Property objects
+(see e.g. the yarp::os::Property::fromConfigFile command).
+
+ - \ref yarp_config_file_basics
+ - \ref yarp_config_file_reading
+ - \ref yarp_config_file_add_section
+ - \ref yarp_config_file_nesting
+ - \ref yarp_config_file_lists
+ - \ref yarp_config_file_includes
+ - \ref yarp_config_file_comments
+ - \ref yarp_config_file_quoting
+ - \ref yarp_config_file_continue
+ - \ref yarp_config_list_syntax
+ - \ref yarp_config_file_environment
+ - \ref yarp_config_file_equals
+ - \ref yarp_config_command
+
+\section yarp_config_file_basics A minimal config file
+
+Here is a minimal config file, let's call it "config.ini" (the extension
+doesn't matter):
+\code
+width 10
+height 15
+\endcode
+
+The format of each line is the same as that of the
+string representation of the yarp::os::Bottle class,
+defined here: \ref data_rep.  In summary, each line is
+a list of items (strings, numbers, sublists, etc) separated by spaces/tabs.
+We call each top-level list a "group", and assign a name to each group based
+on its first element.
+
+This "config.ini" example contains two groups, one called
+"width", and the other called "height".
+
+\section yarp_config_file_reading Accessing the minimal config file from code
+We could read the example config file in \ref yarp_config_file_basics "the above section",
+by doing the following in code:
+\code
+#include <yarp/os/Property.h>
+int main() {
+  yarp::os::Property prop;
+  prop.fromConfigFile("config.ini");
+  // ... query prop object here ...
+  return 0;
+}
+\endcode
+The Property object prop will contain all the groups in the configuration
+file.  The groups can be accessed by iterating, or by using the
+yarp::os::Property::findGroup command.  This takes a keyword as an
+argument, and returns the group that has that keyword as its first
+element.  So for config.ini:
+\code
+prop.findGroup("width")  // gives the list [width,10]
+prop.findGroup("height") // gives the list [height,15]
+\endcode
+In general, the list of values associated with a group can be found
+with the tail command, which drops the keyword:
+\code
+prop.findGroup("width").tail() // gives the list [10]
+\endcode
+Since it is common to use groups of two elements to represent
+simple key-value pairs, there is a shorthand command
+yarp::os::Property::find to get the second element of a group directly.
+It returns a yarp::os::Value object which can easily be converted to
+regular C types.
+\code
+prop.find("width").asInt32()  // gives the int 10
+prop.find("height").asInt32() // gives the int 15
+\endcode
+
+\section yarp_config_file_add_section A config file with sections
+
+Configuration files often need to have nesting, with
+values organized into sections.
+Special tags of the form "[NAME]" are one way to achieve this
+with YARP config files (or INI-style configuration files in general).
+For example, for a file containing:
+\code
+[SIZE]
+width 10
+height 15
+[APPEARANCE]
+color red
+\endcode
+the Property object we read in code will now contain the
+two groups "SIZE" and "APPEARANCE", which will have "width", "height",
+and "color" nested within them.  In other words:
+\code
+prop.findGroup("SIZE").find("width").asInt32() // gives 10
+prop.findGroup("APPEARANCE").find("color").asString() // gives "red"
+\endcode
+
+In fact, in YARP config files, the above structure could also be written as:
+\code
+SIZE (width 10) (height 15)
+APPEARANCE (color red)
+\endcode
+This is exactly equivalent.  The special [SECTION] syntax is just
+a convenience, familiar to many from INI files.
+
+Here is the rule.  Any list on a separate line in a configuration
+file, with any degree of nesting, is a group.  That means it can be
+found using the findGroup/find commands, with its name being given by
+its first element.  Any sublists within that group can be found
+recursively in code using findGroup/find, again with their names being
+given by their first element.
+
+What happens if there are multiple groups at the same level with the
+same name?  That is undefined, and whatever YARP's current behavior is
+for this case is not guaranteed to remain so in the future.
+
+\section yarp_config_file_nesting Nesting configuration files
+
+To include one configuration file, say "preamble.ini", inside another one,
+do:
+\code
+[include "preamble.ini"]
+\endcode
+This will insert the content of preamble.ini as if cut-and-pasted.
+If you would rather have the content included within a subsection
+called FOO, do instead:
+\code
+[include FOO "preamble.ini"]
+\endcode
+This last form will result in any sections within preamble.ini
+being nested within FOO.
+
+For example, if preamble.ini is:
+\code
+alpha 0.5
+[tweaks]
+pnudge 10 -10
+\endcode
+Then with a config.ini of:
+\code
+x 10
+y 10
+[include "preamble.ini"]
+\endcode
+we end up with top-level groups of x, y, alpha, and tweaks.
+With a config.ini of:
+\code
+x 10
+y 10
+[include setup "preamble.ini"]
+\endcode
+we end up with top-level groups of x, y, and setup (alpha and tweaks
+are nested within setup).
+
+As of YARP 2.3.21, it is possible to include a whole directory.  In
+this case, all files with the extension ".ini" from that directory
+will be merged together.  An example is given in \ref
+yarp_config_file_dir_includes.
+
+\section yarp_config_file_lists Section collections
+
+Occasionally a config file needs a list of sections containing
+similar entries.  One convenient way to achieve that is with
+a "section prefix".  For example:
+\code
+[camera left]
+geom 0.7 0.3
+color_correct 0.01 0.0 -0.1
+[camera right]
+geom -0.7 0.3
+color_correct 0.0 0.0 0.0
+\endcode
+
+This configuration file is equivalent to:
+
+\code
+camera left right
+[left]
+geom 0.7 0.3
+color_correct 0.01 0.0 -0.1
+[right]
+geom -0.7 0.3
+color_correct 0.0 0.0 0.0
+\endcode
+
+So we have a handy "camera" list accessible
+as prop.findGroup("camera").tail() that gives us the names of the
+camera-related groups.
+
+\section yarp_config_file_includes Combining section collections and includes
+
+As of YARP 2.2.8, section collections and include file features can be
+combined.  In other words, one can have a configuration file like this:
+\code
+[include camera left "cam_left.ini"]
+[include camera right "cam_right.ini"]
+\endcode
+This takes the material in "cam_left.ini" and places it in a section
+called "left", and similarly places the material in "cam_right.ini"
+in a section called "right", and then creates a group called "camera"
+equivalent to the following line:
+\code
+camera left right
+\endcode
+
+\section yarp_config_file_dir_includes Combining section collections and directory includes
+
+As of YARP 2.3.21, it is possible to include a whole directory in place
+of a file.  That gives new possibilities for section collections.
+Suppose we have a file cam/left.ini containing:
+\code
+[camera left]
+geom 0.7 0.3
+color_correct 0.01 0.0 -0.1
+\endcode
+And a file cam/right.ini containing:
+\code
+[camera right]
+geom -0.7 0.3
+color_correct 0.0 0.0 0.0
+\endcode
+And a file all.ini containing:
+\code
+[include "cam"]
+\endcode
+
+Loading all.ini is equivalent to loading:
+\code
+camera left right
+[left]
+geom 0.7 0.3
+color_correct 0.01 0.0 -0.1
+[right]
+geom -0.7 0.3
+color_correct 0.0 0.0 0.0
+\endcode
+
+Note the ordering of files read may not be defined.
+
+\section yarp_config_file_comments Comments in config files
+
+Use the # character, or //, as your prefer.
+\code
+# this is a comment
+// this is also a comment
+\endcode
+
+\section yarp_config_file_quoting Quoting in config files
+
+Keys, values, and section
+names containing spaces or special characters
+should be surrounded by double-quotes, for example:
+\code
+"a long key whose string value looks like a list" "(1 2 3)"
+\endcode
+maps the string "a long key whose string value looks like a list" to the
+string "(1 2 3)".
+
+If the quote character needs to be included in a string it
+can be itself quoted by preceding it with a backslash character.
+
+\section yarp_config_file_continue Continuing across lines
+
+A long line can be continued on the next line by breaking the
+line up with a backslash character directly before the end of line.
+For example:
+\code
+encoders (1 2 3 4 \
+5 6 7 8)
+\endcode
+is the same as:
+\code
+encoders (1 2 3 4 5 6 7 8)
+\endcode
+
+\section yarp_config_list_syntax List syntax
+
+Values in a config file can be any type supported by yarp::os::Bottle.
+That includes lists, which are surrounded by parentheses and
+have spaces (not commas) between items:
+\code
+example_list (1 2 3)
+nested_list (foo (red (255 0 0)) (green (0 255 0)))
+\endcode
+
+Binary blobs are also supported, and are expressed as lists of
+space-separated numbers surrounded by square parentheses.
+
+\section yarp_config_file_environment Expansion of variables
+
+By default, environment variables in the config file written as $NAME or
+${NAME} will be expanded.  To include a dollar sign without expansion,
+precede it with a backslash.
+
+Key/value pairs already encountered in the config file can also be
+used in this way.  For example, in an environment where USER is set
+to paulfitz:
+\code
+username "$USER"
+tmpdir "/tmp/robot_${username}_cache"
+\endcode
+This would give "tmpdir" set to "/tmp/robot_paulfitz_cache".
+
+Extra "psuedo-environment" variables can be made available by calling
+yarp::os::Property::fromConfigFile with an extra Property argument.
+
+\section yarp_config_file_equals Compatibility with other INI readers
+
+Occasionally it is nice to be able to read YARP config files from
+other systems (e.g. Python has an INI reader).  Your best bet to
+do that is to include an equals sign between keys and values, with
+spaces around the equals.  YARP will accept and ignore this, and
+it will make other readers happier.  For YARP, these two lines are
+equivalent:
+\code
+x 10
+x = 10
+\endcode
+Don't forget the spaces, and don't do anything fancy beyond key/value
+pairs.
+
+\section yarp_config_command Command line configuration switches
+
+The yarp::os::ResourceFinder class bundles together some common
+ways to configure YARP programs.  An instance of this class
+is usually passed the command line arguments:
+\code
+int main(int argc, char *argv[]) {
+  ResourceFinder prop;
+  prop.configure(argc,argv);
+  ...
+}
+\endcode
+
+The yarp::os::ResourceFinder class can be used just like
+the yarp::os::Property class mentioned in:
+\ref yarp_config_file_reading.
+If the user of the program supplies a <tt>--from config.ini</tt> argument
+that file shall be read as a configuration file.  Values
+can be overridden on the command line.  For example, if <tt>config.ini</tt>
+contains:
+\code
+width 10
+height 15
+\endcode
+And the program is called with these arguments:
+\verbatim
+--from config.ini --width 200
+\endverbatim
+In this case, we get:
+\code
+prop.find("width").asInt32()   // gives the int 200
+prop.find("height").asInt32()  // gives the int 15
+\endcode
+This can be handy to override one or two values in a long config file
+without needing to copy it and modify it.  One wrinkle remains -- how
+to override values that are in sections?  For example, if <tt>config.ini</tt>
+is:
+\code
+[SIZE]
+width 10
+height 15
+[APPEARANCE]
+color red
+\endcode
+Then calling the program with <tt>--width 200</tt> would simply add
+a new top-level <tt>width</tt> value without modifying the <tt>width</tt>
+in the <tt>SIZE</tt> section.  As of yarp 2.3.20, it is possible to
+use a nested notation in the command line, and call the program as:
+\verbatim
+--from config.ini --SIZE::width 200
+\endverbatim
+
+ *
+ */
+

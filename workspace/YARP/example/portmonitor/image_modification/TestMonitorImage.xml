@@ -1,0 +1,47 @@
+<!--
+  Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+  All rights reserved.
+
+  This software may be modified and distributed under the terms of the
+  BSD-3-Clause license. See the accompanying LICENSE file for details.
+-->
+
+<application>
+    <name>TestMonitorImage</name>
+    <version>1.0</version>
+    <authors>
+        <author email=""></author>
+    </authors>
+
+    <module>
+        <name>test_grabber</name>
+        <parameters>--width 120 --height 120 --mode line</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <deployer>yarpdev</deployer>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 100</parameters>
+        <node>localhost</node>
+        <prefix>/original</prefix>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 600</parameters>
+        <node>localhost</node>
+        <prefix>/modified</prefix>
+    </module>
+
+    <connection>
+        <from>/grabber</from>
+        <to>/original/yarpview/img:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/grabber</from>
+        <to>/modified/yarpview/img:i</to>
+        <protocol>udp+recv.portmonitor+type.lua+file.img_modifier</protocol>
+    </connection>
+</application>

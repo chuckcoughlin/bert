@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Copyright (C) 2006-2018 Istituto Italiano di Tecnologia (IIT)
+# Copyright (C) 2006-2010 RobotCub Consortium
+# All rights reserved.
+#
+# This software may be modified and distributed under the terms of the
+# BSD-3-Clause license. See the accompanying LICENSE file for details.
+
+echo " "
+echo Runs YARP network stuff again and again.
+echo Just for fun.
+echo " "
+echo Leaves count in repeats.txt
+
+sleep 4
+
+ct=1
+while true; do
+	./bin/harness_os verbose regression PortTest
+	./bin/harness_os regression PortTest
+	./bin/harness_os verbose regression PortCoreTest PortTest
+	./bin/harness_os regression PortCoreTest PortTest
+	./bin/harness_os verbose regression
+	./bin/harness_os regression
+	echo $ct >> repeats.txt
+	let ct=ct+1
+done

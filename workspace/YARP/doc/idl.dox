@@ -1,0 +1,10 @@
+/**
+ * @page idls Using IDLs
+ *
+
+\li \subpage idl_thrift
+\li \subpage idl_rosmsg
+
+ *
+ */
+

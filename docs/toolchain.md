@@ -17,6 +17,7 @@ In addition we discuss the core-architecture and interfaces between the main com
   * [Software Development](#software)
     * [Eclipse](#eclipse)
     * [Android Studio](#android)
+    * [Odroid Configuration](#odroid)
     * [Other Tools](#other)
   * [Software Architecture](#architecture)
 ***
@@ -42,16 +43,41 @@ The development host is an iMac running OSX High Sierra (10.13). The code reposi
 
 
 
-
 ### Eclipse <a id="eclipse"></a>
 [toc](#table-of-contents)
 
-*** General ***<br/>
+*** Installation *** <br/>
+_eclipse_ is an open-source Integrated Development Environment (IDE) for Java, C++ and Python. The available eclipse versions are listed at: http://www.eclipse.org/downloads/packages. At the time of this writing, the latest version is “2018-09”. Download the package “Eclipse IDE for Java Developers” and follow installation instructions.
+Start eclipse and point it to our initial workspace, ```workspace``` in the `git` repository. Add a ```/.metadata/``` entry in _.gitignore_ to avoid saving the workspace configuration in the repository.
+
+*** C++ *** <br/>
+To add C++ support, under <u>Help->Install New Software</u>, choose a the entry with "download.eclipse.operating" in the _work with_ selector. Then select "C++ Tools". Restart _eclipse_.
+
+*** Python *** <br/>
+PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
+```
+Name: PyDev
+Location: http://pydev.org/updates
+```
+
+
+*** Projects *** <br/>
+From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
+  - Build: _ant_ and other scripts for building and installing the project build projects onto the robot target.
+  - Core: C++ source for the application on the robot which runs the main event loop.
+  - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
+  - Lib: Third party open-source libraries. In general, this area does not include source.
+  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
+  - PyPot: _Poppy_ code for controlling the DYnamixel motors. This is strictly for viewing.
+  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled.
+
+When complete the project workspace should look like:
+
 
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
 
-*** General ***<br/>
+*** General *** <br/>
 The tablet application, ***BertOp*** is the Human Machine Interface (HMI) in normal operation.  Most importantly it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
 
 The control application is a standard Android application built using Android Studio 3.0. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
@@ -78,6 +104,16 @@ In order for the application to be transferred to the tablet from the build syst
 The tablet must also be set in "developer" mode. This is accomplished under Settings->About Tablet. Tap on "Build number" 7 times. (Yes, really). Under Settings->Developer options, enable USB debugging. Once the cable is connected a dialog should popup asking you to allow file transfer. (If this does not appear, you may have to fiddle with Developer options->USB Configuration).
 
 On the build system, configure Android Studio (Tools->Run>Edit Configurations) to target the build output directly to a USB device. After a successful build, merely select the "run" button to transfer the **apk** executable to the tablet.
+
+### Odroid Configuration <a id="odroid"></a>
+[toc](#table-of-contents)
+
+The following sections describe setup of the main processor on the robot, an Odroid running Linux.
+
+*** Java ***<br/>
+Download the latest Java 9 Development (JDK) version from http://www.oracle.com/technetwork/java/javase/downloads. Downloading the JDK allows Java to be compiled on-board if so needed.
+Download and run the installer executable. Install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
+
 
 ***
 ### Other Tools <a id="other"/>
