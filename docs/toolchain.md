@@ -39,13 +39,16 @@ The following sections describe modifications to the original parts.
 
 ***
 ## Software Development <a id="software"/>
-The development host is an iMac running OSX High Sierra (10.13). The code repository resides here. Code is cross-compiled and downloaded onto the robot target over a WiFi connection.
+The development host is an iMac running OSX High Sierra (10.13). The code repository resides here. As shown below, code is cross-compiled and downloaded onto the robot target over a WiFi connection.
+An auxiliary application resides on an Android tablet. It translates voice commands for control of the robot.
 
-
+![System Setup for Development](/images/development_layout.png)
+````                        Development - System Setup ````
 
 ### Eclipse <a id="eclipse"></a>
 [toc](#table-of-contents)
 
+<<<<<<< HEAD
 *** Installation *** <br/>
 _eclipse_ is an open-source Integrated Development Environment (IDE) for Java, C++ and Python. The available eclipse versions are listed at: http://www.eclipse.org/downloads/packages. At the time of this writing, the latest version is “2018-09”. Download the package “Eclipse IDE for Java Developers” and follow installation instructions.
 Start eclipse and point it to our initial workspace, ```workspace``` in the `git` repository. Add a ```/.metadata/``` entry in _.gitignore_ to avoid saving the workspace configuration in the repository.
@@ -73,32 +76,29 @@ From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Wo
 
 When complete the project workspace should look like:
 
+***General***<br/>
 
-### Android Studio <a id="android"></a>
-[toc](#table-of-contents)
-
-*** General *** <br/>
 The tablet application, ***BertOp*** is the Human Machine Interface (HMI) in normal operation.  Most importantly it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
 
 The control application is a standard Android application built using Android Studio 3.0. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
     ```ANDROID_HOME=~/Library/Androd/sdk```
 
-*** Voice Commands ***<br/>
+***Voice Commands***<br/>
 Voice commands are implemented purely via the Android tablet using the builtin speech-to-text features of Android. On the tablet, the ***BertOp*** app must be given microphone permissions.
 
 For production of speech from robot output,  text-to-speech can be configured in the settings under "Accessibility". Parameters include languages supported and characteristics of the speaker such as volume.
 
-*** Network Configuration ***<br/>
+***Network Configuration***<br/>
 Communication between the tablet and main robot processor is over Bluetooth. On the tablet's settings "Connections" page, make sure that bluetooth is enabled. Under "More Connection Settings", enable "Nearby device scanning". Network or device pairing selections are made from menus accessed from the main screen.
 
 Pairing with the robot must be completed before the ***BertOp*** application is started. Pairing may be initiated either from the robot or the tablet.
 
 Note that the emulator does not support Bluetooth and is, therefore, not available as a test tool.
 
-*** Persistent Storage ***<br/>
+***Persistent Storage***<br/>
 Configuration parameters, vocabulary and other data that are meant to be stored long-term reside in a SQLite database accessible through the tablet application.
 
-*** Transfer to Tablet ***<br/>
+***Transfer to Tablet***<br/>
 In order for the application to be transferred to the tablet from the build system, the tablet must be connected via USB. Use the same USB that is used to charge the device.
 
 The tablet must also be set in "developer" mode. This is accomplished under Settings->About Tablet. Tap on "Build number" 7 times. (Yes, really). Under Settings->Developer options, enable USB debugging. Once the cable is connected a dialog should popup asking you to allow file transfer. (If this does not appear, you may have to fiddle with Developer options->USB Configuration).
