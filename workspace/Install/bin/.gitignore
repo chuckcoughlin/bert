@@ -1,2 +1,7 @@
-/install.sh
+/.project
+/.version
+/AntLib/
+/build-joints.xml
+/common.xml
 /install-core.sh
+/pack200.properties
