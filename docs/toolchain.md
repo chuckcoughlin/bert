@@ -1,32 +1,32 @@
 # Architecture and Toolchain
 
-"Bert" is an amalgam of the [Poppy](https://www.poppy-project.org) platform from
-[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the Italian Institute of Technology [iCub Project](http://www.icub.org/bazaar.php). The main project repository is at: https://github.com/robotology/icub-main.
+```"Bert"``` is an amalgam of the [Poppy](https://www.poppy-project.org) platform from
+[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the Italian Institute of Technology [iCub Project](http://www.icub.org/bazaar.php) (main project repository: https://github.com/robotology/icub-main).
 
-<i>Poppy</i> is open-source format, both hardware and software. Version 1.0.2 source as at: https://github.com/poppy-project/poppy-humanoid. A full authors reference may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md. The repository contains full assembly instructions.
+The physical characteristics of "Bert" are derived from ``Poppy`` which is supplied in is open-source format, both hardware and software. Version 1.0.2 source as at: https://github.com/poppy-project/poppy-humanoid. A full authors reference may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md. This repository contains full assembly instructions.
 
-The operating software is based on <i>iCub</i> which is at its core uses Yet Another Robot Platform ((YARP)[http://www.yarp.it/]). We have simplified <i>YARP</i>, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
+The operating software is based on <i>iCub</i> which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have simplified <i>YARP</i>, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
 
-This document describes the tools used to develop "Bert" and summarizes the construction process, both hardware and software.
+This document describes the tools used to develop ```"Bert"``` and summarizes the construction process, both hardware and software.
 In addition we discuss the core-architecture and interfaces between the main components.
 
 ***
 ## Table of Contents <a id="table-of-contents"></a>
   * [Hardware](#hardware)
     * [Skeleton](#skeleton)
+  * [Configuration](#configuration)
+    * [Odroid](#odroid)
   * [Software Development](#software)
     * [Eclipse](#eclipse)
     * [Android Studio](#android)
-    * [Odroid Configuration](#odroid)
     * [Other Tools](#other)
   * [Software Architecture](#architecture)
 ***
-## Hardware <a id="hardware"/>
-### Processor <a id="processor"></a>
-[toc](#table-of-contents)
-Main processor is an Odroid.
+## Hardware <a id="hardware"></a>
+
 ### Skeleton <a id="skeleton"></a>
 [toc](#table-of-contents)
+
 The skeletal print-files provided by GenerationRobots are in .STL format. This form is printable directly, but not conducive to modification.
 
 
@@ -37,10 +37,22 @@ The following sections describe modifications to the original parts.
 #### Legs <a id="skeleton-legs"></a>
 #### Arms <a id="skeleton-arms"></a>
 
+## Configuration <a id="configuration"/>
+### Odroid <a id="odroid"></a>
+[toc](#table-of-contents)
+
+The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. A great Odroid setup guide may be found [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf). At the suggestion of the Odroid developers, we have selected BlackBox as the Linux distribution for its simplicity and its careful use of resources.
+
+*** Java ***<br/>
+Download the latest Java 11 Development (JDK) version from http://www.oracle.com/technetwork/java/javase/downloads. Downloading the JDK allows Java to be compiled on-board if so needed.
+Download and run the installer executable. Install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
+
+
 ***
 ## Software Development <a id="software"/>
-The development host is an iMac running OSX High Sierra (10.13). The code repository resides here. Code is cross-compiled and downloaded onto the robot target over a WiFi connection.
+The development host is an iMac running OSX Mohave (10.14). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection.
 
+The iMac requires the same Java version as the Odroid (Java 11). It is downloadable from [here](http://www.oracle.com/technetwork/java/javase/downloads). Make sure to download the JDK.
 
 
 ### Eclipse <a id="eclipse"></a>
@@ -50,8 +62,19 @@ The development host is an iMac running OSX High Sierra (10.13). The code reposi
 _eclipse_ is an open-source Integrated Development Environment (IDE) for Java, C++ and Python. The available eclipse versions are listed at: http://www.eclipse.org/downloads/packages. At the time of this writing, the latest version is “2018-09”. Download the package “Eclipse IDE for Java Developers” and follow installation instructions.
 Start eclipse and point it to our initial workspace, ```workspace``` in the `git` repository. Add a ```/.metadata/``` entry in _.gitignore_ to avoid saving the workspace configuration in the repository.
 
+Under ```Preferences->Java->Installed JREs``` make sure that the only available JRE is Java 11.
+
+*** Gradle *** <br/>
+Building the source code and installing on the Odroid is controlled by ``Gradle`` scripts and plugins launched from Bash scripts. These scripts can be executed either from ``eclipse`` or the command line. The Install project contains directories corresponding to the ``eclipse`` projects to be built. Each directory contains an ``install.sh`` script.
+
+Install ``Gradle`` via ``homebrew``.
+```
+   brew install gradle
+   brew install gradle-completion
+```
+
 *** C++ *** <br/>
-To add C++ support, under <u>Help->Install New Software</u>, choose a the entry with "download.eclipse.operating" in the _work with_ selector. Then select "C++ Tools". Restart _eclipse_.
+To add C++ support, under <u>Help->Install New Software</u>, in the _work with_ selector, enter http://download.eclipse.org/tools/cdt/releases/9.5. Then select "C++ Tools". Restart _eclipse_.
 
 *** Cross-compilation *** <br/>
 The C++ code must be compiled for the Odroid X64. Follow these steps to configure the compile for the target architecture.
@@ -67,7 +90,7 @@ Location: http://pydev.org/updates
 *** Projects *** <br/>
 From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
   - Core: C++ source for the application on the robot which runs the main event loop.
-  - Install: _ant_ and _bash_ scripts for building and installing the project build targets onto the robot.
+  - Install: _gradle_ scripts for building and installing the project build targets onto the robot. There are three separate projects: C/C++, Java and Configuration.
   - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
   - Lib: Third party open-source libraries. In general, this area does not include source.
   - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
@@ -107,16 +130,6 @@ In order for the application to be transferred to the tablet from the build syst
 The tablet must also be set in "developer" mode. This is accomplished under Settings->About Tablet. Tap on "Build number" 7 times. (Yes, really). Under Settings->Developer options, enable USB debugging. Once the cable is connected a dialog should popup asking you to allow file transfer. (If this does not appear, you may have to fiddle with Developer options->USB Configuration).
 
 On the build system, configure Android Studio (Tools->Run>Edit Configurations) to target the build output directly to a USB device. After a successful build, merely select the "run" button to transfer the **apk** executable to the tablet.
-
-### Odroid Configuration <a id="odroid"></a>
-[toc](#table-of-contents)
-
-The following sections describe setup of the main processor on the robot, an Odroid running Linux.
-
-*** Java ***<br/>
-Download the latest Java 9 Development (JDK) version from http://www.oracle.com/technetwork/java/javase/downloads. Downloading the JDK allows Java to be compiled on-board if so needed.
-Download and run the installer executable. Install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
-
 
 ***
 ### Other Tools <a id="other"/>
