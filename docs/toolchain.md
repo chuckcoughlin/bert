@@ -64,10 +64,25 @@ Start eclipse and point it to our initial workspace, ```workspace``` in the `git
 
 Under ```Preferences->Java->Installed JREs``` make sure that the only available JRE is Java 11.
 
-*** Gradle *** <br/>
-Building the source code and installing on the Odroid is controlled by ``Gradle`` scripts and plugins launched from Bash scripts. These scripts can be executed either from ``eclipse`` or the command line. The Install project contains directories corresponding to the ``eclipse`` projects to be built. Each directory contains an ``install.sh`` script.
+*** Projects *** <br/>
+From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
+  - Core: C++ source for the application on the robot which runs the main event loop.
+  - Install: _gradle_ scripts for building and installing the project build targets onto the robot. There are three separate projects: C/C++, Java and Configuration.
+  - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
+  - Lib: Third party open-source libraries. In general, this area does not include source.
+  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
+  - PyPot: _Poppy_ code for controlling the DYnamixel motors. This is strictly for viewing.
+  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled.
 
-Install ``Gradle`` via ``homebrew``.
+When complete the project workspace should look like:
+
+*** Build Scripts *** <br/>
+The _Install_ project contains directories corresponding to the ``eclipse`` projects to be built. Each directory contains an ``install.sh`` Bash script that compiles the project's source and installs the build results on the robot. These scripts can be executed either from ``eclipse`` or the command line.
+
+To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
+
+*** Gradle *** <br/>
+Building the source code and installing on the Odroid is controlled by ``Gradle`` scripts and plugins launched from the Bash scripts described above. Install ``Gradle`` via ``homebrew``.
 ```
    brew install gradle
    brew install gradle-completion
@@ -85,20 +100,6 @@ PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <
 Name: PyDev
 Location: http://pydev.org/updates
 ```
-
-
-*** Projects *** <br/>
-From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
-  - Core: C++ source for the application on the robot which runs the main event loop.
-  - Install: _gradle_ scripts for building and installing the project build targets onto the robot. There are three separate projects: C/C++, Java and Configuration.
-  - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
-  - Lib: Third party open-source libraries. In general, this area does not include source.
-  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
-  - PyPot: _Poppy_ code for controlling the DYnamixel motors. This is strictly for viewing.
-  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled.
-
-When complete the project workspace should look like:
-
 
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
