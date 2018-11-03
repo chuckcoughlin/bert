@@ -92,7 +92,8 @@ Building the source code and installing on the Odroid is controlled by ``Gradle`
 To add C++ support, under <u>Help->Install New Software</u>, in the _work with_ selector, enter http://download.eclipse.org/tools/cdt/releases/9.5. Then select "C++ Tools". Restart _eclipse_.
 
 *** Cross-compilation *** <br/>
-The C++ code must be compiled for the Odroid X64. Follow these steps to configure the compile for the target architecture.
+The C++ code must be compiled for the Odroid X64. After downloading the [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), follow the steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1). Note that the ``eclipse`` compiles are simply for syntax checking and do not utilize cross compilation.
+
 
 *** Python *** <br/>
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:

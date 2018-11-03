@@ -1,5 +1,6 @@
 /*
  * This gradle file builds and installs the "core" C++ code.
+ * gcc -march=armv8-a+crc
  */
 
 plugins {
@@ -7,8 +8,20 @@ plugins {
 }
 
 model {
+    toolChains {
+        gcc(Gcc) {
+            path "/usr/bin/gcc"
+        }
+    }
+	platforms {
+        arm {
+            architecture "arm64"
+			operatingSystem "linux"
+        }
+	}
     components {
         main(NativeExecutableSpec) {
+			targetPlatform "arm"
             sources {
                 cpp {
                     source {
