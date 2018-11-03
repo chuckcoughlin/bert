@@ -1,0 +1,30 @@
+/*
+ * This gradle file builds and installs the "core" C++ code.
+ */
+
+plugins {
+	id 'cpp'
+}
+
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDir "../../Core"
+                        include "**/*.cpp"
+                    }
+                    }
+                }
+            }
+        }
+    }
+
+
+/*
+ * Copy the executable file to the robot
+ */
+task install {
+	project.logger.info( "Installing ...")
+}
