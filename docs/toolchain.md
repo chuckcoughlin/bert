@@ -1,13 +1,14 @@
 # Architecture and Toolchain
 
-```"Bert"``` is an amalgam of the [Poppy](https://www.poppy-project.org) platform from
-[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the Italian Institute of Technology [iCub Project](http://www.icub.org/bazaar.php) (main project repository: https://github.com/robotology/icub-main).
+"Bert" is an amalgam of the [Poppy](https://www.poppy-project.org) platform from
+[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it).
 
-The physical characteristics of "Bert" are derived from ``Poppy`` which is supplied in is open-source format, both hardware and software. Version 1.0.2 source as at: https://github.com/poppy-project/poppy-humanoid. A full authors reference may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md. This repository contains full assembly instructions.
+Bert's physical characteristics are derived from *Poppy* which is supplied in open-source format, both hardware and software. Version 1.0.2 source as at: https://github.com/poppy-project/poppy-humanoid. The repository contains full assembly instructions. The project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
+robotic platform for science, art and education"](https://hal.inria.fr/tel-01104641v1/document) by Matthieu Lapeyre. A full list of project authors may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md.
 
-The operating software is based on <i>iCub</i> which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have simplified <i>YARP</i>, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
+The operating software is based on <i>iCub</i> (main project repository: https://github.com/robotology/icub-main) which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have simplified <i>YARP</i>, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
 
-This document describes the tools used to develop ```"Bert"``` and summarizes the construction process, both hardware and software.
+This document describes the tools used to develop "Bert" and summarizes the construction process, both hardware and software.
 In addition we discuss the core-architecture and interfaces between the main components.
 
 ***
@@ -28,6 +29,9 @@ In addition we discuss the core-architecture and interfaces between the main com
 [toc](#table-of-contents)
 
 The skeletal print-files provided by GenerationRobots are in .STL format. This form is printable directly, but not conducive to modification.
+
+![Bert Skeleton](/images/printed_parts.jpg)
+```                  3D Printed Skeleton     ```
 
 
 The following sections describe modifications to the original parts.

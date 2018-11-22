@@ -9,8 +9,12 @@ plugins {
 
 model {
     toolChains {
-        gcc(Gcc) {
-            path "/usr/bin/gcc"
+		gcc(Gcc) {
+  			getCCompiler().executable = 'aarch64-linux-gnu-gcc'
+  			getCppCompiler().executable = 'aarch64-linux-gnu-g++'
+  			getLinker().executable = 'aarch64-linux-gnu-ld'
+  			getAssembler().executable = 'aarch64-linux-gnu-as'
+        	path "/usr/bin/gcc"
         }
     }
 	platforms {
