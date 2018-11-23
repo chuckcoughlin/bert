@@ -34,18 +34,63 @@ The skeletal print-files provided by GenerationRobots are in .STL format. This f
 ```                  3D Printed Skeleton     ```
 
 
-The following sections describe modifications to the original parts.
+The following sections contain assembly links and describe modifications to the original parts, if any.
 
-#### Head <a id="skeleton-head"></a>
-#### Torso <a id="skeleton-torso"></a>
+
 #### Legs <a id="skeleton-legs"></a>
 #### Arms <a id="skeleton-arms"></a>
+#### Torso <a id="skeleton-torso"></a>
+#### Head <a id="skeleton-head"></a>
 
 ## Configuration <a id="configuration"/>
 ### Odroid <a id="odroid"></a>
 [toc](#table-of-contents)
 
-The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. A great Odroid setup guide may be found [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf). At the suggestion of the Odroid developers, we have selected BlackBox as the Linux distribution for its simplicity and its careful use of resources.
+*** Initial Configuration ***<br/>
+The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. A great Odroid setup guide may be found [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf). We have used the available USB slots for Keyboard/Mouse, WiFi and Bluetooth dongles and do not require a USB extension board (which wouldn't fit in the head anyway).
+
+The filesystem appeared to be properly configured on initial startup. Create a user. Add it to the **sudo** group.
+
+Set the timezone:
+```
+  sudo dpkg-reconfigure tzdata
+```
+
+Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Under the Preferences menu, Network Connections, edit the WiFi connection that is live. On the IPV4 Settings tab, change the Method: to "Manual". Add a static address, e.g. 192.168.1.20; 255.255.255.0; 192.168.1.1. Restart the machine. When running again,
+make sure you can ping the new address from a different machine.
+
+Set the hostname to "bert":
+```
+  sudo hostnamectl set-hostname bert
+```
+
+Make sure these lines exist in `/etc/ssh/sshd_config`.
+```
+RSAAuthentication yes
+PubkeyAuthentication yes
+AuthorizedKeysFile %h/.ssh/authorized_keys
+```
+
+Next, on each remote, generate SSH keys (if not already done).
+```
+  ssh-keygen  (use default location, no password)
+```
+Also on each remote system, add to `/etc/hosts`:
+```
+  192.168.1.20 bert
+```
+Then, also on each remote system (appropriately replacing the username),
+```
+  cd ~/.ssh
+  ssh-copy-id -i id_rsa.pub chuckc@bert
+```
+
+
+To shutdown,
+```
+  sudo shutdown -h now
+```
+Wait until the blue LED has gone out, then unplug.
 
 *** Java ***<br/>
 Download the latest Java 11 Development (JDK) version from http://www.oracle.com/technetwork/java/javase/downloads. Downloading the JDK allows Java to be compiled on-board if so needed.
