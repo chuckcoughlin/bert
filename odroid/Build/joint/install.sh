@@ -3,8 +3,8 @@
 # Make current directory the project proxy area.
 # Script can be executed either from the top level or proxy directory
 export PATH=$PATH:/usr/local/bin
-if [ -d joint ]
+if [ -d Joint ]
 then
-	cd joint
+	cd Joint
 fi
 gradle -i clean classes jar install

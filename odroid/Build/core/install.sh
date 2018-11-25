@@ -3,8 +3,8 @@
 # Make current directory the project proxy area.
 # Script can be executed either from the top level or proxy directory
 export PATH=$PATH:/usr/local/bin
-if [ -d core ]
+if [ -d Core ]
 then
-	cd core
+	cd Core
 fi
 gradle -i clean assemble install

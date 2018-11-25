@@ -15,7 +15,8 @@ In addition we discuss the core-architecture and interfaces between the main com
 ## Table of Contents <a id="table-of-contents"></a>
   * [Hardware](#hardware)
     * [Skeleton](#skeleton)
-  * [Configuration](#configuration)
+    * [Motors](#motors)
+  * [System Setup](#system)
     * [Odroid](#odroid)
   * [Software Development](#software)
     * [Eclipse](#eclipse)
@@ -42,14 +43,22 @@ The following sections contain assembly links and describe modifications to the 
 #### Torso <a id="skeleton-torso"></a>
 #### Head <a id="skeleton-head"></a>
 
-## Configuration <a id="configuration"/>
+### Joints <a id="joints"></a>
+[toc](#table-of-contents)
+
+Once [pypot](#pypot) is installed on the Odroid then the *herborist* application is available to configure and address the Dynamixel motors.
+```
+python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist/herborist.py
+```
+
+## System Setup <a id="system"/>
 ### Odroid <a id="odroid"></a>
 [toc](#table-of-contents)
 
 *** Initial Configuration ***<br/>
 The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. A great Odroid setup guide may be found [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf). We have used the available USB slots for Keyboard/Mouse, WiFi and Bluetooth dongles and do not require a USB extension board (which wouldn't fit in the head anyway).
 
-The filesystem appeared to be properly configured on initial startup. Create a user. Add it to the **sudo** group.
+The filesystem appeared to be properly configured on initial startup. Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
 
 Set the timezone:
 ```
@@ -59,6 +68,12 @@ Set the timezone:
 Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Under the Preferences menu, Network Connections, edit the WiFi connection that is live. On the IPV4 Settings tab, change the Method: to "Manual". Add a static address, e.g. 192.168.1.20; 255.255.255.0; 192.168.1.1. Restart the machine. When running again,
 make sure you can ping the new address from a different machine.
 
+In the same dialog, set Domain Name Servers, comma-separated. These two will work, but there are others:
+```
+  8.8.8.8
+  8.8.4.4
+```
+
 Set the hostname to "bert":
 ```
   sudo hostnamectl set-hostname bert
@@ -66,9 +81,8 @@ Set the hostname to "bert":
 
 Make sure these lines exist in `/etc/ssh/sshd_config`.
 ```
-RSAAuthentication yes
 PubkeyAuthentication yes
-AuthorizedKeysFile %h/.ssh/authorized_keys
+AuthorizedKeysFile .ssh/authorized_keys
 ```
 
 Next, on each remote, generate SSH keys (if not already done).
@@ -85,6 +99,16 @@ Then, also on each remote system (appropriately replacing the username),
   ssh-copy-id -i id_rsa.pub chuckc@bert
 ```
 
+Install some missing tools and update the system. We have found that the *apt* commands repeatedly throw our wi-fi router off-line, so these commands were all executed using a direct ethernet connection.
+```
+  sudo apt install rsync
+  sudo apt install firefox
+  sudo apt-get update
+  sudo apt-get upgrade -y
+  sudo apt-get autoremove -y
+  sudo apt-get autoclean -y
+```
+The reason for ``firefox`` is that we were not able to properly configure the proxy server in ``chromium``, the default browser.
 
 To shutdown,
 ```
@@ -93,16 +117,28 @@ To shutdown,
 Wait until the blue LED has gone out, then unplug.
 
 *** Java ***<br/>
-Download the latest Java 11 Development (JDK) version from http://www.oracle.com/technetwork/java/javase/downloads. Downloading the JDK allows Java to be compiled on-board if so needed.
-Download and run the installer executable. Install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
+Download the latest Java 11 Development (JDK) version using
+```
+  sudo apt install openjdk-11-jdk-headless
+```
+Installing the JDK allows us to compile Java on the Odroid, if necessary.
 
+*** PyPot <a id="pypot"></a>***<br/>
+*PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
+```
+  sudo apt-get install python-pip
+  sudo apt-get install python-numpy
+  sudo apt-get install python-scipy
+  sudo apt-get install python-matplotlib
+  sudo apt-get install python-qt4
+  sudo pip install pypot
+```
 
 ***
 ## Software Development <a id="software"/>
 The development host is an iMac running OSX Mohave (10.14). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection.
 
-The iMac requires the same Java version as the Odroid (Java 11). It is downloadable from [here](http://www.oracle.com/technetwork/java/javase/downloads). Make sure to download the JDK.
-
+The iMac requires the same Java version as the Odroid (Java 11). It is downloadable from [here](http://www.oracle.com/technetwork/java/javase/downloads). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
 
 ### Eclipse <a id="eclipse"></a>
 [toc](#table-of-contents)
@@ -124,6 +160,8 @@ From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Wo
   - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled.
 
 When complete the project workspace should look like:
+![Eclipse Setup](/images/eclipse_setup.png)
+```                  Eclipse Projects     ```
 
 *** Build Scripts *** <br/>
 The _Install_ project contains directories corresponding to the ``eclipse`` projects to be built. Each directory contains an ``install.sh`` Bash script that compiles the project's source and installs the build results on the robot. These scripts can be executed either from ``eclipse`` or the command line.
@@ -193,3 +231,18 @@ Electrical circuits are constructed using [iCircuit](https://itunes.apple.com/us
 
 ***
 ## Software Architecture <a id="architecture"/>
+
+*** Why Java?*** <br/>
+In the "Poppy" [thesis](https://hal.inria.fr/tel-01104641v1/document) (section 7.4.1 and following), the author considers use of the Robot Operating System (ROS) for the core software and concludes that it is overly complex and inefficient. This coincides with my own experience with [sarah-bella](https://github.com/chuckcoughlin/sarah-bella). Moreover, I discovered that, at least with Android, ROS messaging was not reliable. Messages were dropped under high load, a situation not acceptable for control applications.
+
+This same author noted that the "Pypot" software developed in Python for Poppy had severe performance limitations that placed strict limits on its design.
+
+While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) used by the "iCub" project seemed closest to my perceived needs. It features an event loop that can be used to trigger both real-time and long-running operations. Ancillary code can be written in a variety of languages, including Java.
+
+Why did I select Java for this code when the iCub project chose Python?
+  * Familiarity - over 2 decades of working with Java
+  * Debugging - problems are discovered by the compiler rather than run-time
+  * Performance - Java executes an order of magnitude faster than Python
+  * Threading - the Java threading model is more straightforward (IMHO)
+
+I'll leave the core event loop in C++.
