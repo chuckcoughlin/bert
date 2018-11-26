@@ -1,7 +1,9 @@
 #!/bin/bash
 # Working directory is the project directory (Build).
 # Script can be executed either from there or pypot sub-directory
-# This is a bit superfluous as there is a pypot installer using apt-get.
+# Copy source code to the robot.
+# This is a bit superfluous as there is a pypot installer using 
+# apt-get that handles all the dependencies.
 export PATH=$PATH:/usr/local/bin
 if [ `basename ${PWD}` = "pypot" ]
 then
