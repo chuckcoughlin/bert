@@ -1,0 +1,51 @@
+/*
+ * This gradle file builds and installs the "Bert" java code.
+ */
+plugins {
+	id 'java'
+	id 'application'
+}
+
+
+mainClassName = 'chuckcoughlin.bert.main.Bert'
+sourceCompatibility = '1.11'
+targetCompatibility = '1.11'
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['../../../Bert/src']
+		}
+	}
+}
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+            '--module-path', '../../../Archive/mods'
+        ]
+        classpath = files()
+    }
+}
+
+
+dependencies {
+	compile project(':logging')
+    compile fileTree(include: ['*.jar'], dir: '../../Archive/mods')
+}
+
+jar{
+	doFirst {
+		from configurations.compile.collect{ zipTree it }
+		manifest.attributes "Main-Class": "chuckcoughlin.bert.main.Bert" 
+	}
+}
+/*
+ * Copy the jar file to the robot
+ */
+task install( type:Exec) {
+	project.logger.info( "Installing ...")
+	workingDir '../../Build/libs'
+	commandLine 'rsync Bert.jar bert:/usr/local/robot'
+
+}

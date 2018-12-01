@@ -8,13 +8,17 @@ plugins {
 }
 
 model {
+    buildTypes {
+        debug
+        release
+    }
     toolChains {
-		gcc(Gcc) {
-  			getCCompiler().executable = 'aarch64-linux-gnu-gcc'
-  			getCppCompiler().executable = 'aarch64-linux-gnu-g++'
-  			getLinker().executable = 'aarch64-linux-gnu-ld'
-  			getAssembler().executable = 'aarch64-linux-gnu-as'
-        	path "/usr/bin/gcc"
+		gcc(gcc) {
+		  	getCCompiler().executable = 'arm-none-eabi-gcc'
+  			getCppCompiler().executable = 'arm-none-eabi-c++'
+  			getLinker().executable = 'arm-none-eabi-ld'
+  			getAssembler().executable = 'arm-none-eabi-as'
+        	path "/Users/chuckc/opt/gcc-arm-none-eabi-7-2018-q2/bin"
         }
     }
 	platforms {

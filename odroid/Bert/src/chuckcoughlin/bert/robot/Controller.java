@@ -11,6 +11,5 @@ import java.util.List;
  *  This interface describes a controller that holds a  list of motors.
  */
 public interface Controller  {
-
-	List getMotors();
+	List<Motor> getMotors();
 }

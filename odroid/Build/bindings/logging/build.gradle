@@ -1,0 +1,42 @@
+/*
+ * This gradle file creates a jar file containing the common logger.
+ */
+plugins {
+	id 'java'
+}
+sourceCompatibility = '1.11'
+targetCompatibility = '1.11'
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['../../../Logging/src']
+		}
+	}
+}
+
+
+
+dependencies {
+    // This dependency is found on compile classpath of this component and consumers.
+    compile fileTree(include: ['*.jar'], dir: '../../../Archive/mods')
+}
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+            '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}
+
+jar{
+	from configurations.compile.collect{ zipTree it }
+	destinationDir = file("../../../Archive/mods")
+}
+
+task install (type:Copy) {
+    from 'build/libs'
+    into '../../../Archive/mods'
+} 

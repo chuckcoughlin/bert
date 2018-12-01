@@ -1,18 +1,18 @@
 /**
- *   (c) 2014-2015  ILS Automation. All rights reserved. 
+ * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * MIT License.
  */
 package chuckcoughlin.bert.common;
 
 
 /**
- * This enumeration class represents the permissible states of a diagram.
+ * Recognized types of Dynamixel motors (minus dashes in name)
  */
 public enum DynamixelType
 {
-            ACTIVE,
-            DISABLED,
-            ISOLATED,
-            UNSET
+            AX12,
+            MX28,
+            MX64
             ;
           
  /**
