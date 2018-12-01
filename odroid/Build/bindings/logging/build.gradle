@@ -22,6 +22,10 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: '../../../Archive/mods')
 }
 
+clean {
+	delete '../../../Archive/mods/logging.jar'
+}
+
 compileJava {
     doFirst {
         options.compilerArgs = [
@@ -32,8 +36,8 @@ compileJava {
 }
 
 jar{
-	from configurations.compile.collect{ zipTree it }
 	destinationDir = file("../../../Archive/mods")
+	baseName='logging'
 }
 
 task install (type:Copy) {

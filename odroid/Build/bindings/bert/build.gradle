@@ -22,7 +22,7 @@ sourceSets {
 compileJava {
     doFirst {
         options.compilerArgs = [
-            '--module-path', '../../../Archive/mods'
+            '--module-path', classpath.asPath,
         ]
         classpath = files()
     }
@@ -31,7 +31,7 @@ compileJava {
 
 dependencies {
 	compile project(':logging')
-    compile fileTree(include: ['*.jar'], dir: '../../Archive/mods')
+    compile fileTree(include: ['*.jar'], dir: '../../../Archive/mods')
 }
 
 jar{

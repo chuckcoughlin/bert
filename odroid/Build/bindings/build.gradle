@@ -2,6 +2,7 @@
  * Top level gradle build file for 'bindings'
  */
 allprojects {
+
 }
 
 subprojects {
@@ -9,7 +10,4 @@ subprojects {
 	repositories {
     	flatDir { dirs '../../../Archive/mods' } // Get all external jars from our private collection
 	}
-    tasks.withType(Jar) {
-        destinationDir = file("$rootDir/build/mods")
-    }
 }
