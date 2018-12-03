@@ -33,5 +33,5 @@ clean:
 	@ $(RM) -fr $(PROG) $(OBJS)
 	
 install:
-	cd $(BUILD_DIR); rsync $(PROG) bert:/usr/local/robot
+	cd $(BUILD_DIR); rsync -a $(PROG) bert:/usr/local/robot
 	@echo "Installation complete."

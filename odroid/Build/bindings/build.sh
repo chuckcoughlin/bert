@@ -9,4 +9,4 @@ if [ -d bindings ]
 then
 	cd bindings
 fi
-gradle clean classes jar install --exclude-task processResources
+gradle clean classes jar install --exclude-task processResources --stacktrace

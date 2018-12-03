@@ -42,10 +42,12 @@ jar{
 }
 /*
  * Copy the jar file to the robot
+ * The default working directory is: Build/bindings/bert
+ * commandLine "rsync -a bert.jar bert:/usr/local/robot"
  */
 task install( type:Exec) {
 	project.logger.info( "Installing ...")
-	workingDir '../../Build/libs'
-	commandLine 'rsync Bert.jar bert:/usr/local/robot'
-
+	workingDir "build/libs"
+	args "-a","bert.jar","bert:/usr/local/robot"
+	executable "rsync"
 }
