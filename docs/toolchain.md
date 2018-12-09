@@ -8,7 +8,7 @@ robotic platform for science, art and education"](https://hal.inria.fr/tel-01104
 
 The control software is patterned on <i>iCub</i> (main project repository: https://github.com/robotology/icub-main) which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have greatly simplified the robot control converting it from C++ to Java, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
 
-![poppy](/images/Poppy.png)
+![poppy](/images/poppy.png)
 ````                        Poppy -  Generation Robots````
 
 This document describes the tools used to develop "Bert" and summarizes the construction process, both hardware and software.
