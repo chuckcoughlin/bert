@@ -259,7 +259,7 @@ Why did I select Java for this code when the iCub project chose Python?
   * Cross-compiling - difficulties creating Odroid executables preclude use of C++.
 
   Here is a diagram that shows the major software components.
-  ![Major Software Components](/images/software_components.svg)
+  ![Major Software Components](/images/software_components.png)
   ````                        Development - System Architecture ````
 
   ## Failures <a id="failures"/>
