@@ -8,6 +8,9 @@ robotic platform for science, art and education"](https://hal.inria.fr/tel-01104
 
 The operating software is based on <i>iCub</i> (main project repository: https://github.com/robotology/icub-main) which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have simplified <i>YARP</i>, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
 
+![poppy](/images/Poppy.png)
+````                        Poppy -  Generation Robots````
+
 This document describes the tools used to develop "Bert" and summarizes the construction process, both hardware and software.
 In addition we discuss the core-architecture and interfaces between the main components.
 
@@ -102,6 +105,7 @@ Then, also on each remote system (appropriately replacing the username),
 Install some missing tools and update the system. We have found that the *apt* commands repeatedly throw our wi-fi router off-line, so these commands were all executed using a direct ethernet connection.
 ```
   sudo apt install rsync
+  sudo apt install vsftpd
   sudo apt install firefox
   sudo apt-get update
   sudo apt-get upgrade -y
@@ -136,7 +140,9 @@ Installing the JDK allows us to compile Java on the Odroid, if necessary.
 
 ***
 ## Software Development <a id="software"/>
-The development host is an iMac running OSX Mohave (10.14). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection.
+The development host is an iMac running OSX Mohave (10.14). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection. Here is a diagram that summarizes the flow of the build and major tools used:
+  ![Build Plan](/images/development_layoutsvg)
+  ````                        Development Tools ````
 
 The iMac requires the same Java version as the Odroid (Java 11). It is downloadable from [here](http://www.oracle.com/technetwork/java/javase/downloads). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
 
@@ -156,20 +162,22 @@ From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Wo
   - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
   - Lib: Third party open-source libraries. In general, this area does not include source.
   - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
-  - PyPot: _Poppy_ code for controlling the DYnamixel motors. This is strictly for viewing.
+  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is strictly for viewing.
   - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled.
 
 When complete the project workspace should look like:
 ![Eclipse Setup](/images/eclipse_setup.png)
 ```                  Eclipse Projects     ```
 
+Each java module has its own _eclipse_ project.
+
 *** Build Scripts *** <br/>
-The _Install_ project contains directories corresponding to the ``eclipse`` projects to be built. Each directory contains an ``install.sh`` Bash script that compiles the project's source and installs the build results on the robot. These scripts can be executed either from ``eclipse`` or the command line.
+The _Build_ project contains directories corresponding to the ``eclipse`` projects to be built. Each directory contains an ``build.sh`` Bash script (or equivalent) that compiles the project's source and installs the build results on the robot. These scripts can be executed either from ``eclipse`` or the command line.
 
 To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
 
 *** Gradle *** <br/>
-Building the source code and installing on the Odroid is controlled by ``Gradle`` scripts and plugins launched from the Bash scripts described above. Install ``Gradle`` via ``homebrew``.
+Building the Java source code and installing on the Odroid is controlled by ``Gradle`` scripts and plugins launched from the Bash scripts described above. Install ``Gradle`` via ``homebrew``.
 ```
    brew install gradle
    brew install gradle-completion
@@ -179,7 +187,7 @@ Building the source code and installing on the Odroid is controlled by ``Gradle`
 To add C++ support, under <u>Help->Install New Software</u>, in the _work with_ selector, enter http://download.eclipse.org/tools/cdt/releases/9.5. Then select "C++ Tools". Restart _eclipse_.
 
 *** Cross-compilation *** <br/>
-The C++ code must be compiled for the Odroid X64. After downloading the [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), follow the steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1). Note that the ``eclipse`` compiles are simply for syntax checking and do not utilize cross compilation.
+The C++ code must be compiled for the Odroid X64. After downloading the [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), follow the steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1). Note that the ``eclipse`` compiles are simply for syntax checking and do not utilize cross compilation. I totally failed to configure _gradle_ for cross compilation, so the _Build_ project area relies on _makefiles_.
 
 
 *** Python *** <br/>
@@ -245,4 +253,6 @@ Why did I select Java for this code when the iCub project chose Python?
   * Performance - Java executes an order of magnitude faster than Python
   * Threading - the Java threading model is more straightforward (IMHO)
 
-I'll leave the core event loop in C++.
+  Here is a diagram that shows the major software components.
+  ![Major Software Components](/images/software_components.svg)
+  ````                        Development - System Architecture ````
