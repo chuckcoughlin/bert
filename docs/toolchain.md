@@ -3,10 +3,10 @@
 "Bert" is an amalgam of the [Poppy](https://www.poppy-project.org) platform from
 [GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it).
 
-Bert's physical characteristics are derived from *Poppy* which is supplied in open-source format, both hardware and software. Version 1.0.2 source as at: https://github.com/poppy-project/poppy-humanoid. The repository contains full assembly instructions. The project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
+Bert's physical characteristics are derived from *Poppy* which is supplied in open-source format, both hardware and software. Version 1.0.2 source is at: https://github.com/poppy-project/poppy-humanoid. The repository contains full assembly instructions. The project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
 robotic platform for science, art and education"](https://hal.inria.fr/tel-01104641v1/document) by Matthieu Lapeyre. A full list of project authors may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md.
 
-The operating software is based on <i>iCub</i> (main project repository: https://github.com/robotology/icub-main) which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have simplified <i>YARP</i>, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
+The control software is patterned on <i>iCub</i> (main project repository: https://github.com/robotology/icub-main) which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have greatly simplified the robot control converting it from C++ to Java, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
 
 ![poppy](/images/Poppy.png)
 ````                        Poppy -  Generation Robots````
@@ -26,6 +26,7 @@ In addition we discuss the core-architecture and interfaces between the main com
     * [Android Studio](#android)
     * [Other Tools](#other)
   * [Software Architecture](#architecture)
+  * [Failures](#failured)
 ***
 ## Hardware <a id="hardware"></a>
 
@@ -59,9 +60,17 @@ python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist/herborist.py
 [toc](#table-of-contents)
 
 *** Initial Configuration ***<br/>
-The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. A great Odroid setup guide may be found [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf). We have used the available USB slots for Keyboard/Mouse, WiFi and Bluetooth dongles and do not require a USB extension board (which wouldn't fit in the head anyway).
+The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. The instructions below assume an initial board setup as described  [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf).
 
-The filesystem appeared to be properly configured on initial startup. Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
+A USB extension board is required as slots are used for:
+ * Keyboard/Mouse
+ * WiFi
+ * Bluetooth
+ * USB2AX (2)
+
+The filesystem appeared to be properly configured on initial startup. There was no need to extend the root partition.
+
+Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
 
 Set the timezone:
 ```
@@ -107,6 +116,7 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install rsync
   sudo apt install vsftpd
   sudo apt install firefox
+  sudo apt install vsftp
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
@@ -144,6 +154,8 @@ The development host is an iMac running OSX Mohave (10.14). The code repository 
   ![Build Plan](/images/development_layoutsvg)
   ````                        Development Tools ````
 
+Code is compiled and downloaded onto the robot target over a WiFi connection using *rsync*.
+
 The iMac requires the same Java version as the Odroid (Java 11). It is downloadable from [here](http://www.oracle.com/technetwork/java/javase/downloads). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
 
 ### Eclipse <a id="eclipse"></a>
@@ -158,7 +170,7 @@ Under ```Preferences->Java->Installed JREs``` make sure that the only available 
 *** Projects *** <br/>
 From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
   - Core: C++ source for the application on the robot which runs the main event loop.
-  - Install: _gradle_ scripts for building and installing the project build targets onto the robot. There are three separate projects: C/C++, Java and Configuration.
+  - Build: _ant_ scripts for compiling and installing the project build products onto the robot. There are separate scripts for the CommandLoop, Robot and Configuration projects.
   - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
   - Lib: Third party open-source libraries. In general, this area does not include source.
   - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
@@ -172,23 +184,14 @@ When complete the project workspace should look like:
 Each java module has its own _eclipse_ project.
 
 *** Build Scripts *** <br/>
-The _Build_ project contains directories corresponding to the ``eclipse`` projects to be built. Each directory contains an ``build.sh`` Bash script (or equivalent) that compiles the project's source and installs the build results on the robot. These scripts can be executed either from ``eclipse`` or the command line.
+Every project has a *build.xml* *ant* script that test-compiles code within the project. The _Build_ project contains additional *ant* scripts that build the main executables and copy them to the robot. These scripts are designed to be executed directly from ``eclipse``.
 
-To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
-
-*** Gradle *** <br/>
-Building the Java source code and installing on the Odroid is controlled by ``Gradle`` scripts and plugins launched from the Bash scripts described above. Install ``Gradle`` via ``homebrew``.
-```
-   brew install gradle
-   brew install gradle-completion
-```
+In addition to the *ant* scripts, there are a few shell scripts. To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
 
 *** C++ *** <br/>
 To add C++ support, under <u>Help->Install New Software</u>, in the _work with_ selector, enter http://download.eclipse.org/tools/cdt/releases/9.5. Then select "C++ Tools". Restart _eclipse_.
 
-*** Cross-compilation *** <br/>
-The C++ code must be compiled for the Odroid X64. After downloading the [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), follow the steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1). Note that the ``eclipse`` compiles are simply for syntax checking and do not utilize cross compilation. I totally failed to configure _gradle_ for cross compilation, so the _Build_ project area relies on _makefiles_.
-
+We use C++ support in browsing the original *iCub* and *YARP* code.
 
 *** Python *** <br/>
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
@@ -196,6 +199,7 @@ PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <
 Name: PyDev
 Location: http://pydev.org/updates
 ```
+We use PyDev to browse the original *Poppy* and *iCub* code.
 
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
@@ -245,14 +249,29 @@ In the "Poppy" [thesis](https://hal.inria.fr/tel-01104641v1/document) (section 7
 
 This same author noted that the "Pypot" software developed in Python for Poppy had severe performance limitations that placed strict limits on its design.
 
-While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) used by the "iCub" project seemed closest to my perceived needs. It features an event loop that can be used to trigger both real-time and long-running operations. Ancillary code can be written in a variety of languages, including Java.
+While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) used by the "iCub" project seemed closest to my perceived needs. It is written in C++ and is loaded with features that I'll never use. Given my failure to create a cross-compilation environment, I've decided to let a simplified *YARP* serve as an inspiration for a Java-based solution. For simplicity, the ancillary code will be Java also.
 
 Why did I select Java for this code when the iCub project chose Python?
   * Familiarity - over 2 decades of working with Java
   * Debugging - problems are discovered by the compiler rather than run-time
   * Performance - Java executes an order of magnitude faster than Python
   * Threading - the Java threading model is more straightforward (IMHO)
+  * Cross-compiling - difficulties creating Odroid executables preclude use of C++.
 
   Here is a diagram that shows the major software components.
   ![Major Software Components](/images/software_components.svg)
   ````                        Development - System Architecture ````
+
+  ## Failures <a id="failures"/>
+  This section documents some ideas that were tried and abandoned.
+
+  *** Gradle *** <br/>
+  ``Gradle`` is a modern tool for building software of several flavors.  To install ``Gradle`` use ``homebrew``:
+  ```
+     brew install gradle
+     brew install gradle-completion
+  ```
+  I totally failed to create a C++ build script for cross-compilation (Mac to Odroid). Moreover after nearly a week of trying, I gave up on the Java building also. I was unable to create an environment to conveniently share re-usable code among separate top level targets. I'm sure it can be done, I just lost interest.
+
+  *** Cross-compilation *** <br/>
+  On the build machine, I downloaded [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), then followed the installation steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1), Using a *makefile* and these tools, I compiled C++ code for the Odroid X64. It had a bad format and didn't execute. I gave up on C++ in favor of Java for the core control loop.
