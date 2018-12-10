@@ -1,27 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="bert.install.bert" default="all" basedir=".">
+<project name="bert.install" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="jar.dir" value="${basedir}/lib" />
-	<property name="jar.name" value="core.jar" />
+	<property name="jar.name" value="bert.jar" />
 	<property name="build.dir" value="bin" />
-	<property name="src.dir" value="${basedir}/../Core/src" />
-	<!-- CAREFUL: Pull out of official Inductive automation jars first.  -->
-	<path id="bert-modulepath">
-		<fileset dir="${archive.dir}">
-			<include name="*.jar"/>
-		</fileset>
-		 <fileset dir="${jar.dir}">
-		    <include name="*.jar"/>
-		  </fileset>
-	   <pathelement path="${build.dir}"/>
-	</path>
-	
+	<property name="src.dir" value="${basedir}/../Bert/src" />
+
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean, build, jar, deploy" />
 	
 	<!-- Remove the existing target -->
 	<target name="clean" description="Remove existing build products">
-		<mkdir dir="${jar.dir}"/>
 		<mkdir dir="${build.dir}"/>
 		<delete file="${jar.dir}/${jar.name}" />
         <delete>
@@ -34,14 +23,13 @@
 	
 	<!-- Compile the library -->
 	<target name="build" description="Compile the source">
-		<mkdir dir="${build.dir}/images"/>
-		<javac destdir="${build.dir}"  source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
-		     <src path="${src.dir}"/>
-		     <classpath refid="ils-classpath"/>
-		</javac>
-		<copy todir="${build.dir}/images" >
-			<fileset dir="${src.dir}/images"/>
-		</copy>
+		<mkdir dir="${build.dir}"/>
+		<javac srcdir="${src.dir}"
+	       	   destdir="${build.dir}"
+		       compiler="javac10+"
+			   source="11" target="11"
+			   modulepath="${archive.dir}"
+		/>
 	</target>
 	
 	<!-- Create/copy the jar file into the current build area -->

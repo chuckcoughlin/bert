@@ -2,26 +2,23 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package chuckcoughlin.bert.main;
+package chuckcoughlin.term.main;
 
 import java.lang.System.Logger.Level;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
 import chuckcoughlin.bert.logging.SyslogLogger;
-import chuckcoughlin.bert.robot.Humanoid;
 
 
 
-public class Bert {
-	private final static String CLSS = "Bert";
-	private static final String USAGE = "Usage: Bert";
+public class Terminal {
+	private final static String CLSS = "Terminal";
+	private static final String USAGE = "Usage: terminal <config-file>";
 	private static System.Logger LOGGER = System.getLogger("CLSS");
-	private final Humanoid robot;
 	
 	
-	public Bert() {
-		this.robot = Humanoid.getInstance();
+	public Terminal() {
 	}
 
 
@@ -29,7 +26,7 @@ public class Bert {
 	 * Entry point for the application that contains the robot Java
 	 * code for control of the appendages. 
 	 * 
-	 * Usage: bert <config> 
+	 * Usage: bert_runner 
 	 * 
 	 * @param args command-line arguments
 	 */
@@ -52,8 +49,7 @@ public class Bert {
 			SyslogLogger logger = iter.next();
 		}
 		
-        Bert runner = new Bert();
-
+        Terminal runner = new Terminal();
 	}
 
 }

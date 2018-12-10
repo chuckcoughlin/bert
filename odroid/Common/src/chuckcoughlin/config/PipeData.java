@@ -1,5 +1,6 @@
 /**
- *   (c) 2016  ILS Automation. All rights reserved. 
+ * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ *                 MIT License.
  */
 package chuckcoughlin.config;
 

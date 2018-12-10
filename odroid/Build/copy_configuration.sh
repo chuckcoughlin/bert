@@ -4,5 +4,5 @@
 export PATH=$PATH:/usr/local/bin
 
 cd ../Configuration
-rsync -r etc/bin bert:/usr/local/robot
+rsync -r etc bin bert:/usr/local/robot
 echo "Configuration download complete."

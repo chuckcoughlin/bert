@@ -5,22 +5,22 @@
 package chuckcoughlin.config;
 
 /**
- * INPUT implies Bert->Core
- * OUTPUT implies Core->Bert
+ * ASYNCHRONOUS means that the caller does not wait for a response.
+ * SYNCHRONOUS  is for real-time interactions where the caller blocks waiting for a response.
  */
-public enum PipeDirection
+public enum PipeType
 {
-            INPUT,
-            OUTPUT
+            ASYNCHRONOUS,
+            SYNCHRONOUS
             ;
           
  /**
-  * @return  a comma-separated list of the two directions in a single String.
+  * @return  a comma-separated list of the two types in a single String.
   */
   public static String names()
   {
     StringBuffer names = new StringBuffer();
-    for (PipeDirection type : PipeDirection.values())
+    for (PipeType type : PipeType.values())
     {
       names.append(type.name()+", ");
     }

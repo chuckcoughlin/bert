@@ -17,17 +17,16 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 /**
- * A class with some utility methods dealing with XML files. These methods 
+ * A class with static utility methods dealing with XML files. These methods 
  * are typically designed to return an error string, where a null implies success.
  */
 public class XMLUtility {
-	private final String CLSS = "XMLUtility";
-	private System.Logger LOGGER = System.getLogger(CLSS);
-	public XMLUtility() {
-		
-	}
+	private static final String CLSS = "XMLUtility";
+	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final System.Logger.Level level = System.Logger.Level.WARNING;
 	
-	public Document documentFromBytes(byte[] bytes) {
+	
+	public static Document documentFromBytes(byte[] bytes) {
 		Document xml = null;
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	    factory.setNamespaceAware(true);
@@ -36,20 +35,20 @@ public class XMLUtility {
 	    	xml = builder.parse(new ByteArrayInputStream(bytes));
 	    }
 	    catch(ParserConfigurationException pce) {
-	    	LOGGER.warn("%s.documentFromBytes: Failed to create builder (%s)",CLSS,pce.getLocalizedMessage());
+	    	LOGGER.log(level,String.format("%s.documentFromBytes: Failed to create builder (%s)",CLSS,pce.getLocalizedMessage()));
 	    }
 	    catch(SAXException saxe) {
-	    	LOGGER.warn("%s.documentFromBytes: Illegal XML document (%s)",CLSS,saxe.getLocalizedMessage());
+	    	LOGGER.log(level,String.format("%s.documentFromBytes: Illegal XML document (%s)",CLSS,saxe.getLocalizedMessage()));
 	    }
 	    catch(IOException ioe) {
-	    	LOGGER.warn("%s.documentFromBytes: IOException parsing XML (%s)",CLSS,ioe.getLocalizedMessage());
+	    	LOGGER.log(level,String.format("%s.documentFromBytes: IOException parsing XML (%s)",CLSS,ioe.getLocalizedMessage()));
 	    }
 	    
 	    return xml;
 	}
 	
 	// =========================  Helper Functions ==============================
-	public String attributeValue(Node element,String name) {
+	public static String attributeValue(Node element,String name) {
 		String value = "";
 		NamedNodeMap attributes = element.getAttributes();
 		Node node = attributes.getNamedItem(name);
