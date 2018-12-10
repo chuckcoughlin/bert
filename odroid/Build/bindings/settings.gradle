@@ -1,7 +1,0 @@
-/*
- * The 'bindings' gradle project contains all the sub-projects required to
- * build the Java application that executes on the robot.
- */
-
-//rootProject.name = 'bindings'
-include ':bert',':logging'

@@ -1,12 +1,12 @@
 /**
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
- * MIT License.
+ *                 MIT License.
  */
 
 package chuckcoughlin.bert.robot;
 
-import chuckcoughlin.bert.common.DynamixelType;
-import chuckcoughlin.bert.common.Joint;
+import chuckcoughlin.bert.joint.DynamixelType;
+import chuckcoughlin.bert.joint.Joint;
 
 /**
  * A motor refers to a Dynamixel stepper motor at one of the joints

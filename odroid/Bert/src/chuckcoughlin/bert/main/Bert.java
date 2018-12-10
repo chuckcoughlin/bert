@@ -1,6 +1,6 @@
 /**
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
- * MIT License.
+ *                 MIT License.
  */
 package chuckcoughlin.bert.main;
 
@@ -8,15 +8,15 @@ import java.lang.System.Logger.Level;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
+import chuckcoughlin.bert.logging.SyslogLogger;
 import chuckcoughlin.bert.robot.Humanoid;
-import chuckcoughlin.logging.SyslogLogger;
 
 
 
 public class Bert {
 	private final static String CLSS = "Bert";
 	private static final String USAGE = "Usage: Bert";
-	private static System.Logger LOGGER = System.getLogger("Bert");
+	private static System.Logger LOGGER = System.getLogger("CLSS");
 	private final Humanoid robot;
 	
 	

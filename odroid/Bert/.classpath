@@ -6,7 +6,12 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/Logging">
+	<classpathentry combineaccessrules="false" kind="src" path="/Common">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/Archive">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

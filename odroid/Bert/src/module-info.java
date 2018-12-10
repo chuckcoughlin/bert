@@ -3,7 +3,7 @@
  */
 module chuckcoughlin.bert {
 	exports chuckcoughlin.bert.robot;
-	exports chuckcoughlin.bert.common;
+	exports chuckcoughlin.bert.joint;
 	exports chuckcoughlin.bert.main;
-	requires chuckcoughlin.logging;
+	requires chuckcoughlin.common;
 }

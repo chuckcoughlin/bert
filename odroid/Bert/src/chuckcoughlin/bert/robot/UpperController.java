@@ -1,17 +1,14 @@
 /**
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
- * MIT License.
- *
- *   The block controller is designed to be called from the client
- *   via RPC. All methods must be thread safe,
+ *                 MIT License. 
  */
 package chuckcoughlin.bert.robot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import chuckcoughlin.bert.common.DynamixelType;
-import chuckcoughlin.bert.common.Joint;
+import chuckcoughlin.bert.joint.DynamixelType;
+import chuckcoughlin.bert.joint.Joint;
 
 /**
  *  Holds a list of the motors for the torso, arms and head.

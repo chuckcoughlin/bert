@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file describes "bert" a poppy-like robot. The identical configuration
+     is used for both the event processor and bindings processes.
+ -->
+<robot>
+	<property name="name">bert</property>
+	<property name="release">@RELEASE@</property>
+	<property name="date">@DATE@</property>
+	<property name="version">16</property>
+	<!-- The pipe direction is as viewed from the core process. 
+	     Each "connection" requires a separate inout and output pipe.
+	-->
+	<pipe type="input" fine="command_in" name="COMMAND">
+	</pipe>
+</robot>
+
