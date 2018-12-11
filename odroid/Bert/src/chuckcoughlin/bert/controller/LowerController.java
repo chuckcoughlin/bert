@@ -3,7 +3,7 @@
  *                 MIT License.
  *
  */
-package chuckcoughlin.bert.robot;
+package chuckcoughlin.bert.controller;
 
 import java.util.ArrayList;
 import java.util.List;

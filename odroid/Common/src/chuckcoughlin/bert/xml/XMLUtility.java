@@ -2,7 +2,7 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package chuckcoughlin.xml;
+package chuckcoughlin.bert.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

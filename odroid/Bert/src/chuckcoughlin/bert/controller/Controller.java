@@ -2,7 +2,7 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package chuckcoughlin.bert.robot;
+package chuckcoughlin.bert.controller;
 
 import java.util.List;
 

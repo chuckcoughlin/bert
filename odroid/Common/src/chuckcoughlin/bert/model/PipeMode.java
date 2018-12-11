@@ -2,13 +2,13 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package chuckcoughlin.config;
+package chuckcoughlin.bert.model;
 
 /**
  * ASYNCHRONOUS means that the caller does not wait for a response.
  * SYNCHRONOUS  is for real-time interactions where the caller blocks waiting for a response.
  */
-public enum PipeType
+public enum PipeMode
 {
             ASYNCHRONOUS,
             SYNCHRONOUS
@@ -20,7 +20,7 @@ public enum PipeType
   public static String names()
   {
     StringBuffer names = new StringBuffer();
-    for (PipeType type : PipeType.values())
+    for (PipeMode type : PipeMode.values())
     {
       names.append(type.name()+", ");
     }

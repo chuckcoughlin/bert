@@ -3,7 +3,7 @@
  *                 MIT License.
  */
 
-package chuckcoughlin.bert.robot;
+package chuckcoughlin.bert.controller;
 
 import chuckcoughlin.bert.joint.DynamixelType;
 import chuckcoughlin.bert.joint.Joint;

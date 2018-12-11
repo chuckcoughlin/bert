@@ -5,20 +5,21 @@
 package chuckcoughlin.term.main;
 
 import java.lang.System.Logger.Level;
-import java.util.Iterator;
-import java.util.ServiceLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import chuckcoughlin.bert.logging.SyslogLogger;
+import chuckcoughlin.bert.model.RobotModel;
 
 
 
 public class Terminal {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <config-file>";
-	private static System.Logger LOGGER = System.getLogger("CLSS");
+	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private final RobotModel model;
 	
-	
-	public Terminal() {
+	public Terminal(RobotModel m) {
+		this.model = m;
 	}
 
 
@@ -26,30 +27,24 @@ public class Terminal {
 	 * Entry point for the application that contains the robot Java
 	 * code for control of the appendages. 
 	 * 
-	 * Usage: bert_runner 
+	 * Usage: term <config> 
 	 * 
 	 * @param args command-line arguments
 	 */
 	public static void main(String[] args) {
 			
-		// No arguments for the time being
-		if( args.length < 10) {
+		// Make sure there is command-line argument
+		if( args.length < 1) {
 			LOGGER.log(Level.INFO, USAGE);
 			System.exit(1);
 		}
-		// Our custom logger as a service
-		ServiceLoader<SyslogLogger> loader = ServiceLoader.load(SyslogLogger.class);
-		Iterator<SyslogLogger> iter = loader.iterator();
 		
-		// -D log.level
-		String levelString = System.getProperty("log.level");
-		Level level = Level.INFO;
-		if( levelString!=null ) level = Level.valueOf(levelString);
-		while( iter.hasNext()) {
-			SyslogLogger logger = iter.next();
-		}
+		// Analyze command-line argument to obtain the configuration file path.
+		String arg = args[0];
+		Path path = Paths.get(arg);
+		RobotModel model = new RobotModel(path);
 		
-        Terminal runner = new Terminal();
+        Terminal runner = new Terminal(model);
 	}
 
 }
