@@ -1,10 +1,9 @@
 /**
- * 
+ *  NOTE: "requires" are module names, "exports" are packages
  */
 module chuckcoughlin.bert {
-	exports chuckcoughlin.bert.controller;
-	exports chuckcoughlin.bert.joint;
-	exports chuckcoughlin.bert.main;
 	requires chuckcoughlin.common;
-	requires chuckcoughlin.bert.model;
+	exports chuckcoughlin.bert.controller;
+	exports chuckcoughlin.bert.main;
+
 }

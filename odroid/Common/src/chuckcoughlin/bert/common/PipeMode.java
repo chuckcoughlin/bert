@@ -2,7 +2,7 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package chuckcoughlin.bert.model;
+package chuckcoughlin.bert.common;
 
 /**
  * ASYNCHRONOUS means that the caller does not wait for a response.

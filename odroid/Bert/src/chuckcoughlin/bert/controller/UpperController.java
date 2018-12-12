@@ -7,8 +7,9 @@ package chuckcoughlin.bert.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import chuckcoughlin.bert.joint.DynamixelType;
-import chuckcoughlin.bert.joint.Joint;
+import chuckcoughlin.bert.common.DynamixelType;
+import chuckcoughlin.bert.common.Joint;
+import chuckcoughlin.bert.model.Motor;
 
 /**
  *  Holds a list of the motors for the torso, arms and head.

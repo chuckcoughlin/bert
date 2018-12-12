@@ -4,6 +4,9 @@
  */
 package chuckcoughlin.bert.model;
 
+import chuckcoughlin.bert.common.PipeDirection;
+import chuckcoughlin.bert.common.PipeMode;
+
 /**
  *  This class maintains parameters for a single named pipe.
  */

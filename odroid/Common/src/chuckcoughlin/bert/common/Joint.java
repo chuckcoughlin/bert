@@ -2,7 +2,7 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package chuckcoughlin.bert.joint;
+package chuckcoughlin.bert.common;
 
 /**
  * These are the canonical names for the joints of the humanoid.

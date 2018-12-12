@@ -3,7 +3,7 @@
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="jar.dir" value="${basedir}/lib" />
 	<property name="jar.name" value="bert.jar" />
-	<property name="build.dir" value="bin" />
+	<property name="build.dir" value="${basedir}/bin" />
 	<property name="src.dir" value="${basedir}/../Bert/src" />
 
 	<!-- This target will build the core application and deploy it to the robot -->
@@ -12,13 +12,8 @@
 	<!-- Remove the existing target -->
 	<target name="clean" description="Remove existing build products">
 		<mkdir dir="${build.dir}"/>
-		<delete file="${jar.dir}/${jar.name}" />
-        <delete>
-            <fileset dir="${build.dir}">
-                <include name="**/*.class"/>
-            	<include name="**/*.png"/>
-            </fileset>
-        </delete>
+		<delete file="${archive.dir}/${jar.name}" />
+        <delete dir="${build.dir}"/>
 	</target>
 	
 	<!-- Compile the library -->
@@ -34,7 +29,12 @@
 	
 	<!-- Create/copy the jar file into the current build area -->
 	<target name ="jar" description="Create a jar ">
-    	<jar destfile="${jar.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="bin"/>
+		<jar compress="false" destfile="${jar.dir}/${jar.name}">
+		  <zipgroupfileset dir="${build.dir}">
+		    <include name="${jar.name}"/>
+		    <include name="bert-common.jar"/>
+		  </zipgroupfileset>
+		</jar>
 	</target>
 	<!-- Copy the jar onto the robot -->
 	<target name="deploy" >

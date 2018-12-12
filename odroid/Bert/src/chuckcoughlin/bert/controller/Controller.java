@@ -6,6 +6,8 @@ package chuckcoughlin.bert.controller;
 
 import java.util.List;
 
+import chuckcoughlin.bert.model.Motor;
+
 
 /**
  *  This interface describes a controller that holds a  list of motors.

@@ -3,10 +3,10 @@
  *                 MIT License.
  */
 
-package chuckcoughlin.bert.controller;
+package chuckcoughlin.bert.model;
 
-import chuckcoughlin.bert.joint.DynamixelType;
-import chuckcoughlin.bert.joint.Joint;
+import chuckcoughlin.bert.common.DynamixelType;
+import chuckcoughlin.bert.common.Joint;
 
 /**
  * A motor refers to a Dynamixel stepper motor at one of the joints

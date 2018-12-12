@@ -84,18 +84,20 @@ public class RobotModel  {
 					if( name==null ) {
 						LOGGER.log(level,String.format("%s.getProperties: Missing name attribute in property",CLSS));
 					}
-					else if(name.equalsIgnoreCase(RobotConstants.PROPERTY_CADENCE)) {
+					else if(name.equalsIgnoreCase(RobotConstants.PROPERTY_CADENCE) ) {
 						try {
 							setCadence(Integer.parseInt(value));
 						}
-						catch(NumberFormatException(nfe)) {
+						catch(NumberFormatException nfe) {
 							LOGGER.log(level,String.format("%s.getProperties: Missing name attribute in property",CLSS));
 						}
+
 					}
 				}
 				else {
 					LOGGER.log(level,String.format("%s.getProperties: Missing value attribute in %s property",CLSS,name));
 				}
+				
 				index++;
 			}
 		}

@@ -137,6 +137,18 @@ Download the latest Java 11 Development (JDK) version using
 ```
 Installing the JDK allows us to compile Java on the Odroid, if necessary.
 
+Once the build has been executed on the Deveopment system (and deployed), edit ``/etc/environment``, adding the following directories to the **PATH** variable (before  */usr/bin*):
+```
+   /usr/local/robot/bin
+   /usr/local/robot/java/bin
+```
+
+Make a scaled-down Java Runtime Environment that includes only the packages used by the robot applications. This results in a significant savings in memory.
+```
+   jlink --module-path /usr/local/robot/mods --add-modules java.base java.xml --output /usr/local/robot/java
+```
+All scripts that launch the robot applications refer to this *jre*. This command must be refreshed each time applications are updated.
+
 *** PyPot <a id="pypot"></a>***<br/>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
 ```
