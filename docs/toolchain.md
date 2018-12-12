@@ -33,6 +33,8 @@ In addition we discuss the core-architecture and interfaces between the main com
 ### Skeleton <a id="skeleton"></a>
 [toc](#table-of-contents)
 
+Full assembly instructions may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/doc/en/assemblyGuide.md).
+
 The skeletal print-files provided by GenerationRobots are in .STL format. This form is printable directly, but not conducive to modification.
 
 ![Bert Skeleton](/images/printed_parts.jpg)
@@ -54,6 +56,20 @@ Once [pypot](#pypot) is installed on the Odroid then the *herborist* application
 ```
 python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist/herborist.py
 ```
+The devices can be found with the following parmeters:
+```
+   Port:       /dev/tty/ACM0
+   Protocol:   MX
+   USB Device: USB2AX
+   Baud rate:  57600
+   ID       :  1
+```
+
+The Dynamixel configuration setup is shown below.
+![poppy](/images/dynamixel_configuration.png)
+````                        Dynamixel Configuration Setup````
+
+Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limits for each motor. In each case set the baud rate to 1000000 and return delay time to 0. The ``Update EEPROM`` button is equivalent to  ``Save``.
 
 ## System Setup <a id="system"/>
 ### Odroid <a id="odroid"></a>
