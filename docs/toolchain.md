@@ -235,7 +235,7 @@ The root directory of the *Archive* project is the starting point. The 3 origina
    cd classes
    jar -xf ${ARCHIVE}/jars/jackson-core-2.9.7.jar
    cd ${ARCHIVE}/work/com.fasterxml.jackson.core
-   javac -p jackson-core -d ${ARCHIVE}/classes module-info.java
+   javac -p jackson.core -d ${ARCHIVE}/classes module-info.java
    jar -uf ${ARCHIVE}/mods/jackson-core.jar -C ${ARCHIVE}/classes module-info.class
 
    cd $ARCHIVE
@@ -246,7 +246,7 @@ The root directory of the *Archive* project is the starting point. The 3 origina
    cd classes
    jar -xf ${ARCHIVE}/jars/jackson-annotations-2.9.7.jar
    cd ${ARCHIVE}/work/com.fasterxml.jackson.annotation
-   javac -p jackson-annotations -d ${ARCHIVE}/classes module-info.java
+   javac -p jackson.annotations -d ${ARCHIVE}/classes module-info.java
    jar -uf ${ARCHIVE}/mods/jackson-annotations.jar -C ${ARCHIVE}/classes module-info.class
 
    cd $ARCHIVE
@@ -257,8 +257,10 @@ The root directory of the *Archive* project is the starting point. The 3 origina
    cd classes
    jar -xf ${ARCHIVE}/jars/jackson-databind-2.9.7.jar
    cd ${ARCHIVE}/work/com.fasterxml.jackson.databind
-   javac --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotations,com.fasterxml.jackson.core  -d ${ARCHIVE}/classes module-info.java
+   javac --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotations,com.fasterxml.jackson.core  -p jackson.databind -d ${ARCHIVE}/classes module-info.java
    jar -uf ${ARCHIVE}/mods/jackson-databind.jar -C ${ARCHIVE}/classes module-info.class
+   ${ARCHIVE}
+   rm -rf work classes
 ```
 
 *** C++ *** <br/>
