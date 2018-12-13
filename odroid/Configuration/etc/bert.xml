@@ -61,7 +61,7 @@
 	<joint name="ABS_Z"        type="MX28" id="33" offset="0" min="-90" max="90" orientation="direct" />
 	<joint name="BUST_X"       type="MX28" id="35" offset="0" min="-40" max="40" orientation="indirect" />
 	<joint name="BUST_Y"       type="MX28" id="34" offset="0" min="-67" max="27" orientation="indirect" />
-	<joint name="HEAD_Y"       type="MX28" id="37" offset="20" min="-45" max="6" orientation="indirect" />
+	<joint name="HEAD_Y"       type="AX12" id="37" offset="20" min="-45" max="6" orientation="indirect" />
 	<joint name="HEAD_Z"       type="AX12" id="36" offset="0" min="-90" max="90" orientation="direct" />
 	<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="0" min="-105" max="105" orientation="indirect" />
 	<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="0" min="-148" max="1" orientation="direct" />

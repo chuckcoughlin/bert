@@ -56,7 +56,7 @@ Once [pypot](#pypot) is installed on the Odroid then the *herborist* application
 ```
 python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist/herborist.py
 ```
-The devices can be found with the following parmeters:
+Initially, the devices can be found with the following parameters:
 ```
    Port:       /dev/tty/ACM0
    Protocol:   MX
@@ -69,7 +69,7 @@ The Dynamixel configuration setup is shown below.
 ![poppy](/images/dynamixel_configuration.png)
 ````                        Dynamixel Configuration Setup````
 
-Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limits for each motor. In each case set the baud rate to 1000000 and return delay time to 0. The ``Update EEPROM`` button is equivalent to  ``Save``.
+Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limits for each motor. In each case set the baud rate to 1000000 and return delay time to 0. Use ``Update EEPROM`` to apply the changes. *Note: I was forced to use the Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings as ``herborist`` continually froze. It seems to work OK for subsequent edits.*
 
 ## System Setup <a id="system"/>
 ### Odroid <a id="odroid"></a>
@@ -202,7 +202,7 @@ From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Wo
   - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
   - Lib: Third party open-source libraries. In general, this area does not include source.
   - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
-  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is strictly for viewing.
+  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors.
   - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled.
 
 When complete the project workspace should look like:
@@ -216,10 +216,55 @@ Every project has a *build.xml* *ant* script that test-compiles code within the 
 
 In addition to the *ant* scripts, there are a few shell scripts. To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
 
+*** Archive *** <br/>
+The *Archive* project is a collection of open-source library modules.
+* https://www.slf4j.org/download.htm slf4j-api-1.8.0.beta2.jar logback-classic-1.3.0-alpha4.jar logback-core-1.3.0-alpha4.jar
+* http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.7.jar jackson-databind-2.9.7.jar java-annotations-2.9.7.jar
+
+*** Modularized Jar Files ***<br/>
+Some of the open source libraries were not updated to Java 9 or newer. Consequently the downloaded jar files required updating to add module dependencies.
+
+Thanks to [Michael Easter](https://github.com/codetojoy/easter_eggs_for_java_9/blob/master/egg_34_stack_overflow_47727869/run.sh) for the following example that shows how to modularize the ``Jackson`` jar files.
+The root directory of the *Archive* project is the starting point. The 3 original non-modularized *Jackson* jar files have been downloaded into ``jars``. The modularized results will be stored into ``mods``.
+```
+   ARCHIVE=`pwd`
+   jdeps --generate-module-info work jars/jackson-core-2.9.7.jar
+   cp jars/jackson-core-2.9.7.jar mods/jackson-core.jar
+   rm -rf classes
+   mkdir classes
+   cd classes
+   jar -xf ${ARCHIVE}/jars/jackson-core-2.9.7.jar
+   cd ${ARCHIVE}/work/com.fasterxml.jackson.core
+   javac -p jackson-core -d ${ARCHIVE}/classes module-info.java
+   jar -uf ${ARCHIVE}/mods/jackson-core.jar -C ${ARCHIVE}/classes module-info.class
+
+   cd $ARCHIVE
+   jdeps --generate-module-info work jars/jackson-annotations-2.9.7.jar
+   cp jars/jackson-annotations-2.9.7.jar mods/jackson-annotations.jar
+   rm -rf classes
+   mkdir classes
+   cd classes
+   jar -xf ${ARCHIVE}/jars/jackson-annotations-2.9.7.jar
+   cd ${ARCHIVE}/work/com.fasterxml.jackson.annotation
+   javac -p jackson-annotations -d ${ARCHIVE}/classes module-info.java
+   jar -uf ${ARCHIVE}/mods/jackson-annotations.jar -C ${ARCHIVE}/classes module-info.class
+
+   cd $ARCHIVE
+   jdeps --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotations,com.fasterxml.jackson.core --generate-module-info work jars/jackson-databind-2.9.7.jar
+   cp jars/jackson-databind-2.9.7.jar mods/jackson-databind.jar
+   rm -rf classes
+   mkdir classes
+   cd classes
+   jar -xf ${ARCHIVE}/jars/jackson-databind-2.9.7.jar
+   cd ${ARCHIVE}/work/com.fasterxml.jackson.databind
+   javac --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotations,com.fasterxml.jackson.core  -d ${ARCHIVE}/classes module-info.java
+   jar -uf ${ARCHIVE}/mods/jackson-databind.jar -C ${ARCHIVE}/classes module-info.class
+```
+
 *** C++ *** <br/>
 To add C++ support, under <u>Help->Install New Software</u>, in the _work with_ selector, enter http://download.eclipse.org/tools/cdt/releases/9.5. Then select "C++ Tools". Restart _eclipse_.
 
-We use C++ support in browsing the original *iCub* and *YARP* code.
+We use C++ support to browse the original *iCub* and *YARP* code. There is no C++ in the final product.
 
 *** Python *** <br/>
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
