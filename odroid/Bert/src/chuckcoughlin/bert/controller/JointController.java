@@ -14,11 +14,11 @@ import chuckcoughlin.bert.model.Motor;
 /**
  *  Holds a list of the motors for the torso, arms and head.
  */
-public class UpperController implements Controller  {
+public class JointController implements Controller  {
 	protected static final String CLSS = "UpperController";
 	private final List<Motor> motors;
 
-	public UpperController(List<Motor> motors) {
+	public JointController(List<Motor> motors) {
 		this.motors = new ArrayList<>();
 		populateMotors(motors);
 	}

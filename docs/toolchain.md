@@ -250,14 +250,14 @@ The root directory of the *Archive* project is the starting point. The 3 origina
    jar -uf ${ARCHIVE}/mods/jackson-annotations.jar -C ${ARCHIVE}/classes module-info.class
 
    cd $ARCHIVE
-   jdeps --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotations,com.fasterxml.jackson.core --generate-module-info work jars/jackson-databind-2.9.7.jar
+   jdeps --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotation,com.fasterxml.jackson.core --generate-module-info work jars/jackson-databind-2.9.7.jar
    cp jars/jackson-databind-2.9.7.jar mods/jackson-databind.jar
    rm -rf classes
    mkdir classes
    cd classes
    jar -xf ${ARCHIVE}/jars/jackson-databind-2.9.7.jar
-   cd ${ARCHIVE}/work/com.fasterxml.jackson.databind
-   javac --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotations,com.fasterxml.jackson.core  -p jackson.databind -d ${ARCHIVE}/classes module-info.java
+   cd ${ARCHIVE}/work/com.fasterxml.jackson.databin
+   javac --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotation,com.fasterxml.jackson.core -d ${ARCHIVE}/classes module-info.java
    jar -uf ${ARCHIVE}/mods/jackson-databind.jar -C ${ARCHIVE}/classes module-info.class
    ${ARCHIVE}
    rm -rf work classes

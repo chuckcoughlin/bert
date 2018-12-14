@@ -3,7 +3,7 @@
  *                 MIT License.
  */
 
-package chuckcoughlin.bert.model;
+package chuckcoughlin.bert.motor;
 
 import chuckcoughlin.bert.common.DynamixelType;
 import chuckcoughlin.bert.common.Joint;

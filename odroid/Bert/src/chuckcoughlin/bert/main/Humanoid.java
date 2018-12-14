@@ -7,8 +7,8 @@ package chuckcoughlin.bert.main;
 import java.util.ArrayList;
 import java.util.List;
 
-import chuckcoughlin.bert.controller.LowerController;
-import chuckcoughlin.bert.controller.UpperController;
+import chuckcoughlin.bert.controller.CommandController;
+import chuckcoughlin.bert.controller.StatusController;
 import chuckcoughlin.bert.model.Motor;
 
 /**
@@ -20,8 +20,8 @@ import chuckcoughlin.bert.model.Motor;
 public class Humanoid {
 	private final static String CLSS = "Humanoid";
 	private static Humanoid instance = null;
-	private final UpperController upperController;
-	private final LowerController lowerController;
+	private final StatusController upperController;
+	private final CommandController lowerController;
 
 	/**
 	 * Constructor is private per Singleton pattern.
@@ -29,8 +29,8 @@ public class Humanoid {
 	private Humanoid() {
 		List<Motor> lowerMotors = new ArrayList<>();
 		List<Motor> upperMotors = new ArrayList<>();
-		this.lowerController = new LowerController(lowerMotors);
-		this.upperController = new UpperController(upperMotors);
+		this.lowerController = new CommandController(lowerMotors);
+		this.upperController = new StatusController(upperMotors);
 	}
 
 	/**

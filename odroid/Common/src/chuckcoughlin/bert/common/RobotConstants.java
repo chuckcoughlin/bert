@@ -12,7 +12,5 @@ package chuckcoughlin.bert.common;
 public interface RobotConstants   {   
 	public final static String ROBOT_NAME = "Bert";   
 
-	// Recognized property types
-	public final static String PROPERTY_CADENCE = "cadence";
-	public final static String PROPERTY_NAME = "name";
+
 }
