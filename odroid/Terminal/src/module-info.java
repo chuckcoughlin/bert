@@ -5,7 +5,7 @@
  * @author chuckc
  *
  */
-module Terminal {
-	exports chuckcoughlin.term.main;
-	requires chuckcoughlin.common;
+module bert.terminal {
+	exports bert.term.main;
+	requires bert.share;
 }

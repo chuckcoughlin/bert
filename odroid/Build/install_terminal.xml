@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Build and install the terminal application. "Terminal" functions 
+     as a client. It shares the "controller" jar file with the main client. -->
 <project name="bert.install.common" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="jar.dir" value="${basedir}/lib" />

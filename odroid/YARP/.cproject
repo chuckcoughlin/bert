@@ -84,26 +84,6 @@
                         </toolChain>
                         					
                     </folderInfo>
-                    					
-                    <folderInfo id="cdt.managedbuild.config.gnu.exe.release.1130209175.1423356732" name="/" resourcePath="bindings">
-                        						
-                        <toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.1116542147" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release" unusedChildren="">
-                            							
-                            <tool id="cdt.managedbuild.tool.gnu.archiver.base.1040395884" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.2011011430"/>
-                            							
-                            <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.250747316" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1554064064"/>
-                            							
-                            <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.894555629" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1660179659"/>
-                            							
-                            <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.6933626" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release.957687831"/>
-                            							
-                            <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1667787245" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1086733654"/>
-                            							
-                            <tool id="cdt.managedbuild.tool.gnu.assembler.exe.release.789636027" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.release.498156661"/>
-                            						
-                        </toolChain>
-                        					
-                    </folderInfo>
                     				
                 </configuration>
                 			
