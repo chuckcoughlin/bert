@@ -8,7 +8,7 @@ package bert.share.controller;
  *  A client controller that handles accepting position data from the server
  *  at a configured cadence and writing them to a SQLite database.
  */
-public class RecordController implements Controller  {
+public class RecordController extends AbstractController implements Controller  {
 	protected static final String CLSS = "RecordController";
 
 	public RecordController() {

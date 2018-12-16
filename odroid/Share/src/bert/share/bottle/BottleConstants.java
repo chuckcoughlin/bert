@@ -20,5 +20,6 @@ public interface BottleConstants   {
 	
 	// Properties available from the server.
 	public final static String PROPERTY_CADENCE = "cadence";
-	public final static String PROPERTY_NAME = "name";
+	public final static String PROPERTY_NAME    = "name";
+	public final static String PROPERTY_PROMPT  = "prompt";
 }

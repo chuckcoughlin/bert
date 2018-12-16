@@ -1,11 +1,8 @@
 /**
- * 
- */
-/**
- * @author chuckc
  *
  */
 module bert.terminal {
 	exports bert.term.main;
+	exports bert.term.model;
 	requires bert.share;
 }

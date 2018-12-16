@@ -4,12 +4,17 @@
  */
 package bert.share.model;
 
+import bert.share.common.PipeDirection;
+import bert.share.common.PipeMode;
+
 /**
  *  This class encapsulates two named pipes for bi-directional
  *  communication.
  */
 public class NamedPipePair   {
-	private final boolean master;
+	private final boolean master;  // True if this instance is owned by the server.
+	private PipeDirection direction = PipeDirection.INPUT;
+	private PipeMode mode = PipeMode.ASYNCHRONOUS;
 	private String name;
 	
 	public NamedPipePair(boolean isMaster) {
@@ -18,6 +23,12 @@ public class NamedPipePair   {
 	}
 	
 	public boolean isMaster() {return this.master;}
+	public PipeMode getMode() {return this.mode;}
+ 	public void setMode(PipeMode pmode) {this.mode=pmode;}
+	public String getName() {return this.name;}
+ 	public void setName(String nam) {this.name=nam;}
+ 	public PipeDirection getDirection() {return this.direction;}
+ 	public void setDirection(PipeDirection dir) {this.direction=dir;}
 	
 	/**
 	 * Create the pair of named pipes if they don't already exist.

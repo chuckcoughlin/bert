@@ -3,13 +3,15 @@
      is used for both the event processor and bindings processes.
  -->
 <robot>
-	<!-- This first section list server properties.
+	<!-- This first section lists server properties.
 	-->
 	<property name="name">bert</property>
 	<property name="release">@RELEASE@</property>
 	<property name="date">@DATE@</property>
 	<!--  The looper cadence is in msecs  -->
 	<property name="cadence">1000</property>
+	<!--  Used by the terminal  -->
+	<property name="prompt">bert: </property>
 	
 	<!-- The following sections are named for client processes although
 	     there is a server component for each. Each "controller" requires

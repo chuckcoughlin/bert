@@ -6,12 +6,16 @@ package bert.term.model;
 
 import java.nio.file.Path;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import bert.share.common.RobotConstants;
+import bert.share.common.PipeDirection;
+import bert.share.common.PipeMode;
+import bert.share.controller.CommandController;
+import bert.share.controller.Controller;
+import bert.share.controller.ControllerType;
 import bert.share.model.AbstractRobotModel;
+import bert.share.model.NamedPipePair;
 import bert.share.xml.XMLUtility;
 
 /**
@@ -22,47 +26,60 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 	private static final String CLSS = "RobotClientModel";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private static final System.Logger.Level level = System.Logger.Level.WARNING;
+	private CommandController terminal = null;
 
 	
 	public RobotTerminalModel(Path configPath) {
 		super(configPath);
 	}
-    
-	
+   
+	public CommandController getController() { return this.terminal; }
 	/**
 	 *  Analyze the document and populate the model. 
 	 */
 	public void populate() {
-		analyzeDocument();
+		analyzeProperties();
+		analyzeControllers();
 	}
 
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the model for Property elements. Set model attributes from them.
+	 * Search the model for the terminal controller. It's the only one we care about.
+	 * If not found, the controller will be null;
 	 * @param index
 	 * @param model
 	 */
-	public void analyzeDocument() {
+	private void analyzeControllers() {
 		if( this.document!=null ) {
 			NodeList elements = document.getElementsByTagName("controller");
 			int count = elements.getLength();
 			int index = 0;
 			while(index<count) {
-				Node propertyNode = elements.item(index);
-				String name = XMLUtility.attributeValue(propertyNode, "name");
-				String value = propertyNode.getTextContent();
-				if( value==null || value.isEmpty() ) {
-					if( name==null ) {
-						LOGGER.log(level,String.format("%s.getProperties: Missing name attribute in property",CLSS));
+				Element controllerElement= (Element)(elements.item(index));
+				String type = XMLUtility.attributeValue(controllerElement, "type");
+				if( type!=null && !type.isBlank() &&
+					type.equalsIgnoreCase(ControllerType.TERMINAL.name()) ) {
+					this.terminal = new CommandController();
+					// Configure the pipe - there should only be one.
+					NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
+					if( pipeElements.getLength()>0) {
+						Element pipeElement= (Element)(pipeElements.item(0));
+						NamedPipePair pipe = new NamedPipePair(false);
+						String direction = XMLUtility.attributeValue(pipeElement, "direction");
+						pipe.setDirection(PipeDirection.valueOf(direction.toUpperCase()));
+						String mode = XMLUtility.attributeValue(pipeElement, "mode");
+						pipe.setMode(PipeMode.valueOf(mode.toUpperCase()));
+						String name = XMLUtility.attributeValue(pipeElement, "name");
+						pipe.setName(name);
+						this.terminal.setPipe(pipe);
 					}
-				}
-				else {
-					LOGGER.log(level,String.format("%s.getProperties: Missing value attribute in %s property",CLSS,name));
+					break;
 				}
 				
 				index++;
 			}
 		}
 	}
+	
 }
