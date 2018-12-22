@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!-- Build and install the terminal application. "Terminal" functions 
      as a client. It shares the "controller" jar file with the main client. -->
 <project name="bert.install.common" default="all" basedir=".">
@@ -26,6 +25,7 @@
 	<!-- Compile the library -->
 	<target name="build" description="Compile the source">
 		<mkdir dir="${build.dir}"/>
+		<echo message="Compiling jar file locally into ${bert.home}" />
 		<javac srcdir="${src.dir}"
 	       	   destdir="${build.dir}"
 		       compiler="javac10+"
@@ -34,12 +34,19 @@
 		/>
 	</target>
 	
-	<!-- Create/copy the jar file into the current build area -->
+	<!-- Create/copy the jar file into the current build area both remote and locally -->
 	<target name ="jar" description="Create a jar ">
     	<jar destfile="${jar.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="bin"/>
 	</target>
 	<!-- Copy the jar onto the robot -->
 	<target name="deploy" >
+		<echo message="Copying jar file locally into ${bert.home}" />
+		<mkdir dir="${bert.home}" />
+	    <copy todir="${bert.home}">
+	      <fileset dir="mod">
+	      	<include name="*.jar"/>
+	      </fileset>
+		</copy>
 		<echo message="Copying jar file onto robot" />
 	    <exec executable="rsync" dir="." failonerror="true">
 	      <arg value="-r"/>
@@ -47,6 +54,6 @@
 	      <arg value="bert:/usr/local/robot"/>
 	      <arg value="--exclude-from=rsync.excludes"/>
 	      <arg value="-v"/>
-	</exec>
+		</exec>
 	</target>	
 </project>

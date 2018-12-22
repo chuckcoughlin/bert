@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!-- Build the common library and place with the open source modules. -->
 <project name="bert.install.common" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
@@ -40,6 +39,6 @@
 	    <exec executable="rsync" dir="." failonerror="true">
 	      <arg value="lib/${jar.name}"/>
 	      <arg value="bert:/usr/local/robot/mods"/>
-	</exec>
+		</exec>
 	</target>	
 </project>

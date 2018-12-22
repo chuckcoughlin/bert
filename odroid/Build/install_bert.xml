@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!-- Build and deploy the client code -->
 <project name="bert.install" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />

@@ -56,6 +56,8 @@ Once [pypot](#pypot) is installed on the Odroid then the *herborist* application
 ```
 python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist/herborist.py
 ```
+Note: This tool did not work when the motors were fresh from the manufacturer. I was forced to use the *Robotis* [Dynamixel Wizard](http://www.robotis.us/roboplus1/) tool on a Windows machine. Once a motor was configured to 1000000 baud, *herborist* seemed to work just fine.
+
 Initially, the devices can be found with the following parameters:
 ```
    Port:       /dev/tty/ACM0
@@ -65,7 +67,8 @@ Initially, the devices can be found with the following parameters:
    ID       :  1
 ```
 
-The Dynamixel configuration setup is shown below.
+The Dynamixel configuration setup is shown below:
+
 ![poppy](/images/dynamixel_configuration.png)
 ````                        Dynamixel Configuration Setup````
 
@@ -87,6 +90,10 @@ A USB extension board is required as slots are used for:
 The filesystem appeared to be properly configured on initial startup. There was no need to extend the root partition.
 
 Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
+Add the following to ``~/.bashrc``:
+```
+   export BERT_HOME=/usr/local/robot
+```
 
 Set the timezone:
 ```
@@ -153,7 +160,7 @@ Download the latest Java 11 Development (JDK) version using
 ```
 Installing the JDK allows us to compile Java on the Odroid, if necessary.
 
-Once the build has been executed on the Deveopment system (and deployed), edit ``/etc/environment``, adding the following directories to the **PATH** variable (before  */usr/bin*):
+Once the build has been executed on the Development system (and deployed), edit ``/etc/environment``, adding the following directories to the **PATH** variable (before  */usr/bin*):
 ```
    /usr/local/robot/bin
    /usr/local/robot/java/bin
