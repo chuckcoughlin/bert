@@ -1,0 +1,60 @@
+<!-- Build and install the terminal application. "Terminal" functions 
+     as a client. It shares the "controller" jar file with the main client. -->
+<project name="bert.install.common" default="all" basedir=".">
+	<property name="archive.dir" value="${basedir}/../Archive/mods" />
+	<property name="lib.dir"  value="${basedir}/lib" />
+	<property name="jar.name" value="bert-terminal.jar" />
+	<property name="temp.dir" value="${basedir}/temp" />
+	<property name="src.dir"  value="${basedir}/../Terminal/src" />
+	<property name="robot.dir" value="${bert.home}" />
+
+	<path id="common-modulepath">
+		<fileset dir="${lib.dir}">
+	    	<include name="*.jar"/>
+		</fileset>
+		<fileset dir="${archive.dir}">
+			<include name="*.jar"/>
+		</fileset>
+	 </path>
+	
+	<!-- This target will build the core application and deploy it to the robot -->
+	<target name="all" depends="clean, build, jar, deploy" />
+	
+	<!-- Remove the existing target -->
+	<target name="clean" description="Remove existing build products">
+		<mkdir dir="${lib.dir}"/>
+		<mkdir dir="${robot.dir}/lib"/>
+		<delete file="${lib.dir}/${jar.name}" />
+		<delete file="${robot.dir}/lib/${jar.name}" />
+		<delete dir="${temp.dir}" />
+	</target>
+	
+	<!-- Compile the application -->
+	<target name="build" description="Compile the source">
+		<echo message="Compile the source in ${src.dir}" />
+		<mkdir dir="${temp.dir}"/>
+		<javac srcdir="${src.dir}"
+	       	   destdir="${temp.dir}"
+		       compiler="javac10+"
+			   source="11" target="11"
+			   modulepathref="common-modulepath"
+			   includeantruntime="false"
+		/>
+	</target>
+	
+	<!-- Bundle the application code into a jar file -->
+	<target name ="jar" description="Create a jar ">
+    	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="bin"/>
+	</target>
+	
+	<!-- Copy the new jar file into the local deployment area. -->
+	<target name="deploy" >
+		<echo message="Copying jar files locally into ${bert.home}" />
+		<mkdir dir="${bert.home}/lib" />
+		<copy todir="${bert.home}/lib">
+			<fileset dir="${lib.dir}">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+	</target>			
+</project>

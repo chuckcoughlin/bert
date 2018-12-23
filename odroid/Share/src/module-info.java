@@ -4,7 +4,7 @@
  */
 module bert.share {
 	requires transitive java.xml;
-	requires org.slf4j;
+	requires transitive org.slf4j;
 	provides java.lang.System.LoggerFinder
 		with bert.share.logging.SyslogLoggerFinder;
 	exports bert.share.bottle;

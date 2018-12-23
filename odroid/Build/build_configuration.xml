@@ -1,0 +1,42 @@
+<!-- 
+  Copies the following into the local test area:
+     - open source java modules
+     - configuration files
+     - shell scripts
+  -->
+<project name="bert.install.configuration" default="all" basedir=".">
+	<property name="archive.dir" value="${basedir}/../Archive/mods" />
+	<property name="bin.dir" value="${basedir}/../Configuration/bin" />
+	<property name="config.dir" value="${basedir}/../Configuration/etc" />
+	<property name="robot.dir" value="${bert.home}" />
+	
+	<!-- This target copies configuration information and third-party jar files to the local system -->
+	<target name="all" depends="clean,deploy" />
+	
+	<!-- Remove existing files -->
+	<target name="clean" description="Remove local configuration files">
+		<mkdir  dir="${robot.dir}"/>
+        <delete dir="${robot.dir}/bin"/>
+		<delete dir="${robot.dir}/etc"/>
+		<delete dir="${robot.dir}/mods"/>
+	</target>
+	
+	<!-- Copy files locally -->
+	<target name="deploy" >
+		<echo message="Copying configuration files locally into ${bert.home}" />
+		<mkdir dir="${robot.dir}/mods" />
+		<copy todir="${robot.dir}/mods">
+			<fileset dir="${archive.dir}">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${robot.dir}/bin" />
+		<copy todir="${robot.dir}/bin">
+			<fileset dir="${bin.dir}" />
+		</copy>
+		<mkdir dir="${robot.dir}/etc" />
+		<copy todir="${robot.dir}/etc">
+			<fileset dir="${config.dir}" />
+		</copy>
+	</target>	
+</project>
