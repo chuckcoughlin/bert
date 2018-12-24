@@ -4,5 +4,5 @@
 module bert.terminal {
 	exports bert.term.main;
 	exports bert.term.model;
-	requires bert.share;
+	requires transitive bert.share;
 }

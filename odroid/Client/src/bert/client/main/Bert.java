@@ -4,34 +4,102 @@
  */
 package bert.client.main;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import bert.client.model.RobotClientModel;
 import bert.client.model.Humanoid;
+import bert.client.model.RobotClientModel;
+import bert.share.bottle.ResponseBottle;
+import bert.share.common.PathConstants;
+import bert.share.controller.ControllerLauncher;
 
 /**
  * This is the main client class (on the controller side of the pipes). It holds
  * the command, playback, record and joint controllers. 
  */
-public class Bert {
+public class Bert implements ControllerLauncher {
 	private final static String CLSS = "Bert";
 	private static final String USAGE = "Usage: bert <config-file>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static final String COMMAND_KEY = "COMMAND";
+	private static final String PLAYBACK_KEY = "PLAYBACK";
+	private static final String RECORD_KEY = "RECORD";
+	
 	private final RobotClientModel model;
+	private final CommandController commandController;
 	private final Humanoid robot;
 	
 	
 	public Bert(RobotClientModel m) {
+		this.commandController = new CommandController(COMMAND_KEY,this);
 		this.robot = Humanoid.getInstance();
 		this.model = m;
 	}
 
+	/**
+	 * Loop forever acquiring phrases from the Bluetooth connection to Android. Use ANTLR to convert into requests.
+	 * Handle requests in a controller running in its own thread. Other controllers handle play and record plus
+	 * the robot movements.
+	 */
+	public void execute() {
+		commandController.configure(model);
+		Thread controllerThread = new Thread(commandController);
+		controllerThread.start();
+		
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new InputStreamReader(System.in));
 
+			while (true) {
+				String input = br.readLine();
+
+				if( "q".equalsIgnoreCase(input)    ||
+					"quit".equalsIgnoreCase(input) ||
+					"exit".equalsIgnoreCase(input)    ) {
+					break;
+				}
+				else if(input.isBlank()) continue;
+				/*
+				 * 1) Analyze the input string via ANTLR
+				 * 2) Send the resulting RequestBottle to the PipeHandler (in its own thread)
+				 * 3) On callback from the PipeHandler, convert ResponseBottle to english string
+				 * 4) Send string to stdout
+				 */
+				else {
+					
+				}
+			}
+
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		} 
+		finally {
+			if (br != null) {
+				try {
+					br.close();
+				} 
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			controllerThread.interrupt();
+		}
+		System.exit(0);
+	}
+	@Override
+	public void handleResult(String key, ResponseBottle response) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	/**
 	 * Entry point for the application that contains the robot Java
-	 * code for control of the appendages. 
+	 * code for control of the appendages, among other things. 
 	 * 
 	 * Usage: bert <config> 
 	 * 
@@ -48,10 +116,12 @@ public class Bert {
 		// Analyze command-line argument to obtain the configuration file path.
 		String arg = args[0];
 		Path path = Paths.get(arg);
-		RobotClientModel model = new RobotClientModel(path);
+		PathConstants.setHome(path);
+		RobotClientModel model = new RobotClientModel(PathConstants.CONFIG_PATH);
 		model.populate();
 		
         Bert runner = new Bert(model);
+        runner.execute();
 
 	}
 

@@ -11,8 +11,6 @@ import org.w3c.dom.NodeList;
 
 import bert.share.common.PipeDirection;
 import bert.share.common.PipeMode;
-import bert.share.controller.CommandController;
-import bert.share.controller.Controller;
 import bert.share.controller.ControllerType;
 import bert.share.model.AbstractRobotModel;
 import bert.share.model.NamedPipePair;
@@ -26,17 +24,19 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 	private static final String CLSS = "RobotClientModel";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private static final System.Logger.Level level = System.Logger.Level.WARNING;
-	private CommandController terminal = null;
+	private NamedPipePair pipe = null;
 
 	
 	public RobotTerminalModel(Path configPath) {
 		super(configPath);
 	}
    
-	public CommandController getController() { return this.terminal; }
+	public NamedPipePair getPipe() { return this.pipe; }
+	
 	/**
 	 *  Analyze the document and populate the model. 
 	 */
+	@Override
 	public void populate() {
 		analyzeProperties();
 		analyzeControllers();
@@ -60,19 +60,17 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isBlank() &&
 					type.equalsIgnoreCase(ControllerType.TERMINAL.name()) ) {
-					this.terminal = new CommandController();
 					// Configure the pipe - there should only be one.
 					NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
 					if( pipeElements.getLength()>0) {
 						Element pipeElement= (Element)(pipeElements.item(0));
-						NamedPipePair pipe = new NamedPipePair(false);
+						this.pipe = new NamedPipePair(false);
 						String direction = XMLUtility.attributeValue(pipeElement, "direction");
 						pipe.setDirection(PipeDirection.valueOf(direction.toUpperCase()));
 						String mode = XMLUtility.attributeValue(pipeElement, "mode");
 						pipe.setMode(PipeMode.valueOf(mode.toUpperCase()));
 						String name = XMLUtility.attributeValue(pipeElement, "name");
 						pipe.setName(name);
-						this.terminal.setPipe(pipe);
 					}
 					break;
 				}

@@ -10,7 +10,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import bert.share.bottle.BottleConstants;
-import bert.share.common.RobotConstants;
+import bert.share.common.PathConstants;
 import bert.share.model.AbstractRobotModel;
 import bert.share.xml.XMLUtility;
 

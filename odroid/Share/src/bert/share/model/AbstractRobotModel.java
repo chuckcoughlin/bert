@@ -39,6 +39,7 @@ public abstract class AbstractRobotModel  {
 	 *  (client or server). This must be called before the model is accessed.
 	 */
 	public abstract void populate();
+	
 	public String getProperty(String key,String defaultValue) {
 		return this.properties.getProperty(key,defaultValue);
 	}

@@ -3,6 +3,7 @@
 	- copy to local robot area. 
 -->
 <project name="bert.install.common" default="all" basedir=".">
+	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="lib.dir" value="${basedir}/lib" />
 	<property name="jar.name" value="bert-common.jar" />
 	<property name="temp.dir" value="${basedir}/temp" />

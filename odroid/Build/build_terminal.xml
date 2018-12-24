@@ -44,7 +44,7 @@
 	
 	<!-- Bundle the application code into a jar file -->
 	<target name ="jar" description="Create a jar ">
-    	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="bin"/>
+    	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${lib.dir}"/>
 	</target>
 	
 	<!-- Copy the new jar file into the local deployment area. -->

@@ -10,13 +10,15 @@ import java.nio.file.Paths;
 
 import bert.server.model.RobotServerModel;
 import bert.share.bottle.BottleConstants;
-import bert.share.common.RobotConstants;
+import bert.share.bottle.ResponseBottle;
+import bert.share.common.PathConstants;
+import bert.share.controller.ControllerLauncher;
 
 /**
- * The ControlLoop is the main server-side class.
+ * The ControlLoop is the main server-side application class.
  *
  */
-public class ControlLoop  {
+public class ControlLoop implements ControllerLauncher {
 	private final static String CLSS = "ControlLoop";
 	private static final String USAGE = "Usage: loop <config-file>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
@@ -30,7 +32,7 @@ public class ControlLoop  {
 	 */
 	public ControlLoop(RobotServerModel m) {
 		this.model = m;
-		this.name = model.getProperty(BottleConstants.PROPERTY_NAME,RobotConstants.ROBOT_NAME);
+		this.name = model.getProperty(BottleConstants.PROPERTY_NAME,"Bert");
 		String cadenceString = model.getProperty(BottleConstants.PROPERTY_CADENCE,"1000");  // ~msecs
 		try {
 			this.cadence = Integer.parseInt(cadenceString);
@@ -41,6 +43,9 @@ public class ControlLoop  {
 		
 	}
 
+	public void execute() {
+		
+	}
 
 	/**
 	 * Entry point for the application that contains the robot Java
@@ -58,15 +63,25 @@ public class ControlLoop  {
 			System.exit(1);
 		}
 
+
 		// Analyze command-line argument to obtain the configuration file path.
 		String arg = args[0];
 		Path path = Paths.get(arg);
-		RobotServerModel model = new RobotServerModel(path);
+		PathConstants.setHome(path);
+		RobotServerModel model = new RobotServerModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 
 		ControlLoop runner = new ControlLoop(model);
+		runner.execute();
 
   
+	}
+
+
+	@Override
+	public void handleResult(String key, ResponseBottle response) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -12,7 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import bert.share.bottle.BottleConstants;
-import bert.share.controller.Controller;
+import bert.share.bottle.ResponseBottle;
+import bert.share.common.PathConstants;
+import bert.share.controller.ControllerLauncher;
 import bert.term.model.RobotTerminalModel;
 
 
@@ -21,19 +23,31 @@ import bert.term.model.RobotTerminalModel;
  * to command and interrogate the robot. Command entries are the same as
  * those given to the "headless" application, "Bert" in spoken form.
  */
-public class Terminal implements Controller {
+public class Terminal implements ControllerLauncher {
 	private final static String CLSS = "Terminal";
+	private static final String CONTROLLER_KEY = "TERMINAL_CONTROLLER";
 	private static final String USAGE = "Usage: terminal <config-file>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotTerminalModel model;
+	private final TerminalController controller;
 	private String prompt;
 	
 	public Terminal(RobotTerminalModel m) {
 		this.model = m;
 		this.prompt = model.getProperty(BottleConstants.PROPERTY_PROMPT,"bert:");
+		this.controller = new TerminalController(CONTROLLER_KEY,this);
 	}
+
 	
-	public void run() {
+	/**
+	 * Loop forever reading from the terminal. Use ANTLR to convert into requests.
+	 * Handle requests in a controller running in its own thread. Display responses.
+	 */
+	public void execute() {
+		controller.configure(model);
+		Thread controllerThread = new Thread(controller);
+		controllerThread.start();
+		
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new InputStreamReader(System.in));
@@ -72,10 +86,16 @@ public class Terminal implements Controller {
 					e.printStackTrace();
 				}
 			}
+			controllerThread.interrupt();
 		}
 		System.exit(0);
 	}
 
+	@Override
+	public void handleResult(String key, ResponseBottle response) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 	/**
 	 * Entry point for the application that contains the robot Java
@@ -93,14 +113,15 @@ public class Terminal implements Controller {
 			System.exit(1);
 		}
 		
-		// Analyze command-line argument to obtain the configuration file path.
+		// Analyze command-line argument to obtain the file path to BERT_HOME.
 		String arg = args[0];
 		Path path = Paths.get(arg);
-		RobotTerminalModel model = new RobotTerminalModel(path);
+		PathConstants.setHome(path);
+		RobotTerminalModel model = new RobotTerminalModel(PathConstants.CONFIG_PATH);
 		model.populate();
 		
         Terminal runner = new Terminal(model);
-        runner.run();
+        runner.execute();
 	}
 
 }
