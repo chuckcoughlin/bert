@@ -16,10 +16,10 @@ import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
 
 /**
- * The ControlLoop is the main server-side application class.
- *
+ * The job of the distributer is to process entries from the request channels,
+ * distrubute them to action channels and post the results.
  */
-public class ControlLoop implements ControllerLauncher {
+public class Distributer implements ControllerLauncher {
 	private final static String CLSS = "ControlLoop";
 	private static final String USAGE = "Usage: loop <config-file>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
@@ -31,7 +31,7 @@ public class ControlLoop implements ControllerLauncher {
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public ControlLoop(RobotServerModel m) {
+	public Distributer(RobotServerModel m) {
 		this.model = m;
 		this.name = model.getProperty(BottleConstants.PROPERTY_NAME,"Bert");
 		String cadenceString = model.getProperty(BottleConstants.PROPERTY_CADENCE,"1000");  // ~msecs
@@ -75,7 +75,7 @@ public class ControlLoop implements ControllerLauncher {
 		RobotServerModel model = new RobotServerModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 
-		ControlLoop runner = new ControlLoop(model);
+		Distributer runner = new Distributer(model);
 		runner.execute();
 
   

@@ -13,7 +13,7 @@ public class CommandHandler  {
 	protected static final String CLSS = "LowerController";
 
 
-	public CommandHandler(ControlLoop server) {
+	public CommandHandler(Distributer server) {
 
 	}
 
