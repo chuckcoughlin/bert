@@ -16,6 +16,7 @@ import bert.client.model.RobotClientModel;
 import bert.share.bottle.ResponseBottle;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
+import bert.share.logging.LoggerUtility;
 
 /**
  * This is the main client class (on the controller side of the pipes). It holds
@@ -117,6 +118,9 @@ public class Bert implements ControllerLauncher {
 		String arg = args[0];
 		Path path = Paths.get(arg);
 		PathConstants.setHome(path);
+		// Setup logging to use only a file appender to our logging directory
+		LoggerUtility.getInstance().configureRootLogger();
+		
 		RobotClientModel model = new RobotClientModel(PathConstants.CONFIG_PATH);
 		model.populate();
 		

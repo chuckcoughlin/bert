@@ -13,6 +13,7 @@ import bert.share.bottle.BottleConstants;
 import bert.share.bottle.ResponseBottle;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
+import bert.share.logging.LoggerUtility;
 
 /**
  * The ControlLoop is the main server-side application class.
@@ -68,6 +69,9 @@ public class ControlLoop implements ControllerLauncher {
 		String arg = args[0];
 		Path path = Paths.get(arg);
 		PathConstants.setHome(path);
+		// Setup logging to use only a file appender to our logging directory
+		LoggerUtility.getInstance().configureRootLogger();
+		
 		RobotServerModel model = new RobotServerModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 

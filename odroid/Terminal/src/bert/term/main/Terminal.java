@@ -15,6 +15,7 @@ import bert.share.bottle.BottleConstants;
 import bert.share.bottle.ResponseBottle;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
+import bert.share.logging.LoggerUtility;
 import bert.term.model.RobotTerminalModel;
 
 
@@ -112,15 +113,18 @@ public class Terminal implements ControllerLauncher {
 			LOGGER.log(Level.INFO, USAGE);
 			System.exit(1);
 		}
-		
+
 		// Analyze command-line argument to obtain the file path to BERT_HOME.
 		String arg = args[0];
 		Path path = Paths.get(arg);
 		PathConstants.setHome(path);
+		// Setup logging to use only a file appender to our logging directory
+		LoggerUtility.getInstance().configureRootLogger();
+		
 		RobotTerminalModel model = new RobotTerminalModel(PathConstants.CONFIG_PATH);
 		model.populate();
 		
-        Terminal runner = new Terminal(model);
+		Terminal runner = new Terminal(model);
         runner.execute();
 	}
 

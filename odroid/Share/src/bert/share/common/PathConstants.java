@@ -18,6 +18,7 @@ public class PathConstants   {
 	public static Path DB_PATH    = null; 
 	public static Path DEV_DIR    = null;
 	public static Path LOG_DIR    = null;
+	public static String LOG_FILE = "bert.log";
 	
 	static {
 		setHome(ROBOT_HOME);

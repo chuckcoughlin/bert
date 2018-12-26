@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Implement a SLF4j custom logger that directs everything to syslog.
- * @author chuckc
- *
  */
 public class SyslogLogger implements System.Logger {
 	private final Logger logger;
