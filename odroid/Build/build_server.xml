@@ -58,5 +58,7 @@
 				<include name="*.jar"/>
 			</fileset>
 		</copy>
+		<chmod dir="${robot.dir}/lib" perm="ugo+rx"
+						       includes="**/*.jar"/>
 	</target>			
 </project>

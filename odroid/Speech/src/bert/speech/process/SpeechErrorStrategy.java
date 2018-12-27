@@ -18,8 +18,11 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
+
+
+
 /** Instead of recovering from exceptions, log the information to
- * a .
+ * a logfile.
  */
 public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	private static final String CLSS = "SpeechErrorStrategy: ";
@@ -36,7 +39,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
     	super.recover(recognizer,e);
-    	LOGGER.log(Level.INFO, CLSS+": RECOVER");
+    	LOGGER.log(Level.WARNING, CLSS+": RECOVER");
     	//recordError(recognizer,e);  // Moved to reportError() override
     }
 
@@ -45,7 +48,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
      */
     @Override
     public Token recoverInline(Parser recognizer)  {
-    	LOGGER.log(Level.INFO, CLSS+": RECOVER-INLINE");
+    	LOGGER.log(Level.WARNING, CLSS+": RECOVER-INLINE");
     	recordError(recognizer,new InputMismatchException(recognizer));
     	return super.recoverInline(recognizer);
     }
@@ -55,7 +58,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	 */
     @Override
     public void reportError(Parser recognizer, RecognitionException e) {
-    	LOGGER.log(Level.INFO, CLSS+": REPORT-ERROR");
+    	LOGGER.log(Level.WARNING, CLSS+": REPORT-ERROR");
     	recordError(recognizer,e);
     }
 
@@ -70,7 +73,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	Token offender = re.getOffendingToken();
     	if( offender != null ) {
     		String msg = String.format("Mismatch col %d: expecting an expression, got \'%s\'",offender.getStartIndex(),offender.getText());
-    		LOGGER.log(Level.INFO, CLSS+msg);
+    		LOGGER.log(Level.WARNING, CLSS+msg);
     		sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
     		sharedDictionary.put(ParseProperties.EXPR_ERR_LINE, Integer.toString(offender.getLine()));
     		sharedDictionary.put(ParseProperties.EXPR_ERR_POSITION,Integer.toString(offender.getCharPositionInLine()));
@@ -78,7 +81,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	}
     	else {
     		String msg = "SYTNTAX ERROR: No information";
-    		LOGGER.log(Level.INFO, CLSS+msg);
+    		LOGGER.log(Level.WARNING, CLSS+msg);
     		sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
     	}
     }

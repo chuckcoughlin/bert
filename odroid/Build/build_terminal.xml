@@ -38,16 +38,14 @@
 		       compiler="javac10+"
 			   source="11" target="11"
 			   modulepathref="common-modulepath"
-			   includeantruntime="false"
 		/>
 	</target>
 	
 	<!-- Bundle the application code into a jar file -->
 	<target name ="jar" description="Create a jar ">
-    	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${lib.dir}">
+    	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
     		<manifest>
-    		      <attribute name="Main-Class"
-    		                 value="bert.term.main.Terminal"/>
+    		      <attribute name="Main-Class" value="bert.term.main.Terminal"/>
     		    </manifest>
     	</jar>
 	</target>
@@ -61,5 +59,7 @@
 				<include name="*.jar"/>
 			</fileset>
 		</copy>
+		<chmod dir="${robot.dir}/lib" perm="ugo+rx"
+						       includes="**/*.jar"/>
 	</target>			
 </project>

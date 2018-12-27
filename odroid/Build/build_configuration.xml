@@ -30,10 +30,14 @@
 				<include name="*.jar"/>
 			</fileset>
 		</copy>
+		
 		<mkdir dir="${robot.dir}/bin" />
 		<copy todir="${robot.dir}/bin">
 			<fileset dir="${bin.dir}" />
 		</copy>
+		<chmod dir="${robot.dir}/bin" perm="ugo+rx"
+		       includes="**/*.sh"/>
+		
 		<mkdir dir="${robot.dir}/etc" />
 		<copy todir="${robot.dir}/etc">
 			<fileset dir="${config.dir}" />

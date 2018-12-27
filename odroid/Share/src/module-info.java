@@ -5,9 +5,6 @@
 module bert.share {
 	requires transitive java.logging;
 	requires transitive java.xml;
-	requires transitive org.slf4j;
-	provides java.lang.System.LoggerFinder
-		with bert.share.logging.SyslogLoggerFinder;
 	
 	exports bert.share.bottle;
 	exports bert.share.common;
