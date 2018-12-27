@@ -7,12 +7,12 @@
 grammar SpeechSyntax;
 
 /** Initial rule, begin parsing */
-line: sentence EOF;
+line: statement EOF;
 
-sentence: 
-      command    
+statement: 
+      command   
 	| question
-	| statement
+	| declaration
 	;
 
 // Imperatives directing the robot to take an action
@@ -25,7 +25,7 @@ question:
 	;
 
 // Convey information to the robot.
-statement:
+declaration:
 	;
 	
 	
@@ -55,4 +55,4 @@ PCLOSE: ')';
 POPEN:  '(';
 DBLQUOTE:  '"';
 SNGLQUOTE: '\'';
-fragment WS:  [\s\t\r\n,]+ ->skip;   // Whitespace only matters around operators
+fragment WS:  [\t\r\n,]+ ->skip;   // Whitespace only matters around operators

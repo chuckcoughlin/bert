@@ -6,7 +6,7 @@
  * We make no guarantees that this code is fit for any purpose. 
  * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
 ***/
-package com.ils.tf.gateway.command;
+package bert.speech.process;
 
 import java.util.HashMap;
 
@@ -24,12 +24,12 @@ import com.inductiveautomation.ignition.common.util.LoggerEx;
 /** Instead of recovering from exceptions, log the information to
  * a .
  */
-public class ExpressionErrorStrategy extends DefaultErrorStrategy {
+public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	private static final String TAG = "ExpressionErrorStrategy: ";
 	private final LoggerEx log;
 	private final HashMap<String,Object> sharedDictionary;
 	
-	public ExpressionErrorStrategy(HashMap<String,Object> table) {
+	public SpeechErrorStrategy(HashMap<String,Object> table) {
 		log = LogUtil.getLogger(getClass().getPackage().getName());
 		this.sharedDictionary = table;
 	}

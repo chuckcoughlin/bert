@@ -6,15 +6,15 @@
  * We make no guarantees that this code is fit for any purpose. 
  * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
 ***/
+
 package bert.speech.process;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
 
-import com.ils.tf.gateway.expression.ScriptSyntaxLexer;
-import com.inductiveautomation.ignition.common.util.LogUtil;
-import com.inductiveautomation.ignition.common.util.LoggerEx;
+import bert.speech.antlr.SpeechSyntaxLexer;
+
 
 /**
  * This class is a failed attempt to quiet the lexer complaints about 
@@ -40,7 +40,6 @@ public class QuietLexer extends SpeechSyntaxLexer {
     @Override
     public void recover(RecognitionException e) {
     	super.recover(e);
-    	log.info(TAG+"recover recognitionException");
     }
 }
 

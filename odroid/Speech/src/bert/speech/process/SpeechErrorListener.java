@@ -6,7 +6,8 @@
  * We make no guarantees that this code is fit for any purpose. 
  * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
 **/
-package com.ils.tf.gateway.command;
+package bert.speech.process;
+import java.lang.System.Logger.Level;
 import java.util.HashMap;
 
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -14,20 +15,16 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
-import com.ils.tf.common.TestFrameProperties;
-import com.inductiveautomation.ignition.common.util.LogUtil;
-import com.inductiveautomation.ignition.common.util.LoggerEx;
 
 /**
  * As errors are detected, add their parameters to the dictionary.
  */
-public class ExpressionErrorListener extends BaseErrorListener {
-	private static String TAG = "ExpressionErrorListener: ";
-	private final LoggerEx log;
+public class SpeechErrorListener extends BaseErrorListener {
+	private static String CLSS = "SpeechErrorListener: ";
+	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private final HashMap<String,Object> sharedDictionary;
 	
-	public ExpressionErrorListener(HashMap<String,Object> table) {
-		log = LogUtil.getLogger(getClass().getPackage().getName());
+	public SpeechErrorListener(HashMap<String,Object> table) {
 		this.sharedDictionary = table;
 	}
 	@Override
@@ -45,20 +42,20 @@ public class ExpressionErrorListener extends BaseErrorListener {
                                   Token offendingToken, int line,
                                   int charPositionInLine) {
     	// Defer to the parser.
-    	if( sharedDictionary.get(TestFrameProperties.EXPR_ERR_MESSAGE)==null ) {
+    	if( sharedDictionary.get(ParseProperties.EXPR_ERR_MESSAGE)==null ) {
     		if( offendingToken != null ) {
     			String msg = String.format("Syntax error after col %d: \'%s\'",offendingToken.getStartIndex(),offendingToken.getText());
-    			log.info(TAG+msg);
-    			sharedDictionary.put(TestFrameProperties.EXPR_ERR_MESSAGE, msg);
-    			sharedDictionary.put(TestFrameProperties.EXPR_ERR_LINE, Integer.toString(offendingToken.getLine()));
-    			sharedDictionary.put(TestFrameProperties.EXPR_ERR_POSITION,Integer.toString(offendingToken.getCharPositionInLine()));
-    			sharedDictionary.put(TestFrameProperties.EXPR_ERR_TOKEN, offendingToken.getText());
+    			LOGGER.log(Level.INFO, CLSS+msg);
+    			sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
+    			sharedDictionary.put(ParseProperties.EXPR_ERR_LINE, Integer.toString(offendingToken.getLine()));
+    			sharedDictionary.put(ParseProperties.EXPR_ERR_POSITION,Integer.toString(offendingToken.getCharPositionInLine()));
+    			sharedDictionary.put(ParseProperties.EXPR_ERR_TOKEN, offendingToken.getText());
     		}
     		// We get here if we're listening to the lexer - which we are not
     		else {
     			String msg = "SYTNTAX ERROR: No information";
-    			log.tracef(TAG+msg);
-    			sharedDictionary.put(TestFrameProperties.EXPR_ERR_MESSAGE, msg);
+    			LOGGER.log(Level.INFO,CLSS+msg);
+    			sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
     		}
     	}
     }

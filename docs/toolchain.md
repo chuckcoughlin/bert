@@ -90,7 +90,7 @@ A USB extension board is required as slots are used for:
 The filesystem appeared to be properly configured on initial startup. There was no need to extend the root partition.
 
 Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
-Add the following to ``~/.bashrc``:
+Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
 ```
    export BERT_HOME=/usr/local/robot
 ```
@@ -139,6 +139,7 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install rsync
   sudo apt install vsftpd
   sudo apt install firefox
+  sudo apt install sqlite3
   sudo apt install vsftp
   sudo apt-get update
   sudo apt-get upgrade -y
@@ -163,7 +164,6 @@ Installing the JDK allows us to compile Java on the Odroid, if necessary.
 Once the build has been executed on the Development system (and deployed), edit ``/etc/environment``, adding the following directories to the **PATH** variable (before  */usr/bin*):
 ```
    /usr/local/robot/bin
-   /usr/local/robot/java/bin
 ```
 
 Make a scaled-down Java Runtime Environment that includes only the packages used by the robot applications. This results in a significant savings in memory.
@@ -220,6 +220,14 @@ Each java module has its own _eclipse_ project.
 
 *** Build Scripts *** <br/>
 Every project has a *build.xml* *ant* script that test-compiles code within the project. The _Build_ project contains additional *ant* scripts that build the main executables and copy them to the robot. These scripts are designed to be executed directly from ``eclipse``.
+NOTE: If the ant scripts fail to run, terminating immediately, the remedy is to edit their configuration to "run in the same JRE as the workspace".
+
+In order to make environment variables accessible within *ant*, edit the run configuration for the script and add in the argument section something similar to:
+```
+  -Dbert.home="${env_var:BERT_HOME}"
+```
+
+This makes *BERT_HOME* accessible as *${bert.home)* inside the script.
 
 In addition to the *ant* scripts, there are a few shell scripts. To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
 
@@ -227,6 +235,7 @@ In addition to the *ant* scripts, there are a few shell scripts. To execute from
 The *Archive* project is a collection of open-source library modules.
 * https://www.slf4j.org/download.htm slf4j-api-1.8.0.beta2.jar logback-classic-1.3.0-alpha4.jar logback-core-1.3.0-alpha4.jar
 * http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.7.jar jackson-databind-2.9.7.jar java-annotations-2.9.7.jar
+* http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
 
 *** Modularized Jar Files ***<br/>
 Some of the open source libraries were not updated to Java 9 or newer. Consequently the downloaded jar files required updating to add module dependencies.
@@ -269,6 +278,8 @@ The root directory of the *Archive* project is the starting point. The 3 origina
    ${ARCHIVE}
    rm -rf work classes
 ```
+*** ANTLR *** <br/>
+*ANTLR* is a parsing framework used for understanding natural language. From the Eclipse marketplace install a plugin for *antlr4*. Use the one by *Edgar Espina*.
 
 *** C++ *** <br/>
 To add C++ support, under <u>Help->Install New Software</u>, in the _work with_ selector, enter http://download.eclipse.org/tools/cdt/releases/9.5. Then select "C++ Tools". Restart _eclipse_.
