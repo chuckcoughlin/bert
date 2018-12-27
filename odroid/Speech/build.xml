@@ -1,0 +1,42 @@
+<!-- Ant script to build the parsing libraries (Java) that are a result of
+     the ANTLR syntax specification. Place generated files directly into our 
+     source tree.
+  -->
+<project name="SpeechProcessing" default="all" basedir=".">
+	<property name="src" location="src" />
+    <property name="src.dir" location="src/bert/speech/antlr" />
+	<property name="package" value="bert.speech.antlr" />
+	<property name="lib" location="lib" />
+    <property name="bin" location="bin" />
+	<property name="jar.dir" location="${basedir}/ARCHIVE/jars" />
+
+	<!-- This target will build the core application and deploy it to the robot -->
+	<target name="all" depends="clean,generate" />
+	
+	<!-- These are unmodularized jars -->
+    <path id="antlr-classpath">
+    	<pathelement location="${jar.dir}/antlr-4.7.1-complete.jar" />
+    </path>
+ 
+    <target name="clean">
+    	<delete dir="${src.dir}"/>
+    </target>
+	
+	<!-- Run the ANTLR code generator -->
+    <target name="generate" depends="clean">
+        <mkdir dir="${src.dir}" />
+    	<mkdir dir="${lib}" />
+        <java classname="org.antlr.v4.Tool" classpathref="antlr-classpath" fork="true">
+            <arg value="-o" />
+            <arg path="${src.dir}" />
+        	<arg value="-package" />
+        	<arg value="${package}" />
+            <arg value="-lib"/>
+        	<arg value="${lib}" />
+            <arg value="-visitor" />
+        	<arg value="-no-listener" />
+            <arg value="SpeechSyntax.g4" />
+        </java>
+    </target>
+
+</project>
