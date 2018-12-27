@@ -17,11 +17,13 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-	Salutation? Command      # handleSingleWordCommand
+	Salutation? Command                       # handleSingleWordCommand
 	;
       
 // Request for information
 question:
+	  How HowAdjective 'are' 'you'            # howQuestion
+	| What 'is' Possessive? Article? Property # whatQuestion
 	;
 
 // Convey information to the robot.
@@ -30,10 +32,14 @@ declaration:
 	
 	
 
-// Single-word imperatives
-Command: 'relax'|'stop'|'wake u';
-Property: 'cadence';
+Article: 'a'|'an'|'the';
+Command: 'relax'|'stop'|'wake up';
+How: 'how';
+HowAdjective: 'old'|'tall';
+Possessive: 'your';
+Property: 'cadence'|'cycle time'|'duty cycle';
 Salutation:'bert'|'burt';
+What: 'what';
 
 
 COMMA: ',';   // Not a fragment because of "value"
@@ -55,4 +61,3 @@ PCLOSE: ')';
 POPEN:  '(';
 DBLQUOTE:  '"';
 SNGLQUOTE: '\'';
-fragment WS:  [\t\r\n,]+ ->skip;   // Whitespace only matters around operators

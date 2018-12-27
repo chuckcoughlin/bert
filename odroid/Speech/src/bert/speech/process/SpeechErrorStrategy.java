@@ -8,6 +8,7 @@
 ***/
 package bert.speech.process;
 
+import java.lang.System.Logger.Level;
 import java.util.HashMap;
 
 import org.antlr.v4.runtime.DefaultErrorStrategy;
@@ -17,20 +18,15 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
-import com.ils.tf.common.TestFrameProperties;
-import com.inductiveautomation.ignition.common.util.LogUtil;
-import com.inductiveautomation.ignition.common.util.LoggerEx;
-
 /** Instead of recovering from exceptions, log the information to
  * a .
  */
 public class SpeechErrorStrategy extends DefaultErrorStrategy {
-	private static final String TAG = "ExpressionErrorStrategy: ";
-	private final LoggerEx log;
+	private static final String CLSS = "SpeechErrorStrategy: ";
+	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private final HashMap<String,Object> sharedDictionary;
 	
 	public SpeechErrorStrategy(HashMap<String,Object> table) {
-		log = LogUtil.getLogger(getClass().getPackage().getName());
 		this.sharedDictionary = table;
 	}
 	
@@ -40,7 +36,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
     	super.recover(recognizer,e);
-    	log.trace(TAG+": RECOVER");
+    	LOGGER.log(Level.INFO, CLSS+": RECOVER");
     	//recordError(recognizer,e);  // Moved to reportError() override
     }
 
@@ -49,7 +45,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
      */
     @Override
     public Token recoverInline(Parser recognizer)  {
-    	log.trace(TAG+": RECOVER-INLINE");
+    	LOGGER.log(Level.INFO, CLSS+": RECOVER-INLINE");
     	recordError(recognizer,new InputMismatchException(recognizer));
     	return super.recoverInline(recognizer);
     }
@@ -59,7 +55,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	 */
     @Override
     public void reportError(Parser recognizer, RecognitionException e) {
-    	log.trace(TAG+": REPORT-ERROR");
+    	LOGGER.log(Level.INFO, CLSS+": REPORT-ERROR");
     	recordError(recognizer,e);
     }
 
@@ -74,16 +70,16 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	Token offender = re.getOffendingToken();
     	if( offender != null ) {
     		String msg = String.format("Mismatch col %d: expecting an expression, got \'%s\'",offender.getStartIndex(),offender.getText());
-    		log.info(TAG+msg);
-    		sharedDictionary.put(TestFrameProperties.EXPR_ERR_MESSAGE, msg);
-    		sharedDictionary.put(TestFrameProperties.EXPR_ERR_LINE, Integer.toString(offender.getLine()));
-    		sharedDictionary.put(TestFrameProperties.EXPR_ERR_POSITION,Integer.toString(offender.getCharPositionInLine()));
-    		sharedDictionary.put(TestFrameProperties.EXPR_ERR_TOKEN, offender.getText());
+    		LOGGER.log(Level.INFO, CLSS+msg);
+    		sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
+    		sharedDictionary.put(ParseProperties.EXPR_ERR_LINE, Integer.toString(offender.getLine()));
+    		sharedDictionary.put(ParseProperties.EXPR_ERR_POSITION,Integer.toString(offender.getCharPositionInLine()));
+    		sharedDictionary.put(ParseProperties.EXPR_ERR_TOKEN, offender.getText());
     	}
     	else {
     		String msg = "SYTNTAX ERROR: No information";
-    		log.debug(TAG+msg);
-    		sharedDictionary.put(TestFrameProperties.EXPR_ERR_MESSAGE, msg);
+    		LOGGER.log(Level.INFO, CLSS+msg);
+    		sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
     	}
     }
 }

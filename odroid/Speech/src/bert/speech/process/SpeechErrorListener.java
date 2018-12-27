@@ -32,8 +32,7 @@ public class SpeechErrorListener extends BaseErrorListener {
 				Object offendingSymbol,
 				int line, int charPositionInLine,
 				String msg,
-				RecognitionException e)
-    {
+				RecognitionException e) {
 		recordError(recognizer,(Token)offendingSymbol,
                        line, charPositionInLine);
     }

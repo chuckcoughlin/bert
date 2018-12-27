@@ -10,6 +10,15 @@
 	<property name="src.dir" value="${basedir}/../Speech/src" />
 	<property name="robot.dir" value="${bert.home}" />
 	
+	<path id="common-modulepath">
+		<fileset dir="${lib.dir}">
+	    	<include name="*.jar"/>
+		</fileset>
+		<fileset dir="${archive.dir}">
+			<include name="*.jar"/>
+		</fileset>
+	 </path>
+	
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean,build,jar,deploy" />
 	
@@ -30,7 +39,7 @@
 	       	   destdir="${temp.dir}"
 		       compiler="javac10+"
 			   source="11" target="11"
-			   modulepath="${archive.dir}"
+			   modulepathref="common-modulepath"
 			   includeantruntime="false"
 		/>
 	</target>

@@ -31,8 +31,6 @@
             <arg path="${src.dir}" />
         	<arg value="-package" />
         	<arg value="${package}" />
-            <arg value="-lib"/>
-        	<arg value="${lib}" />
             <arg value="-visitor" />
         	<arg value="-no-listener" />
             <arg value="SpeechSyntax.g4" />

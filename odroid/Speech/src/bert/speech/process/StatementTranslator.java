@@ -6,7 +6,7 @@ package bert.speech.process;
 
 import java.util.HashMap;
 
-import bert.share.
+import bert.share.bottle.RequestBottle;
 import bert.speech.antlr.SpeechSyntaxBaseVisitor;
 import bert.speech.antlr.SpeechSyntaxParser;
 
@@ -27,7 +27,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	 */
 	public StatementTranslator(HashMap<String,Object> shared) {
 		this.sharedDictionary = shared;
-		this.bottle = new RequestBottle();
+		this.bottle = new RequestBottle("");
 	}
 	
 	public RequestBottle getRequest() { return this.bottle; }
@@ -35,7 +35,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// ================================= Overridden Methods =====================================
 	// These do the actual translations
 	@Override 
-	Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
+	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
 		return null;
 	}
 

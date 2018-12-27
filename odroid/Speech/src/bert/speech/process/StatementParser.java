@@ -11,8 +11,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import com.ils.tf.common.TestFrameProperties;
-
+import bert.share.bottle.RequestBottle;
 import bert.speech.antlr.SpeechSyntaxLexer;
 import bert.speech.antlr.SpeechSyntaxParser;
 
