@@ -39,13 +39,13 @@ public class TerminalController extends AbstractController implements Controller
 	public TerminalController(String key,ControllerLauncher launcher) {
 		super(key,launcher);
 		this.buffer = new BoundedBuffer(BUFFER_SIZE);
-		this.prompt = model.getProperty(BottleConstants.PROPERTY_PROMPT,"bert:");
 	}
 	
 	@Override
 	public void configure(AbstractRobotModel absModel) {
 		if( absModel instanceof RobotTerminalModel ) {
 			this.model = (RobotTerminalModel)absModel;
+			this.prompt = model.getProperty(BottleConstants.PROPERTY_PROMPT,"bert:");
 			setPipe(model.getPipe());
 		}
 		else {

@@ -35,12 +35,13 @@
 	<target name="build" description="Compile the source in ${src.dir}">
 		<echo message="Compile the source in ${src.dir}" />
 		<mkdir dir="${temp.dir}"/>
-		<javac srcdir="${src.dir}"
-	       	   destdir="${temp.dir}"
-		       compiler="javac10+"
-			   source="11" target="11"
-			   modulepathref="common-modulepath"
-			   includeantruntime="false"
+		<javac	srcdir="${src.dir}"
+				destdir="${temp.dir}"
+				compiler="javac10+"
+				source="11" target="11"
+				debug="true"
+				modulepathref="common-modulepath"
+				includeantruntime="false"
 		/>
 	</target>
 	

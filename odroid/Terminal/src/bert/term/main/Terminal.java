@@ -27,7 +27,7 @@ import bert.term.model.RobotTerminalModel;
 public class Terminal implements ControllerLauncher {
 	private final static String CLSS = "Terminal";
 	private static final String CONTROLLER_KEY = "TERMINAL_CONTROLLER";
-	private static final String USAGE = "Usage: terminal <config-file>";
+	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotTerminalModel model;
 	private final TerminalController controller;
@@ -99,12 +99,13 @@ public class Terminal implements ControllerLauncher {
 	}
 	
 	/**
-	 * Entry point for the application that contains the robot Java
-	 * code for control of the appendages. 
+	 * Entry point for the application that allows direct user input through
+	 * stdio. The argument specifies a directory that is the root of the various
+	 * robot configuration, code and devices.
 	 * 
-	 * Usage: term <config> 
+	 * Usage: term <bert_root> 
 	 * 
-	 * @param args command-line arguments
+	 * @param args command-line arguments. Only one matters.
 	 */
 	public static void main(String[] args) {
 			

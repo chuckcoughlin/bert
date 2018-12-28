@@ -5,21 +5,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="mods/logback-classic-1.3.0-alpha4.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="mods/logback-core-1.3.0-alpha4.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="mods/slf4j-api-1.8.0-beta2.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="mods/jackson-annotations-2.9.7.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
