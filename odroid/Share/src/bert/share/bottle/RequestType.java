@@ -2,25 +2,23 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.common;
+package bert.share.bottle;
 
 /**
- * INPUT implies Bert->Core
- * OUTPUT implies Core->Bert
+ * LOCAL implies that the request need never be sent to the server..
  */
-public enum PipeDirection
+public enum RequestType
 {
-            REQUEST,    // CLIENT_TO_SERVER,
-            RESPONSE    // SERVER_TO_CLIENT
+            LOCAL
             ;
           
  /**
-  * @return  a comma-separated list of the two directions in a single String.
+  * @return  a comma-separated list of the types in a single String.
   */
   public static String names()
   {
     StringBuffer names = new StringBuffer();
-    for (PipeDirection type : PipeDirection.values())
+    for (RequestType type : RequestType.values())
     {
       names.append(type.name()+", ");
     }

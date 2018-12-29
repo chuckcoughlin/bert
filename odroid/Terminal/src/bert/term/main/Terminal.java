@@ -12,10 +12,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import bert.share.bottle.BottleConstants;
+import bert.share.bottle.RequestBottle;
 import bert.share.bottle.ResponseBottle;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
+import bert.speech.process.StatementParser;
 import bert.term.model.RobotTerminalModel;
 
 
@@ -31,12 +33,14 @@ public class Terminal implements ControllerLauncher {
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotTerminalModel model;
 	private final TerminalController controller;
+	private final StatementParser parser;
 	private String prompt;
 	
 	public Terminal(RobotTerminalModel m) {
 		this.model = m;
 		this.prompt = model.getProperty(BottleConstants.PROPERTY_PROMPT,"bert:");
 		this.controller = new TerminalController(CONTROLLER_KEY,this);
+		this.parser = new StatementParser();
 	}
 
 	
@@ -65,18 +69,23 @@ public class Terminal implements ControllerLauncher {
 				else if(input.isBlank()) continue;
 				/*
 				 * 1) Analyze the input string via ANTLR
-				 * 2) Send the resulting RequestBottle to the PipeHandler (in its own thread)
-				 * 3) On callback from the PipeHandler, convert ResponseBottle to english string
+				 * 2) Send the resulting RequestBottle to the TerminalController
+				 *    The request may hang while the controller input buffer is full. 
+				 * 3) On callback from the controller, convert ResponseBottle to english string
 				 * 4) Send string to stdout
 				 */
 				else {
-					
+					RequestBottle request = parser.parseStatement(input);
+					controller.submitRequest(request);
 				}
 			}
 
 		} 
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (IOException ioe) {
+			ioe.printStackTrace();
+		} 
+		catch (Exception ex) {
+			ex.printStackTrace();
 		} 
 		finally {
 			if (br != null) {

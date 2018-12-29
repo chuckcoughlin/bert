@@ -5,5 +5,6 @@ cd ${BERT_HOME}
 mkdir -p logs
 MP=lib/bert-terminal.jar
 MP=$MP:lib/bert-common.jar
+MP=$MP:lib/bert-speech.jar
 
 java --module-path $MP -m bert.terminal/bert.term.main.Terminal ${BERT_HOME}

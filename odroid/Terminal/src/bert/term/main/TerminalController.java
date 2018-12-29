@@ -4,14 +4,10 @@
  */
 package bert.term.main;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.System.Logger.Level;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import bert.share.bottle.BottleConstants;
+import bert.share.bottle.RequestBottle;
 import bert.share.controller.AbstractController;
 import bert.share.controller.Controller;
 import bert.share.controller.ControllerLauncher;
@@ -35,10 +31,12 @@ public class TerminalController extends AbstractController implements Controller
 	private NamedPipePair pipe = null;
 	private String prompt;
 	private BoundedBuffer buffer;
+	private boolean stopped;
 	
 	public TerminalController(String key,ControllerLauncher launcher) {
 		super(key,launcher);
 		this.buffer = new BoundedBuffer(BUFFER_SIZE);
+		this.stopped = false;
 	}
 	
 	@Override
@@ -53,7 +51,15 @@ public class TerminalController extends AbstractController implements Controller
 		}
 	}
 	
-	public BoundedBuffer getClientToControllerBuffer() { return this.buffer; } 
+	public void submitRequest(RequestBottle work)  {
+		try {
+			buffer.put(work);
+		}
+		catch(InterruptedException ie) {
+			LOGGER.log(Level.WARNING,String.format("%s.submitRequest: Request ignored due to interruption",CLSS));
+			this.stopped = true;
+		}
+	}
 	
 	/**
 	 * @param p named pipe pair that handles two-way I/O with server
@@ -62,29 +68,20 @@ public class TerminalController extends AbstractController implements Controller
 	public void setPipe(NamedPipePair p) {this.pipe = p;}
 	
 	/**
-	 * On receipt of a command,
+	 * Forever ...
 	 *   1) Read from input buffer 
 	 *   2) Write to named pipe
 	 *   3) Read response from named pipe
 	 *   4) Invoke callback method on launcher.
 	 */
 	public void run() {
-		BufferedReader br = null;
-		try {
+		while(!stopped ) {
+			try {
+				RequestBottle work = (RequestBottle) buffer.get();
+			} 
+			catch(InterruptedException inte) {stopped = true;}
+			finally {
 
-			Thread.sleep(1);
-
-		} 
-		catch(InterruptedException inte) {}
- 
-		finally {
-			if (br != null) {
-				try {
-					br.close();
-				} 
-				catch (IOException e) {
-					e.printStackTrace();
-				}
 			}
 		}
 		System.exit(0);

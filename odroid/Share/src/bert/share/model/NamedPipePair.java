@@ -13,7 +13,7 @@ import bert.share.common.PipeMode;
  */
 public class NamedPipePair   {
 	private final boolean master;  // True if this instance is owned by the server.
-	private PipeDirection direction = PipeDirection.INPUT;
+	private PipeDirection direction = PipeDirection.CLIENT_TO_SERVER;
 	private PipeMode mode = PipeMode.ASYNCHRONOUS;
 	private String name;
 	
@@ -32,6 +32,7 @@ public class NamedPipePair   {
 	
 	/**
 	 * Create the pair of named pipes if they don't already exist.
+	 * It is always the server-side that does the creating.
 	 * @return true if the pipes are ready for reading and writing.
 	 */
 	public boolean createPipes() {
