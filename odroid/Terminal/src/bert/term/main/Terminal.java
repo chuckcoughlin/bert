@@ -18,6 +18,7 @@ import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
 import bert.speech.process.StatementParser;
+import bert.sql.db.Database;
 import bert.term.model.RobotTerminalModel;
 
 
@@ -98,6 +99,7 @@ public class Terminal implements ControllerLauncher {
 			}
 			controllerThread.interrupt();
 		}
+		Database.getInstance().shutdown();
 		System.exit(0);
 	}
 
@@ -131,9 +133,11 @@ public class Terminal implements ControllerLauncher {
 		// Setup logging to use only a file appender to our logging directory
 		LoggerUtility.getInstance().configureRootLogger();
 		
+		
 		RobotTerminalModel model = new RobotTerminalModel(PathConstants.CONFIG_PATH);
 		model.populate();
-		
+		Database.getInstance().startup(PathConstants.DB_PATH);
+		Database.getInstance().populateMotors(model.getMotors());
 		Terminal runner = new Terminal(model);
         runner.execute();
 	}

@@ -9,7 +9,6 @@
 package bert.speech.process;
 
 import java.lang.System.Logger.Level;
-import java.util.HashMap;
 
 import org.antlr.v4.runtime.DefaultErrorStrategy;
 import org.antlr.v4.runtime.InputMismatchException;
@@ -17,6 +16,8 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
+
+import bert.share.bottle.RequestBottle;
 
 
 
@@ -27,10 +28,10 @@ import org.antlr.v4.runtime.Token;
 public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	private static final String CLSS = "SpeechErrorStrategy: ";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private final HashMap<String,Object> sharedDictionary;
+	private final RequestBottle bottle;
 	
-	public SpeechErrorStrategy(HashMap<String,Object> table) {
-		this.sharedDictionary = table;
+	public SpeechErrorStrategy(RequestBottle bot) {
+		this.bottle = bot;
 	}
 	
 	/**
@@ -72,17 +73,14 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	
     	Token offender = re.getOffendingToken();
     	if( offender != null ) {
-    		String msg = String.format("Mismatch col %d: expecting an expression, got \'%s\'",offender.getStartIndex(),offender.getText());
+    		String msg = String.format("I misunderstood the statement following %s",offender.getText());
     		LOGGER.log(Level.WARNING, CLSS+msg);
-    		sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
-    		sharedDictionary.put(ParseProperties.EXPR_ERR_LINE, Integer.toString(offender.getLine()));
-    		sharedDictionary.put(ParseProperties.EXPR_ERR_POSITION,Integer.toString(offender.getCharPositionInLine()));
-    		sharedDictionary.put(ParseProperties.EXPR_ERR_TOKEN, offender.getText());
+    		bottle.setError(msg);
     	}
     	else {
-    		String msg = "SYTNTAX ERROR: No information";
-    		LOGGER.log(Level.WARNING, CLSS+msg);
-    		sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
+    		String msg = "I don't understand";
+			LOGGER.log(Level.INFO,CLSS+msg);
+			bottle.setError(msg);
     	}
     }
 }

@@ -33,7 +33,8 @@ public enum Joint
 	RIGHT_HIP_Z,
 	RIGHT_KNEE_Y,
 	RIGHT_SHOULDER_X,
-	RIGHT_SHOULDER_Y
+	RIGHT_SHOULDER_Y,
+	UNKNOWN
             ;
           
  /**

@@ -32,8 +32,8 @@ declaration:
 	
 	
 
-Article: 'a'|'an'|'the';
-Command: 'relax'|'stop'|'wake up';
+Article: 'a'|'an'|'the'|'this'|'that';
+Command: 'attention'|'freeze'|'relax'|'stop'|'wake up';
 How: 'how';
 HowAdjective: 'old'|'tall';
 Possessive: 'your';

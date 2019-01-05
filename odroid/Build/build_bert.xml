@@ -1,4 +1,4 @@
-<!-- Build and deploy the client code -->
+<!-- Build and deploy the command controller code -->
 <project name="bert.install" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="lib.dir" value="${basedir}/lib" />

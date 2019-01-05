@@ -41,7 +41,7 @@ public class StatementParser  {
 	 * @return a request bottle to be sent to the server
 	 */
 	public RequestBottle parseStatement(String text) throws Exception {
-		
+		RequestBottle bottle = new RequestBottle();
 		ByteArrayInputStream bais = new ByteArrayInputStream(text.getBytes());
 		CodePointCharStream stream = CharStreams.fromString(text);
 		SpeechSyntaxLexer lexer = new QuietLexer(stream);
@@ -49,12 +49,12 @@ public class StatementParser  {
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		SpeechSyntaxParser parser = new SpeechSyntaxParser(tokens);
 		parser.removeErrorListeners(); // remove default error listener
-	    parser.addErrorListener(new SpeechErrorListener(context));
-		parser.setErrorHandler(new SpeechErrorStrategy(context));
+	    parser.addErrorListener(new SpeechErrorListener(bottle));
+		parser.setErrorHandler(new SpeechErrorStrategy(bottle));
 		ParseTree tree = parser.line();   // Start with a line
-		StatementTranslator visitor = new StatementTranslator(context);
+		StatementTranslator visitor = new StatementTranslator(bottle,context);
 		visitor.visit(tree);
-		return visitor.getRequest();
+		return bottle;
 	}
 	
 }

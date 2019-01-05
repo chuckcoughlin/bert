@@ -11,15 +11,26 @@ package bert.share.bottle;
  */
 public interface BottleConstants   {   
    
-	// Commands handled by the server
-	public final static String COMMAND_MOVE     = "move";       // Drive Dynamixel motors to new positions 
-	public final static String COMMAND_PROPERTY = "property";   // Request the value of a property
-	
 	// Status replies
-	public final static String STATUS_OK        = "ok";         // Success
+	public final static String STATUS_OK           = "ok";         // Success
 	
-	// Properties available from the server.
-	public final static String PROPERTY_CADENCE = "cadence";
-	public final static String PROPERTY_NAME    = "name";
-	public final static String PROPERTY_PROMPT  = "prompt";
+	// Propperties that define the request/response syntax
+	public final static String POSE_NAME           = "pose";
+	public final static String PROPERTY_COMMAND    = "command";
+	public final static String PROPERTY_NAME       = "name";
+	public final static String PROPERTY_PROMPT        = "prompt";
+	public final static String STATE_NAME          = "state";
+	
+	// Command names
+	public final static String COMMAND_FREEZE      = "freeze";
+	public final static String COMMAND_RELAX       = "relax";
+	public final static String COMMAND_WAKE        = "wake";
+		
+	// Valus of properties
+	public final static String VALUE_CADENCE       = "cadence";
+	
+
+	
+	// Key for a message that signals an error
+	public final static String ERROR__MESSAGE    = "error";
 }

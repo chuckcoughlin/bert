@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.share.controller;
@@ -11,7 +11,7 @@ import bert.share.model.NamedPipePair;
  *  via a bounded buffer and posts responses the same way
  */
 public abstract class AbstractController implements Controller, Runnable  {
-	protected static final String CLSS = "CommandController";
+	protected static final String CLSS = "AbstractController";
 	protected NamedPipePair pipe = null;
 	protected final String key;
 	protected final ControllerLauncher launcher;

@@ -8,12 +8,13 @@
 **/
 package bert.speech.process;
 import java.lang.System.Logger.Level;
-import java.util.HashMap;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
+
+import bert.share.bottle.RequestBottle;
 
 
 /**
@@ -22,10 +23,10 @@ import org.antlr.v4.runtime.Token;
 public class SpeechErrorListener extends BaseErrorListener {
 	private static String CLSS = "SpeechErrorListener: ";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private final HashMap<String,Object> sharedDictionary;
+	private final RequestBottle bottle;
 	
-	public SpeechErrorListener(HashMap<String,Object> table) {
-		this.sharedDictionary = table;
+	public SpeechErrorListener(RequestBottle bot) {
+		this.bottle = bot;
 	}
 	@Override
 	public void syntaxError(Recognizer<?,?> recognizer,
@@ -41,20 +42,17 @@ public class SpeechErrorListener extends BaseErrorListener {
                                   Token offendingToken, int line,
                                   int charPositionInLine) {
     	// Defer to the parser.
-    	if( sharedDictionary.get(ParseProperties.EXPR_ERR_MESSAGE)==null ) {
+    	if( bottle.getError()==null ) {
     		if( offendingToken != null ) {
-    			String msg = String.format("Syntax error after col %d: \'%s\'",offendingToken.getStartIndex(),offendingToken.getText());
+    			String msg = String.format("I didn't understand what came after %s",offendingToken.getStartIndex(),offendingToken.getText());
     			LOGGER.log(Level.INFO, CLSS+msg);
-    			sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
-    			sharedDictionary.put(ParseProperties.EXPR_ERR_LINE, Integer.toString(offendingToken.getLine()));
-    			sharedDictionary.put(ParseProperties.EXPR_ERR_POSITION,Integer.toString(offendingToken.getCharPositionInLine()));
-    			sharedDictionary.put(ParseProperties.EXPR_ERR_TOKEN, offendingToken.getText());
+    			bottle.setError(msg);
     		}
     		// We get here if we're listening to the lexer - which we are not
     		else {
-    			String msg = "SYTNTAX ERROR: No information";
+    			String msg = "I don't understand";
     			LOGGER.log(Level.INFO,CLSS+msg);
-    			sharedDictionary.put(ParseProperties.EXPR_ERR_MESSAGE, msg);
+    			bottle.setError(msg);
     		}
     	}
     }

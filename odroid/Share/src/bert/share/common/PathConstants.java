@@ -28,7 +28,7 @@ public class PathConstants   {
 	public static void setHome(Path home) {
 		ROBOT_HOME = home;
 		CONFIG_PATH= Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"etc","bert.xml"); 
-		DB_PATH    = Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"db","actions.idb"); 
+		DB_PATH    = Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"db","bert.idb"); 
 		DEV_DIR    = Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"dev");
 		LOG_DIR    = Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"logs");  
 	}

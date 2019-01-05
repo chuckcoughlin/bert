@@ -6,7 +6,9 @@ package bert.speech.process;
 
 import java.util.HashMap;
 
+import bert.share.bottle.BottleConstants;
 import bert.share.bottle.RequestBottle;
+import bert.share.bottle.RequestType;
 import bert.speech.antlr.SpeechSyntaxBaseVisitor;
 import bert.speech.antlr.SpeechSyntaxParser;
 
@@ -23,19 +25,72 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	
 	/**
 	 * Constructor.
-	 * @param shared is a parameter dictionary used to communicate between invocations
+	 * @param bot a request container supplied by the framework. It is our job 
+	 *            to fully configure it.
+	 * @param shared a parameter dictionary used to communicate between invocations
 	 */
-	public StatementTranslator(HashMap<String,Object> shared) {
+	public StatementTranslator(RequestBottle bot,HashMap<String,Object> shared) {
 		this.sharedDictionary = shared;
-		this.bottle = new RequestBottle("");
+		this.bottle = bot;
 	}
 	
-	public RequestBottle getRequest() { return this.bottle; }
-	
 	// ================================= Overridden Methods =====================================
-	// These do the actual translations
+	// These do the actual translations. Text->RequestBottle.
+	// NOTE: Any action, state or pose names require database access to fill in the details.
 	@Override 
 	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
+		String cmd = ctx.Command().getText();
+		if( cmd.equalsIgnoreCase("relax") ) {
+			bottle.setCommand(RequestType.SET_STATE);
+			bottle.setProperty(BottleConstants.STATE_NAME,"relax");
+		}
+		else if( cmd.equalsIgnoreCase("freeze") ||
+				 cmd.equalsIgnoreCase("stop") ) {
+			bottle.setCommand(RequestType.SET_STATE);
+			bottle.setProperty(BottleConstants.POSE_NAME,"freeze");
+		}
+		else if( cmd.equalsIgnoreCase("attention") ||
+				 cmd.equalsIgnoreCase("wake up") ) {
+			bottle.setCommand(RequestType.SET_POSE);
+			bottle.setProperty(BottleConstants.POSE_NAME,"attention");
+			
+		}
+		else {
+			String msg = String.format("I do not know how to %s",cmd);
+			bottle.setError(msg);
+		}
+		return null;
+	}
+	@Override 
+	public Object visitHowQuestion(SpeechSyntaxParser.HowQuestionContext ctx) {
+		String property = ctx.HowAdjective().getText();
+		if( property.equalsIgnoreCase("old") ||
+			property.equalsIgnoreCase("tall")   ) {
+			
+			bottle.setCommand(RequestType.GET_PROPERTY);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,property);
+			
+		}
+		else {
+			String msg = String.format("I don't know what %s means",property);
+			bottle.setError(msg);
+		}
+		return null;
+	}
+	@Override 
+	public Object visitWhatQuestion(SpeechSyntaxParser.WhatQuestionContext ctx) {
+		String property = ctx.Property().getText();
+		if( property.equalsIgnoreCase("cadence") ||
+			property.equalsIgnoreCase("cycle time") ||
+			property.equalsIgnoreCase("duty cycle")   ) {
+			
+			bottle.setCommand(RequestType.GET_PROPERTY);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,property);	
+		}
+		else {
+			String msg = String.format("I don't have a property %s, that I know of",property);
+			bottle.setError(msg);
+		}
 		return null;
 	}
 

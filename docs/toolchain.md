@@ -56,7 +56,6 @@ Once [pypot](#pypot) is installed on the Odroid then the *herborist* application
 ```
 python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist/herborist.py
 ```
-Note: This tool did not work when the motors were fresh from the manufacturer. I was forced to use the *Robotis* [Dynamixel Wizard](http://www.robotis.us/roboplus1/) tool on a Windows machine. Once a motor was configured to 1000000 baud, *herborist* seemed to work just fine.
 
 Initially, the devices can be found with the following parameters:
 ```
@@ -72,7 +71,9 @@ The Dynamixel configuration setup is shown below:
 ![poppy](/images/dynamixel_configuration.png)
 ````                        Dynamixel Configuration Setup````
 
-Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limits for each motor. In each case set the baud rate to 1000000 and return delay time to 0. Use ``Update EEPROM`` to apply the changes. *Note: I was forced to use the Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings as ``herborist`` continually froze. It seems to work OK for subsequent edits.*
+Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limits for each motor. In each case, set the baud rate to 1000000 and return delay time to 0.
+
+*Note: When the motors were fresh from the manufacturer ``herborist`` continually froze when flashing the EEPROM. I was forced to use Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings.  Once a motor was configured initially, ``herborist`` seems to work just fine.*
 
 ## System Setup <a id="system"/>
 ### Odroid <a id="odroid"></a>
@@ -236,6 +237,7 @@ The *Archive* project is a collection of open-source library modules.
 * https://www.slf4j.org/download.htm slf4j-api-1.8.0.beta2.jar logback-classic-1.3.0-alpha4.jar logback-core-1.3.0-alpha4.jar
 * http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.7.jar jackson-databind-2.9.7.jar java-annotations-2.9.7.jar
 * http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
+* https://bitbucket.org/xerial/sqlite-jdbc/downloads sqlite-jdbc-3.23.1.jar
 
 *** Modularized Jar Files ***<br/>
 Some of the open source libraries were not updated to Java 9 or newer. Consequently the downloaded jar files required updating to add module dependencies.

@@ -40,6 +40,7 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 	public void populate() {
 		analyzeProperties();
 		analyzeControllers();
+		analyzeMotors();
 	}
 
 

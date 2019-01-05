@@ -5,11 +5,17 @@
 package bert.share.bottle;
 
 /**
- * LOCAL implies that the request need never be sent to the server..
+ * These are the recognized commands from command controller to dispatcher.
  */
 public enum RequestType
 {
-            LOCAL
+            GET_PROPERTY,
+            PLAY_STEP,
+			RECORD_STEP,
+			SET_STATE,       // For a particular motor
+			REQUEST_STATE,   // Same as recording a step or pose
+			SET_POSE,
+			GET_POSE
             ;
           
  /**
