@@ -34,7 +34,7 @@ public class Distributer implements ControllerLauncher {
 	public Distributer(RobotMotorModel m) {
 		this.model = m;
 		this.name = model.getProperty(BottleConstants.PROPERTY_NAME,"Bert");
-		String cadenceString = model.getProperty(BottleConstants.PROPERTY_CADENCE,"1000");  // ~msecs
+		String cadenceString = model.getProperty(BottleConstants.VALUE_CADENCE,"1000");  // ~msecs
 		try {
 			this.cadence = Integer.parseInt(cadenceString);
 		}

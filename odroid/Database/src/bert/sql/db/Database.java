@@ -10,9 +10,12 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.sqlite.JDBC;
 
+import bert.share.motor.MotorConfiguration;
+import bert.sql.motor.Motor;
 import bert.sql.pose.Pose;
 /**
  * This class is a wrapper for the entire robot database. It is implemented
@@ -29,6 +32,7 @@ public class Database {
 	private static Database instance = null;
 	@SuppressWarnings("unused")
 	private final static JDBC driver = new JDBC(); // Force driver to be loaded
+	private final Motor motor;
 	private final Pose pose;
  
 
@@ -36,6 +40,7 @@ public class Database {
 	 * Constructor is private per Singleton pattern.
 	 */
 	private Database() {
+		this.motor = new Motor();
 		this.pose = new Pose();
 	}
 	/**
@@ -48,6 +53,15 @@ public class Database {
 			}
 		}
 		return instance;
+	}
+	/**
+	 * Populate the Motor table with information from the configuration file.
+	 * This table is useful in joins, thus the apparent duplication.
+	 * 
+	 * @param path to database instance
+	 */
+	public void populateMotors(List<MotorConfiguration> motors) {
+		motor.defineMotors(connection, motors);
 	}
 	/**
 	 * Create a database connection. Use this for all subsequent queries.

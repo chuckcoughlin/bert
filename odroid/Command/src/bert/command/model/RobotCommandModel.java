@@ -43,7 +43,7 @@ public class RobotCommandModel extends AbstractRobotModel   {
 	 * @param index
 	 * @param model
 	 */
-	public void analyzeDocument() {
+	public void analyzeControllers() {
 		if( this.document!=null ) {
 			NodeList elements = document.getElementsByTagName("controller");
 			int count = elements.getLength();
