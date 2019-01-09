@@ -17,7 +17,7 @@ CREATE	TABLE Motor (
 DROP TABLE IF EXISTS Action;
 CREATE TABLE Action (
 	name	text NOT NULL,
-	index   int NOT NULL,
+	cycle   int NOT NULL,
 	ABS_X	int NULL,
 	ABS_Y	int NULL,
 	ABS_Z	int NULL,
@@ -42,11 +42,10 @@ CREATE TABLE Action (
 	RIGHT_HIP_Z	int NULL,
 	RIGHT_KNEE_Y	int NULL,
 	RIGHT_SHOULDER_X	int NULL,
-	RIGHT_SHOULDER_Y	int NULL
+	RIGHT_SHOULDER_Y	int NULL,
+	UNIQUE (name,cycle)
 );
 
-ALTER TABLE Action
-   ADD CONSTRAINT actionUniqueConstraint UNIQUE(name,index);
 
 -- The Pose table shows motor positions for named "poses".
 -- Each pose is represented on a single line
@@ -86,8 +85,9 @@ DROP TABLE IF EXISTS MotorState;
 CREATE TABLE MotorState (
 	name	text NOT NULL,
 	id      int NOT NULL,
-	force   int NULL
+	offset  int NULL,
+	torque  float NULL,
+	minAngle float NULL,
+	maxAngle float NULL,
+	UNIQUE (name,id)
 );
-
-ALTER TABLE MotorState
-   ADD CONSTRAINT motorStateUniqueConstraint UNIQUE(name,id);

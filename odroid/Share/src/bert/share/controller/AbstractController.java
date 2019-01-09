@@ -4,7 +4,7 @@
  */
 package bert.share.controller;
 
-import bert.share.model.NamedPipePair;
+import bert.share.common.NamedPipePair;
 
 /**
  *  A command controller is a client-side command analyzer. It receives requests

@@ -23,21 +23,21 @@
 	<!-- These controllers represent individual client processes or applications.
 	     The client side may not actually exist, but the server must be prepared.  -->
 	<controller name="terminal" type="TERMINAL">
-		<pipe direction="input" mode="asynchronous" name="term"/>
+		<pipe  name="term"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<pipe direction="input" mode="asynchronous" name="cmd"/>
+		<pipe  name="cmd"/>
 	</controller>
 	<controller name="play" type="PLAY">
-		<pipe direction="input" mode="asynchronous" name="play"/>
+		<pipe  name="play"/>
 	</controller>
 	<controller name="record" type="RECORD">
-		<pipe direction="input" mode="asynchronous" name="rec"/>
+		<pipe name="rec"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once.  -->
 	<controller name="torso" type="JOINT">
-		<pipe direction="output" mode="synchronous" name="torso"/>
+		<pipe  name="torso"/>
 		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="-45" max="45" orientation="indirect" />
 		<joint name="ABS_Y"        type="MX64" id="31" offset="0" min="-50" max="12" orientation="indirect" />
 		<joint name="ABS_Z"        type="MX28" id="33" offset="0" min="-90" max="90" orientation="direct" />
@@ -45,7 +45,7 @@
 		<joint name="BUST_Y"       type="MX28" id="34" offset="0" min="-67" max="27" orientation="indirect" />
 	</controller>
 	<controller name="left_leg" type="JOINT">
-		<pipe direction="output" mode="synchronous" name="left_leg"/>
+		<pipe  name="left_leg"/>
 		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="0" min="-45" max="45" orientation="direct" />
 		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="0" min="-30" max="28.5" orientation="direct" />
 		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="0" min="-104" max="84" orientation="direct" />
@@ -53,7 +53,7 @@
 		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-90" min="-3.5" max="134" orientation="direct" />	
 	</controller>
 	<controller name="right_leg" type="JOINT">
-		<pipe direction="output" mode="synchronous" name="right_leg"/>
+		<pipe  name="right_leg"/>
 		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="0" min="-45" max="45" orientation="indirect" />
 		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="0" min="-28.5" max="30" orientation="direct" />
 		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="0" min="-85" max="105" orientation="indirect" />
@@ -61,21 +61,21 @@
 		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="0" min="-134" max="3.5" orientation="indirect" />
 	</controller>
 	<controller name="left_arm" type="JOINT">
-		<pipe direction="output" mode="synchronous" name="left_arm"/>
+		<pipe  name="left_arm"/>
 		<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="0" min="-105" max="105" orientation="indirect" />
 		<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="0" min="-148" max="1" orientation="direct" />
 		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="90" min="-105" max="110" orientation="indirect" />
 		<joint name="LEFT_SHOULDER_Y"  type="MX28" id="41" offset="0" min="-120" max="155" orientation="direct" />
 	</controller>
 	<controller name="right_arm" type="JOINT">
-		<pipe direction="output" mode="synchronous" name="right_arm"/>
+		<pipe  name="right_arm"/>
 		<joint name="RIGHT_ARM_Z"      type="MX28" id="53" offset="0" min="-105" max="105" orientation="indirect" />
 		<joint name="RIGHT_ELBOW_Y"    type="MX28" id="54" offset="0" min="-1" max="148" orientation="indirect" />
 		<joint name="RIGHT_SHOULDER_X" type="MX28" id="52" offset="90" min="-110" max="105" orientation="indirect" />
 		<joint name="RIGHT_SHOULDER_Y" type="MX28" id="51" offset="90" min="-155" max="120" orientation="indirect" />
 	</controller>
 	<controller name="head" type="JOINT">
-		<pipe direction="output" mode="synchronous" name="head"/>
+		<pipe  name="head"/>
 		<joint name="HEAD_Y"       type="AX12" id="37" offset="20" min="-45" max="6" orientation="indirect" />
 		<joint name="HEAD_Z"       type="AX12" id="36" offset="0" min="-90" max="90" orientation="direct" />
 	</controller>

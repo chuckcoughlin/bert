@@ -2,7 +2,7 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.server.main;
+package bert.dispatcher.main;
 
 /**
  *  This interface describes a controller that holds a  list of motors.

@@ -8,11 +8,11 @@ import java.lang.System.Logger.Level;
 
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.RequestBottle;
+import bert.share.common.NamedPipePair;
 import bert.share.controller.AbstractController;
 import bert.share.controller.Controller;
 import bert.share.controller.ControllerLauncher;
 import bert.share.model.AbstractRobotModel;
-import bert.share.model.NamedPipePair;
 import bert.share.util.BoundedBuffer;
 import bert.term.model.RobotTerminalModel;
 

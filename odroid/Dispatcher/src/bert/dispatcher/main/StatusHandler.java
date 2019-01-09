@@ -2,7 +2,7 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License. 
  */
-package bert.server.main;
+package bert.dispatcher.main;
 
 /**
  *  A status controller is a server-side entity that ...

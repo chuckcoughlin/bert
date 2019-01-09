@@ -4,8 +4,8 @@
  */
 package bert.share.controller;
 
+import bert.share.common.NamedPipePair;
 import bert.share.model.AbstractRobotModel;
-import bert.share.model.NamedPipePair;
 
 /**
  *  This interface describes a controller that holds a  list of motors.

@@ -1,9 +1,9 @@
 /**
  * 
  */
-module bert.server {
-	requires bert.share;
-	exports bert.server.main;
-	exports bert.server.model;
+module bert.dispatcher {
+	requires transitive bert.share;
+	exports bert.dispatcher.main;
+	exports bert.dispatcher.model;
 
 }

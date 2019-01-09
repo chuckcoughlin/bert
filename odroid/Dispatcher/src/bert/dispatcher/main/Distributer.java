@@ -2,15 +2,18 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.server.main;
+package bert.dispatcher.main;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import bert.server.model.RobotServerModel;
+import bert.dispatcher.model.RobotServerModel;
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.ResponseBottle;
+import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
@@ -20,10 +23,12 @@ import bert.share.logging.LoggerUtility;
  * distrubute them to action channels and post the results.
  */
 public class Distributer implements ControllerLauncher {
-	private final static String CLSS = "ControlLoop";
-	private static final String USAGE = "Usage: loop <config-file>";
+	private final static String CLSS = "Distributer";
+	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotServerModel model;
+	private final CommandHandler commandHandler;
+	private final ControllerHandler controllerHandler;
 	private final String name;
 	private int cadence = 1000;
 	
@@ -33,6 +38,9 @@ public class Distributer implements ControllerLauncher {
 	 */
 	public Distributer(RobotServerModel m) {
 		this.model = m;
+		this.commandHandler = new CommandHandler(this);
+		this.controllerHandler = new ControllerHandler(this);
+		
 		this.name = model.getProperty(BottleConstants.PROPERTY_NAME,"Bert");
 		String cadenceString = model.getProperty(BottleConstants.VALUE_CADENCE,"1000");  // ~msecs
 		try {
@@ -43,10 +51,22 @@ public class Distributer implements ControllerLauncher {
 		}
 		
 	}
-
+	
+	/**
+	 * Based on the XML configuration file, make sure that all required named pipes exist.
+	 */
+	public void createNamedPipes() {
+		
+	    for( NamedPipePair pipe:model.getPipes() ) {
+	    	pipe.create();
+	    }
+	}
+	
 	public void execute() {
 		
 	}
+	
+	
 
 	/**
 	 * Entry point for the application that contains the robot Java
@@ -76,11 +96,13 @@ public class Distributer implements ControllerLauncher {
 		model.populate();    // Analyze the xml
 
 		Distributer runner = new Distributer(model);
+		runner.createNamedPipes();
 		runner.execute();
 
   
 	}
 
+	// ================================= Callbacks ===============================================
 
 	@Override
 	public void handleResult(String key, ResponseBottle response) {

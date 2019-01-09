@@ -9,11 +9,9 @@ import java.nio.file.Path;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import bert.share.common.PipeDirection;
-import bert.share.common.PipeMode;
+import bert.share.common.NamedPipePair;
 import bert.share.controller.ControllerType;
 import bert.share.model.AbstractRobotModel;
-import bert.share.model.NamedPipePair;
 import bert.share.xml.XMLUtility;
 
 /**
@@ -66,10 +64,6 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 					if( pipeElements.getLength()>0) {
 						Element pipeElement= (Element)(pipeElements.item(0));
 						this.pipe = new NamedPipePair(false);
-						String direction = XMLUtility.attributeValue(pipeElement, "direction");
-						pipe.setDirection(PipeDirection.valueOf(direction.toUpperCase()));
-						String mode = XMLUtility.attributeValue(pipeElement, "mode");
-						pipe.setMode(PipeMode.valueOf(mode.toUpperCase()));
 						String name = XMLUtility.attributeValue(pipeElement, "name");
 						pipe.setName(name);
 					}

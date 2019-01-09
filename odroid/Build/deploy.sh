@@ -9,7 +9,7 @@ echo "Synchronizing modularized jar files ..."
 rsync -r mods bert:/usr/local/robot
 
 cd ../Configuration
-echo "Synchronizing configuration files ..."
+echo "Synchronizing configuration files, database ..."
 rsync -r etc bin bert:/usr/local/robot
 
 cd ..

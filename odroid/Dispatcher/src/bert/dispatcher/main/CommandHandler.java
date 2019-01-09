@@ -3,14 +3,14 @@
  *                 MIT License.
  *
  */
-package bert.server.main;
+package bert.dispatcher.main;
 
 /**
  *  A command controller is a server-side command handler. On receipt of
  *  a request, it posts the ...
  */
 public class CommandHandler  {
-	protected static final String CLSS = "LowerController";
+	protected static final String CLSS = "CommandHandler";
 
 
 	public CommandHandler(Distributer server) {

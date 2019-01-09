@@ -1,36 +1,31 @@
 
-#  Build a database for migration of diagnostics applications. Copy into the migration
-#  directory of the project tree.
+#  Build a database for installation on the robot. It contains
+#  the current repertoire of poses and actions.
 #
-#  -- must be run in the same directory as the insert script.
+# The current directory is the build project.
 #
 #!/bin/sh
 #set -x
-DB=conversion.db
-BIN=${GIT_REPO}/sfc/migration/mdb
-TARGETDIR=${GIT_REPO}/sfc/migration/mdb
-mkdir -p ${TARGETDIR}
+DB=bert.db
+BUILD=`pwd`
+CONFIG=${BUILD}/../Configuration
+CSV=${CONFIG}/csv
+ETC=${CONFIG}/etc
+SQL=${CONFIG}/sql
 
-cd ${TARGETDIR}
+cd ${ETC}
 rm -f $DB
-sqlite3 $DB < ${BIN}/createTables.sql
-sqlite3 $DB < ${BIN}/insertClassMap.sql
-sqlite3 $DB < ${BIN}/insertSymbols.sql
-sqlite3 $DB < ${BIN}/insertPreferences.sql
-sqlite3 $DB < ${BIN}/insertProperties.sql
-sqlite3 $DB < ${BIN}/insertTags.sql
-sqlite3 $DB < ${BIN}/insertOutputTags.sql
+sqlite3 $DB < ${SQL}/createTables.sql
 
-# BLT Tables
-sqlite3 $DB < ${BIN}/insertBltAnchorMap.sql
-sqlite3 $DB < ${BIN}/insertBltProperties.sql
-sqlite3 $DB < ${BIN}/insertBltPythonBlocks.sql
-# G2-Python
-sqlite3 $DB < ${BIN}/insertG2PyArguments.sql
-# SFC Tables
-sqlite3 $DB < ${BIN}/insertSfcClassMap.sql
-sqlite3 $DB < ${BIN}/insertSfcProperties.sql
-sqlite3 $DB < ${BIN}/insertSfcPropertyValues.sql
+# Change to CSV mode and load pose and action tables
+cd ${CSV}
+cat Pose.csv | tail -n 1|sed -e 's/	/,/g' >/tmp/poses
 
-# Must follow insertPropertyValues...
-sqlite3 $DB < ${BIN}/insertProcedures.sql
+cd ${ETC}
+sqlite3 $DB << EOF
+.mode csv
+.import /tmp/poses Pose
+EOF
+
+cp ${DB} ${BERT_HOME}/etc/${DB}
+echo "${DB} creation compete."
