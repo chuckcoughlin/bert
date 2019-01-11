@@ -19,13 +19,13 @@ import bert.share.xml.XMLUtility;
  *  The server-side model retains the configuration of all the request handlers
  *  plus a hand-full of properties. 
  */
-public class RobotServerModel extends AbstractRobotModel  {
+public class RobotDispatcherModel extends AbstractRobotModel  {
 	private static final String CLSS = "RobotServerModel";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private static final System.Logger.Level level = System.Logger.Level.WARNING;
 	private final List<NamedPipePair> pipes;
 			
-	public RobotServerModel(Path configPath) {
+	public RobotDispatcherModel(Path configPath) {
 		super(configPath);
 		this.pipes = new ArrayList<>();
 	}

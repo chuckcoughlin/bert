@@ -83,11 +83,15 @@ CREATE TABLE Pose (
 -- The intent is hold presets rather than current state.
 DROP TABLE IF EXISTS MotorState;
 CREATE TABLE MotorState (
+	id      int PRIMARY KEY,
 	name	text NOT NULL,
-	id      int NOT NULL,
+	controller text NOT NULL,
+	type    text NOT NULL,
 	offset  int NULL,
+	speed   float NULL,
 	torque  float NULL,
 	minAngle float NULL,
 	maxAngle float NULL,
-	UNIQUE (name,id)
+	direct int DEFAULT 1,
+	UNIQUE (name,id,controller)
 );

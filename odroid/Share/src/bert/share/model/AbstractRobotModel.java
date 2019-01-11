@@ -95,6 +95,26 @@ public abstract class AbstractRobotModel  {
 								if( joint.getTagName().equals("joint") ) {
 									MotorConfiguration motor = new MotorConfiguration();
 									motor.setController(controller);
+									String value = XMLUtility.attributeValue(joint, "name");
+									if( value!=null) motor.setName(value);
+									value = XMLUtility.attributeValue(joint, "type");
+									if( value!=null) motor.setType(value);
+									value = XMLUtility.attributeValue(joint, "id");
+									if( value!=null) motor.setId(Integer.parseInt(value));
+									value = XMLUtility.attributeValue(joint, "offset");
+									if( value!=null) motor.setOffset(Double.parseDouble(value));
+									value = XMLUtility.attributeValue(joint, "min");
+									if( value!=null) motor.setMinAngle(Double.parseDouble(value));
+									value = XMLUtility.attributeValue(joint, "max");
+									if( value!=null) motor.setMaxAngle(Double.parseDouble(value));
+									value = XMLUtility.attributeValue(joint, "speed");
+									if( value!=null) motor.setSpeed(Double.parseDouble(value));
+									value = XMLUtility.attributeValue(joint, "torque");
+									if( value!=null) motor.setTorque(Double.parseDouble(value));
+									value = XMLUtility.attributeValue(joint, "orientation");
+									if( value!=null) {
+										motor.setIsDirect(value.equalsIgnoreCase("direct"));
+									}
 								}
 							}
 							node = node.getNextSibling();

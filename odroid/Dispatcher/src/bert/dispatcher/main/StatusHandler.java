@@ -10,7 +10,7 @@ package bert.dispatcher.main;
 public class StatusHandler {
 	protected static final String CLSS = "UpperController";
 
-	public StatusHandler(Distributer server) {
+	public StatusHandler(Dispatcher server) {
 	}
 
 }

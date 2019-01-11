@@ -10,7 +10,7 @@ package bert.dispatcher.main;
 public class ControllerHandler   {
 	protected static final String CLSS = "ControllerHandler";
 
-	public ControllerHandler(Distributer server) {
+	public ControllerHandler(Dispatcher server) {
 
 	}
 }

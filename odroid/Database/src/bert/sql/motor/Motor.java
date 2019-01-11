@@ -8,7 +8,6 @@ package bert.sql.motor;
 import java.lang.System.Logger.Level;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
@@ -52,10 +51,19 @@ public class Motor {
 			statement = cxn.createStatement();
 			statement.executeUpdate(sql);
 			
-			sql = "INSERT INTO Motor() VALUES()";
+			sql = "INSERT INTO Motor(id,name,controller,type,offset,speed,torque,minAngle,maxAngle,direct) VALUES(?,?,?,?,?,?,?,?,?,?)";
 			
 			for(MotorConfiguration mc:motors) {
 				ps.setInt(1,mc.getId());
+				ps.setString(2,mc.getName().name());
+				ps.setString(3,mc.getController());
+				ps.setString(4,mc.getType().name());
+				ps.setDouble(5,mc.getOffset());
+				ps.setDouble(6,mc.getSpeed());
+				ps.setDouble(7,mc.getTorque());
+				ps.setDouble(8,mc.getMinAngle());
+				ps.setDouble(9,mc.getMaxAngle());
+				ps.setInt(10,(mc.isDirect()?1:0));
 				ps.executeUpdate(sql);
 			}
 		}

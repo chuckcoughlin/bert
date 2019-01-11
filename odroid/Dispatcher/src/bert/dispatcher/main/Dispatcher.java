@@ -8,7 +8,7 @@ import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import bert.dispatcher.model.RobotServerModel;
+import bert.dispatcher.model.RobotDispatcherModel;
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
@@ -20,11 +20,11 @@ import bert.share.logging.LoggerUtility;
  * The job of the distributer is to process entries from the request channels,
  * distribute them to action channels and post the results.
  */
-public class Distributer implements ControllerLauncher {
+public class Dispatcher implements ControllerLauncher {
 	private final static String CLSS = "Distributer";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
-	private final RobotServerModel model;
+	private final RobotDispatcherModel model;
 	private final CommandHandler commandHandler;
 	private final ControllerHandler controllerHandler;
 	private final String name;
@@ -34,7 +34,7 @@ public class Distributer implements ControllerLauncher {
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public Distributer(RobotServerModel m) {
+	public Dispatcher(RobotDispatcherModel m) {
 		this.model = m;
 		this.commandHandler = new CommandHandler(this);
 		this.controllerHandler = new ControllerHandler(this);
@@ -90,10 +90,10 @@ public class Distributer implements ControllerLauncher {
 		// Setup logging to use only a file appender to our logging directory
 		LoggerUtility.getInstance().configureRootLogger();
 		
-		RobotServerModel model = new RobotServerModel(PathConstants.CONFIG_PATH);
+		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 
-		Distributer runner = new Distributer(model);
+		Dispatcher runner = new Dispatcher(model);
 		runner.createNamedPipes();
 		runner.execute();
 

@@ -13,7 +13,7 @@ public class CommandHandler  {
 	protected static final String CLSS = "CommandHandler";
 
 
-	public CommandHandler(Distributer server) {
+	public CommandHandler(Dispatcher server) {
 
 	}
 
