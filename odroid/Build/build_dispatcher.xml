@@ -2,9 +2,9 @@
 <project name="bert.install.loop" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="lib.dir" value="${basedir}/lib" />
-	<property name="jar.name" value="bert-terminal.jar" />
+	<property name="jar.name" value="bert-dispatcher.jar" />
 	<property name="temp.dir" value="${basedir}/temp" />
-	<property name="src.dir" value="${basedir}/../Server/src" />
+	<property name="src.dir" value="${basedir}/../Dispatcher/src" />
 	<property name="robot.dir" value="${bert.home}" />
 
 	<path id="common-modulepath">

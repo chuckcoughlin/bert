@@ -4,7 +4,7 @@
 	<property name="lib.dir" value="${basedir}/lib" />
 	<property name="jar.name" value="bert-terminal.jar" />
 	<property name="temp.dir" value="${basedir}/temp" />
-	<property name="src.dir" value="${basedir}/../Client/src" />
+	<property name="src.dir" value="${basedir}/../Command/src" />
 	<property name="robot.dir" value="${bert.home}" />
 
 	<path id="common-modulepath">

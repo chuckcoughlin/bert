@@ -5,9 +5,9 @@
 <project name="bert.install.speech" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="lib.dir" value="${basedir}/lib" />
-	<property name="jar.name" value="bert-speech.jar" />
+	<property name="jar.name" value="bert-database.jar" />
 	<property name="temp.dir" value="${basedir}/temp" />
-	<property name="src.dir" value="${basedir}/../Speech/src" />
+	<property name="src.dir" value="${basedir}/../Database/src" />
 	<property name="robot.dir" value="${bert.home}" />
 	
 	<path id="common-modulepath">
