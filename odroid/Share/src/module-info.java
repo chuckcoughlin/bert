@@ -5,6 +5,7 @@
 module bert.share {
 	requires transitive java.logging;
 	requires transitive java.xml;
+	requires com.fasterxml.jackson.databind;
 	
 	exports bert.share.bottle;
 	exports bert.share.common;

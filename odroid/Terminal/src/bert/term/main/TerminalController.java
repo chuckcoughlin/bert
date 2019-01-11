@@ -7,7 +7,7 @@ package bert.term.main;
 import java.lang.System.Logger.Level;
 
 import bert.share.bottle.BottleConstants;
-import bert.share.bottle.RequestBottle;
+import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 import bert.share.controller.AbstractController;
 import bert.share.controller.Controller;
@@ -51,7 +51,7 @@ public class TerminalController extends AbstractController implements Controller
 		}
 	}
 	
-	public void submitRequest(RequestBottle work)  {
+	public void submitRequest(MessageBottle work)  {
 		try {
 			buffer.put(work);
 		}
@@ -77,7 +77,7 @@ public class TerminalController extends AbstractController implements Controller
 	public void run() {
 		while(!stopped ) {
 			try {
-				RequestBottle work = (RequestBottle) buffer.get();
+				MessageBottle work = (MessageBottle) buffer.get();
 			} 
 			catch(InterruptedException inte) {stopped = true;}
 			finally {

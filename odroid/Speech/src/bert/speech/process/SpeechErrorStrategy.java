@@ -17,7 +17,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
-import bert.share.bottle.RequestBottle;
+import bert.share.bottle.MessageBottle;
 
 
 
@@ -28,9 +28,9 @@ import bert.share.bottle.RequestBottle;
 public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	private static final String CLSS = "SpeechErrorStrategy: ";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private final RequestBottle bottle;
+	private final MessageBottle bottle;
 	
-	public SpeechErrorStrategy(RequestBottle bot) {
+	public SpeechErrorStrategy(MessageBottle bot) {
 		this.bottle = bot;
 	}
 	

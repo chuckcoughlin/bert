@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 
 import bert.command.model.Humanoid;
 import bert.command.model.RobotCommandModel;
-import bert.share.bottle.ResponseBottle;
+import bert.share.bottle.MessageBottle;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
@@ -95,9 +95,8 @@ public class Bert implements ControllerLauncher {
 		System.exit(0);
 	}
 	@Override
-	public void handleResult(String key, ResponseBottle response) {
+	public void handleResult(String key, MessageBottle response) {
 		// TODO Auto-generated method stub
-		
 	}
 	
 	/**

@@ -9,7 +9,8 @@ package bert.share.bottle;
  */
 public enum ResponseType
 {
-            OK
+            OK,
+            NONE
             ;
           
  /**

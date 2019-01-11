@@ -10,15 +10,16 @@ package bert.share.bottle;
  *  Define strings used in requests and responses between server and client.
  */
 public interface BottleConstants   {   
-   
-	// Status replies
-	public final static String STATUS_OK           = "ok";         // Success
 	
 	// Propperties that define the request/response syntax
 	public final static String POSE_NAME           = "pose";
-	public final static String PROPERTY_COMMAND    = "command";
+	public final static String PROPERTY_COMMAND    = "command";  
+	public final static String PROPERTY_ERROR      = "error";      // The last request resulted in an error
 	public final static String PROPERTY_NAME       = "name";
-	public final static String PROPERTY_PROMPT        = "prompt";
+	public final static String PROPERTY_PROMPT     = "prompt";
+	public final static String PROPERTY_RESPONSE   = "response";   // Value is a ResponseType
+	public final static String PROPERTY_REQUEST    = "request";    // Value is a RequestType
+	
 	public final static String STATE_NAME          = "state";
 	
 	// Command names

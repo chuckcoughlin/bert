@@ -12,8 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import bert.share.bottle.BottleConstants;
-import bert.share.bottle.RequestBottle;
-import bert.share.bottle.ResponseBottle;
+import bert.share.bottle.MessageBottle;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
@@ -76,7 +75,7 @@ public class Terminal implements ControllerLauncher {
 				 * 4) Send string to stdout
 				 */
 				else {
-					RequestBottle request = parser.parseStatement(input);
+					MessageBottle request = parser.parseStatement(input);
 					controller.submitRequest(request);
 				}
 			}
@@ -104,7 +103,7 @@ public class Terminal implements ControllerLauncher {
 	}
 
 	@Override
-	public void handleResult(String key, ResponseBottle response) {
+	public void handleResult(String key, MessageBottle response) {
 		// TODO Auto-generated method stub
 		
 	}

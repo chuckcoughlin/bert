@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 
 import bert.motor.model.RobotMotorModel;
 import bert.share.bottle.BottleConstants;
-import bert.share.bottle.ResponseBottle;
+import bert.share.bottle.MessageBottle;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
@@ -83,7 +83,7 @@ public class Distributer implements ControllerLauncher {
 
 
 	@Override
-	public void handleResult(String key, ResponseBottle response) {
+	public void handleResult(String key, MessageBottle response) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -4,16 +4,24 @@
  */
 package bert.share.common;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import bert.share.bottle.BasicBottle;
+import bert.share.bottle.MessageBottle;
 /**
  *  This class encapsulates two named pipes for bi-directional
  *  communication. The "server" or "owner" is taken to be the 
  *  Dispatcher process. All others should instantiate with "false".
+ *  
+ *  The file descriptors are opened on "startup" and closed on 
+ *  "shutdown".
  */
 public class NamedPipePair   {
 	private static final String CLSS = "NamedPipePair";
@@ -23,29 +31,41 @@ public class NamedPipePair   {
 	private final boolean owner;  // True if this instance is owned by the server.
 	private boolean useAsynchronousReads;
 	private String name;
-	private BufferedReader bufferedReader;
+	private String pathToRead="";
+	private String pathToWrite="";
+	private BufferedReader in = null;
+	private BufferedOutputStream out =null;
+
 	
 	public NamedPipePair(boolean isOwner) {
 		String name = "";
 		this.owner = isOwner;
 		this.useAsynchronousReads = false;
-		this.bufferedReader = null;
 	}
 	
 	public boolean isOwner() {return this.owner;}
 	public String getName() {return this.name;}
- 	public void setName(String nam) {this.name=nam;}
+ 	public void setName(String nam) {
+ 		this.name=nam;
+ 		Path parent = PathConstants.DEV_DIR; 
+ 		String fname = name+TO_SERVER;
+ 		if(owner) {
+			this.pathToRead = Paths.get(parent.toString(), name).toString();
+		}
+		else {
+			this.pathToWrite = Paths.get(parent.toString(), name).toString();
+		}
+ 		
+ 		fname = name+FROM_SERVER;
+ 		if(owner) {
+			this.pathToWrite = Paths.get(parent.toString(), name).toString();
+		}
+		else {
+			this.pathToRead = Paths.get(parent.toString(), name).toString();
+		}
+ 	}
  	public void setReadsAsynchronous(boolean flag) {
  		this.useAsynchronousReads = flag;
- 		if( useAsynchronousReads ) {
- 			bufferedReader = new BufferedReader();
- 			Thread thread = new Thread(bufferedReader);
- 			thread.start();
- 		}
- 		else {
- 			bufferedReader.stop();
- 			bufferedReader = null;
- 		}
  	}
 	
 	/**
@@ -64,33 +84,72 @@ public class NamedPipePair   {
 	}
 	
 	/**
+	 * This must not be called before the pipes are created and named.
+	 * Open IO streams for reading and writing.
+	 */
+	public void startup() {
+		try {
+			FileReader freader = new FileReader(pathToRead);
+			in = new BufferedReader(freader);
+		}
+		catch(IOException ioe) {
+			LOGGER.log(Level.ERROR,String.format("%s.startup: Error opening %s for read (%s)",CLSS,pathToRead,ioe.getLocalizedMessage()));
+		}
+		
+		try {
+			out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
+		}
+		catch(IOException ioe) {
+			LOGGER.log(Level.ERROR,String.format("%s.startup: Error opening %s for write (%s)",CLSS,pathToWrite,ioe.getLocalizedMessage()));
+		}
+	}
+	
+	/**
+	 * Close IO streams.
+	 */
+	public void shutdown() {
+		if(in!=null) {
+			try{ in.close();} catch(IOException ignore) {}
+		}
+		if(out!=null) {
+			try{ out.close();} catch(IOException ignore) {}
+		}
+	}
+	/**
 	 * Read from the pipe that is appropriate, depending on the ownership. Depending
 	 * on the "useAsynchronousReads" flag, the read may wait for data to appear on
 	 * the pipe, or return immediately with either data already present or a null. 
 	 *
 	 * @return either a RequestBottle or a ResponseBottle as appropriate.
 	 */
-	public BasicBottle read() {
-		if( owner ) {
-			
+	public MessageBottle read() {
+		MessageBottle bottle = null;
+		try {
+			if(!useAsynchronousReads||in.ready()) {
+				String json = in.readLine();
+				bottle = MessageBottle.fromJSON(json);
+			}
 		}
-		else {
-			
+		catch(IOException ioe) {
+			LOGGER.log(Level.ERROR,String.format("%s.read: Error reading from %s (%s)",CLSS,pathToRead,ioe.getLocalizedMessage()));
 		}
-		return null;
+		return bottle;
 	}
 	
 	
 	/**
-	 * Write to the pipe that is appropriate, depending on the ownership. This is a 
-	 * synchronous operation.
+	 * Write to the pipe that is appropriate. With named pipes this is guaranteed
+	 * to be an atomic operation as long as size is less than PIPE_SYNCH (and it is).
 	 */
-	public void write(BasicBottle data) {
-		if( owner ) {
-			
+	public void write(MessageBottle bottle) {
+		String json = bottle.toJSON();
+		byte[] bytes = json.getBytes();
+		try {
+			out.write(bytes,0,bytes.length);
+			out.flush();
 		}
-		else {
-			
+		catch(IOException ioe) {
+			LOGGER.log(Level.ERROR,String.format("%s.write: Error writing %d bytes (%s)",CLSS,bytes.length, ioe.getLocalizedMessage()));
 		}
 	}
 	
@@ -128,25 +187,6 @@ public class NamedPipePair   {
 	    	LOGGER.log(Level.ERROR,String.format("%s.createFifoPipe: Exception (%s) creating %s",CLSS,ex.getLocalizedMessage(),fifoPath.toString()));
 	    }
 	    return success;
-	}
-	
-	/**
-	 * This nested class is the runnable with a bounded buffer that allows us to do an asynchronous read.
-	 *
-	 */
-	public class BufferedReader implements Runnable {
-		private boolean stopped;
-		public BufferedReader() {
-			this.stopped = false;
-		}
-		
-		public void stop() { this.stopped = true; }
-		
-		public void run() {
-			while( !stopped ) {
-				
-			}
-		}
 	}
 	
 }

@@ -4,15 +4,13 @@
  */
 package bert.dispatcher.main;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import bert.dispatcher.model.RobotServerModel;
 import bert.share.bottle.BottleConstants;
-import bert.share.bottle.ResponseBottle;
+import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerLauncher;
@@ -20,7 +18,7 @@ import bert.share.logging.LoggerUtility;
 
 /**
  * The job of the distributer is to process entries from the request channels,
- * distrubute them to action channels and post the results.
+ * distribute them to action channels and post the results.
  */
 public class Distributer implements ControllerLauncher {
 	private final static String CLSS = "Distributer";
@@ -105,7 +103,7 @@ public class Distributer implements ControllerLauncher {
 	// ================================= Callbacks ===============================================
 
 	@Override
-	public void handleResult(String key, ResponseBottle response) {
+	public void handleResult(String key, MessageBottle response) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.CodePointCharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import bert.share.bottle.RequestBottle;
+import bert.share.bottle.MessageBottle;
 import bert.speech.antlr.SpeechSyntaxLexer;
 import bert.speech.antlr.SpeechSyntaxParser;
 
@@ -40,8 +40,8 @@ public class StatementParser  {
 	 * @param cmd user-entered english string
 	 * @return a request bottle to be sent to the server
 	 */
-	public RequestBottle parseStatement(String text) throws Exception {
-		RequestBottle bottle = new RequestBottle();
+	public MessageBottle parseStatement(String text) throws Exception {
+		MessageBottle bottle = new MessageBottle();
 		ByteArrayInputStream bais = new ByteArrayInputStream(text.getBytes());
 		CodePointCharStream stream = CharStreams.fromString(text);
 		SpeechSyntaxLexer lexer = new QuietLexer(stream);

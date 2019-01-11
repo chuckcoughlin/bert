@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.speech.process;
@@ -7,7 +7,7 @@ package bert.speech.process;
 import java.util.HashMap;
 
 import bert.share.bottle.BottleConstants;
-import bert.share.bottle.RequestBottle;
+import bert.share.bottle.MessageBottle;
 import bert.share.bottle.RequestType;
 import bert.speech.antlr.SpeechSyntaxBaseVisitor;
 import bert.speech.antlr.SpeechSyntaxParser;
@@ -21,7 +21,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	private static final String CLSS = "StatementTranslator";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private final HashMap<String,Object> sharedDictionary;
-	private final RequestBottle bottle;
+	private final MessageBottle bottle;
 	
 	/**
 	 * Constructor.
@@ -29,7 +29,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	 *            to fully configure it.
 	 * @param shared a parameter dictionary used to communicate between invocations
 	 */
-	public StatementTranslator(RequestBottle bot,HashMap<String,Object> shared) {
+	public StatementTranslator(MessageBottle bot,HashMap<String,Object> shared) {
 		this.sharedDictionary = shared;
 		this.bottle = bot;
 	}
@@ -41,17 +41,17 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
 		String cmd = ctx.Command().getText();
 		if( cmd.equalsIgnoreCase("relax") ) {
-			bottle.setCommand(RequestType.SET_STATE);
+			bottle.setRequestType(RequestType.SET_STATE);
 			bottle.setProperty(BottleConstants.STATE_NAME,"relax");
 		}
 		else if( cmd.equalsIgnoreCase("freeze") ||
 				 cmd.equalsIgnoreCase("stop") ) {
-			bottle.setCommand(RequestType.SET_STATE);
+			bottle.setRequestType(RequestType.SET_STATE);
 			bottle.setProperty(BottleConstants.POSE_NAME,"freeze");
 		}
 		else if( cmd.equalsIgnoreCase("attention") ||
 				 cmd.equalsIgnoreCase("wake up") ) {
-			bottle.setCommand(RequestType.SET_POSE);
+			bottle.setRequestType(RequestType.SET_POSE);
 			bottle.setProperty(BottleConstants.POSE_NAME,"attention");
 			
 		}
@@ -67,7 +67,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		if( property.equalsIgnoreCase("old") ||
 			property.equalsIgnoreCase("tall")   ) {
 			
-			bottle.setCommand(RequestType.GET_PROPERTY);
+			bottle.setRequestType(RequestType.GET_PROPERTY);
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,property);
 			
 		}
@@ -84,7 +84,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			property.equalsIgnoreCase("cycle time") ||
 			property.equalsIgnoreCase("duty cycle")   ) {
 			
-			bottle.setCommand(RequestType.GET_PROPERTY);
+			bottle.setRequestType(RequestType.GET_PROPERTY);
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,property);	
 		}
 		else {

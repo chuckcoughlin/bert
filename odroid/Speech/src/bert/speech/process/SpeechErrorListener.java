@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
-import bert.share.bottle.RequestBottle;
+import bert.share.bottle.MessageBottle;
 
 
 /**
@@ -23,9 +23,9 @@ import bert.share.bottle.RequestBottle;
 public class SpeechErrorListener extends BaseErrorListener {
 	private static String CLSS = "SpeechErrorListener: ";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private final RequestBottle bottle;
+	private final MessageBottle bottle;
 	
-	public SpeechErrorListener(RequestBottle bot) {
+	public SpeechErrorListener(MessageBottle bot) {
 		this.bottle = bot;
 	}
 	@Override
