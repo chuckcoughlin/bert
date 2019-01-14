@@ -10,10 +10,14 @@ import java.io.InputStreamReader;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.Map;
 
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
+import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
+import bert.share.controller.Controller;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
 import bert.speech.process.StatementParser;
@@ -28,30 +32,38 @@ import bert.term.model.RobotTerminalModel;
  */
 public class Terminal implements ControllerLauncher {
 	private final static String CLSS = "Terminal";
-	private static final String CONTROLLER_KEY = "TERMINAL_CONTROLLER";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotTerminalModel model;
-	private final TerminalController controller;
+	private Controller controller = null;
 	private final StatementParser parser;
 	private String prompt;
 	
 	public Terminal(RobotTerminalModel m) {
 		this.model = m;
 		this.prompt = model.getProperty(BottleConstants.PROPERTY_PROMPT,"bert:");
-		this.controller = new TerminalController(CONTROLLER_KEY,this);
 		this.parser = new StatementParser();
 	}
 
+	/**
+	 * This application is only interested in the terminal controller. There should only be
+	 * one entry in the map.
+	 */
+	@Override
+	public void createControllers() {
+		Map<String, String> pipeNames = model.getPipeNames();
+		Iterator<String>walker = pipeNames.keySet().iterator();
+		String key = walker.next();
+		String pipeName = pipeNames.get(key);
+		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
+		this.controller = new Controller(this,pipe,false);   // Asynchronous
+	}
 	
 	/**
-	 * Loop forever reading from the terminal. Use ANTLR to convert into requests.
+	 * Loop forever reading from the terminal. Use ANTLR to convert text into requests.
 	 * Handle requests in a controller running in its own thread. Display responses.
 	 */
 	public void execute() {
-		controller.configure(model);
-		Thread controllerThread = new Thread(controller);
-		controllerThread.start();
 		
 		BufferedReader br = null;
 		try {
@@ -76,7 +88,7 @@ public class Terminal implements ControllerLauncher {
 				 */
 				else {
 					MessageBottle request = parser.parseStatement(input);
-					controller.submitRequest(request);
+					controller.sendMessage(request);
 				}
 			}
 
@@ -96,15 +108,14 @@ public class Terminal implements ControllerLauncher {
 					e.printStackTrace();
 				}
 			}
-			controllerThread.interrupt();
+			controller.stop();
 		}
 		Database.getInstance().shutdown();
 		System.exit(0);
 	}
 
 	@Override
-	public void handleResult(String key, MessageBottle response) {
-		// TODO Auto-generated method stub
+	public void handleResult(MessageBottle response) {
 		
 	}
 	
@@ -132,12 +143,12 @@ public class Terminal implements ControllerLauncher {
 		// Setup logging to use only a file appender to our logging directory
 		LoggerUtility.getInstance().configureRootLogger();
 		
-		
 		RobotTerminalModel model = new RobotTerminalModel(PathConstants.CONFIG_PATH);
 		model.populate();
 		Database.getInstance().startup(PathConstants.DB_PATH);
 		Database.getInstance().populateMotors(model.getMotors());
 		Terminal runner = new Terminal(model);
+		runner.createControllers();
         runner.execute();
 	}
 

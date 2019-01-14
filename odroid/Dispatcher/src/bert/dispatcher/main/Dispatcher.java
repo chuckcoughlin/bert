@@ -94,7 +94,7 @@ public class Dispatcher implements ControllerLauncher {
 		model.populate();    // Analyze the xml
 
 		Dispatcher runner = new Dispatcher(model);
-		runner.createNamedPipes();
+		runner.createControllers();
 		runner.execute();
 
   

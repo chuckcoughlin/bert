@@ -15,10 +15,7 @@
 	
 	<!-- The following sections are named for client processes although
 	     there is a server component for each. Each "controller" requires
-	     a separate input and output pipe. "input" communication is
-	     initiated by the client.  On the server-side, inputs are scanned
-	     in the order listed. "output" communications are initiated
-	     by the server.
+	     a separate input and output pipe. 
 	-->
 	<!-- These controllers represent individual client processes or applications.
 	     The client side may not actually exist, but the server must be prepared.  -->
@@ -27,12 +24,6 @@
 	</controller>
 	<controller name="command" type="COMMAND">
 		<pipe  name="cmd"/>
-	</controller>
-	<controller name="play" type="PLAY">
-		<pipe  name="play"/>
-	</controller>
-	<controller name="record" type="RECORD">
-		<pipe name="rec"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once.  -->

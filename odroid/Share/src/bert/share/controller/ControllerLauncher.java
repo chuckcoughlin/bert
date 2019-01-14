@@ -11,5 +11,6 @@ import bert.share.bottle.MessageBottle;
  *  string given the controller on its instantiation.
  */
 public interface ControllerLauncher  {
-	public void handleResult(String key,MessageBottle response);
+	public void createControllers();
+	public void handleResult(MessageBottle response);
 }

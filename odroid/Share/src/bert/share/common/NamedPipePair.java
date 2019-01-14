@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.share.common;
@@ -28,40 +28,44 @@ public class NamedPipePair   {
 	public final String FROM_SERVER = "_fromServer";
 	public final String TO_SERVER   = "_toServer";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private final String name;
 	private final boolean owner;  // True if this instance is owned by the server.
 	private boolean useAsynchronousReads;
-	private String name;
 	private String pathToRead="";
 	private String pathToWrite="";
 	private BufferedReader in = null;
 	private BufferedOutputStream out =null;
 
-	
-	public NamedPipePair(boolean isOwner) {
-		String name = "";
+	/**
+	 * Constructor
+	 * @param name root name of the pipe-pair.
+	 * @param isOwner the Dispatcher "owns" the pipes.
+	 */
+	public NamedPipePair(String name,boolean isOwner) {
+		this.name = name;
 		this.owner = isOwner;
 		this.useAsynchronousReads = false;
+		initialize();
 	}
 	
 	public boolean isOwner() {return this.owner;}
 	public String getName() {return this.name;}
- 	public void setName(String nam) {
- 		this.name=nam;
+ 	private void initialize() {
  		Path parent = PathConstants.DEV_DIR; 
  		String fname = name+TO_SERVER;
  		if(owner) {
-			this.pathToRead = Paths.get(parent.toString(), name).toString();
+			this.pathToRead = Paths.get(parent.toString(), fname).toString();
 		}
 		else {
-			this.pathToWrite = Paths.get(parent.toString(), name).toString();
+			this.pathToWrite = Paths.get(parent.toString(), fname).toString();
 		}
  		
  		fname = name+FROM_SERVER;
  		if(owner) {
-			this.pathToWrite = Paths.get(parent.toString(), name).toString();
+			this.pathToWrite = Paths.get(parent.toString(), fname).toString();
 		}
 		else {
-			this.pathToRead = Paths.get(parent.toString(), name).toString();
+			this.pathToRead = Paths.get(parent.toString(), fname).toString();
 		}
  	}
  	public void setReadsAsynchronous(boolean flag) {

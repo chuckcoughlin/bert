@@ -12,6 +12,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import bert.share.common.NamedPipePair;
+import bert.share.controller.ControllerType;
 import bert.share.model.AbstractRobotModel;
 import bert.share.xml.XMLUtility;
 
@@ -20,45 +21,49 @@ import bert.share.xml.XMLUtility;
  *  plus a hand-full of properties. 
  */
 public class RobotDispatcherModel extends AbstractRobotModel  {
-	private static final String CLSS = "RobotServerModel";
+	private static final String CLSS = "RobotDispatcherModel";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private static final System.Logger.Level level = System.Logger.Level.WARNING;
-	private final List<NamedPipePair> pipes;
 			
 	public RobotDispatcherModel(Path configPath) {
 		super(configPath);
-		this.pipes = new ArrayList<>();
 	}
    
 	
 	// Analyze the document
 	public void populate() {
 		analyzeProperties();
-		analyzePipes();
+		analyzeControllers();
+		analyzeMotors();
 	}
-	public List<NamedPipePair> getPipes() { return this.pipes; }
+
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the model for the terminal controller. It's the only one we care about.
+	 * Search the model for the command controller. It's the only one we care about.
 	 * If not found, the controller will be null;
-	 * @param index
-	 * @param model
 	 */
-	private void analyzePipes() {
+	@Override
+	public void analyzeControllers() {
 		if( this.document!=null ) {
 			NodeList elements = document.getElementsByTagName("controller");
 			int count = elements.getLength();
 			int index = 0;
 			while(index<count) {
 				Element controllerElement= (Element)(elements.item(index));
-				NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
-				if( pipeElements.getLength()>0) {
-					Element pipeElement= (Element)(pipeElements.item(0));
-					NamedPipePair pipe = new NamedPipePair(false);
-					String name = XMLUtility.attributeValue(pipeElement, "name");
-					pipe.setName(name);
-					pipes.add(pipe);
+				String name = XMLUtility.attributeValue(controllerElement, "name");
+				String type = XMLUtility.attributeValue(controllerElement, "type");
+				if( type!=null && !type.isBlank() &&
+					type.equalsIgnoreCase(ControllerType.COMMAND.name()) ) {
+					// Configure the pipe - there should only be one.
+					NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
+					if( pipeElements.getLength()>0) {
+						Element pipeElement= (Element)(pipeElements.item(0));
+						String pname = XMLUtility.attributeValue(pipeElement, "name");
+						controllerTypes.put(name,type.toUpperCase());
+						pipeNames.put(name,pname);
+					}
+					break;
 				}
 				
 				index++;

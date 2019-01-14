@@ -1,23 +1,25 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.share.controller;
 
+
 /**
- * These are the known types of controller client classes.
+ * Recognized types of controllers. These are used to match specific
+ * controller instance definitions in the configuration file with what
+ * is needed by the particular application. The distributer application
+ * accesses all controllers.
  */
 public enum ControllerType
 {
             COMMAND,
             JOINT,
-            PLAYBACK,
-            RECORD,
             TERMINAL
             ;
           
  /**
-  * @return  a comma-separated list of the types in a single String.
+  * @return  a comma-separated list of all controller types in a single String.
   */
   public static String names()
   {

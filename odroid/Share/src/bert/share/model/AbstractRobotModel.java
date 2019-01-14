@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.w3c.dom.Document;
@@ -22,13 +24,15 @@ import bert.share.xml.XMLUtility;
 /**
  *  This is the base class for a collection of models that keep basic configuration
  *  information, all reading from the same file. The information retained is specific
- *  to the scope.
+ *  to the application.
  */
 public abstract class AbstractRobotModel  {
 	private static final String CLSS = "AbstractRobotModel";
 	protected final Document document;
 	private final List<MotorConfiguration> motors;
-	private final Properties properties;
+	protected final Properties properties;
+	protected final Map<String,String> controllerTypes;  // Controller types by controller name
+	protected final Map<String,String> pipeNames;        // Pipe names by controller name
 
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	private static final System.Logger.Level level = System.Logger.Level.WARNING;
@@ -38,8 +42,17 @@ public abstract class AbstractRobotModel  {
 		this.document = analyzePath(configPath);
 		this.motors = new ArrayList<>();
 		this.properties = new Properties();
+		this.controllerTypes = new HashMap<>();
+		this.pipeNames = new HashMap<>();
 	}
     
+
+	/**
+	 *  Each application needs to extract the controller(s) of interest from the 
+	 *  configuration file. Presumably this method will be called as part of the 
+	 *  populate() process. 
+	 */
+	public abstract void analyzeControllers();
 	/**
 	 *  Analyze the document. The information retained is dependent on the context
 	 *  (client or server). This must be called before the model is accessed.
@@ -52,6 +65,11 @@ public abstract class AbstractRobotModel  {
 	
 	public List<MotorConfiguration> getMotors() { return this.motors; }
 	
+	/**
+	 * @return a map of names of the pipes for each controller used by this application.
+	 *         The key list is sufficient to get the controller names.
+	 */
+	public Map<String,String> getPipeNames() { return this.pipeNames; }
     /**
 	 * Expand the supplied path as the configuration XML file.
 	 * @return the configuration, an XML document.
