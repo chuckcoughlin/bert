@@ -39,7 +39,7 @@ public class RobotCommandModel extends AbstractRobotModel   {
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the model for the terminal controller. It's the only one we care about.
+	 * Search the XML configuration for the command controller. It's the only one we care about.
 	 * If not found, the controller will be null.
 	 */
 	@Override

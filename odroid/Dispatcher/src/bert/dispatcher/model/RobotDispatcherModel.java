@@ -22,8 +22,7 @@ import bert.share.xml.XMLUtility;
  */
 public class RobotDispatcherModel extends AbstractRobotModel  {
 	private static final String CLSS = "RobotDispatcherModel";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private static final System.Logger.Level level = System.Logger.Level.WARNING;
+	private static final System.Logger LOGGER = System.getLogger(CLSS);;
 			
 	public RobotDispatcherModel(Path configPath) {
 		super(configPath);
@@ -40,8 +39,7 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the model for the command controller. It's the only one we care about.
-	 * If not found, the controller will be null;
+	 * Search the XML for the joint controllers. There should be multiples of them.
 	 */
 	@Override
 	public void analyzeControllers() {
@@ -54,8 +52,8 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 				String name = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isBlank() &&
-					type.equalsIgnoreCase(ControllerType.COMMAND.name()) ) {
-					// Configure the pipe - there should only be one.
+					type.equalsIgnoreCase(ControllerType.JOINT.name()) ) {
+					// Configure the pipe - there should only be one per motor group.
 					NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
 					if( pipeElements.getLength()>0) {
 						Element pipeElement= (Element)(pipeElements.item(0));
@@ -63,7 +61,6 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 						controllerTypes.put(name,type.toUpperCase());
 						pipeNames.put(name,pname);
 					}
-					break;
 				}
 				
 				index++;

@@ -37,7 +37,7 @@ public class RobotMotorModel extends AbstractRobotModel  {
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the model for the joint controllers. There should be multiples of them.
+	 * Search the XML configuration for the joint controllers. There should be multiples of them.
 	 */
 	@Override
 	public void analyzeControllers() {

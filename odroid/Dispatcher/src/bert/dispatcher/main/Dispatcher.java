@@ -7,12 +7,15 @@ package bert.dispatcher.main;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.Map;
 
 import bert.dispatcher.model.RobotDispatcherModel;
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
+import bert.share.controller.Controller;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
 
@@ -51,17 +54,33 @@ public class Dispatcher implements ControllerLauncher {
 	}
 	
 	/**
-	 * Based on the XML configuration file, make sure that all required named pipes exist.
+	 * The dispatcher creates controllers for all named pipes. Xome are considered inputs,
+	 * others outputs (the motors).
 	 */
-	public void createNamedPipes() {
-		
-	    for( NamedPipePair pipe:model.getPipes() ) {
-	    	pipe.create();
-	    }
+	@Override
+	public void createControllers() {
+		Map<String, String> pipeNames = model.getPipeNames();
+		Iterator<String>walker = pipeNames.keySet().iterator();
+		String key = walker.next();
+		String pipeName = pipeNames.get(key);
+		ControllerType type = controllerTypes.get(key);
+		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
+		Controller controller = new Controller(this,pipe,false);   // Asynchronous
+		ControllerType type = controllerTypes.get(key);
 	}
 	
 	public void execute() {
-		
+		for(;;) {
+			// First try the commands in an asynchronous way,
+			// Take care of any local requests (then immediately got to next command)
+			if( terminalHandler.getLocalRequest()!=null ) {
+				continue;
+			}
+			else if( commandHandler.getLocalRequest()!=null ) {
+				continue;
+			}
+			
+		}
 	}
 	
 	
@@ -98,14 +117,6 @@ public class Dispatcher implements ControllerLauncher {
 		runner.execute();
 
   
-	}
-
-	// ================================= Callbacks ===============================================
-
-	@Override
-	public void handleResult(String key, MessageBottle response) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }
