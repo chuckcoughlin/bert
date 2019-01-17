@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.term.model;
@@ -31,7 +31,6 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 	public void populate() {
 		analyzeProperties();
 		analyzeControllers();
-		analyzeMotors();
 	}
 
 

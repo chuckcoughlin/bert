@@ -5,6 +5,7 @@
 package bert.share.model;
 
 import java.io.IOException;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -29,20 +30,18 @@ import bert.share.xml.XMLUtility;
 public abstract class AbstractRobotModel  {
 	private static final String CLSS = "AbstractRobotModel";
 	protected final Document document;
-	private final List<MotorConfiguration> motors;
 	protected final Properties properties;
 	protected final Map<String,String> controllerTypes;  // Controller types by controller name
 	protected final Map<String,String> pipeNames;        // Pipe names by controller name
-
+	protected final Map<String,MotorConfiguration> motors; // Motor configuration by motor name
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private static final System.Logger.Level level = System.Logger.Level.WARNING;
 
 	
 	public AbstractRobotModel(Path configPath) {
 		this.document = analyzePath(configPath);
-		this.motors = new ArrayList<>();
 		this.properties = new Properties();
 		this.controllerTypes = new HashMap<>();
+		this.motors = new HashMap<>();
 		this.pipeNames = new HashMap<>();
 	}
     
@@ -67,9 +66,10 @@ public abstract class AbstractRobotModel  {
 	 * @return a map of type names for each controller used by this application.
 	 */
 	public Map<String,String> getControllerTypes() { return this.controllerTypes; }
-	
-	public List<MotorConfiguration> getMotors() { return this.motors; }
-	
+	/**
+	 * @return a map of motor configuration objects by motor name (upper case).
+	 */
+	public Map<String,MotorConfiguration> getMotors() { return this.motors; }
 	/**
 	 * @return a map of names of the pipes for each controller used by this application.
 	 *         The key list is sufficient to get the controller names.
@@ -88,7 +88,7 @@ public abstract class AbstractRobotModel  {
 			}
 		}
 		catch( IOException ioe) {
-			LOGGER.log(level, String.format("%s.getConfiguration: Failed to read file %s (%s)",
+			LOGGER.log(Level.ERROR, String.format("%s.getConfiguration: Failed to read file %s (%s)",
 											CLSS,filePath.toAbsolutePath().toString(),ioe.getLocalizedMessage()));
 		}
 		return contents;
@@ -96,6 +96,34 @@ public abstract class AbstractRobotModel  {
 	
 
     // ================================ Auxiliary Methods  ===============================
+
+	
+	/**
+	 * Search the model for property elements. The results are saved in the properties member.
+	 * Call this if the model has any properties of interest.
+	 */
+	protected void analyzeProperties() {
+		if( this.document!=null ) {
+			NodeList elements = document.getElementsByTagName("property");
+			int count = elements.getLength();
+			int index = 0;
+			while(index<count) {
+				Node propertyNode = elements.item(index);
+				String key = XMLUtility.attributeValue(propertyNode, "name");
+				if( key==null ) {
+					LOGGER.log(Level.WARNING,String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
+				}
+				else {
+					String value = propertyNode.getTextContent();
+					if( value!=null && !value.isBlank() ) {
+						properties.put(key.toLowerCase(), value);
+					}
+				}
+				index++;
+			}
+		}
+	}
+	
 	/**
 	 * Search the model for controller elements with joint sub-elements. The results form a list
 	 * of MotorConfiguration objects.
@@ -144,36 +172,10 @@ public abstract class AbstractRobotModel  {
 						}
 					}
 					else {
-						LOGGER.log(level,String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
+						LOGGER.log(Level.WARNING,String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
 					}
 				}
 				
-				index++;
-			}
-		}
-	}
-	
-	/**
-	 * Search the model for property elements. The results are saved in the properties member.
-	 * Call this if the model has any properties of interest.
-	 */
-	protected void analyzeProperties() {
-		if( this.document!=null ) {
-			NodeList elements = document.getElementsByTagName("property");
-			int count = elements.getLength();
-			int index = 0;
-			while(index<count) {
-				Node propertyNode = elements.item(index);
-				String key = XMLUtility.attributeValue(propertyNode, "name");
-				if( key==null ) {
-					LOGGER.log(level,String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
-				}
-				else {
-					String value = propertyNode.getTextContent();
-					if( value!=null && !value.isBlank() ) {
-						properties.put(key.toLowerCase(), value);
-					}
-				}
 				index++;
 			}
 		}

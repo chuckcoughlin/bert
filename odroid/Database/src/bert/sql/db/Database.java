@@ -10,7 +10,8 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Collection;
+import java.util.Map;
 
 import org.sqlite.JDBC;
 
@@ -58,10 +59,11 @@ public class Database {
 	 * Populate the Motor table with information from the configuration file.
 	 * This table is useful in joins, thus the apparent duplication.
 	 * 
-	 * @param path to database instance
+	 * @param motors map of motor configurations by uppercase name
 	 */
-	public void populateMotors(List<MotorConfiguration> motors) {
-		motor.defineMotors(connection, motors);
+	public void populateMotors(Map<String,MotorConfiguration> motors) {
+		Collection<MotorConfiguration> motorList = motors.values();
+		motor.defineMotors(connection, motorList);
 	}
 	/**
 	 * Create a database connection. Use this for all subsequent queries.

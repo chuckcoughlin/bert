@@ -14,7 +14,7 @@ package bert.share.controller;
 public enum ControllerType
 {
             COMMAND,
-            JOINT,
+            SERIAL,
             TERMINAL
             ;
           

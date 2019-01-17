@@ -10,7 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
+import java.util.Collection;
 
 import bert.share.motor.MotorConfiguration;
 
@@ -37,7 +37,7 @@ public class Motor {
 	 * @param motors list of motor configurations
 	 * 
 	 */
-	public void defineMotors(Connection cxn,List<MotorConfiguration> motors)  {
+	public void defineMotors(Connection cxn,Collection<MotorConfiguration> motors)  {
 		if( cxn==null ) {
 			String msg = String.format("%s.defineMotors: Called before database connection set", CLSS);
 			LOGGER.log(Level.ERROR,msg);

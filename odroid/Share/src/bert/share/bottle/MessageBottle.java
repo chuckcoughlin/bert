@@ -123,6 +123,25 @@ public class MessageBottle implements Serializable {
 		this.properties.setProperty(BottleConstants.PROPERTY_RESPONSE, type.name());
 	}
 	
+	/**
+	 * Convenience method to retrieve the ControllerType of the message source.
+	 * 
+	 * @return a source name. If there is no identified source, return null.
+	 */
+	public String getSource() {
+		return this.properties.getProperty(BottleConstants.PROPERTY_SOURCE);
+	}
+	
+	/**
+	 * Convenience method to set a string naming the message creator. Use
+	 * the controller type for this.
+	 * 
+	 * @param source the name of the message creator.
+	 */
+	public void setSource(String source) {
+		this.properties.setProperty(BottleConstants.PROPERTY_SOURCE, source);
+	}
+	
 	// =================================== JSON ======================================
 	public static MessageBottle fromJSON(String json) {
 		MessageBottle bottle = null;

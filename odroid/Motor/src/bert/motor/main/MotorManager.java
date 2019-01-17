@@ -4,20 +4,18 @@
  */
 package bert.motor.main;
 
-import java.lang.System.Logger.Level;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import bert.motor.model.RobotMotorModel;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
-import bert.share.common.PathConstants;
+import bert.share.common.Port;
 import bert.share.controller.CommandController;
-import bert.share.controller.ControllerLauncher;
-import bert.share.logging.LoggerUtility;
+import bert.share.motor.MotorConfiguration;
 
 /**
  * The MotorHandler receives requests across the pipe from the dispatcher,
@@ -47,20 +45,26 @@ public class MotorManager {
 	}
 
 	/**
-	 * This application is interested in the "joint" controllers. We can expect multiple
-	 * instances. They operate in synchronous fashion. Assign each to a handler running 
-	 * in its own thread.
+	 * This application is interested in the "serial" controllers. We can expect multiple
+	 * instances. Assign each to a handler running in its own thread. The handler is aware
+	 * of the individual motors in the group.
 	 */
 	public void createMotorGroups() {
-		Map<String, String> pipeNames = model.getPipeNames();
-		Iterator<String>walker = pipeNames.keySet().iterator();
-		String key = walker.next();                              // Group name
-		String pipeName = pipeNames.get(key);
-		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
-		CommandController controller = new CommandController(this,pipe,true);  // Synchronous
-		PortHandler handler = new PortHandler(key,controller);
-		Thread thread = new Thread(handler);
-		motorGroupHandlers.put(key, thread);
+		Set<String> groupNames = model.getControllerTypes().keySet();
+		Map<String,MotorConfiguration> motors = model.getMotors(); 
+		for( String group:groupNames ) {
+			Port port = model.getPortForGroup(group);
+			PortHandler handler = new PortHandler(group,port);
+			Thread t = new Thread(handler);
+			motorGroupHandlers.put(group, t);
+			
+			// Add all the motor configurations to the handler
+			List<String> jointNames = model.getJointNamesForGroup(group);
+			for( String jname:jointNames ) {
+				MotorConfiguration motor = motors.get(jname.toUpperCase());
+				handler.putMotorConfiguration(jname, motor);
+			}
+		}
 	}
 	
 	public void start() {
@@ -78,11 +82,14 @@ public class MotorManager {
 		}
 	}
 	
-	/**
-	 * This is never called since we are using synchronous interactions.
-	 * @param response
-	 */
-	@Override
-	public void handleResult(MessageBottle response) {}
+	public MessageBottle getMessage() {
+		MessageBottle response = null;
+		return response;
+	}
+
+	public void sendMessage(MessageBottle request) {
+		
+	}
+
 	
 }

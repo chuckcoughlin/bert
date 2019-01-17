@@ -3,7 +3,7 @@
  */
 module bert.motor {
 	requires jssc;
-	requires bert.share;
+	requires transitive bert.share;
 	exports bert.motor.main;
 	exports bert.motor.model;
 

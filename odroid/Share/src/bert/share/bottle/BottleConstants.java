@@ -19,6 +19,7 @@ public interface BottleConstants   {
 	public final static String PROPERTY_PROMPT     = "prompt";
 	public final static String PROPERTY_RESPONSE   = "response";   // Value is a ResponseType
 	public final static String PROPERTY_REQUEST    = "request";    // Value is a RequestType
+	public final static String PROPERTY_SOURCE     = "source";     // Source of message, controller type
 	
 	public final static String STATE_NAME          = "state";
 	

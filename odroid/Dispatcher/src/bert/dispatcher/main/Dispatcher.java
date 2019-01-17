@@ -4,7 +4,6 @@
  */
 package bert.dispatcher.main;
 
-import java.lang.ModuleLayer.Controller;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,7 +70,7 @@ public class Dispatcher {
 		if( type.equals(ControllerType.COMMAND)) {
 			commandHandler.setPipe(pipe); 
 		}
-		else if( type.equals(ControllerType.COMMAND)) {
+		else if( type.equals(ControllerType.TERMINAL)) {
 			terminalHandler.setPipe(pipe);
 		}
 			
@@ -79,12 +78,13 @@ public class Dispatcher {
 	
 	public void execute() {
 		for(;;) {
+			MessageBottle request = null;
 			MessageBottle response = null;
 			// First try the commands in an asynchronous way,
 			// Take care of any local requests (then immediately got to next command)
 			if( terminalHandler.getLocalRequest()!=null ) {
 				// Handle terminal local request - -create response
-				response = createResponseForLocalRequest(terminalHandler.getLocalRequest())
+				response = createResponseForLocalRequest(terminalHandler.getLocalRequest());
 				
 			}
 			else if( commandHandler.getLocalRequest()!=null ) {
@@ -93,7 +93,7 @@ public class Dispatcher {
 			}
 			else {
 				// Handle motor request
-				motorManager.sendMessage(MessageBottle request);
+				motorManager.sendMessage(request);
 				response = motorManager.getMessage();
 			}
 			
@@ -105,7 +105,9 @@ public class Dispatcher {
 		}
 	}
 	
-	
+	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
+		return null;
+	}
 
 	/**
 	 * Entry point for the application that contains the robot Java
