@@ -63,6 +63,11 @@ public abstract class AbstractRobotModel  {
 		return this.properties.getProperty(key,defaultValue);
 	}
 	
+	/**
+	 * @return a map of type names for each controller used by this application.
+	 */
+	public Map<String,String> getControllerTypes() { return this.controllerTypes; }
+	
 	public List<MotorConfiguration> getMotors() { return this.motors; }
 	
 	/**

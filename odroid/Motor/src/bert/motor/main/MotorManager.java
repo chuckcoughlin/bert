@@ -15,7 +15,7 @@ import bert.motor.model.RobotMotorModel;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
-import bert.share.controller.Controller;
+import bert.share.controller.CommandController;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
 
@@ -28,7 +28,7 @@ import bert.share.logging.LoggerUtility;
  * serial port. For each request there is a single response. Responses
  * are synchronous.
  */
-public class Motors implements ControllerLauncher {
+public class MotorManager {
 	private final static String CLSS = "MotorHandler";
 	private static final String USAGE = "Usage: motors <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
@@ -40,7 +40,7 @@ public class Motors implements ControllerLauncher {
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public Motors(RobotMotorModel m) {
+	public MotorManager(RobotMotorModel m) {
 		this.model = m;
 		this.motorGroupHandlers = new HashMap<>();
 		
@@ -51,15 +51,14 @@ public class Motors implements ControllerLauncher {
 	 * instances. They operate in synchronous fashion. Assign each to a handler running 
 	 * in its own thread.
 	 */
-	@Override
-	public void createControllers() {
+	public void createMotorGroups() {
 		Map<String, String> pipeNames = model.getPipeNames();
 		Iterator<String>walker = pipeNames.keySet().iterator();
 		String key = walker.next();                              // Group name
 		String pipeName = pipeNames.get(key);
 		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
-		Controller controller = new Controller(this,pipe,true);  // Synchronous
-		MotorGroupHandler handler = new MotorGroupHandler(key,controller);
+		CommandController controller = new CommandController(this,pipe,true);  // Synchronous
+		PortHandler handler = new PortHandler(key,controller);
 		Thread thread = new Thread(handler);
 		motorGroupHandlers.put(key, thread);
 	}
@@ -86,35 +85,4 @@ public class Motors implements ControllerLauncher {
 	@Override
 	public void handleResult(MessageBottle response) {}
 	
-	/**
-	 * Entry point for the application that contains the robot Java
-	 * code for control of the appendages. 
-	 * 
-	 * Usage: Usage: motors <robot_root> 
-	 * 
-	 * @param args command-line arguments
-	 */
-	public static void main(String[] args) {
-			
-		// Make sure there is command-line argument
-		if( args.length < 1) {
-			LOGGER.log(Level.INFO, USAGE);
-			System.exit(1);
-		}
-
-		// Analyze command-line argument to obtain the configuration file path.
-		String arg = args[0];
-		Path path = Paths.get(arg);
-		PathConstants.setHome(path);
-		// Setup logging to use only a file appender to our logging directory
-		LoggerUtility.getInstance().configureRootLogger();
-		
-		RobotMotorModel model = new RobotMotorModel(PathConstants.CONFIG_PATH);
-		model.populate();    // Analyze the xml
-
-		Motors runner = new Motors(model);
-		runner.createControllers();
-		runner.start();
-	}
-
 }

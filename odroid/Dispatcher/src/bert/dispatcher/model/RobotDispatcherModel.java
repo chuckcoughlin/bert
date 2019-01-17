@@ -5,13 +5,10 @@
 package bert.dispatcher.model;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import bert.share.common.NamedPipePair;
 import bert.share.controller.ControllerType;
 import bert.share.model.AbstractRobotModel;
 import bert.share.xml.XMLUtility;
@@ -33,13 +30,12 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 	public void populate() {
 		analyzeProperties();
 		analyzeControllers();
-		analyzeMotors();
 	}
 
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the XML for the joint controllers. There should be multiples of them.
+	 * Search the XML for the two command controllers (COMMAND and TERMINAL).
 	 */
 	@Override
 	public void analyzeControllers() {
@@ -52,7 +48,7 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 				String name = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isBlank() &&
-					type.equalsIgnoreCase(ControllerType.JOINT.name()) ) {
+					type.equalsIgnoreCase(ControllerType.COMMAND.name()) ) {
 					// Configure the pipe - there should only be one per motor group.
 					NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
 					if( pipeElements.getLength()>0) {
@@ -62,6 +58,17 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 						pipeNames.put(name,pname);
 					}
 				}
+				else if( type!=null && !type.isBlank() &&
+						type.equalsIgnoreCase(ControllerType.TERMINAL.name()) ) {
+						// Configure the pipe - there should only be one per motor group.
+						NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
+						if( pipeElements.getLength()>0) {
+							Element pipeElement= (Element)(pipeElements.item(0));
+							String pname = XMLUtility.attributeValue(pipeElement, "name");
+							controllerTypes.put(name,type.toUpperCase());
+							pipeNames.put(name,pname);
+						}
+					}
 				
 				index++;
 			}

@@ -17,7 +17,7 @@ import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
-import bert.share.controller.Controller;
+import bert.share.controller.CommandController;
 import bert.share.controller.ControllerLauncher;
 import bert.share.logging.LoggerUtility;
 import bert.speech.process.StatementParser;
@@ -35,7 +35,7 @@ public class Terminal implements ControllerLauncher {
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotTerminalModel model;
-	private Controller controller = null;
+	private CommandController controller = null;
 	private final StatementParser parser;
 	private String prompt;
 	
@@ -56,7 +56,7 @@ public class Terminal implements ControllerLauncher {
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
 		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
-		this.controller = new Controller(this,pipe,false);   // Asynchronous
+		this.controller = new CommandController(this,pipe,false);   // Asynchronous
 	}
 	
 	/**

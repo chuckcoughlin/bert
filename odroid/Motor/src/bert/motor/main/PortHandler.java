@@ -6,18 +6,18 @@
 package bert.motor.main;
 
 import bert.share.bottle.MessageBottle;
-import bert.share.controller.Controller;
+import bert.share.controller.CommandController;
 
 /**
  *  Handle requests directed to a specific group of motors. All motors in the 
  *  group are connected to the same serial port.
  */
-public class MotorGroupHandler implements Runnable {
+public class PortHandler implements Runnable {
 	protected static final String CLSS = "MotorGroupHandler";
-	private final Controller controller;
+	private final CommandController controller;
 	private final String group;                 // Group name
 
-	public MotorGroupHandler(String name,Controller c) {
+	public PortHandler(String name,CommandController c) {
 		this.controller = c;
 		this.group = name;
 	}

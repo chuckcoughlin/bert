@@ -1,18 +1,14 @@
-# Architecture and Toolchain
+# Toolchain
 
-"Bert" is an amalgam of the [Poppy](https://www.poppy-project.org) platform from
-[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it).
+This document describes the setup and tools used to develop "Bert" and summarizes the construction process, both hardware and software.
 
-Bert's physical characteristics are derived from *Poppy* which is supplied in open-source format, both hardware and software. Version 1.0.2 source is at: https://github.com/poppy-project/poppy-humanoid. The repository contains full assembly instructions. The project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
-robotic platform for science, art and education"](https://hal.inria.fr/tel-01104641v1/document) by Matthieu Lapeyre. A full list of project authors may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md.
-
-The control software is patterned on <i>iCub</i> (main project repository: https://github.com/robotology/icub-main) which is at its core uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/). We have greatly simplified the robot control converting it from C++ to Java, folded in the <i>Poppy</i> code, implemented extensions in Java (as opposed to the original Python), and added an Android tablet for speech processing.
+"Bert" is a based on the [Poppy](https://www.poppy-project.org) platform from
+[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot).  *Poppy* is supplied in open-source format, both hardware and software. Version 1.0.2 source is at: https://github.com/poppy-project/poppy-humanoid. The repository contains full assembly instructions.
 
 ![poppy](/images/poppy.png)
 ````                        Poppy -  Generation Robots````
 
-This document describes the tools used to develop "Bert" and summarizes the construction process, both hardware and software.
-In addition we discuss the core-architecture and interfaces between the main components.
+
 
 ***
 ## Table of Contents <a id="table-of-contents"></a>
@@ -37,8 +33,8 @@ Full assembly instructions may be found [here](https://github.com/poppy-project/
 
 The skeletal print-files provided by GenerationRobots are in .STL format. This form is printable directly, but not conducive to modification.
 
-![Bert Skeleton](/images/printed_parts.jpg)
-```                  3D Printed Skeleton     ```
+![Bert Skeleton](/images/skeletal_assembly.png)
+```                  Newly Assembled Skeleton     ```
 
 
 The following sections contain assembly links and describe modifications to the original parts, if any.
@@ -142,6 +138,7 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install firefox
   sudo apt install sqlite3
   sudo apt install vsftp
+  sudo apt install libjssc-java
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
@@ -238,9 +235,10 @@ The *Archive* project is a collection of open-source library modules.
 * http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.7.jar jackson-databind-2.9.7.jar java-annotations-2.9.7.jar
 * http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
 * https://bitbucket.org/xerial/sqlite-jdbc/downloads sqlite-jdbc-3.23.1.jar
+* https://code.google.com/archive/p/java-simple-serial-connector/downloads jssc.jar, plus C++ source for shared library
 
 *** Modularized Jar Files ***<br/>
-Some of the open source libraries were not updated to Java 9 or newer. Consequently the downloaded jar files required updating to add module dependencies.
+Most of the open source jar files listed above had not been updated for Java11 module compatibility. However all have been manually updated prior to storage in the archive.
 
 Thanks to [Michael Easter](https://github.com/codetojoy/easter_eggs_for_java_9/blob/master/egg_34_stack_overflow_47727869/run.sh) for the following example that shows how to modularize the ``Jackson`` jar files.
 The root directory of the *Archive* project is the starting point. The 3 original non-modularized *Jackson* jar files have been downloaded into ``jars``. The modularized results will be stored into ``mods``.
@@ -335,38 +333,3 @@ We make use of the following freely-available applications:
   * [Sculptris](http://pixologic.com/sculptris) - Sculpt objects free-form. This is useful for molding irregular, rounded or textured parts. Export in .obj format.
 This drawing and others is constructed using **InkScape** from https://inkscape.org/en/release/0.92.2. 3D CAD drawings are constructed using OpenSCAD from http://www.openscad.org/downloads.html.
 Electrical circuits are constructed using [iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12).
-
-***
-## Software Architecture <a id="architecture"/>
-
-*** Why Java?*** <br/>
-In the "Poppy" [thesis](https://hal.inria.fr/tel-01104641v1/document) (section 7.4.1 and following), the author considers use of the Robot Operating System (ROS) for the core software and concludes that it is overly complex and inefficient. This coincides with my own experience with [sarah-bella](https://github.com/chuckcoughlin/sarah-bella). Moreover, I discovered that, at least with Android, ROS messaging was not reliable. Messages were dropped under high load, a situation not acceptable for control applications.
-
-This same author noted that the "Pypot" software developed in Python for Poppy had severe performance limitations that placed strict limits on its design.
-
-While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) used by the "iCub" project seemed closest to my perceived needs. It is written in C++ and is loaded with features that I'll never use. Given my failure to create a cross-compilation environment, I've decided to let a simplified *YARP* serve as an inspiration for a Java-based solution. For simplicity, the ancillary code will be Java also.
-
-Why did I select Java for this code when the iCub project chose Python?
-  * Familiarity - over 2 decades of working with Java
-  * Debugging - problems are discovered by the compiler rather than run-time
-  * Performance - Java executes an order of magnitude faster than Python
-  * Threading - the Java threading model is more straightforward (IMHO)
-  * Cross-compiling - difficulties creating Odroid executables preclude use of C++.
-
-  Here is a diagram that shows the major software components.
-  ![Major Software Components](/images/software_components.png)
-  ````                        Development - System Architecture ````
-
-  ## Failures <a id="failures"/>
-  This section documents some ideas that were tried and abandoned.
-
-  *** Gradle *** <br/>
-  ``Gradle`` is a modern tool for building software of several flavors.  To install ``Gradle`` use ``homebrew``:
-  ```
-     brew install gradle
-     brew install gradle-completion
-  ```
-  I totally failed to create a C++ build script for cross-compilation (Mac to Odroid). Moreover after nearly a week of trying, I gave up on the Java building also. I was unable to create an environment to conveniently share re-usable code among separate top level targets. I'm sure it can be done, I just lost interest.
-
-  *** Cross-compilation *** <br/>
-  On the build machine, I downloaded [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), then followed the installation steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1), Using a *makefile* and these tools, I compiled C++ code for the Odroid X64. It had a bad format and didn't execute. I gave up on C++ in favor of Java for the core control loop.

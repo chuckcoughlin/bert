@@ -9,17 +9,15 @@ import bert.share.common.NamedPipePair;
 
 
 /**
- * A controller encapsulates a single named pipe pair. It accepts a request from
- * a "main" application and returns a response. 
+ * A command controller encapsulates a single named pipe pair. It accepts a command request
+ * from the speech processor and returns a response. 
  * 
- * There are three possible read behaviors:
+ * There are two possible read behaviors:
  *   1) synchronous mode, the caller blocks on the "getMessage" method. 
  *   2) asynchronous mode, a non-owner caller must implement a "handleResponse" callback.
- *   3) asynchronous mode, an owner caller (the Dispatcher) calls "getMessage", but it
- *                         returns null if there is no message waiting.
  */
-public class Controller {
-	private final static String CLSS = "Controller";
+public class CommandController {
+	private final static String CLSS = "CommandController";
 	private System.Logger LOGGER = System.getLogger(CLSS);
 	private final ControllerLauncher launcher;
 	private final NamedPipePair pipe;
@@ -34,16 +32,11 @@ public class Controller {
 	 * @param synch true if the caller will use synchronous reads. Otherwise we monitor
 	 *        the response side of the pipe and return the result in a callback.
 	 */
-	public Controller(ControllerLauncher launcher,NamedPipePair p,boolean synch) {
+	public CommandController(ControllerLauncher launcher,NamedPipePair p,boolean synch) {
 		this.launcher = launcher;
 		this.pipe = p;
 		this.synchronous = synch;
-		if( pipe.isOwner() ) {
-			pipe.setReadsAsynchronous(synch); 
-		}
-		else {
-			pipe.setReadsAsynchronous(false);
-		}
+		pipe.setReadsAsynchronous(false);
 	}
 	
 	/**
@@ -61,7 +54,7 @@ public class Controller {
 	
 	public void start() {
 		pipe.startup();
-		if( !pipe.isOwner() && !synchronous ) {
+		if( !synchronous ) {
 			AsynchronousReader ar = new AsynchronousReader(this.launcher,this.pipe);
 			runner = new Thread(ar);
 			runner.start();

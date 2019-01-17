@@ -1,9 +1,10 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.dispatcher.main;
 
+import java.lang.ModuleLayer.Controller;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,25 +12,27 @@ import java.util.Iterator;
 import java.util.Map;
 
 import bert.dispatcher.model.RobotDispatcherModel;
+import bert.motor.main.MotorManager;
+import bert.motor.model.RobotMotorModel;
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
-import bert.share.controller.Controller;
-import bert.share.controller.ControllerLauncher;
+import bert.share.controller.ControllerType;
 import bert.share.logging.LoggerUtility;
 
 /**
  * The job of the distributer is to process entries from the request channels,
  * distribute them to action channels and post the results.
  */
-public class Dispatcher implements ControllerLauncher {
+public class Dispatcher {
 	private final static String CLSS = "Distributer";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotDispatcherModel model;
 	private final CommandHandler commandHandler;
-	private final ControllerHandler controllerHandler;
+	private final CommandHandler terminalHandler;
+	private final MotorManager   motorManager;
 	private final String name;
 	private int cadence = 1000;
 	
@@ -37,10 +40,11 @@ public class Dispatcher implements ControllerLauncher {
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public Dispatcher(RobotDispatcherModel m) {
+	public Dispatcher(RobotDispatcherModel m,MotorManager mgr) {
 		this.model = m;
+		this.motorManager = mgr;
 		this.commandHandler = new CommandHandler(this);
-		this.controllerHandler = new ControllerHandler(this);
+		this.terminalHandler = new CommandHandler(this);
 		
 		this.name = model.getProperty(BottleConstants.PROPERTY_NAME,"Bert");
 		String cadenceString = model.getProperty(BottleConstants.VALUE_CADENCE,"1000");  // ~msecs
@@ -54,31 +58,49 @@ public class Dispatcher implements ControllerLauncher {
 	}
 	
 	/**
-	 * The dispatcher creates controllers for all named pipes. Xome are considered inputs,
-	 * others outputs (the motors).
+	 * The dispatcher creates controllers for the Terminal and Command applications. The 
+	 * MotorManager does its own configuration (creates a port handler for each motor group).
 	 */
-	@Override
 	public void createControllers() {
 		Map<String, String> pipeNames = model.getPipeNames();
 		Iterator<String>walker = pipeNames.keySet().iterator();
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
-		ControllerType type = controllerTypes.get(key);
-		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
-		Controller controller = new Controller(this,pipe,false);   // Asynchronous
-		ControllerType type = controllerTypes.get(key);
+		NamedPipePair pipe = new NamedPipePair(pipeName,true);  // Not the "owner"
+		ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
+		if( type.equals(ControllerType.COMMAND)) {
+			commandHandler.setPipe(pipe); 
+		}
+		else if( type.equals(ControllerType.COMMAND)) {
+			terminalHandler.setPipe(pipe);
+		}
+			
 	}
 	
 	public void execute() {
 		for(;;) {
+			MessageBottle response = null;
 			// First try the commands in an asynchronous way,
 			// Take care of any local requests (then immediately got to next command)
 			if( terminalHandler.getLocalRequest()!=null ) {
-				continue;
+				// Handle terminal local request - -create response
+				response = createResponseForLocalRequest(terminalHandler.getLocalRequest())
+				
 			}
 			else if( commandHandler.getLocalRequest()!=null ) {
-				continue;
+				// Handle command local request - -create response
+				response = createResponseForLocalRequest(commandHandler.getLocalRequest());
 			}
+			else {
+				// Handle motor request
+				motorManager.sendMessage(MessageBottle request);
+				response = motorManager.getMessage();
+			}
+			
+			String source = request.getSource();
+			// Return response to the request source.
+			
+			// Delay until cadence interval is up.
 			
 		}
 	}
@@ -109,11 +131,17 @@ public class Dispatcher implements ControllerLauncher {
 		// Setup logging to use only a file appender to our logging directory
 		LoggerUtility.getInstance().configureRootLogger();
 		
+		
+		RobotMotorModel mmodel = new RobotMotorModel(PathConstants.CONFIG_PATH);
+		mmodel.populate();    // Analyze the xml for motor groups
+		MotorManager mgr = new MotorManager(mmodel);
+		mgr.createMotorGroups();
+		
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
-
-		Dispatcher runner = new Dispatcher(model);
+		Dispatcher runner = new Dispatcher(model,mgr);
 		runner.createControllers();
+		
 		runner.execute();
 
   
