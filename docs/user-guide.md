@@ -1,7 +1,7 @@
 # User Guide
 
 This document is a "how-to" user guide describing techniques required to operate specific features of the Bert robot.
-Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/implementation.md) for detailed descriptions of feature designs and implementations.
+Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/implementation.md) for detailed descriptions of feature designs and the code behind them.
 
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>

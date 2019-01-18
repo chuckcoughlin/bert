@@ -1,8 +1,7 @@
 # Software Architecture
 
-This document describes the robot control software embedded in the "Bert" project.
-This code takes its inspiration from [Poppy](https://www.poppy-project.org) by
-[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it). Our implementation is in Java instead of C++ and Python. The feature-set has been greatly simplified from the two referenced projects, yet we have added natural-language speech processing with the addition of an Android tablet.
+Control software embedded in the "Bert" project  takes its inspiration from two sources: [Poppy](https://www.poppy-project.org) by
+[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it). Our implementation deviates significantly, however. The core language is Java instead of C++ and Python; the feature-set has been greatly simplified; we have added natural-language speech processing with the integration of an Android tablet.
 
 *Poppy* version 1.0.2 source is at: https://github.com/poppy-project/poppy-humanoid. The project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
 robotic platform for science, art and education"](https://hal.inria.fr/tel-01104641v1/document) by Matthieu Lapeyre. A full list of project authors may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md.
@@ -14,8 +13,9 @@ The *iCub* main project repository is at: https://github.com/robotology/icub-mai
 
   * [Software Architecture](#architecture)
     * [ANTLR](#antlr)
-  * [Rationale for Java](#failured)
-  * [Failures](#failured)
+  * [Appendices](#appendices)
+    * [Rationale for Java](#whyjava)
+    * [Failures](#failured)
 ***
 
 
@@ -32,7 +32,8 @@ Here is a diagram that shows the major software components.
 #### ANTLR  <a id="antlr"/>
 *ANTLR* is a parsing framework.
 
-*** Why Java?*** <br/>
+## Appendices <a id="appendices"/>
+#### Why Java?<a id="whyjava"/>
 In the "Poppy" [thesis](https://hal.inria.fr/tel-01104641v1/document) (section 7.4.1 and following), the author considers use of the Robot Operating System (ROS) for the core software and concludes that it is overly complex and inefficient. This coincides with my own experience with [sarah-bella](https://github.com/chuckcoughlin/sarah-bella). Moreover, I discovered that, at least with Android, ROS messaging was not reliable. Messages were dropped under high load, a situation not acceptable for control applications.
 
 This same author noted that the "Pypot" software developed in Python for Poppy had severe performance limitations that placed strict limits on its design.
@@ -48,7 +49,7 @@ Why did I select Java for this code when the iCub project chose Python?
 
 
 
-  ## Failures <a id="failures"/>
+  #### Failures <a id="failures"/>
   This section documents some ideas that were tried and abandoned.
 
   *** Gradle *** <br/>

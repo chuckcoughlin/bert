@@ -4,5 +4,5 @@
 
  For further details see the [architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md), [toolchain](https://github.com/chuckcoughlin/bert/tree/master/docs/toolchain.md), [test plan](https://github.com/chuckcoughlin/bert/tree/master/docs/testplan.md) and [implementation](https://github.com/chuckcoughlin/bert/tree/master/docs/implementation.md) and [user-guide](http://github.com/chuckcoughlin/bert/tree/master/docs/user-guide.md) documents.
 
- ![Bert](/images/current_state.jpg)
+ ![Bert](/images/current_state.png)
  ```                  Bert - Most Recent Picture     ```

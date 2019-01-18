@@ -28,12 +28,15 @@ public class Dispatcher {
 	private final static String CLSS = "Distributer";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
 	private final CommandHandler commandHandler;
 	private final CommandHandler terminalHandler;
 	private final MotorManager   motorManager;
 	private final String name;
-	private int cadence = 1000;
+	private int cadence = 1000;      // msecs
+	private	double cycleTime = 0.0; // msecs,    EWMA
+	private double dutyCycle = 0.0; // fraction, EWMA
 	
 	/**
 	 * Constructor:
@@ -78,6 +81,7 @@ public class Dispatcher {
 	
 	public void execute() {
 		for(;;) {
+			long startCycle = System.currentTimeMillis();
 			MessageBottle request = null;
 			MessageBottle response = null;
 			// First try the commands in an asynchronous way,
@@ -96,12 +100,27 @@ public class Dispatcher {
 				motorManager.sendMessage(request);
 				response = motorManager.getMessage();
 			}
-			
+
 			String source = request.getSource();
 			// Return response to the request source.
-			
+			if( source.equalsIgnoreCase(ControllerType.COMMAND.name())) {
+				//commandHandler.
+			}
+			else if( source.equalsIgnoreCase(ControllerType.TERMINAL.name())) {
+				//terminalHandler.
+			}
+
 			// Delay until cadence interval is up.
-			
+			long endCycle = System.currentTimeMillis();
+			long elapsed = (endCycle-startCycle);
+			this.cycleTime = exponentiallyWeightedMovingAverage(this.cycleTime,elapsed);
+			this.dutyCycle = exponentiallyWeightedMovingAverage(this.dutyCycle,(double)elapsed/cadence);
+			if( elapsed<cadence) {
+				try {
+					Thread.sleep(cadence-elapsed);
+				}
+				catch(InterruptedException ignore) {}
+			}
 		}
 	}
 	
@@ -109,6 +128,10 @@ public class Dispatcher {
 		return null;
 	}
 
+	private double exponentiallyWeightedMovingAverage(double currentValue,double previousValue) {
+		double result = (1.-WEIGHT)*currentValue + WEIGHT*previousValue;
+		return result;
+	}
 	/**
 	 * Entry point for the application that contains the robot Java
 	 * code for control of the appendages. 
