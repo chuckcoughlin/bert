@@ -27,6 +27,7 @@ import bert.share.motor.MotorPosition;
  * responses. We leave it to context to determine which is which.
  */
 public class MessageBottle implements Serializable {
+	private static final long serialVersionUID = 4356286171135500644L;
 	private static final String CLSS = "MessageBottle";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	protected Properties properties;
@@ -98,30 +99,7 @@ public class MessageBottle implements Serializable {
 	public void setRequestType(RequestType type) {
 		this.properties.setProperty(BottleConstants.PROPERTY_REQUEST, type.name());
 	}
-	/**
-	 * For a message that is a response, the type should be set using
-	 * the setter supplied in this class.
-	 * 
-	 * @return the ResponseType. If not set, return NONE.
-	 */
-	public ResponseType getResponseType() {
-		ResponseType type = ResponseType.NONE;
-		String prop = this.properties.getProperty(BottleConstants.PROPERTY_REQUEST);
-		if( prop!=null) {
-			type = ResponseType.valueOf(prop);
-		}
-		return type;
-	}
-	
-	/**
-	 * For a message that is a response, use this method to set its type. This
-	 * is our way of enforcing a fixed vocabulary.
-	 * 
-	 * @param type the type of request.
-	 */
-	public void setResponseType(ResponseType type) {
-		this.properties.setProperty(BottleConstants.PROPERTY_RESPONSE, type.name());
-	}
+
 	
 	/**
 	 * Convenience method to retrieve the ControllerType of the message source.

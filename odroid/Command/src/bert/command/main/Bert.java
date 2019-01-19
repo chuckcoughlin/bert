@@ -20,6 +20,7 @@ import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
 import bert.share.controller.CommandController;
 import bert.share.controller.ControllerLauncher;
+import bert.share.controller.ControllerType;
 import bert.share.logging.LoggerUtility;
 import bert.speech.process.StatementParser;
 import bert.sql.db.Database;
@@ -76,7 +77,8 @@ public class Bert implements ControllerLauncher {
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new InputStreamReader(System.in));
-
+			controller.start();
+			
 			while (true) {
 				String input = br.readLine();
 
@@ -95,6 +97,7 @@ public class Bert implements ControllerLauncher {
 				 */
 				else {
 					MessageBottle request = parser.parseStatement(input);
+					request.setSource(ControllerType.COMMAND.name());
 					controller.sendMessage(request);
 				}
 			}

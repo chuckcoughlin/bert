@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.term.main;
@@ -19,7 +19,9 @@ import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
 import bert.share.controller.CommandController;
 import bert.share.controller.ControllerLauncher;
+import bert.share.controller.ControllerType;
 import bert.share.logging.LoggerUtility;
+import bert.share.model.ConfigurationConstants;
 import bert.speech.process.StatementParser;
 import bert.sql.db.Database;
 import bert.term.model.RobotTerminalModel;
@@ -41,7 +43,7 @@ public class Terminal implements ControllerLauncher {
 	
 	public Terminal(RobotTerminalModel m) {
 		this.model = m;
-		this.prompt = model.getProperty(BottleConstants.PROPERTY_PROMPT,"bert:");
+		this.prompt = model.getProperty(ConfigurationConstants.PROPERTY_PROMPT,"bert:");
 		this.parser = new StatementParser();
 	}
 
@@ -68,7 +70,8 @@ public class Terminal implements ControllerLauncher {
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new InputStreamReader(System.in));
-
+			controller.start();
+			
 			while (true) {
 				System.out.print(prompt);
 				String input = br.readLine();
@@ -88,6 +91,7 @@ public class Terminal implements ControllerLauncher {
 				 */
 				else {
 					MessageBottle request = parser.parseStatement(input);
+					request.setSource(ControllerType.TERMINAL.name());
 					controller.sendMessage(request);
 				}
 			}
@@ -115,8 +119,21 @@ public class Terminal implements ControllerLauncher {
 	}
 
 	@Override
+	/**
+	 * We've gotten a response. Either pass on text directly or formulate
+	 * the string that the user sees.
+	 */
 	public void handleResult(MessageBottle response) {
-		
+		String text = response.getProperty(BottleConstants.TEXT, "");
+		if( text.isBlank() ) {
+			text = response.getProperty(BottleConstants.PROPERTY_ERROR, "");
+			if( text.isBlank() ) {
+				String property = response.getProperty(BottleConstants.PROPERTY_PROPERTY, "unknown");
+				String value = response.getProperty(BottleConstants.VALUE, "0");
+				text = String.format("My %s is %s", property,value);
+			}
+		}
+		System.out.println(text);
 	}
 	
 	/**

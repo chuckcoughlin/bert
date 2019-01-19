@@ -9,15 +9,16 @@ package bert.share.bottle;
  */
 public enum RequestType
 {
-            GET_PROPERTY,
-            PLAY_STEP,
-			RECORD_STEP,
-			SET_STATE,       // For a particular motor
-			REQUEST_STATE,   // Same as recording a step or pose
-			SET_POSE,
-			GET_POSE,
-			NONE
-            ;
+	GET_METRIC,      // A local property of the robot
+	GET_PROPERTY,    // A motor property
+    PLAY_STEP,
+	RECORD_STEP,
+	SET_STATE,       // For a particular motor
+	REQUEST_STATE,   // Same as recording a step or pose
+	SET_POSE,
+	GET_POSE,
+	NONE
+    ;
           
  /**
   * @return  a comma-separated list of the types in a single String.

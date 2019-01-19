@@ -8,7 +8,6 @@ package bert.share.motor;
 import java.io.Serializable;
 
 import bert.share.common.DynamixelType;
-import bert.share.common.Joint;
 
 /**
  * A motor refers to a Dynamixel stepper motor at one of the joints

@@ -7,6 +7,7 @@ Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/
 ## Table of Contents <a id="table-of-contents"></a>
   * [Startup](#startup)
   * [Commands](#commands)
+  * [Vocabulary](#vocabulary)
 
 
 *********************************************************
@@ -17,3 +18,13 @@ Once the robot is powered on, a boot sequence commences. On completion, Bert wil
 ### a - Commands <a id="commands"></a>
 The primary method of command and control is via spoken English commands. If a command, statement or question is not recognized,
 Bert will respond with an appropriate request for clarification.
+*********************************************************
+### a - Vocabulary <a id="vocabulary"></a>
+"Bert" has a fixed vocabulary when it comes to names of parameters in
+various categories.
+  * Axes:
+      x, y, z
+  * Core Property: cadence, cycle time, duty cycle
+  * Joint Property: id, offset, maximum angle, minimum angle, , motor type,
+     orientation, speed, torque
+  * Side: left, right

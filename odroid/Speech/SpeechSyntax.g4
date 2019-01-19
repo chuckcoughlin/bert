@@ -17,13 +17,14 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-	Salutation? Command                       # handleSingleWordCommand
+	Salutation? Command                       				   # handleSingleWordCommand
 	;
       
 // Request for information
 question:
-	  How HowAdjective 'are' 'you'            # howQuestion
-	| What 'is' Possessive? Article? Property # whatQuestion
+	  How Adjective 'are' 'you'               				    # attributeQuestion
+	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion
+	| What 'is' Article? Metric   				                # metricsQuestion
 	;
 
 // Convey information to the robot.
@@ -31,14 +32,18 @@ declaration:
 	;
 	
 	
-
-Article: 'a'|'an'|'the'|'this'|'that';
+// Pardon the license taken with some of these categories ...
+Article: 'a'|'an'|'the'|'this'|'that'|'your';
+Adjective: 'old'|'tall';
+Axis: 'x'|'y'|'z';
 Command: 'attention'|'freeze'|'relax'|'stop'|'wake up';
 How: 'how';
-HowAdjective: 'old'|'tall';
-Possessive: 'your';
-Property: 'cadence'|'cycle time'|'duty cycle';
+Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
+Of: 'of';
+Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder';
+Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'orientation'|'speed'|'torque';
 Salutation:'bert'|'burt';
+Side: 'left'|'right';
 What: 'what';
 
 

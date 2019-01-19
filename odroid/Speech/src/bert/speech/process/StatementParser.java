@@ -21,7 +21,7 @@ import bert.speech.antlr.SpeechSyntaxParser;
  *  between invocations of the parser. 
  */
 public class StatementParser  {
-	private final HashMap<String,Object> context;
+	private final HashMap<String,String> context;
 
 	/**
 	 * Constructor provides parameters specific to the robot. The
@@ -29,10 +29,10 @@ public class StatementParser  {
 	 * invocations of the translator. 
 	 */
 	public StatementParser() {
-		context = new HashMap<String,Object>();
+		context = new HashMap<>();
 	}
 	
-	public void setSharedProperty(String key,Object value) { context.put(key, value); }
+	public void setSharedProperty(String key,String value) { context.put(key, value); }
 	/**
 	 * This is the method that parses a statement - one line of text. It uses the visitor pattern to
 	 * traverse the parse tree and generate the returned statement prototype. This method parses one line.

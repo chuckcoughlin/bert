@@ -5,12 +5,16 @@
 package bert.share.bottle;
 
 /**
- * Success or failure indication regarding the status of the accompanying request.
+ * These quantities are attributes of the robot as a whole.
  */
-public enum ResponseType
+public enum MetricType
 {
-            OK,
-            NONE
+            AGE,
+            CADENCE,
+            CYCLETIME,
+            DUTYCYCLE,
+            HEIGHT,
+            NAME
             ;
           
  /**
@@ -19,7 +23,7 @@ public enum ResponseType
   public static String names()
   {
     StringBuffer names = new StringBuffer();
-    for (ResponseType type : ResponseType.values())
+    for (MetricType type : MetricType.values())
     {
       names.append(type.name()+", ");
     }
