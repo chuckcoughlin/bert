@@ -25,6 +25,7 @@ question:
 	  How Adjective 'are' 'you'               				    # attributeQuestion
 	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion
 	| What 'is' Article? Metric   				                # metricsQuestion
+	| What 'is' Article? Axis? Property Of Article? Side? Joint # positionQuestion
 	;
 
 // Convey information to the robot.
@@ -41,7 +42,7 @@ How: 'how';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
 Of: 'of';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder';
-Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'orientation'|'speed'|'torque';
+Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'motor type'|'orientation'|'speed'|'torque';
 Salutation:'bert'|'burt';
 Side: 'left'|'right';
 What: 'what';

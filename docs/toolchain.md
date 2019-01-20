@@ -43,6 +43,7 @@ The following sections contain assembly links and describe modifications to the 
 #### Legs <a id="skeleton-legs"></a>
 #### Arms <a id="skeleton-arms"></a>
 #### Torso <a id="skeleton-torso"></a>
+In fastening the 2 SMPS2Dynamiel boards to the torso, instead of sticking them as the video shows, we used 2.5 x 12mm screws.
 #### Head <a id="skeleton-head"></a>
 
 ### Joints <a id="joints"></a>

@@ -35,18 +35,55 @@ public enum Joint
 	RIGHT_SHOULDER_X,
 	RIGHT_SHOULDER_Y,
 	UNKNOWN
-            ;
-          
- /**
-  * @return  a comma-separated list of all block states in a single String.
-  */
-  public static String names()
-  {
-    StringBuffer names = new StringBuffer();
-    for (Joint type : Joint.values())
-    {
-      names.append(type.name()+", ");
-    }
-    return names.substring(0, names.length()-2);
-  }
+	;
+
+	/**
+	 * Convert the Joint enumeration to text that can be pronounced.
+	 * @param joint the enumeration
+	 * @return user-recognizable text
+	 */
+	public static String toText(Joint joint) {
+		String text = "";
+		switch( joint ) {
+			case ABS_X: text = "abdomen x"; break;
+			case ABS_Y: text = "abdomen y"; break;
+			case ABS_Z: text = "abdomen z"; break;
+			case BUST_X: text = "bust x"; break;
+			case BUST_Y: text = "bust y"; break;
+			case HEAD_Y: text = "neck y"; break;
+			case HEAD_Z: text = "neck z"; break;
+			case LEFT_ANKLE_Y: text = "left ankle"; break;
+			case LEFT_ARM_Z:   text = "left arm z"; break;
+			case LEFT_ELBOW_Y: text = "left elbow"; break;
+			case LEFT_HIP_X:   text = "left hip x"; break;
+			case LEFT_HIP_Y:   text = "left hip y"; break;
+			case LEFT_HIP_Z:   text = "left hip z"; break;
+			case LEFT_KNEE_Y:  text = "left knee"; break;
+			case LEFT_SHOULDER_X: text = "left shoulder x"; break;
+			case LEFT_SHOULDER_Y: text = "left shoulder y"; break;
+			case RIGHT_ANKLE_Y: text = "right ankle"; break;
+			case RIGHT_ARM_Z:   text = "right arm z"; break;
+			case RIGHT_ELBOW_Y:  text = "right elbow"; break;
+			case RIGHT_HIP_X:    text = "right hip x"; break;
+			case RIGHT_HIP_Y:    text = "right hip y"; break;
+			case RIGHT_HIP_Z:    text = "right hip z"; break;
+			case RIGHT_KNEE_Y:   text = "right knee"; break;
+			case RIGHT_SHOULDER_X: text = "right shoulder x"; break;
+			case RIGHT_SHOULDER_Y: text = "right shoulder y"; break;
+			case UNKNOWN: text = "unknown"; break;
+		}
+		return text;
+	}
+	/**
+	 * @return  a comma-separated list of all block states in a single String.
+	 */
+	public static String names()
+	{
+		StringBuffer names = new StringBuffer();
+		for (Joint type : Joint.values())
+		{
+			names.append(type.name()+", ");
+		}
+		return names.substring(0, names.length()-2);
+	}
 }

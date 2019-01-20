@@ -89,6 +89,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String property = ctx.Property().getText().toUpperCase();
 		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
+		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
 		try {
 			bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,JointProperty.valueOf(property).name());
 			// If side or axis were set previously, use those values as defaults
@@ -130,7 +131,33 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	
+	@Override 
+	// what is the z position of your left hip?
+	// Identical to JointPropertyQuestion, but different word order
+	public Object visitPositionQuestion(SpeechSyntaxParser.PositionQuestionContext ctx) {
+		bottle.setRequestType(RequestType.GET_PROPERTY);
+		String property = ctx.Property().getText().toUpperCase();
+		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
+		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
+		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
+		try {
+			bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,JointProperty.valueOf(property).name());
+			// If side or axis were set previously, use those values as defaults
+			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+			if( ctx.Side()!=null ) side = ctx.Side().getText();
+			sharedDictionary.put(SharedKey.SIDE.name(), side);
+			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+			sharedDictionary.put(SharedKey.AXIS.name(), axis);
+			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.PROPERTY_JOINT,joint.name());
+		}
+		catch(IllegalArgumentException iae) {
+			String msg = String.format("I don't have a property %s, that I know of",property);
+			bottle.setError(msg);
+		}
+		return null;
+	}
 	//===================================== Helper Methods ======================================
 	// Determine the specific joint from the body part, side and axis. (The latter two are
 	// not always needed.

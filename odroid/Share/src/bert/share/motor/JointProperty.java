@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.share.motor;
@@ -12,6 +12,7 @@ public enum JointProperty
 	ID,
 	MAXIMUMANGLE,
 	MINIMUMANGLE,
+	MOTORTYPE,
 	OFFSET,
 	ORIENTATION,
 	POSITION,

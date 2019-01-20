@@ -109,8 +109,7 @@ public class Dispatcher {
 					}
 					else {
 						// Handle motor request
-						motorManager.sendMessage(request);
-						response = motorManager.getMessage();
+						response = motorManager.processRequest(request);
 						sendResponse(response);
 					}
 				}

@@ -4,6 +4,9 @@
  */
 package bert.motor.main;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.Period;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -11,10 +14,16 @@ import java.util.Map;
 import java.util.Set;
 
 import bert.motor.model.RobotMotorModel;
+import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
+import bert.share.bottle.MetricType;
+import bert.share.bottle.RequestType;
+import bert.share.common.DynamixelType;
 import bert.share.common.NamedPipePair;
 import bert.share.common.Port;
 import bert.share.controller.CommandController;
+import bert.share.motor.Joint;
+import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 
 /**
@@ -81,15 +90,79 @@ public class MotorManager {
 			t.interrupt();
 		}
 	}
-	
-	public MessageBottle getMessage() {
-		MessageBottle response = null;
-		return response;
+
+	/**
+	 * There are a few requests that we can process immediately.
+	 * The majority require that we send the request to all message
+	 * groups and wait for replies from all before responding.
+	 * In the latter case, the responses include current positions
+	 * of all joints.
+	 * 
+	 * @param request
+	 * @return the response, usually containing current joint positions.
+	 */
+	public MessageBottle processRequest(MessageBottle request) {
+		if( canHandleImmediately(request) ) {
+			MessageBottle response = createResponseForLocalRequest(request);
+			return response;
+		}
+		// Post requests to all motor group threads. The thread that can handle
+		// the request will do so. Merge results into the original request and respond.
+		return null;
 	}
 
-	public void sendMessage(MessageBottle request) {
-		
+	// =========================== Private Helper Methods =======================================
+	// Queries of fixed properties of the motors are the kinds of requests that can be handled immediately
+	private boolean canHandleImmediately(MessageBottle request) {
+		if( request.getRequestType().equals(RequestType.GET_PROPERTY)) {
+			// Certain properties are constants available from the configuration file.
+			String property = request.getProperty(BottleConstants.PROPERTY_PROPERTY,"");
+			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
+					property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
+					property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
+					property.equalsIgnoreCase(JointProperty.ORIENTATION.name()) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-	
+	// The "local" response is simply the original request with some text
+	// to send directly to the user.
+	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
+		if( request.getRequestType().equals(RequestType.GET_PROPERTY)) {
+			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
+			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
+			String text = "";
+			String jointName = Joint.toText(joint);
+			MotorConfiguration mc = model.getMotors().get(joint.name());
+			switch(property) {
+			case ID:
+				int id = mc.getId();
+				text = "The id of my "+jointName+" is "+id;
+				break;
+			case MOTORTYPE:
+				String modelName = "A X 12";
+				if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
+				else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
+				text = "My "+jointName+" is a dynamixel M X "+modelName;
+				break;
+			case OFFSET:
+				double offset = mc.getOffset();
+				text = "The offset of my "+jointName+" is "+offset;
+				break;
+			case ORIENTATION:
+				String orientation = "indirect";
+				if( mc.isDirect() ) orientation = "direct";
+				text = "The orientation of my "+jointName+" is "+orientation;
+				break;
+			default:
+				text = "";
+				request.setError(property.name()+" is not a property that I can look up");
+				break;
+			}
+			request.setProperty(BottleConstants.TEXT, text);
+		}
+		return request;
+	}
 }

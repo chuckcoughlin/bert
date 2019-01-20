@@ -14,7 +14,6 @@ public enum RequestType
     PLAY_STEP,
 	RECORD_STEP,
 	SET_STATE,       // For a particular motor
-	REQUEST_STATE,   // Same as recording a step or pose
 	SET_POSE,
 	GET_POSE,
 	NONE

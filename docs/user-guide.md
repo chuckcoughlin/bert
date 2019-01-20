@@ -6,7 +6,8 @@ Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>
   * [Startup](#startup)
-  * [Commands](#commands)
+  * [Speech](#speech)
+  * [Example Statements](#example)
   * [Vocabulary](#vocabulary)
 
 
@@ -15,16 +16,29 @@ Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/
 Once the robot is powered on, a boot sequence commences. On completion, Bert will announce a randomized "Ready" statement.
 
 *********************************************************
-### a - Commands <a id="commands"></a>
+### b - Speech <a id="speech"></a>
 The primary method of command and control is via spoken English commands. If a command, statement or question is not recognized,
 Bert will respond with an appropriate request for clarification.
 *********************************************************
-### a - Vocabulary <a id="vocabulary"></a>
+### c - Example Statements <a id="example"></a>
+The lists below show typical statements that Bert will recognize.
+The full range of understanding comes from combining these patterns with
+options from the vocabulary list in the next section.
+##### Commands
+
+##### Queries
+
+##### Settings
+Infrequently it may be necessary to inform the robot of some fact.
+There is no visible response to these statements.
+
+*********************************************************
+### d - Vocabulary <a id="vocabulary"></a>
 "Bert" has a fixed vocabulary when it comes to names of parameters in
 various categories.
-  * Axes:
-      x, y, z
-  * Core Property: cadence, cycle time, duty cycle
+  * Axes: x, y, z
+  * Body part: abs, ankle, arm, bust, elbow, head, hip, knee, neck, shoulder
+  * Core property: age, cadence, cycle time, duty cycle, height, name
   * Joint Property: id, offset, maximum angle, minimum angle, , motor type,
      orientation, speed, torque
   * Side: left, right
