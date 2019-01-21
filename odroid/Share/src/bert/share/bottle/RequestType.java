@@ -9,13 +9,14 @@ package bert.share.bottle;
  */
 public enum RequestType
 {
-	GET_METRIC,      // A local property of the robot
-	GET_PROPERTY,    // A motor property
+	GET_METRIC,              // A local property of the robot
+	GET_CONFIGURATION,       // A motor property
     PLAY_STEP,
 	RECORD_STEP,
-	SET_STATE,       // For a particular motor
+	SET_CONFIGURATION,       // For a particular motor
 	SET_POSE,
 	GET_POSE,
+	SET_STATE,               // A global motor configuration, like torque
 	NONE
     ;
           

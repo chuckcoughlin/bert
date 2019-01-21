@@ -1,0 +1,18 @@
+/**
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
+ *                 MIT License.
+ */
+package bert.motor.main;
+
+import java.util.Map;
+
+import bert.share.bottle.MessageBottle;
+/**
+ *  This interface describes the parent process that launches a controller.
+ *  The method is a callback to be used on completion. The key is an identifying
+ *  string given the controller on its instantiation.
+ */
+public interface AggregatorInterface  {
+	public void collectSerialResult(MessageBottle response);
+	public void collectPartialSerialResult(MessageBottle response,Map<String,Integer> map);
+}

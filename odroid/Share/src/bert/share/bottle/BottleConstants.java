@@ -13,7 +13,7 @@ public interface BottleConstants   {
 	
 	// Well-known properties that define the request/response syntax
 	public final static String PROPERTY_ERROR      = "error";      // The last request resulted in an error
-	public final static String PROPERTY_JOINT      = "joint";      // Value is a Joint
+	public final static String PROPERTY_JOINT      = "joint";      // Value is a Joint name
 	public final static String PROPERTY_METRIC     = "metric";     // Value is a MetricType
 	public final static String PROPERTY_PROPERTY   = "property";   // Property to set or get, a JointProperty
 	public final static String PROPERTY_RESPONSE   = "response";   // Value is a ResponseType

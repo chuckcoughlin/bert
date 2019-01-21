@@ -1,11 +1,10 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.motor.model;
 
 
-import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,14 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import bert.share.common.Port;
 import bert.share.controller.ControllerType;
 import bert.share.model.AbstractRobotModel;
-import bert.share.motor.MotorConfiguration;
 import bert.share.xml.XMLUtility;
+import jssc.SerialPort;
 
 /**
  *  The server-side model retains the configuration of all the request handlers
@@ -32,17 +29,17 @@ public class RobotMotorModel extends AbstractRobotModel  {
 	private final Map<String,String> groups;   // Motor names by group
 	private final Map<String,List<String>> joints;   // List of joints by group
 	
-	private final Map<String,Port> ports;                  // Port objects by group
+	private final Map<String,SerialPort> ports;                  // Port objects by group
 	
 	public RobotMotorModel(Path configPath) {
 		super(configPath);
 		this.groups = new HashMap<>();
 		this.joints = new HashMap<>();
-		this.ports = new HashMap<>();
+		this.ports  = new HashMap<>();
 	}
    
 	public List<String> getJointNamesForGroup(String group) { return this.joints.get(group); }
-	public Port getPortForGroup(String group) { return this.ports.get(group); }
+	public SerialPort getPortForGroup(String group) { return this.ports.get(group); }
 	
 	// Analyze the document
 	public void populate() {
@@ -74,7 +71,7 @@ public class RobotMotorModel extends AbstractRobotModel  {
 						Element portElement= (Element)(portElements.item(0));
 						String pname = XMLUtility.attributeValue(portElement, "name");
 						String device = XMLUtility.attributeValue(portElement, "device");
-						Port port = new Port(pname,device);
+						SerialPort port = new SerialPort(device);
 						ports.put(group,port);
 					}
 					// Create a map of joints for the group
@@ -93,7 +90,5 @@ public class RobotMotorModel extends AbstractRobotModel  {
 				index++;
 			}
 		}
-	}
-	
-	
+	}	
 }

@@ -7,17 +7,14 @@ package bert.share.bottle;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.System.Logger.Level;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import bert.share.motor.MotorConfiguration;
-import bert.share.motor.MotorPosition;
 
 /**
  * This class holds the requests and responses that are sent
@@ -31,13 +28,11 @@ public class MessageBottle implements Serializable {
 	private static final String CLSS = "MessageBottle";
 	private static final System.Logger LOGGER = System.getLogger(CLSS);
 	protected Properties properties;
-	protected List<MotorPosition> targets;
-	protected List<MotorConfiguration> motors;
+	protected Map<String,Integer> positions;          // Motor position by joint name
 	
 	public MessageBottle() {
 		this.properties = new Properties();
-		this.targets = new ArrayList<>();
-		this.motors  = new ArrayList<>();
+		this.positions = new HashMap<>();
 	}
 
 	public String getProperty(String key,String defaultValue) {
@@ -45,6 +40,31 @@ public class MessageBottle implements Serializable {
 	}
 	public void setProperty(String key,String value) {
 		this.properties.setProperty(key, value);
+	}
+	/**
+	 * Get the current position of the named joint. 
+	 * @param key joint name
+	 * @return the position, else 0 if the joint is not found.
+	 */
+	public int getPosition(String key) {
+		Integer value = this.positions.get(key);
+		if( value != null ) return value.intValue();
+		return 0;
+	}
+	/**
+	 * Define the current position of the motor in the named joint.
+	 * Throw an illegal argument exception if the joint does not exist.
+	 * @param key
+	 * @param value
+	 */
+	public void setPosition(String key,int value) {
+		Integer intValue = this.positions.get(key);
+		if( intValue!=null ) {
+			this.positions.put(key, value);
+		}
+		else {
+			throw new IllegalArgumentException("Setting position: "+key+" does not exist");
+		} 
 	}
 	
 	/**

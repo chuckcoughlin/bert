@@ -68,7 +68,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// How tall are you?
 	public Object visitAttributeQuestion(SpeechSyntaxParser.AttributeQuestionContext ctx) {
 		bottle.setRequestType(RequestType.GET_METRIC);
-		String attribute = ctx.Attribute().getText();
+		String attribute = ctx.Adjective().getText();
 		if( attribute.equalsIgnoreCase("old") ) {
 			bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.AGE.name());
 		}
@@ -85,7 +85,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// what is the id of your left hip y?
 	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
-		bottle.setRequestType(RequestType.GET_PROPERTY);
+		bottle.setRequestType(RequestType.GET_CONFIGURATION);
 		String property = ctx.Property().getText().toUpperCase();
 		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
@@ -135,7 +135,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// what is the z position of your left hip?
 	// Identical to JointPropertyQuestion, but different word order
 	public Object visitPositionQuestion(SpeechSyntaxParser.PositionQuestionContext ctx) {
-		bottle.setRequestType(RequestType.GET_PROPERTY);
+		bottle.setRequestType(RequestType.GET_CONFIGURATION);
 		String property = ctx.Property().getText().toUpperCase();
 		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";

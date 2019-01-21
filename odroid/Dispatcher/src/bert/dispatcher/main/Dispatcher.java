@@ -132,6 +132,7 @@ public class Dispatcher {
 		finally {
 			commandController.stop();
 			terminalController.stop();
+			motorManager.stop();
 		}
 		System.exit(0);
 	}

@@ -4,11 +4,7 @@
  */
 package bert.motor.main;
 
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.Period;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,15 +12,12 @@ import java.util.Set;
 import bert.motor.model.RobotMotorModel;
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
-import bert.share.bottle.MetricType;
 import bert.share.bottle.RequestType;
 import bert.share.common.DynamixelType;
-import bert.share.common.NamedPipePair;
-import bert.share.common.Port;
-import bert.share.controller.CommandController;
 import bert.share.motor.Joint;
 import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
+import jssc.SerialPort;
 
 /**
  * The MotorHandler receives requests across the pipe from the dispatcher,
@@ -35,12 +28,16 @@ import bert.share.motor.MotorConfiguration;
  * serial port. For each request there is a single response. Responses
  * are synchronous.
  */
-public class MotorManager {
+public class MotorManager implements MotorManagerInterface {
 	private final static String CLSS = "MotorHandler";
-	private static final String USAGE = "Usage: motors <robot_root>";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotMotorModel model;
-	private final Map<String,Thread> motorGroupHandlers;
+	private final Map<String,PortHandler> motorGroupHandlers;
+	private final Map<String,Thread> motorGroupThreads;
+	private final ResponseAggregator aggregator;
+	private Thread aggregatorThread;
+	private MessageBottle request;
+	private MessageBottle response;
 
 	
 	/**
@@ -50,7 +47,10 @@ public class MotorManager {
 	public MotorManager(RobotMotorModel m) {
 		this.model = m;
 		this.motorGroupHandlers = new HashMap<>();
-		
+		this.motorGroupThreads = new HashMap<>();
+		this.request = null;
+		this.response = null;
+		this.aggregator = new ResponseAggregator(this);
 	}
 
 	/**
@@ -62,10 +62,11 @@ public class MotorManager {
 		Set<String> groupNames = model.getControllerTypes().keySet();
 		Map<String,MotorConfiguration> motors = model.getMotors(); 
 		for( String group:groupNames ) {
-			Port port = model.getPortForGroup(group);
-			PortHandler handler = new PortHandler(group,port);
+			SerialPort port = model.getPortForGroup(group);
+			PortHandler handler = new PortHandler(group,port,aggregator);
 			Thread t = new Thread(handler);
-			motorGroupHandlers.put(group, t);
+			motorGroupHandlers.put(group, handler);
+			motorGroupThreads.put(group, t);
 			
 			// Add all the motor configurations to the handler
 			List<String> jointNames = model.getJointNamesForGroup(group);
@@ -76,51 +77,90 @@ public class MotorManager {
 		}
 	}
 	
+	@Override
+	public int getGroupCount() { return motorGroupHandlers.size(); }
 	public void start() {
-		for( Thread t:motorGroupHandlers.values()) {
-			t.start();
+		aggregatorThread = new Thread(aggregator);
+		aggregatorThread.start();
+		
+		for( String key:motorGroupHandlers.keySet()) {
+			PortHandler ph = motorGroupHandlers.get(key);
+			ph.setStopped(false);
+			ph.open();
+			motorGroupThreads.get(key).start();
 		}
 	}
 
 	/** 
-	 * Who calls this?
+	 * Called by Dispatcher when it is stopped.
 	 */
 	public void stop() {
-		for( Thread t:motorGroupHandlers.values()) {
-			t.interrupt();
+		for( String key:motorGroupHandlers.keySet()) {
+			PortHandler ph = motorGroupHandlers.get(key);
+			ph.setStopped(true);
+			ph.close();
+			motorGroupThreads.get(key).interrupt();
 		}
+		aggregatorThread.interrupt();
 	}
 
 	/**
-	 * There are a few requests that we can process immediately.
-	 * The majority require that we send the request to all message
-	 * groups and wait for replies from all before responding.
-	 * In the latter case, the responses include current positions
-	 * of all joints.
+	 * There are 3 kinds of messages that we can process:
+	 * 	1) Requests that can be satisfied from information in our static
+	 *     configuration. Compose results and return immediately. 
+	 *  2) Commands or requests that can be satisfied by a single port handler,
+	 *     for example requesting status of commanding control of a single joint.
+	 *     In this case, we blindly send the request to all port handlers, but
+	 *     expect a reply from only one.
+	 *  3) Global commands or requests. These apply to all motor groups. Examples
+	 *     include setting a pose or commanding an action, requesting positional state.
+	 *     These requests are satisfied by sending the request to all port handlers,
+	 *     collecting responses from each and combining into a single reply.
 	 * 
 	 * @param request
 	 * @return the response, usually containing current joint positions.
 	 */
 	public MessageBottle processRequest(MessageBottle request) {
+		this.response = null;
 		if( canHandleImmediately(request) ) {
-			MessageBottle response = createResponseForLocalRequest(request);
-			return response;
+			this.response = createResponseForLocalRequest(request);
 		}
-		// Post requests to all motor group threads. The thread that can handle
-		// the request will do so. Merge results into the original request and respond.
-		return null;
+		else {
+			// Post requests to all motor group threads. The thread(s) that can handle
+			// the request will do so. Merge results in call-back and respond.
+			for( String key:motorGroupHandlers.keySet()) {
+				motorGroupHandlers.get(key).setRequest(request);
+			}
+			// The response is defined in the collectResult call-back
+			synchronized(request) {
+				try {
+					request.wait();
+				}
+				catch(InterruptedException ie) {}
+			}
+		}
+		return response;
 	}
-
+	// =========================== Motor Manager Interface =======================================
+	/**
+	 * This method is called externally by the object that merges serial responses into a cohesive
+	 * overall answer.
+	 * @param r the response
+	 */
+	public void collectResult(MessageBottle r) {
+		this.response = r;
+		this.request.notify();	
+	}
 	// =========================== Private Helper Methods =======================================
 	// Queries of fixed properties of the motors are the kinds of requests that can be handled immediately
 	private boolean canHandleImmediately(MessageBottle request) {
-		if( request.getRequestType().equals(RequestType.GET_PROPERTY)) {
+		if( request.getRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			// Certain properties are constants available from the configuration file.
 			String property = request.getProperty(BottleConstants.PROPERTY_PROPERTY,"");
 			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
-					property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
-					property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
-					property.equalsIgnoreCase(JointProperty.ORIENTATION.name()) ) {
+				property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
+				property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
+				property.equalsIgnoreCase(JointProperty.ORIENTATION.name()) ) {
 				return true;
 			}
 		}
@@ -130,7 +170,7 @@ public class MotorManager {
 	// The "local" response is simply the original request with some text
 	// to send directly to the user.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
-		if( request.getRequestType().equals(RequestType.GET_PROPERTY)) {
+		if( request.getRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
 			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
 			String text = "";
