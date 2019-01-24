@@ -35,9 +35,12 @@ public class MessageBottle implements Serializable {
 		this.positions = new HashMap<>();
 	}
 
+	public Properties getProperties() {return this.properties;}
+	
 	public String getProperty(String key,String defaultValue) {
 		return this.properties.getProperty(key, defaultValue);
 	}
+	
 	public void setProperty(String key,String value) {
 		this.properties.setProperty(key, value);
 	}
@@ -66,6 +69,12 @@ public class MessageBottle implements Serializable {
 			throw new IllegalArgumentException("Setting position: "+key+" does not exist");
 		} 
 	}
+	/**
+	 * Set the position map all at once.
+	 * @param positions the new position map.
+	 */
+	public void setPositions(Map<String,Integer> positions) { this.positions = positions; }
+	
 	
 	/**
 	 * Use this method to clear the message properties. This conveniently

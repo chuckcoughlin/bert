@@ -4,12 +4,14 @@
  */
 package bert.motor.main;
 
-import bert.share.bottle.MessageBottle;
+import java.util.Map;
+import java.util.Properties;
 /**
  *  This interface is satisfied by the MotorManager and describes
- *  the callback utilized by the Correlator
+ *  the callback utilized by MotorContrtollers
  */
 public interface MotorManagerInterface  {
-	public void collectResult(MessageBottle response);
-	public int getGroupCount();
+	public void collectPositions(Map<Integer,Integer> map);
+	public void collectProperties(Properties props);
+	public int getControllerCount();
 }

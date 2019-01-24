@@ -7,6 +7,7 @@ package bert.motor.main;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import bert.motor.model.RobotMotorModel;
@@ -20,74 +21,76 @@ import bert.share.motor.MotorConfiguration;
 import jssc.SerialPort;
 
 /**
- * The MotorHandler receives requests across the pipe from the dispatcher,
- * formulates a serial command and delivers it to the motors. It then requests
- * motor status and formulates the reply.
- * 
- * Each controller handles a group of motors that are all on the same
- * serial port. For each request there is a single response. Responses
- * are synchronous.
+ * The MotorManager receives requests from the dispatcher having to do with
+ * the Dynamixel motors. The manager dispenses the request to the multiple
+ * MotorControllers receiving results via a call-back. A wait-notify scheme
+ * is used to present a synchronized method interface to the dispatcher.
  */
 public class MotorManager implements MotorManagerInterface {
 	private final static String CLSS = "MotorHandler";
 	private static System.Logger LOGGER = System.getLogger(CLSS);
 	private final RobotMotorModel model;
-	private final Map<String,PortHandler> motorGroupHandlers;
-	private final Map<String,Thread> motorGroupThreads;
-	private final ResponseAggregator aggregator;
-	private Thread aggregatorThread;
+	private final Map<String,MotorController> motorControllers;
+	private final Map<Integer,String> motorNameById;
+	private final Map<String,Thread> motorControllerThreads;
 	private MessageBottle request;
 	private MessageBottle response;
-
-	
+	private int motorCount;
+	private int motorsProcessed;
+	private final Map<String,Integer> positionsInProcess;
 	/**
 	 * Constructor:
 	 * @param m the server model
 	 */
 	public MotorManager(RobotMotorModel m) {
 		this.model = m;
-		this.motorGroupHandlers = new HashMap<>();
-		this.motorGroupThreads = new HashMap<>();
+		this.motorControllers = new HashMap<>();
+		this.motorControllerThreads = new HashMap<>();
 		this.request = null;
 		this.response = null;
-		this.aggregator = new ResponseAggregator(this);
+		this.motorCount = 0;
+		this.motorsProcessed = 0;
+		this.motorNameById = new HashMap<>();
+		this.positionsInProcess = new HashMap<>();
 	}
 
 	/**
-	 * This application is interested in the "serial" controllers. We can expect multiple
-	 * instances. Assign each to a handler running in its own thread. The handler is aware
-	 * of the individual motors in the group.
+	 * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
+	 * instances each running in its own thread. The controller is handles a group of
+	 * motors all communicating on the same serial port.
 	 */
 	public void createMotorGroups() {
 		Set<String> groupNames = model.getControllerTypes().keySet();
 		Map<String,MotorConfiguration> motors = model.getMotors(); 
 		for( String group:groupNames ) {
 			SerialPort port = model.getPortForGroup(group);
-			PortHandler handler = new PortHandler(group,port,aggregator);
-			Thread t = new Thread(handler);
-			motorGroupHandlers.put(group, handler);
-			motorGroupThreads.put(group, t);
+			MotorController controller = new MotorController(group,port,this);
+			motorCount += controller.getMotorCount();
+			Thread t = new Thread(controller);
+			motorControllers.put(group, controller);
+			motorControllerThreads.put(group, t);
 			
-			// Add all the motor configurations to the handler
+			// Add configurations to the controller for each motor in the group
 			List<String> jointNames = model.getJointNamesForGroup(group);
 			for( String jname:jointNames ) {
 				MotorConfiguration motor = motors.get(jname.toUpperCase());
-				handler.putMotorConfiguration(jname, motor);
+				controller.putMotorConfiguration(jname, motor);
+				motorNameById.put(motor.getId(), jname);
 			}
 		}
 	}
 	
 	@Override
-	public int getGroupCount() { return motorGroupHandlers.size(); }
+	public int getControllerCount() { return motorControllers.size(); }
+	
 	public void start() {
-		aggregatorThread = new Thread(aggregator);
-		aggregatorThread.start();
-		
-		for( String key:motorGroupHandlers.keySet()) {
-			PortHandler ph = motorGroupHandlers.get(key);
-			ph.setStopped(false);
-			ph.open();
-			motorGroupThreads.get(key).start();
+
+		for( String key:motorControllers.keySet()) {
+			MotorController controller = motorControllers.get(key);
+			controller.setStopped(false);
+			controller.open();
+			controller.initialize();
+			motorControllerThreads.get(key).start();
 		}
 	}
 
@@ -95,17 +98,16 @@ public class MotorManager implements MotorManagerInterface {
 	 * Called by Dispatcher when it is stopped.
 	 */
 	public void stop() {
-		for( String key:motorGroupHandlers.keySet()) {
-			PortHandler ph = motorGroupHandlers.get(key);
-			ph.setStopped(true);
-			ph.close();
-			motorGroupThreads.get(key).interrupt();
+		for( String key:motorControllers.keySet()) {
+			MotorController controller = motorControllers.get(key);
+			controller.setStopped(true);
+			controller.close();
+			motorControllerThreads.get(key).interrupt();
 		}
-		aggregatorThread.interrupt();
 	}
 
 	/**
-	 * There are 3 kinds of messages that we can process:
+	 * There are 3 kinds of messages that we process:
 	 * 	1) Requests that can be satisfied from information in our static
 	 *     configuration. Compose results and return immediately. 
 	 *  2) Commands or requests that can be satisfied by a single port handler,
@@ -123,15 +125,17 @@ public class MotorManager implements MotorManagerInterface {
 	public MessageBottle processRequest(MessageBottle request) {
 		this.response = null;
 		if( canHandleImmediately(request) ) {
-			this.response = createResponseForLocalRequest(request);
+			response = createResponseForLocalRequest(request);
 		}
 		else {
-			// Post requests to all motor group threads. The thread(s) that can handle
+			// Post requests to all motor controller threads. The thread(s) that can handle
 			// the request will do so. Merge results in call-back and respond.
-			for( String key:motorGroupHandlers.keySet()) {
-				motorGroupHandlers.get(key).setRequest(request);
+			motorsProcessed = 0;
+			positionsInProcess.clear();
+			for( String key:motorControllers.keySet()) {
+				motorControllers.get(key).processRequest(request);
 			}
-			// The response is defined in the collectResult call-back
+			// The response becomes defined in the collectResult call-back
 			synchronized(request) {
 				try {
 					request.wait();
@@ -143,13 +147,39 @@ public class MotorManager implements MotorManagerInterface {
 	}
 	// =========================== Motor Manager Interface =======================================
 	/**
-	 * This method is called externally by the object that merges serial responses into a cohesive
-	 * overall answer.
-	 * @param r the response
+	 * This method is called by the controller that handled a request that pertained to
+	 * a single motor.
+	 * @param props the properties modified by or read by the controller
 	 */
-	public void collectResult(MessageBottle r) {
-		this.response = r;
+	public void collectProperties(Properties props) {
+		this.response = this.request;
+		if( props!=null ) {
+			for(Object key:props.keySet()) {
+				String name = key.toString();
+				this.response.setProperty(name, props.getProperty(name));
+			}
+		}
 		this.request.notify();	
+	}
+	/**
+	 * This method is called by the serial controllers. Within them each individual motor generates
+	 * a call. When we have heard from all of them, trigger a reply.
+	 * @param map position of an individual motor.
+	 */
+	public void collectPositions(Map<Integer,Integer> map) {
+		if( map!=null ) {
+			for( Integer key:map.keySet() ) {
+				Integer pos = map.get(key);
+				String name = motorNameById.get(key);
+				positionsInProcess.put(name, pos);
+			}
+		}
+		motorsProcessed++;
+		if(motorsProcessed>=motorCount ) {
+			this.response = this.request;
+			this.response.setPositions(positionsInProcess);
+			this.request.notify();	
+		}
 	}
 	// =========================== Private Helper Methods =======================================
 	// Queries of fixed properties of the motors are the kinds of requests that can be handled immediately

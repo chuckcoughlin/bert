@@ -27,7 +27,12 @@ options from the vocabulary list in the next section.
 ##### Commands
 
 ##### Queries
-
+```
+    How old are you?
+    What is your cycle time?
+    What is the id of your left shoulder z?
+    What is the z position of your neck?
+```
 ##### Settings
 Infrequently it may be necessary to inform the robot of some fact.
 There is no visible response to these statements.
@@ -39,6 +44,6 @@ various categories.
   * Axes: x, y, z
   * Body part: abs, ankle, arm, bust, elbow, head, hip, knee, neck, shoulder
   * Core property: age, cadence, cycle time, duty cycle, height, name
-  * Joint Property: id, offset, maximum angle, minimum angle, , motor type,
-     orientation, speed, torque
+  * Joint Property: id, maximum angle, minimum angle, motor type, offset,
+     orientation, position, speed, torque
   * Side: left, right

@@ -10,7 +10,7 @@ import bert.share.common.NamedPipePair;
 
 /**
  *  A dispatch controller is a server-side controller for the receiving end of a Command
- *  or Terminal pipe. 
+ *  or Terminal pipe. The reads return null if there is no request pending.
  */
 public class DispatchController  {
 	protected static final String CLSS = "DispatchController";
@@ -27,8 +27,7 @@ public class DispatchController  {
 	}
 	
 	/**
-	 * This should not be called by a non-owner who expects asynchronous behavior.
-	 * The message can be either a request or response depending on circumstances.
+	 * In our usage, the message off the pipe is always a request.
 	 * @return the contents of the pipe.
 	 */
 	public MessageBottle getMessage() {

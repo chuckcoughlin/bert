@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Period;
-import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -28,8 +27,8 @@ import bert.share.logging.LoggerUtility;
 import bert.share.model.ConfigurationConstants;
 
 /**
- * The job of the distributer is to process entries from the request channels,
- * distribute them to action channels and post the results.
+ * The dispatcher is its own system process. It's job is to accept requests from 
+ * the command pipes, distribute them to the motor manager channels and post the results.
  */
 public class Dispatcher {
 	private final static String CLSS = "Distributer";
@@ -66,8 +65,7 @@ public class Dispatcher {
 	
 	/**
 	 * The dispatcher creates controllers for the Terminal and Command applications. The 
-	 * MotorManager does its own configuration (creates a port handler for each motor group).
-	 * 
+	 * MotorManager does its own configuration (creates a motor controller for each motor group).
 	 */
 	public void createControllers() {
 		Map<String, String> pipeNames = model.getPipeNames();
@@ -90,6 +88,8 @@ public class Dispatcher {
 		try {
 			commandController.start();
 			terminalController.start();
+			motorManager.start();
+			reportStartup();
 
 			for(;;) {
 				long startCycle = System.currentTimeMillis();
@@ -184,6 +184,17 @@ public class Dispatcher {
 			return true;
 		}
 		return false;
+	}
+	
+	// Inform both controllers that we've started ...
+	private void reportStartup() {
+		MessageBottle startMessage = new MessageBottle();
+		startMessage.setRequestType(RequestType.NONE);
+		startMessage.setProperty(BottleConstants.TEXT, "Bert is ready");
+		startMessage.setSource(ControllerType.TERMINAL.name());
+		sendResponse(startMessage);
+		startMessage.setSource(ControllerType.COMMAND.name());
+		sendResponse(startMessage);
 	}
 	
 	// Return response to the request source.
