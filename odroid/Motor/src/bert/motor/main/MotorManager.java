@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import bert.motor.model.RobotMotorModel;
 import bert.share.bottle.BottleConstants;
@@ -28,7 +29,7 @@ import jssc.SerialPort;
  */
 public class MotorManager implements MotorManagerInterface {
 	private final static String CLSS = "MotorHandler";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private final RobotMotorModel model;
 	private final Map<String,MotorController> motorControllers;
 	private final Map<Integer,String> motorNameById;

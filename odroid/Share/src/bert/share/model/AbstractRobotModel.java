@@ -5,12 +5,12 @@
 package bert.share.model;
 
 import java.io.IOException;
-import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -32,7 +32,7 @@ public abstract class AbstractRobotModel  {
 	protected final Map<String,String> controllerTypes;  // Controller types by controller name
 	protected final Map<String,String> pipeNames;        // Pipe names by controller name
 	protected final Map<String,MotorConfiguration> motors; // Motor configuration by motor name
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 
 	
 	public AbstractRobotModel(Path configPath) {
@@ -86,7 +86,7 @@ public abstract class AbstractRobotModel  {
 			}
 		}
 		catch( IOException ioe) {
-			LOGGER.log(Level.ERROR, String.format("%s.getConfiguration: Failed to read file %s (%s)",
+			LOGGER.severe(String.format("%s.getConfiguration: Failed to read file %s (%s)",
 											CLSS,filePath.toAbsolutePath().toString(),ioe.getLocalizedMessage()));
 		}
 		return contents;
@@ -109,7 +109,7 @@ public abstract class AbstractRobotModel  {
 				Node propertyNode = elements.item(index);
 				String key = XMLUtility.attributeValue(propertyNode, "name");
 				if( key==null ) {
-					LOGGER.log(Level.WARNING,String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
+					LOGGER.warning(String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
 				}
 				else {
 					String value = propertyNode.getTextContent();
@@ -170,7 +170,7 @@ public abstract class AbstractRobotModel  {
 						}
 					}
 					else {
-						LOGGER.log(Level.WARNING,String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
+						LOGGER.warning(String.format("%s.analyzeProperties: Missing name attribute in property",CLSS));
 					}
 				}
 				

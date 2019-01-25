@@ -5,6 +5,7 @@
 package bert.dispatcher.model;
 
 import java.nio.file.Path;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -19,7 +20,7 @@ import bert.share.xml.XMLUtility;
  */
 public class RobotDispatcherModel extends AbstractRobotModel  {
 	private static final String CLSS = "RobotDispatcherModel";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);;
+	private static final Logger LOGGER = Logger.getLogger(CLSS);;
 			
 	public RobotDispatcherModel(Path configPath) {
 		super(configPath);

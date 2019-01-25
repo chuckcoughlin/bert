@@ -7,7 +7,8 @@
  * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
 **/
 package bert.speech.process;
-import java.lang.System.Logger.Level;
+
+import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
@@ -22,7 +23,7 @@ import bert.share.bottle.MessageBottle;
  */
 public class SpeechErrorListener extends BaseErrorListener {
 	private static String CLSS = "SpeechErrorListener: ";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final MessageBottle bottle;
 	
 	public SpeechErrorListener(MessageBottle bot) {
@@ -45,13 +46,13 @@ public class SpeechErrorListener extends BaseErrorListener {
     	if( bottle.getError()==null ) {
     		if( offendingToken != null ) {
     			String msg = String.format("I didn't understand what came after %s",offendingToken.getStartIndex(),offendingToken.getText());
-    			LOGGER.log(Level.INFO, CLSS+msg);
+    			LOGGER.info(CLSS+msg);
     			bottle.setError(msg);
     		}
     		// We get here if we're listening to the lexer - which we are not
     		else {
     			String msg = "I don't understand";
-    			LOGGER.log(Level.INFO,CLSS+msg);
+    			LOGGER.info(CLSS+msg);
     			bottle.setError(msg);
     		}
     	}

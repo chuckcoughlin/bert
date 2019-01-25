@@ -6,10 +6,10 @@ package bert.share.bottle;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.System.Logger.Level;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class MessageBottle implements Serializable {
 	private static final long serialVersionUID = 4356286171135500644L;
 	private static final String CLSS = "MessageBottle";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	protected Properties properties;
 	protected Map<String,Integer> positions;          // Motor position by joint name
 	
@@ -158,13 +158,13 @@ public class MessageBottle implements Serializable {
 			
 		}
 		catch(JsonParseException jpe) {
-			LOGGER.log(Level.ERROR,String.format("%s.fromJSON: Parse exception (%s) from %s",CLSS,jpe.getLocalizedMessage(),json));
+			LOGGER.severe(String.format("%s.fromJSON: Parse exception (%s) from %s",CLSS,jpe.getLocalizedMessage(),json));
 		}
 		catch(JsonMappingException jme) {
-			LOGGER.log(Level.ERROR,String.format("%s.fromJSON: Mapping exception (%s) from %s",CLSS,jme.getLocalizedMessage(),json));
+			LOGGER.severe(String.format("%s.fromJSON: Mapping exception (%s) from %s",CLSS,jme.getLocalizedMessage(),json));
 		}
 		catch(IOException ioe) {
-			LOGGER.log(Level.ERROR,String.format("%s.fromJSON: IO exception (%s)",CLSS,ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.fromJSON: IO exception (%s)",CLSS,ioe.getLocalizedMessage()));
 		}
 		
 		return bottle;
@@ -178,7 +178,7 @@ public class MessageBottle implements Serializable {
 			json = mapper.writeValueAsString(this);
 		}
 		catch(Exception ex) {
-			LOGGER.log(Level.ERROR,String.format("%s.toJSON: Exception (%s)",CLSS,ex.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.toJSON: Exception (%s)",CLSS,ex.getLocalizedMessage()));
 		}
 		return json;
 	}

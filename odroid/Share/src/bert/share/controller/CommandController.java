@@ -4,6 +4,8 @@
  */
 package bert.share.controller;
 
+import java.util.logging.Logger;
+
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 
@@ -18,7 +20,7 @@ import bert.share.common.NamedPipePair;
  */
 public class CommandController {
 	private final static String CLSS = "CommandController";
-	private System.Logger LOGGER = System.getLogger(CLSS);
+	private Logger LOGGER = Logger.getLogger(CLSS);
 	private final ControllerLauncher launcher;
 	private final NamedPipePair pipe;
 	private final boolean synchronous;

@@ -8,7 +8,8 @@
 ***/
 package bert.speech.process;
 
-import java.lang.System.Logger.Level;
+
+import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.DefaultErrorStrategy;
 import org.antlr.v4.runtime.InputMismatchException;
@@ -27,7 +28,7 @@ import bert.share.bottle.MessageBottle;
  */
 public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	private static final String CLSS = "SpeechErrorStrategy: ";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final MessageBottle bottle;
 	
 	public SpeechErrorStrategy(MessageBottle bot) {
@@ -40,7 +41,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
     	super.recover(recognizer,e);
-    	LOGGER.log(Level.WARNING, CLSS+": RECOVER");
+    	LOGGER.warning(CLSS+": RECOVER");
     	//recordError(recognizer,e);  // Moved to reportError() override
     }
 
@@ -49,7 +50,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
      */
     @Override
     public Token recoverInline(Parser recognizer)  {
-    	LOGGER.log(Level.WARNING, CLSS+": RECOVER-INLINE");
+    	LOGGER.warning(CLSS+": RECOVER-INLINE");
     	recordError(recognizer,new InputMismatchException(recognizer));
     	return super.recoverInline(recognizer);
     }
@@ -59,7 +60,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	 */
     @Override
     public void reportError(Parser recognizer, RecognitionException e) {
-    	LOGGER.log(Level.WARNING, CLSS+": REPORT-ERROR");
+    	LOGGER.warning(CLSS+": REPORT-ERROR");
     	recordError(recognizer,e);
     }
 
@@ -74,12 +75,12 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	Token offender = re.getOffendingToken();
     	if( offender != null ) {
     		String msg = String.format("I misunderstood the statement following %s",offender.getText());
-    		LOGGER.log(Level.WARNING, CLSS+msg);
+    		LOGGER.warning(CLSS+msg);
     		bottle.setError(msg);
     	}
     	else {
     		String msg = "I don't understand";
-			LOGGER.log(Level.INFO,CLSS+msg);
+			LOGGER.info(CLSS+msg);
 			bottle.setError(msg);
     	}
     }

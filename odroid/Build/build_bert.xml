@@ -2,7 +2,7 @@
 <project name="bert.install" default="all" basedir=".">
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="lib.dir" value="${basedir}/lib" />
-	<property name="jar.name" value="bert-terminal.jar" />
+	<property name="jar.name" value="bert-command.jar" />
 	<property name="temp.dir" value="${basedir}/temp" />
 	<property name="src.dir" value="${basedir}/../Command/src" />
 	<property name="robot.dir" value="${bert.home}" />
@@ -43,10 +43,10 @@
 	
 	<!-- Bundle the application code into a jar file -->
 	<target name ="jar" description="Create a jar ">
-	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${lib.dir}">
-		      <manifest>
+	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
+		    <manifest>
 		      	<attribute name="Main-Class"
-		                   value="bert.client.main.Bert"/>
+		                   value="bert.command.main.Bert"/>
 		    </manifest>
 	    </jar>
 	</target>

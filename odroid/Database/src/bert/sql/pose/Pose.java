@@ -1,15 +1,15 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  *
  */
 package bert.sql.pose;
 
-import java.lang.System.Logger.Level;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Logger;
 
 /**
  * This class serves as a Java interface to the Motor table. It provides 
@@ -17,7 +17,7 @@ import java.sql.Statement;
  */
 public class Pose {
 	private static final String CLSS = "Motor";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	/** 
 	 * Constructor: 
 	 */
@@ -52,7 +52,7 @@ public class Pose {
 		catch(SQLException e) {
 			// if the error message is "out of memory", 
 			// it probably means no database file is found
-			LOGGER.log(Level.ERROR,String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
+			LOGGER.severe(String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
 		}
 		finally {
 			if( rs!=null) {

@@ -5,9 +5,9 @@
 
 package bert.motor.dynamixel;
 
-import java.lang.System.Logger.Level;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import bert.share.bottle.BottleConstants;
 import bert.share.common.DynamixelType;
@@ -22,7 +22,7 @@ import bert.share.common.DynamixelType;
 @SuppressWarnings("unused")
 public class DxlMessage  {
 	private static final String CLSS = "DxlMessage";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	// Constants for the instructions
 	private static final byte PING = 0x01;   // Instruction that checks whether the Packet has arrived
 	private static final byte READ = 0x02; 	// Instruction to read data from the Device
@@ -178,7 +178,7 @@ public class DxlMessage  {
 		}
 		else {
 			String msg = String.format("%s.updatePositionFromBytes: Unimplemented %s",CLSS,dump(bytes));
-			LOGGER.log(Level.INFO,msg);
+			LOGGER.info(msg);
 		}
 	}
 	
@@ -192,14 +192,14 @@ public class DxlMessage  {
 	public static void updatePositionArrayFromBytes(byte[] bytes,Map<Integer,Integer> positions) {
 		int length = 7;  // Expected total length of the buffer
 		if( bytes.length<length ) {
-			LOGGER.log(Level.ERROR,String.format("%s.updatePositionFromBytes: Message too short: %s",CLSS,dump(bytes)));
+			LOGGER.severe(String.format("%s.updatePositionFromBytes: Message too short: %s",CLSS,dump(bytes)));
 		}
 		else if( !verifyHeader(bytes) ) {
-			LOGGER.log(Level.ERROR,String.format("%s.updatePositionArrayFromBytes: Header not found: %s",CLSS,dump(bytes)));
+			LOGGER.severe(String.format("%s.updatePositionArrayFromBytes: Header not found: %s",CLSS,dump(bytes)));
 		}
 		else {
 			String msg = String.format("%s.updatePositionFromBytes: Unimplemented - %s",CLSS,dump(bytes));
-			LOGGER.log(Level.INFO,msg);
+			LOGGER.info(msg);
 		}
 	}
 	// ===================================== Private Methods =====================================

@@ -5,6 +5,7 @@
 package bert.speech.process;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
@@ -22,7 +23,7 @@ import bert.speech.antlr.SpeechSyntaxParser;
  */
 public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	private static final String CLSS = "StatementTranslator";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final HashMap<String,String> sharedDictionary;
 	private final MessageBottle bottle;
 	

@@ -1,11 +1,12 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.share.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,8 +23,7 @@ import org.xml.sax.SAXException;
  */
 public class XMLUtility {
 	private static final String CLSS = "XMLUtility";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private static final System.Logger.Level level = System.Logger.Level.WARNING;
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	
 	
 	public static Document documentFromBytes(byte[] bytes) {
@@ -35,13 +35,13 @@ public class XMLUtility {
 	    	xml = builder.parse(new ByteArrayInputStream(bytes));
 	    }
 	    catch(ParserConfigurationException pce) {
-	    	LOGGER.log(level,String.format("%s.documentFromBytes: Failed to create builder (%s)",CLSS,pce.getLocalizedMessage()));
+	    	LOGGER.warning(String.format("%s.documentFromBytes: Failed to create builder (%s)",CLSS,pce.getLocalizedMessage()));
 	    }
 	    catch(SAXException saxe) {
-	    	LOGGER.log(level,String.format("%s.documentFromBytes: Illegal XML document (%s)",CLSS,saxe.getLocalizedMessage()));
+	    	LOGGER.warning(String.format("%s.documentFromBytes: Illegal XML document (%s)",CLSS,saxe.getLocalizedMessage()));
 	    }
 	    catch(IOException ioe) {
-	    	LOGGER.log(level,String.format("%s.documentFromBytes: IOException parsing XML (%s)",CLSS,ioe.getLocalizedMessage()));
+	    	LOGGER.warning(String.format("%s.documentFromBytes: IOException parsing XML (%s)",CLSS,ioe.getLocalizedMessage()));
 	    }
 	    
 	    return xml;

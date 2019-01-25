@@ -4,6 +4,6 @@
 module bert.sql {
 	requires java.sql;
 	requires sqlite.jdbc;
-	requires bert.share;
+	requires transitive bert.share;
 	exports bert.sql.db;
 }

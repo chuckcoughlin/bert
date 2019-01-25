@@ -5,12 +5,12 @@
  */
 package bert.sql.motor;
 
-import java.lang.System.Logger.Level;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import bert.share.motor.MotorConfiguration;
 
@@ -21,7 +21,7 @@ import bert.share.motor.MotorConfiguration;
  */
 public class Motor {
 	private static final String CLSS = "Motor";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	/** 
 	 * Constructor: 
 	 */
@@ -40,7 +40,7 @@ public class Motor {
 	public void defineMotors(Connection cxn,Collection<MotorConfiguration> motors)  {
 		if( cxn==null ) {
 			String msg = String.format("%s.defineMotors: Called before database connection set", CLSS);
-			LOGGER.log(Level.ERROR,msg);
+			LOGGER.severe(msg);
 			return;
 		}
 
@@ -70,7 +70,7 @@ public class Motor {
 		catch(SQLException e) {
 			// if the error message is "out of memory", 
 			// it probably means no database file is found
-			LOGGER.log(Level.ERROR,String.format("%s.defineMotors: Database error (%s)",CLSS,e.getMessage()));
+			LOGGER.severe(String.format("%s.defineMotors: Database error (%s)",CLSS,e.getMessage()));
 		}
 		finally {
 			if( statement!=null ) {

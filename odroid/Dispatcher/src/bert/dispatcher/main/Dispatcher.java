@@ -4,7 +4,6 @@
  */
 package bert.dispatcher.main;
 
-import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -12,6 +11,7 @@ import java.time.Month;
 import java.time.Period;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import bert.dispatcher.model.RobotDispatcherModel;
 import bert.motor.main.MotorManager;
@@ -33,7 +33,7 @@ import bert.share.model.ConfigurationConstants;
 public class Dispatcher {
 	private final static String CLSS = "Distributer";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
 	private DispatchController commandController;
@@ -58,7 +58,7 @@ public class Dispatcher {
 			this.cadence = Integer.parseInt(cadenceString);
 		}
 		catch(NumberFormatException nfe) {
-			LOGGER.log(Level.WARNING,String.format("%s.constructor: Cadence must be an integer (%s)",CLSS,nfe.getLocalizedMessage()));
+			LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)",CLSS,nfe.getLocalizedMessage()));
 		}
 		
 	}
@@ -220,7 +220,7 @@ public class Dispatcher {
 			
 		// Make sure there is command-line argument
 		if( args.length < 1) {
-			LOGGER.log(Level.INFO, USAGE);
+			LOGGER.info( USAGE);
 			System.exit(1);
 		}
 

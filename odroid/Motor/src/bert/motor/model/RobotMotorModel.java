@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -25,15 +26,13 @@ import jssc.SerialPort;
  */
 public class RobotMotorModel extends AbstractRobotModel  {
 	private static final String CLSS = "RobotServerModel";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
-	private final Map<String,String> groups;   // Motor names by group
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final Map<String,List<String>> joints;   // List of joints by group
 	
 	private final Map<String,SerialPort> ports;                  // Port objects by group
 	
 	public RobotMotorModel(Path configPath) {
 		super(configPath);
-		this.groups = new HashMap<>();
 		this.joints = new HashMap<>();
 		this.ports  = new HashMap<>();
 	}

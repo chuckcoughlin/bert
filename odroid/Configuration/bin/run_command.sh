@@ -3,8 +3,14 @@
 # Requires access to BERT_HOME
 cd ${BERT_HOME}
 mkdir -p logs
-MP=lib/bert-client.jar
+MP=mods/sqlite-jdbc-3.23.1.jar
+MP=${MP}:mods/antlr-runtime-4.7.1.jar
+MP=${MP}:mods/jackson-core-2.9.7.jar
+MP=${MP}:mods/jackson-databind-2.9.7.jar
+MP=${MP}:mods/jackson-annotations-2.9.7.jar
+MP=$MP:lib/bert-command.jar
 MP=$MP:lib/bert-common.jar
+MP=$MP:lib/bert-database.jar
 MP=$MP:lib/bert-speech.jar
 
-java --module-path $MP -m bert.client/bert.client.main.Bert ${BERT_HOME}
+java --module-path $MP -m bert.command/bert.command.main.Bert ${BERT_HOME}

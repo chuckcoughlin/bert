@@ -5,13 +5,14 @@
  */
 package bert.sql.db;
 
-import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.sqlite.JDBC;
 
@@ -27,7 +28,7 @@ import bert.sql.pose.Pose;
  */
 public class Database {
 	private final static String CLSS = "Database";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private Connection connection = null;
 	
 	private static Database instance = null;
@@ -72,7 +73,7 @@ public class Database {
 	 */
 	public void startup(Path path) {
 		String connectPath = "jdbc:sqlite:"+path.toString();
-		LOGGER.log(Level.INFO, String.format("%s.startup: database path = %s",CLSS,path.toString()));
+		LOGGER.info(String.format("%s.startup: database path = %s",CLSS,path.toString()));
 
 		try {
 			connection = DriverManager.getConnection(connectPath);
@@ -80,7 +81,7 @@ public class Database {
 		catch(SQLException e) {
 			// if the error message is "out of memory", 
 			// it probably means no database file is found
-			LOGGER.log(Level.ERROR,String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
+			LOGGER.log(Level.SEVERE,String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
 		}
 		finally {
 			try {
@@ -89,7 +90,7 @@ public class Database {
 			} 
 			catch(SQLException e) {
 				// connection close failed.
-				LOGGER.log(Level.ERROR,String.format("%s.startup: Error closing database (%s)",CLSS,e.getMessage()));
+				LOGGER.severe(String.format("%s.startup: Error closing database (%s)",CLSS,e.getMessage()));
 			}
 		}
 	}
@@ -100,7 +101,7 @@ public class Database {
 	 * @param path to database instance
 	 */
 	public void shutdown() {
-		LOGGER.log(Level.INFO, String.format("%s.shutdown",CLSS));
+		LOGGER.info(String.format("%s.shutdown",CLSS));
 
 		if( connection!=null) {
 			try {
@@ -109,7 +110,7 @@ public class Database {
 			catch(SQLException e) {
 				// if the error message is "out of memory", 
 				// it probably means no database file is found
-				LOGGER.log(Level.WARNING,String.format("%s.shutdown: Error closing database (%s)",CLSS,e.getMessage()));
+				LOGGER.warning(String.format("%s.shutdown: Error closing database (%s)",CLSS,e.getMessage()));
 			}
 		}
 	}

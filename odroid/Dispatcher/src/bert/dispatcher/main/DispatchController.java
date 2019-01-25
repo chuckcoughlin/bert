@@ -5,6 +5,8 @@
  */
 package bert.dispatcher.main;
 
+import java.util.logging.Logger;
+
 import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 
@@ -14,7 +16,7 @@ import bert.share.common.NamedPipePair;
  */
 public class DispatchController  {
 	protected static final String CLSS = "DispatchController";
-	private System.Logger LOGGER = System.getLogger(CLSS);
+	private Logger LOGGER = Logger.getLogger(CLSS);
 	private NamedPipePair pipe = null;
 	
 	/**

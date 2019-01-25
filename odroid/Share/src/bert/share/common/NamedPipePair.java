@@ -10,9 +10,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 import bert.share.bottle.MessageBottle;
 /**
@@ -27,7 +27,7 @@ public class NamedPipePair   {
 	private static final String CLSS = "NamedPipePair";
 	public final String FROM_SERVER = "_fromServer";
 	public final String TO_SERVER   = "_toServer";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final String name;
 	private final boolean owner;  // True if this instance is owned by the server.
 	private boolean useAsynchronousReads;
@@ -97,14 +97,14 @@ public class NamedPipePair   {
 			in = new BufferedReader(freader);
 		}
 		catch(IOException ioe) {
-			LOGGER.log(Level.ERROR,String.format("%s.startup: Error opening %s for read (%s)",CLSS,pathToRead,ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.startup: Error opening %s for read (%s)",CLSS,pathToRead,ioe.getLocalizedMessage()));
 		}
 		
 		try {
 			out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
 		}
 		catch(IOException ioe) {
-			LOGGER.log(Level.ERROR,String.format("%s.startup: Error opening %s for write (%s)",CLSS,pathToWrite,ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.startup: Error opening %s for write (%s)",CLSS,pathToWrite,ioe.getLocalizedMessage()));
 		}
 	}
 	
@@ -135,7 +135,7 @@ public class NamedPipePair   {
 			}
 		}
 		catch(IOException ioe) {
-			LOGGER.log(Level.ERROR,String.format("%s.read: Error reading from %s (%s)",CLSS,pathToRead,ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.read: Error reading from %s (%s)",CLSS,pathToRead,ioe.getLocalizedMessage()));
 		}
 		return bottle;
 	}
@@ -153,7 +153,7 @@ public class NamedPipePair   {
 			out.flush();
 		}
 		catch(IOException ioe) {
-			LOGGER.log(Level.ERROR,String.format("%s.write: Error writing %d bytes (%s)",CLSS,bytes.length, ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,bytes.length, ioe.getLocalizedMessage()));
 		}
 	}
 	
@@ -176,7 +176,7 @@ public class NamedPipePair   {
 	    }
 	    catch(Exception ex) {
 	    	success = false;
-	    	LOGGER.log(Level.ERROR,String.format("%s.createFifoPipe: Exception (%s) creating %s",CLSS,ex.getLocalizedMessage(),fifoPath.toString()));
+	    	LOGGER.severe(String.format("%s.createFifoPipe: Exception (%s) creating %s",CLSS,ex.getLocalizedMessage(),fifoPath.toString()));
 	    }
 	    // Create sibling for opposite direction
 	    name = root+TO_SERVER;
@@ -188,7 +188,7 @@ public class NamedPipePair   {
 	    }
 	    catch(Exception ex) {
 	    	success = false;
-	    	LOGGER.log(Level.ERROR,String.format("%s.createFifoPipe: Exception (%s) creating %s",CLSS,ex.getLocalizedMessage(),fifoPath.toString()));
+	    	LOGGER.severe(String.format("%s.createFifoPipe: Exception (%s) creating %s",CLSS,ex.getLocalizedMessage(),fifoPath.toString()));
 	    }
 	    return success;
 	}

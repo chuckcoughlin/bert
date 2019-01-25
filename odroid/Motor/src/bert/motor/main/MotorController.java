@@ -5,10 +5,10 @@
  */
 package bert.motor.main;
 
-import java.lang.System.Logger.Level;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import bert.motor.dynamixel.DxlMessage;
 import bert.share.bottle.BottleConstants;
@@ -29,7 +29,7 @@ import jssc.SerialPortException;
  */
 public class MotorController implements Runnable, SerialPortEventListener {
 	protected static final String CLSS = "MotorGroupHandler";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final int BAUD_RATE = 1000000;
 	private final String group;                 // Group name
 	private final SerialPort port;
@@ -57,7 +57,7 @@ public class MotorController implements Runnable, SerialPortEventListener {
 			port.closePort();
 		}
 		catch(SerialPortException spe) {
-			LOGGER.log(Level.ERROR, String.format("%s.close: Error closing port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
 		}
 	}
 	
@@ -91,7 +91,7 @@ public class MotorController implements Runnable, SerialPortEventListener {
             port.addEventListener(this);
 		}
 		catch(SerialPortException spe) {
-			LOGGER.log(Level.ERROR, String.format("%s.open: Error opening port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.open: Error opening port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
 		}
 	}
 	public void setStopped(boolean flag) { this.stopped = flag; }
@@ -145,11 +145,11 @@ public class MotorController implements Runnable, SerialPortEventListener {
 					bytes = DxlMessage.bytesToGetPosition(mc.getId());
 				}
 				else {
-					LOGGER.log(Level.ERROR, String.format("%s.messageToBytes: Unimplemented GET_CONFIGURATION for %s",CLSS,jp.name()));
+					LOGGER.severe(String.format("%s.messageToBytes: Unimplemented GET_CONFIGURATION for %s",CLSS,jp.name()));
 				}
 			}
 			else {
-				LOGGER.log(Level.ERROR, String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
+				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
 			}
 		}
 		
@@ -166,11 +166,11 @@ public class MotorController implements Runnable, SerialPortEventListener {
 					DxlMessage.updatePositionFromBytes(bytes,props);
 				}
 				else {
-					LOGGER.log(Level.ERROR, String.format("%s.bytesToProperties: Unhandled response to GET_CONFIGURATION for %s",CLSS,jp.name()));
+					LOGGER.severe(String.format("%s.bytesToProperties: Unhandled response to GET_CONFIGURATION for %s",CLSS,jp.name()));
 				}
 			}
 			else {
-				LOGGER.log(Level.ERROR, String.format("%s.bytesToProperties: Unhandled response for %s",CLSS,type.name()));
+				LOGGER.severe( String.format("%s.bytesToProperties: Unhandled response for %s",CLSS,type.name()));
 			}
 		}
 	}
@@ -188,11 +188,11 @@ public class MotorController implements Runnable, SerialPortEventListener {
 			try {
 				boolean success = port.writeBytes(bytes);
 				if( !success ) {
-					LOGGER.log(Level.ERROR, String.format("%s.run: Failed write of %d bytes to %s",CLSS,bytes.length));
+					LOGGER.severe(String.format("%s.run: Failed write of %d bytes to %s",CLSS,bytes.length));
 				}
 			}
 			catch(SerialPortException spe) {
-				LOGGER.log(Level.ERROR, String.format("%s.run: Error writing to %s (%s)",CLSS,port.getPortName(),spe.getLocalizedMessage()));
+				LOGGER.severe(String.format("%s.run: Error writing to %s (%s)",CLSS,port.getPortName(),spe.getLocalizedMessage()));
 			}
 		}
 	}
@@ -224,18 +224,18 @@ public class MotorController implements Runnable, SerialPortEventListener {
         }
         else if(event.isCTS()){
             if(event.getEventValue() == 1){
-            	LOGGER.log(Level.INFO, String.format("%s.serialEvent: CTS for %s is ON",CLSS,port.getPortName()));
+            	LOGGER.info(String.format("%s.serialEvent: CTS for %s is ON",CLSS,port.getPortName()));
             }
             else {
-            	LOGGER.log(Level.INFO, String.format("%s.serialEvent: CTS for %s is OFF",CLSS,port.getPortName()));
+            	LOGGER.info(String.format("%s.serialEvent: CTS for %s is OFF",CLSS,port.getPortName()));
             }
         }
         else if(event.isDSR()){
             if(event.getEventValue() == 1){
-            	LOGGER.log(Level.INFO, String.format("%s.serialEvent: DSR for %s is ON",CLSS,port.getPortName()));
+            	LOGGER.info(String.format("%s.serialEvent: DSR for %s is ON",CLSS,port.getPortName()));
             }
             else {
-            	LOGGER.log(Level.INFO, String.format("%s.serialEvent: DSR for %s is OFF",CLSS,port.getPortName()));
+            	LOGGER.info(String.format("%s.serialEvent: DSR for %s is OFF",CLSS,port.getPortName()));
             }
         }
     }

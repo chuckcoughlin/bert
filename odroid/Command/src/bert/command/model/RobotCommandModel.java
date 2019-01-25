@@ -5,9 +5,9 @@
 package bert.command.model;
 
 import java.nio.file.Path;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import bert.share.controller.ControllerType;
@@ -20,7 +20,7 @@ import bert.share.xml.XMLUtility;
  */
 public class RobotCommandModel extends AbstractRobotModel   {
 	private static final String CLSS = "RobotCommandModel";
-	private static final System.Logger LOGGER = System.getLogger(CLSS);
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 
 	public RobotCommandModel(Path configPath) {
 		super(configPath);

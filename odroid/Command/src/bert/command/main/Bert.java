@@ -7,11 +7,11 @@ package bert.command.main;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import bert.command.model.Humanoid;
 import bert.command.model.RobotCommandModel;
@@ -32,7 +32,7 @@ import bert.sql.db.Database;
 public class Bert implements ControllerLauncher {
 	private final static String CLSS = "Bert";
 	private static final String USAGE = "Usage: bert <config-file>";
-	private static System.Logger LOGGER = System.getLogger(CLSS);
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	
 	private final RobotCommandModel model;
 	private CommandController controller = null;
@@ -141,7 +141,7 @@ public class Bert implements ControllerLauncher {
 			
 		// Make sure there is command-line argument
 		if( args.length < 1) {
-			LOGGER.log(Level.INFO, USAGE);
+			LOGGER.info(USAGE);
 			System.exit(1);
 		}
 		
