@@ -4,7 +4,7 @@
 	<property name="lib.dir" value="${basedir}/lib" />
 	<property name="jar.name" value="bert-motors.jar" />
 	<property name="temp.dir" value="${basedir}/temp" />
-	<property name="src.dir" value="${basedir}/../Motor/src" />
+	<property name="src.dir"  value="${basedir}/../Motor/src" />
 	<property name="robot.dir" value="${bert.home}" />
 
 	<path id="common-modulepath">
@@ -43,11 +43,7 @@
 	
 	<!-- Bundle the application code into a jar file -->
 	<target name ="jar" description="Create a jar ">
-	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${lib.dir}">
-		      <manifest>
-		      	<attribute name="Main-Class"
-		                   value="bert.server.main.Distributer"/>
-		    </manifest>
+	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 	    </jar>
 	</target>
 	

@@ -46,7 +46,7 @@
 	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${lib.dir}">
 		      <manifest>
 		      	<attribute name="Main-Class"
-		                   value="bert.server.main.Distributer"/>
+		                   value="bert.dispatcher.main.Dispatcher"/>
 		    </manifest>
 	    </jar>
 	</target>
