@@ -25,8 +25,8 @@ import bert.share.bottle.MessageBottle;
  */
 public class NamedPipePair   {
 	private static final String CLSS = "NamedPipePair";
-	public final String FROM_SERVER = "_fromServer";
-	public final String TO_SERVER   = "_toServer";
+	public static final String FROM_DISPATCHER = "_fromDispatcher";
+	public static final String TO_DISPATCHER   = "_toDispatcher";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final String name;
 	private final boolean owner;  // True if this instance is owned by the server.
@@ -52,7 +52,7 @@ public class NamedPipePair   {
 	public String getName() {return this.name;}
  	private void initialize() {
  		Path parent = PathConstants.DEV_DIR; 
- 		String fname = name+TO_SERVER;
+ 		String fname = name+TO_DISPATCHER;
  		if(owner) {
 			this.pathToRead = Paths.get(parent.toString(), fname).toString();
 		}
@@ -60,7 +60,7 @@ public class NamedPipePair   {
 			this.pathToWrite = Paths.get(parent.toString(), fname).toString();
 		}
  		
- 		fname = name+FROM_SERVER;
+ 		fname = name+FROM_DISPATCHER;
  		if(owner) {
 			this.pathToWrite = Paths.get(parent.toString(), fname).toString();
 		}
@@ -167,7 +167,7 @@ public class NamedPipePair   {
 	 */
 	private boolean createFifoPipe(File parent,String root)  {
 		boolean success = true;
-		String name = root+FROM_SERVER;
+		String name = root+FROM_DISPATCHER;
 		Path fifoPath = Paths.get(parent.toString(), name);
 	    String[] command = new String[] {"mkfifo", fifoPath.toString()};
 	    try {
@@ -179,7 +179,7 @@ public class NamedPipePair   {
 	    	LOGGER.severe(String.format("%s.createFifoPipe: Exception (%s) creating %s",CLSS,ex.getLocalizedMessage(),fifoPath.toString()));
 	    }
 	    // Create sibling for opposite direction
-	    name = root+TO_SERVER;
+	    name = root+TO_DISPATCHER;
 		fifoPath = Paths.get(parent.toString(), name);
 	    command = new String[] {"mkfifo", fifoPath.toString()};
 	    try {

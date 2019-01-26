@@ -149,7 +149,7 @@ public class Terminal implements ControllerLauncher {
 			
 		// Make sure there is command-line argument
 		if( args.length < 1) {
-			LOGGER.info( USAGE);
+			System.out.println(USAGE);
 			System.exit(1);
 		}
 

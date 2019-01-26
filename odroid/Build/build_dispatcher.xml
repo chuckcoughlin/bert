@@ -43,7 +43,7 @@
 	
 	<!-- Bundle the application code into a jar file -->
 	<target name ="jar" description="Create a jar ">
-	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${lib.dir}">
+	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 		      <manifest>
 		      	<attribute name="Main-Class"
 		                   value="bert.dispatcher.main.Dispatcher"/>

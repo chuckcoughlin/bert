@@ -81,9 +81,10 @@ public class RobotMotorModel extends AbstractRobotModel  {
 					joints.put(group, jointNames);
 					while(jindex<jcount) {
 						Element jointElement= (Element)(jointElements.item(jindex));
-						String jname = XMLUtility.attributeValue(jointElement, "name");
+						String jname = XMLUtility.attributeValue(jointElement, "name").toUpperCase();
 						jointNames.add(jname);
-						jcount++;
+						LOGGER.info(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
+						jindex++;
 					}
 				}			
 				index++;

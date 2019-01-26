@@ -12,16 +12,16 @@ import java.sql.Statement;
 import java.util.logging.Logger;
 
 /**
- * This class serves as a Java interface to the Motor table. It provides 
+ * This class serves as a Java interface to the Pose table. It provides 
  * methods to extract a pose
  */
-public class Pose {
-	private static final String CLSS = "Motor";
+public class PoseTable {
+	private static final String CLSS = "PoseTable";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	/** 
 	 * Constructor: 
 	 */
-	public Pose() {
+	public PoseTable() {
 
 	}
 	

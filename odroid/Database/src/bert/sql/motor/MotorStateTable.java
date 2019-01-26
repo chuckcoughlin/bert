@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  *
  */
@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import bert.share.motor.MotorConfiguration;
@@ -19,19 +20,18 @@ import bert.share.motor.MotorConfiguration;
  * methods to create entries (on startup read of configuration file), and
  * then iterate over the instances.
  */
-public class Motor {
-	private static final String CLSS = "Motor";
+public class MotorStateTable {
+	private static final String CLSS = "MotorStateTable";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	/** 
 	 * Constructor: 
 	 */
-	public Motor() {
+	public MotorStateTable() {
 
 	}
-	
-	
+
 	/**
-	 * Clear the Motor table and insert from the supplied list.
+	 * Clear the MotorState table and insert from the supplied list.
 	 * 
 	 * @param cxn open database connection
 	 * @param motors list of motor configurations
@@ -47,12 +47,12 @@ public class Motor {
 		Statement statement = null;
 		PreparedStatement ps = null;
 		try {
-			String sql = "DELETE FROM Motor";
+			String sql = "DELETE FROM MotorState";
 			statement = cxn.createStatement();
 			statement.executeUpdate(sql);
+			sql = "INSERT INTO MotorState(id,name,controller,type,offset,speed,torque,minAngle,maxAngle,direct) VALUES(?,?,?,?,?,?,?,?,?,?)";
 			
-			sql = "INSERT INTO Motor(id,name,controller,type,offset,speed,torque,minAngle,maxAngle,direct) VALUES(?,?,?,?,?,?,?,?,?,?)";
-			
+			ps = cxn.prepareStatement(sql);
 			for(MotorConfiguration mc:motors) {
 				ps.setInt(1,mc.getId());
 				ps.setString(2,mc.getName().name());
@@ -67,10 +67,11 @@ public class Motor {
 				ps.executeUpdate(sql);
 			}
 		}
-		catch(SQLException e) {
+		catch(SQLException sqle) {
 			// if the error message is "out of memory", 
 			// it probably means no database file is found
-			LOGGER.severe(String.format("%s.defineMotors: Database error (%s)",CLSS,e.getMessage()));
+			LOGGER.log(Level.SEVERE,String.format("%s.defineMotors: Database error (%s)",
+																CLSS,sqle.getMessage()),sqle);
 		}
 		finally {
 			if( statement!=null ) {

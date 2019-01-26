@@ -17,8 +17,8 @@ import java.util.logging.Logger;
 import org.sqlite.JDBC;
 
 import bert.share.motor.MotorConfiguration;
-import bert.sql.motor.Motor;
-import bert.sql.pose.Pose;
+import bert.sql.motor.MotorStateTable;
+import bert.sql.pose.PoseTable;
 /**
  * This class is a wrapper for the entire robot database. It is implemented
  * as a singleton for easy access. The startup() method must be called
@@ -34,16 +34,16 @@ public class Database {
 	private static Database instance = null;
 	@SuppressWarnings("unused")
 	private final static JDBC driver = new JDBC(); // Force driver to be loaded
-	private final Motor motor;
-	private final Pose pose;
+	private final MotorStateTable motor;
+	private final PoseTable pose;
  
 
 	/**
 	 * Constructor is private per Singleton pattern.
 	 */
 	private Database() {
-		this.motor = new Motor();
-		this.pose = new Pose();
+		this.motor = new MotorStateTable();
+		this.pose = new PoseTable();
 	}
 	/**
 	 * Static method to create and/or fetch the single instance.
@@ -82,16 +82,6 @@ public class Database {
 			// if the error message is "out of memory", 
 			// it probably means no database file is found
 			LOGGER.log(Level.SEVERE,String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
-		}
-		finally {
-			try {
-				if(connection != null)
-					connection.close();
-			} 
-			catch(SQLException e) {
-				// connection close failed.
-				LOGGER.severe(String.format("%s.startup: Error closing database (%s)",CLSS,e.getMessage()));
-			}
 		}
 	}
 

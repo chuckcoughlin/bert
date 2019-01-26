@@ -52,17 +52,17 @@ public class LoggerUtility {
 		Logger root = Logger.getLogger("");
 		Handler[] handlers = root.getHandlers(); 
 	    for (Handler h : handlers) {
-	        h.setLevel(Level.INFO);
+	        h.setLevel(Level.WARNING);   // Display warnings and worse on console 
 	        if( h instanceof FileHandler ) root.removeHandler(h);
 	    }
 
-
 		FileHandler fh;  
-
+		
 	    try {  
 	        // Configure the logger with handler and formatter 
 	    	Path pattern = Paths.get(PathConstants.LOG_DIR.toString(),PathConstants.LOG_FILE);
 	        fh = new FileHandler(pattern.toString(),MAX_BYTES,MAX_FILES,true); 
+	        fh.setLevel(Level.INFO);
 	        root.addHandler(fh);
 	        fh.setFormatter(new BertFormatter());
 

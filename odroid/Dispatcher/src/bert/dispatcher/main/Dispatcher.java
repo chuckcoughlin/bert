@@ -31,7 +31,7 @@ import bert.share.model.ConfigurationConstants;
  * the command pipes, distribute them to the motor manager channels and post the results.
  */
 public class Dispatcher {
-	private final static String CLSS = "Distributer";
+	private final static String CLSS = "Dispatcher";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
@@ -60,7 +60,7 @@ public class Dispatcher {
 		catch(NumberFormatException nfe) {
 			LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)",CLSS,nfe.getLocalizedMessage()));
 		}
-		
+		LOGGER.info(String.format("%s: started with cadence %d msecs",CLSS,cadence));
 	}
 	
 	/**
@@ -81,6 +81,7 @@ public class Dispatcher {
 		else if( type.equals(ControllerType.TERMINAL)) {
 			terminalController = new DispatchController(pipe); 
 		}
+		LOGGER.info(String.format("%s: created pipes for command and/or terminal controllers",CLSS));
 			
 	}
 	
@@ -91,6 +92,7 @@ public class Dispatcher {
 			motorManager.start();
 			reportStartup();
 
+			int cycleCount = 0;
 			for(;;) {
 				long startCycle = System.currentTimeMillis();
 				MessageBottle request = null;
@@ -113,6 +115,10 @@ public class Dispatcher {
 						sendResponse(response);
 					}
 				}
+				
+				LOGGER.info(String.format("%s: %d cycle",CLSS,cycleCount));
+				cycleCount++;
+				
 				// Delay until cadence interval is up.
 				long endCycle = System.currentTimeMillis();
 				long elapsed = (endCycle-startCycle);
@@ -191,6 +197,7 @@ public class Dispatcher {
 		MessageBottle startMessage = new MessageBottle();
 		startMessage.setRequestType(RequestType.NONE);
 		startMessage.setProperty(BottleConstants.TEXT, "Bert is ready");
+		LOGGER.info(String.format("%s: Bert is ready ...",CLSS));
 		startMessage.setSource(ControllerType.TERMINAL.name());
 		sendResponse(startMessage);
 		startMessage.setSource(ControllerType.COMMAND.name());
@@ -220,7 +227,7 @@ public class Dispatcher {
 			
 		// Make sure there is command-line argument
 		if( args.length < 1) {
-			LOGGER.info( USAGE);
+			System.out.println(USAGE);
 			System.exit(1);
 		}
 
@@ -232,17 +239,18 @@ public class Dispatcher {
 		// Setup logging to use only a file appender to our logging directory
 		LoggerUtility.getInstance().configureRootLogger();
 		
-		
 		RobotMotorModel mmodel = new RobotMotorModel(PathConstants.CONFIG_PATH);
 		mmodel.populate();    // Analyze the xml for motor groups
+		System.out.println( "Motors ...");
 		MotorManager mgr = new MotorManager(mmodel);
 		mgr.createMotorGroups();
 		
+		System.out.println( "Dispatcher ...");
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 		Dispatcher runner = new Dispatcher(model,mgr);
 		runner.createControllers();
-		
+		System.out.println( "Running ...");
 		runner.execute();
 
   

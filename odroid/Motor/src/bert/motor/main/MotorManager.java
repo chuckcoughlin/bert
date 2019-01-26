@@ -75,8 +75,14 @@ public class MotorManager implements MotorManagerInterface {
 			List<String> jointNames = model.getJointNamesForGroup(group);
 			for( String jname:jointNames ) {
 				MotorConfiguration motor = motors.get(jname.toUpperCase());
-				controller.putMotorConfiguration(jname, motor);
-				motorNameById.put(motor.getId(), jname);
+				if( motor!=null ) {
+					controller.putMotorConfiguration(jname, motor);
+					motorNameById.put(motor.getId(), jname);
+				}
+				else {
+					LOGGER.warning(String.format("%s.createMotorGroups: Motor %s not found in %s",CLSS,jname,group));
+				}
+				
 			}
 		}
 	}

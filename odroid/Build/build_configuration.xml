@@ -42,5 +42,6 @@
 		<copy todir="${robot.dir}/etc">
 			<fileset dir="${config.dir}" />
 		</copy>
+		<mkdir dir="${robot.dir}/dev" />
 	</target>	
 </project>
