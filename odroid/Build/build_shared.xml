@@ -3,12 +3,9 @@
 	- copy to local robot area. 
 -->
 <project name="bert.install.common" default="all" basedir=".">
-	<property name="archive.dir" value="${basedir}/../Archive/mods" />
-	<property name="lib.dir" value="${basedir}/lib" />
+	<import file="${basedir}/build.xml"/>
 	<property name="jar.name" value="bert-common.jar" />
-	<property name="temp.dir" value="${basedir}/temp" />
 	<property name="src.dir" value="${basedir}/../Share/src" />
-	<property name="robot.dir" value="${bert.home}" />
 	
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean,build,jar,deploy" />

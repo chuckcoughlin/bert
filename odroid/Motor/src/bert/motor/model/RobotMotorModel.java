@@ -25,7 +25,7 @@ import jssc.SerialPort;
  *  plus a hand-full of properties. 
  */
 public class RobotMotorModel extends AbstractRobotModel  {
-	private static final String CLSS = "RobotServerModel";
+	private static final String CLSS = "MotorManager";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final Map<String,List<String>> joints;   // List of joints by group
 	
@@ -78,14 +78,14 @@ public class RobotMotorModel extends AbstractRobotModel  {
 					int jcount = jointElements.getLength();
 					int jindex = 0;
 					List<String> jointNames = new ArrayList<>();
-					joints.put(group, jointNames);
 					while(jindex<jcount) {
 						Element jointElement= (Element)(jointElements.item(jindex));
 						String jname = XMLUtility.attributeValue(jointElement, "name").toUpperCase();
 						jointNames.add(jname);
-						LOGGER.info(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
+						LOGGER.fine(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
 						jindex++;
 					}
+					joints.put(group, jointNames);
 				}			
 				index++;
 			}

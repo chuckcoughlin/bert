@@ -5,6 +5,8 @@
      - shell scripts
   -->
 <project name="bert.install.configuration" default="all" basedir=".">
+	<import file="${basedir}/build.xml"/>
+	
 	<property name="archive.dir" value="${basedir}/../Archive/mods" />
 	<property name="bin.dir" value="${basedir}/../Configuration/bin" />
 	<property name="config.dir" value="${basedir}/../Configuration/etc" />
@@ -20,9 +22,15 @@
 		<delete dir="${robot.dir}/etc"/>
 		<delete dir="${robot.dir}/mods"/>
 	</target>
-	
+
 	<!-- Copy files locally -->
 	<target name="deploy" >
+		<!-- Make substitutions in XML configuration file -->
+		<antcall target="ReplacePlacehlders">
+			<param name="template" value="${config.template}"/>
+			<param name="result" value="${config.file}"/>
+		</antcall>
+		
 		<echo message="Copying configuration files locally into ${bert.home}" />
 		<mkdir dir="${robot.dir}/mods" />
 		<copy todir="${robot.dir}/mods">

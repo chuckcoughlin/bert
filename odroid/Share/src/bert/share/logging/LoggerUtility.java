@@ -48,7 +48,10 @@ public class LoggerUtility {
 		return instance;
 	}
 	
-	public void configureRootLogger() {
+	/**
+	 * @param root core name for the log files
+	 */
+	public void configureRootLogger(String rootName) {
 		Logger root = Logger.getLogger("");
 		Handler[] handlers = root.getHandlers(); 
 	    for (Handler h : handlers) {
@@ -60,7 +63,8 @@ public class LoggerUtility {
 		
 	    try {  
 	        // Configure the logger with handler and formatter 
-	    	Path pattern = Paths.get(PathConstants.LOG_DIR.toString(),PathConstants.LOG_FILE);
+	    	Path pattern = Paths.get(PathConstants.LOG_DIR.toString(),rootName+".log");
+	    	
 	        fh = new FileHandler(pattern.toString(),MAX_BYTES,MAX_FILES,true); 
 	        fh.setLevel(Level.INFO);
 	        root.addHandler(fh);

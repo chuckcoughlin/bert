@@ -34,6 +34,7 @@ public class Dispatcher {
 	private final static String CLSS = "Dispatcher";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
+	private static final String LOG_ROOT = "dispatcher";
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
 	private DispatchController commandController;
@@ -70,31 +71,39 @@ public class Dispatcher {
 	public void createControllers() {
 		Map<String, String> pipeNames = model.getPipeNames();
 		Iterator<String>walker = pipeNames.keySet().iterator();
-		String key = walker.next();
-		String pipeName = pipeNames.get(key);
-		NamedPipePair pipe = new NamedPipePair(pipeName,true);  // Dispatcher is the "owner"
-		pipe.create();                                          // Create the pipe if it doesn't exist
-		ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
-		if( type.equals(ControllerType.COMMAND)) {
-			commandController = new DispatchController(pipe); 
+		while( walker.hasNext()) {
+			String key = walker.next();
+			String pipeName = pipeNames.get(key);
+			NamedPipePair pipe = new NamedPipePair(pipeName,true);  // Dispatcher is the "owner"
+			pipe.create();                                          // Create the pipe if it doesn't exist
+			ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
+			if( type.equals(ControllerType.COMMAND)) {
+				commandController = new DispatchController(pipe); 
+				LOGGER.info(String.format("%s: created pipes for command controller",CLSS));
+			}
+			else if( type.equals(ControllerType.TERMINAL)) {
+				terminalController = new DispatchController(pipe); 
+				LOGGER.info(String.format("%s: created pipes for terminal controller",CLSS));
+			}
 		}
-		else if( type.equals(ControllerType.TERMINAL)) {
-			terminalController = new DispatchController(pipe); 
-		}
-		LOGGER.info(String.format("%s: created pipes for command and/or terminal controllers",CLSS));
-			
 	}
 	
 	public void execute() {
 		try {
+			LOGGER.info(String.format("%s.execute: starting commandController",CLSS));
 			commandController.start();
+			LOGGER.info(String.format("%s.execute: starting terminal",CLSS));
 			terminalController.start();
+			LOGGER.info(String.format("%s.execute: starting motor",CLSS));
 			motorManager.start();
+			LOGGER.info(String.format("%s.execute: starting report",CLSS));
 			reportStartup();
+			LOGGER.info(String.format("%s.execute: reported",CLSS));
 
 			int cycleCount = 0;
 			for(;;) {
 				long startCycle = System.currentTimeMillis();
+				LOGGER.info(String.format("%s: Cycle %d ...",CLSS,cycleCount));
 				MessageBottle request = null;
 				MessageBottle response = null;
 				// First try the commands in an asynchronous way,
@@ -116,7 +125,7 @@ public class Dispatcher {
 					}
 				}
 				
-				LOGGER.info(String.format("%s: %d cycle",CLSS,cycleCount));
+				LOGGER.info(String.format("%s: Cycle %d complete.",CLSS,cycleCount));
 				cycleCount++;
 				
 				// Delay until cadence interval is up.
@@ -237,20 +246,17 @@ public class Dispatcher {
 		Path path = Paths.get(arg);
 		PathConstants.setHome(path);
 		// Setup logging to use only a file appender to our logging directory
-		LoggerUtility.getInstance().configureRootLogger();
+		LoggerUtility.getInstance().configureRootLogger(LOG_ROOT);
 		
 		RobotMotorModel mmodel = new RobotMotorModel(PathConstants.CONFIG_PATH);
 		mmodel.populate();    // Analyze the xml for motor groups
-		System.out.println( "Motors ...");
 		MotorManager mgr = new MotorManager(mmodel);
 		mgr.createMotorGroups();
 		
-		System.out.println( "Dispatcher ...");
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 		Dispatcher runner = new Dispatcher(model,mgr);
 		runner.createControllers();
-		System.out.println( "Running ...");
 		runner.execute();
 
   

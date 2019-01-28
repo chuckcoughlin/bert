@@ -134,7 +134,7 @@ public abstract class AbstractRobotModel  {
 			while(index<count) {
 				Node controllerNode = controllers.item(index);
 				String type = XMLUtility.attributeValue(controllerNode, "type");
-				if( type!=null && type.equalsIgnoreCase("JOINT")) {
+				if( type!=null && type.equalsIgnoreCase("SERIAL")) {
 					String controller = XMLUtility.attributeValue(controllerNode, "name");
 					if( controller!=null ) {
 						Node node = controllerNode.getFirstChild();
@@ -148,24 +148,27 @@ public abstract class AbstractRobotModel  {
 									if( value!=null) motor.setName(value);
 									value = XMLUtility.attributeValue(joint, "type");
 									if( value!=null) motor.setType(value);
-									value = XMLUtility.attributeValue(joint, "id");
+									value = XMLUtility.attributeValue(joint, "id"); 
 									if( value!=null) motor.setId(Integer.parseInt(value));
 									value = XMLUtility.attributeValue(joint, "offset");
 									if( value!=null) motor.setOffset(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "min");
-									if( value!=null) motor.setMinAngle(Double.parseDouble(value));
+									if( value!=null && !value.isBlank()) motor.setMinAngle(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "max");
-									if( value!=null) motor.setMaxAngle(Double.parseDouble(value));
+									if( value!=null && !value.isBlank()) motor.setMaxAngle(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "speed");
-									if( value!=null) motor.setSpeed(Double.parseDouble(value));
+									if( value!=null && !value.isBlank()) motor.setSpeed(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "torque");
-									if( value!=null) motor.setTorque(Double.parseDouble(value));
+									if( value!=null && !value.isBlank()) motor.setTorque(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "orientation");
-									if( value!=null) {
+									if( value!=null && !value.isBlank()) {
 										motor.setIsDirect(value.equalsIgnoreCase("direct"));
 									}
+									motors.put(motor.getName().name(),motor);
+									LOGGER.fine(String.format("%s.analyzeMotors: Found %s",CLSS,motor.getName().name()));
 								}
 							}
+							
 							node = node.getNextSibling();
 						}
 					}

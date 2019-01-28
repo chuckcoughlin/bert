@@ -13,6 +13,8 @@ The *iCub* main project repository is at: https://github.com/robotology/icub-mai
 
   * [Software Architecture](#architecture)
     * [ANTLR](#antlr)
+    * [Configuration](#configuration)
+    * [Named Pipes](#pipes)
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
     * [Failures](#failured)
@@ -31,6 +33,92 @@ Here is a diagram that shows the major software components.
 
 #### ANTLR  <a id="antlr"/>
 *ANTLR* is a parsing framework.
+
+#### Configuration <a id="configuration"/>
+The entire robot configuration is described by an .xml file as shown below.
+The file is read by both client and server-side processes. This allows the
+independent processes to have a common understanding of the parameters.
+```
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This file describes "bert", a poppy-like robot. The identical configuration
+     is used for both the event processor (dispatcher) and bindings (command) processes.
+ -->
+<robot>
+	<!-- This first section lists miscellaneous properties. @...@ values are
+	     replaced by the build scripts.
+	-->
+	<property name="name">bert</property>
+	<property name="release">@RELEASE@</property>
+	<property name="date">@DATE@</property>
+	<!--  The looper cadence is in msecs  -->
+	<property name="cadence">1000</property>
+	<!--  Used by the terminal  -->
+	<property name="prompt">bert: </property>
+
+	<!-- The following name controllers that exist in both server and client-side
+	     processes. Define them both even if the client-side version is not launched.
+	     The dispatcher and client-side controllers communicate through pairs of one-way named pipes.
+	-->
+	<controller name="terminal" type="TERMINAL">
+		<pipe  name="term"/>
+	</controller>
+	<controller name="command" type="COMMAND">
+		<pipe  name="cmd"/>
+	</controller>
+
+	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
+	     a serial connection. The names must exist in the enumeration bert.share.motor.Joint.
+    -->
+	<controller name="torso" type="SERIAL">
+		<port  name="torso" device="@PORT_TORSO@" />
+		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="-45" max="45" orientation="indirect" />
+		<joint name="ABS_Y"        type="MX64" id="31" offset="0" min="-50" max="12" orientation="indirect" />
+		<joint name="ABS_Z"        type="MX28" id="33" offset="0" min="-90" max="90" orientation="direct" />
+		<joint name="BUST_X"       type="MX28" id="35" offset="0" min="-40" max="40" orientation="indirect" />
+		<joint name="BUST_Y"       type="MX28" id="34" offset="0" min="-67" max="27" orientation="indirect" />
+	</controller>
+	<controller name="left_leg" type="SERIAL">
+		<port  name="left_leg" device="@PORT_LEFT_LEG@" />
+		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="0" min="-45" max="45" orientation="direct" />
+		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="0" min="-30" max="28.5" orientation="direct" />
+		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="0" min="-104" max="84" orientation="direct" />
+		<joint name="LEFT_HIP_Z"   type="MX28" id="12" offset="0" min="-25" max="90" orientation="indirect" />
+		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-90" min="-3.5" max="134" orientation="direct" />
+	</controller>
+	<controller name="right_leg" type="SERIAL">
+		<port  name="right_leg" device="@PORT_RIGHT__LEG@" />
+		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="0" min="-45" max="45" orientation="indirect" />
+		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="0" min="-28.5" max="30" orientation="direct" />
+		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="0" min="-85" max="105" orientation="indirect" />
+		<joint name="RIGHT_HIP_Z"      type="MX28" id="22" offset="0" min="-90" max="25" orientation="indirect" />
+		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="0" min="-134" max="3.5" orientation="indirect" />
+	</controller>
+	<controller name="left_arm" type="SERIAL">
+		<port  name="left_arm" device="@PORT_LEFT_ARM@" />
+		<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="0" min="-105" max="105" orientation="indirect" />
+		<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="0" min="-148" max="1" orientation="direct" />
+		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="90" min="-105" max="110" orientation="indirect" />
+		<joint name="LEFT_SHOULDER_Y"  type="MX28" id="41" offset="0" min="-120" max="155" orientation="direct" />
+	</controller>
+	<controller name="right_arm" type="SERIAL">
+		<port  name="right_arm" device="@PORT_RIGHT_ARM@" />
+		<joint name="RIGHT_ARM_Z"      type="MX28" id="53" offset="0" min="-105" max="105" orientation="indirect" />
+		<joint name="RIGHT_ELBOW_Y"    type="MX28" id="54" offset="0" min="-1" max="148" orientation="indirect" />
+		<joint name="RIGHT_SHOULDER_X" type="MX28" id="52" offset="90" min="-110" max="105" orientation="indirect" />
+		<joint name="RIGHT_SHOULDER_Y" type="MX28" id="51" offset="90" min="-155" max="120" orientation="indirect" />
+	</controller>
+	<controller name="head" type="SERIAL">
+		<port  name="head" device="@PORT_HEAD@" />
+		<joint name="HEAD_Y"       type="AX12" id="37" offset="20" min="-45" max="6" orientation="indirect" />
+		<joint name="HEAD_Z"       type="AX12" id="36" offset="0" min="-90" max="90" orientation="direct" />
+	</controller>
+</robot>
+```
+
+#### Named Pipes <a id="pipes"/>
+Named pipes are a pain to initialize. A reader will hang on an attempt to open until a writer opens the other end. A writer hangs on a write attempt until there is a reader on the other end.
+
 
 ## Appendices <a id="appendices"/>
 #### Why Java?<a id="whyjava"/>

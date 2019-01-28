@@ -7,6 +7,7 @@ package bert.share.common;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,12 +22,15 @@ import bert.share.bottle.MessageBottle;
  *  Dispatcher process. All others should instantiate with "false".
  *  
  *  The file descriptors are opened on "startup" and closed on 
- *  "shutdown".
+ *  "shutdown". Opening a fifo for writing will block until someone opens 
+ *  it for reading.
+ *  
+ *  Opening a pipe for reading blocks until data is put on the pipe.
  */
 public class NamedPipePair   {
 	private static final String CLSS = "NamedPipePair";
-	public static final String FROM_DISPATCHER = "_fromDispatcher";
-	public static final String TO_DISPATCHER   = "_toDispatcher";
+	public static final String FROM_DISPATCHER = "_from_dispatcher";
+	public static final String TO_DISPATCHER   = "_to_dispatcher";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final String name;
 	private final boolean owner;  // True if this instance is owned by the server.
@@ -74,7 +78,8 @@ public class NamedPipePair   {
 	
 	/**
 	 * Create the pair of named pipes if they don't already exist.
-	 * By convention, it is the server-side that does the creating.
+	 * Both dispatcher and command applications make the attempt,
+	 * allowing the applications to be started in any order.
 	 * @return true if the pipes are ready for reading and writing.
 	 */
 	public boolean create() {
@@ -89,23 +94,59 @@ public class NamedPipePair   {
 	
 	/**
 	 * This must not be called before the pipes are created and named.
-	 * Open IO streams for reading and writing.
+	 * Open IO streams for reading and writing. There are synchronization
+	 * issues -taking two sides to tango. So we just wait in threads.
 	 */
 	public void startup() {
-		try {
-			FileReader freader = new FileReader(pathToRead);
-			in = new BufferedReader(freader);
+		if( owner ) {
+			try {
+	    		LOGGER.info(String.format("%s.startup: waiting on %s to open %s for read",CLSS,(owner?name:"dispatcher"),pathToRead));
+				FileReader freader = new FileReader(pathToRead);
+				LOGGER.info(String.format("%s.startup: creating buffered reader for %s",CLSS,pathToRead));
+				in = new BufferedReader(freader);
+				LOGGER.info(String.format("%s.startup: created buffered reader for %s",CLSS,pathToRead));
+			}
+			catch(FileNotFoundException fnfe) {
+				LOGGER.severe(String.format("%s.startup: File %s not found for read (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
+			}	
 		}
-		catch(IOException ioe) {
-			LOGGER.severe(String.format("%s.startup: Error opening %s for read (%s)",CLSS,pathToRead,ioe.getLocalizedMessage()));
+		else {
+			try {
+				LOGGER.info(String.format("%s.startup: waiting on %s to open %s for write",CLSS,(owner?name:"dispatcher"),pathToWrite));
+				out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
+			}
+			catch(FileNotFoundException fnfe) {
+				LOGGER.severe(String.format("%s.startup: File %s not found for write (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
+			}
 		}
 		
-		try {
-			out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
-		}
-		catch(IOException ioe) {
-			LOGGER.severe(String.format("%s.startup: Error opening %s for write (%s)",CLSS,pathToWrite,ioe.getLocalizedMessage()));
-		}
+		new Thread(new Runnable() {
+		    public void run() {
+		    	try {
+		    		LOGGER.info(String.format("%s.startup: waiting on %s to open %s for read",CLSS,(owner?name:"dispatcher"),pathToRead));
+					FileReader freader = new FileReader(pathToRead);
+					LOGGER.info(String.format("%s.startup: creating buffered reader for %s",CLSS,pathToRead));
+					in = new BufferedReader(freader);
+					LOGGER.info(String.format("%s.startup: created buffered reader for %s",CLSS,pathToRead));
+				}
+				catch(FileNotFoundException fnfe) {
+					LOGGER.severe(String.format("%s.startup: File %s not found for read (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
+				}		    }
+		}).start();
+		
+		new Thread(new Runnable() {
+		    public void run() {
+		    	try {
+					LOGGER.info(String.format("%s.startup: waiting on %s to open %s for write",CLSS,(owner?name:"dispatcher"),pathToWrite));
+					out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
+				}
+				catch(FileNotFoundException fnfe) {
+					LOGGER.severe(String.format("%s.startup: File %s not found for write (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
+				}
+		    }
+		}).start();	
+		
+		
 	}
 	
 	/**
@@ -129,7 +170,8 @@ public class NamedPipePair   {
 	public MessageBottle read() {
 		MessageBottle bottle = null;
 		try {
-			if(!useAsynchronousReads||in.ready()) {
+			LOGGER.info(String.format("%s.read: asnchronous %s",CLSS,(useAsynchronousReads?"true":"false")));
+			if(in!=null && (!useAsynchronousReads||in.ready()) ) {
 				String json = in.readLine();
 				bottle = MessageBottle.fromJSON(json);
 			}
@@ -156,7 +198,7 @@ public class NamedPipePair   {
 			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,bytes.length, ioe.getLocalizedMessage()));
 		}
 	}
-	
+	// ================================== Helper Methods ======================================================
 	/**
 	 * Create a pair of named pipes. The names are derived from
 	 * the root name as "to" and "from" from the point-of-view of
@@ -169,7 +211,7 @@ public class NamedPipePair   {
 		boolean success = true;
 		String name = root+FROM_DISPATCHER;
 		Path fifoPath = Paths.get(parent.toString(), name);
-	    String[] command = new String[] {"mkfifo", fifoPath.toString()};
+	    String[] command = new String[] {"mkfifo", "-m0755",fifoPath.toString()};
 	    try {
 	    	Process process = new ProcessBuilder(command).inheritIO().start();
 	    	process.waitFor();
@@ -181,7 +223,7 @@ public class NamedPipePair   {
 	    // Create sibling for opposite direction
 	    name = root+TO_DISPATCHER;
 		fifoPath = Paths.get(parent.toString(), name);
-	    command = new String[] {"mkfifo", fifoPath.toString()};
+	    command = new String[] {"mkfifo", "-m0755",fifoPath.toString()};
 	    try {
 	    	Process process = new ProcessBuilder(command).inheritIO().start();
 	    	process.waitFor();

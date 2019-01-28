@@ -36,6 +36,7 @@ public class Terminal implements ControllerLauncher {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
+	private static final String LOG_ROOT = "terminal";
 	private final RobotTerminalModel model;
 	private CommandController controller = null;
 	private final StatementParser parser;
@@ -58,6 +59,7 @@ public class Terminal implements ControllerLauncher {
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
 		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
+		pipe.create();                                           // Create the pipe if it doesn't exist
 		this.controller = new CommandController(this,pipe,false);   // Asynchronous
 	}
 	
@@ -158,7 +160,7 @@ public class Terminal implements ControllerLauncher {
 		Path path = Paths.get(arg);
 		PathConstants.setHome(path);
 		// Setup logging to use only a file appender to our logging directory
-		LoggerUtility.getInstance().configureRootLogger();
+		LoggerUtility.getInstance().configureRootLogger(LOG_ROOT);
 		
 		RobotTerminalModel model = new RobotTerminalModel(PathConstants.CONFIG_PATH);
 		model.populate();

@@ -1,21 +1,9 @@
 <!-- Build and install the terminal application. "Terminal" functions 
      as a client. It shares the "controller" jar file with the main client. -->
 <project name="bert.install.common" default="all" basedir=".">
-	<property name="archive.dir" value="${basedir}/../Archive/mods" />
-	<property name="lib.dir"  value="${basedir}/lib" />
+	<import file="${basedir}/build.xml"/>
 	<property name="jar.name" value="bert-terminal.jar" />
-	<property name="temp.dir" value="${basedir}/temp" />
 	<property name="src.dir"  value="${basedir}/../Terminal/src" />
-	<property name="robot.dir" value="${bert.home}" />
-
-	<path id="common-modulepath">
-		<fileset dir="${lib.dir}">
-	    	<include name="*.jar"/>
-		</fileset>
-		<fileset dir="${archive.dir}">
-			<include name="*.jar"/>
-		</fileset>
-	 </path>
 	
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean, build, jar, deploy" />

@@ -28,7 +28,7 @@ import jssc.SerialPort;
  * is used to present a synchronized method interface to the dispatcher.
  */
 public class MotorManager implements MotorManagerInterface {
-	private final static String CLSS = "MotorHandler";
+	private final static String CLSS = "MotorManager";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private final RobotMotorModel model;
 	private final Map<String,MotorController> motorControllers;

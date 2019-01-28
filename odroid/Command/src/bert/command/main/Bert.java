@@ -33,7 +33,7 @@ public class Bert implements ControllerLauncher {
 	private final static String CLSS = "Bert";
 	private static final String USAGE = "Usage: bert <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	
+	private static final String LOG_ROOT = "bert";
 	private final RobotCommandModel model;
 	private CommandController controller = null;
 	private final Humanoid robot;
@@ -57,6 +57,7 @@ public class Bert implements ControllerLauncher {
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
 		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
+		pipe.create();                                           // Create the pipe if it doesn't exist
 		this.controller = new CommandController(this,pipe,false);       // Asynchronous
 	}
 	
@@ -150,7 +151,7 @@ public class Bert implements ControllerLauncher {
 		Path path = Paths.get(arg);
 		PathConstants.setHome(path);
 		// Setup logging to use only a file appender to our logging directory
-		LoggerUtility.getInstance().configureRootLogger();
+		LoggerUtility.getInstance().configureRootLogger(LOG_ROOT);
 		
 		RobotCommandModel model = new RobotCommandModel(PathConstants.CONFIG_PATH);
 		model.populate();

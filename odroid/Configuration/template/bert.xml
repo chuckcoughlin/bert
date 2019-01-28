@@ -15,19 +15,19 @@
 	<!--  Used by the terminal  -->
 	<property name="prompt">bert: </property>
 	
-	<!-- The following sections are named for client-side processes although
-	     there is also a dispatcher component for each. These controllers 
-	     communicate through pairs of one-way named pipes. 
+	<!-- The following names controllers that exist in both server and client-side
+	     processes. Define them both even if the client-side version is not launched.
+	     The dispatcher and client-side controllers communicate through pairs of one-way named pipes. 
 	-->
 	<controller name="terminal" type="TERMINAL">
-		<pipe  name="term"/>
+		<pipe  name="terminal"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<pipe  name="cmd"/>
+		<pipe  name="command"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
-	     a serial connection.
+	     a serial connection. The names must exist in the enumeration bert.share.motor.Joint.
     -->
 	<controller name="torso" type="SERIAL">
 		<port  name="torso" device="@PORT_TORSO@" />
@@ -46,7 +46,7 @@
 		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-90" min="-3.5" max="134" orientation="direct" />	
 	</controller>
 	<controller name="right_leg" type="SERIAL">
-		<port  name="right_leg" device="@PORT_RIGHT__LEG@" />
+		<port  name="right_leg" device="@PORT_RIGHT_LEG@" />
 		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="0" min="-45" max="45" orientation="indirect" />
 		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="0" min="-28.5" max="30" orientation="direct" />
 		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="0" min="-85" max="105" orientation="indirect" />

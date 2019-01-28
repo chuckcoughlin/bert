@@ -64,7 +64,7 @@ public class MotorStateTable {
 				ps.setDouble(8,mc.getMinAngle());
 				ps.setDouble(9,mc.getMaxAngle());
 				ps.setInt(10,(mc.isDirect()?1:0));
-				ps.executeUpdate(sql);
+				ps.executeUpdate();
 			}
 		}
 		catch(SQLException sqle) {

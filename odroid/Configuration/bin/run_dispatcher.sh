@@ -12,4 +12,7 @@ MP=${MP}:lib/bert-dispatcher.jar
 MP=$MP:lib/bert-common.jar
 MP=$MP:lib/bert-motors.jar
 
-java --module-path $MP -m bert.dispatcher/bert.dispatcher.main.Dispatcher ${BERT_HOME}
+# Allow debugging on port 8000
+X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
+
+java $X --module-path $MP -m bert.dispatcher/bert.dispatcher.main.Dispatcher ${BERT_HOME}
