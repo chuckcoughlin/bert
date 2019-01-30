@@ -8,6 +8,9 @@ package bert.motor.main;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.motor.dynamixel.DxlMessage;
@@ -28,10 +31,12 @@ import jssc.SerialPortException;
  *  The configuration array has only those joints that are part of the group.
  */
 public class MotorController implements Runnable, SerialPortEventListener {
-	protected static final String CLSS = "MotorGroupHandler";
+	protected static final String CLSS = "MotorController";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final int BAUD_RATE = 1000000;
+	private final Condition running;
 	private final String group;                 // Group name
+	private final Lock lock;
 	private final SerialPort port;
 	private boolean stopped = false;
 	private final MotorManagerInterface motorManager;
@@ -44,6 +49,8 @@ public class MotorController implements Runnable, SerialPortEventListener {
 		this.motorManager = mm;
 		this.configurations = new HashMap<>();
 		this.request = null;
+		this.lock = new ReentrantLock();
+		this.running = lock.newCondition();
 	}
 
 	public String getGroupName() { return this.group; }
@@ -105,17 +112,21 @@ public class MotorController implements Runnable, SerialPortEventListener {
 				return;  
 			}
 		}
-		port.notify();
+		running.signal();
 	}
 	
 	public void run() {
 		while( !stopped ) {
-			 try{
-				port.wait();
+			lock.lock();
+			try{
+				running.await();
 				byte[] bytes = messageToBytes(request);
 				writeBytesToSerial(bytes);
 			}
 			catch(InterruptedException ie ) {}
+			finally {
+				lock.unlock();
+			}
 		}
 	}
 	
@@ -188,11 +199,11 @@ public class MotorController implements Runnable, SerialPortEventListener {
 			try {
 				boolean success = port.writeBytes(bytes);
 				if( !success ) {
-					LOGGER.severe(String.format("%s.run: Failed write of %d bytes to %s",CLSS,bytes.length));
+					LOGGER.severe(String.format("%s.writeBytesToSerial: Failed write of %d bytes to %s",CLSS,bytes.length));
 				}
 			}
 			catch(SerialPortException spe) {
-				LOGGER.severe(String.format("%s.run: Error writing to %s (%s)",CLSS,port.getPortName(),spe.getLocalizedMessage()));
+				LOGGER.severe(String.format("%s.writeBytesToSerial: Error writing to %s (%s)",CLSS,port.getPortName(),spe.getLocalizedMessage()));
 			}
 		}
 	}

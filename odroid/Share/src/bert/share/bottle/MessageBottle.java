@@ -22,13 +22,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * There is no intrinsic difference between requests and
  * responses. We leave it to context to determine which is which.
+ * 
+ * Leave members public to be accessible via Reflection.
  */
 public class MessageBottle implements Serializable {
 	private static final long serialVersionUID = 4356286171135500644L;
 	private static final String CLSS = "MessageBottle";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
-	protected Properties properties;
-	protected Map<String,Integer> positions;          // Motor position by joint name
+	public Properties properties;
+	public Map<String,Integer> positions;          // Motor position by joint name
 	
 	public MessageBottle() {
 		this.properties = new Properties();

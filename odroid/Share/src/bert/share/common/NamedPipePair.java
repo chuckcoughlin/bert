@@ -100,52 +100,51 @@ public class NamedPipePair   {
 	public void startup() {
 		if( owner ) {
 			try {
-	    		LOGGER.info(String.format("%s.startup: waiting on %s to open %s for read",CLSS,(owner?name:"dispatcher"),pathToRead));
+	    		LOGGER.info(String.format("Dispatcher.%s.startup: waiting on %s to open %s for read",CLSS,name,pathToRead));
 				FileReader freader = new FileReader(pathToRead);
-				LOGGER.info(String.format("%s.startup: creating buffered reader for %s",CLSS,pathToRead));
 				in = new BufferedReader(freader);
-				LOGGER.info(String.format("%s.startup: created buffered reader for %s",CLSS,pathToRead));
+				LOGGER.info(String.format("Dispatcher.%s.startup: opened %s",CLSS,pathToRead));
 			}
 			catch(FileNotFoundException fnfe) {
 				LOGGER.severe(String.format("%s.startup: File %s not found for read (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
-			}	
+			}
+			
+			new Thread(new Runnable() {
+			    public void run() {
+			    	try {
+						LOGGER.info(String.format("Dispatcher.%s.startup: waiting on %s to open %s for write",CLSS,name,pathToWrite));
+						out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
+						LOGGER.info(String.format("Dispatcher.%s.startup: opened %s",CLSS,pathToWrite));
+					}
+					catch(FileNotFoundException fnfe) {
+						LOGGER.severe(String.format("%s.startup: File %s not found for write (%s)",CLSS,pathToWrite,fnfe.getLocalizedMessage()));
+					}
+			    }
+			}).start();	
 		}
 		else {
 			try {
-				LOGGER.info(String.format("%s.startup: waiting on %s to open %s for write",CLSS,(owner?name:"dispatcher"),pathToWrite));
+				LOGGER.info(String.format("%s.%s.startup: waiting on Dispatcher to open %s for write",name,CLSS,pathToWrite));
 				out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
+				LOGGER.info(String.format("%s.%s.startup: opened %s",name,CLSS,pathToWrite));
 			}
 			catch(FileNotFoundException fnfe) {
-				LOGGER.severe(String.format("%s.startup: File %s not found for write (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
+				LOGGER.severe(String.format("%s.startup: Pipe %s not found for write (%s)",CLSS,pathToWrite,fnfe.getLocalizedMessage()));
 			}
+			
+			new Thread(new Runnable() {
+			    public void run() {
+			    	try {
+			    		LOGGER.info(String.format("%s.%s.startup: waiting on Dispatcher to open %s for read",name,CLSS,pathToRead));
+						FileReader freader = new FileReader(pathToRead);
+						in = new BufferedReader(freader);
+						LOGGER.info(String.format("%s.%s.startup: opened %s",name,CLSS,pathToRead));
+					}
+					catch(FileNotFoundException fnfe) {
+						LOGGER.severe(String.format("%s.startup: File %s not found for read (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
+					}		    }
+			}).start();
 		}
-		
-		new Thread(new Runnable() {
-		    public void run() {
-		    	try {
-		    		LOGGER.info(String.format("%s.startup: waiting on %s to open %s for read",CLSS,(owner?name:"dispatcher"),pathToRead));
-					FileReader freader = new FileReader(pathToRead);
-					LOGGER.info(String.format("%s.startup: creating buffered reader for %s",CLSS,pathToRead));
-					in = new BufferedReader(freader);
-					LOGGER.info(String.format("%s.startup: created buffered reader for %s",CLSS,pathToRead));
-				}
-				catch(FileNotFoundException fnfe) {
-					LOGGER.severe(String.format("%s.startup: File %s not found for read (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
-				}		    }
-		}).start();
-		
-		new Thread(new Runnable() {
-		    public void run() {
-		    	try {
-					LOGGER.info(String.format("%s.startup: waiting on %s to open %s for write",CLSS,(owner?name:"dispatcher"),pathToWrite));
-					out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
-				}
-				catch(FileNotFoundException fnfe) {
-					LOGGER.severe(String.format("%s.startup: File %s not found for write (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
-				}
-		    }
-		}).start();	
-		
 		
 	}
 	

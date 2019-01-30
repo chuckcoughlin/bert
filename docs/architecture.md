@@ -130,12 +130,12 @@ While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) 
 
 Why did I select Java for this code when the iCub project chose Python?
   * Familiarity - over 2 decades of working with Java
-  * Debugging - problems are discovered by the compiler rather than run-time
+  * Re-factoring - the refactoring capabilities of Eclipse are unparalleled, in my opinion, and make code re-structuring quick, easy and accurate
+  * Code-Debug-Cycle - problems are more likely to be discovered by the compiler rather than run-time
+  * Debugging - via Eclipse we can set breakpoints and inspect run-state not only locally, but on the target robot
   * Performance - Java executes an order of magnitude faster than Python
   * Threading - the Java threading model is more straightforward (IMHO)
-  * Cross-compiling - difficulties creating Odroid executables preclude use of C++.
-
-
+  * Cross-compiling - difficulties creating Odroid executables precluded my use of C++.
 
   #### Failures <a id="failures"/>
   This section documents some ideas that were tried and abandoned.
@@ -146,7 +146,7 @@ Why did I select Java for this code when the iCub project chose Python?
      brew install gradle
      brew install gradle-completion
   ```
-  I totally failed to create a C++ build script for cross-compilation (Mac to Odroid). Moreover after nearly a week of trying, I gave up on the Java building also. I was unable to create an environment to conveniently share re-usable code among separate top level targets. I'm sure it can be done, I just lost interest.
+  I totally failed to create a C++ build script for cross-compilation (Mac to Odroid). Moreover after nearly a week of trying, I gave up on the Java building also. I was unable to create an environment to conveniently share re-usable code among separate top level targets. I'm sure it can be done, I just lost interest. *ant* does everything I need.
 
   *** Cross-compilation *** <br/>
   On the build machine, I downloaded [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), then followed the installation steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1), Using a *makefile* and these tools, I compiled C++ code for the Odroid X64. It had a bad format and didn't execute. I gave up on C++ in favor of Java for the core control loop.

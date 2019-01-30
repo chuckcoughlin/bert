@@ -25,7 +25,7 @@
 	<!-- Substitute placeholders in configuration file -->
 	<target name="ReplacePlacehlders">
 		<echo message="Substituting placeholders in ${result}" />
-		<copy file="${template}" tofile="${result}"/>
+		<copy file="${template}" tofile="${result}" overwrite="true"/>
 		<replace file="${result}" token="@RELEASE@" value="${build.version}" />
 		<replace file="${result}" token="@DATE@" value="${build.date}" />
 		<replace file="${result}" token="@PORT_HEAD@" value="/dev/serial_head" />
