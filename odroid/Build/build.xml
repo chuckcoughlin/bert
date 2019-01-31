@@ -4,6 +4,7 @@
 	<property name="build.version" value="1.0" />
 	<property name="config.file" value="${basedir}/../Configuration/etc/bert.xml" />
 	<property name="config.template" value="${basedir}/../Configuration/template/bert.xml" />
+	<property name="jar.dir" location="${basedir}/../Archive/jars" />
 	<property name="lib.dir" value="${basedir}/lib" />
 	<property name="temp.dir" value="${basedir}/temp" />
 	<property name="robot.dir" value="${bert.home}" />
@@ -21,6 +22,11 @@
 			<include name="*.jar"/>
 		</fileset>
 	 </path>
+	
+	<!-- This is an unmodularized jar -->
+	<path id="antlr-classpath">
+	   <pathelement location="${jar.dir}/antlr-4.7.1-complete.jar" />
+	</path>
 	
 	<!-- Substitute placeholders in configuration file -->
 	<target name="ReplacePlacehlders">

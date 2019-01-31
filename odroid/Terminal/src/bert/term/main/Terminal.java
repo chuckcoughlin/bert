@@ -15,13 +15,13 @@ import java.util.logging.Logger;
 
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
-import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
-import bert.share.controller.CommandController;
-import bert.share.controller.ControllerLauncher;
 import bert.share.controller.ControllerType;
+import bert.share.controller.RequestHandler;
 import bert.share.logging.LoggerUtility;
 import bert.share.model.ConfigurationConstants;
+import bert.share.pipe.RequestPipe;
+import bert.share.pipe.ResponsePipe;
 import bert.speech.process.StatementParser;
 import bert.sql.db.Database;
 import bert.term.model.RobotTerminalModel;
@@ -30,15 +30,19 @@ import bert.term.model.RobotTerminalModel;
 /**
  * "Terminal" is an application that allows interaction from the command line
  * to command and interrogate the robot. Command entries are the same as
- * those given to the "headless" application, "Bert" in spoken form.
+ * those given to the "headless" application, "Bert", in spoken form.
+ * 
+ * The application acts as the intermediary between a StdioController and
+ * NamedPipeController communicating with the dispatcher.
  */
-public class Terminal implements ControllerLauncher {
+public class Terminal implements RequestHandler {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "terminal";
 	private final RobotTerminalModel model;
-	private CommandController controller = null;
+	private NamedPipeController pipeController = null;
+	private StdioController controller = null;
 	private final StatementParser parser;
 	private String prompt;
 	
@@ -49,8 +53,7 @@ public class Terminal implements ControllerLauncher {
 	}
 
 	/**
-	 * This application is only interested in the terminal controller. There should only be
-	 * one entry in the map.
+	 * This application contains a stdio controller and a pipe controller
 	 */
 	@Override
 	public void createControllers() {
@@ -58,16 +61,18 @@ public class Terminal implements ControllerLauncher {
 		Iterator<String>walker = pipeNames.keySet().iterator();
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
-		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
-		pipe.create();                                           // Create the pipe if it doesn't exist
-		this.controller = new CommandController(this,pipe,false);   // Asynchronous
+		RequestPipe pipe1 = new RequestPipe(pipeName,false);  // Not the "owner"
+		pipe1.create();                                       // Create the pipe if it doesn't exist
+		ResponsePipe pipe2 = new RequestPipe(pipeName,false);  // Not the "owner"
+		pipe2.create();
+		this.controller = new StdioController(this,pipe1,pipe2,false);   // Asynchronous
 	}
 	
 	/**
 	 * Loop forever reading from the terminal. Use ANTLR to convert text into requests.
 	 * Handle requests in a controller running in its own thread. Display responses.
 	 */
-	public void execute() {
+	public void run() {
 		
 		BufferedReader br = null;
 		try {

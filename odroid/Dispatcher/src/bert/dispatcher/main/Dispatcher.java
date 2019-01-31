@@ -20,9 +20,9 @@ import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.bottle.MetricType;
 import bert.share.bottle.RequestType;
-import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerType;
+import bert.share.controller.NamedPipePair;
 import bert.share.logging.LoggerUtility;
 import bert.share.model.ConfigurationConstants;
 
@@ -74,7 +74,7 @@ public class Dispatcher {
 		while( walker.hasNext()) {
 			String key = walker.next();
 			String pipeName = pipeNames.get(key);
-			NamedPipePair pipe = new NamedPipePair(pipeName,true);  // Dispatcher is the "owner"
+			RequestPipe pipe = new RequestPipe(pipeName,true);  // Dispatcher is the "owner"
 			pipe.create();                                          // Create the pipe if it doesn't exist
 			ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
 			if( type.equals(ControllerType.COMMAND)) {

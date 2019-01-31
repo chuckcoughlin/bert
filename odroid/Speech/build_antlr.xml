@@ -13,7 +13,7 @@
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean,generate" />
 	
-	<!-- These are unmodularized jars -->
+	<!-- This is an unmodularized jar -->
     <path id="antlr-classpath">
     	<pathelement location="${jar.dir}/antlr-4.7.1-complete.jar" />
     </path>
@@ -25,7 +25,6 @@
 	<!-- Run the ANTLR code generator -->
     <target name="generate" depends="clean">
         <mkdir dir="${src.dir}" />
-    	<mkdir dir="${lib}" />
         <java classname="org.antlr.v4.Tool" classpathref="antlr-classpath" fork="true">
             <arg value="-o" />
             <arg path="${src.dir}" />

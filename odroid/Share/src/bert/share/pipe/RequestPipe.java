@@ -2,7 +2,7 @@
  * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.common;
+package bert.share.pipe;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -27,8 +27,8 @@ import bert.share.bottle.MessageBottle;
  *  
  *  Opening a pipe for reading blocks until data is put on the pipe.
  */
-public class NamedPipePair   {
-	private static final String CLSS = "NamedPipePair";
+public class RequestPipe   {
+	private static final String CLSS = "RequestPipe";
 	public static final String FROM_DISPATCHER = "_from_dispatcher";
 	public static final String TO_DISPATCHER   = "_to_dispatcher";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
@@ -45,7 +45,7 @@ public class NamedPipePair   {
 	 * @param name root name of the pipe-pair.
 	 * @param isOwner the Dispatcher "owns" the pipes.
 	 */
-	public NamedPipePair(String name,boolean isOwner) {
+	public RequestPipe(String name,boolean isOwner) {
 		this.name = name;
 		this.owner = isOwner;
 		this.useAsynchronousReads = false;

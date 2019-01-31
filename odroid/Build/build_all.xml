@@ -18,7 +18,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="share,motors,database,command,dispatcher,terminal" />
+	<target name="build" depends="share,motors,database,speech,command,dispatcher,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />
@@ -96,6 +96,31 @@
 				includeantruntime="false"
 		/>
     	<jar destfile="${lib.dir}/bert-common.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
+	</target>
+	<target name="speech" description="Compile the antlr/speech library">
+		<echo message="Run the ANTLR code generator" />
+		<mkdir dir="../Speech/src/bert/speech/antlr"/>
+		<java classname="org.antlr.v4.Tool" classpathref="antlr-classpath" dir="../Speech"  fork="true">
+		     <arg value="-o" />
+		     <arg path="src/bert/speech/antlr" />
+		     <arg value="-package" />
+		     <arg value="bert.speech.antlr" />
+		     <arg value="-visitor" />
+		     <arg value="-no-listener" />
+		     <arg value="SpeechSyntax.g4" />
+		</java>
+		<echo message="Compile the speech library" />
+		<delete dir="${temp.dir}" />
+		<mkdir dir="${temp.dir}"/>
+		<javac	srcdir="../speech/src"
+		       	destdir="${temp.dir}"
+				compiler="javac10+"
+				source="11" target="11"
+				debug="true"
+				modulepathref="common-modulepath"
+				includeantruntime="false"
+		/>
+	    <jar destfile="${lib.dir}/bert-speech.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
 	</target>
 	<target name="terminal" description="Compile the terminal">
 		<echo message="Compile the Terminal" />

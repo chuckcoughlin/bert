@@ -13,6 +13,7 @@ module bert.share {
 	exports bert.share.logging;
 	exports bert.share.model;
 	exports bert.share.motor;
+	exports bert.share.pipe;
 	exports bert.share.util;
 	exports bert.share.xml;
 }

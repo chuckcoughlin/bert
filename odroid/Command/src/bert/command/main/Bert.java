@@ -16,11 +16,11 @@ import java.util.logging.Logger;
 import bert.command.model.Humanoid;
 import bert.command.model.RobotCommandModel;
 import bert.share.bottle.MessageBottle;
-import bert.share.common.NamedPipePair;
 import bert.share.common.PathConstants;
 import bert.share.controller.CommandController;
-import bert.share.controller.ControllerLauncher;
+import bert.share.controller.RequestHandler;
 import bert.share.controller.ControllerType;
+import bert.share.controller.NamedPipePair;
 import bert.share.logging.LoggerUtility;
 import bert.speech.process.StatementParser;
 import bert.sql.db.Database;
@@ -29,7 +29,7 @@ import bert.sql.db.Database;
  * This is the main client class (on the controller side of the pipes). It holds
  * the command, playback, record and joint controllers. 
  */
-public class Bert implements ControllerLauncher {
+public class Bert implements RequestHandler {
 	private final static String CLSS = "Bert";
 	private static final String USAGE = "Usage: bert <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
@@ -56,7 +56,7 @@ public class Bert implements ControllerLauncher {
 		Iterator<String>walker = pipeNames.keySet().iterator();
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
-		NamedPipePair pipe = new NamedPipePair(pipeName,false);  // Not the "owner"
+		RequestPipe pipe = new RequestPipe(pipeName,false);  // Not the "owner"
 		pipe.create();                                           // Create the pipe if it doesn't exist
 		this.controller = new CommandController(this,pipe,false);       // Asynchronous
 	}

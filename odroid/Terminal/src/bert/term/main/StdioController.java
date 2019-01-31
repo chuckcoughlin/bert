@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.controller;
+package bert.term.main;
 
 import java.util.logging.Logger;
 
@@ -10,22 +10,16 @@ import bert.share.bottle.MessageBottle;
 
 
 /**
- * A command controller encapsulates a single named pipe pair. It accepts a command request
- * from the speech processor and returns a response. 
- * 
- * There are two possible read behaviors:
- *   1) synchronous mode, the caller blocks on the "getMessage" method. 
- *   2) asynchronous mode, a non-owner caller must implement a "handleResponse" callback.
+ * The StdIO controller handles input/output to/from stdin and sdout for interactive
+ * command-line operation. The typed commands and text responses are exactly the same
+ * as the spoken interface with the Command application. 
  */
-public class CommandController {
-	private final static String CLSS = "CommandController";
+public class StdioController {
+	private final static String CLSS = "NamedPipeController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
 	private final RequestHandler launcher;
-	private final RequestPipe pipe;
-	private final boolean synchronous;
 	private Thread runner = null;
 
-	
 	/**
 	 * Constructor:
 	 * @param launcher
@@ -33,11 +27,9 @@ public class CommandController {
 	 * @param synch true if the caller will use synchronous reads. Otherwise we monitor
 	 *        the response side of the pipe and return the result in a callback.
 	 */
-	public CommandController(RequestHandler launcher,RequestPipe p,boolean synch) {
+	public StdioController(RequestHandler launcher) {
 		this.launcher = launcher;
-		this.pipe = p;
-		this.synchronous = synch;
-		pipe.setReadsAsynchronous(false);
+
 	}
 	
 	/**

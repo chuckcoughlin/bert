@@ -14,11 +14,11 @@ import bert.share.model.AbstractRobotModel;
 import bert.share.xml.XMLUtility;
 
 /**
- *  This is the base class for a collection of models that keep basic configuration
- *  information, all reading from the same files. The information 
+ *  Read the XML configuration file to extract information needed by
+ *  the Terminal application. 
  */
 public class RobotTerminalModel extends AbstractRobotModel   {
-	private static final String CLSS = "RobotClientModel";
+	private static final String CLSS = "RobotTerminalModel";
 
 	public RobotTerminalModel(Path configPath) {
 		super(configPath);
@@ -61,10 +61,8 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 					}
 					break;
 				}
-				
 				index++;
 			}
 		}
 	}
-	
 }

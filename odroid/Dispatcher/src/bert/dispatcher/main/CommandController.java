@@ -8,7 +8,7 @@ package bert.dispatcher.main;
 import java.util.logging.Logger;
 
 import bert.share.bottle.MessageBottle;
-import bert.share.common.NamedPipePair;
+import bert.share.controller.NamedPipePair;
 
 /**
  *  A dispatch controller (server-side) for the receiving end of a Command
@@ -17,13 +17,13 @@ import bert.share.common.NamedPipePair;
 public class CommandController  {
 	protected static final String CLSS = "DispatchController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private NamedPipePair pipe = null;
+	private RequestPipe pipe = null;
 	
 	/**
 	 * Constructor:
 	 * @param p
 	 */
-	public CommandController(NamedPipePair p) {
+	public CommandController(RequestPipe p) {
 		this.pipe = p;
 		pipe.setReadsAsynchronous(true);
 	}
