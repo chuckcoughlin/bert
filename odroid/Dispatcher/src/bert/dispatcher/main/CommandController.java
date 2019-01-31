@@ -11,8 +11,8 @@ import bert.share.bottle.MessageBottle;
 import bert.share.common.NamedPipePair;
 
 /**
- *  A dispatch controller is a server-side controller for the receiving end of a Command
- *  or Terminal pipe. The reads return null if there is no request pending.
+ *  A dispatch controller (server-side) for the receiving end of a Command
+ *  or Terminal pipe. The reads block.
  */
 public class CommandController  {
 	protected static final String CLSS = "DispatchController";
