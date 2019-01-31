@@ -13,4 +13,7 @@ MP=$MP:lib/bert-common.jar
 MP=$MP:lib/bert-database.jar
 MP=$MP:lib/bert-speech.jar
 
-java --module-path $MP -m bert.command/bert.command.main.Bert ${BERT_HOME}
+# Allow debugging on port 8002
+X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8002"
+
+java $X --module-path $MP -m bert.command/bert.command.main.Bert ${BERT_HOME}

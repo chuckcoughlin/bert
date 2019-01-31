@@ -10,12 +10,12 @@
 	<!-- Remove the existing target -->
 	<target name="clean" description="Remove existing build products">
 		<mkdir dir="${lib.dir}"/>
+		<mkdir dir="${robot.dir}/bin"/>
+		<delete dir="${robot.dir}/bin"/>
+		<mkdir dir="${robot.dir}/etc"/>
+		<delete dir="${robot.dir}/etc"/>
 		<mkdir dir="${robot.dir}/lib"/>
-		<fileset dir="${robot.dir}/etc"/>
-		<mkdir dir="${robot.dir}/lib"/>
-		<fileset dir="${robot.dir}/lib">
-			<include name="*.jar"/>
-		</fileset>
+		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
 	<target name="build" depends="share,motors,database,command,dispatcher,terminal" />

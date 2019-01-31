@@ -37,8 +37,8 @@ public class Dispatcher {
 	private static final String LOG_ROOT = "dispatcher";
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
-	private DispatchController commandController;
-	private DispatchController terminalController;
+	private CommandController commandController;
+	private CommandController terminalController;
 	private final MotorManager   motorManager;
 	private final String name;
 	private int cadence = 1000;      // msecs
@@ -78,11 +78,11 @@ public class Dispatcher {
 			pipe.create();                                          // Create the pipe if it doesn't exist
 			ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
 			if( type.equals(ControllerType.COMMAND)) {
-				commandController = new DispatchController(pipe); 
+				commandController = new CommandController(pipe); 
 				LOGGER.info(String.format("%s: created pipes for command controller",CLSS));
 			}
 			else if( type.equals(ControllerType.TERMINAL)) {
-				terminalController = new DispatchController(pipe); 
+				terminalController = new CommandController(pipe); 
 				LOGGER.info(String.format("%s: created pipes for terminal controller",CLSS));
 			}
 		}

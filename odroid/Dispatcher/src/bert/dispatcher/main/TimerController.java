@@ -14,7 +14,7 @@ import bert.share.common.NamedPipePair;
  *  A dispatch controller is a server-side controller for the receiving end of a Command
  *  or Terminal pipe. The reads return null if there is no request pending.
  */
-public class DispatchController  {
+public class TimerController  {
 	protected static final String CLSS = "DispatchController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
 	private NamedPipePair pipe = null;
@@ -23,7 +23,7 @@ public class DispatchController  {
 	 * Constructor:
 	 * @param p
 	 */
-	public DispatchController(NamedPipePair p) {
+	public TimerController(NamedPipePair p) {
 		this.pipe = p;
 		pipe.setReadsAsynchronous(true);
 	}
