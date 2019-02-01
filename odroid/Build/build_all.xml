@@ -18,7 +18,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="share,motors,database,speech,command,dispatcher,terminal" />
+	<target name="build" depends="share,motors,database,speech,command,server,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />
@@ -51,24 +51,6 @@
 		/>
 	    <jar destfile="${lib.dir}/bert-database.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
 	</target>
-	<target name="dispatcher" description="Compile the dispatcher">
-		<echo message="Compile the Dispatcher" />
-		<delete dir="${temp.dir}" />
-		<mkdir dir="${temp.dir}"/>
-		<javac	srcdir="../Dispatcher/src"
-				destdir="${temp.dir}"
-				compiler="javac10+"
-				source="11" target="11"
-				debug="true"
-				modulepathref="common-modulepath"
-				includeantruntime="false"
-		/>
-		<jar destfile="${lib.dir}/bert-dispatcher.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
-			<manifest>
-				 <attribute name="Main-Class" value="bert.dispatcher.main.Dispatcher"/>
-			</manifest>
-		</jar>
-	</target>
 	<target name="motors" description="Compile the motors library">
 		<echo message="Compile the motors library" />
 		<delete dir="${temp.dir}" />
@@ -82,6 +64,24 @@
 				includeantruntime="false"
 		/>
 	    <jar destfile="${lib.dir}/bert-motors.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
+	</target>
+	<target name="server" description="Compile the server">
+		<echo message="Compile the Server" />
+		<delete dir="${temp.dir}" />
+		<mkdir dir="${temp.dir}"/>
+		<javac	srcdir="../Server/src"
+				destdir="${temp.dir}"
+				compiler="javac10+"
+				source="11" target="11"
+				debug="true"
+				modulepathref="common-modulepath"
+				includeantruntime="false"
+			/>
+			<jar destfile="${lib.dir}/bert-server.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
+				<manifest>
+					 <attribute name="Main-Class" value="bert.dispatcher.main.Dispatcher"/>
+				</manifest>
+			</jar>
 	</target>
 	<target name="share" description="Compile the shared common library">
 		<echo message="Compile the commmon library" />

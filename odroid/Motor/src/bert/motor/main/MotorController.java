@@ -17,6 +17,7 @@ import bert.motor.dynamixel.DxlMessage;
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.bottle.RequestType;
+import bert.share.controller.Controller;
 import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 import jssc.SerialPort;
@@ -30,7 +31,7 @@ import jssc.SerialPortException;
  *  
  *  The configuration array has only those joints that are part of the group.
  */
-public class MotorController implements Runnable, SerialPortEventListener {
+public class MotorController implements Controller, Runnable, SerialPortEventListener {
 	protected static final String CLSS = "MotorController";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final int BAUD_RATE = 1000000;
@@ -39,11 +40,11 @@ public class MotorController implements Runnable, SerialPortEventListener {
 	private final Lock lock;
 	private final SerialPort port;
 	private boolean stopped = false;
-	private final MotorManagerInterface motorManager;
+	private final MotorManager motorManager;
 	private final Map<String,MotorConfiguration> configurations;
 	private MessageBottle request;
 
-	public MotorController(String name,SerialPort p,MotorManagerInterface mm) {
+	public MotorController(String name,SerialPort p,MotorManager mm) {
 		this.group = name;
 		this.port = p;
 		this.motorManager = mm;
@@ -59,7 +60,8 @@ public class MotorController implements Runnable, SerialPortEventListener {
 		configurations.put(name, mc);
 	}
 	
-	public void close() {
+	@Override
+	public void stop() {
 		try {
 			port.closePort();
 		}
@@ -77,7 +79,8 @@ public class MotorController implements Runnable, SerialPortEventListener {
 	 * contents of the configuration file. This will trigger the SerialEvent call-backs,
 	 * but the request is null, so these get ignored.
 	 */
-	public void initialize() {
+	@Override
+	public void start() {
 		for(String key:configurations.keySet()) {
 			MotorConfiguration mc = configurations.get(key);
 			int id = mc.getId();
@@ -88,7 +91,8 @@ public class MotorController implements Runnable, SerialPortEventListener {
 		}
 	}
 	
-	public void open() {
+	@Override
+	public void initialize() {
 		try {
 			port.openPort();
 			port.setParams(BAUD_RATE, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);  
@@ -98,12 +102,13 @@ public class MotorController implements Runnable, SerialPortEventListener {
             port.addEventListener(this);
 		}
 		catch(SerialPortException spe) {
-			LOGGER.severe(String.format("%s.open: Error opening port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.initialize: Error opening port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
 		}
 	}
 	public void setStopped(boolean flag) { this.stopped = flag; }
 	
-	public void processRequest(MessageBottle request) {
+	@Override
+	public void receiveRequest(MessageBottle request) {
 		if( isSingleGroupRequest(request)) {
 			// Do nothing if the joint isn't in our group.
 			String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
@@ -114,6 +119,10 @@ public class MotorController implements Runnable, SerialPortEventListener {
 		}
 		running.signal();
 	}
+	
+	@Override
+	public void receiveResponse(MessageBottle response) {}
+		
 	
 	public void run() {
 		while( !stopped ) {

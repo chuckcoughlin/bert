@@ -7,6 +7,8 @@ package bert.share.pipe;
 import java.util.logging.Logger;
 
 import bert.share.bottle.MessageBottle;
+import bert.share.controller.Controller;
+import bert.share.controller.Dispatcher;
 
 
 /**
@@ -18,81 +20,106 @@ import bert.share.bottle.MessageBottle;
  *   1) synchronous mode, the caller blocks on the "getMessage" method. 
  *   2) asynchronous mode, a non-owner caller must implement a "handleResponse" callback.
  */
-public class NamedPipeController {
+public class NamedPipeController implements Controller{
 	private final static String CLSS = "NamedPipeController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private final RequestHandler launcher;
-	private final RequestPipe pipe;
-	private final boolean synchronous;
+	private final BidirectionalNamedPipe bidirectionalPipe;
+	private final Dispatcher dispatcher;
+	private final String name;
 	private Thread runner = null;
+	private final boolean server;
 
 	
 	/**
 	 * Constructor:
-	 * @param launcher
-	 * @param p
-	 * @param synch true if the caller will use synchronous reads. Otherwise we monitor
-	 *        the response side of the pipe and return the result in a callback.
+	 * @param launcher the parent application
+	 * @param pipename the core name of the pipes (two will be created)
+	 * @param isServer true if the launcher the Server application and will initially 
+	 *        read from the pipe.
 	 */
-	public NamedPipeController(RequestHandler launcher,RequestPipe p,boolean synch) {
-		this.launcher = launcher;
-		this.pipe = p;
-		this.synchronous = synch;
-		pipe.setReadsAsynchronous(false);
+	public NamedPipeController(Dispatcher launcher,String pipeName,boolean isServer) {
+		this.dispatcher = launcher;
+		this.name = pipeName;
+		this.server = isServer;
+		bidirectionalPipe = new BidirectionalNamedPipe(name,isServer); 
 	}
 	
-	/**
-	 * This should not be called by a non-owner who expects asynchronous behavior.
-	 * The message can be either a request or response depending on circumstances.
-	 * @return the contents of the pipe.
-	 */
-	public MessageBottle getMessage() {
-		return pipe.read();
+	@Override
+	public void initialize() {
+		bidirectionalPipe.create();
 	}
-	
-	public void sendMessage(MessageBottle bottle)  {
-		pipe.write(bottle);
-	}
-	
+	@Override
 	public void start() {
-		pipe.startup();
-		if( !synchronous ) {
-			AsynchronousReader ar = new AsynchronousReader(this.launcher,this.pipe);
-			runner = new Thread(ar);
-			runner.start();
-		}
+		bidirectionalPipe.startup();
+		BackgroundReader rdr = new BackgroundReader(bidirectionalPipe);
+		runner = new Thread(rdr);
+		runner.start();
 	}
-	
+	@Override
 	public void stop() {
+		bidirectionalPipe.shutdown();
 		if( runner!=null) {
 			runner.interrupt();
 			runner = null;
 		}
-		pipe.shutdown();
 	}
 	
-
+	/**
+	 * If the parent is a server, then we get the request from the pipe,
+	 * else it comes from the parent directly.
+	 * @param request
+	 */
+	@Override
+	public void receiveRequest(MessageBottle request ) {
+		if( server ) {
+			dispatcher.handleRequest(request);
+		}
+		else {
+			bidirectionalPipe.write(request);
+		}
+	}
 	
+	/**
+	 * If the parent is a server, then it supplies the response directly.
+	 * Otherwise it comes from the pipe.
+	 * @param response
+	 */
+	@Override
+	public void receiveResponse(MessageBottle response ) {
+		if( server ) {
+			bidirectionalPipe.write(response);
+		}
+		else {
+			dispatcher.handleResponse(response);
+		}
+	}
 
-	public class AsynchronousReader implements Runnable {
-		private RequestHandler launcher;
-		private RequestPipe pipe;
+	/**
+	 * Perform a blocking read as a background thread.
+	 */
+	public class BackgroundReader implements Runnable {
+		private BidirectionalNamedPipe pipe;
 		
 		
-		public AsynchronousReader(RequestHandler l,RequestPipe p) {
-			this.launcher = l;
+		public BackgroundReader(BidirectionalNamedPipe p) {
 			this.pipe = p;
 		}
 
 		/**
 		 * Forever ...
-		 *   1) Read response from named pipe
-		 *   2) Invoke callback method on launcher.
+		 *   1) Read request/response from named pipe
+		 *   2) Invoke callback method on dispatcher or
+		 *      local method, as appropriate.
 		 */
 		public void run() {
 			while(!Thread.currentThread().isInterrupted() ) {
-				MessageBottle bottle = pipe.read();
-				if(bottle!=null) launcher.handleResult(bottle);	
+				MessageBottle msg = pipe.read();
+				if( pipe.isServer() ) {
+					receiveRequest(msg);
+				}
+				else {
+					receiveResponse(msg);
+				}
 			}
 		}
 	}

@@ -4,25 +4,21 @@
  */
 package bert.term.main;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
-import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.PathConstants;
-import bert.share.controller.ControllerType;
-import bert.share.controller.RequestHandler;
+import bert.share.controller.Dispatcher;
 import bert.share.logging.LoggerUtility;
 import bert.share.model.ConfigurationConstants;
-import bert.share.pipe.RequestPipe;
-import bert.share.pipe.ResponsePipe;
-import bert.speech.process.StatementParser;
+import bert.share.pipe.NamedPipeController;
 import bert.sql.db.Database;
 import bert.term.model.RobotTerminalModel;
 
@@ -33,23 +29,24 @@ import bert.term.model.RobotTerminalModel;
  * those given to the "headless" application, "Bert", in spoken form.
  * 
  * The application acts as the intermediary between a StdioController and
- * NamedPipeController communicating with the dispatcher.
+ * NamedPipeController communicating with the Server.
  */
-public class Terminal implements RequestHandler {
+public class Terminal implements Dispatcher {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "terminal";
 	private final RobotTerminalModel model;
 	private NamedPipeController pipeController = null;
+	private final Condition busy;
 	private StdioController controller = null;
-	private final StatementParser parser;
-	private String prompt;
+	private MessageBottle currentRequest;
+	private final Lock lock;
 	
 	public Terminal(RobotTerminalModel m) {
 		this.model = m;
-		this.prompt = model.getProperty(ConfigurationConstants.PROPERTY_PROMPT,"bert:");
-		this.parser = new StatementParser();
+		this.lock = new ReentrantLock();
+		this.busy = lock.newCondition();
 	}
 
 	/**
@@ -57,90 +54,81 @@ public class Terminal implements RequestHandler {
 	 */
 	@Override
 	public void createControllers() {
+		String prompt = model.getProperty(ConfigurationConstants.PROPERTY_PROMPT,"bert:");
+		this.controller = new StdioController(this,prompt);
+		
 		Map<String, String> pipeNames = model.getPipeNames();
 		Iterator<String>walker = pipeNames.keySet().iterator();
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
-		RequestPipe pipe1 = new RequestPipe(pipeName,false);  // Not the "owner"
-		pipe1.create();                                       // Create the pipe if it doesn't exist
-		ResponsePipe pipe2 = new RequestPipe(pipeName,false);  // Not the "owner"
-		pipe2.create();
-		this.controller = new StdioController(this,pipe1,pipe2,false);   // Asynchronous
+		this.pipeController = new NamedPipeController(this,pipeName,false); 
 	}
 	
 	/**
-	 * Loop forever reading from the terminal. Use ANTLR to convert text into requests.
-	 * Handle requests in a controller running in its own thread. Display responses.
+	 * Loop forever reading from the terminal and forwarding the resulting requests
+	 * via named pipe to the server. We accept responses and forward to the stdio
+	 * controller.
 	 */
-	public void run() {
-		
-		BufferedReader br = null;
+	@Override
+	public void execute() {
+		initialize();
+		start();
 		try {
-			br = new BufferedReader(new InputStreamReader(System.in));
-			controller.start();
-			
-			while (true) {
-				System.out.print(prompt);
-				String input = br.readLine();
-
-				if( "q".equalsIgnoreCase(input)    ||
-					"quit".equalsIgnoreCase(input) ||
-					"exit".equalsIgnoreCase(input)    ) {
-					break;
+			for(;;) {
+				lock.lock();
+				try{
+					busy.await();
+					if( currentRequest==null) break;
+					pipeController.receiveRequest(currentRequest);	
 				}
-				else if(input.isBlank()) continue;
-				/*
-				 * 1) Analyze the input string via ANTLR
-				 * 2) Send the resulting RequestBottle to the TerminalController
-				 *    The request may hang while the controller input buffer is full. 
-				 * 3) On callback from the controller, convert ResponseBottle to english string
-				 * 4) Send string to stdout
-				 */
-				else {
-					MessageBottle request = parser.parseStatement(input);
-					request.setSource(ControllerType.TERMINAL.name());
-					controller.sendMessage(request);
+				catch(InterruptedException ie ) {}
+				finally {
+					lock.unlock();
 				}
 			}
-
-		} 
-		catch (IOException ioe) {
-			ioe.printStackTrace();
 		} 
 		catch (Exception ex) {
 			ex.printStackTrace();
 		} 
 		finally {
-			if (br != null) {
-				try {
-					br.close();
-				} 
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			controller.stop();
+			stop();
 		}
 		Database.getInstance().shutdown();
 		System.exit(0);
 	}
 
 	@Override
+	public void initialize() {
+		pipeController.initialize();
+		controller.initialize();
+	}
+	@Override
+	public void start() {
+		pipeController.start();
+		controller.start();
+	}
+	@Override
+	public void stop() {
+		pipeController.stop();
+		controller.stop();
+	}
 	/**
-	 * We've gotten a response. Either pass on text directly or formulate
-	 * the string that the user sees.
+	 * We've gotten a request (must be from a different thread than our main loop). Signal
+	 * to release the lock and send along to the pipe.
 	 */
-	public void handleResult(MessageBottle response) {
-		String text = response.getProperty(BottleConstants.TEXT, "");
-		if( text.isBlank() ) {
-			text = response.getProperty(BottleConstants.PROPERTY_ERROR, "");
-			if( text.isBlank() ) {
-				String property = response.getProperty(BottleConstants.PROPERTY_PROPERTY, "unknown");
-				String value = response.getProperty(BottleConstants.VALUE, "0");
-				text = String.format("My %s is %s", property,value);
-			}
-		}
-		System.out.println(text);
+	@Override
+	public synchronized void handleRequest(MessageBottle request) {
+		currentRequest = request;
+		busy.signal();
+	}
+	
+	/**
+	 * We've gotten a response. Send it to our Stdio controller 
+	 * which ultimately writes it to stdout.
+	 */
+	@Override
+	public void handleResponse(MessageBottle response) {
+		controller.receiveResponse(response);
 	}
 	
 	/**

@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.dispatcher.model;
+package bert.server.model;
 
 import java.nio.file.Path;
 import java.util.logging.Logger;

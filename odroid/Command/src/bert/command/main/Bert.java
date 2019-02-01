@@ -4,46 +4,47 @@
  */
 package bert.command.main;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.command.model.Humanoid;
 import bert.command.model.RobotCommandModel;
 import bert.share.bottle.MessageBottle;
 import bert.share.common.PathConstants;
-import bert.share.controller.CommandController;
-import bert.share.controller.RequestHandler;
-import bert.share.controller.ControllerType;
-import bert.share.controller.NamedPipePair;
+import bert.share.controller.Dispatcher;
 import bert.share.logging.LoggerUtility;
-import bert.speech.process.StatementParser;
+import bert.share.pipe.NamedPipeController;
 import bert.sql.db.Database;
 
 /**
  * This is the main client class (on the controller side of the pipes). It holds
  * the command, playback, record and joint controllers. 
  */
-public class Bert implements RequestHandler {
+public class Bert implements Dispatcher {
 	private final static String CLSS = "Bert";
 	private static final String USAGE = "Usage: bert <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "bert";
 	private final RobotCommandModel model;
-	private CommandController controller = null;
+	private BluetoothController controller = null;
+	private NamedPipeController pipeController = null;
 	private final Humanoid robot;
-	private final StatementParser parser;
+	private final Condition busy;
+	private MessageBottle currentRequest;
+	private final Lock lock;
 	
 	
 	public Bert(RobotCommandModel m) {
 		this.robot = Humanoid.getInstance();
 		this.model = m;
-		this.parser = new StatementParser();
+		this.lock = new ReentrantLock();
+		this.busy = lock.newCondition();
 	}
 
 	/**
@@ -52,82 +53,78 @@ public class Bert implements RequestHandler {
 	 */
 	@Override
 	public void createControllers() {
+		this.controller = new BluetoothController(this);
+		
 		Map<String, String> pipeNames = model.getPipeNames();
 		Iterator<String>walker = pipeNames.keySet().iterator();
 		String key = walker.next();
 		String pipeName = pipeNames.get(key);
-		RequestPipe pipe = new RequestPipe(pipeName,false);  // Not the "owner"
-		pipe.create();                                           // Create the pipe if it doesn't exist
-		this.controller = new CommandController(this,pipe,false);       // Asynchronous
+		this.pipeController = new NamedPipeController(this,pipeName,false); 
 	}
 	
 	/**
-	 * Loop forever acquiring phrases from the Bluetooth connection to Android. Use ANTLR to convert into requests.
-	 * Handle requests in a controller running in its own thread. Other controllers handle play and record plus
-	 * the robot movements.
+	 * Loop forever reading from the bluetooth tablet. Forward the resulting requests
+	 * via named pipe to the server. We accept responses and forward to the tablet.
 	 */
-	/**
-	 * Loop forever reading from the terminal. Use ANTLR to convert text into requests.
-	 * Handle requests in a controller running in its own thread. Display responses.
-	 */
+	@Override
 	public void execute() {
-		
-		/**
-		 * Read from Bluetooth ....
-		 */
-		BufferedReader br = null;
+		initialize();
+		start();
 		try {
-			br = new BufferedReader(new InputStreamReader(System.in));
-			controller.start();
-			
-			while (true) {
-				String input = br.readLine();
-
-				if( "q".equalsIgnoreCase(input)    ||
-					"quit".equalsIgnoreCase(input) ||
-					"exit".equalsIgnoreCase(input)    ) {
-					break;
+			for(;;) {
+				lock.lock();
+				try{
+					busy.await();
+					if( currentRequest==null) break;
+					pipeController.receiveRequest(currentRequest);	
 				}
-				else if(input.isBlank()) continue;
-				/*
-				 * 1) Analyze the input string via ANTLR
-				 * 2) Send the resulting RequestBottle to the TerminalController
-				 *    The request may hang while the controller input buffer is full. 
-				 * 3) On callback from the controller, convert ResponseBottle to english string
-				 * 4) Send string to stdout
-				 */
-				else {
-					MessageBottle request = parser.parseStatement(input);
-					request.setSource(ControllerType.COMMAND.name());
-					controller.sendMessage(request);
+				catch(InterruptedException ie ) {}
+				finally {
+					lock.unlock();
 				}
 			}
-
-		} 
-		catch (IOException ioe) {
-			ioe.printStackTrace();
 		} 
 		catch (Exception ex) {
 			ex.printStackTrace();
 		} 
 		finally {
-			if (br != null) {
-				try {
-					br.close();
-				} 
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			controller.stop();
+			stop();
 		}
 		Database.getInstance().shutdown();
 		System.exit(0);
 	}
-
+	
 	@Override
-	public void handleResult(MessageBottle response) {
-		
+	public void initialize() {
+		pipeController.initialize();
+		controller.initialize();
+	}
+	@Override
+	public void start() {
+		pipeController.start();
+		controller.start();
+	}
+	@Override
+	public void stop() {
+		pipeController.stop();
+		controller.stop();
+	}
+	/**
+	 * We've gotten a request (must be from a different thread than our main loop). Signal
+	 * to release the lock to send along to the pipe.
+	 */
+	@Override
+	public void handleRequest(MessageBottle request) {
+		currentRequest = request;
+		busy.signal();
+	}
+	/**
+	 * We've gotten a response. Send it to our Bluetooth controller 
+	 * which ultimately writes it to the Android tablet.
+	 */
+	@Override
+	public void handleResponse(MessageBottle response) {
+		controller.receiveResponse(response);
 	}
 	
 	/**

@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.dispatcher.main;
+package bert.server.main;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,37 +11,49 @@ import java.time.Month;
 import java.time.Period;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
-import bert.dispatcher.model.RobotDispatcherModel;
-import bert.motor.main.MotorManager;
+import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
+import bert.server.model.RobotDispatcherModel;
+import bert.server.timer.TimerController;
 import bert.share.bottle.BottleConstants;
 import bert.share.bottle.MessageBottle;
 import bert.share.bottle.MetricType;
 import bert.share.bottle.RequestType;
 import bert.share.common.PathConstants;
 import bert.share.controller.ControllerType;
-import bert.share.controller.NamedPipePair;
+import bert.share.controller.Dispatcher;
 import bert.share.logging.LoggerUtility;
 import bert.share.model.ConfigurationConstants;
+import bert.share.pipe.BidirectionalNamedPipe;
+import bert.share.pipe.NamedPipeController;
 
 /**
  * The dispatcher is its own system process. It's job is to accept requests from 
  * the command pipes, distribute them to the motor manager channels and post the results.
  */
-public class Dispatcher {
+public class Server implements Dispatcher {
 	private final static String CLSS = "Dispatcher";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "dispatcher";
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
-	private CommandController commandController;
-	private CommandController terminalController;
-	private final MotorManager   motorManager;
+	private NamedPipeController commandController = null;
+	private NamedPipeController terminalController= null;
+	private TimerController timerController       = null;
+	private MotorGroupController motorGroupController = null;
+	private final Condition busy;
+	private MessageBottle currentRequest = null;
+	private final Lock lock;
+	
 	private final String name;
-	private int cadence = 1000;      // msecs
+	private int cadence = 1000;     // msecs
+	private	int cycleCount = 0;     // messages processed
 	private	double cycleTime = 0.0; // msecs,    EWMA
 	private double dutyCycle = 0.0; // fraction, EWMA
 	
@@ -49,10 +61,11 @@ public class Dispatcher {
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public Dispatcher(RobotDispatcherModel m,MotorManager mgr) {
+	public Server(RobotDispatcherModel m,MotorGroupController mgc) {
 		this.model = m;
-		this.motorManager = mgr;
-		
+		this.lock = new ReentrantLock();
+		this.busy = lock.newCondition();
+		this.motorGroupController = mgc;
 		this.name = model.getProperty(ConfigurationConstants.PROPERTY_NAME,"Bert");
 		String cadenceString = model.getProperty(ConfigurationConstants.PROPERTY_CADENCE,"1000");  // ~msecs
 		try {
@@ -65,8 +78,9 @@ public class Dispatcher {
 	}
 	
 	/**
-	 * The dispatcher creates controllers for the Terminal and Command applications. The 
-	 * MotorManager does its own configuration (creates a motor controller for each motor group).
+	 * The server creates controllers for the Terminal and Command application pipes, and a controller
+	 * for repeating requests (on a timer). The motor group controller has its own model and is already
+	 * instantiated at this point..
 	 */
 	public void createControllers() {
 		Map<String, String> pipeNames = model.getPipeNames();
@@ -74,83 +88,129 @@ public class Dispatcher {
 		while( walker.hasNext()) {
 			String key = walker.next();
 			String pipeName = pipeNames.get(key);
-			RequestPipe pipe = new RequestPipe(pipeName,true);  // Dispatcher is the "owner"
+			BidirectionalNamedPipe pipe = new BidirectionalNamedPipe(pipeName,true);  // Dispatcher is the "owner"
 			pipe.create();                                          // Create the pipe if it doesn't exist
 			ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
 			if( type.equals(ControllerType.COMMAND)) {
-				commandController = new CommandController(pipe); 
-				LOGGER.info(String.format("%s: created pipes for command controller",CLSS));
+				commandController = new NamedPipeController(this,pipeName,true); 
+				LOGGER.info(String.format("%s: created command controller",CLSS));
 			}
 			else if( type.equals(ControllerType.TERMINAL)) {
-				terminalController = new CommandController(pipe); 
-				LOGGER.info(String.format("%s: created pipes for terminal controller",CLSS));
+				terminalController = new NamedPipeController(this,pipeName,true); 
+				LOGGER.info(String.format("%s: created terminal controller",CLSS));
 			}
 		}
+		timerController = new TimerController(this,cadence);
 	}
 	
+	/**
+	 * Loop forever processing whatever arrives from the various controllers. Each request is
+	 * handled atomically. There is no interleaving. 
+	 */
+	@Override
 	public void execute() {
+		initialize();
+		start();
 		try {
-			LOGGER.info(String.format("%s.execute: starting commandController",CLSS));
-			commandController.start();
-			LOGGER.info(String.format("%s.execute: starting terminal",CLSS));
-			terminalController.start();
-			LOGGER.info(String.format("%s.execute: starting motor",CLSS));
-			motorManager.start();
-			LOGGER.info(String.format("%s.execute: starting report",CLSS));
-			reportStartup();
-			LOGGER.info(String.format("%s.execute: reported",CLSS));
-
-			int cycleCount = 0;
 			for(;;) {
-				long startCycle = System.currentTimeMillis();
-				LOGGER.info(String.format("%s: Cycle %d ...",CLSS,cycleCount));
-				MessageBottle request = null;
-				MessageBottle response = null;
-				// First try the commands in an asynchronous way,
-				request = terminalController.getMessage();
-				if( request==null) request = commandController.getMessage();
-
-				// Take care of any local requests (then immediately go to next command)
-				if( request!=null ) {
-					if( isLocalRequest(request) ) {
-						// Handle terminal local request - -create response
-						response = createResponseForLocalRequest(request);
-						sendResponse(response);
-						continue;  // Bypass wait for cadence
+				lock.lock();
+				try{
+					busy.await();
+					long startCycle = System.currentTimeMillis();
+					LOGGER.info(String.format("%s: Cycle %d ...",CLSS,cycleCount));
+					if( currentRequest==null ) break;             // Causes shutdown
+					// Take care of any local requests first.
+					if( currentRequest!=null ) {
+						if( isLocalRequest(currentRequest) ) {
+							// Handle terminal local request - -create response
+							MessageBottle response = createResponseForLocalRequest(currentRequest);
+							sendResponse(response);
+						}
+						else {
+							// Handle motor request
+							MessageBottle response  = motorGroupController.processRequest(currentRequest );
+							sendResponse(response);
+						}
 					}
-					else {
-						// Handle motor request
-						response = motorManager.processRequest(request);
-						sendResponse(response);
-					}
+					LOGGER.info(String.format("%s: Cycle %d complete.",CLSS,cycleCount));
+					cycleCount++;
+					
+					long endCycle = System.currentTimeMillis();
+					long elapsed = (endCycle-startCycle);
+					this.cycleTime = exponentiallyWeightedMovingAverage(this.cycleTime,elapsed);
+					this.dutyCycle = exponentiallyWeightedMovingAverage(this.dutyCycle,(double)elapsed/cadence);
 				}
-				
-				LOGGER.info(String.format("%s: Cycle %d complete.",CLSS,cycleCount));
-				cycleCount++;
-				
-				// Delay until cadence interval is up.
-				long endCycle = System.currentTimeMillis();
-				long elapsed = (endCycle-startCycle);
-				this.cycleTime = exponentiallyWeightedMovingAverage(this.cycleTime,elapsed);
-				this.dutyCycle = exponentiallyWeightedMovingAverage(this.dutyCycle,(double)elapsed/cadence);
-				if( elapsed<cadence) {
-					try {
-						Thread.sleep(cadence-elapsed);
-					}
-					catch(InterruptedException ignore) {}
+				catch(InterruptedException ie ) {}
+				finally {
+					lock.unlock();
 				}
 			}
-		}  
+		} 
 		catch (Exception ex) {
 			ex.printStackTrace();
 		} 
 		finally {
-			commandController.stop();
-			terminalController.stop();
-			motorManager.stop();
+			stop();
 		}
 		System.exit(0);
 	}
+	
+	@Override
+	public void initialize() {
+		if(commandController!=null )  commandController.initialize();
+		if(terminalController!=null ) terminalController.initialize();
+		if(timerController!=null )    timerController.initialize();
+		if(motorGroupController!=null ) {
+			LOGGER.info(String.format("%s.execute: initializing motorGroupController",CLSS));
+			LOGGER.info(String.format("%s.execute: os.arch = %s",CLSS,System.getProperty("os.arch")));
+			LOGGER.info(String.format("%s.execute: os.name = %s",CLSS,System.getProperty("os.name")));
+			motorGroupController.initialize();
+		}
+	}
+	@Override
+	public void start() {
+		if(commandController!=null )  commandController.start();
+		if(terminalController!=null ) terminalController.start();
+		if(timerController!=null )    timerController.start();
+		if(motorGroupController!=null ) {
+			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
+			motorGroupController.start();
+		}
+		LOGGER.info(String.format("%s.execute: starting report",CLSS));
+		reportStartup();
+		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
+	}
+	@Override
+	public void stop() {
+		if(commandController!=null )    commandController.stop();
+		if(terminalController!=null )   terminalController.stop();
+		if(timerController!=null )      timerController.stop();
+		if(motorGroupController!=null ) motorGroupController.stop();
+	}
+	
+	
+	/**
+	 * We've gotten a request. It may have come from either a pipe
+	 * or the timer.
+	 */
+	@Override
+	public synchronized void handleRequest(MessageBottle request) {
+		currentRequest = request;
+		busy.signal();
+	}
+	
+	/**
+	 * None of our controllers use this. The MotorGroupController
+	 * replies directly.
+	 */
+	@Override
+	public void handleResponse(MessageBottle response) {
+		currentRequest  = null;
+		LOGGER.info(String.format("%s.handleResponse: Unexpected response, shutting down",CLSS));
+		busy.signal();
+	}
+	
+	
 	
 	// The "local" response is simply the original request with some text
 	// to send directly to the user.
@@ -170,6 +230,9 @@ public class Dispatcher {
 					break;
 				case CADENCE:
 					text = "The cadence is "+this.cadence+" milliseconds";
+					break;
+				case CYCLECOUNT:
+					text = "I've processed "+(int)this.cycleCount+" requests";
 					break;
 				case CYCLETIME:
 					text = "The average cycle time is "+(int)this.cycleTime+" milliseconds";
@@ -217,10 +280,10 @@ public class Dispatcher {
 	private void sendResponse(MessageBottle response) {
 		String source = response.getSource();
 		if( source.equalsIgnoreCase(ControllerType.COMMAND.name())) {
-			commandController.sendMessage(response);
+			commandController.receiveResponse(response);
 		}
 		else if( source.equalsIgnoreCase(ControllerType.TERMINAL.name())) {
-			terminalController.sendMessage(response);
+			terminalController.receiveResponse(response);
 		}
 	}
 	
@@ -250,12 +313,11 @@ public class Dispatcher {
 		
 		RobotMotorModel mmodel = new RobotMotorModel(PathConstants.CONFIG_PATH);
 		mmodel.populate();    // Analyze the xml for motor groups
-		MotorManager mgr = new MotorManager(mmodel);
-		mgr.createMotorGroups();
+		MotorGroupController mgc = new MotorGroupController(mmodel);
 		
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
-		Dispatcher runner = new Dispatcher(model,mgr);
+		Server runner = new Server(model,mgc);
 		runner.createControllers();
 		runner.execute();
 

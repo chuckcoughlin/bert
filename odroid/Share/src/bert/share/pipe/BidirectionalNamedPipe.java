@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 import bert.share.bottle.MessageBottle;
+import bert.share.common.PathConstants;
 /**
  *  This class encapsulates two named pipes for bi-directional
  *  communication. The "server" or "owner" is taken to be the 
@@ -27,14 +28,13 @@ import bert.share.bottle.MessageBottle;
  *  
  *  Opening a pipe for reading blocks until data is put on the pipe.
  */
-public class RequestPipe   {
-	private static final String CLSS = "RequestPipe";
-	public static final String FROM_DISPATCHER = "_from_dispatcher";
-	public static final String TO_DISPATCHER   = "_to_dispatcher";
+public class BidirectionalNamedPipe   {
+	private static final String CLSS = "BidirectionalNamedPipe";
+	public static final String FROM_SERVER = "_from_server";
+	public static final String TO_SERVER   = "_to_server";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final String name;
-	private final boolean owner;  // True if this instance is owned by the server.
-	private boolean useAsynchronousReads;
+	private final boolean server;  // True if this instance is owned by the server.
 	private String pathToRead="";
 	private String pathToWrite="";
 	private BufferedReader in = null;
@@ -43,37 +43,33 @@ public class RequestPipe   {
 	/**
 	 * Constructor
 	 * @param name root name of the pipe-pair.
-	 * @param isOwner the Dispatcher "owns" the pipes.
+	 * @param isServer true if this is for the Server application
 	 */
-	public RequestPipe(String name,boolean isOwner) {
+	public BidirectionalNamedPipe(String name,boolean isServer) {
 		this.name = name;
-		this.owner = isOwner;
-		this.useAsynchronousReads = false;
+		this.server = isServer;
 		initialize();
 	}
 	
-	public boolean isOwner() {return this.owner;}
+	public boolean isServer() {return this.server;}
 	public String getName() {return this.name;}
  	private void initialize() {
  		Path parent = PathConstants.DEV_DIR; 
- 		String fname = name+TO_DISPATCHER;
- 		if(owner) {
+ 		String fname = name+TO_SERVER;
+ 		if(server) {
 			this.pathToRead = Paths.get(parent.toString(), fname).toString();
 		}
 		else {
 			this.pathToWrite = Paths.get(parent.toString(), fname).toString();
 		}
  		
- 		fname = name+FROM_DISPATCHER;
- 		if(owner) {
+ 		fname = name+FROM_SERVER;
+ 		if(server) {
 			this.pathToWrite = Paths.get(parent.toString(), fname).toString();
 		}
 		else {
 			this.pathToRead = Paths.get(parent.toString(), fname).toString();
 		}
- 	}
- 	public void setReadsAsynchronous(boolean flag) {
- 		this.useAsynchronousReads = flag;
  	}
 	
 	/**
@@ -98,12 +94,12 @@ public class RequestPipe   {
 	 * issues -taking two sides to tango. So we just wait in threads.
 	 */
 	public void startup() {
-		if( owner ) {
+		if( server ) {
 			try {
-	    		LOGGER.info(String.format("Dispatcher.%s.startup: waiting on %s to open %s for read",CLSS,name,pathToRead));
+	    		LOGGER.info(String.format("Seerver.%s.startup: waiting on %s to open %s for read",CLSS,name,pathToRead));
 				FileReader freader = new FileReader(pathToRead);
 				in = new BufferedReader(freader);
-				LOGGER.info(String.format("Dispatcher.%s.startup: opened %s",CLSS,pathToRead));
+				LOGGER.info(String.format("Server.%s.startup: opened %s",CLSS,pathToRead));
 			}
 			catch(FileNotFoundException fnfe) {
 				LOGGER.severe(String.format("%s.startup: File %s not found for read (%s)",CLSS,pathToRead,fnfe.getLocalizedMessage()));
@@ -112,9 +108,9 @@ public class RequestPipe   {
 			new Thread(new Runnable() {
 			    public void run() {
 			    	try {
-						LOGGER.info(String.format("Dispatcher.%s.startup: waiting on %s to open %s for write",CLSS,name,pathToWrite));
+						LOGGER.info(String.format("Server.%s.startup: waiting on %s to open %s for write",CLSS,name,pathToWrite));
 						out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
-						LOGGER.info(String.format("Dispatcher.%s.startup: opened %s",CLSS,pathToWrite));
+						LOGGER.info(String.format("Server.%s.startup: opened %s",CLSS,pathToWrite));
 					}
 					catch(FileNotFoundException fnfe) {
 						LOGGER.severe(String.format("%s.startup: File %s not found for write (%s)",CLSS,pathToWrite,fnfe.getLocalizedMessage()));
@@ -160,19 +156,22 @@ public class RequestPipe   {
 		}
 	}
 	/**
-	 * Read from the pipe that is appropriate, depending on the ownership. Depending
-	 * on the "useAsynchronousReads" flag, the read may wait for data to appear on
-	 * the pipe, or return immediately with either data already present or a null. 
+	 * Read from the pipe that is appropriate, depending on the ownership. The read will 
+	 * block and wait for data to appear on the pipe. 
 	 *
 	 * @return either a RequestBottle or a ResponseBottle as appropriate.
 	 */
 	public MessageBottle read() {
 		MessageBottle bottle = null;
 		try {
-			LOGGER.info(String.format("%s.read: asnchronous %s",CLSS,(useAsynchronousReads?"true":"false")));
-			if(in!=null && (!useAsynchronousReads||in.ready()) ) {
+			LOGGER.info(String.format("%s.read: reading %s ... ",CLSS,pathToRead));
+			if(in!=null )  {
 				String json = in.readLine();
+				LOGGER.info(String.format("%s.read: got %s",CLSS,json));
 				bottle = MessageBottle.fromJSON(json);
+			}
+			else {
+				LOGGER.severe(String.format("%s.read: Error reading from %s before port is open",CLSS,pathToRead));
 			}
 		}
 		catch(IOException ioe) {
@@ -190,8 +189,13 @@ public class RequestPipe   {
 		String json = bottle.toJSON();
 		byte[] bytes = json.getBytes();
 		try {
-			out.write(bytes,0,bytes.length);
-			out.flush();
+			if( out!=null ) {
+				out.write(bytes,0,bytes.length);
+				out.flush();
+			}
+			else {
+				LOGGER.severe(String.format("%s.write: Error writing to %s before port is open",CLSS,pathToWrite));
+			}
 		}
 		catch(IOException ioe) {
 			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,bytes.length, ioe.getLocalizedMessage()));
@@ -208,7 +212,7 @@ public class RequestPipe   {
 	 */
 	private boolean createFifoPipe(File parent,String root)  {
 		boolean success = true;
-		String name = root+FROM_DISPATCHER;
+		String name = root+FROM_SERVER;
 		Path fifoPath = Paths.get(parent.toString(), name);
 	    String[] command = new String[] {"mkfifo", "-m0755",fifoPath.toString()};
 	    try {
@@ -220,7 +224,7 @@ public class RequestPipe   {
 	    	LOGGER.severe(String.format("%s.createFifoPipe: Exception (%s) creating %s",CLSS,ex.getLocalizedMessage(),fifoPath.toString()));
 	    }
 	    // Create sibling for opposite direction
-	    name = root+TO_DISPATCHER;
+	    name = root+TO_SERVER;
 		fifoPath = Paths.get(parent.toString(), name);
 	    command = new String[] {"mkfifo", "-m0755",fifoPath.toString()};
 	    try {

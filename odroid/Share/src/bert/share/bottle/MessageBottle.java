@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class MessageBottle implements Serializable {
 	private static final long serialVersionUID = 4356286171135500644L;
 	private static final String CLSS = "MessageBottle";
-	private static final Logger LOGGER = Logger.getLogger(CLSS);
+	protected static final Logger LOGGER = Logger.getLogger(CLSS);
 	public Properties properties;
 	public Map<String,Integer> positions;          // Motor position by joint name
 	

@@ -4,10 +4,15 @@
  */
 package bert.share.controller;
 
+import bert.share.bottle.MessageBottle;
+
 /**
  *  A common interface for controllers owned by application instances.
  */
 public interface Controller  {
+	public void initialize();
+	public void receiveRequest(MessageBottle request);
+	public void receiveResponse(MessageBottle response);
 	public void start();
 	public void stop();
 }

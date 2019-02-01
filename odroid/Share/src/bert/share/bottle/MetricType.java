@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 package bert.share.bottle;
@@ -11,6 +11,7 @@ public enum MetricType
 {
             AGE,
             CADENCE,
+            CYCLECOUNT,
             CYCLETIME,
             DUTYCYCLE,
             HEIGHT,

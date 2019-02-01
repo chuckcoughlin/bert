@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.term.main;
+package bert.command.main;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,26 +18,23 @@ import bert.speech.process.StatementParser;
 
 
 /**
- * The StdIO controller handles input/output to/from stdin and sdout for interactive
- * command-line operation. The typed commands and text responses are exactly the same
- * as the spoken interface with the Command application. 
+ * The Bluetooth controller handles input/output to/from an Android tablet via
+ * a Bluetooth netwark. The tablet handles speech-to-text and text-to-speech. 
  */
-public class StdioController implements Controller {
-	private final static String CLSS = "StdioController";
+public class BluetoothController implements Controller {
+	private final static String CLSS = "BluetoothController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
 	private final Dispatcher dispatcher;
 	private Thread runner = null;
 	private final StatementParser parser;
 	private final MessageTranslator translator;
-	private final String prompt;
 	/**
 	 * Constructor:
 	 * @param launcher the parent application
 	 * @param text prompt displayed for user entry
 	 */
-	public StdioController(Dispatcher launcher,String text) {
+	public BluetoothController(Dispatcher launcher) {
 		this.dispatcher = launcher;
-		this.prompt = text;
 		this.parser = new StatementParser();
 		this.translator = new MessageTranslator();
 	}
@@ -48,7 +45,7 @@ public class StdioController implements Controller {
 	
 	@Override
 	public void start() {
-		StdinReader rdr = new StdinReader(this.dispatcher);
+		BluetoothReader rdr = new BluetoothReader(this.dispatcher);
 		runner = new Thread(rdr);
 		runner.start();
 	}
@@ -80,11 +77,11 @@ public class StdioController implements Controller {
 	 * Loop forever reading from the stdin. Use ANTLR to convert text into requests.
 	 * Forward requests to the Terminal dispatcher.
 	 */
-	public class StdinReader implements Runnable {
+	public class BluetoothReader implements Runnable {
 		private Dispatcher dispatcher;
 		
 		
-		public StdinReader(Dispatcher disp) {
+		public BluetoothReader(Dispatcher disp) {
 			this.dispatcher = disp;
 		}
 
@@ -99,7 +96,6 @@ public class StdioController implements Controller {
 				br = new BufferedReader(new InputStreamReader(System.in));
 				
 				while (!Thread.currentThread().isInterrupted()) {
-					System.out.print(prompt);
 					String input = br.readLine();
 
 					if( "q".equalsIgnoreCase(input)    ||
