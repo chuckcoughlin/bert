@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.motor.model.RobotMotorModel;
@@ -23,13 +26,18 @@ import bert.share.motor.MotorConfiguration;
 import jssc.SerialPort;
 
 /**
- * The MotorManager receives requests from the dispatcher having to do with
- * the Dynamixel motors. The manager dispenses the request to the multiple
- * MotorControllers receiving results via a call-back. A wait-notify scheme
- * is used to present a synchronized method interface to the dispatcher.
+ * The MotorGroupController receives requests from the server having to do with
+ * the Dynamixel motors. This controller dispenses the request to the multiple
+ * MotorControllers receiving results via a call-back. An await-signal scheme
+ * is used to present a synchronized method interface to the server.
+ * 
+ * On initialization, the system architecture is checked to determine if
+ * this is being run in a development or production environment. If
+ * development, then responses are simulated without any direct serial
+ * requests being made.
  */
 public class MotorGroupController implements Controller,MotorManager {
-	private final static String CLSS = "MotorManager";
+	private final static String CLSS = "MotorGroupController";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private final RobotMotorModel model;
 	private final Map<String,MotorController> motorControllers;
@@ -37,8 +45,12 @@ public class MotorGroupController implements Controller,MotorManager {
 	private final Map<String,Thread> motorControllerThreads;
 	private MessageBottle request;
 	private MessageBottle response;
+	private final boolean development;
+	private final Condition waiting;
+	private final Lock lock;
 	private int motorCount;
 	private int motorsProcessed;
+
 	private final Map<String,Integer> positionsInProcess;
 	/**
 	 * Constructor:
@@ -54,53 +66,60 @@ public class MotorGroupController implements Controller,MotorManager {
 		this.motorsProcessed = 0;
 		this.motorNameById = new HashMap<>();
 		this.positionsInProcess = new HashMap<>();
+		this.lock = new ReentrantLock();
+		this.waiting = lock.newCondition();
+		LOGGER.info(String.format("%s.constructor: os.arch = %s",CLSS,System.getProperty("os.arch")));  // x86_64
+		LOGGER.info(String.format("%s.constructor: os.name = %s",CLSS,System.getProperty("os.name")));  // Mac OS X
+		development = System.getProperty("os.arch").startsWith("x86");
 	}
 
 	/**
 	 * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
-	 * instances each running in its own thread. The controller is handles a group of
+	 * instances each running in its own thread. Each controller handles a group of
 	 * motors all communicating on the same serial port.
 	 */
 	@Override
 	public void initialize() {
-		Set<String> groupNames = model.getControllerTypes().keySet();
-		Map<String,MotorConfiguration> motors = model.getMotors(); 
-		for( String group:groupNames ) {
-			SerialPort port = model.getPortForGroup(group);
-			MotorController controller = new MotorController(group,port,this);
-			motorCount += controller.getMotorCount();
-			Thread t = new Thread(controller);
-			motorControllers.put(group, controller);
-			motorControllerThreads.put(group, t);
-			
-			// Add configurations to the controller for each motor in the group
-			List<String> jointNames = model.getJointNamesForGroup(group);
-			for( String jname:jointNames ) {
-				MotorConfiguration motor = motors.get(jname.toUpperCase());
-				if( motor!=null ) {
-					controller.putMotorConfiguration(jname, motor);
-					motorNameById.put(motor.getId(), jname);
+		if( !development ) {
+			Set<String> groupNames = model.getControllerTypes().keySet();
+			Map<String,MotorConfiguration> motors = model.getMotors(); 
+			for( String group:groupNames ) {
+				SerialPort port = model.getPortForGroup(group);
+				MotorController controller = new MotorController(group,port,this);
+				motorCount += controller.getMotorCount();
+				Thread t = new Thread(controller);
+				motorControllers.put(group, controller);
+				motorControllerThreads.put(group, t);
+
+				// Add configurations to the controller for each motor in the group
+				List<String> jointNames = model.getJointNamesForGroup(group);
+				for( String jname:jointNames ) {
+					MotorConfiguration motor = motors.get(jname.toUpperCase());
+					if( motor!=null ) {
+						controller.putMotorConfiguration(jname, motor);
+						motorNameById.put(motor.getId(), jname);
+					}
+					else {
+						LOGGER.warning(String.format("%s.createMotorGroups: Motor %s not found in %s",CLSS,jname,group));
+					}
 				}
-				else {
-					LOGGER.warning(String.format("%s.createMotorGroups: Motor %s not found in %s",CLSS,jname,group));
-				}
-				
 			}
 		}
 	}
 	
 	@Override
 	public int getControllerCount() { return motorControllers.size(); }
-	
+
 	@Override
 	public void start() {
-
-		for( String key:motorControllers.keySet()) {
-			MotorController controller = motorControllers.get(key);
-			controller.setStopped(false);
-			controller.initialize();
-			controller.start();
-			motorControllerThreads.get(key).start();
+		if(!development ) {
+			for( String key:motorControllers.keySet()) {
+				MotorController controller = motorControllers.get(key);
+				controller.setStopped(false);
+				controller.initialize();
+				controller.start();
+				motorControllerThreads.get(key).start();
+			}
 		}
 	}
 
@@ -109,11 +128,13 @@ public class MotorGroupController implements Controller,MotorManager {
 	 */
 	@Override
 	public void stop() {
-		for( String key:motorControllers.keySet()) {
-			MotorController controller = motorControllers.get(key);
-			controller.setStopped(true);
-			controller.stop();
-			motorControllerThreads.get(key).interrupt();
+		if(!development ) {
+			for( String key:motorControllers.keySet()) {
+				MotorController controller = motorControllers.get(key);
+				controller.setStopped(true);
+				controller.stop();
+				motorControllerThreads.get(key).interrupt();
+			}
 		}
 	}
 
@@ -138,22 +159,25 @@ public class MotorGroupController implements Controller,MotorManager {
 		if( canHandleImmediately(request) ) {
 			response = createResponseForLocalRequest(request);
 		}
+		else if(development ) {
+			response = simulateResponseForRequest(request);
+		}
 		else {
 			// Post requests to all motor controller threads. The thread(s) that can handle
 			// the request will do so. Merge results in call-back and respond.
+			lock.lock();
 			motorsProcessed = 0;
 			positionsInProcess.clear();
 			for( String key:motorControllers.keySet()) {
 				motorControllers.get(key).receiveRequest(request);
 			}
-			// The response becomes defined in the collectResult call-back
+			// The response becomes defined in the collectPositions() call-back
 			// so is available for return.
-			synchronized(request) {
-				try {
-					request.wait();
-				}
-				catch(InterruptedException ie) {}
+			try {
+				waiting.await();
 			}
+			catch(InterruptedException ie) {}
+			
 		}
 		return response;
 	}
@@ -195,7 +219,7 @@ public class MotorGroupController implements Controller,MotorManager {
 		if(motorsProcessed>=motorCount ) {
 			this.response = this.request;
 			this.response.setPositions(positionsInProcess);
-			this.request.notify();	
+			waiting.signal();	
 		}
 	}
 	// =========================== Private Helper Methods =======================================
@@ -249,6 +273,47 @@ public class MotorGroupController implements Controller,MotorManager {
 				break;
 			}
 			request.setProperty(BottleConstants.TEXT, text);
+		}
+		return request;
+	}
+	// When in development mode, simulate something reasonable as a response.
+	private MessageBottle simulateResponseForRequest(MessageBottle request) {
+		RequestType requestType = request.getRequestType();
+		if( requestType.equals(RequestType.GET_CONFIGURATION)) {
+			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
+			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
+			String text = "";
+			String jointName = Joint.toText(joint);
+			MotorConfiguration mc = model.getMotors().get(joint.name());
+			switch(property) {
+			case ID:
+				int id = mc.getId();
+				text = "The id of my "+jointName+" is "+id;
+				break;
+			case MOTORTYPE:
+				String modelName = "A X 12";
+				if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
+				else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
+				text = "My "+jointName+" is a dynamixel M X "+modelName;
+				break;
+			case OFFSET:
+				double offset = mc.getOffset();
+				text = "The offset of my "+jointName+" is "+offset;
+				break;
+			case ORIENTATION:
+				String orientation = "indirect";
+				if( mc.isDirect() ) orientation = "direct";
+				text = "The orientation of my "+jointName+" is "+orientation;
+				break;
+			default:
+				text = "";
+				request.setError(property.name()+" is not a property that I can look up");
+				break;
+			}
+			request.setProperty(BottleConstants.TEXT, text);
+		}
+		else {
+			LOGGER.warning(String.format("%s.simulateResponseForRequest: Request type %s not handled",CLSS,requestType));
 		}
 		return request;
 	}

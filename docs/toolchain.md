@@ -29,23 +29,32 @@ This document describes the setup and tools used to develop "Bert" and summarize
 ### Skeleton <a id="skeleton"></a>
 [toc](#table-of-contents)
 
-Full assembly instructions may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/doc/en/assemblyGuide.md).
-
 The skeletal print-files provided by GenerationRobots are in .STL format. This form is printable directly, but not conducive to modification.
 
 ![Bert Skeleton](/images/skeletal_assembly.png)
 ```                  Newly Assembled Skeleton     ```
 
-
-The following sections contain assembly links and describe modifications to the original parts, if any.
-
+Excellent assembly instructions may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/doc/en/assemblyGuide.md). The
+videos include step-by-step procedures for each motor group.
+The following sections contain describe modifications we've made to the original instructions, if any.
 
 #### Legs <a id="skeleton-legs"></a>
+US child-size 8 shoes seem to fit. I used a 3D print coating, [XTC-3D](https://www.smooth-on.com/products/xtc-3d/) to effect a smooth, shiny finish on the feet.
 #### Arms <a id="skeleton-arms"></a>
+The hands are coated in [UreCoat](https://www.smooth-on.com/product-line/urecoat/) which gives a rather creepy-feeling soft latex covering. A flesh-toned [colorant](https://www.smooth-on.com/category/color-and-fillers/) was mixed into the coating before application.
 #### Torso <a id="skeleton-torso"></a>
-In fastening the 2 SMPS2Dynamiel boards to the torso, instead of sticking them as the video shows, we used 2.5 x 12mm screws.
+We used 2.5 x 12mm screws to fasten the 2 SMPS2Dynamiel boards to the torso. The video shows sticking them on with hot-glue.
 #### Head <a id="skeleton-head"></a>
+Created an umbilical bundle from rear-end of head to torso. It includes:
+ * DC/DC 5V step-down converter for power to Odroid
+ * USB extension bundle for USB2Serial
+ * HDMI 8" extension to save wear and tear on Odroid HDMI port
 
+#### Power Supply <a id="power-supply"></a>
+The power pack, shown below, was constructed from a decorative tin that my wife had saved. Inside it contains 2 AC/12V DC converters. The connectors plug directly into the back of the robot.
+
+![Power Supply](/images/power_supply.jpg)
+```                  12V DC Power     ```
 ### Joints <a id="joints"></a>
 [toc](#table-of-contents)
 

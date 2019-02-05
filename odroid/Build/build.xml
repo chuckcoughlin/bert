@@ -6,6 +6,7 @@
 	<property name="config.template" value="${basedir}/../Configuration/template/bert.xml" />
 	<property name="jar.dir" location="${basedir}/../Archive/jars" />
 	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="mod.dir" value="${basedir}/mods" />
 	<property name="temp.dir" value="${basedir}/temp" />
 	<property name="robot.dir" value="${bert.home}" />
 	

@@ -130,7 +130,7 @@ While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) 
 
 Why did I select Java for this code when the iCub project chose Python?
   * Familiarity - over 2 decades of working with Java
-  * Re-factoring - the refactoring capabilities of Eclipse are unparalleled, in my opinion, and make code re-structuring quick, easy and accurate
+  * Refactoring - the refactoring capabilities of Eclipse are unparalleled, in my opinion, and make code re-structuring quick, easy and accurate
   * Code-Debug-Cycle - problems are more likely to be discovered by the compiler rather than run-time
   * Debugging - via Eclipse we can set breakpoints and inspect run-state not only locally, but on the target robot
   * Performance - Java executes an order of magnitude faster than Python

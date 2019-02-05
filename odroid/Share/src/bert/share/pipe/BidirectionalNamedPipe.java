@@ -20,7 +20,7 @@ import bert.share.common.PathConstants;
 /**
  *  This class encapsulates two named pipes for bi-directional
  *  communication. The "server" or "owner" is taken to be the 
- *  Dispatcher process. All others should instantiate with "false".
+ *  Server process. All others should instantiate with "false".
  *  
  *  The file descriptors are opened on "startup" and closed on 
  *  "shutdown". Opening a fifo for writing will block until someone opens 
@@ -74,7 +74,7 @@ public class BidirectionalNamedPipe   {
 	
 	/**
 	 * Create the pair of named pipes if they don't already exist.
-	 * Both dispatcher and command applications make the attempt,
+	 * Both Server and command applications make the attempt,
 	 * allowing the applications to be started in any order.
 	 * @return true if the pipes are ready for reading and writing.
 	 */
@@ -120,7 +120,7 @@ public class BidirectionalNamedPipe   {
 		}
 		else {
 			try {
-				LOGGER.info(String.format("%s.%s.startup: waiting on Dispatcher to open %s for write",name,CLSS,pathToWrite));
+				LOGGER.info(String.format("%s.%s.startup: waiting on Server to open %s for write",name,CLSS,pathToWrite));
 				out = new BufferedOutputStream(new FileOutputStream(pathToWrite));
 				LOGGER.info(String.format("%s.%s.startup: opened %s",name,CLSS,pathToWrite));
 			}
@@ -131,7 +131,7 @@ public class BidirectionalNamedPipe   {
 			new Thread(new Runnable() {
 			    public void run() {
 			    	try {
-			    		LOGGER.info(String.format("%s.%s.startup: waiting on Dispatcher to open %s for read",name,CLSS,pathToRead));
+			    		LOGGER.info(String.format("%s.%s.startup: waiting on Server to open %s for read",name,CLSS,pathToRead));
 						FileReader freader = new FileReader(pathToRead);
 						in = new BufferedReader(freader);
 						LOGGER.info(String.format("%s.%s.startup: opened %s",name,CLSS,pathToRead));
@@ -205,7 +205,7 @@ public class BidirectionalNamedPipe   {
 	/**
 	 * Create a pair of named pipes. The names are derived from
 	 * the root name as "to" and "from" from the point-of-view of
-	 * the Dispatcher process.
+	 * the Server process.
 	 * 
 	 * @param parent directory for the fifo files
 	 * @param root name of the pipe pair before adding suffices

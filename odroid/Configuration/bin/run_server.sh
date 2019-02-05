@@ -8,11 +8,11 @@ MP=mods/jssc.jar
 MP=${MP}:mods/jackson-core-2.9.7.jar
 MP=${MP}:mods/jackson-databind-2.9.7.jar
 MP=${MP}:mods/jackson-annotations-2.9.7.jar
-MP=${MP}:lib/bert-dispatcher.jar
+MP=${MP}:lib/bert-server.jar
 MP=$MP:lib/bert-common.jar
 MP=$MP:lib/bert-motors.jar
 
 # Allow debugging on port 8000
 X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
 
-java $X --module-path $MP -m bert.dispatcher/bert.dispatcher.main.Dispatcher ${BERT_HOME}
+java $X --module-path $MP -m bert.server/bert.server.main.Server ${BERT_HOME}

@@ -79,7 +79,7 @@
 			/>
 			<jar destfile="${lib.dir}/bert-server.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 				<manifest>
-					 <attribute name="Main-Class" value="bert.dispatcher.main.Dispatcher"/>
+					 <attribute name="Main-Class" value="bert.server.main.Server"/>
 				</manifest>
 			</jar>
 	</target>
@@ -102,7 +102,7 @@
 		<mkdir dir="../Speech/src/bert/speech/antlr"/>
 		<java classname="org.antlr.v4.Tool" classpathref="antlr-classpath" dir="../Speech"  fork="true">
 		     <arg value="-o" />
-		     <arg path="src/bert/speech/antlr" />
+		     <arg path="../Speech/src/bert/speech/antlr" />
 		     <arg value="-package" />
 		     <arg value="bert.speech.antlr" />
 		     <arg value="-visitor" />
@@ -112,7 +112,7 @@
 		<echo message="Compile the speech library" />
 		<delete dir="${temp.dir}" />
 		<mkdir dir="${temp.dir}"/>
-		<javac	srcdir="../speech/src"
+		<javac	srcdir="../Speech/src"
 		       	destdir="${temp.dir}"
 				compiler="javac10+"
 				source="11" target="11"
@@ -170,7 +170,7 @@
 		<chmod dir="${robot.dir}/lib" perm="ugo+rx" includes="**/*.jar"/>
 		<echo message="Copying modules locally into ${bert.home}/mods" />
 		<mkdir dir="${bert.home}/mods" />
-		<copy todir="${bert.home}/lib">
+		<copy todir="${bert.home}/mods">
 			<fileset dir="${archive.dir}">
 				<include name="*.jar"/>
 			</fileset>

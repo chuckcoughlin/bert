@@ -37,10 +37,10 @@ import bert.share.pipe.NamedPipeController;
  * the command pipes, distribute them to the motor manager channels and post the results.
  */
 public class Server implements Dispatcher {
-	private final static String CLSS = "Dispatcher";
-	private static final String USAGE = "Usage: dispatcher <robot_root>";
+	private final static String CLSS = "Server";
+	private static final String USAGE = "Usage: server <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = "dispatcher";
+	private static final String LOG_ROOT = "server";
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
 	private NamedPipeController commandController = null;
@@ -88,8 +88,6 @@ public class Server implements Dispatcher {
 		while( walker.hasNext()) {
 			String key = walker.next();
 			String pipeName = pipeNames.get(key);
-			BidirectionalNamedPipe pipe = new BidirectionalNamedPipe(pipeName,true);  // Dispatcher is the "owner"
-			pipe.create();                                          // Create the pipe if it doesn't exist
 			ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
 			if( type.equals(ControllerType.COMMAND)) {
 				commandController = new NamedPipeController(this,pipeName,true); 
@@ -162,8 +160,6 @@ public class Server implements Dispatcher {
 		if(timerController!=null )    timerController.initialize();
 		if(motorGroupController!=null ) {
 			LOGGER.info(String.format("%s.execute: initializing motorGroupController",CLSS));
-			LOGGER.info(String.format("%s.execute: os.arch = %s",CLSS,System.getProperty("os.arch")));
-			LOGGER.info(String.format("%s.execute: os.name = %s",CLSS,System.getProperty("os.name")));
 			motorGroupController.initialize();
 		}
 	}
