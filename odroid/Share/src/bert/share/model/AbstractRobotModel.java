@@ -29,8 +29,8 @@ public abstract class AbstractRobotModel  {
 	private static final String CLSS = "AbstractRobotModel";
 	protected final Document document;
 	protected final Properties properties;
-	protected final Map<String,String> controllerTypes;  // Controller types by controller name
-	protected final Map<String,String> pipeNames;        // Pipe names by controller name
+	protected final Map<String,String> handlerTypes;  // Message handler types by handler name
+	protected final Map<String,Integer> sockets;      // Socket port by handler name
 	protected final Map<String,MotorConfiguration> motors; // Motor configuration by motor name
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 
@@ -38,9 +38,9 @@ public abstract class AbstractRobotModel  {
 	public AbstractRobotModel(Path configPath) {
 		this.document = analyzePath(configPath);
 		this.properties = new Properties();
-		this.controllerTypes = new HashMap<>();
+		this.handlerTypes = new HashMap<>();
 		this.motors = new HashMap<>();
-		this.pipeNames = new HashMap<>();
+		this.sockets = new HashMap<>();
 	}
     
 
@@ -50,6 +50,7 @@ public abstract class AbstractRobotModel  {
 	 *  populate() process. 
 	 */
 	public abstract void analyzeControllers();
+	
 	/**
 	 *  Analyze the document. The information retained is dependent on the context
 	 *  (client or server). This must be called before the model is accessed.
@@ -59,20 +60,21 @@ public abstract class AbstractRobotModel  {
 	public String getProperty(String key,String defaultValue) {
 		return this.properties.getProperty(key,defaultValue);
 	}
-	
+
 	/**
-	 * @return a map of type names for each controller used by this application.
+	 * @return a map of type names for each message handler used by this application.
 	 */
-	public Map<String,String> getControllerTypes() { return this.controllerTypes; }
+	public Map<String,String> getHandlerTypes() { return this.handlerTypes; }
+	
 	/**
 	 * @return a map of motor configuration objects by motor name (upper case).
 	 */
 	public Map<String,MotorConfiguration> getMotors() { return this.motors; }
 	/**
-	 * @return a map of names of the pipes for each controller used by this application.
+	 * @return a map of socket attributes keyed by controller name.
 	 *         The key list is sufficient to get the controller names.
 	 */
-	public Map<String,String> getPipeNames() { return this.pipeNames; }
+	public Map<String,Integer> getSockets() { return this.sockets; }
     /**
 	 * Expand the supplied path as the configuration XML file.
 	 * @return the configuration, an XML document.

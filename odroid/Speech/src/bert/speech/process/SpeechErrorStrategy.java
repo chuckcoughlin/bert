@@ -18,7 +18,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
-import bert.share.bottle.MessageBottle;
+import bert.share.message.MessageBottle;
 
 
 

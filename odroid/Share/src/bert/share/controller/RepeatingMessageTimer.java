@@ -2,18 +2,18 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.server.timer;
+package bert.share.controller;
 
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import bert.share.bottle.RepeatingMessageBottle;
-import bert.share.controller.Dispatcher;
+import bert.share.message.MessageHandler;
+import bert.share.message.RepeatingMessageBottle;
 
 /**
- *  Patterned after a watchdog timer which manages a collection of "watchmsgs". The msgs
- *  are sorted by expiration time. "petting" the msgs resets the timeout
+ *  Patterned after a watchdog timer which manages a collection of "watchdogs". The dogs
+ *  are sorted by expiration time. "petting" a dog resets the timeout
  *  perhaps indefinitely. Once the petting stops, the dog's "evaluate"
  *  method is invoked. There is always, at least one dog present in
  *  the list, the IDLE dog.
@@ -34,14 +34,14 @@ public class RepeatingMessageTimer implements Runnable   {
 	protected long currentTime = 0;
 	protected long cadence = 1000;
 	protected String name = CLSS;
-	private final Dispatcher dispatcher;
+	private final MessageHandler dispatcher;
 
 	/**
 	 * Constructor: This version of the constructor supplies a timer name.
 	 * @param launcher parent dispatcher
 	 * @param interval repeat interval ~msecs
 	 */
-	public RepeatingMessageTimer(Dispatcher launcher,long interval)  {
+	public RepeatingMessageTimer(MessageHandler launcher,long interval)  {
 		this.dispatcher = launcher;
 		this.cadence = interval;
 		this.idleMessage = new RepeatingMessageBottle();

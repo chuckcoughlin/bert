@@ -13,12 +13,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
-import bert.share.bottle.MessageBottle;
 import bert.share.common.PathConstants;
-import bert.share.controller.Dispatcher;
+import bert.share.controller.SocketController;
 import bert.share.logging.LoggerUtility;
+import bert.share.message.HandlerType;
+import bert.share.message.MessageBottle;
+import bert.share.message.MessageHandler;
 import bert.share.model.ConfigurationConstants;
-import bert.share.pipe.NamedPipeController;
 import bert.sql.db.Database;
 import bert.term.model.RobotTerminalModel;
 
@@ -31,13 +32,13 @@ import bert.term.model.RobotTerminalModel;
  * The application acts as the intermediary between a StdioController and
  * NamedPipeController communicating with the Server.
  */
-public class Terminal implements Dispatcher {
+public class Terminal implements MessageHandler {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "terminal";
 	private final RobotTerminalModel model;
-	private NamedPipeController pipeController = null;
+	private SocketController socketController = null;
 	private final Condition busy;
 	private StdioController controller = null;
 	private MessageBottle currentRequest;
@@ -50,18 +51,19 @@ public class Terminal implements Dispatcher {
 	}
 
 	/**
-	 * This application contains a stdio controller and a pipe controller
+	 * This application contains a stdio controller and a client socket controller
 	 */
 	@Override
 	public void createControllers() {
 		String prompt = model.getProperty(ConfigurationConstants.PROPERTY_PROMPT,"bert:");
 		this.controller = new StdioController(this,prompt);
 		
-		Map<String, String> pipeNames = model.getPipeNames();
-		Iterator<String>walker = pipeNames.keySet().iterator();
+		String hostName = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost");
+		Map<String, Integer> sockets = model.getSockets();
+		Iterator<String>walker = sockets.keySet().iterator();
 		String key = walker.next();
-		String pipeName = pipeNames.get(key);
-		this.pipeController = new NamedPipeController(this,pipeName,false); 
+		int port = sockets.get(key);
+		this.socketController = new SocketController(this,HandlerType.TERMINAL.name(),hostName,port); 
 	}
 	
 	/**
@@ -79,7 +81,7 @@ public class Terminal implements Dispatcher {
 				try{
 					busy.await();
 					if( currentRequest==null) break;
-					pipeController.receiveRequest(currentRequest);	
+					socketController.receiveRequest(currentRequest);	
 				}
 				catch(InterruptedException ie ) {}
 				finally {
@@ -96,20 +98,20 @@ public class Terminal implements Dispatcher {
 		Database.getInstance().shutdown();
 		System.exit(0);
 	}
-
+	
 	@Override
 	public void initialize() {
-		pipeController.initialize();
+		socketController.initialize();
 		controller.initialize();
 	}
 	@Override
 	public void start() {
-		pipeController.start();
+		socketController.start();
 		controller.start();
 	}
 	@Override
 	public void stop() {
-		pipeController.stop();
+		socketController.stop();
 		controller.stop();
 	}
 	/**
@@ -163,5 +165,4 @@ public class Terminal implements Dispatcher {
 		runner.createControllers();
         runner.execute();
 	}
-
 }

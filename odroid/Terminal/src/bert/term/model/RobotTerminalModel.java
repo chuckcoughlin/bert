@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import bert.share.controller.ControllerType;
+import bert.share.message.HandlerType;
 import bert.share.model.AbstractRobotModel;
 import bert.share.xml.XMLUtility;
 
@@ -37,7 +37,6 @@ public class RobotTerminalModel extends AbstractRobotModel   {
     // ================================ Auxiliary Methods  ===============================
 	/**
 	 * Search the XML configuration for the terminal controller. It's the only one we care about.
-	 * If not found, the controller will be null.
 	 */
 	@Override
 	public void analyzeControllers() {
@@ -50,14 +49,14 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 				String name = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isBlank() &&
-					type.equalsIgnoreCase(ControllerType.TERMINAL.name()) ) {
-					// Configure the pipe - there should only be one.
-					NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
-					if( pipeElements.getLength()>0) {
-						Element pipeElement= (Element)(pipeElements.item(0));
-						String pname = XMLUtility.attributeValue(pipeElement, "name");
-						controllerTypes.put(name,type.toUpperCase());
-						pipeNames.put(name,pname);
+					type.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
+					// Configure the socket - there should only be one.
+					NodeList socketElements = controllerElement.getElementsByTagName("socket");
+					if( socketElements.getLength()>0) {
+						handlerTypes.put(name,type.toUpperCase());
+						Element socketElement= (Element)(socketElements.item(0));
+						String portName = XMLUtility.attributeValue(socketElement, "port");
+						sockets.put(name,Integer.parseInt(portName));
 					}
 					break;
 				}

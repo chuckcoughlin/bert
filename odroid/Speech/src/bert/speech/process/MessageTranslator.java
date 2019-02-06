@@ -6,8 +6,8 @@ package bert.speech.process;
 
 import java.util.logging.Logger;
 
-import bert.share.bottle.BottleConstants;
-import bert.share.bottle.MessageBottle;
+import bert.share.message.BottleConstants;
+import bert.share.message.MessageBottle;
 
 
 /**

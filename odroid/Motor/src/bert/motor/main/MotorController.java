@@ -14,10 +14,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.motor.dynamixel.DxlMessage;
-import bert.share.bottle.BottleConstants;
-import bert.share.bottle.MessageBottle;
-import bert.share.bottle.RequestType;
 import bert.share.controller.Controller;
+import bert.share.message.BottleConstants;
+import bert.share.message.MessageBottle;
+import bert.share.message.RequestType;
 import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 import jssc.SerialPort;

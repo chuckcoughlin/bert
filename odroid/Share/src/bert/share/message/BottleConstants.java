@@ -1,9 +1,9 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
 
-package bert.share.bottle;
+package bert.share.message;
 
 
 /**
@@ -22,13 +22,9 @@ public interface BottleConstants   {
 	
 	// Properties appropriate for responses
 	public final static String TEXT     = "text";     // End-user appropriate text result
-	public final static String VALUE    = "value";    // Single-value result
-	
-	
+	public final static String VALUE    = "value";    // Single-value result	
 	
 	public final static String POSE_NAME           = "pose";
-
-	
 	
 	// Command names
 	public final static String COMMAND_FREEZE      = "freeze";

@@ -4,7 +4,7 @@
  */
 package bert.share.controller;
 
-import bert.share.bottle.MessageBottle;
+import bert.share.message.MessageBottle;
 
 /**
  *  A common interface for controllers owned by application instances.

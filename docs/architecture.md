@@ -14,7 +14,7 @@ The *iCub* main project repository is at: https://github.com/robotology/icub-mai
   * [Software Architecture](#architecture)
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
-    * [Named Pipes](#pipes)
+    * [Interprocess Communication](#sockets)
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
     * [Failures](#failured)
@@ -42,7 +42,7 @@ independent processes to have a common understanding of the parameters.
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- This file describes "bert", a poppy-like robot. The identical configuration
-     is used for both the event processor (dispatcher) and bindings (command) processes.
+     is used for both the server and client-side processes.
  -->
 <robot>
 	<!-- This first section lists miscellaneous properties. @...@ values are
@@ -51,20 +51,19 @@ independent processes to have a common understanding of the parameters.
 	<property name="name">bert</property>
 	<property name="release">@RELEASE@</property>
 	<property name="date">@DATE@</property>
-	<!--  The looper cadence is in msecs  -->
+	<!--  Cadence in msecs refers to the record frequency  -->
 	<property name="cadence">1000</property>
 	<!--  Used by the terminal  -->
 	<property name="prompt">bert: </property>
 
-	<!-- The following name controllers that exist in both server and client-side
-	     processes. Define them both even if the client-side version is not launched.
-	     The dispatcher and client-side controllers communicate through pairs of one-way named pipes.
+	<!-- The following section defines client-side applications that are also known to the server.
+		 Each application communicates in both directions over its own socket.
 	-->
 	<controller name="terminal" type="TERMINAL">
-		<pipe  name="term"/>
+		<socket  port="9044"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<pipe  name="cmd"/>
+		<socket  port="9045"/>
 	</controller>
 
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
@@ -87,7 +86,7 @@ independent processes to have a common understanding of the parameters.
 		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-90" min="-3.5" max="134" orientation="direct" />
 	</controller>
 	<controller name="right_leg" type="SERIAL">
-		<port  name="right_leg" device="@PORT_RIGHT__LEG@" />
+		<port  name="right_leg" device="@PORT_RIGHT_LEG@" />
 		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="0" min="-45" max="45" orientation="indirect" />
 		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="0" min="-28.5" max="30" orientation="direct" />
 		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="0" min="-85" max="105" orientation="indirect" />
@@ -116,8 +115,8 @@ independent processes to have a common understanding of the parameters.
 </robot>
 ```
 
-#### Named Pipes <a id="pipes"/>
-Named pipes are a pain to initialize. A reader will hang on an attempt to open until a writer opens the other end. A writer hangs on a write attempt until there is a reader on the other end.
+#### Interprocess Communication <a id="sockets"/>
+The major components are all independent linux processes. They communicate via sockets. Port numbers are defined in the configuration file.
 
 
 ## Appendices <a id="appendices"/>

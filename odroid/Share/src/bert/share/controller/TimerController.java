@@ -3,14 +3,14 @@
  *                 MIT License.
  *
  */
-package bert.server.timer;
+package bert.share.controller;
 
 import java.util.logging.Logger;
 
-import bert.share.bottle.MessageBottle;
-import bert.share.bottle.RepeatingMessageBottle;
 import bert.share.controller.Controller;
-import bert.share.controller.Dispatcher;
+import bert.share.message.MessageBottle;
+import bert.share.message.MessageHandler;
+import bert.share.message.RepeatingMessageBottle;
 
 /**
  *  A timer controller accepts a RequestBottle and submits it to the parent
@@ -22,7 +22,7 @@ public class TimerController implements Controller  {
 	private Logger LOGGER = Logger.getLogger(CLSS);
 	private final long cadence;  // ~ msecs
 	private RepeatingMessageBottle request = null;
-	private final Dispatcher dispatcher;
+	private final MessageHandler dispatcher;
 	private final RepeatingMessageTimer timer;
 	
 	/**
@@ -30,7 +30,7 @@ public class TimerController implements Controller  {
 	 * @param launcher the dispatcher parent process
 	 * @param interval repeat interval for request submission
 	 */
-	public TimerController(Dispatcher launcher,int interval) {
+	public TimerController(MessageHandler launcher,int interval) {
 		this.cadence = interval;
 		this.dispatcher = launcher;
 		this.timer = new RepeatingMessageTimer(dispatcher,cadence);

@@ -15,25 +15,27 @@ import java.util.logging.Logger;
 
 import bert.command.model.Humanoid;
 import bert.command.model.RobotCommandModel;
-import bert.share.bottle.MessageBottle;
 import bert.share.common.PathConstants;
-import bert.share.controller.Dispatcher;
+import bert.share.controller.SocketController;
 import bert.share.logging.LoggerUtility;
-import bert.share.pipe.NamedPipeController;
+import bert.share.message.HandlerType;
+import bert.share.message.MessageBottle;
+import bert.share.message.MessageHandler;
+import bert.share.model.ConfigurationConstants;
 import bert.sql.db.Database;
 
 /**
  * This is the main client class (on the controller side of the pipes). It holds
  * the command, playback, record and joint controllers. 
  */
-public class Bert implements Dispatcher {
+public class Bert implements MessageHandler {
 	private final static String CLSS = "Bert";
 	private static final String USAGE = "Usage: bert <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "bert";
 	private final RobotCommandModel model;
 	private BluetoothController controller = null;
-	private NamedPipeController pipeController = null;
+	private SocketController socketController = null;
 	private final Humanoid robot;
 	private final Condition busy;
 	private MessageBottle currentRequest;
@@ -49,17 +51,18 @@ public class Bert implements Dispatcher {
 
 	/**
 	 * This application is only interested in the command controller. There should only be
-	 * one entry in the map.
+	 * one entry in the map. Create a socket controller for clients.
 	 */
 	@Override
 	public void createControllers() {
 		this.controller = new BluetoothController(this);
 		
-		Map<String, String> pipeNames = model.getPipeNames();
-		Iterator<String>walker = pipeNames.keySet().iterator();
+		String hostName = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost");
+		Map<String, Integer> sockets = model.getSockets();
+		Iterator<String>walker = sockets.keySet().iterator();
 		String key = walker.next();
-		String pipeName = pipeNames.get(key);
-		this.pipeController = new NamedPipeController(this,pipeName,false); 
+		int port = sockets.get(key);
+		this.socketController = new SocketController(this,HandlerType.COMMAND.name(),hostName,port); 
 	}
 	
 	/**
@@ -76,7 +79,7 @@ public class Bert implements Dispatcher {
 				try{
 					busy.await();
 					if( currentRequest==null) break;
-					pipeController.receiveRequest(currentRequest);	
+					socketController.receiveRequest(currentRequest);	
 				}
 				catch(InterruptedException ie ) {}
 				finally {
@@ -96,17 +99,17 @@ public class Bert implements Dispatcher {
 	
 	@Override
 	public void initialize() {
-		pipeController.initialize();
+		socketController.initialize();
 		controller.initialize();
 	}
 	@Override
 	public void start() {
-		pipeController.start();
+		socketController.start();
 		controller.start();
 	}
 	@Override
 	public void stop() {
-		pipeController.stop();
+		socketController.stop();
 		controller.stop();
 	}
 	/**
@@ -157,7 +160,6 @@ public class Bert implements Dispatcher {
         Bert runner = new Bert(model);
         runner.createControllers();
         runner.execute();
-
 	}
 
 }

@@ -340,7 +340,7 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="577.37123"
+     inkscape:cx="385.73223"
      inkscape:cy="310.2508"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -780,7 +780,9 @@
        style="image-rendering:optimizeSpeed"
        preserveAspectRatio="none"
        height="45.882572"
-       width="67.170715" />
+       width="67.170715"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
     <image
        y="199.95261"
        x="156.82086"
@@ -833,8 +835,8 @@
          sodipodi:role="line">Terminal App</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.2267189px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.29188311"
-       x="20.027554"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.2267189px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.29188311;"
+       x="41.9062"
        y="236.77101"
        id="text6744"
        transform="scale(1.0124111,0.98774105)"><tspan
@@ -842,7 +844,12 @@
          id="tspan6742"
          x="20.027554"
          y="236.77101"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.2267189px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.29188311">MotorManager</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.2267189px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.29188311;">Motor Group</tspan><tspan
+         sodipodi:role="line"
+         x="20.027554"
+         y="244.55441"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.2267189px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.29188311;"
+         id="tspan151">Controller</tspan></text>
     <text
        transform="scale(1.0124111,0.98774106)"
        id="text6748"
@@ -898,21 +905,21 @@
          id="tspan6797">Controller</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:2.81605983px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.1320028"
-       x="87.771507"
+       style="font-style:normal;font-weight:normal;font-size:2.81605983px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.1320028;text-anchor:middle;text-align:center;"
+       x="107.17249"
        y="319.15375"
        id="text7098"
        transform="scale(1.1025988,0.9069482)"><tspan
          sodipodi:role="line"
          x="87.771507"
          y="319.15375"
-         style="stroke-width:0.1320028"
+         style="stroke-width:0.1320028;text-anchor:middle;text-align:center;"
          id="tspan7102">Connections between  JVMs</tspan><tspan
          sodipodi:role="line"
          x="87.771507"
          y="322.67383"
-         style="stroke-width:0.1320028"
-         id="tspan7100">    are named pipes</tspan></text>
+         style="stroke-width:0.1320028;text-anchor:middle;text-align:center;"
+         id="tspan7100">    are sockets</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:4.74867582px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.22259416"
@@ -1002,5 +1009,66 @@
        preserveAspectRatio="none"
        height="6.8791666"
        width="125.67708" />
+    <image
+       y="254.28593"
+       x="38.095467"
+       id="image189"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/NlyAAAABHNCSVQICAgIfAhkiAAAAcJJREFU
+aIHt281KAlEYxvHnnMnGhRphTkTrYEK8jT5EA1uUhXUt6aYuQyJaBQUuugBDgm5Ai2jXh210yhRz
+OG0S2k40c+yd97c8nMXzZ2Y5I5RSCgAcx8HF2Rlurq/x/PSE7+N/K5FIIJ3JYKNQwJJtj4+LQiml
+7lotHJbLcBxH50ZfCCGws7eHza0tACjKTqeDo0qFZCwAKKVwenyMRr0OAJC183N0u13Ns/x3Uq3C
+dV1hLFrWwfvbm+49vuv1eojFYlfytd3WvSUwD/f3M3I0GuneEZjhcGhI3SOCxsHUhS54ysvl6UgE
+hmH4teVX+oOBp/uegg3DQGTSgj3eD90rzcHUcTB1HEwdB1PHwdRxMHUcTB0HU8fB1HEwdRxMHQdT
+x8HUcTB1HEwdB1PHwdR5+sajPxh4/qZi0oTuCXMwdeELFkLo3hAYIYSS8Xhc947ApFKpD5nOZHTv
+CIRpmsjm849yo1BAGF7r1WwWScv6lEu2jd39fd17fGUvL6NYKgEAxPjPtEa9jpNqFe2XF63j/lI0
+GsXK+jqKpRKmTRP4/jNte3zBdV1xWavN3zabs/pm/o25ZLK/lss9WgsLwx/HjS9ltXw2+DrJSQAA
+AABJRU5ErkJggg==
+"
+       style="image-rendering:optimizeSpeed"
+       preserveAspectRatio="none"
+       height="15.875"
+       width="15.875" />
+    <image
+       y="249.25885"
+       x="29.099634"
+       id="image178"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/NlyAAAABHNCSVQICAgIfAhkiAAAAcJJREFU
+aIHt281KAlEYxvHnnMnGhRphTkTrYEK8jT5EA1uUhXUt6aYuQyJaBQUuugBDgm5Ai2jXh210yhRz
+OG0S2k40c+yd97c8nMXzZ2Y5I5RSCgAcx8HF2Rlurq/x/PSE7+N/K5FIIJ3JYKNQwJJtj4+LQiml
+7lotHJbLcBxH50ZfCCGws7eHza0tACjKTqeDo0qFZCwAKKVwenyMRr0OAJC183N0u13Ns/x3Uq3C
+dV1hLFrWwfvbm+49vuv1eojFYlfytd3WvSUwD/f3M3I0GuneEZjhcGhI3SOCxsHUhS54ysvl6UgE
+hmH4teVX+oOBp/uegg3DQGTSgj3eD90rzcHUcTB1HEwdB1PHwdRxMHUcTB0HU8fB1HEwdRxMHQdT
+x8HUcTB1HEwdB1PHwdR5+sajPxh4/qZi0oTuCXMwdeELFkLo3hAYIYSS8Xhc947ApFKpD5nOZHTv
+CIRpmsjm849yo1BAGF7r1WwWScv6lEu2jd39fd17fGUvL6NYKgEAxPjPtEa9jpNqFe2XF63j/lI0
+GsXK+jqKpRKmTRP4/jNte3zBdV1xWavN3zabs/pm/o25ZLK/lss9WgsLwx/HjS9ltXw2+DrJSQAA
+AABJRU5ErkJggg==
+"
+       style="image-rendering:optimizeSpeed"
+       preserveAspectRatio="none"
+       height="15.875"
+       width="15.875" />
+    <rect
+       style="opacity:0.73400005;fill:#271919;fill-opacity:1;fill-rule:nonzero;stroke:#150909;stroke-width:3;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:307.04879761;stroke-opacity:1"
+       id="rect153"
+       width="12.7"
+       height="12.7"
+       x="22.899839"
+       y="245.2901" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:3.17499995px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffe6d5;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="28.547041"
+       y="250.84637"
+       id="text157"><tspan
+         sodipodi:role="line"
+         id="tspan155"
+         x="28.547041"
+         y="250.84637"
+         style="font-size:3.17499995px;text-align:center;text-anchor:middle;fill:#ffe6d5;stroke-width:0.26458332">Motor</tspan><tspan
+         sodipodi:role="line"
+         x="28.547041"
+         y="254.81512"
+         style="font-size:3.17499995px;text-align:center;text-anchor:middle;fill:#ffe6d5;stroke-width:0.26458332"
+         id="tspan159">Controller</tspan></text>
   </g>
 </svg>

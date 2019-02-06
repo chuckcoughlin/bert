@@ -7,10 +7,10 @@ package bert.speech.process;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import bert.share.bottle.BottleConstants;
-import bert.share.bottle.MessageBottle;
-import bert.share.bottle.MetricType;
-import bert.share.bottle.RequestType;
+import bert.share.message.BottleConstants;
+import bert.share.message.MessageBottle;
+import bert.share.message.MetricType;
+import bert.share.message.RequestType;
 import bert.share.motor.Joint;
 import bert.share.motor.JointProperty;
 import bert.speech.antlr.SpeechSyntaxBaseVisitor;

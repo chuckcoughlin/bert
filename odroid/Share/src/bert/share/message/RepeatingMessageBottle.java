@@ -2,13 +2,13 @@
  * Copyright 2019 Charles Coughlin. All rights reserved.
  * MIT License
  */
-package bert.share.bottle;
+package bert.share.message;
 
 import java.util.UUID;
 
 /**
- * A RepeatingMessageBottle is a message, usually a request that is
- * configured to be submitted repeatedly via a RequestTimer. It contains
+ * A RepeatingMessageBottle is a message, usually a request, that is
+ * configured to be submitted repeatedly via a RepeatingMessageTimer. It contains
  * additional members associated with timing.
  */
 public class RepeatingMessageBottle extends MessageBottle {

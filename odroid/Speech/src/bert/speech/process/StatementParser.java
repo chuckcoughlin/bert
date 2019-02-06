@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.CodePointCharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import bert.share.bottle.MessageBottle;
+import bert.share.message.MessageBottle;
 import bert.speech.antlr.SpeechSyntaxLexer;
 import bert.speech.antlr.SpeechSyntaxParser;
 

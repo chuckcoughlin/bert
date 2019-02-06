@@ -2,7 +2,7 @@
  * Copyright 2019 Charles Coughlin. All rights reserved.
  * MIT License
  */
-package bert.share.bottle;
+package bert.share.message;
 
 import java.io.IOException;
 import java.io.Serializable;

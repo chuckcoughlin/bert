@@ -2,7 +2,7 @@
  * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.bottle;
+package bert.share.message;
 
 /**
  * These quantities are attributes of the robot as a whole.

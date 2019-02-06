@@ -9,10 +9,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
-import bert.share.bottle.MessageBottle;
 import bert.share.controller.Controller;
-import bert.share.controller.ControllerType;
-import bert.share.controller.Dispatcher;
+import bert.share.message.HandlerType;
+import bert.share.message.MessageBottle;
+import bert.share.message.MessageHandler;
 import bert.speech.process.MessageTranslator;
 import bert.speech.process.StatementParser;
 
@@ -25,7 +25,7 @@ import bert.speech.process.StatementParser;
 public class StdioController implements Controller {
 	private final static String CLSS = "StdioController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private final Dispatcher dispatcher;
+	private final MessageHandler dispatcher;
 	private Thread runner = null;
 	private final StatementParser parser;
 	private final MessageTranslator translator;
@@ -35,7 +35,7 @@ public class StdioController implements Controller {
 	 * @param launcher the parent application
 	 * @param text prompt displayed for user entry
 	 */
-	public StdioController(Dispatcher launcher,String text) {
+	public StdioController(MessageHandler launcher,String text) {
 		this.dispatcher = launcher;
 		this.prompt = text;
 		this.parser = new StatementParser();
@@ -81,10 +81,10 @@ public class StdioController implements Controller {
 	 * Forward requests to the Terminal dispatcher.
 	 */
 	public class StdinReader implements Runnable {
-		private Dispatcher dispatcher;
+		private MessageHandler dispatcher;
 		
 		
-		public StdinReader(Dispatcher disp) {
+		public StdinReader(MessageHandler disp) {
 			this.dispatcher = disp;
 		}
 
@@ -118,7 +118,7 @@ public class StdioController implements Controller {
 					 */
 					else {
 						MessageBottle request = parser.parseStatement(input);
-						request.setSource(ControllerType.TERMINAL.name());
+						request.setSource(HandlerType.TERMINAL.name());
 						dispatcher.handleRequest(request);
 					}
 				}

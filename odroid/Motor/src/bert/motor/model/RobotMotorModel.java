@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import bert.share.controller.ControllerType;
+import bert.share.message.HandlerType;
 import bert.share.model.AbstractRobotModel;
 import bert.share.xml.XMLUtility;
 import jssc.SerialPort;
@@ -62,11 +62,11 @@ public class RobotMotorModel extends AbstractRobotModel  {
 				String group = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isBlank() &&
-						type.equalsIgnoreCase(ControllerType.SERIAL.name()) ) {
+						type.equalsIgnoreCase(HandlerType.SERIAL.name()) ) {
 					// Configure the port - there should only be one per motor group.
 					NodeList portElements = controllerElement.getElementsByTagName("port");
 					if( portElements.getLength()>0) {
-						controllerTypes.put(group,type.toUpperCase());
+						handlerTypes.put(group,type.toUpperCase());
 						Element portElement= (Element)(portElements.item(0));
 						String pname = XMLUtility.attributeValue(portElement, "name");
 						String device = XMLUtility.attributeValue(portElement, "device");

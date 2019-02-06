@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import bert.share.bottle.BottleConstants;
 import bert.share.common.DynamixelType;
+import bert.share.message.BottleConstants;
 
 /**
  * This class contains static methods used to create and interpret different varieties \

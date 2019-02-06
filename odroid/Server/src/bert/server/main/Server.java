@@ -19,32 +19,31 @@ import java.util.logging.Logger;
 import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
 import bert.server.model.RobotDispatcherModel;
-import bert.server.timer.TimerController;
-import bert.share.bottle.BottleConstants;
-import bert.share.bottle.MessageBottle;
-import bert.share.bottle.MetricType;
-import bert.share.bottle.RequestType;
 import bert.share.common.PathConstants;
-import bert.share.controller.ControllerType;
-import bert.share.controller.Dispatcher;
+import bert.share.controller.SocketController;
+import bert.share.controller.TimerController;
 import bert.share.logging.LoggerUtility;
+import bert.share.message.BottleConstants;
+import bert.share.message.HandlerType;
+import bert.share.message.MessageBottle;
+import bert.share.message.MessageHandler;
+import bert.share.message.MetricType;
+import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
-import bert.share.pipe.BidirectionalNamedPipe;
-import bert.share.pipe.NamedPipeController;
 
 /**
  * The dispatcher is its own system process. It's job is to accept requests from 
  * the command pipes, distribute them to the motor manager channels and post the results.
  */
-public class Server implements Dispatcher {
+public class Server implements MessageHandler {
 	private final static String CLSS = "Server";
 	private static final String USAGE = "Usage: server <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "server";
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
-	private NamedPipeController commandController = null;
-	private NamedPipeController terminalController= null;
+	private SocketController commandController = null;
+	private SocketController terminalController= null;
 	private TimerController timerController       = null;
 	private MotorGroupController motorGroupController = null;
 	private final Condition busy;
@@ -66,7 +65,7 @@ public class Server implements Dispatcher {
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
 		this.motorGroupController = mgc;
-		this.name = model.getProperty(ConfigurationConstants.PROPERTY_NAME,"Bert");
+		this.name = model.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME,"Bert");
 		String cadenceString = model.getProperty(ConfigurationConstants.PROPERTY_CADENCE,"1000");  // ~msecs
 		try {
 			this.cadence = Integer.parseInt(cadenceString);
@@ -78,23 +77,23 @@ public class Server implements Dispatcher {
 	}
 	
 	/**
-	 * The server creates controllers for the Terminal and Command application pipes, and a controller
+	 * The server creates controllers for the Terminal and Command sockets, and a controller
 	 * for repeating requests (on a timer). The motor group controller has its own model and is already
 	 * instantiated at this point..
 	 */
 	public void createControllers() {
-		Map<String, String> pipeNames = model.getPipeNames();
-		Iterator<String>walker = pipeNames.keySet().iterator();
+		Map<String, Integer> sockets = model.getSockets();
+		Iterator<String>walker = sockets.keySet().iterator();
 		while( walker.hasNext()) {
 			String key = walker.next();
-			String pipeName = pipeNames.get(key);
-			ControllerType type = ControllerType.valueOf(model.getControllerTypes().get(key));
-			if( type.equals(ControllerType.COMMAND)) {
-				commandController = new NamedPipeController(this,pipeName,true); 
+			HandlerType type = HandlerType.valueOf(model.getHandlerTypes().get(key));
+			int port = sockets.get(key);
+			if( type.equals(HandlerType.COMMAND)) {
+				commandController = new SocketController(this,type.name(),port); 
 				LOGGER.info(String.format("%s: created command controller",CLSS));
 			}
-			else if( type.equals(ControllerType.TERMINAL)) {
-				terminalController = new NamedPipeController(this,pipeName,true); 
+			else if( type.equals(HandlerType.TERMINAL)) {
+				terminalController = new SocketController(this,type.name(),port); 
 				LOGGER.info(String.format("%s: created terminal controller",CLSS));
 			}
 		}
@@ -152,6 +151,7 @@ public class Server implements Dispatcher {
 		}
 		System.exit(0);
 	}
+	
 	
 	@Override
 	public void initialize() {
@@ -266,19 +266,19 @@ public class Server implements Dispatcher {
 		startMessage.setRequestType(RequestType.NONE);
 		startMessage.setProperty(BottleConstants.TEXT, "Bert is ready");
 		LOGGER.info(String.format("%s: Bert is ready ...",CLSS));
-		startMessage.setSource(ControllerType.TERMINAL.name());
+		startMessage.setSource(HandlerType.TERMINAL.name());
 		sendResponse(startMessage);
-		startMessage.setSource(ControllerType.COMMAND.name());
+		startMessage.setSource(HandlerType.COMMAND.name());
 		sendResponse(startMessage);
 	}
 	
 	// Return response to the request source.
 	private void sendResponse(MessageBottle response) {
 		String source = response.getSource();
-		if( source.equalsIgnoreCase(ControllerType.COMMAND.name())) {
+		if( source.equalsIgnoreCase(HandlerType.COMMAND.name())) {
 			commandController.receiveResponse(response);
 		}
-		else if( source.equalsIgnoreCase(ControllerType.TERMINAL.name())) {
+		else if( source.equalsIgnoreCase(HandlerType.TERMINAL.name())) {
 			terminalController.receiveResponse(response);
 		}
 	}

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import bert.share.controller.ControllerType;
+import bert.share.message.HandlerType;
 import bert.share.model.AbstractRobotModel;
 import bert.share.xml.XMLUtility;
 
@@ -49,27 +49,25 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 				String name = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isBlank() &&
-					type.equalsIgnoreCase(ControllerType.COMMAND.name()) ) {
-					// Configure the pipe - there should only be one per motor group.
-					NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
-					if( pipeElements.getLength()>0) {
-						Element pipeElement= (Element)(pipeElements.item(0));
-						String pname = XMLUtility.attributeValue(pipeElement, "name");
-						controllerTypes.put(name,type.toUpperCase());
-						pipeNames.put(name,pname);
+					type.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {
+					NodeList socketElements = controllerElement.getElementsByTagName("socket");
+					if( socketElements.getLength()>0) {
+						handlerTypes.put(name,type.toUpperCase());
+						Element socketElement= (Element)(socketElements.item(0));
+						String portName = XMLUtility.attributeValue(socketElement, "port");
+						sockets.put(name,Integer.parseInt(portName));
 					}
 				}
 				else if( type!=null && !type.isBlank() &&
-						type.equalsIgnoreCase(ControllerType.TERMINAL.name()) ) {
-						// Configure the pipe - there should only be one per motor group.
-						NodeList pipeElements = controllerElement.getElementsByTagName("pipe");
-						if( pipeElements.getLength()>0) {
-							Element pipeElement= (Element)(pipeElements.item(0));
-							String pname = XMLUtility.attributeValue(pipeElement, "name");
-							controllerTypes.put(name,type.toUpperCase());
-							pipeNames.put(name,pname);
-						}
+						type.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
+					NodeList socketElements = controllerElement.getElementsByTagName("socket");
+					if( socketElements.getLength()>0) {
+						handlerTypes.put(name,type.toUpperCase());
+						Element socketElement= (Element)(socketElements.item(0));
+						String portName = XMLUtility.attributeValue(socketElement, "port");
+						sockets.put(name,Integer.parseInt(portName));
 					}
+				}
 				
 				index++;
 			}

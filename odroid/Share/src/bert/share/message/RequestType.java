@@ -2,7 +2,7 @@
  * Copyright 2018. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.bottle;
+package bert.share.message;
 
 /**
  * These are the recognized commands from command controller to dispatcher.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- This file describes "bert", a poppy-like robot. The identical configuration
-     is used for both the event processor (dispatcher) and bindings (command) processes.
+     is used for both the server and client-side processes.
  -->
 <robot>
 	<!-- This first section lists miscellaneous properties. @...@ values are
@@ -10,20 +10,21 @@
 	<property name="name">bert</property>
 	<property name="release">@RELEASE@</property>
 	<property name="date">@DATE@</property>
-	<!--  The looper cadence is in msecs  -->
+	<!--  Cadence in msecs refers to the record frequency  -->
 	<property name="cadence">1000</property>
+	<!--  Name of machine hosting the server process  -->
+	<property name="hostname">localhost</property>
 	<!--  Used by the terminal  -->
 	<property name="prompt">bert: </property>
 	
-	<!-- The following names controllers that exist in both server and client-side
-	     processes. Define them both even if the client-side version is not launched.
-	     The dispatcher and client-side controllers communicate through pairs of one-way named pipes. 
+	<!-- The following section defines client-side processes that are also known to the server.
+		 Each client process communicates in both directions over its own socket. 
 	-->
 	<controller name="terminal" type="TERMINAL">
-		<pipe  name="terminal"/>
+		<socket  port="9044"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<pipe  name="command"/>
+		<socket  port="9045"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across

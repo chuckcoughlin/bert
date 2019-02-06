@@ -9,10 +9,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
-import bert.share.bottle.MessageBottle;
 import bert.share.controller.Controller;
-import bert.share.controller.ControllerType;
-import bert.share.controller.Dispatcher;
+import bert.share.message.HandlerType;
+import bert.share.message.MessageBottle;
+import bert.share.message.MessageHandler;
 import bert.speech.process.MessageTranslator;
 import bert.speech.process.StatementParser;
 
@@ -24,7 +24,7 @@ import bert.speech.process.StatementParser;
 public class BluetoothController implements Controller {
 	private final static String CLSS = "BluetoothController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private final Dispatcher dispatcher;
+	private final MessageHandler dispatcher;
 	private Thread runner = null;
 	private final StatementParser parser;
 	private final MessageTranslator translator;
@@ -33,7 +33,7 @@ public class BluetoothController implements Controller {
 	 * @param launcher the parent application
 	 * @param text prompt displayed for user entry
 	 */
-	public BluetoothController(Dispatcher launcher) {
+	public BluetoothController(MessageHandler launcher) {
 		this.dispatcher = launcher;
 		this.parser = new StatementParser();
 		this.translator = new MessageTranslator();
@@ -78,10 +78,10 @@ public class BluetoothController implements Controller {
 	 * Forward requests to the Terminal dispatcher.
 	 */
 	public class BluetoothReader implements Runnable {
-		private Dispatcher dispatcher;
+		private MessageHandler dispatcher;
 		
 		
-		public BluetoothReader(Dispatcher disp) {
+		public BluetoothReader(MessageHandler disp) {
 			this.dispatcher = disp;
 		}
 
@@ -114,7 +114,7 @@ public class BluetoothController implements Controller {
 					 */
 					else {
 						MessageBottle request = parser.parseStatement(input);
-						request.setSource(ControllerType.TERMINAL.name());
+						request.setSource(HandlerType.TERMINAL.name());
 						dispatcher.handleRequest(request);
 					}
 				}

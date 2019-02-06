@@ -15,11 +15,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.motor.model.RobotMotorModel;
-import bert.share.bottle.BottleConstants;
-import bert.share.bottle.MessageBottle;
-import bert.share.bottle.RequestType;
 import bert.share.common.DynamixelType;
 import bert.share.controller.Controller;
+import bert.share.message.BottleConstants;
+import bert.share.message.MessageBottle;
+import bert.share.message.RequestType;
 import bert.share.motor.Joint;
 import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
@@ -81,7 +81,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	@Override
 	public void initialize() {
 		if( !development ) {
-			Set<String> groupNames = model.getControllerTypes().keySet();
+			Set<String> groupNames = model.getHandlerTypes().keySet();
 			Map<String,MotorConfiguration> motors = model.getMotors(); 
 			for( String group:groupNames ) {
 				SerialPort port = model.getPortForGroup(group);

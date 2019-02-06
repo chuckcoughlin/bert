@@ -16,7 +16,6 @@ public class PathConstants   {
 	public static Path ROBOT_HOME = Paths.get(System.getProperty("user.dir")).getRoot();
 	public static Path CONFIG_PATH= null; 
 	public static Path DB_PATH    = null; 
-	public static Path DEV_DIR    = null;
 	public static Path LOG_DIR    = null;
 	
 	static {
@@ -28,7 +27,6 @@ public class PathConstants   {
 		ROBOT_HOME = home;
 		CONFIG_PATH= Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"etc","bert.xml"); 
 		DB_PATH    = Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"etc","bert.db"); 
-		DEV_DIR    = Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"dev");
 		LOG_DIR    = Paths.get(ROBOT_HOME.toFile().getAbsolutePath(),"logs");  
 	}
 }
