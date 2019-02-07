@@ -22,6 +22,7 @@ import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
 import bert.share.model.ConfigurationConstants;
+import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
 
 /**
@@ -73,6 +74,9 @@ public class Bert implements MessageHandler {
 	public void execute() {
 		initialize();
 		start();
+		
+		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
+		
 		try {
 			for(;;) {
 				lock.lock();

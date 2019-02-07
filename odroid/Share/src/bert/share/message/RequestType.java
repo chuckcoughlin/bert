@@ -9,6 +9,7 @@ package bert.share.message;
  */
 public enum RequestType
 {
+	COMMAND,                 // Execute a non-motor-related command
 	GET_METRIC,              // A local property of the robot
 	GET_CONFIGURATION,       // A motor property
     PLAY_STEP,

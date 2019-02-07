@@ -43,6 +43,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// NOTE: Any action, state or pose names require database access to fill in the details.
 	@Override 
 	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
+		if( ctx.Command()!=null) {
 		String cmd = ctx.Command().getText();
 		if( cmd.equalsIgnoreCase("relax") ) {
 			bottle.setRequestType(RequestType.SET_STATE);
@@ -62,6 +63,11 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else {
 			String msg = String.format("I do not know how to %s",cmd);
 			bottle.setError(msg);
+		}
+		}
+		else if(ctx.Halt()!=null) {
+			bottle.setRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,"shutdown");
 		}
 		return null;
 	}

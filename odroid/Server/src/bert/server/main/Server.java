@@ -30,6 +30,7 @@ import bert.share.message.MessageHandler;
 import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
+import bert.share.util.ShutdownHook;
 
 /**
  * The dispatcher is its own system process. It's job is to accept requests from 
@@ -108,6 +109,9 @@ public class Server implements MessageHandler {
 	public void execute() {
 		initialize();
 		start();
+
+		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
+		
 		try {
 			for(;;) {
 				lock.lock();
