@@ -177,7 +177,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	}
 	
 	// Already known to be a single group request. Here we are handling the response.
-	private void updatePropertiesFromBytes(byte[] bytes,Properties props) {
+	private void updatePropertiesFromBytes(byte[] bytes,Map<String,String> props) {
 		if( request!=null) {
 			RequestType type = request.getRequestType();
 			if( type.equals(RequestType.GET_CONFIGURATION)) {

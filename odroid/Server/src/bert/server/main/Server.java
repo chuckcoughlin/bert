@@ -266,19 +266,23 @@ public class Server implements MessageHandler {
 		startMessage.setRequestType(RequestType.NONE);
 		startMessage.setProperty(BottleConstants.TEXT, "Bert is ready");
 		LOGGER.info(String.format("%s: Bert is ready ...",CLSS));
-		startMessage.setSource(HandlerType.TERMINAL.name());
-		sendResponse(startMessage);
-		startMessage.setSource(HandlerType.COMMAND.name());
-		sendResponse(startMessage);
+		if( terminalController != null ) {
+			startMessage.setSource(HandlerType.TERMINAL.name());
+			sendResponse(startMessage);
+		}
+		if( commandController != null ) {
+			startMessage.setSource(HandlerType.COMMAND.name());
+			sendResponse(startMessage);
+		}
 	}
 	
 	// Return response to the request source.
 	private void sendResponse(MessageBottle response) {
 		String source = response.getSource();
-		if( source.equalsIgnoreCase(HandlerType.COMMAND.name())) {
+		if( source.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {	
 			commandController.receiveResponse(response);
 		}
-		else if( source.equalsIgnoreCase(HandlerType.TERMINAL.name())) {
+		else if( source.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
 			terminalController.receiveResponse(response);
 		}
 	}

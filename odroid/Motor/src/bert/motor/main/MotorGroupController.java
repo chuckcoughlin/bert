@@ -192,12 +192,12 @@ public class MotorGroupController implements Controller,MotorManager {
 	 * a single motor.
 	 * @param props the properties modified by or read by the controller
 	 */
-	public void collectProperties(Properties props) {
+	public void collectProperties(Map<String,String> props) {
 		this.response = this.request;
 		if( props!=null ) {
 			for(Object key:props.keySet()) {
 				String name = key.toString();
-				this.response.setProperty(name, props.getProperty(name));
+				this.response.setProperty(name, props.get(name));
 			}
 		}
 		this.request.notify();	

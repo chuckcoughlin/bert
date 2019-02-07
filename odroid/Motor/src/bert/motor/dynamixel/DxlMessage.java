@@ -166,15 +166,15 @@ public class DxlMessage  {
 	 * @param bytes status response from the controller
 	 * @param props properties from the original request
 	 */
-	public static void updatePositionFromBytes(byte[] bytes,Properties props) {
+	public static void updatePositionFromBytes(byte[] bytes,Map<String,String> props) {
 		int length = 7;  // Remaining bytes past length including crc
 		if( bytes.length<length ) {
 			String msg = String.format("%s.updatePositionFromBytes: Message too short: %s",CLSS,dump(bytes));
-			props.setProperty(BottleConstants.PROPERTY_ERROR, msg);
+			props.put(BottleConstants.PROPERTY_ERROR, msg);
 		}
 		else if( !verifyHeader(bytes) ) {
 			String msg = String.format("%s.updatePositionFromBytes: Header not found: %s",CLSS,dump(bytes));
-			props.setProperty(BottleConstants.PROPERTY_ERROR, msg);
+			props.put(BottleConstants.PROPERTY_ERROR, msg);
 		}
 		else {
 			String msg = String.format("%s.updatePositionFromBytes: Unimplemented %s",CLSS,dump(bytes));

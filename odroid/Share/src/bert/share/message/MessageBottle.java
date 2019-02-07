@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -29,22 +28,24 @@ public class MessageBottle implements Serializable {
 	private static final long serialVersionUID = 4356286171135500644L;
 	private static final String CLSS = "MessageBottle";
 	protected static final Logger LOGGER = Logger.getLogger(CLSS);
-	public Properties properties;
+	public Map<String,String> properties;
 	public Map<String,Integer> positions;          // Motor position by joint name
 	
 	public MessageBottle() {
-		this.properties = new Properties();
+		this.properties = new HashMap<>();
 		this.positions = new HashMap<>();
 	}
 
-	public Properties getProperties() {return this.properties;}
+	public Map<String,String>  getProperties() {return this.properties;}
 	
 	public String getProperty(String key,String defaultValue) {
-		return this.properties.getProperty(key, defaultValue);
+		String value = this.properties.get(key);
+		if( value==null ) value = defaultValue;
+		return value;
 	}
 	
 	public void setProperty(String key,String value) {
-		this.properties.setProperty(key, value);
+		this.properties.put(key, value);
 	}
 	/**
 	 * Get the current position of the named joint. 
@@ -92,7 +93,7 @@ public class MessageBottle implements Serializable {
 	 * @return an error message. If there is no error message, return null.
 	 */
 	public String getError() {
-		return this.properties.getProperty(BottleConstants.PROPERTY_ERROR);
+		return getProperty(BottleConstants.PROPERTY_ERROR,null);
 	}
 	
 	/**
@@ -103,7 +104,7 @@ public class MessageBottle implements Serializable {
 	 * @param msg a message suitable to be played for the user.
 	 */
 	public void setError(String msg) {
-		this.properties.setProperty(BottleConstants.PROPERTY_ERROR, msg);
+		setProperty(BottleConstants.PROPERTY_ERROR, msg);
 	}
 	
 	/**
@@ -114,7 +115,7 @@ public class MessageBottle implements Serializable {
 	 */
 	public RequestType getRequestType() {
 		RequestType type = RequestType.NONE;
-		String prop = this.properties.getProperty(BottleConstants.PROPERTY_REQUEST);
+		String prop = getProperty(BottleConstants.PROPERTY_REQUEST,null);
 		if( prop!=null) {
 			type = RequestType.valueOf(prop);
 		}
@@ -128,7 +129,7 @@ public class MessageBottle implements Serializable {
 	 * @param type the type of request.
 	 */
 	public void setRequestType(RequestType type) {
-		this.properties.setProperty(BottleConstants.PROPERTY_REQUEST, type.name());
+		setProperty(BottleConstants.PROPERTY_REQUEST, type.name());
 	}
 
 	
@@ -138,7 +139,7 @@ public class MessageBottle implements Serializable {
 	 * @return a source name. If there is no identified source, return null.
 	 */
 	public String getSource() {
-		return this.properties.getProperty(BottleConstants.PROPERTY_SOURCE);
+		return getProperty(BottleConstants.PROPERTY_SOURCE,null);
 	}
 	
 	/**
@@ -148,7 +149,7 @@ public class MessageBottle implements Serializable {
 	 * @param source the name of the message creator.
 	 */
 	public void setSource(String source) {
-		this.properties.setProperty(BottleConstants.PROPERTY_SOURCE, source);
+		setProperty(BottleConstants.PROPERTY_SOURCE, source);
 	}
 	
 	// =================================== JSON ======================================
@@ -178,6 +179,7 @@ public class MessageBottle implements Serializable {
 		String json="";
 		try {
 			json = mapper.writeValueAsString(this);
+			LOGGER.info(String.format("%s.toJSON: [%s]",CLSS,json));
 		}
 		catch(Exception ex) {
 			LOGGER.severe(String.format("%s.toJSON: Exception (%s)",CLSS,ex.getLocalizedMessage()));

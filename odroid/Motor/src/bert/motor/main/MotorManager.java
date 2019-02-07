@@ -5,13 +5,12 @@
 package bert.motor.main;
 
 import java.util.Map;
-import java.util.Properties;
 /**
  *  This interface is satisfied by the MotorManager and describes
  *  the callback utilized by MotorContrtollers
  */
 public interface MotorManager  {
 	public void collectPositions(Map<Integer,Integer> map);
-	public void collectProperties(Properties props);
+	public void collectProperties(Map<String,String> props);
 	public int getControllerCount();
 }

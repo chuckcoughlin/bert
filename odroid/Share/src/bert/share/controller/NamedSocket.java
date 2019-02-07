@@ -4,18 +4,12 @@
  */
 package bert.share.controller;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 import bert.share.message.MessageBottle;
@@ -37,7 +31,7 @@ public class NamedSocket   {
 	private ServerSocket serverSocket;
 	private Socket socket;
 	private BufferedReader in = null;
-	private BufferedOutputStream out =null;
+	private PrintWriter out =null;
 
 	/**
 	 * Constructor: Use this constructor from the server process.
@@ -87,7 +81,8 @@ public class NamedSocket   {
         }
 		catch(Exception ex) {
 			success = false;
-			LOGGER.severe(String.format("%s.create: ERROR creating server socket %s (%s)", CLSS,name,ex.getLocalizedMessage()));
+			socket = null;
+			LOGGER.severe(String.format("%s.create: ERROR creating server socket %s (%s)", CLSS,name,ex.getMessage()));
 		}
 		}
 		else {
@@ -97,7 +92,8 @@ public class NamedSocket   {
 	        }
 			catch(Exception ex) {
 				success = false;
-				LOGGER.severe(String.format("%s.create: ERROR creating client socket %s (%s)", CLSS,name,ex.getLocalizedMessage()));
+				socket = null;
+				LOGGER.severe(String.format("%s.create: ERROR creating client socket %s (%s)", CLSS,name,ex.getMessage()));
 			}
 		}
 	    return success;
@@ -108,23 +104,24 @@ public class NamedSocket   {
 	 * Open IO streams for reading and writing.
 	 */
 	public void startup() {
-		try {
-			LOGGER.info(String.format("%s.startup: opening %s for read",CLSS,name));
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            LOGGER.info(String.format("%s.startup: opened %s for read",CLSS,name));
-        } 
-		catch (Exception ex) {
-			LOGGER.info(String.format("%s.startup: ERROR opening %s for read (%s)",CLSS,name,ex.getLocalizedMessage()));
-        } 
-		try {
-			LOGGER.info(String.format("%s.startup: opening %s for write",CLSS,name));
-            out = new BufferedOutputStream(socket.getOutputStream());
-            LOGGER.info(String.format("%s.startup: opened %s for write",CLSS,name));
-        } 
-		catch (Exception ex) {
-			LOGGER.info(String.format("%s.startup: ERROR opening %s for write (%s)",CLSS,name,ex.getLocalizedMessage()));
-        }
-		
+		if( socket!=null ) {
+			try {
+				LOGGER.info(String.format("%s.startup: opening %s for read",CLSS,name));
+				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				LOGGER.info(String.format("%s.startup: opened %s for read",CLSS,name));
+			} 
+			catch (Exception ex) {
+				LOGGER.info(String.format("%s.startup: ERROR opening %s for read (%s)",CLSS,name,ex.getMessage()));
+			} 
+			try {
+				LOGGER.info(String.format("%s.startup: opening %s for write",CLSS,name));
+				out = new PrintWriter(socket.getOutputStream(),true);
+				LOGGER.info(String.format("%s.startup: opened %s for write",CLSS,name));
+			} 
+			catch (Exception ex) {
+				LOGGER.info(String.format("%s.startup: ERROR opening %s for write (%s)",CLSS,name,ex.getMessage()));
+			}
+		}
 	}
 	
 	/**
@@ -136,11 +133,11 @@ public class NamedSocket   {
 			in = null;
 		}
 		if(out!=null) {
-			try{ out.close();} catch(IOException ignore) {}
+			out.close();
 			out = null;
 		}
 		try {
-			socket.close();
+			if( socket!=null) socket.close();
 			if(serverSocket!=null) serverSocket.close();
 		}
 		catch(IOException ioe) {}
@@ -173,24 +170,26 @@ public class NamedSocket   {
 	
 	
 	/**
-	 * Write to the pipe that is appropriate. With named pipes this is guaranteed
-	 * to be an atomic operation as long as size is less than PIPE_SYNCH (and it is).
+	 * Write the serialized MessageBottle to the socket. Include a 4 byte prefix that is the length of the 
+	 * JSON string to follow. Include the null string termination in the byte count.
 	 */
 	public void write(MessageBottle bottle) {
 		String json = bottle.toJSON();
-		byte[] bytes = json.getBytes();
+		//byte[] bytes = json.getBytes();
+		//int size = bytes.length;
 		try {
 			if( out!=null ) {
-				LOGGER.info(String.format("%s.write: writing %s %d bytes... ",CLSS,name,bytes.length));
-				out.write(bytes,0,bytes.length);
+				LOGGER.info(String.format("%s.write: writing %s %d bytes... ",CLSS,name,json.length()));
+				out.println(json);
 				out.flush();
+				LOGGER.info(String.format("%s.write: complete. ",CLSS,name));
 			}
 			else {
 				LOGGER.severe(String.format("%s.write: Error writing to %s before port is open",CLSS,name));
 			}
 		}
-		catch(IOException ioe) {
-			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,bytes.length, ioe.getLocalizedMessage()));
+		catch(Exception ioe) {
+			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,json.length(), ioe.getLocalizedMessage()));
 		}
 	}
 }
