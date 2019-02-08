@@ -4,6 +4,7 @@
  */
  package bert.share.util;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import bert.share.message.MessageHandler;
@@ -25,6 +26,11 @@ public class ShutdownHook implements Runnable {
     @Override
     public void run() {
     	LOGGER.info(String.format("%s: shutting down ...", CLSS));
-    	msghandler.stop();
+    	try {
+    		msghandler.stop();
+    	}
+    	catch(Exception ex) {
+    		LOGGER.log(Level.SEVERE,String.format("%s: ERROR (%s, args)",CLSS,ex.getMessage()),ex);
+    	}
       } 
 }

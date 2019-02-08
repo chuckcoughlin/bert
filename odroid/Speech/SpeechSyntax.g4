@@ -38,7 +38,7 @@ Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'old'|'tall';
 Axis: 'x'|'y'|'z';
 Command: 'attention'|'freeze'|'relax'|'wake up';
-Halt: 'die'|'exit'|'quit'|'shutdown'|'stop';
+Halt: 'die'|'exit'|'halt'|'quit'|'shutdown'|'stop';
 How: 'how';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
 Of: 'of';

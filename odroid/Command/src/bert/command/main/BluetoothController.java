@@ -40,10 +40,6 @@ public class BluetoothController implements Controller {
 	}
 	
 	@Override
-	public void initialize() {	
-	}
-	
-	@Override
 	public void start() {
 		BluetoothReader rdr = new BluetoothReader(this.dispatcher);
 		runner = new Thread(rdr);
@@ -114,7 +110,7 @@ public class BluetoothController implements Controller {
 					 */
 					else {
 						MessageBottle request = parser.parseStatement(input);
-						request.setSource(HandlerType.TERMINAL.name());
+						request.assignSource(HandlerType.TERMINAL.name());
 						dispatcher.handleRequest(request);
 					}
 				}

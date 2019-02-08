@@ -21,7 +21,6 @@ public interface MessageHandler  {
 	public void execute();
 	public void handleRequest(MessageBottle request);
 	public void handleResponse(MessageBottle response);
-	public void initialize();
 	public void start();
 	public void stop();
 }

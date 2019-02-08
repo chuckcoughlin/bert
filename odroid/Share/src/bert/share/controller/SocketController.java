@@ -4,6 +4,8 @@
  */
 package bert.share.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import bert.share.message.MessageBottle;
@@ -26,7 +28,7 @@ public class SocketController implements Controller{
 	private final MessageHandler dispatcher;
 	private Thread runner = null;
 	private final boolean server;  // True of this is created by the server process.
-
+	private final List<SocketStateChangeListener> changeListeners = new ArrayList<>();
 
 	/**
 	 * Constructor: Use this constructor from the server process.
@@ -51,13 +53,11 @@ public class SocketController implements Controller{
 		socket = new NamedSocket(name,hostname,port); 
 	}
 	
-	@Override
-	public void initialize() {
-		socket.create();
-	}
+	public void addChangeListener(SocketStateChangeListener c) {changeListeners.add(c);}
+	public void removeChangeListener(SocketStateChangeListener c) {changeListeners.remove(c);}
+	
 	@Override
 	public void start() {
-		socket.startup();
 		BackgroundReader rdr = new BackgroundReader(socket);
 		runner = new Thread(rdr);
 		runner.start();
@@ -101,6 +101,7 @@ public class SocketController implements Controller{
 		}
 	}
 
+	// ===================================== Background Reader ==================================================
 	/**
 	 * Perform a blocking read as a background thread.
 	 */
@@ -114,11 +115,15 @@ public class SocketController implements Controller{
 
 		/**
 		 * Forever ...
-		 *   1) Read request/response from named pipe
+		 *   1) Read request/response from socket
 		 *   2) Invoke callback method on dispatcher or
 		 *      local method, as appropriate.
 		 */
 		public void run() {
+			sock.create();
+			sock.startup();
+			notifyChangeListeners(sock.getName(),SocketStateChangeEvent.READY);
+			
 			while(!Thread.currentThread().isInterrupted() ) {
 				MessageBottle msg = sock.read();
 				if( msg==null) continue;
@@ -130,5 +135,25 @@ public class SocketController implements Controller{
 				}
 			}
 		}
+	}
+	
+	// ===================================== Helper Methods ==================================================
+	// Notify listeners in a separate thread
+	private void notifyChangeListeners(String name,String state) {
+		SocketStateChangeEvent event = new SocketStateChangeEvent(this,name,state);
+		if( changeListeners.isEmpty()) return;  // Nothing to do
+		Thread thread = new Thread(new Runnable() {
+
+		    @Override
+		    public void run() {
+		    	for(SocketStateChangeListener l: changeListeners) {
+					//log.infof("%s.notifying ... %s of %s",TAG,l.getClass().getName(),value.toString());
+					l.stateChanged(event);
+				}        
+		    }
+		            
+		});
+		        
+		thread.start();
 	}
 }

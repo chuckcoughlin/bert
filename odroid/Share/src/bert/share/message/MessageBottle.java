@@ -22,7 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * There is no intrinsic difference between requests and
  * responses. We leave it to context to determine which is which.
  * 
- * Leave members public to be accessible via Reflection.
+ * Leave members public to be accessible via Reflection. We use
+ * fetch/assign instead of get/set for the shortcut methods that
+ * access the properties to avoid confusion in the JSON mapper.
  */
 public class MessageBottle implements Serializable {
 	private static final long serialVersionUID = 4356286171135500644L;
@@ -92,7 +94,7 @@ public class MessageBottle implements Serializable {
 	 * 
 	 * @return an error message. If there is no error message, return null.
 	 */
-	public String getError() {
+	public String fetchError() {
 		return getProperty(BottleConstants.PROPERTY_ERROR,null);
 	}
 	
@@ -103,7 +105,7 @@ public class MessageBottle implements Serializable {
 	 * 
 	 * @param msg a message suitable to be played for the user.
 	 */
-	public void setError(String msg) {
+	public void assignError(String msg) {
 		setProperty(BottleConstants.PROPERTY_ERROR, msg);
 	}
 	
@@ -113,7 +115,7 @@ public class MessageBottle implements Serializable {
 	 * 
 	 * @return the RequestType. If not set, return NONE.
 	 */
-	public RequestType getRequestType() {
+	public RequestType fetchRequestType() {
 		RequestType type = RequestType.NONE;
 		String prop = getProperty(BottleConstants.PROPERTY_REQUEST,null);
 		if( prop!=null) {
@@ -128,7 +130,7 @@ public class MessageBottle implements Serializable {
 	 * 
 	 * @param type the type of request.
 	 */
-	public void setRequestType(RequestType type) {
+	public void assignRequestType(RequestType type) {
 		setProperty(BottleConstants.PROPERTY_REQUEST, type.name());
 	}
 
@@ -138,7 +140,7 @@ public class MessageBottle implements Serializable {
 	 * 
 	 * @return a source name. If there is no identified source, return null.
 	 */
-	public String getSource() {
+	public String fetchSource() {
 		return getProperty(BottleConstants.PROPERTY_SOURCE,null);
 	}
 	
@@ -148,7 +150,7 @@ public class MessageBottle implements Serializable {
 	 * 
 	 * @param source the name of the message creator.
 	 */
-	public void setSource(String source) {
+	public void assignSource(String source) {
 		setProperty(BottleConstants.PROPERTY_SOURCE, source);
 	}
 	

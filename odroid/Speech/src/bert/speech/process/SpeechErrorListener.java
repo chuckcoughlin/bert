@@ -43,17 +43,17 @@ public class SpeechErrorListener extends BaseErrorListener {
                                   Token offendingToken, int line,
                                   int charPositionInLine) {
     	// Defer to the parser.
-    	if( bottle.getError()==null ) {
+    	if( bottle.fetchError()==null ) {
     		if( offendingToken != null ) {
     			String msg = String.format("I didn't understand what came after %s",offendingToken.getStartIndex(),offendingToken.getText());
     			LOGGER.info(CLSS+msg);
-    			bottle.setError(msg);
+    			bottle.assignError(msg);
     		}
     		// We get here if we're listening to the lexer - which we are not
     		else {
     			String msg = "I don't understand";
     			LOGGER.info(CLSS+msg);
-    			bottle.setError(msg);
+    			bottle.assignError(msg);
     		}
     	}
     }

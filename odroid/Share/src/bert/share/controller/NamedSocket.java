@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import bert.share.message.MessageBottle;
@@ -19,11 +21,14 @@ import bert.share.message.MessageBottle;
  *  "ResponseBottles". The Server process should instantiate the with "server" = "true".
  *  
  *  The file descriptors are opened on "startup" and closed on 
- *  "shutdown".
+ *  "shutdown". Change listeners are notified (in a separate Thread) when the
+ *  socket is "ready".
  */
 public class NamedSocket   {
 	private static final String CLSS = "NamedSocket";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
+	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
+	private static final int CLIENT_LOG_INTERVAL = 10;
 	private final String name;
 	private final String host;
 	private final int port;
@@ -62,7 +67,6 @@ public class NamedSocket   {
 		this.serverSocket = null;  // Not needed
 	}
 	
-	
 	public boolean isServer() {return this.server;}
 	public String getName() {return this.name;}
 	
@@ -76,8 +80,9 @@ public class NamedSocket   {
 		if( server ) {
 		try  {
 			serverSocket = new ServerSocket(port);
+			LOGGER.info(String.format("%s.create: Server listening on port %d", CLSS,port));
 			socket = serverSocket.accept();
-			LOGGER.info(String.format("%s.create: %s accepted connection", CLSS,name));
+			LOGGER.info(String.format("%s.create: Server accepted connection to %s", CLSS,name));
         }
 		catch(Exception ex) {
 			success = false;
@@ -86,19 +91,32 @@ public class NamedSocket   {
 		}
 		}
 		else {
-			try  {
-				socket = new Socket(host,port);
-				LOGGER.info(String.format("%s.create: new connection %s", CLSS,name));
-	        }
-			catch(Exception ex) {
-				success = false;
-				socket = null;
-				LOGGER.severe(String.format("%s.create: ERROR creating client socket %s (%s)", CLSS,name,ex.getMessage()));
+			// Keep attempting a connection until the server is ready
+			int attempts = 0;
+			LOGGER.info(String.format("%s.create: %s attempting to connect to server ...", CLSS,name));
+			for(;;) {
+				try  {
+					socket = new Socket(host,port);
+					LOGGER.info(String.format("%s.create: new server connection from %s after %d attempts", CLSS,name,attempts));
+					break;
+				}
+				catch(IOException ioe) {
+					try {
+						Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
+					}
+					catch(InterruptedException ie) {
+						if( attempts%CLIENT_LOG_INTERVAL==0) {
+							LOGGER.warning(String.format("%s.create: ERROR creating client socket %s (%s)", CLSS,name,ioe.getMessage()));
+						}
+					}
+
+				}
+				attempts++;
 			}
 		}
-	    return success;
+		return success;
 	}
-	
+
 	/**
 	 * This must not be called before the socket is created.
 	 * Open IO streams for reading and writing.

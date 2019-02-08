@@ -72,7 +72,6 @@ public class Bert implements MessageHandler {
 	 */
 	@Override
 	public void execute() {
-		initialize();
 		start();
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
@@ -101,11 +100,7 @@ public class Bert implements MessageHandler {
 		System.exit(0);
 	}
 	
-	@Override
-	public void initialize() {
-		socketController.initialize();
-		controller.initialize();
-	}
+
 	@Override
 	public void start() {
 		socketController.start();

@@ -41,10 +41,7 @@ public class TimerController implements Controller  {
 		request.setDelay(cadence);  // Initial delay
 		timer.addMessage(msg);
 	}
-	@Override
-	public void initialize() {
-		
-	}
+
 	@Override
 	public void receiveRequest(MessageBottle request) {
 		

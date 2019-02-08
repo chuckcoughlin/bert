@@ -21,6 +21,8 @@ import bert.motor.model.RobotMotorModel;
 import bert.server.model.RobotDispatcherModel;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
+import bert.share.controller.SocketStateChangeEvent;
+import bert.share.controller.SocketStateChangeListener;
 import bert.share.controller.TimerController;
 import bert.share.logging.LoggerUtility;
 import bert.share.message.BottleConstants;
@@ -36,7 +38,7 @@ import bert.share.util.ShutdownHook;
  * The dispatcher is its own system process. It's job is to accept requests from 
  * the command pipes, distribute them to the motor manager channels and post the results.
  */
-public class Server implements MessageHandler {
+public class Server implements MessageHandler,SocketStateChangeListener {
 	private final static String CLSS = "Server";
 	private static final String USAGE = "Usage: server <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
@@ -91,10 +93,12 @@ public class Server implements MessageHandler {
 			int port = sockets.get(key);
 			if( type.equals(HandlerType.COMMAND)) {
 				commandController = new SocketController(this,type.name(),port); 
+				commandController.addChangeListener(this);
 				LOGGER.info(String.format("%s: created command controller",CLSS));
 			}
 			else if( type.equals(HandlerType.TERMINAL)) {
 				terminalController = new SocketController(this,type.name(),port); 
+				terminalController.addChangeListener(this);
 				LOGGER.info(String.format("%s: created terminal controller",CLSS));
 			}
 		}
@@ -157,11 +161,7 @@ public class Server implements MessageHandler {
 	}
 	
 	
-	@Override
 	public void initialize() {
-		if(commandController!=null )  commandController.initialize();
-		if(terminalController!=null ) terminalController.initialize();
-		if(timerController!=null )    timerController.initialize();
 		if(motorGroupController!=null ) {
 			LOGGER.info(String.format("%s.execute: initializing motorGroupController",CLSS));
 			motorGroupController.initialize();
@@ -176,8 +176,6 @@ public class Server implements MessageHandler {
 			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
 			motorGroupController.start();
 		}
-		LOGGER.info(String.format("%s.execute: starting report",CLSS));
-		reportStartup();
 		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
 	}
 	@Override
@@ -215,7 +213,7 @@ public class Server implements MessageHandler {
 	// The "local" response is simply the original request with some text
 	// to send directly to the user.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
-		if( request.getRequestType().equals(RequestType.GET_METRIC)) {
+		if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
 			MetricType metric = MetricType.valueOf(request.getProperty(BottleConstants.PROPERTY_METRIC, "NAME"));
 			String text = "";
 			switch(metric) {
@@ -258,39 +256,48 @@ public class Server implements MessageHandler {
 	}
 	
 	private boolean isLocalRequest(MessageBottle request) {
-		if( request.getRequestType().equals(RequestType.GET_METRIC)) {
+		if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
 			return true;
 		}
 		return false;
 	}
 	
 	// Inform both controllers that we've started ...
-	private void reportStartup() {
+	private void reportStartup(String sourceName) {
 		MessageBottle startMessage = new MessageBottle();
-		startMessage.setRequestType(RequestType.NONE);
+		startMessage.assignRequestType(RequestType.NONE);
 		startMessage.setProperty(BottleConstants.TEXT, "Bert is ready");
-		LOGGER.info(String.format("%s: Bert is ready ...",CLSS));
-		if( terminalController != null ) {
-			startMessage.setSource(HandlerType.TERMINAL.name());
-			sendResponse(startMessage);
-		}
-		if( commandController != null ) {
-			startMessage.setSource(HandlerType.COMMAND.name());
-			sendResponse(startMessage);
-		}
+		LOGGER.info(String.format("%s: Bert is ready ... (to %s)",CLSS,sourceName));
+		startMessage.assignSource(sourceName);
+		sendResponse(startMessage);
 	}
 	
 	// Return response to the request source.
 	private void sendResponse(MessageBottle response) {
-		String source = response.getSource();
+		String source = response.fetchSource();
 		if( source.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {	
 			commandController.receiveResponse(response);
 		}
 		else if( source.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
 			terminalController.receiveResponse(response);
 		}
+		else {
+			LOGGER.warning(String.format("%s.sendResponse: Unknown destination - %s, ignored",CLSS,source));
+		}
 	}
 	
+	
+	// =============================== SocketStateChangeListener ============================================
+	@Override
+	public void stateChanged(SocketStateChangeEvent event) {
+		if( event.getState().equals(SocketStateChangeEvent.READY)) {
+			reportStartup(event.getName());
+		}
+	}
+	
+	
+	
+	// ==================================== Main =================================================
 	/**
 	 * Entry point for the dispatcher application that receives commands, processes
 	 * them through the serial interfaces to the motors and returns results. 
@@ -327,5 +334,7 @@ public class Server implements MessageHandler {
 
   
 	}
+
+
 
 }

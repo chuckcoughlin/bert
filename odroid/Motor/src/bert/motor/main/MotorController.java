@@ -91,7 +91,6 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		}
 	}
 	
-	@Override
 	public void initialize() {
 		try {
 			port.openPort();
@@ -146,8 +145,8 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	 * @return true if this is the type of message satisfied by a single controller.
 	 */
 	private boolean isSingleGroupRequest(MessageBottle msg) {
-		if( msg.getRequestType().equals(RequestType.GET_CONFIGURATION) ||
-			msg.getRequestType().equals(RequestType.SET_CONFIGURATION) ){
+		if( msg.fetchRequestType().equals(RequestType.GET_CONFIGURATION) ||
+			msg.fetchRequestType().equals(RequestType.SET_CONFIGURATION) ){
 			return true;
 		}
 		return false;
@@ -156,7 +155,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	private byte[] messageToBytes(MessageBottle request) {
 		byte[] bytes = null;
 		if( request!=null) {
-			RequestType type = request.getRequestType();
+			RequestType type = request.fetchRequestType();
 			if( type.equals(RequestType.GET_CONFIGURATION)) {
 				String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
 				MotorConfiguration mc = configurations.get(jointName);
@@ -179,7 +178,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	// Already known to be a single group request. Here we are handling the response.
 	private void updatePropertiesFromBytes(byte[] bytes,Map<String,String> props) {
 		if( request!=null) {
-			RequestType type = request.getRequestType();
+			RequestType type = request.fetchRequestType();
 			if( type.equals(RequestType.GET_CONFIGURATION)) {
 				JointProperty jp = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, "NONE"));
 				if( jp.equals(JointProperty.POSITION)) {

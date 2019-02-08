@@ -74,14 +74,14 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	
     	Token offender = re.getOffendingToken();
     	if( offender != null ) {
-    		String msg = String.format("I misunderstood the statement following %s",offender.getText());
+    		String msg = String.format("I misunderstood the word following %s",offender.getText());
     		LOGGER.warning(CLSS+msg);
-    		bottle.setError(msg);
+    		bottle.assignError(msg);
     	}
     	else {
     		String msg = "I don't understand";
 			LOGGER.info(CLSS+msg);
-			bottle.setError(msg);
+			bottle.assignError(msg);
     	}
     }
 }

@@ -78,7 +78,6 @@ public class MotorGroupController implements Controller,MotorManager {
 	 * instances each running in its own thread. Each controller handles a group of
 	 * motors all communicating on the same serial port.
 	 */
-	@Override
 	public void initialize() {
 		if( !development ) {
 			Set<String> groupNames = model.getHandlerTypes().keySet();
@@ -225,7 +224,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	// =========================== Private Helper Methods =======================================
 	// Queries of fixed properties of the motors are the kinds of requests that can be handled immediately
 	private boolean canHandleImmediately(MessageBottle request) {
-		if( request.getRequestType().equals(RequestType.GET_CONFIGURATION)) {
+		if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			// Certain properties are constants available from the configuration file.
 			String property = request.getProperty(BottleConstants.PROPERTY_PROPERTY,"");
 			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
@@ -241,7 +240,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	// The "local" response is simply the original request with some text
 	// to send directly to the user.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
-		if( request.getRequestType().equals(RequestType.GET_CONFIGURATION)) {
+		if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
 			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
 			String text = "";
@@ -269,7 +268,7 @@ public class MotorGroupController implements Controller,MotorManager {
 				break;
 			default:
 				text = "";
-				request.setError(property.name()+" is not a property that I can look up");
+				request.assignError(property.name()+" is not a property that I can look up");
 				break;
 			}
 			request.setProperty(BottleConstants.TEXT, text);
@@ -278,7 +277,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	}
 	// When in development mode, simulate something reasonable as a response.
 	private MessageBottle simulateResponseForRequest(MessageBottle request) {
-		RequestType requestType = request.getRequestType();
+		RequestType requestType = request.fetchRequestType();
 		if( requestType.equals(RequestType.GET_CONFIGURATION)) {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
 			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
@@ -307,7 +306,7 @@ public class MotorGroupController implements Controller,MotorManager {
 				break;
 			default:
 				text = "";
-				request.setError(property.name()+" is not a property that I can look up");
+				request.assignError(property.name()+" is not a property that I can look up");
 				break;
 			}
 			request.setProperty(BottleConstants.TEXT, text);

@@ -27,8 +27,8 @@ public class MessageTranslator  {
 
 	public String messsageToText(MessageBottle msg) {
 		String text = "I don't understand the response";
-		String error = msg.getError();
-		if( !error.isBlank() ) {
+		String error = msg.fetchError();
+		if( error!=null && !error.isBlank() ) {
 			text = error;
 		}
 		else {

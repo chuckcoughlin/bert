@@ -7,7 +7,6 @@ module bert.share {
 	requires transitive java.xml;
 	requires com.fasterxml.jackson.databind;
 	
-	
 	exports bert.share.message;
 	exports bert.share.common;
 	exports bert.share.controller;

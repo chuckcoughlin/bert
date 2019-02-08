@@ -21,10 +21,10 @@
 		 Each client process communicates in both directions over its own socket. 
 	-->
 	<controller name="terminal" type="TERMINAL">
-		<socket  port="9044"/>
+		<socket  port="11044"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<socket  port="9045"/>
+		<socket  port="11045"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across

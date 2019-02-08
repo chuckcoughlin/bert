@@ -46,27 +46,27 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		if( ctx.Command()!=null) {
 		String cmd = ctx.Command().getText();
 		if( cmd.equalsIgnoreCase("relax") ) {
-			bottle.setRequestType(RequestType.SET_STATE);
+			bottle.assignRequestType(RequestType.SET_STATE);
 			//bottle.setProperty(BottleConstants.STATE_NAME,"relax");
 		}
 		else if( cmd.equalsIgnoreCase("freeze") ||
 				 cmd.equalsIgnoreCase("stop") ) {
-			bottle.setRequestType(RequestType.SET_STATE);
+			bottle.assignRequestType(RequestType.SET_STATE);
 			bottle.setProperty(BottleConstants.POSE_NAME,"freeze");
 		}
 		else if( cmd.equalsIgnoreCase("attention") ||
 				 cmd.equalsIgnoreCase("wake up") ) {
-			bottle.setRequestType(RequestType.SET_POSE);
+			bottle.assignRequestType(RequestType.SET_POSE);
 			bottle.setProperty(BottleConstants.POSE_NAME,"attention");
 			
 		}
 		else {
 			String msg = String.format("I do not know how to %s",cmd);
-			bottle.setError(msg);
+			bottle.assignError(msg);
 		}
 		}
 		else if(ctx.Halt()!=null) {
-			bottle.setRequestType(RequestType.COMMAND);
+			bottle.assignRequestType(RequestType.COMMAND);
 			bottle.setProperty(BottleConstants.COMMAND_NAME,"shutdown");
 		}
 		return null;
@@ -74,7 +74,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// How tall are you?
 	public Object visitAttributeQuestion(SpeechSyntaxParser.AttributeQuestionContext ctx) {
-		bottle.setRequestType(RequestType.GET_METRIC);
+		bottle.assignRequestType(RequestType.GET_METRIC);
 		String attribute = ctx.Adjective().getText();
 		if( attribute.equalsIgnoreCase("old") ) {
 			bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.AGE.name());
@@ -84,7 +84,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		else {
 			String msg = String.format("I don't know what %s means",attribute);
-			bottle.setError(msg);
+			bottle.assignError(msg);
 		}
 		return null;
 	}
@@ -92,7 +92,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// what is the id of your left hip y?
 	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
-		bottle.setRequestType(RequestType.GET_CONFIGURATION);
+		bottle.assignRequestType(RequestType.GET_CONFIGURATION);
 		String property = ctx.Property().getText().toUpperCase();
 		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
@@ -111,7 +111,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("I don't have a property %s, that I know of",property);
-			bottle.setError(msg);
+			bottle.assignError(msg);
 		}
 		return null;
 	}
@@ -119,7 +119,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// What is your duty cycle?
 	public Object visitMetricsQuestion(SpeechSyntaxParser.MetricsQuestionContext ctx) {
-		bottle.setRequestType(RequestType.GET_METRIC);
+		bottle.assignRequestType(RequestType.GET_METRIC);
 		String metric = ctx.Metric().getText().toUpperCase();
 		if( metric.equalsIgnoreCase("cycle time") ) {
 			bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.CYCLETIME.name());
@@ -133,7 +133,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			}
 			catch(IllegalArgumentException iae) {
 				String msg = String.format("I did't know that I had a %s",metric);
-				bottle.setError(msg);
+				bottle.assignError(msg);
 			}
 		}
 		return null;
@@ -142,7 +142,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// what is the z position of your left hip?
 	// Identical to JointPropertyQuestion, but different word order
 	public Object visitPositionQuestion(SpeechSyntaxParser.PositionQuestionContext ctx) {
-		bottle.setRequestType(RequestType.GET_CONFIGURATION);
+		bottle.assignRequestType(RequestType.GET_CONFIGURATION);
 		String property = ctx.Property().getText().toUpperCase();
 		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
@@ -161,7 +161,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("I don't have a property %s, that I know of",property);
-			bottle.setError(msg);
+			bottle.assignError(msg);
 		}
 		return null;
 	}

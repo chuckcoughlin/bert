@@ -74,7 +74,6 @@ public class Terminal implements MessageHandler {
 	 */
 	@Override
 	public void execute() {
-		initialize();
 		start();
 		
 		// The shutdown hook cleans up open sockets 
@@ -104,11 +103,7 @@ public class Terminal implements MessageHandler {
 		System.exit(0);
 	}
 	
-	@Override
-	public void initialize() {
-		socketController.initialize();
-		controller.initialize();
-	}
+
 	@Override
 	public void start() {
 		socketController.start();
