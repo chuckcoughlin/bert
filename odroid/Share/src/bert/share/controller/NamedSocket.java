@@ -124,7 +124,6 @@ public class NamedSocket   {
 	public void startup() {
 		if( socket!=null ) {
 			try {
-				LOGGER.info(String.format("%s.startup: opening %s for read",CLSS,name));
 				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				LOGGER.info(String.format("%s.startup: opened %s for read",CLSS,name));
 			} 
@@ -132,7 +131,6 @@ public class NamedSocket   {
 				LOGGER.info(String.format("%s.startup: ERROR opening %s for read (%s)",CLSS,name,ex.getMessage()));
 			} 
 			try {
-				LOGGER.info(String.format("%s.startup: opening %s for write",CLSS,name));
 				out = new PrintWriter(socket.getOutputStream(),true);
 				LOGGER.info(String.format("%s.startup: opened %s for write",CLSS,name));
 			} 
@@ -146,6 +144,7 @@ public class NamedSocket   {
 	 * Close IO streams.
 	 */
 	public void shutdown() {
+		LOGGER.info(String.format("%s.shutdown: %s ... ",CLSS,name));
 		if(in!=null) {
 			try{ in.close();} catch(IOException ignore) {}
 			in = null;

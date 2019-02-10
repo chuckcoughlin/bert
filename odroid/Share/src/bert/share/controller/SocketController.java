@@ -22,7 +22,7 @@ import bert.share.message.MessageHandler;
  *   2) asynchronous mode, a non-owner caller must implement a "handleResponse" callback.
  */
 public class SocketController implements Controller{
-	private final static String CLSS = "NamedPipeController";
+	private final static String CLSS = "SocketController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
 	private final NamedSocket socket;
 	private final MessageHandler dispatcher;
@@ -64,11 +64,12 @@ public class SocketController implements Controller{
 	}
 	@Override
 	public void stop() {
-		socket.shutdown();
 		if( runner!=null) {
+			LOGGER.info(String.format("%s.stopping ... %s of %s",CLSS,socket.getName()));
 			runner.interrupt();
 			runner = null;
 		}
+		socket.shutdown();
 	}
 	
 	/**
@@ -134,6 +135,7 @@ public class SocketController implements Controller{
 					receiveResponse(msg);
 				}
 			}
+			LOGGER.info(String.format("BackgroundReader,%s stopped",sock.getName()));
 		}
 	}
 	

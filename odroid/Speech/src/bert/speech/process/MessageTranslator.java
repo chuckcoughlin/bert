@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
+import bert.share.message.RequestType;
 
 
 /**
@@ -30,6 +31,9 @@ public class MessageTranslator  {
 		String error = msg.fetchError();
 		if( error!=null && !error.isBlank() ) {
 			text = error;
+		}
+		else if(msg.fetchRequestType().equals(RequestType.NOTIFICATION)) {
+			text = msg.getProperty(BottleConstants.TEXT, "Received empty notification.");
 		}
 		else {
 			String property = msg.getProperty(BottleConstants.PROPERTY_PROPERTY, "unknown");

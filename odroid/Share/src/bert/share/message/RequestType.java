@@ -12,6 +12,7 @@ public enum RequestType
 	COMMAND,                 // Execute a non-motor-related command
 	GET_METRIC,              // A local property of the robot
 	GET_CONFIGURATION,       // A motor property
+	NOTIFICATION,            // Unsolicited message from server
     PLAY_STEP,
 	RECORD_STEP,
 	SET_CONFIGURATION,       // For a particular motor

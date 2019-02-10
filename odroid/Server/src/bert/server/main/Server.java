@@ -247,6 +247,17 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 			}
 			request.setProperty(BottleConstants.TEXT, text);
 		}
+		else if(request.fetchRequestType().equals(RequestType.COMMAND)) {
+			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
+			if( command.equalsIgnoreCase(BottleConstants.COMMAND_SHUTDOWN)) {
+				System.exit(0);     // Rely on ShutdownHandler cleanup connections
+			}
+			else {
+				String msg = String.format("Unrecognized command: %s",command);
+				LOGGER.warning(String.format("%s.createResponseForLocalRequest: %s",CLSS,msg));
+				request.assignError(msg);
+			}
+		}
 		return request;
 	}
 
@@ -259,13 +270,16 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 		if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
 			return true;
 		}
+		else if( request.fetchRequestType().equals(RequestType.COMMAND)) {
+			return true;
+		}
 		return false;
 	}
 	
 	// Inform both controllers that we've started ...
 	private void reportStartup(String sourceName) {
 		MessageBottle startMessage = new MessageBottle();
-		startMessage.assignRequestType(RequestType.NONE);
+		startMessage.assignRequestType(RequestType.NOTIFICATION);
 		startMessage.setProperty(BottleConstants.TEXT, "Bert is ready");
 		LOGGER.info(String.format("%s: Bert is ready ... (to %s)",CLSS,sourceName));
 		startMessage.assignSource(sourceName);

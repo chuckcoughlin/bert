@@ -98,13 +98,7 @@ public class StdioController implements Controller {
 					System.out.print(prompt);
 					String input = br.readLine();
 
-					if( "q".equalsIgnoreCase(input)    ||
-						"quit".equalsIgnoreCase(input) ||
-						"exit".equalsIgnoreCase(input)    ) {
-						dispatcher.handleRequest(null);
-						break;
-					}
-					else if(input.isBlank()) continue;
+					if(input.isBlank()) continue;
 					/*
 					 * 1) Analyze the input string via ANTLR
 					 * 2) Send the resulting RequestBottle to the TerminalController

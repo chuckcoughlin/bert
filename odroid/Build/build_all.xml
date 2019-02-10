@@ -159,7 +159,6 @@
 		<copy todir="${robot.dir}/etc">
 			<fileset dir="${config.dir}" />
 		</copy>
-		<mkdir dir="${robot.dir}/dev" />
 		<echo message="Copying jar files locally into ${bert.home}/lib" />
 		<mkdir dir="${bert.home}/lib" />
 		<copy todir="${bert.home}/lib">
