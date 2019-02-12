@@ -12,8 +12,8 @@ cd ../Configuration
 echo "Synchronizing configuration files, database ..."
 rsync -r etc bin bert:/usr/local/robot
 
-cd ..
-echo "Synchronizing compiled jar files ..."
+cd ../Build
+echo "Synchronizing application jar files ..."
 rsync -r lib bert:/usr/local/robot
 
 echo "Robot update is complete."

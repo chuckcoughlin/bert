@@ -1,0 +1,5 @@
+#!/bin/sh
+# Shutdown the robot bluetooth command interface.
+# Run as super-user
+export BERT_HOME=/usr/local/robot
+/etc/init.d/bert-command stop

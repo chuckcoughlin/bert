@@ -35,11 +35,7 @@
 		<copy file="${template}" tofile="${result}" overwrite="true"/>
 		<replace file="${result}" token="@RELEASE@" value="${build.version}" />
 		<replace file="${result}" token="@DATE@" value="${build.date}" />
-		<replace file="${result}" token="@PORT_HEAD@" value="/dev/serial_head" />
-		<replace file="${result}" token="@PORT_LEFT_ARM@" value="/dev/serial_left_arm" />
-		<replace file="${result}" token="@PORT_LEFT_LEG@" value="/dev/serial_left_leg" />
-		<replace file="${result}" token="@PORT_RIGHT_ARM@" value="/dev/serial_right_arm" />
-		<replace file="${result}" token="@PORT_RIGHT_LEG@" value="/dev/serial_right_leg" />
-		<replace file="${result}" token="@PORT_TORSO@" value="/dev/serial_torso" />
+		<replace file="${result}" token="@PORT_UPPER@" value="/dev/ttyACM0" />
+		<replace file="${result}" token="@PORT_LOWER@" value="/dev/ttyACM1" />
 	</target>
 </project>
