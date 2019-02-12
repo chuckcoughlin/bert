@@ -65,7 +65,7 @@ public class SocketController implements Controller{
 	@Override
 	public void stop() {
 		if( runner!=null) {
-			LOGGER.info(String.format("%s.stopping ... %s of %s",CLSS,socket.getName()));
+			LOGGER.info(String.format("%s.stopping ... %s",CLSS,socket.getName()));
 			runner.interrupt();
 			runner = null;
 		}

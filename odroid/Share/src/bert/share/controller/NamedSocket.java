@@ -161,8 +161,9 @@ public class NamedSocket   {
 			
 	}
 	/**
-	 * Read from the pipe that is appropriate, depending on the ownership. The read will 
-	 * block and wait for data to appear on the pipe. 
+	 * Read from the socket. The read will block and wait for data to appear. 
+	 * If we get a null, then close the socket and either re-open or re-listen
+	 * depending on whether or not this is the server side, or not.
 	 *
 	 * @return either a RequestBottle or a ResponseBottle as appropriate.
 	 */
@@ -172,6 +173,9 @@ public class NamedSocket   {
 			if(in!=null )  {
 				LOGGER.info(String.format("%s.read: reading %s ... ",CLSS,name));
 				String json = in.readLine();
+				while( json==null ) {
+					json = reread();
+				}
 				LOGGER.info(String.format("%s.read: got %s",CLSS,json));
 				if( json!=null) bottle = MessageBottle.fromJSON(json);
 			}
@@ -196,10 +200,9 @@ public class NamedSocket   {
 		//int size = bytes.length;
 		try {
 			if( out!=null ) {
-				LOGGER.info(String.format("%s.write: writing %s %d bytes... ",CLSS,name,json.length()));
 				out.println(json);
 				out.flush();
-				LOGGER.info(String.format("%s.write: complete. ",CLSS,name));
+				LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",CLSS,name,json.length()));
 			}
 			else {
 				LOGGER.severe(String.format("%s.write: Error writing to %s before port is open",CLSS,name));
@@ -208,6 +211,31 @@ public class NamedSocket   {
 		catch(Exception ioe) {
 			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,json.length(), ioe.getLocalizedMessage()));
 		}
+	}
+	
+	/**
+	 * We've gotten a null when reading the socket. This means, as far as I can tell, that the other end has 
+	 * shut down. Close the socket and re-open or re-listen/accept. We hang until this succeeds.
+	 * @return the next 
+	 */
+	private String reread() {
+		String json = null;
+		LOGGER.info(String.format("%s.reread: on port %s",CLSS,name));
+		try{in.close();} catch(IOException ignore) {}
+		try{socket.close();} catch(IOException ignore) {}
+		if( serverSocket!=null ) try{serverSocket.close();} catch(IOException ignore) {}
+		create();
+		try {
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			LOGGER.info(String.format("%s.reread: reopened %s for read",CLSS,name));
+			json = in.readLine();
+		} 
+		catch (Exception ex) {
+			LOGGER.info(String.format("%s.reread: ERROR opening %s for read (%s)",CLSS,name,ex.getMessage()));
+		} 
+		
+		LOGGER.info(String.format("%s.reread: got %s",CLSS,json));
+		return json;
 	}
 }
 

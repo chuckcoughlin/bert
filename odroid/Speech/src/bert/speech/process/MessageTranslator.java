@@ -35,6 +35,12 @@ public class MessageTranslator  {
 		else if(msg.fetchRequestType().equals(RequestType.NOTIFICATION)) {
 			text = msg.getProperty(BottleConstants.TEXT, "Received empty notification.");
 		}
+		else if(msg.fetchRequestType().equals(RequestType.GET_METRIC)) {
+			text = msg.fetchError();
+			if( text==null || text.isBlank() ) {
+				text = msg.getProperty(BottleConstants.TEXT, "??");
+			}
+		}
 		else {
 			String property = msg.getProperty(BottleConstants.PROPERTY_PROPERTY, "unknown");
 			String value = msg.getProperty(BottleConstants.VALUE, "0");

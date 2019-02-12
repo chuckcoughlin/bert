@@ -26,14 +26,15 @@ import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
 
 /**
- * This is the main client class (on the controller side of the pipes). It holds
- * the command, playback, record and joint controllers. 
+ * This is the main client class that handles spoken commands and forwards
+ * them on to the central dispatcher. It also handles database actions 
+ * involving playback and record.
  */
-public class Bert implements MessageHandler {
-	private final static String CLSS = "Bert";
-	private static final String USAGE = "Usage: bert <config-file>";
+public class Command extends Thread implements MessageHandler {
+	private final static String CLSS = "Command";
+	private static final String USAGE = "Usage: command <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = "bert";
+	private static final String LOG_ROOT = "command";
 	private final RobotCommandModel model;
 	private BluetoothController controller = null;
 	private SocketController socketController = null;
@@ -43,7 +44,7 @@ public class Bert implements MessageHandler {
 	private final Lock lock;
 	
 	
-	public Bert(RobotCommandModel m) {
+	public Command(RobotCommandModel m) {
 		this.robot = Humanoid.getInstance();
 		this.model = m;
 		this.lock = new ReentrantLock();
@@ -71,11 +72,8 @@ public class Bert implements MessageHandler {
 	 * via named pipe to the server. We accept responses and forward to the tablet.
 	 */
 	@Override
-	public void execute() {
-		start();
-		
-		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
-		
+	public void run() {
+
 		try {
 			for(;;) {
 				lock.lock();
@@ -94,7 +92,7 @@ public class Bert implements MessageHandler {
 			ex.printStackTrace();
 		} 
 		finally {
-			stop();
+			shutdown();
 		}
 		Database.getInstance().shutdown();
 		System.exit(0);
@@ -102,23 +100,29 @@ public class Bert implements MessageHandler {
 	
 
 	@Override
-	public void start() {
+	public void startup() {
 		socketController.start();
 		controller.start();
 	}
 	@Override
-	public void stop() {
+	public void shutdown() {
 		socketController.stop();
 		controller.stop();
 	}
 	/**
 	 * We've gotten a request (must be from a different thread than our main loop). Signal
-	 * to release the lock to send along to the pipe.
+	 * to release the lock to send along to the socket.
 	 */
 	@Override
 	public void handleRequest(MessageBottle request) {
-		currentRequest = request;
-		busy.signal();
+		lock.lock();
+		try {
+			currentRequest = request;
+			busy.signal();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 	/**
 	 * We've gotten a response. Send it to our Bluetooth controller 
@@ -156,9 +160,11 @@ public class Bert implements MessageHandler {
 		model.populate();
 		Database.getInstance().startup(PathConstants.DB_PATH);
 		Database.getInstance().populateMotors(model.getMotors());
-        Bert runner = new Bert(model);
+        Command runner = new Command(model);
         runner.createControllers();
-        runner.execute();
+        Runtime.getRuntime().addShutdownHook(new ShutdownHook(runner));
+        runner.startup();
+        runner.run();
 	}
 
 }

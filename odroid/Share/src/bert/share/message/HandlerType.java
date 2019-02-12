@@ -13,7 +13,7 @@ package bert.share.message;
 public enum HandlerType
 {
             COMMAND,
-            DISPATCHER,
+            REQUEST,
             SERIAL,
             TERMINAL
             ;

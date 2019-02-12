@@ -36,13 +36,13 @@ import bert.share.util.ShutdownHook;
 
 /**
  * The dispatcher is its own system process. It's job is to accept requests from 
- * the command pipes, distribute them to the motor manager channels and post the results.
+ * the command sockets, distribute them to the motor manager channels and post the results.
  */
-public class Server implements MessageHandler,SocketStateChangeListener {
-	private final static String CLSS = "Server";
-	private static final String USAGE = "Usage: server <robot_root>";
+public class Dispatcher extends Thread implements MessageHandler,SocketStateChangeListener {
+	private final static String CLSS = "Dispatcher";
+	private static final String USAGE = "Usage: dispatcher <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = "server";
+	private static final String LOG_ROOT = "dispatcher";
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
 	private SocketController commandController = null;
@@ -63,7 +63,7 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public Server(RobotDispatcherModel m,MotorGroupController mgc) {
+	public Dispatcher(RobotDispatcherModel m,MotorGroupController mgc) {
 		this.model = m;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
@@ -110,12 +110,8 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 	 * handled atomically. There is no interleaving. 
 	 */
 	@Override
-	public void execute() {
-		initialize();
-		start();
+	public void run() {
 
-		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
-		
 		try {
 			for(;;) {
 				lock.lock();
@@ -127,7 +123,7 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 					// Take care of any local requests first.
 					if( currentRequest!=null ) {
 						if( isLocalRequest(currentRequest) ) {
-							// Handle terminal local request - -create response
+							// Handle local request -create response
 							MessageBottle response = createResponseForLocalRequest(currentRequest);
 							sendResponse(response);
 						}
@@ -155,35 +151,38 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 			ex.printStackTrace();
 		} 
 		finally {
-			stop();
+			shutdown();
 		}
 		System.exit(0);
 	}
 	
 	
 	public void initialize() {
-		if(motorGroupController!=null ) {
-			LOGGER.info(String.format("%s.execute: initializing motorGroupController",CLSS));
-			motorGroupController.initialize();
-		}
+
 	}
 	@Override
-	public void start() {
+	public void startup() {
 		if(commandController!=null )  commandController.start();
 		if(terminalController!=null ) terminalController.start();
 		if(timerController!=null )    timerController.start();
 		if(motorGroupController!=null ) {
 			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
+			motorGroupController.initialize();
 			motorGroupController.start();
 		}
 		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
 	}
 	@Override
-	public void stop() {
+	public void shutdown() {
+		LOGGER.info(String.format("%s.shutdown: Shutting down 1 ...",CLSS));
 		if(commandController!=null )    commandController.stop();
+		LOGGER.info(String.format("%s.shutdown: Shutting down 2 ...",CLSS));
 		if(terminalController!=null )   terminalController.stop();
+		LOGGER.info(String.format("%s.shutdown: Shutting down 3 ...",CLSS));
 		if(timerController!=null )      timerController.stop();
+		LOGGER.info(String.format("%s.shutdown: Shutting down 4 ...",CLSS));
 		if(motorGroupController!=null ) motorGroupController.stop();
+		LOGGER.info(String.format("%s.shutdown: complete.",CLSS));
 	}
 	
 	
@@ -193,8 +192,14 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 	 */
 	@Override
 	public synchronized void handleRequest(MessageBottle request) {
-		currentRequest = request;
-		busy.signal();
+		lock.lock();
+		try {
+			currentRequest = request;
+			busy.signal();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 	
 	/**
@@ -203,9 +208,15 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
-		currentRequest  = null;
-		LOGGER.info(String.format("%s.handleResponse: Unexpected response, shutting down",CLSS));
-		busy.signal();
+		lock.lock();
+		try {
+			currentRequest = null;
+			LOGGER.info(String.format("%s.handleResponse: Unexpected response, shutting down",CLSS));
+			busy.signal();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 	
 	
@@ -342,11 +353,11 @@ public class Server implements MessageHandler,SocketStateChangeListener {
 		
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
-		Server runner = new Server(model,mgc);
+		Dispatcher runner = new Dispatcher(model,mgc);
 		runner.createControllers();
-		runner.execute();
-
-  
+		Runtime.getRuntime().addShutdownHook(new ShutdownHook(runner));
+		runner.startup();
+		runner.run();
 	}
 
 

@@ -33,7 +33,7 @@
 		/>
 		<jar destfile="${lib.dir}/bert-command.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 			<manifest>
-				<attribute name="Main-Class" value="bert.command.main.Bert"/>
+				<attribute name="Main-Class" value="bert.command.main.Command"/>
 			</manifest>
 		</jar>
 	</target>
@@ -79,7 +79,7 @@
 			/>
 			<jar destfile="${lib.dir}/bert-server.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 				<manifest>
-					 <attribute name="Main-Class" value="bert.server.main.Server"/>
+					 <attribute name="Main-Class" value="bert.server.main.Dispatcher"/>
 				</manifest>
 			</jar>
 	</target>

@@ -70,6 +70,7 @@ public class StdioController implements Controller {
 	public void receiveResponse(MessageBottle response) {
 		String text = translator.messsageToText(response);
 		System.out.println(text);
+		System.out.print(prompt);
 	}
 
 	/**
@@ -86,8 +87,8 @@ public class StdioController implements Controller {
 
 		/**
 		 * Forever ...
-		 *   1) Read response from named pipe
-		 *   2) Invoke callback method on launcher.
+		 *   1) Read user entry from std in
+		 *   2) Convert to a request and send to Terminal message handler
 		 */
 		public void run() {
 			BufferedReader br = null;
@@ -109,7 +110,12 @@ public class StdioController implements Controller {
 					else {
 						MessageBottle request = parser.parseStatement(input);
 						request.assignSource(HandlerType.TERMINAL.name());
-						dispatcher.handleRequest(request);
+						if( request.fetchError()==null) {
+							dispatcher.handleRequest(request);
+						}
+						else {
+							receiveResponse(request);  // Handle error immediately
+						}	
 					}
 				}
 			} 

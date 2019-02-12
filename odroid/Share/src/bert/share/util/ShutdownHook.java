@@ -1,6 +1,6 @@
-/* **********************************************************************
- *   BoundedBuffer.java
- * **********************************************************************
+/**
+ * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ *                 MIT License.
  */
  package bert.share.util;
 
@@ -11,9 +11,9 @@ import bert.share.message.MessageHandler;
 
 /**
  * Register this class with the Runtime to cleanup sockets on a 
- * CNTRL-C or other hang-up. 
+ * SIGTERM, SIGINT, or SIGHUP. We do a hard shutdown.
  */
-public class ShutdownHook implements Runnable {
+public class ShutdownHook extends Thread {
 	private static final String CLSS = "ShutdownHook";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final MessageHandler msghandler;
@@ -27,10 +27,11 @@ public class ShutdownHook implements Runnable {
     public void run() {
     	LOGGER.info(String.format("%s: shutting down ...", CLSS));
     	try {
-    		msghandler.stop();
+    		msghandler.shutdown();
     	}
     	catch(Exception ex) {
     		LOGGER.log(Level.SEVERE,String.format("%s: ERROR (%s, args)",CLSS,ex.getMessage()),ex);
     	}
+    	System.exit(0);
       } 
 }

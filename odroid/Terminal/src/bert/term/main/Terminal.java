@@ -27,13 +27,13 @@ import bert.term.model.RobotTerminalModel;
 
 /**
  * "Terminal" is an application that allows interaction from the command line
- * to command and interrogate the robot. Command entries are the same as
- * those given to the "headless" application, "Bert", in spoken form.
+ * to command and interrogate the robot. Typed entries are the same as
+ * those given to the "headless" application, "Command", in spoken form.
  * 
  * The application acts as the intermediary between a StdioController and
- * NamedPipeController communicating with the Server.
+ * SocketController communicating with the Dispatcher.
  */
-public class Terminal implements MessageHandler {
+public class Terminal extends Thread implements MessageHandler {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
@@ -66,19 +66,14 @@ public class Terminal implements MessageHandler {
 		int port = sockets.get(key);
 		this.socketController = new SocketController(this,HandlerType.TERMINAL.name(),hostName,port); 
 	}
-	
+
 	/**
 	 * Loop forever reading from the terminal and forwarding the resulting requests
-	 * via named pipe to the server. We accept responses and forward to the stdio
+	 * via socket to the server. We accept responses and forward to the stdio
 	 * controller.
 	 */
 	@Override
-	public void execute() {
-		start();
-		
-		// The shutdown hook cleans up open sockets 
-		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
-		
+	public void run() {	
 		try {
 			for(;;) {
 				lock.lock();
@@ -97,7 +92,7 @@ public class Terminal implements MessageHandler {
 			ex.printStackTrace();
 		} 
 		finally {
-			stop();
+			shutdown();
 		}
 		Database.getInstance().shutdown();
 		System.exit(0);
@@ -105,23 +100,29 @@ public class Terminal implements MessageHandler {
 	
 
 	@Override
-	public void start() {
+	public void startup() {
 		socketController.start();
 		controller.start();
 	}
 	@Override
-	public void stop() {
+	public void shutdown() {
 		socketController.stop();
 		controller.stop();
 	}
 	/**
 	 * We've gotten a request (must be from a different thread than our main loop). Signal
-	 * to release the lock and send along to the pipe.
+	 * to release the lock and send along to the socket.
 	 */
 	@Override
-	public synchronized void handleRequest(MessageBottle request) {
-		currentRequest = request;
-		busy.signal();
+	public void handleRequest(MessageBottle request) {
+		lock.lock();
+		try {
+			currentRequest = request;
+			busy.signal();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 	
 	/**
@@ -138,7 +139,7 @@ public class Terminal implements MessageHandler {
 	 * stdio. The argument specifies a directory that is the root of the various
 	 * robot configuration, code and devices.
 	 * 
-	 * Usage: term <bert_root> 
+	 * Usage: terminal <bert_root> 
 	 * 
 	 * @param args command-line arguments. Only one matters.
 	 */
@@ -163,6 +164,8 @@ public class Terminal implements MessageHandler {
 		Database.getInstance().populateMotors(model.getMotors());
 		Terminal runner = new Terminal(model);
 		runner.createControllers();
-        runner.execute();
+		Runtime.getRuntime().addShutdownHook(new ShutdownHook(runner));
+        runner.startup();
+        runner.start();
 	}
 }

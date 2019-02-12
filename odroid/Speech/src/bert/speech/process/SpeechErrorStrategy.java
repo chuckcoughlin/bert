@@ -41,7 +41,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
     	super.recover(recognizer,e);
-    	LOGGER.warning(CLSS+": RECOVER");
+    	//LOGGER.warning(CLSS+": RECOVER");
     	//recordError(recognizer,e);  // Moved to reportError() override
     }
 
@@ -73,16 +73,16 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	// In each case the expected tokens are an expression. Don't bother to list
     	
     	Token offender = re.getOffendingToken();
+    	String msg = "";
     	if( offender != null ) {
-    		String msg = String.format("I misunderstood the word following %s",offender.getText());
-    		LOGGER.warning(CLSS+msg);
-    		bottle.assignError(msg);
+    		msg = String.format("I misunderstood the word following %s",offender.getText());
+    		
     	}
     	else {
-    		String msg = "I don't understand";
-			LOGGER.info(CLSS+msg);
-			bottle.assignError(msg);
+    		msg = "I don't understand";
     	}
+    	LOGGER.warning(String.format("%s: %s",CLSS,msg));
+		bottle.assignError(msg);
     }
 }
 

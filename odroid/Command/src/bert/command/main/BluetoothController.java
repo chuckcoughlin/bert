@@ -105,7 +105,12 @@ public class BluetoothController implements Controller {
 					else {
 						MessageBottle request = parser.parseStatement(input);
 						request.assignSource(HandlerType.COMMAND.name());
-						dispatcher.handleRequest(request);
+						if( request.fetchError()==null) {
+							dispatcher.handleRequest(request);
+						}
+						else {
+							receiveResponse(request);  // Handle error immediately
+						}
 					}
 				}
 			} 
