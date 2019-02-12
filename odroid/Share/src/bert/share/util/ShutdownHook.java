@@ -12,6 +12,8 @@ import bert.share.message.MessageHandler;
 /**
  * Register this class with the Runtime to cleanup sockets on a 
  * SIGTERM, SIGINT, or SIGHUP. We do a hard shutdown.
+ * 
+ * It appears as if the logging is in-effective here.
  */
 public class ShutdownHook extends Thread {
 	private static final String CLSS = "ShutdownHook";
@@ -32,6 +34,6 @@ public class ShutdownHook extends Thread {
     	catch(Exception ex) {
     		LOGGER.log(Level.SEVERE,String.format("%s: ERROR (%s, args)",CLSS,ex.getMessage()),ex);
     	}
-    	System.exit(0);
+    	Runtime.getRuntime().halt(0);
       } 
 }

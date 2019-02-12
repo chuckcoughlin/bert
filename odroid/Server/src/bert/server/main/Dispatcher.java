@@ -355,7 +355,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		model.populate();    // Analyze the xml
 		Dispatcher runner = new Dispatcher(model,mgc);
 		runner.createControllers();
-		Runtime.getRuntime().addShutdownHook(new ShutdownHook(runner));
+		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(runner)));
 		runner.startup();
 		runner.run();
 	}
