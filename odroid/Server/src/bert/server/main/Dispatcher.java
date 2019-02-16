@@ -4,6 +4,7 @@
  */
 package bert.server.main;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -260,8 +261,18 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		else if(request.fetchRequestType().equals(RequestType.COMMAND)) {
 			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
-			if( command.equalsIgnoreCase(BottleConstants.COMMAND_SHUTDOWN)) {
+			if( command.equalsIgnoreCase(BottleConstants.COMMAND_HALT)) {
 				System.exit(0);     // Rely on ShutdownHandler cleanup connections
+			}
+			// Initiate a system poweroff - supposedly the shutdown hook will be run
+			else if( command.equalsIgnoreCase(BottleConstants.COMMAND_SHUTDOWN)) {
+				try {
+			        Runtime rt = Runtime.getRuntime();
+			        rt.exec("sudo poweroff"); 
+			    } 
+				catch (IOException ioe) {
+					LOGGER.warning(String.format("%s.createResponseForLocalRequest: Powerdown error (%s)",CLSS,ioe.getMessage())); 
+			    }
 			}
 			else {
 				String msg = String.format("Unrecognized command: %s",command);

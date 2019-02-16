@@ -185,7 +185,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	public void receiveRequest(MessageBottle request) {}
 	@Override
 	public void receiveResponse(MessageBottle response) {}
-	// =========================== Motor Manager Interface =======================================
+	// =========================== Motor Manager Interface ====================================
 	/**
 	 * This method is called by the controller that handled a request that pertained to
 	 * a single motor.
@@ -221,8 +221,9 @@ public class MotorGroupController implements Controller,MotorManager {
 			waiting.signal();	
 		}
 	}
-	// =========================== Private Helper Methods =======================================
-	// Queries of fixed properties of the motors are the kinds of requests that can be handled immediately
+	// =========================== Private Helper Methods =====================================
+	// Queries of fixed properties of the motors are the kinds of requests that can be handled
+	// immediately
 	private boolean canHandleImmediately(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			// Certain properties are constants available from the configuration file.
@@ -238,7 +239,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	}
 
 	// The "local" response is simply the original request with some text
-	// to send directly to the user.
+	// to send directly to the user. These values are obtained from the initial configuration.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));

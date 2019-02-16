@@ -17,7 +17,7 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-	Salutation? (Command|Halt)                       			# handleSingleWordCommand
+	Salutation? (Command|Halt|Shutdown)                       			# handleSingleWordCommand
 	;
       
 // Request for information
@@ -38,13 +38,14 @@ Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'old'|'tall';
 Axis: 'x'|'y'|'z';
 Command: 'attention'|'freeze'|'relax'|'wake up';
-Halt: 'die'|'exit'|'halt'|'quit'|'shutdown'|'stop';
+Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 How: 'how';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
 Of: 'of';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder';
 Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'motor type'|'orientation'|'speed'|'torque';
 Salutation:'bert'|'burt';
+Shutdown: 'power off'|'shut down'|'shutdown';
 Side: 'left'|'right';
 What: 'what';
 

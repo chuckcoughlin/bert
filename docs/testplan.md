@@ -1,7 +1,7 @@
 ## Test Plan
 
 This document lays out a series of feature tests for the "Bert" project. Those tests which have passed are coded in
-<span style="color:green;">green</span>. Failures of features that are  The green markup is a pretty fair indication of the progress of the project.
+<span style="color:green;">green</span>. Failures of features that have previously been reported as complete are marked in <span style="color:red;">red</span>. The green markup is a pretty fair indication of completion status of the project.
 
 
 ***************************************************************
@@ -39,7 +39,8 @@ parameters at each joint. Typical syntax:
 
 ### c - Performance <a id="performance"></a>
 Test the ability to query performance metrics from the dispatcher.
-* `Query Metrics` - use the terminal application to query
-the dispatcher for: cadence, cycle time and duty cycle. The results
+* <span style="color:green;">Query Metrics</span> - use the terminal application to query
+the dispatcher for: name, age, height, cadence, cycle time and duty cycle. The results
 should be formatted into proper english sentences.
+
 ### d - Grammar <a id="grammar"></a>

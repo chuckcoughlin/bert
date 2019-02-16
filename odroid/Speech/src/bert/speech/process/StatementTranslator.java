@@ -44,30 +44,34 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
 		if( ctx.Command()!=null) {
-		String cmd = ctx.Command().getText();
-		if( cmd.equalsIgnoreCase("relax") ) {
-			bottle.assignRequestType(RequestType.SET_STATE);
-			//bottle.setProperty(BottleConstants.STATE_NAME,"relax");
-		}
-		else if( cmd.equalsIgnoreCase("freeze") ||
-				 cmd.equalsIgnoreCase("stop") ) {
-			bottle.assignRequestType(RequestType.SET_STATE);
-			bottle.setProperty(BottleConstants.POSE_NAME,"freeze");
-		}
-		else if( cmd.equalsIgnoreCase("attention") ||
-				 cmd.equalsIgnoreCase("wake up") ) {
-			bottle.assignRequestType(RequestType.SET_POSE);
-			bottle.setProperty(BottleConstants.POSE_NAME,"attention");
-			
-		}
-		else {
-			String msg = String.format("I do not know how to %s",cmd);
-			bottle.assignError(msg);
-		}
+			String cmd = ctx.Command().getText();
+			if( cmd.equalsIgnoreCase("relax") ) {
+				bottle.assignRequestType(RequestType.SET_STATE);
+				//bottle.setProperty(BottleConstants.STATE_NAME,"relax");
+			}
+			else if( cmd.equalsIgnoreCase("freeze") ||
+					cmd.equalsIgnoreCase("stop") ) {
+				bottle.assignRequestType(RequestType.SET_STATE);
+				bottle.setProperty(BottleConstants.POSE_NAME,"freeze");
+			}
+			else if( cmd.equalsIgnoreCase("attention") ||
+					cmd.equalsIgnoreCase("wake up") ) {
+				bottle.assignRequestType(RequestType.SET_POSE);
+				bottle.setProperty(BottleConstants.POSE_NAME,"attention");
+
+			}
+			else {
+				String msg = String.format("I do not know how to %s",cmd);
+				bottle.assignError(msg);
+			}
 		}
 		else if(ctx.Halt()!=null) {
 			bottle.assignRequestType(RequestType.COMMAND);
-			bottle.setProperty(BottleConstants.COMMAND_NAME,"shutdown");
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_HALT);
+		}
+		else if(ctx.Shutdown()!=null) {
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SHUTDOWN);
 		}
 		return null;
 	}
@@ -167,7 +171,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	}
 	//===================================== Helper Methods ======================================
 	// Determine the specific joint from the body part, side and axis. (The latter two are
-	// not always needed.
+	// not always needed).
 	private Joint determineJoint(String bodyPart,String axis,String side) {
 		Joint result = Joint.UNKNOWN;
 		if( bodyPart.equalsIgnoreCase("ABS")) {

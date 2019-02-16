@@ -112,10 +112,9 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 			// Do nothing if the joint isn't in our group.
 			String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
 			MotorConfiguration mc = configurations.get(jointName);
-			if( mc==null ) {
-				return;  
-			}
+			if( mc==null ) { return; }
 		}
+
 		running.signal();
 	}
 	
