@@ -43,7 +43,10 @@ US child-size 8 shoes seem to fit. I used a 3D print coating, [XTC-3D](https://w
 #### Arms <a id="skeleton-arms"></a>
 The hands are coated in [UreCoat](https://www.smooth-on.com/product-line/urecoat/) which gives a rather creepy-feeling soft latex covering. A flesh-toned [colorant](https://www.smooth-on.com/category/color-and-fillers/) was mixed into the coating before application.
 #### Torso <a id="skeleton-torso"></a>
-We used 2.5 x 12mm screws to fasten the 2 SMPS2Dynamiel boards to the torso. The video shows sticking them on with hot-glue.
+We used 2.5 x 12mm screws to fasten the 2 SMPS2Dynamixel boards to the torso. The video shows sticking them on with hot-glue.
+
+We applied 12V power to each SMPS2Dynamixel separately from our power supply. There is no connection between SMPS2Dynamixel boards on the RS485 ports as shown in the assembly video. The RS485 port from the upper SMPs2Dynamixel board is used to power the DC/DC Stepdown converter. This, in turn, powers the Odroid board.
+
 #### Head <a id="skeleton-head"></a>
 Created an umbilical bundle from rear-end of head to torso. It includes:
  * DC/DC 5V step-down converter for power to Odroid
