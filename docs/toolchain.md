@@ -60,9 +60,9 @@ Here are two views of the bundle from the back:
  ![Umbilical bundle2](/images/umbilical2.jpg)
  ```                  Umbilical Bundle II     ```
 #### Power Supply <a id="power-supply"></a>
-5V power for the Odroid processor is supplied by an UBEC DC/DC step-down converter. 
+5V power for the Odroid processor is supplied by an UBEC DC/DC step-down converter.
 
-![5V Power Supply](/images/5V_step_down.jpg)
+![5V Power Supply](/images/5volt_step_down.jpg)
 ```                  5V DC Power     ```
 
 The main power pack, shown below, was constructed from a decorative tin that my wife had saved. Inside it contains 2 AC/12V DC converters. The connectors plug directly into the back of the robot.
