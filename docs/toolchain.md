@@ -322,9 +322,9 @@ We use PyDev to browse the original *Poppy* and *iCub* code.
 [toc](#table-of-contents)
 
 *** General *** <br/>
-The tablet application, ***BertOp*** is the Human Machine Interface (HMI) in normal operation.  Most importantly it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
+The tablet application, ***BertSpeak*** is the only Human Machine Interface (HMI) in normal operation.  Most importantly, it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
 
-The control application is a standard Android application built using Android Studio 3.0. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
+The control application is a standard Android application built using Android Studio 3.3. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
     ```ANDROID_HOME=~/Library/Androd/sdk```
 
 *** Voice Commands ***<br/>
