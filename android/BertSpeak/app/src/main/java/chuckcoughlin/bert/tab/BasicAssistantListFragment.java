@@ -1,4 +1,8 @@
-package chuckcoughlin.bertspeak.tab;
+/**
+ * Copyright 2019 Charles Coughlin. All rights reserved.
+ *  (MIT License)
+ */
+package chuckcoughlin.bert.tab;
 
 
 import android.os.Bundle;

@@ -1,3 +1,29 @@
 <resources>
     <string name="app_name">BertSpeak</string>
+    <!-- Labels in the navigation bar -->
+    <string name="cover_tab_label">Cover</string>
+    <string name="log_tab_label">Log</string>
+    <string name="settings_tab_label">Settings</string>
+    <!-- Titles as they appear at the top of each page -->
+    <string name="action_settings">Settings</string>
+    <string name="fragmentCoverLabel">Bert"</string>
+    <string name="fragmentLogsLabel">Spoken Record</string>
+    <string name="fragmentSettingsLabel">Configuration Settings</string>
+    <!-- Strings for Cover tab-->
+    <string name="discoveryButtonConnect">Connect</string>
+    <string name="discoveryButtonDisconnect">Disconnect</string>
+    <string name="discoveryToggleOn">ON</string>
+    <string name="discoveryToggleOff">OFF</string>
+    <string name="discoveryButtonTerminate">Quit</string>
+    <string name="discoveryButtonView">View</string>
+    <string name="discoveryViewPopupTitle">Robot Attributes</string>
+    <!-- Strings for Log tab-->
+    <string name="logButtonClear">Clear</string>
+    <string name="logButtonFreeze">Freeze</string>
+    <string name="logButtonThaw">Unfreeze</string>
+    <!-- Notification Button Labels -->
+    <string name="notificationLabel">Speech Processing via Bluetooth connection to main robot.</string>
+    <string name="notificationStart">Start</string>
+    <string name="notificationStop">Stop</string>
+    <string name="notificationMute">Mute</string>
 </resources>

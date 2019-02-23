@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# These lines are necessary when using some older .jar files in the library
+-keepattributes InnerClasses, EnclosingMethod
+-dontoptimize

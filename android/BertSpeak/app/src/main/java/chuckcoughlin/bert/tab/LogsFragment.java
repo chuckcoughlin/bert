@@ -1,9 +1,9 @@
 /**
- * Copyright 2017 Charles Coughlin. All rights reserved.
+ * Copyright 2019 Charles Coughlin. All rights reserved.
  *  (MIT License)
  */
 
-package chuckcoughlin.bertspeak.tab;
+package chuckcoughlin.bert.tab;
 
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,21 +15,19 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import chuckcoughlin.sb.assistant.R;
-import chuckcoughlin.sb.assistant.logs.LogRecyclerAdapter;
-import chuckcoughlin.sb.assistant.logs.SBLogManager;
-import chuckcoughlin.sb.assistant.ros.SBApplicationStatusListener;
-import chuckcoughlin.sb.assistant.ros.SBApplicationManager;
+import chuckcoughlin.bert.R;
+import chuckcoughlin.bert.logs.LogRecyclerAdapter;
+import chuckcoughlin.bert.logs.BertLogManager;
+
 
 /**
- * This fragment allows perusal of the robot's activity log.
+ * This fragment allows perusal of the robot's spoken interactions..
  */
 
-public class LogsFragment extends BasicAssistantFragment implements SBApplicationStatusListener {
+public class LogsFragment extends BasicAssistantFragment  {
     private final static String CLSS = "LogFragment";
     private RecyclerView.LayoutManager layoutManager;
     private LogRecyclerAdapter adapter;
-    private SBApplicationManager applicationManager;
     private View rootView = null;
     private RecyclerView logMessageView;
     private TextView logView;
@@ -39,8 +37,6 @@ public class LogsFragment extends BasicAssistantFragment implements SBApplicatio
         rootView = inflater.inflate(R.layout.fragment_logs, container, false);
         TextView textView = rootView.findViewById(R.id.fragmentLogsText);
         textView.setText(R.string.fragmentLogsLabel);
-        this.applicationManager = SBApplicationManager.getInstance();
-        applicationManager.addListener(this);
 
         logMessageView = rootView.findViewById(R.id.logs_recycler_view);
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
@@ -58,7 +54,7 @@ public class LogsFragment extends BasicAssistantFragment implements SBApplicatio
                 clearButtonClicked();
             }
         });
-        SBLogManager.getInstance().freeze();
+        BertLogManager.getInstance().freeze();
         button = (Button) rootView.findViewById(R.id.freezeButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,34 +69,19 @@ public class LogsFragment extends BasicAssistantFragment implements SBApplicatio
     @Override
     public void onDestroyView() {
         Log.i(CLSS, "onDestroyView");
-        SBLogManager.getInstance().removeObserver(adapter);
-        applicationManager.removeListener(this);
-        applicationShutdown("");
+        BertLogManager.getInstance().removeObserver(adapter);
         super.onDestroyView();
-    }
-
-    // ========================================= SBApplicationStatusListener ============================
-    // This may be called immediately on establishment of the listener.
-    public void applicationStarted(String appName) {
-        Log.i(CLSS, String.format("applicationStarted: %s ...", appName));
-        SBLogManager.getInstance().addObserver(adapter);
-    }
-
-    // We don't care what the application is ...
-    public void applicationShutdown(String appName) {
-        Log.i(CLSS, String.format("applicationShutdown"));
-        SBLogManager.getInstance().removeObserver(adapter);
     }
 
     //======================================== Button Callbacks ======================================
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        SBLogManager.getInstance().clear();
+        BertLogManager.getInstance().clear();
     }
 
     public void freezeButtonClicked() {
-        SBLogManager logManager = SBLogManager.getInstance();
+        BertLogManager logManager = BertLogManager.getInstance();
         if( logManager.isFrozen() ) {
             logManager.resume();
         }
@@ -112,7 +93,7 @@ public class LogsFragment extends BasicAssistantFragment implements SBApplicatio
 
     private void updateUI() {
         Button button = (Button) rootView.findViewById(R.id.freezeButton);
-        if( SBLogManager.getInstance().isFrozen() ) {
+        if( BertLogManager.getInstance().isFrozen() ) {
             button.setText(R.string.logButtonThaw);
         }
         else {

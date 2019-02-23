@@ -6,7 +6,7 @@ package chuckcoughlin.bert.common;
 
 /**
  * This class contains static strings used throughout
- * the spplication.
+ * the application.
  */
 public class BertConstants {
     // Database configuration
@@ -16,6 +16,15 @@ public class BertConstants {
     public static final String SETTINGS_NAME  = "name";
     public static final String SETTINGS_VALUE = "value";
 
+    // These are the parameter names in the Settings table
+    public static final String BERT_GATEWAY="Gateway";
+    public static final String BERT_HOST="Host";
+    public static final String BERT_PAIRED_DEVICE="Paired Device";
+
+    // These are the default values for the settings
+    public static final String BERT_GATEWAY_HINT="192.168.0.1";
+    public static final String BERT_HOST_HINT="192.168.1.20";
+    public static final String BERT_PAIRED_DEVICE_HINT="bert_humanoid";
 
     // Name of the main node on the tablet
     public static final String MAIN_NODE_NAME = "tablet_node_main";

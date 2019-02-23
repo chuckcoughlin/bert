@@ -11,15 +11,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
 
-import chuckcoughlin.sb.assistant.tab.AssistantFragment;
-import chuckcoughlin.sb.assistant.tab.AudioFragment;
-import chuckcoughlin.sb.assistant.tab.CoverFragment;
-import chuckcoughlin.sb.assistant.tab.DiscoveryFragment;
-import chuckcoughlin.sb.assistant.tab.LogsFragment;
-import chuckcoughlin.sb.assistant.tab.LidarFragment;
-import chuckcoughlin.sb.assistant.tab.SettingsFragment;
-import chuckcoughlin.sb.assistant.tab.SystemFragment;
-import chuckcoughlin.sb.assistant.tab.TeleopFragment;
+import chuckcoughlin.bert.tab.AssistantFragment;
+import chuckcoughlin.bert.tab.CoverFragment;
+import chuckcoughlin.bert.tab.LogsFragment;
+import chuckcoughlin.bert.tab.SettingsFragment;
 
 
 /**
@@ -35,9 +30,8 @@ public class MainActivityPagerAdapter extends FragmentStatePagerAdapter {
         super(fm);
 
         tabTitles = new String[] {
-                ctx.getString(R.string.cover_tab_label), ctx.getString(R.string.discovery_tab_label), ctx.getString(R.string.settings_tab_label),ctx.getString(R.string.system_tab_label),
-                ctx.getString(R.string.lidar_tab_label),ctx.getString(R.string.audio_tab_label),
-                ctx.getString(R.string.teleop_tab_label),ctx.getString(R.string.log_tab_label)};
+                ctx.getString(R.string.cover_tab_label),
+                ctx.getString(R.string.settings_tab_label),ctx.getString(R.string.log_tab_label)};
         Log.i(CLSS,"Constructor ...");
     }
 
@@ -55,24 +49,9 @@ public class MainActivityPagerAdapter extends FragmentStatePagerAdapter {
                 frag = new CoverFragment();
                 break;
             case 1:
-                frag = new DiscoveryFragment();
-                break;
-            case 2:
                 frag =  new SettingsFragment();
                 break;
-            case 3:
-                frag =  new SystemFragment();
-                break;
-            case 4:
-                frag = new LidarFragment();
-                break;
-            case 5:
-                frag = new AudioFragment();
-                break;
-            case 6:
-                frag = new TeleopFragment();
-                break;
-            case 7:
+            case 2:
                 frag = new LogsFragment();
                 break;
             default:

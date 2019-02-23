@@ -89,35 +89,14 @@ public class BertDbManager extends SQLiteOpenHelper {
 
 
         // Add initial rows - fail silently if they exist. Use default for value.
-        String statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_GATEWAY+"','"+SBConstants.ROS_GATEWAY_HINT+"')";
+        String statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_GATEWAY+"','"+BertConstants.BERT_GATEWAY_HINT+"')";
         execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_MASTER_URI+"','"+SBConstants.ROS_MASTER_URI_HINT+"')";
+        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_HOST+"','"+BertConstants.BERT_HOST_HINT+"')";
         execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_HOST+"','"+SBConstants.ROS_HOST_HINT+"')";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_PAIRED_DEVICE+"','"+SBConstants.ROS_PAIRED_DEVICE_HINT+"')";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_SSID+"','"+SBConstants.ROS_SSID_HINT+"')";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_WIFIPWD+"','"+SBConstants.ROS_WIFIPWD_HINT+"')";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_USER+"','"+SBConstants.ROS_USER_HINT+"')";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+SBConstants.ROS_USER_PASSWORD+"','"+SBConstants.ROS_USER_PASSWORD_HINT+"')";
+        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_PAIRED_DEVICE+"','"+BertConstants.BERT_PAIRED_DEVICE_HINT+"')";
         execLenient(sqLiteDatabase,statement);
 
-        Log.i(CLSS,String.format("onCreate: Created %s at %s",SBConstants.DB_NAME,context.getDatabasePath(SBConstants.DB_NAME)));
-
-        // Define the various applications. This is a fixed list and must correspondd to robot contents.
-        // NOTE: The former applications FOLLOW, PARK and COME are now sub-applications of Teleop_Services.
-        statement = "DELETE FROM RobotApplications";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO RobotApplications(AppName,Description) VALUES('"+SBConstants.APPLICATION_HEADLAMP+"','Turn robot headlamp on/off')";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO RobotApplications(AppName,Description) VALUES('"+SBConstants.APPLICATION_SYSTEM+"','Monitor robot system status')";
-        execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO RobotApplications(AppName,Description) VALUES('"+SBConstants.APPLICATION_TELEOP+"','Control robot from the tablet')";
-        execLenient(sqLiteDatabase,statement);
+        Log.i(CLSS,String.format("onCreate: Created %s at %s",BertConstants.DB_NAME,context.getDatabasePath(BertConstants.DB_NAME)));
     }
 
     /**

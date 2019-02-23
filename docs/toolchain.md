@@ -59,6 +59,8 @@ Here are two views of the bundle from the back:
 
  ![Umbilical bundle2](/images/umbilical2.jpg)
  ```                  Umbilical Bundle II     ```
+
+The face originates from a photo of Dick van Dyke, converted into a 3D image online at a site demonstrating [Large Pose 3D Face Reconstruction from a Single Image via Direct Volumetric CNN Regression](http://cvl-demos.cs.nott.ac.uk/vrn).
 #### Power Supply <a id="power-supply"></a>
 5V power for the Odroid processor is supplied by an UBEC DC/DC step-down converter.
 

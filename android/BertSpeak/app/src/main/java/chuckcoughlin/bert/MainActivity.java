@@ -13,10 +13,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import chuckcoughlin.sb.assistant.db.SBDbManager;
-import chuckcoughlin.sb.assistant.logs.SBLogManager;
-import chuckcoughlin.sb.assistant.ros.SBApplicationManager;
-import chuckcoughlin.sb.assistant.ros.SBRobotManager;
+import chuckcoughlin.bert.db.BertDbManager;
+import chuckcoughlin.bert.logs.BertLogManager;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -54,24 +52,13 @@ public class MainActivity extends AppCompatActivity {
         BertDbManager.initialize(this);
         BertLogManager.initialize();
 
-        Log.i(CLSS,"onCreate: entering ...");
         setContentView(R.layout.activity_main);
         // Close the soft keyboard - it will still open on an EditText
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         ViewPager viewPager = findViewById(R.id.viewpager);
         pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(),getApplicationContext());
         viewPager.setAdapter(pagerAdapter);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final Toast toast = Toast.makeText(getBaseContext(),"Hi MOM",Toast.LENGTH_LONG);
-                toast.show();
-            }
-        });
     }
 
     /**
