@@ -18,29 +18,78 @@
         android:layout_height="match_parent"
         android:layout_alignParentRight="true"
         android:layout_marginRight="20dp"
-        android:orientation="vertical"
         android:layout_toLeftOf="@id/fragmentCoverImage"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/fragmentCoverText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="0dp"
-            android:textAlignment="center"/>
+            android:textAlignment="center" />
+
         <TextView
             android:id="@+id/bluetooth_connection_label"
-            android:textSize="@dimen/cover_parameter_text_size"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_text_field_height"
-            android:layout_marginTop="@dimen/cover_parameter_top_margin"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="@string/coverParameterBluetooth" />
+            android:layout_marginTop="@dimen/cover_parameter_top_margin"
+            android:text="@string/coverParameterBluetooth"
+            android:textAlignment="center"
+            android:textSize="@dimen/cover_parameter_text_size" />
+
         <ImageView
             android:id="@+id/bluetooth_button_image"
             android:layout_width="@dimen/button_image_width"
             android:layout_height="@dimen/button_image_height"
-            android:background="@drawable/border_tan"
-            android:src="@drawable/ball_blue"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/cover_image_top_margin"
+            android:background="@drawable/border_gray"
+            android:paddingTop="@dimen/button_image_padding"
+            android:paddingLeft="@dimen/button_image_padding"
+            android:src="@drawable/ball_blue" />
+
+        <TextView
+            android:id="@+id/socket_connection_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/cover_parameter_top_margin"
+            android:text="@string/coverParameterSocket"
+            android:textAlignment="center"
+            android:textSize="@dimen/cover_parameter_text_size" />
+
+        <ImageView
+            android:id="@+id/socket_button_image"
+            android:layout_width="@dimen/button_image_width"
+            android:layout_height="@dimen/button_image_height"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/cover_image_top_margin"
+            android:background="@drawable/border_gray"
+            android:paddingTop="@dimen/button_image_padding"
+            android:paddingLeft="@dimen/button_image_padding"
+            android:src="@drawable/ball_blue" />
+
+        <TextView
+            android:id="@+id/voice_connection_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/cover_parameter_top_margin"
+            android:text="@string/coverParameterVoice"
+            android:textAlignment="center"
+            android:textSize="@dimen/cover_parameter_text_size" />
+
+        <ImageView
+            android:id="@+id/voice_button_image"
+            android:layout_width="@dimen/button_image_width"
+            android:layout_height="@dimen/button_image_height"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/cover_image_top_margin"
+            android:background="@drawable/border_gray"
+            android:paddingTop="@dimen/button_image_padding"
+            android:paddingLeft="@dimen/button_image_padding"
+            android:src="@drawable/ball_blue" />
     </LinearLayout>
 </RelativeLayout>
