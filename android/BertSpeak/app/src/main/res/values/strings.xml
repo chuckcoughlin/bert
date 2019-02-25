@@ -10,8 +10,10 @@
     <string name="fragmentLogsLabel">Spoken Record</string>
     <string name="fragmentSettingsLabel">Configuration Settings</string>
     <!-- Strings for Cover tab-->
-    <string name="discoveryButtonConnect">Connect</string>
-    <string name="discoveryButtonDisconnect">Disconnect</string>
+    <string name="coverParameterBluetooth">Bluetooth</string>
+    <string name="coverParameterSocket">Socket</string>
+    <string name="coverParameterVoice">Voice</string>
+
     <string name="discoveryToggleOn">ON</string>
     <string name="discoveryToggleOff">OFF</string>
     <string name="discoveryButtonTerminate">Quit</string>
