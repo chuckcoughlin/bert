@@ -30,7 +30,6 @@ public class CoverFragment extends BasicAssistantFragment {
         TextView label = view.findViewById(R.id.fragmentCoverText);
         label.setText(getString(R.string.fragmentCoverLabel));
         label.setTextSize(36);
-        Log.i(CLSS,String.format("onCreateView: label = %s",label.getText()));
 
         ImageView imageView = view.findViewById(R.id.fragmentCoverImage);
         imageView.setImageResource(R.drawable.recliner);
