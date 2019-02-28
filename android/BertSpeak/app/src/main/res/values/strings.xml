@@ -14,17 +14,13 @@
     <string name="coverParameterSocket">Socket</string>
     <string name="coverParameterVoice">Voice</string>
 
-    <string name="discoveryToggleOn">ON</string>
-    <string name="discoveryToggleOff">OFF</string>
-    <string name="discoveryButtonTerminate">Quit</string>
-    <string name="discoveryButtonView">View</string>
-    <string name="discoveryViewPopupTitle">Robot Attributes</string>
     <!-- Strings for Log tab-->
     <string name="logButtonClear">Clear</string>
     <string name="logButtonFreeze">Freeze</string>
     <string name="logButtonThaw">Unfreeze</string>
     <!-- Notification Button Labels -->
     <string name="notificationLabel">Speech Processing via Bluetooth connection to main robot.</string>
+    <string name="notificationKey">VoiceServiceRunning</string>
     <string name="notificationStart">Start</string>
     <string name="notificationStop">Stop</string>
     <string name="notificationMute">Mute</string>

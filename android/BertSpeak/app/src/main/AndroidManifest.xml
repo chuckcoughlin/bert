@@ -27,8 +27,9 @@
             </intent-filter>
         </activity>
         <service
-            android:name="chuckcoughlin.bert.service.SpeechService"
+            android:name="chuckcoughlin.bert.service.VoiceService"
             android:exported="true"
+            android:label="@string/notificationLabel"
             android:enabled="true">
             <intent-filter>
                 <action android:name="chuckcoughlin.bert.service.SpeechService" />

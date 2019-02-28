@@ -5,6 +5,7 @@
 
 package chuckcoughlin.bert;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 import chuckcoughlin.bert.db.BertDbManager;
 import chuckcoughlin.bert.logs.BertLogManager;
+import chuckcoughlin.bert.service.VoiceService;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -59,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
         ViewPager viewPager = findViewById(R.id.viewpager);
         pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(),getApplicationContext());
         viewPager.setAdapter(pagerAdapter);
+
+        // Create the comprehensive voice connection service
+        Intent intent = new Intent(this, VoiceService.class);
+        getApplicationContext().startForegroundService(intent);
     }
 
     /**
@@ -72,5 +78,7 @@ public class MainActivity extends AppCompatActivity {
             BertDbManager.destroy();
             BertLogManager.destroy();
         }
+        Intent intent = new Intent(this, VoiceService.class);
+        stopService(intent);
     }
 }
