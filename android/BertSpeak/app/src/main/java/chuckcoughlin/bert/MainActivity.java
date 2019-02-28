@@ -6,7 +6,9 @@
 package chuckcoughlin.bert;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -16,12 +18,18 @@ import android.widget.Toast;
 
 import chuckcoughlin.bert.db.BertDbManager;
 import chuckcoughlin.bert.logs.BertLogManager;
+import chuckcoughlin.bert.service.ConnectionStateReceiver;
+import chuckcoughlin.bert.service.SpokenTextReceiver;
+import chuckcoughlin.bert.service.VoiceConstants;
 import chuckcoughlin.bert.service.VoiceService;
 
 
 public class MainActivity extends AppCompatActivity {
     private static final String CLSS = "MainActivity";
     private static final String DIALOG_TAG = "dialog";
+
+    private ConnectionStateReceiver csr = null;
+    private SpokenTextReceiver str      = null;
     /**
      * A specialized {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the application pages. We use a
@@ -65,6 +73,17 @@ public class MainActivity extends AppCompatActivity {
         // Create the comprehensive voice connection service
         Intent intent = new Intent(this, VoiceService.class);
         getApplicationContext().startForegroundService(intent);
+
+        // Register broadcast receivers
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(VoiceConstants.RECEIVER_SERVICE_STATE);
+        csr = new ConnectionStateReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(csr,filter);
+
+        filter = new IntentFilter();
+        filter.addAction(VoiceConstants.RECEIVER_SPOKEN_TEXT);
+        str = new SpokenTextReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(csr,filter);
     }
 
     /**
@@ -78,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
             BertDbManager.destroy();
             BertLogManager.destroy();
         }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(csr);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(str);
         Intent intent = new Intent(this, VoiceService.class);
         stopService(intent);
     }

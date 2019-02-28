@@ -12,14 +12,13 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.List;
-
 /**
  * Define a broadcast receiver that is interested only in the connection state
  */
-public class ConnectionStateReceiver extends BroadcastReceiver implements ObservableReceiver {
+public class SpokenTextReceiver extends BroadcastReceiver implements ObservableReceiver {
     private final List<BroadcastObserver> observers;
-    public ConnectionStateReceiver() {
-            observers = new ArrayList<>();
+    public SpokenTextReceiver() {
+        observers = new ArrayList<>();
     }
 
     @Override
@@ -30,6 +29,7 @@ public class ConnectionStateReceiver extends BroadcastReceiver implements Observ
 
         }
     }
+
     // ===================== ObservableReceiver =====================
     @Override
     public void register(final BroadcastObserver observer) {

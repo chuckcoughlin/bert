@@ -5,6 +5,7 @@
 
 package chuckcoughlin.bert.tab;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,13 +19,15 @@ import android.widget.TextView;
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.logs.LogRecyclerAdapter;
 import chuckcoughlin.bert.logs.BertLogManager;
+import chuckcoughlin.bert.service.BroadcastObserver;
+import chuckcoughlin.bert.service.VoiceConstants;
 
 
 /**
  * This fragment allows perusal of the robot's spoken interactions..
  */
 
-public class LogsFragment extends BasicAssistantFragment  {
+public class LogsFragment extends BasicAssistantFragment implements BroadcastObserver {
     private final static String CLSS = "LogFragment";
     private RecyclerView.LayoutManager layoutManager;
     private LogRecyclerAdapter adapter;
@@ -101,4 +104,11 @@ public class LogsFragment extends BasicAssistantFragment  {
         }
     }
 
+    // ===================== BroadcastObserver =====================
+    @Override
+    public void broadcastReceived(Intent intent) {
+        if( intent.hasCategory(VoiceConstants.CATEGORY_SPOKEN_TEXT)) {
+
+        }
+    }
 }

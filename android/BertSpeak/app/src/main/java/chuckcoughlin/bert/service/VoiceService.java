@@ -15,6 +15,7 @@ import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -63,6 +64,9 @@ public class VoiceService extends Service  {
         Notification notification = buildNotification();
         instance = this;
         startForeground(VOICE_NOTIFICATION, notification);
+        Intent intent = new Intent(VoiceConstants.RECEIVER_SERVICE_STATE);
+        intent.addCategory(VoiceConstants.CATEGORY_SERVICE_STATE);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     @Override
