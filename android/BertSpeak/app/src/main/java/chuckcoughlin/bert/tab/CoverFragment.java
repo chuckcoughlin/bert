@@ -29,6 +29,7 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_cover, container, false);
+
         TextView label = view.findViewById(R.id.fragmentCoverText);
         label.setText(getString(R.string.fragmentCoverLabel));
         label.setTextSize(36);
