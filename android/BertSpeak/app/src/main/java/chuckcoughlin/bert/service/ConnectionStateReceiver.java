@@ -18,16 +18,17 @@ import java.util.List;
  */
 public class ConnectionStateReceiver extends BroadcastReceiver implements ObservableReceiver {
     private final List<BroadcastObserver> observers;
+    private ConnectionState currentState;
+
     public ConnectionStateReceiver() {
-            observers = new ArrayList<>();
+        observers = new ArrayList<>();
+        currentState = ConnectionState.NONE;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Bundle bundle = intent.getExtras();
-        if (bundle != null) {
-            //String string = bundle.getString(DownloadService.FILEPATH);
-
+        if(intent.getAction().equalsIgnoreCase(VoiceConstants.RECEIVER_SERVICE_STATE) ) {
+            notifyObservers(intent);
         }
     }
     // ===================== ObservableReceiver =====================

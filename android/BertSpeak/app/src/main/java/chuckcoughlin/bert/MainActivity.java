@@ -41,12 +41,13 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager viewPager;
-    private Thread nodeThread;
 
     public MainActivity() {
         Log.d(CLSS,"Constructor ...");
     }
 
+    public ConnectionStateReceiver getConnectionStateReceiver() { return this.csr; }
+    public SpokenTextReceiver getSpokenTextReceiver() { return this.str; }
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
      * @param savedInstanceState

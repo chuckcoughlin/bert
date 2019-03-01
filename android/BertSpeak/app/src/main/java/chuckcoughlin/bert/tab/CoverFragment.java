@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import chuckcoughlin.bert.MainActivity;
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.service.BroadcastObserver;
 import chuckcoughlin.bert.service.VoiceConstants;
@@ -32,11 +33,17 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
         label.setText(getString(R.string.fragmentCoverLabel));
         label.setTextSize(36);
 
+        ((MainActivity)this.getActivity()).getConnectionStateReceiver().register(this);
         ImageView imageView = view.findViewById(R.id.fragmentCoverImage);
         imageView.setImageResource(R.drawable.recliner);
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        ((MainActivity)this.getActivity()).getConnectionStateReceiver().unregister(this);
+        super.onDestroyView();
+    }
     // ===================== BroadcastObserver =====================
     @Override
     public void broadcastReceived(Intent intent) {

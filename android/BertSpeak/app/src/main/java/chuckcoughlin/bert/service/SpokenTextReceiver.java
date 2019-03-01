@@ -13,7 +13,7 @@ import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.List;
 /**
- * Define a broadcast receiver that is interested only in the connection state
+ * Define a broadcast receiver that is interested only in the spoken text
  */
 public class SpokenTextReceiver extends BroadcastReceiver implements ObservableReceiver {
     private final List<BroadcastObserver> observers;
@@ -23,10 +23,8 @@ public class SpokenTextReceiver extends BroadcastReceiver implements ObservableR
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Bundle bundle = intent.getExtras();
-        if (bundle != null) {
-            //String string = bundle.getString(DownloadService.FILEPATH);
-
+        if(intent.getAction().equalsIgnoreCase(VoiceConstants.RECEIVER_SPOKEN_TEXT) ) {
+            notifyObservers(intent);
         }
     }
 
