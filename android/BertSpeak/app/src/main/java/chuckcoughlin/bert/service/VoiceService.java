@@ -19,6 +19,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import chuckcoughlin.bert.R;
+import chuckcoughlin.bert.common.BertConstants;
 
 /**
  * This is a foreground service and may be turned on/off with a notifications interface.
@@ -34,12 +35,16 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
     private static volatile VoiceService instance = null;
     private static final long ERROR_CYCLE_DELAY = 10000;   // Wait interval for retry after error
     private volatile NotificationManager notificationManager;
+    private static final String NOTIFICATION_COMMAND_MUTE  = "Mute";
+    private static final String NOTIFICATION_COMMAND_START = "Start";
+    private static final String NOTIFICATION_COMMAND_STOP  = "Stop";
+    private boolean isMuted;
     private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
-    private ActionState currentState;
-    private OrderedAction currentAction;
+    private FacilityState currentState;
+    private TieredFacility currentAction;
 
     public VoiceService() {
-
+        this.isMuted = false;
     }
 
     /**
@@ -66,12 +71,6 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
         Notification notification = buildNotification();
         instance = this;
         startForeground(VOICE_NOTIFICATION, notification);
-        currentAction = OrderedAction.BLUETOOTH;
-        currentState = ActionState.IDLE;
-        reportConnectionState(currentAction,currentState);
-        reportConnectionState(OrderedAction.SOCKET,ActionState.IDLE);  // Just to initialize
-        reportConnectionState(OrderedAction.VOICE,ActionState.IDLE);   // Just to initialize
-
     }
 
     @Override
@@ -81,9 +80,35 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
         stopForegroundService();
     }
 
+    /**
+     * The initial intent action is null. Otherwise we receive values when the user clicks on the
+     * notification buttons.
+     * @param intent
+     * @param flags
+     * @param startId
+     * @return
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i(CLSS,String.format("onStartCommand: flags = %d, id = %d",flags,startId));
+        Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",intent.getAction(),flags,startId));
+        if( intent.getAction()==null) {
+            currentAction = TieredFacility.BLUETOOTH;
+            currentState = FacilityState.IDLE;
+            reportConnectionState(currentAction, currentState);
+            reportConnectionState(TieredFacility.SOCKET, FacilityState.IDLE);  // Just to initialize
+            reportConnectionState(TieredFacility.VOICE, FacilityState.IDLE);   // Just to initialize
+
+            determineNextAction();
+        }
+        else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_MUTE)) {
+            isMuted = !isMuted;
+        }
+        else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_START)) {
+            ;    // What do we do here?
+        }
+        else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_STOP)) {
+            ;
+        }
         return(START_NOT_STICKY);
     }
 
@@ -100,12 +125,12 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
         // Create notification builder.
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, BertConstants.NOTIFICATION_CHANNEL_ID);
 
         // Make notification show big text.
         NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle();
-        bigTextStyle.setBigContentTitle("Music player implemented by foreground service.");
-        bigTextStyle.bigText("Android foreground service is a android service which can run in foreground always, it can be controlled by user via notification.");
+        bigTextStyle.setBigContentTitle(getString(R.string.notificationLabel));
+        bigTextStyle.bigText(getString(R.string.notificationDescription));
         // Set big text style.
         builder.setStyle(bigTextStyle);
 
@@ -122,21 +147,21 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
         Intent startIntent = new Intent(this, VoiceService.class);
         startIntent.setAction(getString(R.string.notificationStart));
         PendingIntent pendingStartIntent = PendingIntent.getService(this, 0, startIntent, 0);
-        NotificationCompat.Action playAction = new NotificationCompat.Action(android.R.drawable.ic_media_play, "Start", pendingStartIntent);
+        NotificationCompat.Action playAction = new NotificationCompat.Action(android.R.drawable.ic_media_play, NOTIFICATION_COMMAND_START, pendingStartIntent);
         builder.addAction(playAction);
 
         // Mute button
         Intent muteIntent = new Intent(this, VoiceService.class);
         muteIntent.setAction(getString(R.string.notificationMute));
         PendingIntent pendingMuteIntent = PendingIntent.getService(this, 0, muteIntent, 0);
-        NotificationCompat.Action muteAction = new NotificationCompat.Action(android.R.drawable.ic_media_pause, "Mute", pendingMuteIntent);
+        NotificationCompat.Action muteAction = new NotificationCompat.Action(android.R.drawable.ic_media_pause, NOTIFICATION_COMMAND_MUTE, pendingMuteIntent);
         builder.addAction(muteAction);
 
         // Stop button
-        Intent stopntent = new Intent(this, VoiceService.class);
-        stopntent.setAction(getString(R.string.notificationStop));
-        PendingIntent pendingStopIntent = PendingIntent.getService(this, 0, stopntent, 0);
-        NotificationCompat.Action stopAction = new NotificationCompat.Action(android.R.drawable.ic_lock_power_off, "Stop", pendingStopIntent);
+        Intent stopIntent = new Intent(this, VoiceService.class);
+        stopIntent.setAction(getString(R.string.notificationStop));
+        PendingIntent pendingStopIntent = PendingIntent.getService(this, 0, stopIntent, 0);
+        NotificationCompat.Action stopAction = new NotificationCompat.Action(android.R.drawable.ic_lock_power_off, NOTIFICATION_COMMAND_STOP, pendingStopIntent);
         builder.addAction(stopAction);
 
         // Build the notification.
@@ -145,28 +170,29 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
 
     // Start the 3 actions in order
     private void determineNextAction() {
-        if( currentAction.equals(OrderedAction.BLUETOOTH)) {
-            if( !currentState.equals(ActionState.ACTIVE)) {
+        if( currentAction.equals(TieredFacility.BLUETOOTH)) {
+            if( !currentState.equals(FacilityState.ACTIVE)) {
                 BluetoothChecker checker = new BluetoothChecker(this);
-                currentState = ActionState.WAITING;
+                currentState = FacilityState.WAITING;
                 reportConnectionState(currentAction,currentState);
                 checker.beginChecking((BluetoothManager)getSystemService(BLUETOOTH_SERVICE));
             }
             // Start socket
             else {
-                currentAction = OrderedAction.SOCKET;
-                currentState = ActionState.WAITING;
+                currentAction = TieredFacility.SOCKET;
+                currentState = FacilityState.WAITING;
                 reportConnectionState(currentAction,currentState);
             }
         }
     }
 
     // Update any receivers with the current state
-    private void reportConnectionState(OrderedAction action,ActionState state) {
-        Intent intent = new Intent(VoiceConstants.RECEIVER_SERVICE_STATE);
-        intent.addCategory(VoiceConstants.CATEGORY_SERVICE_STATE);
-        intent.putExtra(VoiceConstants.KEY_SERVICE_ACTION,action.name());
-        intent.putExtra(VoiceConstants.KEY_SERVICE_STATE,state.name());
+    private void reportConnectionState(TieredFacility action, FacilityState state) {
+        Intent intent = new Intent(VoiceConstants.RECEIVER_FACILITY_STATE);
+        Log.i(CLSS,String.format("reportConnectionState: %s %s %s",intent.getAction(),action.name(),state.name()));
+        intent.addCategory(VoiceConstants.CATEGORY_FACILITY_STATE);
+        intent.putExtra(VoiceConstants.KEY_TIERED_FACILITY,action.name());
+        intent.putExtra(VoiceConstants.KEY_FACILITY_STATE,state.name());
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -196,8 +222,8 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
      * @param reason error description
      */
     public void handleBluetoothError(String reason) {
-        currentAction = OrderedAction.BLUETOOTH;
-        currentState = ActionState.ERROR;
+        currentAction = TieredFacility.BLUETOOTH;
+        currentState = FacilityState.ERROR;
         reportConnectionState(currentAction,currentState);
         reportSpokenText(reason);
         new Thread(new ProcessDelay(ERROR_CYCLE_DELAY)).start();
@@ -206,8 +232,8 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
      * The bluetooth connection request succeeded.
      */
     public void receiveBluetoothConnection() {
-        currentAction = OrderedAction.BLUETOOTH;
-        currentState = ActionState.ACTIVE;
+        currentAction = TieredFacility.BLUETOOTH;
+        currentState = FacilityState.ACTIVE;
         reportConnectionState(currentAction,currentState);
         determineNextAction();
     }

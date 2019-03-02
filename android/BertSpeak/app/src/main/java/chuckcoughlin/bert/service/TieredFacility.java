@@ -5,21 +5,21 @@
 package chuckcoughlin.bert.service;
 
 /**
- * These are the action categories that are part of the VoiceService. The
- * actions must succeed in order.
+ * These are the facilities supported by the VoiceService. These
+ * are ordered in that each is dependent on the previous.
  */
-public enum OrderedAction {
+public enum TieredFacility {
 	BLUETOOTH,
     SOCKET,
     VOICE
 	;
 
 	/**
-	 * @return  a comma-separated list of all state values in a single String.
+	 * @return  a comma-separated list of all facilities in a single String.
 	 */
 	public static String names() {
 		StringBuffer names = new StringBuffer();
-		for (OrderedAction state : OrderedAction.values())
+		for (TieredFacility state : TieredFacility.values())
 		{
 			names.append(state.name()+", ");
 		}

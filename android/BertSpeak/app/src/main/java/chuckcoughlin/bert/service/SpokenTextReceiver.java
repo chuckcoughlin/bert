@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
  * Define a broadcast receiver that is interested only in the spoken text
  */
 public class SpokenTextReceiver extends BroadcastReceiver implements ObservableReceiver {
+    private static final String CLSS = "SpokenTextReceiver";
     private final List<BroadcastObserver> observers;
     public SpokenTextReceiver() {
         observers = new ArrayList<>();
@@ -23,6 +25,7 @@ public class SpokenTextReceiver extends BroadcastReceiver implements ObservableR
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.i(CLSS,String.format("onReceive: ....%s",intent.getAction()));
         if(intent.hasCategory(VoiceConstants.RECEIVER_SPOKEN_TEXT) ) {
             notifyObservers(intent);
         }

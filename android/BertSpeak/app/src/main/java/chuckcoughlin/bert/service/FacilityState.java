@@ -5,10 +5,10 @@
 package chuckcoughlin.bert.service;
 
 /**
- * This enumeration class represents the permissible states of ordered actions
- * that make up the voice service.
+ * This enumeration class represents the permissible states of tiered facilities
+ * within the voice service.
  */
-public enum ActionState {
+public enum FacilityState {
 	IDLE,
     WAITING,
     ACTIVE,
@@ -20,7 +20,7 @@ public enum ActionState {
 	 */
 	public static String names() {
 		StringBuffer names = new StringBuffer();
-		for (ActionState state : ActionState.values())
+		for (FacilityState state : FacilityState.values())
 		{
 			names.append(state.name()+", ");
 		}

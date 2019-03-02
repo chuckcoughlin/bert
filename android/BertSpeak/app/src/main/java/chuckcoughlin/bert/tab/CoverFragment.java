@@ -6,7 +6,10 @@
 package chuckcoughlin.bert.tab;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,8 +20,10 @@ import android.widget.ToggleButton;
 import chuckcoughlin.bert.MainActivity;
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.service.BroadcastObserver;
-import chuckcoughlin.bert.service.ActionState;
-import chuckcoughlin.bert.service.OrderedAction;
+import chuckcoughlin.bert.service.FacilityState;
+import chuckcoughlin.bert.service.FacilityStateReceiver;
+import chuckcoughlin.bert.service.SpokenTextReceiver;
+import chuckcoughlin.bert.service.TieredFacility;
 import chuckcoughlin.bert.service.VoiceConstants;
 
 /**
@@ -27,6 +32,8 @@ import chuckcoughlin.bert.service.VoiceConstants;
 
 public class CoverFragment extends BasicAssistantFragment implements BroadcastObserver {
     private final static String CLSS = "CoverFragment";
+    private FacilityStateReceiver csr = null;
+    private SpokenTextReceiver str      = null;
     ToggleButton bluetoothStatus = null;
     ToggleButton socketStatus = null;
     ToggleButton voiceStatus = null;
@@ -40,7 +47,6 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
         label.setText(getString(R.string.fragmentCoverLabel));
         label.setTextSize(36);
 
-        ((MainActivity)this.getActivity()).getConnectionStateReceiver().register(this);
         ImageView imageView = view.findViewById(R.id.fragmentCoverImage);
         imageView.setImageResource(R.drawable.recliner);
 
@@ -48,15 +54,37 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
         socketStatus = view.findViewById(R.id.socket_status);
         voiceStatus = view.findViewById(R.id.voice_status);
 
-        updateToggleButton(bluetoothStatus,ActionState.IDLE);
-        updateToggleButton(socketStatus,ActionState.IDLE);
-        updateToggleButton(voiceStatus,ActionState.IDLE);
+        updateToggleButton(bluetoothStatus, FacilityState.IDLE);
+        updateToggleButton(socketStatus, FacilityState.IDLE);
+        updateToggleButton(voiceStatus, FacilityState.IDLE);
+        Log.i(CLSS,"onCreateView: ....");
         return view;
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        // Register broadcast receivers
+        IntentFilter filter = new IntentFilter(VoiceConstants.RECEIVER_FACILITY_STATE);
+        filter.addAction(VoiceConstants.RECEIVER_FACILITY_STATE);
+        csr = new FacilityStateReceiver();
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(csr,filter);
+
+        filter = new IntentFilter(VoiceConstants.RECEIVER_SPOKEN_TEXT);
+        str = new SpokenTextReceiver();
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(str,filter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.i(CLSS,"onPause: unregistering the receivers");
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(csr);
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(str);
+    }
+
+    @Override
     public void onDestroyView() {
-        ((MainActivity)this.getActivity()).getConnectionStateReceiver().unregister(this);
         super.onDestroyView();
     }
 
@@ -68,23 +96,23 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
      *    red - enabled = false
      * @param state
      */
-    private void updateToggleButton(final ToggleButton btn,final ActionState state) {
+    private void updateToggleButton(final ToggleButton btn,final FacilityState state) {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
-                if( state.equals(ActionState.IDLE)) {
+                if( state.equals(FacilityState.IDLE)) {
                     btn.setActivated(false);
                 }
-                else if( state.equals(ActionState.WAITING)) {
+                else if( state.equals(FacilityState.WAITING)) {
                     btn.setActivated(true);
                     btn.setEnabled(true);
                     btn.setChecked(false);
                 }
-                else if( state.equals(ActionState.ACTIVE)) {
+                else if( state.equals(FacilityState.ACTIVE)) {
                     btn.setActivated(true);
                     btn.setEnabled(true);
                     btn.setChecked(true);
                 }
-                else if( state.equals(ActionState.ERROR)) {
+                else if( state.equals(FacilityState.ERROR)) {
                     btn.setActivated(true);
                     btn.setEnabled(false);
                 }
@@ -94,13 +122,13 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
     // ===================== BroadcastObserver =====================
     @Override
     public void broadcastReceived(Intent intent) {
-        if( intent.hasCategory(VoiceConstants.CATEGORY_SERVICE_STATE)) {
-            ActionState actionState = ActionState.valueOf(intent.getStringExtra(VoiceConstants.KEY_SERVICE_STATE));
-            OrderedAction oa = OrderedAction.valueOf(intent.getStringExtra(VoiceConstants.KEY_SERVICE_ACTION));
-            if(oa.equals(OrderedAction.BLUETOOTH)) {
+        if( intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
+            FacilityState actionState = FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE));
+            TieredFacility tf = TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY));
+            if(tf.equals(TieredFacility.BLUETOOTH)) {
                 updateToggleButton(bluetoothStatus,actionState);
             }
-            if(oa.equals(OrderedAction.SOCKET)) {
+            else if(tf.equals(TieredFacility.SOCKET)) {
                 updateToggleButton(socketStatus,actionState);
             }
             else {
