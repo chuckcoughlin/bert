@@ -62,7 +62,7 @@ public class BluetoothChecker {
             checkerThread.start();
         }
         else {
-            handler.handleNetworkError(errMsg);
+            handler.handleBluetoothError(errMsg);
         }
     }
 
@@ -86,7 +86,7 @@ public class BluetoothChecker {
                 public void uncaughtException(Thread thread, Throwable ex) {
                     String msg = String.format("There was an uncaught exception checking bluetooth: %s",ex.getLocalizedMessage());
                     Log.e(CLSS,msg ,ex);
-                    handler.handleNetworkError(msg);
+                    handler.handleBluetoothError(msg);
                     threadRunning = false;
                 }
             });
@@ -121,10 +121,10 @@ public class BluetoothChecker {
             }
 
             if (success) {
-                handler.receiveNetworkConnection();
+                handler.receiveBluetoothConnection();
             }
             else {
-                handler.handleNetworkError(errorMsg);
+                handler.handleBluetoothError(errorMsg);
             }
             threadRunning = false;
         }

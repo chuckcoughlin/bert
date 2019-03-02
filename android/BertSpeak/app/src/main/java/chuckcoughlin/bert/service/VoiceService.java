@@ -9,15 +9,14 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import chuckcoughlin.bert.R;
 
@@ -30,14 +29,17 @@ import chuckcoughlin.bert.R;
  * The service relies on a Bluetooth connection, socket communication and the
  * Android speech recognition classes. Implement as a Singleton, to provide universal access.
  */
-public class VoiceService extends Service  {
+public class VoiceService extends Service implements VoiceConnectionHandler {
     private static final String CLSS = "VoiceService";
     private static volatile VoiceService instance = null;
+    private static final long ERROR_CYCLE_DELAY = 10000;   // Wait interval for retry after error
     private volatile NotificationManager notificationManager;
-    // Unique Identification Number for the Notification.
-    private static final int VOICE_NOTIFICATION = R.string.notificationKey;
+    private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
+    private ActionState currentState;
+    private OrderedAction currentAction;
 
     public VoiceService() {
+
     }
 
     /**
@@ -64,15 +66,19 @@ public class VoiceService extends Service  {
         Notification notification = buildNotification();
         instance = this;
         startForeground(VOICE_NOTIFICATION, notification);
-        Intent intent = new Intent(VoiceConstants.RECEIVER_SERVICE_STATE);
-        intent.addCategory(VoiceConstants.CATEGORY_SERVICE_STATE);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        currentAction = OrderedAction.BLUETOOTH;
+        currentState = ActionState.IDLE;
+        reportConnectionState(currentAction,currentState);
+        reportConnectionState(OrderedAction.SOCKET,ActionState.IDLE);  // Just to initialize
+        reportConnectionState(OrderedAction.VOICE,ActionState.IDLE);   // Just to initialize
+
     }
 
     @Override
     public void onDestroy() {
         notificationManager.cancel(VOICE_NOTIFICATION);
         instance = null;
+        stopForegroundService();
     }
 
     @Override
@@ -137,13 +143,98 @@ public class VoiceService extends Service  {
         return( builder.build());
     }
 
+    // Start the 3 actions in order
+    private void determineNextAction() {
+        if( currentAction.equals(OrderedAction.BLUETOOTH)) {
+            if( !currentState.equals(ActionState.ACTIVE)) {
+                BluetoothChecker checker = new BluetoothChecker(this);
+                currentState = ActionState.WAITING;
+                reportConnectionState(currentAction,currentState);
+                checker.beginChecking((BluetoothManager)getSystemService(BLUETOOTH_SERVICE));
+            }
+            // Start socket
+            else {
+                currentAction = OrderedAction.SOCKET;
+                currentState = ActionState.WAITING;
+                reportConnectionState(currentAction,currentState);
+            }
+        }
+    }
+
+    // Update any receivers with the current state
+    private void reportConnectionState(OrderedAction action,ActionState state) {
+        Intent intent = new Intent(VoiceConstants.RECEIVER_SERVICE_STATE);
+        intent.addCategory(VoiceConstants.CATEGORY_SERVICE_STATE);
+        intent.putExtra(VoiceConstants.KEY_SERVICE_ACTION,action.name());
+        intent.putExtra(VoiceConstants.KEY_SERVICE_STATE,state.name());
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    // Update any receivers with the latest text
+    private void reportSpokenText(String text) {
+        Intent intent = new Intent(VoiceConstants.RECEIVER_SPOKEN_TEXT);
+        intent.addCategory(VoiceConstants.CATEGORY_SPOKEN_TEXT);
+        intent.putExtra(VoiceConstants.KEY_SPOKEN_TEXT,text);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
     private void stopForegroundService() {
         Log.i(CLSS, "Stop foreground service.");
 
         // Stop foreground service and remove the notification.
         stopForeground(true);
+        BluetoothManager bmgr = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
+        bmgr.getAdapter().cancelDiscovery();
 
         // Stop the foreground service.
         stopSelf();
+    }
+
+    //=================================== VoiceConnectionHandler ==============================================
+    /**
+     * There was an error in the bluetooth connection attempt.
+     * @param reason error description
+     */
+    public void handleBluetoothError(String reason) {
+        currentAction = OrderedAction.BLUETOOTH;
+        currentState = ActionState.ERROR;
+        reportConnectionState(currentAction,currentState);
+        reportSpokenText(reason);
+        new Thread(new ProcessDelay(ERROR_CYCLE_DELAY)).start();
+    }
+    /**
+     * The bluetooth connection request succeeded.
+     */
+    public void receiveBluetoothConnection() {
+        currentAction = OrderedAction.BLUETOOTH;
+        currentState = ActionState.ACTIVE;
+        reportConnectionState(currentAction,currentState);
+        determineNextAction();
+    }
+
+    //=================================== ProcessDelay ==============================================
+    /**
+     * Use this class to delay the transition to the next step. When we find
+     * an error, we need to avoid a hard loop.
+
+     */
+    public class ProcessDelay implements Runnable {
+        private final long sleepInterval;
+        /**
+         * Constructor:
+         * @param delay millisecs to wait before going to the next state (or more
+         *              likely retrying the current).
+         */
+        public ProcessDelay(long delay) {
+            this.sleepInterval = delay;
+        }
+
+        public void run() {
+            try{
+                Thread.currentThread().sleep(sleepInterval);
+                determineNextAction();
+            }
+            catch(InterruptedException ignore) {}
+        }
     }
 }

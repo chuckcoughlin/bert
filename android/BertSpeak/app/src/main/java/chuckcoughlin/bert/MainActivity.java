@@ -12,13 +12,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import chuckcoughlin.bert.db.BertDbManager;
 import chuckcoughlin.bert.logs.BertLogManager;
-import chuckcoughlin.bert.service.ConnectionStateReceiver;
+import chuckcoughlin.bert.service.ActionStateReceiver;
 import chuckcoughlin.bert.service.SpokenTextReceiver;
 import chuckcoughlin.bert.service.VoiceConstants;
 import chuckcoughlin.bert.service.VoiceService;
@@ -28,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String CLSS = "MainActivity";
     private static final String DIALOG_TAG = "dialog";
 
-    private ConnectionStateReceiver csr = null;
+    private ActionStateReceiver csr = null;
     private SpokenTextReceiver str      = null;
     /**
      * A specialized {@link android.support.v4.view.PagerAdapter} that will provide
@@ -46,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(CLSS,"Constructor ...");
     }
 
-    public ConnectionStateReceiver getConnectionStateReceiver() { return this.csr; }
+    public ActionStateReceiver getConnectionStateReceiver() { return this.csr; }
     public SpokenTextReceiver getSpokenTextReceiver() { return this.str; }
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
@@ -78,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         // Register broadcast receivers
         IntentFilter filter = new IntentFilter();
         filter.addAction(VoiceConstants.RECEIVER_SERVICE_STATE);
-        csr = new ConnectionStateReceiver();
+        csr = new ActionStateReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(csr,filter);
 
         filter = new IntentFilter();

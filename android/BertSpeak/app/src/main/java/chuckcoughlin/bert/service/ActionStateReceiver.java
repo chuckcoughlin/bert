@@ -8,26 +8,24 @@ package chuckcoughlin.bert.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Define a broadcast receiver that is interested only in the connection state
+ * Define a broadcast receiver that is interested only in the state of ordered actions
+ * within the service. The intent must specify both the action and its current state.
  */
-public class ConnectionStateReceiver extends BroadcastReceiver implements ObservableReceiver {
+public class ActionStateReceiver extends BroadcastReceiver implements ObservableReceiver {
     private final List<BroadcastObserver> observers;
-    private ConnectionState currentState;
 
-    public ConnectionStateReceiver() {
+    public ActionStateReceiver() {
         observers = new ArrayList<>();
-        currentState = ConnectionState.NONE;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(intent.getAction().equalsIgnoreCase(VoiceConstants.RECEIVER_SERVICE_STATE) ) {
+        if(intent.hasCategory(VoiceConstants.RECEIVER_SERVICE_STATE) ) {
             notifyObservers(intent);
         }
     }

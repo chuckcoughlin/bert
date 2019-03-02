@@ -19,6 +19,7 @@ public class VoiceConstants {
     public static final String CATEGORY_SPOKEN_TEXT   = "SpokenText";
 
     // "extra" data keys
+    public static final String KEY_SERVICE_ACTION = "ServiceAction";
     public static final String KEY_SERVICE_STATE = "ServiceState";
     public static final String KEY_SPOKEN_TEXT   = "SpokenText";
 }

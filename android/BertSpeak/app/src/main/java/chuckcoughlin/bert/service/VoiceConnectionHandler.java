@@ -13,9 +13,9 @@ public interface VoiceConnectionHandler  {
      * There was an error in the connection attempt.
      * @param reason error description
      */
-    public void handleNetworkError(String reason);
+    public void handleBluetoothError(String reason);
     /**
      * The bluetooth connection request succeeded.
      */
-    public void receiveNetworkConnection();
+    public void receiveBluetoothConnection();
 }

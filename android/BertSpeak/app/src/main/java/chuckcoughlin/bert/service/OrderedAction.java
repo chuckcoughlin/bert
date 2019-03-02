@@ -5,13 +5,13 @@
 package chuckcoughlin.bert.service;
 
 /**
- * This enumeration class represents the permissible states of the voice service.
+ * These are the action categories that are part of the VoiceService. The
+ * actions must succeed in order.
  */
-public enum ConnectionState {
-	NONE,
-	NETWORK,
-	SOCKET,
-	TALKING
+public enum OrderedAction {
+	BLUETOOTH,
+    SOCKET,
+    VOICE
 	;
 
 	/**
@@ -19,7 +19,7 @@ public enum ConnectionState {
 	 */
 	public static String names() {
 		StringBuffer names = new StringBuffer();
-		for (ConnectionState state : ConnectionState.values())
+		for (OrderedAction state : OrderedAction.values())
 		{
 			names.append(state.name()+", ");
 		}

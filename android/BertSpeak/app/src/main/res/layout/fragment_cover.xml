@@ -46,9 +46,10 @@
 
             <ToggleButton
                 android:id="@+id/bluetooth_status"
-                android:layout_width="@dimen/button_image_width"
-                android:layout_height="@dimen/button_image_height"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/button_image_left_margin"
                 android:background="@null"
                 android:button="@drawable/toggle"
                 android:scaleType="fitCenter"
@@ -67,9 +68,10 @@
 
             <ToggleButton
                 android:id="@+id/socket_status"
-                android:layout_width="@dimen/button_image_width"
-                android:layout_height="@dimen/button_image_height"
-                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/button_image_left_margin"
                 android:background="@null"
                 android:button="@drawable/toggle"
                 android:scaleType="fitCenter"
@@ -88,9 +90,10 @@
 
             <ToggleButton
                 android:id="@+id/voice_status"
-                android:layout_width="@dimen/button_image_width"
-                android:layout_height="@dimen/button_image_height"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/button_image_left_margin"
                 android:background="@null"
                 android:button="@drawable/toggle"
                 android:scaleType="fitCenter"

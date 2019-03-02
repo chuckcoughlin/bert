@@ -14,8 +14,8 @@
     <dimen name="cover_image_top_margin">12dp</dimen>
 
     <dimen name="button_image_height">32dp</dimen>
-    <dimen name="button_image_width">32dp</dimen>
-    <dimen name="button_image_padding">2dp</dimen>
+    <dimen name="button_image_width">64dp</dimen>
+    <dimen name="button_image_left_margin">20dp</dimen>
     <dimen name="button_text_field_height">20dp</dimen>
     <dimen name="button_text_field_width">120dp</dimen>
     <dimen name="button_text_field_margin">5dp</dimen>

@@ -23,7 +23,7 @@ public class SpokenTextReceiver extends BroadcastReceiver implements ObservableR
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(intent.getAction().equalsIgnoreCase(VoiceConstants.RECEIVER_SPOKEN_TEXT) ) {
+        if(intent.hasCategory(VoiceConstants.RECEIVER_SPOKEN_TEXT) ) {
             notifyObservers(intent);
         }
     }
