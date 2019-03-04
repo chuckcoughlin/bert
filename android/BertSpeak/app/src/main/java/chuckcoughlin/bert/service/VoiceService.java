@@ -20,17 +20,18 @@ import android.util.Log;
 
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
+import chuckcoughlin.bert.speech.SpokenTextManager;
 
 /**
  * This is a foreground service and may be turned on/off with a notifications interface.
- * The voice service manages connections to the robot as well as voice-text communications. I
- * t listens to the voice commands and updates listeners with the resulting text. It also accepts text and renders
- * it on the speakers.
+ * The voice service manages connections between the robot as and speech/logging facilities.
+ * It accepts voice commands from the socket connection to the robot and updates listeners with
+ * the resulting text. The listeners handle text enunciation and logging.
  *
  * The service relies on a Bluetooth connection, socket communication and the
  * Android speech recognition classes. Implement as a Singleton, to provide universal access.
  */
-public class VoiceService extends Service implements VoiceConnectionHandler {
+public class VoiceService extends Service implements VoiceServiceHandler {
     private static final String CLSS = "VoiceService";
     private static volatile VoiceService instance = null;
     private static final long ERROR_CYCLE_DELAY = 10000;   // Wait interval for retry after error
@@ -104,10 +105,9 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
             isMuted = !isMuted;
         }
         else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_START)) {
-            ;    // What do we do here?
+            // What do we do here?
         }
         else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_STOP)) {
-            ;
         }
         return(START_NOT_STICKY);
     }
@@ -186,22 +186,16 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
         }
     }
 
-    // Update any receivers with the current state
-    private void reportConnectionState(TieredFacility action, FacilityState state) {
-        Intent intent = new Intent(VoiceConstants.RECEIVER_FACILITY_STATE);
-        Log.i(CLSS,String.format("reportConnectionState: %s %s %s",intent.getAction(),action.name(),state.name()));
-        intent.addCategory(VoiceConstants.CATEGORY_FACILITY_STATE);
-        intent.putExtra(VoiceConstants.KEY_TIERED_FACILITY,action.name());
-        intent.putExtra(VoiceConstants.KEY_FACILITY_STATE,state.name());
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    // Update any observers with the current state
+    private void reportConnectionState(TieredFacility fac, FacilityState state) {
+        Log.i(CLSS,String.format("reportConnectionState: %s %s",fac.name(),state.name()));
+        ServiceStatusManager.getInstance().reportState(fac,state);
     }
 
-    // Update any receivers with the latest text
+    // Update any observers with the latest text
     private void reportSpokenText(String text) {
-        Intent intent = new Intent(VoiceConstants.RECEIVER_SPOKEN_TEXT);
-        intent.addCategory(VoiceConstants.CATEGORY_SPOKEN_TEXT);
-        intent.putExtra(VoiceConstants.KEY_SPOKEN_TEXT,text);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        Log.i(CLSS,String.format("reportSpokenText: %s",text));
+        SpokenTextManager.getInstance().processText(text);
     }
 
     private void stopForegroundService() {
@@ -216,7 +210,7 @@ public class VoiceService extends Service implements VoiceConnectionHandler {
         stopSelf();
     }
 
-    //=================================== VoiceConnectionHandler ==============================================
+    //=================================== VoiceServiceHandler ==============================================
     /**
      * There was an error in the bluetooth connection attempt.
      * @param reason error description

@@ -26,6 +26,10 @@ public class BertConstants {
     public static final String BERT_HOST_HINT="192.168.1.20";
     public static final String BERT_PAIRED_DEVICE_HINT="bert_humanoid";
 
+    // Intent observer actions
+    public static final String ACTION_FACILITY_STATE = "FacilityState";
+    public static final String ACTION_SPOKEN_TEXT  = "SpokenText";
+
     // Notifications
     public static final String NOTIFICATION_CHANNEL_ID   = "speechServiceChannel";
     public static final String NOTIFICATION_CHANNEL_NAME = "Spoken Text Channel";

@@ -7,16 +7,14 @@ package chuckcoughlin.bert;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.WindowManager;
 
-import chuckcoughlin.bert.db.BertDbManager;
-import chuckcoughlin.bert.logs.BertLogManager;
-import chuckcoughlin.bert.service.FacilityStateReceiver;
-import chuckcoughlin.bert.service.SpokenTextReceiver;
+import chuckcoughlin.bert.db.SettingsManager;
+import chuckcoughlin.bert.speech.SpokenTextManager;
+import chuckcoughlin.bert.service.ServiceStatusManager;
 import chuckcoughlin.bert.service.VoiceService;
 
 
@@ -50,11 +48,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.i(CLSS,"onCreate ...");
         // If I absolutely have to start over again with the database ...
-        //this.deleteDatabase(SBConstants.DB_NAME);
-
-        // Initialize the database manager and others ...
-        BertDbManager.initialize(this);
-        BertLogManager.initialize();
+        //this.deleteDatabase(BertConstants.DB_NAME);
 
         setContentView(R.layout.activity_main);
         // Close the soft keyboard - it will still open on an EditText
@@ -68,19 +62,34 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, VoiceService.class);
         getApplicationContext().startForegroundService(intent);
     }
+    /**
+     *  Initialize the database manager and other Singletons
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
 
+        SettingsManager.initialize(this);
+        SpokenTextManager.initialize(this);
+        ServiceStatusManager.initialize();
+    }
     /**
      * Shutdown all the Singleton instances to guarantee a fresh state
      * should we ever restart.
      */
     @Override
+    protected void onStop() {
+        super.onStop();
+        ServiceStatusManager.stop();
+        SettingsManager.stop();
+        SpokenTextManager.stop();
+    }
+    /**
+     * Shutdown the VoiceService.
+     */
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        if( isFinishing()) {
-            BertDbManager.destroy();
-            BertLogManager.destroy();
-        }
-
         Intent intent = new Intent(this, VoiceService.class);
         stopService(intent);
     }

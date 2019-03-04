@@ -77,8 +77,8 @@ public class SettingsFragment extends BasicAssistantListFragment  {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.settings_item, parent, false);
             }
             // Lookup view for data population
-            TextView nameView = (TextView) convertView.findViewById(R.id.settingsNameView);
-            EditText editText = (EditText) convertView.findViewById(R.id.settingsEditView);
+            TextView nameView = convertView.findViewById(R.id.settingsNameView);
+            EditText editText = convertView.findViewById(R.id.settingsEditView);
             // Populate the data into the template view using the data object
             //Log.i(CLSS,String.format("adapter.getView setting %s = %s",nv.getName(),nv.getValue()));
             nameView.setText(nv.getName());

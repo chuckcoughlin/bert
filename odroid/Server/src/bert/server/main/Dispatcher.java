@@ -42,6 +42,11 @@ import bert.share.util.ShutdownHook;
 public class Dispatcher extends Thread implements MessageHandler,SocketStateChangeListener {
 	private final static String CLSS = "Dispatcher";
 	private static final String USAGE = "Usage: dispatcher <robot_root>";
+	// Start phrases to choose from ...
+	private String[] phrases = {
+       "Bert is ready",
+       "At your command"
+    };
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = "dispatcher";
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
@@ -302,11 +307,20 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private void reportStartup(String sourceName) {
 		MessageBottle startMessage = new MessageBottle();
 		startMessage.assignRequestType(RequestType.NOTIFICATION);
-		startMessage.setProperty(BottleConstants.TEXT, "Bert is ready");
+		startMessage.setProperty(BottleConstants.TEXT, selectRandomText());
 		LOGGER.info(String.format("%s: Bert is ready ... (to %s)",CLSS,sourceName));
 		startMessage.assignSource(sourceName);
 		sendResponse(startMessage);
 	}
+    /**
+     * Select a random startup phrase from the list.
+     * @return the selected phrase.
+     */
+    private String selectRandomText() {
+        double rand = Math.random();
+        int index = (int)(rand*phrases.length);
+        return phrases[index];
+    }
 	
 	// Return response to the request source.
 	private void sendResponse(MessageBottle response) {

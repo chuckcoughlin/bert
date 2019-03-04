@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.transition.TransitionManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,39 +17,43 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import chuckcoughlin.bert.R;
+import chuckcoughlin.bert.speech.SpokenTextManager;
+import chuckcoughlin.bert.speech.TextMessage;
+import chuckcoughlin.bert.speech.TextMessageObserver;
 
 
 /**
  * This a link between a RecyclerView and the data backstop.
- * Each element in the list is a string, a log message.
+ * Each element in the list is a string, a text message.
+ *
+ * Registration with the SpokenTextManager is handled by the parent process.
  */
 
-public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> implements LogListObserver {
+public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> implements TextMessageObserver {
     private static final String CLSS = LogRecyclerAdapter.class.getSimpleName();
-    private static final String LEVEL_1 = "DEBUG";
-    private static final String LEVEL_2 = "INFO";
-    private static final String LEVEL_4 = "WARN";
-    private static final String LEVEL_8 = "ERROR";
     private static final int MESSAGE_LEN = 45;
     private static final int SOURCE_LEN = 15;
     private static final int LOG_MSG_HEIGHT = 75;
     private static final int LOG_MSG_HEIGHT_EXPANDED = 225;
-    private final BertLogManager logManager;
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss.SSS");
     private int expandedPosition = -1;
     private Activity mainActivity = null;
     private RecyclerView recyclerView = null;
     private Context context = null;
+    private boolean frozen;
 
     /**
      * Adapter between the recycler and data source for log messages
      */
     public LogRecyclerAdapter() {
-        logManager = BertLogManager.getInstance();
-        logManager.addObserver(this);
+        this.frozen = false;
     }
+
+    public boolean isFrozen() { return this.frozen; }
+    public void setFrozen(boolean flag) { this.frozen = flag; }
 
     @Override
     public void onAttachedToRecyclerView(RecyclerView view) {
@@ -68,16 +73,17 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
 
     /**
      * Change the views depending on whether or not the item is selected.
-     * In an expanded view some elements get re-used. The message is on its own line.
+     * In an expanded view the message text is on its own line. We add date and source.
      * @param holder the viewholder that should be updated at the given position
      * @param position row that should be updated
      */
     @Override
     public void onBindViewHolder(LogViewHolder holder, int position) {
+        Log.i(CLSS,String.format("onBindViewHolder at %d",position));
         boolean expand = (position==expandedPosition);
-        LogMessage msg = logManager.getLogAtPosition(position);  // Checks index bounds
+        TextMessage msg = SpokenTextManager.getInstance().getLogAtPosition(position);  // Checks index bounds
         if( msg==null ) {
-            android.util.Log.w(CLSS,String.format("Null log holder at %d",position));
+            Log.w(CLSS,String.format("Null log holder at %d",position));
             return;
         }
         // The timestamp is always the same
@@ -88,7 +94,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
 
         // In expanded mode the source is the level
         TextView sourceView  = holder.getSourceView();
-        String source = (msg.isRequest()?"Request":"Response");
+        String source = msg.getMessageType().name();
         if( expand ) {
             sourceView.setText(source);
         }
@@ -138,7 +144,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
     // It is important that the widget and backing manager be in synch
     // with respect to item count.
     @Override
-    public int getItemCount() {return logManager.getLogs().size(); }
+    public int getItemCount() {return SpokenTextManager.getInstance().getLogs().size(); }
 
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
@@ -147,16 +153,23 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
     }
 
 
-    // ============================= LogListObserver ===========================
+    // ===================== TextMessageObserver =====================
+    @Override
+    /**
+     * We have just registered as an observer. Now catch up.
+     * @param list of messages being the most recent retained by the manager.
+     */
+    public void initialize(final List<TextMessage> list) {
+        Log.i(CLSS,"initialze with message list");
+        notifyDataSetChanged();
+    }
 
     /**
-     * A log message has been appended to the visible list.
-     * We get a crash in the android code when inserting log
-     * files too fast? or from different threads?
-     * The notification must be made on the UI thread
+     * A new message has arrived
+     * @param msg the new message
      */
-    @Override
-    public void notifyListAppended() {
+    public void update(final TextMessage msg) {
+        Log.i(CLSS,String.format("new message: %s",msg.getMessage()));
         if( context!=null ) {
             Activity activity = (Activity)context;
             activity.runOnUiThread(new Runnable() {
@@ -167,21 +180,11 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
                             notifyItemRangeInserted(size - 1, 1);
                         }
                         catch(Exception ex) {
-                            android.util.Log.w(CLSS,String.format("Exception adding to log (%s)",ex.getLocalizedMessage()));
+                            Log.w(CLSS,String.format("Exception adding to log (%s)",ex.getLocalizedMessage()));
                         }
                     }
                 }
             });
         }
-    }
-
-    /**
-     * The entire list has been cleared. We assume this originates from a button
-     * and is on the UI thread.
-     */
-    @Override
-    public synchronized void notifyListCleared() {
-        int size = getItemCount();
-        notifyDataSetChanged();
     }
 }

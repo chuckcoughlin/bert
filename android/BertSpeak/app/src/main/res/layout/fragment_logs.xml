@@ -1,11 +1,10 @@
 <!-- Handle the listing of a large number of log messages by using a RecyclerView -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:ndroid="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="chuckcoughlin.sb.assistant.tab.LogsFragment">
+    tools:context="chuckcoughlin.bert.tab.LogsFragment">
 
     <TextView
         android:id="@+id/fragmentLogsText"

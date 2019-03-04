@@ -31,14 +31,7 @@ public class ColorUtils {
     /**
      * This method returns the appropriate shade of green to form the gradient
      * seen in the list, based off of the order in which the
-     * {@link com.example.android.recyclerview.GreenAdapter.NumberViewHolder}
      * instance was created.
-     *
-     * This method is used to show how ViewHolders are recycled in a RecyclerView.
-     * At first, the colors will form a nice, consistent gradient. As the
-     * RecyclerView is scrolled, the
-     * {@link com.example.android.recyclerview.GreenAdapter.NumberViewHolder}'s will be
-     * recycled and the list will no longer appear as a consistent gradient.
      *
      * @param context     Context for getting colors
      * @param instanceNum Order in which the calling ViewHolder was created

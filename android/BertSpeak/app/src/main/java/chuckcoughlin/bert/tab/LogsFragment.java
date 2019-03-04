@@ -5,7 +5,6 @@
 
 package chuckcoughlin.bert.tab;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,18 +15,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.List;
+
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.logs.LogRecyclerAdapter;
-import chuckcoughlin.bert.logs.BertLogManager;
-import chuckcoughlin.bert.service.BroadcastObserver;
-import chuckcoughlin.bert.service.VoiceConstants;
+import chuckcoughlin.bert.speech.SpokenTextManager;
 
 
 /**
  * This fragment allows perusal of the robot's spoken interactions..
  */
 
-public class LogsFragment extends BasicAssistantFragment implements BroadcastObserver {
+public class LogsFragment extends BasicAssistantFragment  {
     private final static String CLSS = "LogFragment";
     private RecyclerView.LayoutManager layoutManager;
     private LogRecyclerAdapter adapter;
@@ -50,15 +49,14 @@ public class LogsFragment extends BasicAssistantFragment implements BroadcastObs
         int scrollPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
         logMessageView.scrollToPosition(scrollPosition);
 
-        Button button = (Button) rootView.findViewById(R.id.clearButton);
+        Button button = rootView.findViewById(R.id.clearButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clearButtonClicked();
             }
         });
-        BertLogManager.getInstance().freeze();
-        button = (Button) rootView.findViewById(R.id.freezeButton);
+        button = rootView.findViewById(R.id.freezeButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,13 +64,27 @@ public class LogsFragment extends BasicAssistantFragment implements BroadcastObs
             }
         });
         updateUI();
+
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i(CLSS,"onResume: registering adapter as observer");
+        SpokenTextManager.getInstance().register(adapter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.i(CLSS,"onPause: unregistering adapter as observer");
+        SpokenTextManager.getInstance().unregister(adapter);
     }
 
     @Override
     public void onDestroyView() {
         Log.i(CLSS, "onDestroyView");
-        BertLogManager.getInstance().removeObserver(adapter);
         super.onDestroyView();
     }
 
@@ -80,23 +92,21 @@ public class LogsFragment extends BasicAssistantFragment implements BroadcastObs
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        BertLogManager.getInstance().clear();
+        SpokenTextManager.getInstance().clear();
     }
 
+    /**
+     * The Freeze button has purely local control.
+     */
     public void freezeButtonClicked() {
-        BertLogManager logManager = BertLogManager.getInstance();
-        if( logManager.isFrozen() ) {
-            logManager.resume();
-        }
-        else {
-            logManager.freeze();
-        }
+        boolean frozen = adapter.isFrozen();
+        adapter.setFrozen(!frozen);
         updateUI();
     }
 
     private void updateUI() {
-        Button button = (Button) rootView.findViewById(R.id.freezeButton);
-        if( BertLogManager.getInstance().isFrozen() ) {
+        Button button = rootView.findViewById(R.id.freezeButton);
+        if( adapter.isFrozen() ) {
             button.setText(R.string.logButtonThaw);
         }
         else {
@@ -104,11 +114,4 @@ public class LogsFragment extends BasicAssistantFragment implements BroadcastObs
         }
     }
 
-    // ===================== BroadcastObserver =====================
-    @Override
-    public void broadcastReceived(Intent intent) {
-        if( intent.hasCategory(VoiceConstants.CATEGORY_SPOKEN_TEXT)) {
-
-        }
-    }
 }

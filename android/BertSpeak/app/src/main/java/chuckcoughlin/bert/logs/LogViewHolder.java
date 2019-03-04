@@ -31,8 +31,8 @@ public class LogViewHolder extends RecyclerView.ViewHolder {
         this.setIsRecyclable(false);
         this.rowParent = (ViewGroup) ((ViewGroup)itemView).getChildAt(0);
     }
-    public TextView getTimestampView(){ return (TextView) ((ViewGroup)rowParent).getChildAt(0); }
-    public TextView getSourceView()   { return (TextView) ((ViewGroup)rowParent).getChildAt(1); }
-    public TextView getMessageView()  { return (TextView) ((ViewGroup)rowParent).getChildAt(2); }
+    public TextView getTimestampView(){ return (TextView) rowParent.getChildAt(0); }
+    public TextView getSourceView()   { return (TextView) rowParent.getChildAt(1); }
+    public TextView getMessageView()  { return (TextView) rowParent.getChildAt(2); }
     public TextView getDetailView()   { return (TextView) ((ViewGroup)itemView).getChildAt(1);  }
 }

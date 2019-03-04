@@ -23,10 +23,10 @@ public class BluetoothChecker {
     private final static String CLSS = "BluetoothChecker";
     private CheckerThread checkerThread = null;
     private final String device;
-    private VoiceConnectionHandler handler;
+    private VoiceServiceHandler handler;
     private boolean threadRunning;
 
-    public BluetoothChecker(VoiceConnectionHandler handler) {
+    public BluetoothChecker(VoiceServiceHandler handler) {
         this.threadRunning = false;
         this.handler = handler;
         this.device  = BertDbManager.getInstance().getSetting(BertConstants.BERT_PAIRED_DEVICE);

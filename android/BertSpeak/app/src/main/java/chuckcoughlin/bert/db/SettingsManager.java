@@ -15,20 +15,21 @@ import chuckcoughlin.bert.common.BertConstants;
 
 
 /**
- * Since we access from multiple fragments, make this a singleton class to avoid repeated
- * allocations. We encapsulate all the database operations here. The instance is created
- * and shutdown in the MainActivity. The instance must be initialized as its first operation.
+ * Application settings are stored in a SQLite database. Since we access from multiple
+ * fragments, use a singleton class to avoid repeated allocations. All database operations
+ * are encpsulated here. The instance is created and shutdown in the MainActivity. It must
+ * be initialized as its first operation.
  */
-public class BertDbManager extends SQLiteOpenHelper {
-    private final static String CLSS = "BertDbManager";
-    private static volatile BertDbManager instance = null;
+public class SettingsManager extends SQLiteOpenHelper {
+    private final static String CLSS = "SettingsManager";
+    private static volatile SettingsManager instance = null;
     private volatile Context context = null;
 
     /**
      * Constructor is private per Singleton pattern. This forces use of the single instance.
      * @param context main activity
      */
-    private BertDbManager(Context context) {
+    private SettingsManager(Context context) {
         super(context, BertConstants.DB_NAME, null, BertConstants.DB_VERSION);
         this.context = context.getApplicationContext();
     }
@@ -38,11 +39,11 @@ public class BertDbManager extends SQLiteOpenHelper {
      * @param context main activity
      * @return the Singleton instance
      */
-    public static synchronized BertDbManager initialize(Context context) {
+    public static synchronized SettingsManager initialize(Context context) {
         // Use the application context, which will ensure that you
         // don't accidentally leak an Activity's context.
         if (instance == null) {
-            instance = new BertDbManager(context.getApplicationContext());
+            instance = new SettingsManager(context.getApplicationContext());
         }
         else {
             Log.w(CLSS,String.format("initialize: DB manager exists, re-initialization ignored"));
@@ -51,11 +52,10 @@ public class BertDbManager extends SQLiteOpenHelper {
     }
 
     /**
-     * Use this method for all subsequent calls. We often don't have
-     * a convenient context.
+     * Use this method for all except the initial acccess.
      * @return the Singleton instance.
      */
-    public static synchronized BertDbManager getInstance() {
+    public static synchronized SettingsManager getInstance() {
         if (instance == null) {
             throw new IllegalStateException("Attempt to return uninitialized copy of SBDbManager");
         }
@@ -234,7 +234,7 @@ public class BertDbManager extends SQLiteOpenHelper {
      * Called when main activity is destroyed. Clean up any resources.
      * To use again requires re-initialization.
      */
-    public static void destroy() {
+    public static void stop() {
         instance = null;
     }
 }

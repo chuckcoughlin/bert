@@ -14,12 +14,12 @@ import android.support.v4.app.Fragment;
 
 public interface AssistantFragment {
 
-    public final static String PAGE_ARG = "page";
-    public final static String TITLE_ARG= "title";
+    String PAGE_ARG = "page";
+    String TITLE_ARG= "title";
 
-    public int getPageNumber();
-    public void setPageNumber(int page);
-    public String getTitle();
-    public void setTitle(String title);
+    int getPageNumber();
+    void setPageNumber(int page);
+    String getTitle();
+    void setTitle(String title);
 
 }

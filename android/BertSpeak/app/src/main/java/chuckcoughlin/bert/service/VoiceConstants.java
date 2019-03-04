@@ -10,9 +10,6 @@ package chuckcoughlin.bert.service;
  */
 public class VoiceConstants {
 
-    // Broadcast receiver actions
-    public static final String RECEIVER_FACILITY_STATE = "FacilityState";
-    public static final String RECEIVER_SPOKEN_TEXT  = "SpokenText";
 
     // Broadcast intent categories
     public static final String CATEGORY_FACILITY_STATE = "FacilityState";
@@ -20,6 +17,6 @@ public class VoiceConstants {
 
     // "extra" data keys
     public static final String KEY_TIERED_FACILITY = "TieredFacility";
-    public static final String KEY_FACILITY_STATE = "FAcilityState";
+    public static final String KEY_FACILITY_STATE = "FacilityState";
     public static final String KEY_SPOKEN_TEXT   = "SpokenText";
 }

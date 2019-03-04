@@ -3,25 +3,27 @@
  *  (MIT License)
  */
 
-package chuckcoughlin.bert.logs;
+package chuckcoughlin.bert.speech;
+
+import android.graphics.Color;
 
 import java.util.Date;
 
 /**
  * Instances of this class are displayed in the log.
  */
-public class LogMessage {
+public class TextMessage {
     private final String msg;
-    private final boolean request;
+    private final MessageType type;
     private final Date timestamp;
 
-    public LogMessage(String text,boolean in) {
+    public TextMessage(String text, MessageType typ) {
         this.msg = text;
-        this.request = in;
+        this.type = typ;
         this.timestamp = new Date();
     }
 
     public String getMessage() { return this.msg; }
     public Date getTimestamp() { return this.timestamp; }
-    public boolean isRequest() { return this.request; }
+    public MessageType getMessageType() { return this.type; }
 }

@@ -5,17 +5,16 @@
 package chuckcoughlin.bert.service;
 
 /**
- * The discovery fragment implements this interface in response to
- * MasterChecker activities.
+ * The only implementation of this interface is the VoiceService itself.
  */
-public interface VoiceConnectionHandler  {
+public interface VoiceServiceHandler {
     /**
      * There was an error in the connection attempt.
      * @param reason error description
      */
-    public void handleBluetoothError(String reason);
+    void handleBluetoothError(String reason);
     /**
      * The bluetooth connection request succeeded.
      */
-    public void receiveBluetoothConnection();
+    void receiveBluetoothConnection();
 }

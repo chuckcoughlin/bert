@@ -6,9 +6,7 @@
 package chuckcoughlin.bert.tab;
 
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,12 +15,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import chuckcoughlin.bert.MainActivity;
+import java.util.List;
+
 import chuckcoughlin.bert.R;
-import chuckcoughlin.bert.service.BroadcastObserver;
+import chuckcoughlin.bert.common.IntentObserver;
 import chuckcoughlin.bert.service.FacilityState;
-import chuckcoughlin.bert.service.FacilityStateReceiver;
-import chuckcoughlin.bert.service.SpokenTextReceiver;
+import chuckcoughlin.bert.service.ServiceStatusManager;
 import chuckcoughlin.bert.service.TieredFacility;
 import chuckcoughlin.bert.service.VoiceConstants;
 
@@ -30,10 +28,8 @@ import chuckcoughlin.bert.service.VoiceConstants;
  * This fragment presents a static "cover" with no dynamic content.
  */
 
-public class CoverFragment extends BasicAssistantFragment implements BroadcastObserver {
+public class CoverFragment extends BasicAssistantFragment implements IntentObserver {
     private final static String CLSS = "CoverFragment";
-    private FacilityStateReceiver csr = null;
-    private SpokenTextReceiver str      = null;
     ToggleButton bluetoothStatus = null;
     ToggleButton socketStatus = null;
     ToggleButton voiceStatus = null;
@@ -64,23 +60,15 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
     @Override
     public void onResume() {
         super.onResume();
-        // Register broadcast receivers
-        IntentFilter filter = new IntentFilter(VoiceConstants.RECEIVER_FACILITY_STATE);
-        filter.addAction(VoiceConstants.RECEIVER_FACILITY_STATE);
-        csr = new FacilityStateReceiver();
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(csr,filter);
-
-        filter = new IntentFilter(VoiceConstants.RECEIVER_SPOKEN_TEXT);
-        str = new SpokenTextReceiver();
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(str,filter);
+        Log.i(CLSS,"onResume: registering as observer");
+        ServiceStatusManager.getInstance().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(CLSS,"onPause: unregistering the receivers");
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(csr);
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(str);
+        Log.i(CLSS,"onPause: unregistering as observer");
+        ServiceStatusManager.getInstance().unregister(this);
     }
 
     @Override
@@ -119,9 +107,27 @@ public class CoverFragment extends BasicAssistantFragment implements BroadcastOb
             }
         });
     }
-    // ===================== BroadcastObserver =====================
+    // ===================== IntentObserver =====================
     @Override
-    public void broadcastReceived(Intent intent) {
+    public void initialize(List<Intent> list) {
+        for(Intent intent:list) {
+            if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
+                FacilityState actionState = FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE));
+                TieredFacility tf = TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY));
+                if (tf.equals(TieredFacility.BLUETOOTH)) {
+                    updateToggleButton(bluetoothStatus, actionState);
+                }
+                else if (tf.equals(TieredFacility.SOCKET)) {
+                    updateToggleButton(socketStatus, actionState);
+                }
+                else {
+                    updateToggleButton(voiceStatus, actionState);
+                }
+            }
+        }
+    }
+    @Override
+    public void update(Intent intent) {
         if( intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
             FacilityState actionState = FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE));
             TieredFacility tf = TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY));
