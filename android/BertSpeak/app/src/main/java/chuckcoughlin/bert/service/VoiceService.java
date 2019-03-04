@@ -20,6 +20,7 @@ import android.util.Log;
 
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
+import chuckcoughlin.bert.speech.MessageType;
 import chuckcoughlin.bert.speech.SpokenTextManager;
 
 /**
@@ -195,7 +196,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     // Update any observers with the latest text
     private void reportSpokenText(String text) {
         Log.i(CLSS,String.format("reportSpokenText: %s",text));
-        SpokenTextManager.getInstance().processText(text);
+        SpokenTextManager.getInstance().processText(text, MessageType.REQUEST);
     }
 
     private void stopForegroundService() {

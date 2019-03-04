@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import chuckcoughlin.bert.common.BertConstants;
-import chuckcoughlin.bert.db.BertDbManager;
+import chuckcoughlin.bert.db.SettingsManager;
 
 /**
  * Attempt to create a network connection via Bluetooth.
@@ -29,7 +29,7 @@ public class BluetoothChecker {
     public BluetoothChecker(VoiceServiceHandler handler) {
         this.threadRunning = false;
         this.handler = handler;
-        this.device  = BertDbManager.getInstance().getSetting(BertConstants.BERT_PAIRED_DEVICE);
+        this.device  = SettingsManager.getInstance().getSetting(BertConstants.BERT_PAIRED_DEVICE);
     }
 
     // An empty string returned implies success, else an error message.

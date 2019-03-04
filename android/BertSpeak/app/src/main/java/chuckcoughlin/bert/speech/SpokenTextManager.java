@@ -129,9 +129,16 @@ public class SpokenTextManager implements TextToSpeech.OnInitListener {
     @Override
     public void onInit(int status) {
         Log.i(CLSS,String.format("onInit: SpeechToText status - %d",status));
+        /*
+            For when we need to select an appropriate speaker ... maybe one of these
+            en-gb-x-rjs#male_2-local
+            en-gb-x-fis#male_1-local
+            en-gb-x-fis#male_3-local
+
         Set<Voice> voices = annunciator.getVoices();
         for( Voice v:voices) {
             Log.i(CLSS,String.format("oninit: voice = %s %d",v.getName(),v.describeContents()));
         }
+          */
     }
 }

@@ -18,7 +18,7 @@
     <!-- Create a list of name/value pairs (the particular list id is required)
          Do not use a ScrollView as scrolling is already implemented by ListView -->
     <ListView
-        android:id="@+id/androidlist"
+        android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"

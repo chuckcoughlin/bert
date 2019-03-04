@@ -20,7 +20,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import chuckcoughlin.bert.R;
-import chuckcoughlin.bert.db.BertDbManager;
+import chuckcoughlin.bert.db.SettingsManager;
 import chuckcoughlin.bert.common.NameValue;
 
 /**
@@ -37,7 +37,7 @@ public class SettingsFragment extends BasicAssistantListFragment  {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        List<NameValue> nvpairs = BertDbManager.getInstance().getSettings();
+        List<NameValue> nvpairs = SettingsManager.getInstance().getSettings();
         NameValue [] nvarray = nvpairs.toArray(new NameValue[nvpairs.size()]);
         Log.i(CLSS,String.format("onActivityCreated: will display %d name-values",nvarray.length));
         SettingsListAdapter adapter = new SettingsListAdapter(getContext(),nvarray);
@@ -101,7 +101,7 @@ public class SettingsFragment extends BasicAssistantListFragment  {
                     if (!hasFocus) {
                         Log.i(CLSS,String.format("SettingsListAdapter.getView.onFocusChange %d = %s",position,((EditText) v).getText().toString()));
                         nv.setValue(((EditText)v).getText().toString());
-                        BertDbManager.getInstance().updateSetting(nv);
+                        SettingsManager.getInstance().updateSetting(nv);
                     }
                 }
             });
