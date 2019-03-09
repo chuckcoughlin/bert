@@ -188,11 +188,36 @@ public class NamedSocket   {
 		}
 		return bottle;
 	}
-	
+	/**
+	 * Read a line of text from the socket. The read will block and wait for data to appear. 
+	 * If we get a null, then close the socket and either re-open or re-listen
+	 * depending on whether or not this is the server side, or not.
+	 *
+	 * @return either a RequestBottle or a ResponseBottle as appropriate.
+	 */
+	public String readLine() {
+		String text = null;
+		try {
+			if(in!=null )  {
+				LOGGER.info(String.format("%s.readLine: reading %s ... ",CLSS,name));
+				text = in.readLine();
+				while( text==null ) {
+					text = reread();
+				}
+				LOGGER.info(String.format("%s.readLine: got %s",CLSS,text));
+			}
+			else {
+				LOGGER.severe(String.format("%s.readLine: Error reading from %s before port is open",CLSS,name));
+			}
+		}
+		catch(IOException ioe) {
+			LOGGER.severe(String.format("%s.readLine: Error reading from %s (%s)",CLSS,name,ioe.getLocalizedMessage()));
+		}
+		return text;
+	}
 	
 	/**
-	 * Write the serialized MessageBottle to the socket. Include a 4 byte prefix that is the length of the 
-	 * JSON string to follow. Include the null string termination in the byte count.
+	 * Write the MessageBottle serialized as a JSON string to the socket.
 	 */
 	public void write(MessageBottle bottle) {
 		String json = bottle.toJSON();
@@ -210,6 +235,25 @@ public class NamedSocket   {
 		}
 		catch(Exception ioe) {
 			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,json.length(), ioe.getLocalizedMessage()));
+		}
+	}
+	
+	/**
+	 * Write plain text to the socket.
+	 */
+	public void write(String text) {
+		try {
+			if( out!=null ) {
+				out.println(text);
+				out.flush();
+				LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",CLSS,name,text.length()));
+			}
+			else {
+				LOGGER.severe(String.format("%s.write: Error writing to %s before port is open",CLSS,name));
+			}
+		}
+		catch(Exception ioe) {
+			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,text.length(), ioe.getLocalizedMessage()));
 		}
 	}
 	

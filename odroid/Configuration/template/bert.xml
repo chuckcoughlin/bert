@@ -19,13 +19,14 @@
 	
 	<!-- The following section defines client-side processes that are also known to the server.
 		 Each client process communicates in both directions over its own socket. 
+		 The socket port connecting the tablet must be named "tablet", else the names don't matter.
 	-->
 	<controller name="terminal" type="TERMINAL">
-		<socket  port="11044"/>
+		<socket  name="terminal" port="11044"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<socket  port="11045"/>
-		<tablet  port="11046"/>
+		<socket  name="command" port="11045"/>
+		<socket  name="tablet"  port="11046"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across

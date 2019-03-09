@@ -57,7 +57,7 @@ public class Command extends Thread implements MessageHandler {
 	 */
 	@Override
 	public void createControllers() {
-		this.controller = new BluetoothController(this);
+		this.controller = new BluetoothController(this,model.getTabletSocketName(),model.getTabletPort());
 		
 		String hostName = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost");
 		Map<String, Integer> sockets = model.getSockets();

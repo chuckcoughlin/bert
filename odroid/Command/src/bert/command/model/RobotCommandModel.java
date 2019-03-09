@@ -21,6 +21,8 @@ import bert.share.xml.XMLUtility;
 public class RobotCommandModel extends AbstractRobotModel   {
 	private static final String CLSS = "RobotCommandModel";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
+	private static final String TABLET_SOCKET_NAME = "tablet";
+	private int tabletPort = 0;
 
 	public RobotCommandModel(Path configPath) {
 		super(configPath);
@@ -36,6 +38,8 @@ public class RobotCommandModel extends AbstractRobotModel   {
 		analyzeMotors();
 	}
 
+	public String getTabletSocketName() { return TABLET_SOCKET_NAME; }
+	public int getTabletPort() { return this.tabletPort; }
 
     // ================================ Auxiliary Methods  ===============================
 	/**
@@ -50,17 +54,27 @@ public class RobotCommandModel extends AbstractRobotModel   {
 			int index = 0;
 			while(index<count) {
 				Element controllerElement= (Element)(elements.item(index));
-				String name = XMLUtility.attributeValue(controllerElement, "name");
+				String controllerName = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isBlank() &&
 					type.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {
 					// Configure the socket - there should only be one.
 					NodeList socketElements = controllerElement.getElementsByTagName("socket");
-					if( socketElements.getLength()>0) {
-						handlerTypes.put(name,type.toUpperCase());
-						Element socketElement= (Element)(socketElements.item(0));
-						String portName = XMLUtility.attributeValue(socketElement, "port");
-						sockets.put(name,Integer.parseInt(portName));
+					int nSocket = socketElements.getLength();
+					if( nSocket>0) {
+						handlerTypes.put(controllerName,type.toUpperCase());
+						
+						for( int iSocket=0;iSocket<nSocket;iSocket++) {
+							Element socketElement= (Element)(socketElements.item(iSocket));
+							String socketName = XMLUtility.attributeValue(socketElement, "name");
+							String portName = XMLUtility.attributeValue(socketElement, "port");
+							if( socketName.equalsIgnoreCase(TABLET_SOCKET_NAME)) {
+								tabletPort = Integer.parseInt(portName);	
+							}
+							else {
+								sockets.put(controllerName,Integer.parseInt(portName));
+							}
+						}
 					}
 					break;
 				}

@@ -9,7 +9,7 @@ package chuckcoughlin.bert.service;
  */
 public interface VoiceServiceHandler {
     /**
-     * There was an error in the connection attempt.
+     * There was an error in the Bluetooth connection attempt.
      * @param reason error description
      */
     void handleBluetoothError(String reason);
@@ -17,4 +17,13 @@ public interface VoiceServiceHandler {
      * The bluetooth connection request succeeded.
      */
     void receiveBluetoothConnection();
+    /**
+     * There was an error in the connection attempt.
+     * @param reason error description
+     */
+    void handleSocketError(String reason);
+    /**
+     * The socket connection request succeeded.
+     */
+    void receiveSocketConnection();
 }

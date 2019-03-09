@@ -40,6 +40,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     private static final String NOTIFICATION_COMMAND_MUTE  = "Mute";
     private static final String NOTIFICATION_COMMAND_START = "Start";
     private static final String NOTIFICATION_COMMAND_STOP  = "Stop";
+    private BluetoothSocket socketHandler = null;
     private boolean isMuted;
     private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
     private FacilityState currentState;
@@ -72,6 +73,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         Notification notification = buildNotification();
         instance = this;
+        socketHandler = new BluetoothSocket(this);
         startForeground(VOICE_NOTIFICATION, notification);
     }
 
@@ -79,6 +81,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     public void onDestroy() {
         notificationManager.cancel(VOICE_NOTIFICATION);
         instance = null;
+        socketHandler.shutdown();
         stopForegroundService();
     }
 
@@ -183,6 +186,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
                 currentAction = TieredFacility.SOCKET;
                 currentState = FacilityState.WAITING;
                 reportConnectionState(currentAction,currentState);
+                socketHandler.create();
             }
         }
     }

@@ -52,7 +52,7 @@ public class TimerController implements Controller  {
 	 */
 	@Override
 	public void receiveResponse(MessageBottle response) {
-		
+		dispatcher.handleResponse(response);
 	}
 	@Override
 	public void start() {

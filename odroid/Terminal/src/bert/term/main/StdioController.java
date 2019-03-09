@@ -59,7 +59,7 @@ public class StdioController implements Controller {
 	
 	@Override
 	public void receiveRequest(MessageBottle request ) {
-		
+		dispatcher.handleRequest(request);
 	}
 	/**
 	 * The response is expected to carry understandable text, an error
@@ -111,7 +111,7 @@ public class StdioController implements Controller {
 						MessageBottle request = parser.parseStatement(input);
 						request.assignSource(HandlerType.TERMINAL.name());
 						if( request.fetchError()==null) {
-							dispatcher.handleRequest(request);
+							receiveRequest(request);
 						}
 						else {
 							receiveResponse(request);  // Handle error immediately

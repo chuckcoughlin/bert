@@ -23,7 +23,7 @@ public class BluetoothChecker {
     private final static String CLSS = "BluetoothChecker";
     private CheckerThread checkerThread = null;
     private final String device;
-    private VoiceServiceHandler handler;
+    private final VoiceServiceHandler handler;
     private boolean threadRunning;
 
     public BluetoothChecker(VoiceServiceHandler handler) {

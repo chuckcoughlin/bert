@@ -13,26 +13,24 @@ import bert.share.message.MessageHandler;
 
 
 /**
- * The StdIO controller handles input/output to/from stdin and sdout for interactive
- * command-line operation. The typed commands and text responses are exactly the same
- * as the spoken interface with the Command application. 
+ * The socket controller handles two-way communication across a NamedSocket.
  * 
- * There are two possible read behaviors:
- *   1) synchronous mode, the caller blocks on the "getMessage" method. 
- *   2) asynchronous mode, a non-owner caller must implement a "handleResponse" callback.
+ * Depending on which constructor is used, the connection can be configured
+ * for either a server or client.
  */
 public class SocketController implements Controller{
 	private final static String CLSS = "SocketController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private final NamedSocket socket;
-	private final MessageHandler dispatcher;
-	private Thread runner = null;
+	protected final NamedSocket socket;
+	protected final MessageHandler dispatcher;
+	protected Thread runner = null;
 	private final boolean server;  // True of this is created by the server process.
-	private final List<SocketStateChangeListener> changeListeners = new ArrayList<>();
+	protected final List<SocketStateChangeListener> changeListeners = new ArrayList<>();
 
 	/**
 	 * Constructor: Use this constructor from the server process.
 	 * @param launcher the parent application
+	 * @param name the socket name
 	 * @param port communication port number
 	 */
 	public SocketController(MessageHandler launcher,String name, int port) {
@@ -141,7 +139,7 @@ public class SocketController implements Controller{
 	
 	// ===================================== Helper Methods ==================================================
 	// Notify listeners in a separate thread
-	private void notifyChangeListeners(String name,String state) {
+	protected void notifyChangeListeners(String name,String state) {
 		SocketStateChangeEvent event = new SocketStateChangeEvent(this,name,state);
 		if( changeListeners.isEmpty()) return;  // Nothing to do
 		Thread thread = new Thread(new Runnable() {
