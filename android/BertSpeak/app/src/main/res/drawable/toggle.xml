@@ -4,14 +4,18 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Inactive -->
     <item android:drawable="@drawable/ball_gray"
-        android:state_active="false"/>
+        android:state_checked="false"
+        android:state_selected="false"/>
     <!-- Error -->
     <item android:drawable="@drawable/ball_red"
-        android:state_enabled="false"/>
+        android:state_checked="false"
+        android:state_selected="true"/>
     <!-- Connected -->
     <item android:drawable="@drawable/ball_green"
-        android:state_checked="true"/>
+        android:state_checked="true"
+        android:state_selected="true"/>
     <!-- Searching -->
     <item android:drawable="@drawable/ball_yellow"
-        android:state_checked="false"/>
+        android:state_checked="true"
+        android:state_selected="false"/>
 </selector>

@@ -37,6 +37,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     // Inflate the view. It holds a fixed image of the robot
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+        Log.i(CLSS,"onCreateView: ....");
         View view = inflater.inflate(R.layout.fragment_cover, container, false);
 
         TextView label = view.findViewById(R.id.fragmentCoverText);
@@ -49,11 +50,13 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
         bluetoothStatus = view.findViewById(R.id.bluetooth_status);
         socketStatus = view.findViewById(R.id.socket_status);
         voiceStatus = view.findViewById(R.id.voice_status);
+        bluetoothStatus.setClickable(false);  // Not really buttons, just indicators
+        socketStatus.setClickable(false);
+        voiceStatus.setClickable(false);
 
         updateToggleButton(bluetoothStatus, FacilityState.IDLE);
         updateToggleButton(socketStatus, FacilityState.IDLE);
         updateToggleButton(voiceStatus, FacilityState.IDLE);
-        Log.i(CLSS,"onCreateView: ....");
         return view;
     }
 
@@ -85,25 +88,27 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
      * @param state
      */
     private void updateToggleButton(final ToggleButton btn,final FacilityState state) {
+        Log.i(CLSS,String.format("updateToggleButton:%s %s",btn.getText(),state.name()));
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
+                btn.setVisibility(View.INVISIBLE);
                 if( state.equals(FacilityState.IDLE)) {
-                    btn.setActivated(false);
+                    btn.setChecked(false);
+                    btn.setSelected(false);
                 }
                 else if( state.equals(FacilityState.WAITING)) {
-                    btn.setActivated(true);
-                    btn.setEnabled(true);
-                    btn.setChecked(false);
+                    btn.setChecked(true);
+                    btn.setSelected(false);
                 }
                 else if( state.equals(FacilityState.ACTIVE)) {
-                    btn.setActivated(true);
-                    btn.setEnabled(true);
                     btn.setChecked(true);
+                    btn.setSelected(true);
                 }
                 else if( state.equals(FacilityState.ERROR)) {
-                    btn.setActivated(true);
-                    btn.setEnabled(false);
+                    btn.setChecked(false);
+                    btn.setSelected(true);
                 }
+                btn.setVisibility(View.VISIBLE);
             }
         });
     }

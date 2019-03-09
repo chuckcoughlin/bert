@@ -178,6 +178,10 @@ To shutdown,
 ```
 Wait until the blue LED has gone out, then unplug.
 
+Configure Bluetooth using the robot's pull-down menu. Configure the adapter so that it is always visible (discoverable) and give it a "friendly"
+name of "bert_humanoid". Pairing is based on the friendly name and can be initiated
+either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
+
 *** Java ***<br/>
 Download the latest Java 11 Development (JDK) version using
 ```
@@ -330,14 +334,14 @@ The control application is a standard Android application built using Android St
     ```ANDROID_HOME=~/Library/Androd/sdk```
 
 *** Voice Commands ***<br/>
-Voice commands are implemented purely via the Android tablet using the builtin speech-to-text features of Android. On the tablet, the ***BertOp*** app must be given microphone permissions.
+Voice commands are implemented purely via the Android tablet using the builtin speech-to-text features of Android. On the tablet, the ***BertSpeak*** app must be given microphone permissions.
 
 For production of speech from robot output,  text-to-speech can be configured in the settings under "Accessibility". Parameters include languages supported and characteristics of the speaker such as volume.
 
 *** Network Configuration ***<br/>
 Communication between the tablet and main robot processor is over Bluetooth. On the tablet's settings "Connections" page, make sure that bluetooth is enabled. Under "More Connection Settings", enable "Nearby device scanning". Network or device pairing selections are made from menus accessed from the main screen.
 
-Pairing with the robot must be completed before the ***BertOp*** application is started. Pairing may be initiated either from the robot or the tablet.
+Pairing with the robot must be completed before the ***BertSpeak*** application is started. Pairing may be initiated either from the robot or the tablet.
 
 Note that the emulator does not support Bluetooth and is, therefore, not available as a test tool.
 
@@ -354,8 +358,8 @@ On the build system, configure Android Studio (Tools->Run>Edit Configurations) t
 ***
 ### Other Tools <a id="other"/>
 We make use of the following freely-available applications:
-  * [OpenSCAD](http://www.openscad.org) - Construct geometric parts in script. Export in .stl format.
+  * [OpenSCAD](http://www.openscad.org) - Construct 3D CAD drawings in script. Export in .stl format. This is useful where the parts are composed from simple geometric shapes.
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
   * [Sculptris](http://pixologic.com/sculptris) - Sculpt objects free-form. This is useful for molding irregular, rounded or textured parts. Export in .obj format.
-This drawing and others is constructed using **InkScape** from https://inkscape.org/en/release/0.92.2. 3D CAD drawings are constructed using OpenSCAD from http://www.openscad.org/downloads.html.
-Electrical circuits are constructed using [iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12).
+  * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
+  * iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.

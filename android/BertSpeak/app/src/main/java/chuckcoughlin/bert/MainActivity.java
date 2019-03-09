@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.WindowManager;
 
+import chuckcoughlin.bert.common.BertConstants;
 import chuckcoughlin.bert.db.SettingsManager;
 import chuckcoughlin.bert.speech.SpokenTextManager;
 import chuckcoughlin.bert.service.ServiceStatusManager;
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.i(CLSS,"onCreate ...");
         // If I absolutely have to start over again with the database ...
-        //this.deleteDatabase(BertConstants.DB_NAME);
+        // this.deleteDatabase(BertConstants.DB_NAME);
 
         setContentView(R.layout.activity_main);
         // Close the soft keyboard - it will still open on an EditText

@@ -25,6 +25,7 @@
 	</controller>
 	<controller name="command" type="COMMAND">
 		<socket  port="11045"/>
+		<tablet  port="11046"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across

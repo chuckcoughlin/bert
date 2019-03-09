@@ -17,13 +17,13 @@ public class BertConstants {
     public static final String SETTINGS_VALUE = "value";
 
     // These are the parameter names in the Settings table
-    public static final String BERT_GATEWAY="Gateway";
-    public static final String BERT_HOST="Host";
+    public static final String BERT_SERVER="Server";
+    public static final String BERT_PORT="Port";
     public static final String BERT_PAIRED_DEVICE="Paired Device";
 
     // These are the default values for the settings
-    public static final String BERT_GATEWAY_HINT="192.168.0.1";
-    public static final String BERT_HOST_HINT="192.168.1.20";
+    public static final String BERT_SERVER_HINT="192.168.1.20";
+    public static final String BERT_PORT_HINT="11046";
     public static final String BERT_PAIRED_DEVICE_HINT="bert_humanoid";
 
     // Intent observer actions

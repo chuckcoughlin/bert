@@ -89,9 +89,9 @@ public class SettingsManager extends SQLiteOpenHelper {
 
 
         // Add initial rows - fail silently if they exist. Use default for value.
-        String statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_GATEWAY+"','"+BertConstants.BERT_GATEWAY_HINT+"')";
+        String statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_SERVER+"','"+BertConstants.BERT_SERVER_HINT+"')";
         execLenient(sqLiteDatabase,statement);
-        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_HOST+"','"+BertConstants.BERT_HOST_HINT+"')";
+        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_PORT+"','"+BertConstants.BERT_PORT_HINT+"')";
         execLenient(sqLiteDatabase,statement);
         statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_PAIRED_DEVICE+"','"+BertConstants.BERT_PAIRED_DEVICE_HINT+"')";
         execLenient(sqLiteDatabase,statement);
