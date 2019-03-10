@@ -186,7 +186,19 @@ public class VoiceService extends Service implements VoiceServiceHandler {
                 currentAction = TieredFacility.SOCKET;
                 currentState = FacilityState.WAITING;
                 reportConnectionState(currentAction,currentState);
-                socketHandler.create();
+                socketHandler.openConnections();
+            }
+        }
+        else if( currentAction.equals(TieredFacility.SOCKET)) {
+            if (!currentState.equals(FacilityState.ACTIVE)) {
+                currentState = FacilityState.WAITING;
+                reportConnectionState(currentAction, currentState);
+                socketHandler.openConnections();
+            }// Start socket
+            else {
+                currentAction = TieredFacility.VOICE;
+                currentState = FacilityState.WAITING;
+                reportConnectionState(currentAction,currentState);
             }
         }
     }
@@ -232,6 +244,26 @@ public class VoiceService extends Service implements VoiceServiceHandler {
      */
     public void receiveBluetoothConnection() {
         currentAction = TieredFacility.BLUETOOTH;
+        currentState = FacilityState.ACTIVE;
+        reportConnectionState(currentAction,currentState);
+        determineNextAction();
+    }
+    /**
+     * There was an error in the attempt to create/open sockets.
+     * @param reason error description
+     */
+    public void handleSocketError(String reason) {
+        currentAction = TieredFacility.SOCKET;
+        currentState = FacilityState.ERROR;
+        reportConnectionState(currentAction,currentState);
+        reportSpokenText(reason);
+        new Thread(new ProcessDelay(ERROR_CYCLE_DELAY)).start();
+    }
+    /**
+     * The socket connection request succeeded.
+     */
+    public void receiveSocketConnection() {
+        currentAction = TieredFacility.SOCKET;
         currentState = FacilityState.ACTIVE;
         reportConnectionState(currentAction,currentState);
         determineNextAction();

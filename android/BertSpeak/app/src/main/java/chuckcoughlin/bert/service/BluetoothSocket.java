@@ -4,6 +4,9 @@
  */
 package chuckcoughlin.bert.service;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -11,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Set;
 
 import chuckcoughlin.bert.common.BertConstants;
 import chuckcoughlin.bert.db.SettingsManager;
@@ -19,15 +24,14 @@ import chuckcoughlin.bert.db.SettingsManager;
  *  This socket communicates across a Bluetooth network to the robot which acts
  *  as a server. The messages are simple text strings.
  *  
- *  The file descriptors are opened on "startup" and closed on 
+ *  The file descriptors are opened on "openConnections" and closed on
  *  "shutdown". Change listeners are notified (in a separate Thread) when the
  *  socket is "ready".
  */
 public class BluetoothSocket   {
 	private static final String CLSS = "BluetoothSocket";
     private final VoiceServiceHandler handler;
-    private boolean threadRunning;
-
+    private ConnectionThread connectionThread = null;
 
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
@@ -42,77 +46,34 @@ public class BluetoothSocket   {
 	 * @param handler the parent fragment
 	 */
 	public BluetoothSocket(VoiceServiceHandler handler) {
-        this.threadRunning = false;
         this.handler = handler;
         this.host  = SettingsManager.getInstance().getSetting(BertConstants.BERT_SERVER);
 		this.port =  Integer.parseInt(SettingsManager.getInstance().getSetting(BertConstants.BERT_PORT));
 		this.socket = null;
 	}
 
-    /**
-     * We are a client. Attempt to connect to the server.
-     */
-    public void create() {
-        // Keep attempting a connection until the server is ready
-        int attempts = 0;
-        Log.i(CLSS,String.format("create: Attempting to connect to %s on %d",host,port));
-        for(;;) {
-            try  {
-                socket = new Socket(host,port);
-                Log.i(CLSS,String.format("create: connected to %s after %d attempts",host,attempts));
-                if( startup() ) handler.receiveSocketConnection();
-                break;
-            }
-            catch(IOException ioe) {
-                try {
-                    Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
-                }
-                catch(InterruptedException ie) {
-                    if( attempts%CLIENT_LOG_INTERVAL==0) {
-                        String reason = String.format("The tablet failed to create a client socket to %s due to %s",host,ioe.getMessage());
-                        Log.w(CLSS,String.format("create: ERROR %s", reason));
-                        handler.handleSocketError(reason);
-                    }
-                }
-            }
-            attempts++;
+
+	public void openConnections() {
+        if( connectionThread!=null && connectionThread.isAlive() && !connectionThread.isInterrupted() ) {
+			Log.i(CLSS, "socket connection already in progress ...");
+			return;
+		}
+		connectionThread = new ConnectionThread();
+        connectionThread.start();
+	}
+
+    public void stopChecking() {
+        if (connectionThread != null && connectionThread.isAlive()) {
+            connectionThread.interrupt();
         }
     }
 
 	/**
-	 * This must not be called before the socket is created.
-	 * Open IO streams for reading and writing.
-	 */
-	private boolean startup() {
-	    boolean success = false;
-		if( socket!=null ) {
-			try {
-				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				Log.i(CLSS,String.format("startup: opened %s (%d) for read",host,port));
-                try {
-                    out = new PrintWriter(socket.getOutputStream(),true);
-                    Log.i(CLSS,String.format("startup: opened %s (%d) for write",host,port));
-                    success = true;
-                }
-                catch (Exception ex) {
-                    String reason = String.format("The tablet failed to open a socket for reading due to %s",ex.getMessage());
-                    Log.i(CLSS,String.format("startup: ERROR opening port %d for write (%s)",CLSS,port,ex.getMessage()));
-                    handler.handleSocketError(reason);
-                }
-			} 
-			catch (Exception ex) {
-                String reason = String.format("The tablet failed to open a socket for reading due to %s",ex.getMessage());
-                Log.i(CLSS,String.format("startup: ERROR opening port %d for read (%s)",CLSS,port,ex.getMessage()));
-                handler.handleSocketError(reason);
-			}
-		}
-		return success;
-	}
-	
-	/**
 	 * Close IO streams.
 	 */
 	public void shutdown() {
+	    stopChecking();
+
 		if(in!=null) {
 			try{ in.close();} catch(IOException ignore) {}
 			in = null;
@@ -184,9 +145,8 @@ public class BluetoothSocket   {
 	private String reread() {
 		String text = null;
         Log.i(CLSS,String.format("reread: on port %d",port));
-		try{in.close();} catch(IOException ignore) {}
-		try{socket.close();} catch(IOException ignore) {}
-		create();
+        shutdown();
+        openConnections();
 		try {
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             Log.i(CLSS,String.format("reread: reopened %s (%d) for read",host,port));
@@ -198,6 +158,92 @@ public class BluetoothSocket   {
 
         Log.i(CLSS,String.format("reread: got %s",text));
 		return text;
+	}
+
+	// ================================================= Connection Thread =========================
+	/**
+	 * Check for the network in a separate thread.
+	 */
+	private class ConnectionThread extends Thread {
+
+		public ConnectionThread() {
+			setDaemon(true);
+			// don't require callers to explicitly kill all the old checker threads.
+			setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+				@Override
+				public void uncaughtException(Thread thread, Throwable ex) {
+					String msg = String.format("There was an uncaught exception creating socket connection: %s",ex.getLocalizedMessage());
+					Log.e(CLSS,msg ,ex);
+					handler.handleSocketError(msg);
+				}
+			});
+		}
+
+        /**
+         * We are a client. Attempt to connect to the server.
+         */
+        @Override
+        public void run() {
+            String reason = null;
+
+            // Keep attempting a connection until the server is ready
+            int attempts = 0;
+            Log.i(CLSS, String.format("create: Attempting to connect to %s on %d", host, port));
+            for (; ; ) {
+                try {
+                    socket = new Socket(host, port);
+                    Log.i(CLSS, String.format("create: connected to %s after %d attempts", host, attempts));
+                    reason = openPorts();
+                    break;
+                }
+                catch (IOException ioe) {
+                    try {
+                        Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
+                    }
+                    catch (InterruptedException ie) {
+                        if (attempts % CLIENT_LOG_INTERVAL == 0) {
+                            reason = String.format("The tablet failed to create a client socket to %s due to %s", host, ioe.getMessage());
+                            Log.w(CLSS, String.format("create: ERROR %s", reason));
+                            handler.handleSocketError(reason);
+                        }
+                    }
+                }
+                attempts++;
+            }
+            if (reason==null) {
+                handler.receiveSocketConnection();
+            } else {
+                handler.handleBluetoothError(reason);
+            }
+        }
+
+        /**
+         * Open IO streams for reading and writing. The socket must exist.
+         */
+        private String openPorts() {
+            String reason = null;
+            if( socket!=null ) {
+                try {
+                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    Log.i(CLSS,String.format("startup: opened %s (%d) for read",host,port));
+                    try {
+                        out = new PrintWriter(socket.getOutputStream(),true);
+                        Log.i(CLSS,String.format("startup: opened %s (%d) for write",host,port));
+                    }
+                    catch (Exception ex) {
+                        reason = String.format("The tablet failed to open a socket for reading due to %s",ex.getMessage());
+                        Log.i(CLSS,String.format("startup: ERROR opening port %d for write (%s)",CLSS,port,ex.getMessage()));
+                        handler.handleSocketError(reason);
+                    }
+                }
+                catch (Exception ex) {
+                    reason = String.format("The tablet failed to open a socket for reading due to %s",ex.getMessage());
+                    Log.i(CLSS,String.format("startup: ERROR opening port %d for read (%s)",CLSS,port,ex.getMessage()));
+                    handler.handleSocketError(reason);
+                }
+            }
+            return reason;
+        }
 	}
 }
 

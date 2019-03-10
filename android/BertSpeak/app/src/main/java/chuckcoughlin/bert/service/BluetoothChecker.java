@@ -16,7 +16,7 @@ import chuckcoughlin.bert.common.BertConstants;
 import chuckcoughlin.bert.db.SettingsManager;
 
 /**
- * Attempt to create a network connection via Bluetooth.
+ * Attempt to discover a Bluetooth network.
  * NOTE: Bluetooth is not supported on the emulator. The adapter will be null.
  */
 public class BluetoothChecker {
@@ -24,17 +24,37 @@ public class BluetoothChecker {
     private CheckerThread checkerThread = null;
     private final String device;
     private final VoiceServiceHandler handler;
-    private boolean threadRunning;
 
     public BluetoothChecker(VoiceServiceHandler handler) {
-        this.threadRunning = false;
         this.handler = handler;
         this.device  = SettingsManager.getInstance().getSetting(BertConstants.BERT_PAIRED_DEVICE);
     }
 
+
+    public void beginChecking(BluetoothManager bmgr) {
+        if( checkerThread!=null && checkerThread.isAlive() && !checkerThread.isInterrupted() ) {
+            Log.i(CLSS, "check already in progress ...");
+            return;
+        }
+        String errMsg = checkAdapter(bmgr.getAdapter());
+        if( errMsg.isEmpty() ) {
+            checkerThread = new CheckerThread(bmgr);
+            checkerThread.start();
+        }
+        else {
+            handler.handleBluetoothError(errMsg);
+        }
+    }
+
+    public void stopChecking() {
+        if (checkerThread != null && checkerThread.isAlive()) {
+            checkerThread.interrupt();
+        }
+    }
+
     // An empty string returned implies success, else an error message.
     // For now we always return an error
-    public String bluetoothValid(BluetoothAdapter adapter) {
+    private String checkAdapter(BluetoothAdapter adapter) {
         String errorMsg = "";
         if( adapter==null ) {
             errorMsg = "There is no bluetooth network";
@@ -51,27 +71,9 @@ public class BluetoothChecker {
         return errorMsg;
     }
 
-    public void beginChecking(BluetoothManager bmgr) {
-        if( this.threadRunning ) {
-            Log.i(CLSS, "check already in progress ...");
-            return;
-        }
-        String errMsg = bluetoothValid(bmgr.getAdapter());
-        if( errMsg.isEmpty() ) {
-            checkerThread = new CheckerThread(bmgr);
-            checkerThread.start();
-        }
-        else {
-            handler.handleBluetoothError(errMsg);
-        }
-    }
-
-    public void stopChecking() {
-        if (checkerThread != null && checkerThread.isAlive()) {
-            checkerThread.interrupt();
-        }
-    }
-
+    /**
+     * Check for the network in a separate thread.
+     */
     private class CheckerThread extends Thread {
         private BluetoothAdapter adapter;
         private Set<BluetoothDevice> pairedDevices;
@@ -87,7 +89,6 @@ public class BluetoothChecker {
                     String msg = String.format("There was an uncaught exception checking bluetooth: %s",ex.getLocalizedMessage());
                     Log.e(CLSS,msg ,ex);
                     handler.handleBluetoothError(msg);
-                    threadRunning = false;
                 }
             });
         }
@@ -95,7 +96,6 @@ public class BluetoothChecker {
 
         @Override
         public void run() {
-            threadRunning = true;
             boolean success = false;
             String errorMsg = "";
             try {
@@ -126,7 +126,6 @@ public class BluetoothChecker {
             else {
                 handler.handleBluetoothError(errorMsg);
             }
-            threadRunning = false;
         }
     }
 }
