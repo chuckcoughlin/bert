@@ -1,12 +1,12 @@
 /**
- * Copyright 2017 Charles Coughlin. All rights reserved.
- * @See https://github.com/fcrisciani/android-speech-recognition/
+ * Copyright 2019 Charles Coughlin. All rights reserved.
  *  (MIT License)
  */
 
 package chuckcoughlin.bert.speech;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -16,26 +16,29 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
+import chuckcoughlin.bert.MainActivity;
+import chuckcoughlin.bert.service.VoiceServiceHandler;
+
 /**
- * This fragment handles manual robot control. It publishes Twist messages
- * and listens to ObstacleDistance, not letting the robot crash into something in front of it.
- *
- * OFFLINE is a way of testing the widget and speech functions with the robot offline.
+ *This class analyzes speech, converting it into text (lists of words).
+ * These methods must be executeed on the main application thread.
  */
 
 public class SpeechAnalyzer implements  RecognitionListener  {
     private static final String CLSS = "SpeechAnalyzer";
-    private final Activity activity;
+    private final Context context;
     private SpeechRecognizer sr = null;
+    private final VoiceServiceHandler handler;
 
-    public SpeechAnalyzer(Activity act ) {
-        this.activity = act;
+    public SpeechAnalyzer(VoiceServiceHandler h,Context c ) {
+        this.context = c;
+        this.handler  = h;
     }
 
     public void start() {
-        sr = SpeechRecognizer.createSpeechRecognizer(activity);
+        sr = SpeechRecognizer.createSpeechRecognizer(context);
         sr.setRecognitionListener(SpeechAnalyzer.this);
-        startRecognizer();
+        listen();
     }
     public void shutdown() {
         if (sr != null) {
@@ -45,16 +48,12 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         sr = null;
     }
 
-
-
     // start or restart recognizer
-    private void startRecognizer() {
-        activity.runOnUiThread(new Runnable() {
+    public void listen() {
+       Thread runner = new Thread(new Runnable() {
             public void run() {
                 if(sr!=null) sr.cancel();
-
                 String locale =  "us-UK";
-
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getClass().getPackage().getName());
                 intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,false);  // Partials are always empty
@@ -66,6 +65,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
                 Log.i(CLSS,"SpeechRecognizer: listening ...");
             }
         });
+       runner.start();
     }
 
     // ========================================= RecognitionListener ============================
@@ -85,35 +85,39 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         //Log.i(CLSS, "onEndofSpeech");
     }
     public void onError(int error)  {
+        String reason = null;
         switch (error) {
             case SpeechRecognizer.ERROR_AUDIO:
-                Log.i(CLSS,  String.format("SpeechRecognition: Audio recording error"));
+                reason = String.format("Audio recording error");
                 break;
-                // On the Android device, settings, go to SBAssistant and enable the microphone
+                // On the Android device, settings, go to BertSpeak and enable the microphone
             case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-                Log.i(CLSS,  String.format("SpeechRecognition: INSUFFICIENT PERMISSION - Enable microphone in app"));
+                reason = String.format("INSUFFICIENT PERMISSION - Enable microphone in application");
                 break;
             case SpeechRecognizer.ERROR_NO_MATCH:
                 Log.i(CLSS,  String.format("SpeechRecognition: Error - no word match. Enunciate!"));
-                startRecognizer();  // Try again
+                listen();  // Try again
                 break;
             case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
                 Log.i(CLSS,  String.format("SpeechRecognition: Error - no speech input"));
-                startRecognizer();  // Try again
+                listen();  // Try again
                 break;
             case SpeechRecognizer.ERROR_NETWORK:
-                Log.i(CLSS,  String.format("SpeechRecognition: Error network"));
+                reason =  String.format("Network error");
                 break;
             case SpeechRecognizer.ERROR_CLIENT:
-                Log.i(CLSS,  String.format("SpeechRecognition: Error - in client"));
+                reason = String.format("Error - in client");
                 break;
             case SpeechRecognizer.ERROR_SERVER:
-                Log.i(CLSS,  String.format("SpeechRecognition: Error - in server"));
+                reason = String.format("Error - in server");
                 break;
             default:
-                Log.i(CLSS,  String.format("SpeechRecognition: ERROR (%d) ",error));
+                reason = String.format("ERROR (%d) ",error);
         }
-
+        if( reason!=null) {
+            Log.i(CLSS,  String.format("SpeechRecognition: Error - %s",reason));
+            handler.handleVoiceError(reason);
+        }
     }
     public void onResults(Bundle results) {
         //Log.i(CLSS, "onResults \n" + results);
@@ -122,9 +126,8 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         //display results. The zeroth result is usually the space-separated one.
         for (int i = 0; i < matches.size(); i++) {
             Log.i(CLSS, "result " + matches.get(i));
-            //if( interpreter.handleWordList(currentRequest,matches.get(i),language)) break;
         }
-        startRecognizer();   // restart
+        handler.receiveText(matches.get(0));
     }
     public void onPartialResults(Bundle partialResults) {
         Log.i(CLSS, "onPartialResults");

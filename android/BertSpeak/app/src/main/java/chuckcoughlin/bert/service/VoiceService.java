@@ -21,6 +21,7 @@ import android.util.Log;
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
 import chuckcoughlin.bert.speech.MessageType;
+import chuckcoughlin.bert.speech.SpeechAnalyzer;
 import chuckcoughlin.bert.speech.SpokenTextManager;
 
 /**
@@ -35,12 +36,13 @@ import chuckcoughlin.bert.speech.SpokenTextManager;
 public class VoiceService extends Service implements VoiceServiceHandler {
     private static final String CLSS = "VoiceService";
     private static volatile VoiceService instance = null;
-    private static final long ERROR_CYCLE_DELAY = 10000;   // Wait interval for retry after error
+    private static final long ERROR_CYCLE_DELAY = 15000;   // Wait interval for retry after error
     private volatile NotificationManager notificationManager;
     private static final String NOTIFICATION_COMMAND_MUTE  = "Mute";
     private static final String NOTIFICATION_COMMAND_START = "Start";
     private static final String NOTIFICATION_COMMAND_STOP  = "Stop";
     private BluetoothSocket socketHandler = null;
+    private SpeechAnalyzer analyzer = null;
     private boolean isMuted;
     private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
     private FacilityState currentState;
@@ -74,6 +76,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         Notification notification = buildNotification();
         instance = this;
         socketHandler = new BluetoothSocket(this);
+        analyzer = new SpeechAnalyzer(this,getApplicationContext());
         startForeground(VOICE_NOTIFICATION, notification);
     }
 
@@ -102,7 +105,6 @@ public class VoiceService extends Service implements VoiceServiceHandler {
             reportConnectionState(currentAction, currentState);
             reportConnectionState(TieredFacility.SOCKET, FacilityState.IDLE);  // Just to initialize
             reportConnectionState(TieredFacility.VOICE, FacilityState.IDLE);   // Just to initialize
-
             determineNextAction();
         }
         else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_MUTE)) {
@@ -198,8 +200,20 @@ public class VoiceService extends Service implements VoiceServiceHandler {
             else {
                 currentAction = TieredFacility.VOICE;
                 currentState = FacilityState.WAITING;
+                analyzer.start();
                 reportConnectionState(currentAction,currentState);
             }
+        }
+        else if( currentAction.equals(TieredFacility.VOICE)) {
+            if (!currentState.equals(FacilityState.ACTIVE)) {
+                currentState = FacilityState.WAITING;
+                reportConnectionState(currentAction, currentState);
+                analyzer.listen();
+            }
+            else if (currentState.equals(FacilityState.WAITING)) {
+                currentState = FacilityState.ACTIVE;
+            }
+            reportConnectionState(currentAction,currentState);
         }
     }
 
@@ -268,7 +282,26 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         reportConnectionState(currentAction,currentState);
         determineNextAction();
     }
-
+    /**
+     * The speech recognizer reported an error.
+     * @param reason error description
+     */
+    public void handleVoiceError(String reason) {
+        currentAction = TieredFacility.VOICE;
+        currentState = FacilityState.ERROR;
+        reportConnectionState(currentAction,currentState);
+        reportSpokenText(reason);
+        new Thread(new ProcessDelay(ERROR_CYCLE_DELAY)).start();
+    }
+    /**
+     * The speech recognizer recorded a result.
+     */
+    public void receiveText(String text) {
+        currentAction = TieredFacility.VOICE;
+        currentState = FacilityState.ERROR;
+        reportConnectionState(currentAction,currentState);
+        reportSpokenText(text);
+    }
     //=================================== ProcessDelay ==============================================
     /**
      * Use this class to delay the transition to the next step. When we find

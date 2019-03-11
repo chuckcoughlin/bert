@@ -26,4 +26,13 @@ public interface VoiceServiceHandler {
      * The socket connection request succeeded.
      */
     void receiveSocketConnection();
+    /**
+     * Yhre speech recognizer reported an error.
+     * @param reason error description
+     */
+    void handleVoiceError(String reason);
+    /**
+     * The speech recognizer recorded a result.
+     */
+    void receiveText(String text);
 }

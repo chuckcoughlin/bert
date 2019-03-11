@@ -73,5 +73,7 @@ Make sure that the application is configured in the Settings with Permission for
     The **settings** page should have the following values:
 
   ```
-    Paired Device    bert_humanoid 
+    Server           192.168.1.20
+    Port             11046
+    Paired Device    bert_humanoid
   ```
