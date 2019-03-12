@@ -183,11 +183,12 @@ name of "bert_humanoid". Pairing is based on the friendly name and can be initia
 either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
 
 *** Java ***<br/>
-Download the latest Java 11 Development (JDK) version using
+Download the latest Java 11 Development (JDK) version using:
 ```
   sudo apt install openjdk-11-jdk-headless
-```
-Installing the JDK allows us to compile Java on the Odroid, if necessary.
+````
+Installing the JDK allows us to compile on the Odroid, if necessary. Of course,
+we also need the runtime. Unfortunately at the time of this writing, OpenJDK-11 installs Java 10.0.2.
 
 Once the build has been executed on the Development system (and deployed), edit ``/etc/environment``, adding the following directories to the **PATH** variable (before  */usr/bin*):
 ```
@@ -219,7 +220,7 @@ The development host is an iMac running OSX Mohave (10.14). The code repository 
 
 Code is compiled and downloaded onto the robot target over a WiFi connection using *rsync*.
 
-The iMac requires the same Java version as the Odroid (Java 11). It is downloadable from [here](http://www.oracle.com/technetwork/java/javase/downloads). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area.
+The iMac requires the same Java version as the Odroid (Java 10). It is downloadable from [here](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase10-4425482.html). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area. Avoid the temptation to download "the latest" as we need Java 10 for compatibility with the Odroid.
 
 ### Eclipse <a id="eclipse"></a>
 [toc](#table-of-contents)
@@ -228,17 +229,17 @@ The iMac requires the same Java version as the Odroid (Java 11). It is downloada
 _eclipse_ is an open-source Integrated Development Environment (IDE) for Java, C++ and Python. The available eclipse versions are listed at: http://www.eclipse.org/downloads/packages. At the time of this writing, the latest version is “2018-09”. Download the package “Eclipse IDE for Java Developers” and follow installation instructions.
 Start eclipse and point it to our initial workspace, ```workspace``` in the `git` repository. Add a ```/.metadata/``` entry in _.gitignore_ to avoid saving the workspace configuration in the repository.
 
-Under ```Preferences->Java->Installed JREs``` make sure that the only available JRE is Java 11.
+Under ```Preferences->Java->Installed JREs``` make sure that the only available JRE is Java 10.
 
 *** Projects *** <br/>
 From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
-  - Core: C++ source for the application on the robot which runs the main event loop.
   - Build: _ant_ scripts for compiling and installing the project build products onto the robot. There are separate scripts for the CommandLoop, Robot and Configuration projects.
   - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
+  - JSSC: C++ native code for the serial interface. This applies only to the build machine and is used only as a stub for some tests.
   - Lib: Third party open-source libraries. In general, this area does not include source.
-  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications.
-  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors.
-  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled.
+  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications. Disabled.
+  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors. Disabled.
+  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled. Disabled.
 
 When complete the project workspace should look like:
 ![Eclipse Setup](/images/eclipse_setup.png)
@@ -261,8 +262,8 @@ In addition to the *ant* scripts, there are a few shell scripts. To execute from
 
 *** Archive *** <br/>
 The *Archive* project is a collection of open-source library modules.
-* https://www.slf4j.org/download.htm slf4j-api-1.8.0.beta2.jar logback-classic-1.3.0-alpha4.jar logback-core-1.3.0-alpha4.jar
-* http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.7.jar jackson-databind-2.9.7.jar java-annotations-2.9.7.jar
+* https://www.antlr.org/download.html antlr-runtime-4.7.2.jar antlr-4.7.2-complete.jar
+* http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.8.jar jackson-databind-2.9.8.jar java-annotations-2.9.8.jar
 * http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
 * https://bitbucket.org/xerial/sqlite-jdbc/downloads sqlite-jdbc-3.23.1.jar
 * https://code.google.com/archive/p/java-simple-serial-connector/downloads jssc.jar, plus C++ source for shared library

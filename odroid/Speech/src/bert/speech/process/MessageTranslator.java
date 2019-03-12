@@ -29,7 +29,7 @@ public class MessageTranslator  {
 	public String messsageToText(MessageBottle msg) {
 		String text = "I don't understand the response";
 		String error = msg.fetchError();
-		if( error!=null && !error.isBlank() ) {
+		if( error!=null && !error.isEmpty() ) {
 			text = error;
 		}
 		else if(msg.fetchRequestType().equals(RequestType.NOTIFICATION)) {
@@ -37,7 +37,7 @@ public class MessageTranslator  {
 		}
 		else if(msg.fetchRequestType().equals(RequestType.GET_METRIC)) {
 			text = msg.fetchError();
-			if( text==null || text.isBlank() ) {
+			if( text==null || text.isEmpty() ) {
 				text = msg.getProperty(BottleConstants.TEXT, "??");
 			}
 		}

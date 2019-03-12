@@ -48,7 +48,7 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 				Element controllerElement= (Element)(elements.item(index));
 				String name = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
-				if( type!=null && !type.isBlank() &&
+				if( type!=null && !type.isEmpty() &&
 					type.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {
 					NodeList socketElements = controllerElement.getElementsByTagName("socket");
 					if( socketElements.getLength()>0) {
@@ -58,7 +58,7 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 						sockets.put(name,Integer.parseInt(portName));
 					}
 				}
-				else if( type!=null && !type.isBlank() &&
+				else if( type!=null && !type.isEmpty() &&
 						type.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
 					NodeList socketElements = controllerElement.getElementsByTagName("socket");
 					if( socketElements.getLength()>0) {

@@ -61,7 +61,7 @@ public class RobotMotorModel extends AbstractRobotModel  {
 				Element controllerElement= (Element)(elements.item(index));
 				String group = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
-				if( type!=null && !type.isBlank() &&
+				if( type!=null && !type.isEmpty() &&
 						type.equalsIgnoreCase(HandlerType.SERIAL.name()) ) {
 					// Configure the port - there should only be one per motor group.
 					NodeList portElements = controllerElement.getElementsByTagName("port");

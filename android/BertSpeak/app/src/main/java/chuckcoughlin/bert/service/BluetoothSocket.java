@@ -48,7 +48,9 @@ public class BluetoothSocket   {
 	public BluetoothSocket(VoiceServiceHandler handler) {
         this.handler = handler;
         this.host  = SettingsManager.getInstance().getSetting(BertConstants.BERT_SERVER);
-		this.port =  Integer.parseInt(SettingsManager.getInstance().getSetting(BertConstants.BERT_PORT));
+        String portName = SettingsManager.getInstance().getSetting(BertConstants.BERT_PORT);
+        if( portName==null || portName.isEmpty()) portName="0";
+		this.port =  Integer.parseInt(portName);
 		this.socket = null;
 	}
 
@@ -200,6 +202,7 @@ public class BluetoothSocket   {
                     try {
                         Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
                     }
+
                     catch (InterruptedException ie) {
                         if (attempts % CLIENT_LOG_INTERVAL == 0) {
                             reason = String.format("The tablet failed to create a client socket to %s due to %s", host, ioe.getMessage());

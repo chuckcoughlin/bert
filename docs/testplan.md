@@ -1,6 +1,7 @@
 ## Test Plan
 
-This document lays out a series of feature tests for the "Bert" project. Those tests which have passed are coded in (![green](/images/ball_green.png)). Failures of features that have previously been reported as complete are marked in red (![red](/images/ball_red.png)). The green markup is a pretty fair indication of completion status of the project.
+This document lays out a series of feature tests for the "Bert" project. Those tests which have passed are marked with green (![green](/images/ball_green.png)). Failures of features that have previously been reported as complete are marked in red (![red](/images/ball_red.png)). The green marker is a pretty fair indication of completion status of the project. A yellow (![yellow](/images/ball_yellow.png)) marker indicates
+a feature that is actively being debugged.
 
 
 ***************************************************************
@@ -14,11 +15,13 @@ This document lays out a series of feature tests for the "Bert" project. Those t
 ### a - Connectivity <a id="connectivity"></a>
 [toc](#table-of-contents)
 The purpose of this section is to validate wiring and addressing of the stepper motors.
-* ![Validate Connections](/images/ball_green.png) - use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
-* `Read Positions` - use the terminal application to request the current position of each joint. Move the joint manually and verify that the position changes. A typical query:
+* ![green](/images/ball_green.png) Validate Connections  - use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
+* [yellow](/images/ball_yellow.png) Read Positions - use the terminal application to request the current position of each joint. Move the joint manually and verify that the reported position changes. A typical query:
 ```
     what is the position of your left elbow
 ```
+* [yellow](/images/ball_yellow.png) Ask Positions - use spoken requests through the
+Android tablet to ascertain the current position of each joint (the same queries as in the previous test). Move the joint manually and verify that the answer changes.
 
 ### b - Calibration <a id="calibration"></a>
 The purpose of this section is to validate the stepper motor configuration.

@@ -22,7 +22,7 @@
 		<javac	srcdir="${src.dir}"
 				destdir="${temp.dir}"
 				compiler="javac10+"
-				source="11" target="11"
+				source="10" target="10"
 				debug="true"
 				modulepathref="common-modulepath"
 				includeantruntime="false"

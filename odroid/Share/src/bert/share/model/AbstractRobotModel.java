@@ -115,7 +115,7 @@ public abstract class AbstractRobotModel  {
 				}
 				else {
 					String value = propertyNode.getTextContent();
-					if( value!=null && !value.isBlank() ) {
+					if( value!=null && !value.isEmpty() ) {
 						properties.put(key.toLowerCase(), value);
 					}
 				}
@@ -155,15 +155,15 @@ public abstract class AbstractRobotModel  {
 									value = XMLUtility.attributeValue(joint, "offset");
 									if( value!=null) motor.setOffset(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "min");
-									if( value!=null && !value.isBlank()) motor.setMinAngle(Double.parseDouble(value));
+									if( value!=null && !value.isEmpty()) motor.setMinAngle(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "max");
-									if( value!=null && !value.isBlank()) motor.setMaxAngle(Double.parseDouble(value));
+									if( value!=null && !value.isEmpty()) motor.setMaxAngle(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "speed");
-									if( value!=null && !value.isBlank()) motor.setSpeed(Double.parseDouble(value));
+									if( value!=null && !value.isEmpty()) motor.setSpeed(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "torque");
-									if( value!=null && !value.isBlank()) motor.setTorque(Double.parseDouble(value));
+									if( value!=null && !value.isEmpty()) motor.setTorque(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "orientation");
-									if( value!=null && !value.isBlank()) {
+									if( value!=null && !value.isEmpty()) {
 										motor.setIsDirect(value.equalsIgnoreCase("direct"));
 									}
 									motors.put(motor.getName().name(),motor);

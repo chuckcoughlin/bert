@@ -16,7 +16,7 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Archive/mods/jssc.jar">
+	<classpathentry kind="lib" path="/Archive/mods/jssc-2.8.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

@@ -48,7 +48,7 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 				Element controllerElement= (Element)(elements.item(index));
 				String name = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
-				if( type!=null && !type.isBlank() &&
+				if( type!=null && !type.isEmpty() &&
 					type.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
 					// Configure the socket - there should only be one.
 					NodeList socketElements = controllerElement.getElementsByTagName("socket");

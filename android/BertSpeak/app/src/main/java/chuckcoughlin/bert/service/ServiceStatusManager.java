@@ -49,6 +49,7 @@ public class ServiceStatusManager {
         return instance;
     }
 
+    public FacilityState getStateForFacility(TieredFacility fac) { return map.get(fac); }
     /**
      * Called when main activity is destroyed. Clean up any resources.
      * To use again requires re-initialization.

@@ -15,7 +15,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import chuckcoughlin.bert.R;
@@ -45,8 +44,6 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     private SpeechAnalyzer analyzer = null;
     private boolean isMuted;
     private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
-    private FacilityState currentState;
-    private TieredFacility currentAction;
 
     public VoiceService() {
         this.isMuted = false;
@@ -100,12 +97,10 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",intent.getAction(),flags,startId));
         if( intent.getAction()==null) {
-            currentAction = TieredFacility.BLUETOOTH;
-            currentState = FacilityState.IDLE;
-            reportConnectionState(currentAction, currentState);
+            reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE);
             reportConnectionState(TieredFacility.SOCKET, FacilityState.IDLE);  // Just to initialize
             reportConnectionState(TieredFacility.VOICE, FacilityState.IDLE);   // Just to initialize
-            determineNextAction();
+            determineNextAction(TieredFacility.BLUETOOTH);
         }
         else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_MUTE)) {
             isMuted = !isMuted;
@@ -175,45 +170,38 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     }
 
     // Start the 3 actions in order
-    private void determineNextAction() {
-        if( currentAction.equals(TieredFacility.BLUETOOTH)) {
+    private void determineNextAction(TieredFacility currentFacility) {
+        FacilityState currentState = ServiceStatusManager.getInstance().getStateForFacility(currentFacility);
+        if( currentFacility.equals(TieredFacility.BLUETOOTH)) {
             if( !currentState.equals(FacilityState.ACTIVE)) {
                 BluetoothChecker checker = new BluetoothChecker(this);
-                currentState = FacilityState.WAITING;
-                reportConnectionState(currentAction,currentState);
+                reportConnectionState(currentFacility,FacilityState.WAITING);
                 checker.beginChecking((BluetoothManager)getSystemService(BLUETOOTH_SERVICE));
             }
             // Start socket
             else {
-                currentAction = TieredFacility.SOCKET;
-                currentState = FacilityState.WAITING;
-                reportConnectionState(currentAction,currentState);
+                reportConnectionState(TieredFacility.SOCKET,FacilityState.WAITING);
                 socketHandler.openConnections();
             }
         }
-        else if( currentAction.equals(TieredFacility.SOCKET)) {
+        else if( currentFacility.equals(TieredFacility.SOCKET)) {
             if (!currentState.equals(FacilityState.ACTIVE)) {
-                currentState = FacilityState.WAITING;
-                reportConnectionState(currentAction, currentState);
+                reportConnectionState(currentFacility, FacilityState.WAITING);
                 socketHandler.openConnections();
             }// Start socket
             else {
-                currentAction = TieredFacility.VOICE;
-                currentState = FacilityState.WAITING;
                 analyzer.start();
-                reportConnectionState(currentAction,currentState);
+                analyzer.listen();
+                reportConnectionState(TieredFacility.VOICE,FacilityState.WAITING);
             }
         }
-        else if( currentAction.equals(TieredFacility.VOICE)) {
-            if (!currentState.equals(FacilityState.ACTIVE)) {
-                currentState = FacilityState.WAITING;
-                reportConnectionState(currentAction, currentState);
-                analyzer.listen();
+        else if( currentFacility.equals(TieredFacility.VOICE)) {
+            if( isMuted ) {
+                reportConnectionState(currentFacility, FacilityState.WAITING);
             }
-            else if (currentState.equals(FacilityState.WAITING)) {
-                currentState = FacilityState.ACTIVE;
+            else {
+                reportConnectionState(currentFacility, FacilityState.ACTIVE);
             }
-            reportConnectionState(currentAction,currentState);
         }
     }
 
@@ -247,59 +235,47 @@ public class VoiceService extends Service implements VoiceServiceHandler {
      * @param reason error description
      */
     public void handleBluetoothError(String reason) {
-        currentAction = TieredFacility.BLUETOOTH;
-        currentState = FacilityState.ERROR;
-        reportConnectionState(currentAction,currentState);
+        reportConnectionState(TieredFacility.BLUETOOTH,FacilityState.ERROR);
         reportSpokenText(reason);
-        new Thread(new ProcessDelay(ERROR_CYCLE_DELAY)).start();
+        new Thread(new ProcessDelay(TieredFacility.BLUETOOTH,ERROR_CYCLE_DELAY)).start();
     }
     /**
      * The bluetooth connection request succeeded.
      */
     public void receiveBluetoothConnection() {
-        currentAction = TieredFacility.BLUETOOTH;
-        currentState = FacilityState.ACTIVE;
-        reportConnectionState(currentAction,currentState);
-        determineNextAction();
+        reportConnectionState(TieredFacility.BLUETOOTH,FacilityState.ACTIVE);
+        determineNextAction(TieredFacility.BLUETOOTH);
     }
     /**
      * There was an error in the attempt to create/open sockets.
      * @param reason error description
      */
     public void handleSocketError(String reason) {
-        currentAction = TieredFacility.SOCKET;
-        currentState = FacilityState.ERROR;
-        reportConnectionState(currentAction,currentState);
+        reportConnectionState(TieredFacility.SOCKET,FacilityState.ERROR);
         reportSpokenText(reason);
-        new Thread(new ProcessDelay(ERROR_CYCLE_DELAY)).start();
+        new Thread(new ProcessDelay(TieredFacility.SOCKET,ERROR_CYCLE_DELAY)).start();
     }
     /**
      * The socket connection request succeeded.
      */
     public void receiveSocketConnection() {
-        currentAction = TieredFacility.SOCKET;
-        currentState = FacilityState.ACTIVE;
-        reportConnectionState(currentAction,currentState);
-        determineNextAction();
+        reportConnectionState(TieredFacility.SOCKET,FacilityState.ACTIVE);
+        determineNextAction(TieredFacility.SOCKET);
     }
     /**
      * The speech recognizer reported an error.
      * @param reason error description
      */
     public void handleVoiceError(String reason) {
-        currentAction = TieredFacility.VOICE;
-        currentState = FacilityState.ERROR;
-        reportConnectionState(currentAction,currentState);
+        reportConnectionState(TieredFacility.VOICE,FacilityState.ERROR);
         reportSpokenText(reason);
-        new Thread(new ProcessDelay(ERROR_CYCLE_DELAY)).start();
+        new Thread(new ProcessDelay(TieredFacility.VOICE,ERROR_CYCLE_DELAY)).start();
     }
     /**
      * The speech recognizer recorded a result.
      */
     public void receiveText(String text) {
-        currentAction = TieredFacility.VOICE;
-        currentState = FacilityState.ERROR;
-        reportConnectionState(currentAction,currentState);
+        reportConnectionState(TieredFacility.VOICE,FacilityState.ACTIVE);
         reportSpokenText(text);
     }
     //=================================== ProcessDelay ==============================================
@@ -309,20 +285,22 @@ public class VoiceService extends Service implements VoiceServiceHandler {
 
      */
     public class ProcessDelay implements Runnable {
+        private final TieredFacility facility;
         private final long sleepInterval;
         /**
          * Constructor:
          * @param delay millisecs to wait before going to the next state (or more
          *              likely retrying the current).
          */
-        public ProcessDelay(long delay) {
+        public ProcessDelay(TieredFacility fac,long delay) {
+            this.facility = fac;
             this.sleepInterval = delay;
         }
 
         public void run() {
             try{
                 Thread.currentThread().sleep(sleepInterval);
-                determineNextAction();
+                determineNextAction(facility);
             }
             catch(InterruptedException ignore) {}
         }
