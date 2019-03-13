@@ -50,7 +50,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
      */
     @Override
     public Token recoverInline(Parser recognizer)  {
-    	LOGGER.warning(CLSS+": RECOVER-INLINE");
+    	// LOGGER.warning(CLSS+": RECOVER-INLINE");
     	recordError(recognizer,new InputMismatchException(recognizer));
     	return super.recoverInline(recognizer);
     }
@@ -60,7 +60,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	 */
     @Override
     public void reportError(Parser recognizer, RecognitionException e) {
-    	LOGGER.warning(CLSS+": REPORT-ERROR");
+    	//LOGGER.warning(CLSS+":reportError ...");
     	recordError(recognizer,e);
     }
 
@@ -75,7 +75,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	Token offender = re.getOffendingToken();
     	String msg = "";
     	if( offender != null ) {
-    		msg = String.format("I misunderstood the word following %s",offender.getText());
+    		msg = String.format("I misunderstood the word \"%s\"",offender.getText());
     		
     	}
     	else {

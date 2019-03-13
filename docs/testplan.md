@@ -16,11 +16,11 @@ a feature that is actively being debugged.
 [toc](#table-of-contents)
 The purpose of this section is to validate wiring and addressing of the stepper motors.
 * ![green](/images/ball_green.png) Validate Connections  - use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
-* [yellow](/images/ball_yellow.png) Read Positions - use the terminal application to request the current position of each joint. Move the joint manually and verify that the reported position changes. A typical query:
+* ![yellow](/images/ball_yellow.png) Read Positions - use the terminal application to request the current position of each joint. Move the joint manually and verify that the reported position changes. A typical query:
 ```
     what is the position of your left elbow
 ```
-* [yellow](/images/ball_yellow.png) Ask Positions - use spoken requests through the
+* ![yellow](/images/ball_yellow.png) Ask Positions - use spoken requests through the
 Android tablet to ascertain the current position of each joint (the same queries as in the previous test). Move the joint manually and verify that the answer changes.
 
 ### b - Calibration <a id="calibration"></a>

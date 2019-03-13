@@ -12,6 +12,7 @@ import org.w3c.dom.NodeList;
 
 import bert.share.message.HandlerType;
 import bert.share.model.AbstractRobotModel;
+import bert.share.model.ConfigurationConstants;
 import bert.share.xml.XMLUtility;
 
 /**
@@ -20,6 +21,7 @@ import bert.share.xml.XMLUtility;
  */
 public class RobotDispatcherModel extends AbstractRobotModel  {
 	private static final String CLSS = "RobotDispatcherModel";
+	private static final String CONTROLLER_NAME = "Dispatcher";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);;
 			
 	public RobotDispatcherModel(Path configPath) {
@@ -37,6 +39,7 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
     // ================================ Auxiliary Methods  ===============================
 	/**
 	 * Search the XML for the two command controllers (COMMAND and TERMINAL).
+	 * This controller is "Dispatcher"
 	 */
 	@Override
 	public void analyzeControllers() {
@@ -71,6 +74,7 @@ public class RobotDispatcherModel extends AbstractRobotModel  {
 				
 				index++;
 			}
+			properties.put(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, CONTROLLER_NAME);   // Name not in XML configuration
 		}
 	}
 }

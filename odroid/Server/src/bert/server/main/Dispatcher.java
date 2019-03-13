@@ -59,7 +59,6 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private MessageBottle currentRequest = null;
 	private final Lock lock;
 	
-	private final String name;
 	private int cadence = 1000;     // msecs
 	private	int cycleCount = 0;     // messages processed
 	private	double cycleTime = 0.0; // msecs,    EWMA
@@ -74,7 +73,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
 		this.motorGroupController = mgc;
-		this.name = model.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME,"Bert");
+		setName(model.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME,"Bert"));
 		String cadenceString = model.getProperty(ConfigurationConstants.PROPERTY_CADENCE,"1000");  // ~msecs
 		try {
 			this.cadence = Integer.parseInt(cadenceString);
@@ -110,6 +109,9 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		timerController = new TimerController(this,cadence);
 	}
+	
+	@Override
+	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "dispatcher"); }
 	
 	/**
 	 * Loop forever processing whatever arrives from the various controllers. Each request is
@@ -259,7 +261,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 					text = "My height when standing is 83 centimeters";
 					break;
 				case NAME:
-					text = "My name is "+this.name;
+					text = "My name is "+getName();
 					break;
 			}
 			request.setProperty(BottleConstants.TEXT, text);

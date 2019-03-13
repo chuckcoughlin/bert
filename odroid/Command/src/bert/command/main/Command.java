@@ -34,7 +34,7 @@ public class Command extends Thread implements MessageHandler {
 	private final static String CLSS = "Command";
 	private static final String USAGE = "Usage: command <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = "command";
+	private static final String LOG_ROOT = CLSS;
 	private final RobotCommandModel model;
 	private BluetoothController controller = null;
 	private SocketController socketController = null;
@@ -66,6 +66,9 @@ public class Command extends Thread implements MessageHandler {
 		int port = sockets.get(key);
 		this.socketController = new SocketController(this,HandlerType.COMMAND.name(),hostName,port); 
 	}
+	
+	@Override
+	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "command"); }
 	
 	/**
 	 * Loop forever reading from the bluetooth tablet. Forward the resulting requests

@@ -36,5 +36,6 @@
                 <action android:name="chuckcoughlin.bert.service.SpeechService" />
             </intent-filter>
         </service>
+        <receiver android:name="chuckcoughlin.bert.service.NotificationActionReceiver"></receiver>
     </application>
 </manifest>

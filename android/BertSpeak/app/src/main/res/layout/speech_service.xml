@@ -8,7 +8,7 @@
         android:id="@+id/start_speech_service_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/notificationStart"/>
+        android:text="@string/notificationReset"/>
 
     <Button
         android:id="@+id/mute_speech_service_button"

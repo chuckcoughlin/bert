@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import bert.share.controller.NamedSocket;
 import bert.share.controller.SocketController;
 import bert.share.controller.SocketStateChangeEvent;
-import bert.share.controller.SocketController.BackgroundReader;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;

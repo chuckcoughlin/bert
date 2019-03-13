@@ -10,8 +10,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import bert.share.message.MessageBottle;
@@ -180,11 +178,11 @@ public class NamedSocket   {
 				if( json!=null) bottle = MessageBottle.fromJSON(json);
 			}
 			else {
-				LOGGER.severe(String.format("%s.read: Error reading from %s before port is open",CLSS,name));
+				LOGGER.warning(String.format("%s.read: Attempt to read from %s before port is open (ignored)",CLSS,name));
 			}
 		}
 		catch(IOException ioe) {
-			LOGGER.severe(String.format("%s.read: Error reading from %s (%s)",CLSS,name,ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",CLSS,name,ioe.getLocalizedMessage()));
 		}
 		return bottle;
 	}
@@ -207,11 +205,11 @@ public class NamedSocket   {
 				LOGGER.info(String.format("%s.readLine: got %s",CLSS,text));
 			}
 			else {
-				LOGGER.severe(String.format("%s.readLine: Error reading from %s before port is open",CLSS,name));
+				LOGGER.warning(String.format("%s.readLine: Attempt to read from %s before port is open )ignored)",CLSS,name));
 			}
 		}
 		catch(IOException ioe) {
-			LOGGER.severe(String.format("%s.readLine: Error reading from %s (%s)",CLSS,name,ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.readLine: Exception reading from %s (%s)",CLSS,name,ioe.getLocalizedMessage()));
 		}
 		return text;
 	}
@@ -230,11 +228,11 @@ public class NamedSocket   {
 				LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",CLSS,name,json.length()));
 			}
 			else {
-				LOGGER.severe(String.format("%s.write: Error writing to %s before port is open",CLSS,name));
+				LOGGER.warning(String.format("%s.write: Attempt to write to %s before port is open (ignored)",CLSS,name));
 			}
 		}
 		catch(Exception ioe) {
-			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,json.length(), ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.write: Exception writing %d bytes (%s)",CLSS,json.length(), ioe.getLocalizedMessage()));
 		}
 	}
 	
@@ -249,11 +247,11 @@ public class NamedSocket   {
 				LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",CLSS,name,text.length()));
 			}
 			else {
-				LOGGER.severe(String.format("%s.write: Error writing to %s before port is open",CLSS,name));
+				LOGGER.warning(String.format("%s.write: Attempt to write to %s before port is open (ignored)",CLSS,name));
 			}
 		}
 		catch(Exception ioe) {
-			LOGGER.severe(String.format("%s.write: Error writing %d bytes (%s)",CLSS,text.length(), ioe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.write: Exception writing %d bytes (%s)",CLSS,text.length(), ioe.getLocalizedMessage()));
 		}
 	}
 	
@@ -265,8 +263,8 @@ public class NamedSocket   {
 	private String reread() {
 		String json = null;
 		LOGGER.info(String.format("%s.reread: on port %s",CLSS,name));
-		try{in.close();} catch(IOException ignore) {}
-		try{socket.close();} catch(IOException ignore) {}
+		if(in!=null)             try{in.close();} catch(IOException ignore) {}
+		if(socket!=null)         try{socket.close();} catch(IOException ignore) {}
 		if( serverSocket!=null ) try{serverSocket.close();} catch(IOException ignore) {}
 		create();
 		try {

@@ -18,6 +18,7 @@ public interface MessageHandler  {
 	 * specific to this application are created here.
 	 */
 	public void createControllers();
+	public String getControllerName();
 	public void run();
 	public void handleRequest(MessageBottle request);
 	public void handleResponse(MessageBottle response);

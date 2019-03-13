@@ -27,13 +27,15 @@ public class ShutdownHook extends Thread {
     }
     @Override
     public void run() {
-    	LOGGER.info(String.format("%s: shutting down ...", CLSS));
+    	LOGGER.info(String.format("%s: shutting down %s...", CLSS,msghandler.getControllerName()));
+
     	try {
     		msghandler.shutdown();
     	}
     	catch(Exception ex) {
-    		LOGGER.log(Level.SEVERE,String.format("%s: ERROR (%s, args)",CLSS,ex.getMessage()),ex);
+    		LOGGER.log(Level.SEVERE,String.format("%s: ERROR (%s)",CLSS,ex.getMessage()),ex);
     	}
+   
     	Runtime.getRuntime().halt(0);
       } 
 }

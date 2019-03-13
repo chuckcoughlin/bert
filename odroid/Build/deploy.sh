@@ -2,7 +2,9 @@
 # Working directory is the project directory (Build).
 # Synchronize the robot with the current build products.
 # The 'rsync' command is an efficient way to guarantee
-# that now more files are transferred than necessary.
+# that no more files are transferred than necessary.
+# Make sure there is a valid wi-fi connection.
+
 export PATH=$PATH:/usr/local/bin
 cd ../Archive
 echo "Synchronizing modularized jar files ..."

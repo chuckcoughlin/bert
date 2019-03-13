@@ -22,7 +22,8 @@
     <string name="notificationLabel">Speech Processing via Bluetooth connection to main robot.</string>
     <string name="notificationDescription">Generally spoken text processing is automatic and runs continuously. It can, however, be turned on and off via the buttons below </string>
     <string name="notificationKey">VoiceServiceRunning</string>
-    <string name="notificationStart">Start</string>
-    <string name="notificationStop">Stop</string>
+    <!-- Buttons on the VoiceService notification dialog -->
     <string name="notificationMute">Mute</string>
+    <string name="notificationReset">Reset</string>
+    <string name="notificationStop">Stop</string>
 </resources>

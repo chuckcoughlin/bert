@@ -37,7 +37,7 @@ public class Terminal extends Thread implements MessageHandler {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = "terminal";
+	private static final String LOG_ROOT = CLSS;
 	private final RobotTerminalModel model;
 	private SocketController socketController = null;
 	private final Condition busy;
@@ -66,7 +66,10 @@ public class Terminal extends Thread implements MessageHandler {
 		int port = sockets.get(key);
 		this.socketController = new SocketController(this,HandlerType.TERMINAL.name(),hostName,port); 
 	}
-
+	
+	@Override
+	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "terminal"); }
+	
 	/**
 	 * Loop forever reading from the terminal and forwarding the resulting requests
 	 * via socket to the server. We accept responses and forward to the stdio

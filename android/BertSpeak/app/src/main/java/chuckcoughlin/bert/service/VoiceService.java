@@ -10,6 +10,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,8 +19,11 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import java.util.logging.SocketHandler;
+
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
+import chuckcoughlin.bert.db.SettingsManager;
 import chuckcoughlin.bert.speech.MessageType;
 import chuckcoughlin.bert.speech.SpeechAnalyzer;
 import chuckcoughlin.bert.speech.SpokenTextManager;
@@ -37,9 +42,6 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     private static volatile VoiceService instance = null;
     private static final long ERROR_CYCLE_DELAY = 15000;   // Wait interval for retry after error
     private volatile NotificationManager notificationManager;
-    private static final String NOTIFICATION_COMMAND_MUTE  = "Mute";
-    private static final String NOTIFICATION_COMMAND_START = "Start";
-    private static final String NOTIFICATION_COMMAND_STOP  = "Stop";
     private BluetoothSocket socketHandler = null;
     private SpeechAnalyzer analyzer = null;
     private boolean isMuted;
@@ -65,6 +67,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
 
     /**
      * Display a notification about us starting.  We put an icon in the status bar.
+     * Initialize all the singletons.
      */
     @Override
     public void onCreate() {
@@ -72,18 +75,27 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         Notification notification = buildNotification();
         instance = this;
-        socketHandler = new BluetoothSocket(this);
-        analyzer = new SpeechAnalyzer(this,getApplicationContext());
+        SettingsManager.initialize(this);
+        SpokenTextManager.initialize(this);
+        ServiceStatusManager.initialize();
         startForeground(VOICE_NOTIFICATION, notification);
     }
 
+    /**
+     * Shutdown the services and the singletons.
+     */
     @Override
     public void onDestroy() {
         notificationManager.cancel(VOICE_NOTIFICATION);
         instance = null;
         socketHandler.shutdown();
+        if(analyzer!=null) analyzer.shutdown();
+        ServiceStatusManager.stop();
+        SettingsManager.stop();
+        SpokenTextManager.stop();
         stopForegroundService();
     }
+
 
     /**
      * The initial intent action is null. Otherwise we receive values when the user clicks on the
@@ -95,22 +107,31 @@ public class VoiceService extends Service implements VoiceServiceHandler {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",intent.getAction(),flags,startId));
-        if( intent.getAction()==null) {
+        String action = intent.getAction();
+        Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",action,flags,startId));
+        socketHandler = new BluetoothSocket(this);
+        analyzer = new SpeechAnalyzer(this,getApplicationContext());
+
+        if( action==null) {
             reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE);
             reportConnectionState(TieredFacility.SOCKET, FacilityState.IDLE);  // Just to initialize
             reportConnectionState(TieredFacility.VOICE, FacilityState.IDLE);   // Just to initialize
             determineNextAction(TieredFacility.BLUETOOTH);
         }
-        else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_MUTE)) {
-            isMuted = !isMuted;
+        else if(action.equalsIgnoreCase(getString(R.string.notificationMute))) {
+            toggleMute();
         }
-        else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_START)) {
-            // What do we do here?
+        else if(action.equalsIgnoreCase(getString(R.string.notificationReset))) {
+            if(socketHandler!=null) socketHandler.shutdown();
+            ServiceStatusManager.getInstance().reportState(TieredFacility.SOCKET,FacilityState.IDLE);
+            if( analyzer!=null) analyzer.shutdown();
+            determineNextAction(TieredFacility.BLUETOOTH);
         }
-        else if(intent.getAction().equalsIgnoreCase(NOTIFICATION_COMMAND_STOP)) {
+        else if(action.equalsIgnoreCase(getString(R.string.notificationStop))) {
+            if( analyzer!=null) analyzer.shutdown();
+            stopSelf();
         }
-        return(START_NOT_STICKY);
+        return(START_STICKY);
     }
 
     /*
@@ -144,26 +165,32 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         // Make head-up notification.
         builder.setFullScreenIntent(pendingIntent, true);
 
-        //  Start Button
-        Intent startIntent = new Intent(this, VoiceService.class);
-        startIntent.setAction(getString(R.string.notificationStart));
-        PendingIntent pendingStartIntent = PendingIntent.getService(this, 0, startIntent, 0);
-        NotificationCompat.Action playAction = new NotificationCompat.Action(android.R.drawable.ic_media_play, NOTIFICATION_COMMAND_START, pendingStartIntent);
-        builder.addAction(playAction);
+        //  Reset Button
+        Intent startIntent = new Intent(this, NotificationActionReceiver.class);
+        String action = getString(R.string.notificationReset);
+        startIntent.setAction(action);
+        PendingIntent pendingStartIntent = PendingIntent.getBroadcast(this, 1, startIntent, 0);
+        NotificationCompat.Action resetAction = new NotificationCompat.Action(android.R.drawable.ic_media_play, action, pendingStartIntent);
+        builder.addAction(resetAction);
+        builder.setOngoing(true);
 
         // Mute button
-        Intent muteIntent = new Intent(this, VoiceService.class);
-        muteIntent.setAction(getString(R.string.notificationMute));
-        PendingIntent pendingMuteIntent = PendingIntent.getService(this, 0, muteIntent, 0);
-        NotificationCompat.Action muteAction = new NotificationCompat.Action(android.R.drawable.ic_media_pause, NOTIFICATION_COMMAND_MUTE, pendingMuteIntent);
+        Intent muteIntent = new Intent(this, NotificationActionReceiver.class);
+        action = getString(R.string.notificationMute);
+        muteIntent.setAction(action);
+        PendingIntent pendingMuteIntent = PendingIntent.getBroadcast(this, 2, muteIntent, 0);
+        NotificationCompat.Action muteAction = new NotificationCompat.Action(android.R.drawable.ic_media_pause, action, pendingMuteIntent);
         builder.addAction(muteAction);
+        builder.setOngoing(true);
 
         // Stop button
-        Intent stopIntent = new Intent(this, VoiceService.class);
-        stopIntent.setAction(getString(R.string.notificationStop));
-        PendingIntent pendingStopIntent = PendingIntent.getService(this, 0, stopIntent, 0);
-        NotificationCompat.Action stopAction = new NotificationCompat.Action(android.R.drawable.ic_lock_power_off, NOTIFICATION_COMMAND_STOP, pendingStopIntent);
+        Intent stopIntent = new Intent(this, NotificationActionReceiver.class);
+        action = getString(R.string.notificationStop);
+        stopIntent.setAction(action);
+        PendingIntent pendingStopIntent = PendingIntent.getBroadcast(this, 3, stopIntent, 0);
+        NotificationCompat.Action stopAction = new NotificationCompat.Action(android.R.drawable.ic_lock_power_off, action, pendingStopIntent);
         builder.addAction(stopAction);
+        builder.setOngoing(true);
 
         // Build the notification.
         return( builder.build());
@@ -229,6 +256,14 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         stopSelf();
     }
 
+    private void toggleMute() {
+        isMuted = !isMuted;
+        if(!ServiceStatusManager.getInstance().getStateForFacility(TieredFacility.VOICE).equals(FacilityState.IDLE) ) {
+            determineNextAction(TieredFacility.VOICE);
+        }
+
+    }
+
     //=================================== VoiceServiceHandler ==============================================
     /**
      * There was an error in the bluetooth connection attempt.
@@ -282,7 +317,6 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     /**
      * Use this class to delay the transition to the next step. When we find
      * an error, we need to avoid a hard loop.
-
      */
     public class ProcessDelay implements Runnable {
         private final TieredFacility facility;
@@ -305,4 +339,5 @@ public class VoiceService extends Service implements VoiceServiceHandler {
             catch(InterruptedException ignore) {}
         }
     }
+
 }

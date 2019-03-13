@@ -63,28 +63,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, VoiceService.class);
         getApplicationContext().startForegroundService(intent);
     }
-    /**
-     *  Initialize the database manager and other Singletons
-     */
-    @Override
-    protected void onStart() {
-        super.onStart();
 
-        SettingsManager.initialize(this);
-        SpokenTextManager.initialize(this);
-        ServiceStatusManager.initialize();
-    }
-    /**
-     * Shutdown all the Singleton instances to guarantee a fresh state
-     * should we ever restart.
-     */
-    @Override
-    protected void onStop() {
-        super.onStop();
-        ServiceStatusManager.stop();
-        SettingsManager.stop();
-        SpokenTextManager.stop();
-    }
     /**
      * Shutdown the VoiceService.
      */

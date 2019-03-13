@@ -76,6 +76,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
 
     @Override
     public void onDestroyView() {
+        Log.i(CLSS,"onDestroyView: ...");
         super.onDestroyView();
     }
 

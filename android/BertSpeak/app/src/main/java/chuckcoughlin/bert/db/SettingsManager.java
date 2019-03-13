@@ -46,7 +46,7 @@ public class SettingsManager extends SQLiteOpenHelper {
             instance = new SettingsManager(context.getApplicationContext());
         }
         else {
-            Log.w(CLSS,String.format("initialize: DB manager exists, re-initialization ignored"));
+            Log.w(CLSS,String.format("initialize: Settings manager exists, re-initialization ignored"));
         }
         return instance;
     }
@@ -57,7 +57,7 @@ public class SettingsManager extends SQLiteOpenHelper {
      */
     public static synchronized SettingsManager getInstance() {
         if (instance == null) {
-            throw new IllegalStateException("Attempt to return uninitialized copy of SBDbManager");
+            throw new IllegalStateException("Attempt to return uninitialized copy of Settings manager");
         }
         return instance;
     }

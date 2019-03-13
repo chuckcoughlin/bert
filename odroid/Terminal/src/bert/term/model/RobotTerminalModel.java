@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 
 import bert.share.message.HandlerType;
 import bert.share.model.AbstractRobotModel;
+import bert.share.model.ConfigurationConstants;
 import bert.share.xml.XMLUtility;
 
 /**
@@ -41,27 +42,29 @@ public class RobotTerminalModel extends AbstractRobotModel   {
 	@Override
 	public void analyzeControllers() {
 		if( this.document!=null ) {
+			String controllerName = "UNASSIGNED";
 			NodeList elements = document.getElementsByTagName("controller");
 			int count = elements.getLength();
 			int index = 0;
 			while(index<count) {
 				Element controllerElement= (Element)(elements.item(index));
-				String name = XMLUtility.attributeValue(controllerElement, "name");
+				controllerName = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isEmpty() &&
 					type.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
 					// Configure the socket - there should only be one.
 					NodeList socketElements = controllerElement.getElementsByTagName("socket");
 					if( socketElements.getLength()>0) {
-						handlerTypes.put(name,type.toUpperCase());
+						handlerTypes.put(controllerName,type.toUpperCase());
 						Element socketElement= (Element)(socketElements.item(0));
 						String portName = XMLUtility.attributeValue(socketElement, "port");
-						sockets.put(name,Integer.parseInt(portName));
+						sockets.put(controllerName,Integer.parseInt(portName));
 					}
 					break;
 				}
 				index++;
 			}
+			properties.put(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, controllerName);
 		}
 	}
 }

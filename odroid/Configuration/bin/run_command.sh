@@ -4,10 +4,10 @@
 cd ${BERT_HOME}
 mkdir -p logs
 MP=mods/sqlite-jdbc-3.23.1.jar
-MP=${MP}:mods/antlr-runtime-4.7.1.jar
-MP=${MP}:mods/jackson-core-2.9.7.jar
-MP=${MP}:mods/jackson-databind-2.9.7.jar
-MP=${MP}:mods/jackson-annotations-2.9.7.jar
+MP=${MP}:mods/antlr-runtime-4.7.2.jar
+MP=${MP}:mods/jackson-core-2.9.8.jar
+MP=${MP}:mods/jackson-databind-2.9.8.jar
+MP=${MP}:mods/jackson-annotations-2.9.8.jar
 MP=$MP:lib/bert-command.jar
 MP=$MP:lib/bert-common.jar
 MP=$MP:lib/bert-database.jar
