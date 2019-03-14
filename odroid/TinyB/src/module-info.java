@@ -1,0 +1,6 @@
+/**
+ * 
+ */
+module tinyb {
+	exports tinyb;
+}

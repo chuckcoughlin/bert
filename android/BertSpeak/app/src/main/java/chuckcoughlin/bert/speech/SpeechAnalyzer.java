@@ -21,7 +21,7 @@ import chuckcoughlin.bert.service.VoiceServiceHandler;
 
 /**
  *This class analyzes speech, converting it into text (lists of words).
- * These methods must be executeed on the main application thread.
+ * These methods must be executeed on the main application thread (UI thread).
  */
 
 public class SpeechAnalyzer implements  RecognitionListener  {
@@ -50,22 +50,17 @@ public class SpeechAnalyzer implements  RecognitionListener  {
 
     // start or restart recognizer
     public void listen() {
-       Thread runner = new Thread(new Runnable() {
-            public void run() {
-                if(sr!=null) sr.cancel();
-                String locale =  "us-UK";
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getClass().getPackage().getName());
-                intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,false);  // Partials are always empty
-                //Give a hint to the recognizer about what the user is going to say
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                // Max number of results. This is three attempts at deciphering, not a 3-word limit.
-                intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
-                sr.startListening(intent);
-                Log.i(CLSS,"SpeechRecognizer: listening ...");
-            }
-        });
-       runner.start();
+        if(sr!=null) sr.cancel();
+        String locale =  "us-UK";
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getClass().getPackage().getName());
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,false);  // Partials are always empty
+        //Give a hint to the recognizer about what the user is going to say
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        // Max number of results. This is three attempts at deciphering, not a 3-word limit.
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
+        sr.startListening(intent);
+        Log.i(CLSS,"SpeechRecognizer: listening ...");
     }
 
     // ========================================= RecognitionListener ============================

@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.util.logging.Logger;
 
 import bert.share.message.MessageBottle;
+
 /**
  *  The socket takes the name of the client. It encapsulates a bi-directional
  *  connection between client and server used for passing "RequestBottles" and 

@@ -14,6 +14,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -105,7 +106,8 @@ public class VoiceService extends Service implements VoiceServiceHandler {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = intent.getAction();
+        String action = null;
+        if( intent!=null) action = intent.getAction();
         Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",action,flags,startId));
         bluetoothConnection = new BluetoothConnection(this);
         analyzer = new SpeechAnalyzer(this,getApplicationContext());
@@ -216,8 +218,14 @@ public class VoiceService extends Service implements VoiceServiceHandler {
                 bluetoothConnection.openConnections(bluetoothDevice);
             }// Start socket
             else {
-                analyzer.start();
-                analyzer.listen();
+                Handler mainHandler = new Handler(this.getMainLooper());
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        analyzer.start();
+                        analyzer.listen();
+                    }
+                });
                 reportConnectionState(TieredFacility.VOICE,FacilityState.WAITING);
             }
         }

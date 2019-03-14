@@ -18,7 +18,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="share,motors,database,speech,command,server,terminal" />
+	<target name="build" depends="tinyb,share,motors,database,speech,command,server,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />
@@ -139,6 +139,20 @@
 				<attribute name="Main-Class" value="bert.terminal.main.Terminal"/>
 			</manifest>
 		</jar>
+	</target>
+	<target name="tinyb" description="Compile the low energy bluetooth library">
+			<echo message="Compile the tinyb library" />
+			<delete dir="${temp.dir}" />
+			<mkdir dir="${temp.dir}"/>
+			<javac	srcdir="../TinyB/src"
+		       		destdir="${temp.dir}"
+					compiler="javac10+"
+					source="10" target="10"
+					debug="true"
+					modulepath="${archive.dir}"
+					includeantruntime="false"
+		/>
+		<jar destfile="${archive.dir}/tinyb-0.5.0.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
 	</target>
 	
 	<!-- Copy the new jar files and configuration files into the local deployment area. -->

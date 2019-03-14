@@ -278,8 +278,9 @@ In addition to the *ant* scripts, there are a few shell scripts. To execute from
 The *Archive* project is a collection of open-source library modules.
 * https://www.antlr.org/download.html antlr-runtime-4.7.2.jar antlr-4.7.2-complete.jar
 * https://code.google.com/archive/p/bluecove/downloads bluecove-gpl-2.1.0.jar bluecove-2.1.0.jar
-* http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.8.jar jackson-databind-2.9.8.jar java-annotations-2.9.8.jar
 * http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
+* http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.8.jar jackson-databind-2.9.8.jar java-annotations-2.9.8.jar
+* https://logging.apache.org/log4j/1.2/download.html log4j-1.2.17.jar
 * https://bitbucket.org/xerial/sqlite-jdbc/downloads sqlite-jdbc-3.23.1.jar
 * https://code.google.com/archive/p/java-simple-serial-connector/downloads jssc.jar, plus C++ source for shared library
 
@@ -339,6 +340,10 @@ Name: PyDev
 Location: http://pydev.org/updates
 ```
 We use PyDev to browse the original *Poppy* and *iCub* code.
+
+*** Bluetooth *** <br/>
+The Bluetooth interface library must be built on the Odroid. Instructions to do
+so may be found [here](https://stackoverflow.com/questions/23142071/native-library-bluecove-arm-not-available). We have executed these steps and checked the result into the code repository, so that the libraries are installed as part of the build.
 
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)

@@ -23,6 +23,7 @@ public class RobotCommandModel extends AbstractRobotModel   {
 	private static final String CLSS = "RobotCommandModel";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private String deviceUUID  = "";
+	private String deviceMAC   = "";
 
 	public RobotCommandModel(Path configPath) {
 		super(configPath);
@@ -38,8 +39,9 @@ public class RobotCommandModel extends AbstractRobotModel   {
 		analyzeMotors();
 	}
 
+	public String getDeviceMAC() { return deviceMAC; }
 	/**
-	 * @return bluetooth device connection UUID as a String
+	 * @return bluetooth device service UUID as a String
 	 */
 	public String getDeviceUUID() { return deviceUUID; }
 
@@ -69,12 +71,14 @@ public class RobotCommandModel extends AbstractRobotModel   {
 						
 						for( int iSocket=0;iSocket<nSocket;iSocket++) {
 							Element socketElement= (Element)(socketElements.item(iSocket));
+							String socketMAC = XMLUtility.attributeValue(socketElement, "mac");
 							String socketName = XMLUtility.attributeValue(socketElement, "name");
-							String socketName = XMLUtility.attributeValue(socketElement, "name");
+							String portName = XMLUtility.attributeValue(socketElement, "port");
 							String socketType = XMLUtility.attributeValue(socketElement, "type");
 							String socketUUID = XMLUtility.attributeValue(socketElement, "uuid");
 							if( socketType.equalsIgnoreCase("bluetooth")) {
-								deviceUUID = socketUUID;	
+								deviceUUID = socketUUID;
+								deviceMAC  = socketMAC;
 							}
 							else {
 								sockets.put(controllerName,Integer.parseInt(portName));
