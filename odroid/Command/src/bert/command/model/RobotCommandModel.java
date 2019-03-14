@@ -22,8 +22,7 @@ import bert.share.xml.XMLUtility;
 public class RobotCommandModel extends AbstractRobotModel   {
 	private static final String CLSS = "RobotCommandModel";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String TABLET_SOCKET_NAME = "tablet";
-	private int tabletPort = 0;
+	private String deviceUUID  = "";
 
 	public RobotCommandModel(Path configPath) {
 		super(configPath);
@@ -39,8 +38,10 @@ public class RobotCommandModel extends AbstractRobotModel   {
 		analyzeMotors();
 	}
 
-	public String getTabletSocketName() { return TABLET_SOCKET_NAME; }
-	public int getTabletPort() { return this.tabletPort; }
+	/**
+	 * @return bluetooth device connection UUID as a String
+	 */
+	public String getDeviceUUID() { return deviceUUID; }
 
     // ================================ Auxiliary Methods  ===============================
 	/**
@@ -69,9 +70,11 @@ public class RobotCommandModel extends AbstractRobotModel   {
 						for( int iSocket=0;iSocket<nSocket;iSocket++) {
 							Element socketElement= (Element)(socketElements.item(iSocket));
 							String socketName = XMLUtility.attributeValue(socketElement, "name");
-							String portName = XMLUtility.attributeValue(socketElement, "port");
-							if( socketName.equalsIgnoreCase(TABLET_SOCKET_NAME)) {
-								tabletPort = Integer.parseInt(portName);	
+							String socketName = XMLUtility.attributeValue(socketElement, "name");
+							String socketType = XMLUtility.attributeValue(socketElement, "type");
+							String socketUUID = XMLUtility.attributeValue(socketElement, "uuid");
+							if( socketType.equalsIgnoreCase("bluetooth")) {
+								deviceUUID = socketUUID;	
 							}
 							else {
 								sockets.put(controllerName,Integer.parseInt(portName));

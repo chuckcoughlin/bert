@@ -30,6 +30,15 @@ public class StatementParser  {
 	 */
 	public StatementParser() {
 		context = new HashMap<>();
+		initialize();
+	}
+	
+	/**
+	 * Initialize the shared dictionary
+	 */
+	private void initialize() {
+		context.put(SharedKey.AXIS.name(),"x");
+		context.put(SharedKey.SIDE.name(),"right");
 	}
 	
 	public void setSharedProperty(String key,String value) { context.put(key, value); }

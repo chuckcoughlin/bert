@@ -22,7 +22,7 @@ import bert.share.message.MessageBottle;
  *  "shutdown". Change listeners are notified (in a separate Thread) when the
  *  socket is "ready".
  */
-public class NamedSocket   {
+public class DeviceSocket   {
 	private static final String CLSS = "NamedSocket";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
@@ -42,7 +42,7 @@ public class NamedSocket   {
 	 * @param name identifier of the connection, the client name
 	 * @param port communication port number
 	 */
-	public NamedSocket(String name,int port) {
+	public DeviceSocket(String name,int port) {
 		this.name = name;
 		this.host = "";        // Not needed
 		this.port = port;
@@ -57,7 +57,7 @@ public class NamedSocket   {
 	 * @param hostname of the server process.
 	 * @param port communication port number
 	 */
-	public NamedSocket(String name,String hostname,int port) {
+	public DeviceSocket(String name,String hostname,int port) {
 		this.name = name;
 		this.host = hostname; 
 		this.port = port;

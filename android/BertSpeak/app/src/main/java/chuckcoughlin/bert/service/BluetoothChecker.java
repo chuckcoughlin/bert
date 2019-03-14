@@ -22,12 +22,12 @@ import chuckcoughlin.bert.db.SettingsManager;
 public class BluetoothChecker {
     private final static String CLSS = "BluetoothChecker";
     private CheckerThread checkerThread = null;
-    private final String device;
+    private final String deviceName;
     private final VoiceServiceHandler handler;
 
     public BluetoothChecker(VoiceServiceHandler handler) {
-        this.handler = handler;
-        this.device  = SettingsManager.getInstance().getSetting(BertConstants.BERT_PAIRED_DEVICE);
+        this.handler     = handler;
+        this.deviceName  = SettingsManager.getInstance().getSetting(BertConstants.BERT_PAIRED_DEVICE);
     }
 
 
@@ -59,7 +59,7 @@ public class BluetoothChecker {
         if( adapter==null ) {
             errorMsg = "There is no bluetooth network";
         }
-        else if( device==null || device.isEmpty() ) {
+        else if( deviceName==null || deviceName.isEmpty() ) {
             errorMsg = "No bluetooth device has been specified";
         }
         else {
@@ -105,8 +105,9 @@ public class BluetoothChecker {
                     pairedDevices = adapter.getBondedDevices();
                     for (BluetoothDevice bluetoothDevice : pairedDevices) {
                         if( cycle==9 ) Log.i(CLSS, String.format("BluetoothChecker: Found %s %s %s", bluetoothDevice.getName(), bluetoothDevice.getType(), bluetoothDevice.getAddress()));
-                        if( bluetoothDevice.getName().equalsIgnoreCase(device) ) {
+                        if( bluetoothDevice.getName().equalsIgnoreCase(deviceName) ) {
                             success = true;
+                            handler.setBluetoothDevice(bluetoothDevice);
                             break;
                         }
                     }
@@ -116,7 +117,7 @@ public class BluetoothChecker {
                 adapter.cancelDiscovery();
             }
             catch (Throwable ex) {
-                errorMsg = String.format("%s while searching Bluetooth devices for %s",ex.getLocalizedMessage(),device);
+                errorMsg = String.format("%s while searching Bluetooth devices for %s",ex.getLocalizedMessage(),deviceName);
                 Log.e(CLSS, errorMsg,ex);
             }
 

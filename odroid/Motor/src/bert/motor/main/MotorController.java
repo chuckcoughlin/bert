@@ -108,14 +108,20 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	
 	@Override
 	public void receiveRequest(MessageBottle request) {
-		if( isSingleGroupRequest(request)) {
-			// Do nothing if the joint isn't in our group.
-			String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
-			MotorConfiguration mc = configurations.get(jointName);
-			if( mc==null ) { return; }
-		}
+		lock.lock();
+		try {
+			if( isSingleGroupRequest(request)) {
+				// Do nothing if the joint isn't in our group.
+				String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
+				MotorConfiguration mc = configurations.get(jointName);
+				if( mc==null ) { return; }
+			}
 
-		running.signal();
+			running.signal();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 	
 	@Override

@@ -9,17 +9,14 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-
-import java.util.logging.SocketHandler;
 
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
@@ -42,7 +39,8 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     private static volatile VoiceService instance = null;
     private static final long ERROR_CYCLE_DELAY = 15000;   // Wait interval for retry after error
     private volatile NotificationManager notificationManager;
-    private BluetoothSocket socketHandler = null;
+    private BluetoothConnection bluetoothConnection = null;
+    private BluetoothDevice bluetoothDevice = null;
     private SpeechAnalyzer analyzer = null;
     private boolean isMuted;
     private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
@@ -88,7 +86,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     public void onDestroy() {
         notificationManager.cancel(VOICE_NOTIFICATION);
         instance = null;
-        socketHandler.shutdown();
+        if(bluetoothConnection!=null) bluetoothConnection.shutdown();
         if(analyzer!=null) analyzer.shutdown();
         ServiceStatusManager.stop();
         SettingsManager.stop();
@@ -109,7 +107,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
         Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",action,flags,startId));
-        socketHandler = new BluetoothSocket(this);
+        bluetoothConnection = new BluetoothConnection(this);
         analyzer = new SpeechAnalyzer(this,getApplicationContext());
 
         if( action==null) {
@@ -122,7 +120,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
             toggleMute();
         }
         else if(action.equalsIgnoreCase(getString(R.string.notificationReset))) {
-            if(socketHandler!=null) socketHandler.shutdown();
+            if(bluetoothConnection !=null) bluetoothConnection.shutdown();
             ServiceStatusManager.getInstance().reportState(TieredFacility.SOCKET,FacilityState.IDLE);
             if( analyzer!=null) analyzer.shutdown();
             determineNextAction(TieredFacility.BLUETOOTH);
@@ -134,6 +132,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         return(START_STICKY);
     }
 
+    public void setBluetoothDevice(BluetoothDevice device) { this.bluetoothDevice = device; }
     /*
      * Build a notification with
      * --- start
@@ -208,13 +207,13 @@ public class VoiceService extends Service implements VoiceServiceHandler {
             // Start socket
             else {
                 reportConnectionState(TieredFacility.SOCKET,FacilityState.WAITING);
-                socketHandler.openConnections();
+                bluetoothConnection.openConnections(bluetoothDevice);
             }
         }
         else if( currentFacility.equals(TieredFacility.SOCKET)) {
             if (!currentState.equals(FacilityState.ACTIVE)) {
                 reportConnectionState(currentFacility, FacilityState.WAITING);
-                socketHandler.openConnections();
+                bluetoothConnection.openConnections(bluetoothDevice);
             }// Start socket
             else {
                 analyzer.start();

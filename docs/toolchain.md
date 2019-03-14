@@ -165,6 +165,7 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install sqlite3
   sudo apt install vsftp
   sudo apt install libjssc-java
+  sudo apt-get install libbluetooth-dev
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
@@ -233,13 +234,26 @@ Under ```Preferences->Java->Installed JREs``` make sure that the only available 
 
 *** Projects *** <br/>
 From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
+  - Archive: Third party open-source libraries. In general, this area does not include source. Note that the _jar_ files in _mods_ have been modularized for Java10 usage.
   - Build: _ant_ scripts for compiling and installing the project build products onto the robot. There are separate scripts for the CommandLoop, Robot and Configuration projects.
-  - Joint: Java code for control of the various servo motors on the robot. These are executed by the _core_ application.
+  - Command: _command_ is the application that interfaces with the tablet to
+  acquire command and request strings. It communicates these to the _dispatcher_
+  and obtains responses.
+  - Configuration: This area is a collection of files that configure the robot. These include: scripts for installing and running, the SQL database for pose and action
+  storage and XML hardware definition.
+  - Database: Java code for interaction with the SQLite database.
   - JSSC: C++ native code for the serial interface. This applies only to the build machine and is used only as a stub for some tests.
-  - Lib: Third party open-source libraries. In general, this area does not include source.
-  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications. Disabled.
-  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors. Disabled.
-  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled. Disabled.
+  - Motor: Java code for control of the various servo motors on the robot. These are executed by the _dispatcher_ application.
+  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications. Set to disabled.
+  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors. Set to disabled.
+  - Server: This is the _dispatcher_, a separate application for handling commands,
+  passing them along to the _Motor_ controllers and then forwarding results
+  to the original requestor.
+  - Share: Common java code used by one or more of the other projects.
+  - Speech: This project holds the _ANTLR_ code which interprets the "natural
+   language" request strings.
+  - Terminal: _terminal_ is a separate application for command-line control of the robot. It provides the same interface as the Android tablet except in a typed instead of spoken form.
+  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled. Set to disabled.
 
 When complete the project workspace should look like:
 ![Eclipse Setup](/images/eclipse_setup.png)
@@ -263,16 +277,17 @@ In addition to the *ant* scripts, there are a few shell scripts. To execute from
 *** Archive *** <br/>
 The *Archive* project is a collection of open-source library modules.
 * https://www.antlr.org/download.html antlr-runtime-4.7.2.jar antlr-4.7.2-complete.jar
+* https://code.google.com/archive/p/bluecove/downloads bluecove-gpl-2.1.0.jar bluecove-2.1.0.jar
 * http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.8.jar jackson-databind-2.9.8.jar java-annotations-2.9.8.jar
 * http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
 * https://bitbucket.org/xerial/sqlite-jdbc/downloads sqlite-jdbc-3.23.1.jar
 * https://code.google.com/archive/p/java-simple-serial-connector/downloads jssc.jar, plus C++ source for shared library
 
 *** Modularized Jar Files ***<br/>
-Most of the open source jar files listed above had not been updated for Java11 module compatibility. However all have been manually updated prior to storage in the archive.
+Most of the open source jar files listed above had not been updated for Java10 module compatibility. However all have been manually updated prior to storage in the repository.
 
 Thanks to [Michael Easter](https://github.com/codetojoy/easter_eggs_for_java_9/blob/master/egg_34_stack_overflow_47727869/run.sh) for the following example that shows how to modularize the ``Jackson`` jar files.
-The root directory of the *Archive* project is the starting point. The 3 original non-modularized *Jackson* jar files have been downloaded into ``jars``. The modularized results will be stored into ``mods``.
+The root directory of the *Archive* project is the starting point. The 3 original non-modularized *Jackson* jar files have been downloaded into ``jars``. The modularized results will be stored into ``mods``. In this particular example the modules are inter-dependent. In simpler cases only the first third of these steps are applicable.
 ```
    ARCHIVE=`pwd`
    jdeps --generate-module-info work jars/jackson-core-2.9.7.jar
