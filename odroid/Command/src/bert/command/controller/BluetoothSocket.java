@@ -2,17 +2,17 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.controller;
+package bert.command.controller;
 
 import java.util.List;
 import java.util.logging.Logger;
 
-import tinyb.BluetoothDevice;
-import tinyb.BluetoothException;
-import tinyb.BluetoothGattCharacteristic;
-import tinyb.BluetoothGattService;
-import tinyb.BluetoothManager;
-import tinyb.BluetoothNotification;
+import bluezlib.BluetoothDevice;
+import bluezlib.BluetoothException;
+import bluezlib.BluetoothGattCharacteristic;
+import bluezlib.BluetoothGattService;
+import bluezlib.BluetoothManager;
+import bluezlib.BluetoothNotification;
 /**
  *  The socket requires the MAC address of the target paired device and the UUID
  *  of the service that it provides. It encapsulates a bi-directional

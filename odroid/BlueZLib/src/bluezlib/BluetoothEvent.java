@@ -22,19 +22,32 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package tinyb;
+package bluezlib;
 
-public class ObjectArrayArgCallback extends BluetoothCallback
+import java.util.*;
+
+public class BluetoothEvent
 {
-    private Object[] callbackArg;
+    private long nativeInstance;
 
-    public ObjectArrayArgCallback(BluetoothObject bObj, Object[] callbackArg)
+    public native BluetoothType getType();
+    public native String getName();
+    public native String getIdentifier();
+    public native boolean executeCallback();
+    public native boolean hasCallback();
+
+    private native void init(BluetoothType type, String name, String identifier,
+                            BluetoothObject parent, BluetoothCallback cb, Object data);
+    private native void delete();
+
+    public BluetoothEvent(BluetoothType type, String name, String identifier,
+                            BluetoothObject parent, BluetoothCallback cb, Object data)
     {
-        this.bObj = bObj;
-        this.callbackArg = callbackArg;
+        init(type, name, identifier, parent, cb, data);
     }
 
-    public void run()
+    protected void finalize()
     {
+        delete();
     }
 }

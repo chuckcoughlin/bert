@@ -22,10 +22,14 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package tinyb;
+package bluezlib;
 
-public class BluetoothException extends RuntimeException {
-    BluetoothException(String msg) {
-        super(msg);
-    }
+/*
+ * This interface is used by notifications.
+ * Implement a class inheriting BluetoothNotification and pass an object of that type
+ * to the enable*Notifications function. When a notification of that type is received,
+ * the run function of the class will be called.
+ */
+public interface BluetoothNotification<T> {
+    public void run(T value);
 }

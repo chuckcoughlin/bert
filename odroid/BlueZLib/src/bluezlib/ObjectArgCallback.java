@@ -22,13 +22,19 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package tinyb;
+package bluezlib;
 
-public enum BluetoothType
+public class ObjectArgCallback extends BluetoothCallback
 {
-    NONE, ADAPTER, DEVICE,
-    GATT_SERVICE, GATT_CHARACTERISTIC,
-    GATT_DESCRIPTOR;
+    private Object callbackArg;
 
-    private long nativeInstance;
+    public ObjectArgCallback(BluetoothObject bObj, Object callbackArg)
+    {
+        this.bObj = bObj;
+        this.callbackArg = callbackArg;
+    }
+
+    public void run()
+    {
+    }
 }

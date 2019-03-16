@@ -22,13 +22,13 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package tinyb;
+package bluezlib;
 
-public class ObjectArgCallback extends BluetoothCallback
+public class ObjectArrayArgCallback extends BluetoothCallback
 {
-    private Object callbackArg;
+    private Object[] callbackArg;
 
-    public ObjectArgCallback(BluetoothObject bObj, Object callbackArg)
+    public ObjectArrayArgCallback(BluetoothObject bObj, Object[] callbackArg)
     {
         this.bObj = bObj;
         this.callbackArg = callbackArg;

@@ -1,6 +1,0 @@
-/**
- * 
- */
-module tinyb {
-	exports tinyb;
-}

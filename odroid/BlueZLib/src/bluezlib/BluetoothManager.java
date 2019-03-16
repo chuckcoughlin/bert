@@ -20,15 +20,21 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
+ * This is the class that interacts with the JNI shared library.
  */
 
-package tinyb;
+package bluezlib;
 
-import java.util.*;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Logger;
 
-public class BluetoothManager
-{
+public class BluetoothManager {
+	private final static String CLSS = "BluetoothManager";
+	private static Logger LOGGER = Logger.getLogger(CLSS);
+	
     private long nativeInstance;
     private static BluetoothManager inst;
 
@@ -39,10 +45,10 @@ public class BluetoothManager
     
     static {
         try {
-            System.loadLibrary("tinyb");
-            System.loadLibrary("javatinyb");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Native code library failed to load.\n" + e);
+            System.loadLibrary("bluezlib");
+        } 
+        catch (UnsatisfiedLinkError ule) {
+        	LOGGER.warning(String.format("%s.constructor: Failed to load library: bluezlib (%s)",CLSS,ule.getLocalizedMessage()));
         }
     }
 

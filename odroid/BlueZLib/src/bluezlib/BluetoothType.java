@@ -22,32 +22,13 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package tinyb;
+package bluezlib;
 
-import java.util.*;
-
-public class BluetoothEvent
+public enum BluetoothType
 {
+    NONE, ADAPTER, DEVICE,
+    GATT_SERVICE, GATT_CHARACTERISTIC,
+    GATT_DESCRIPTOR;
+
     private long nativeInstance;
-
-    public native BluetoothType getType();
-    public native String getName();
-    public native String getIdentifier();
-    public native boolean executeCallback();
-    public native boolean hasCallback();
-
-    private native void init(BluetoothType type, String name, String identifier,
-                            BluetoothObject parent, BluetoothCallback cb, Object data);
-    private native void delete();
-
-    public BluetoothEvent(BluetoothType type, String name, String identifier,
-                            BluetoothObject parent, BluetoothCallback cb, Object data)
-    {
-        init(type, name, identifier, parent, cb, data);
-    }
-
-    protected void finalize()
-    {
-        delete();
-    }
 }

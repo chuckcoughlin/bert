@@ -5,7 +5,6 @@
 module bert.share {
 	requires transitive java.logging;
 	requires transitive java.xml;
-	requires transitive tinyb;
 	requires com.fasterxml.jackson.databind;
 	requires jdk.unsupported;
 	

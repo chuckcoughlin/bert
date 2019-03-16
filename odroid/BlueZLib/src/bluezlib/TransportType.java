@@ -1,4 +1,4 @@
-package tinyb;
+package bluezlib;
 
 /**
  * TransportType determines type of bluetooth scan.

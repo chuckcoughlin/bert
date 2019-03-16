@@ -116,6 +116,7 @@ Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
 Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
 ```
    export BERT_HOME=/usr/local/robot
+   export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
 ```
 
 Set the timezone:
@@ -277,10 +278,8 @@ In addition to the *ant* scripts, there are a few shell scripts. To execute from
 *** Archive *** <br/>
 The *Archive* project is a collection of open-source library modules.
 * https://www.antlr.org/download.html antlr-runtime-4.7.2.jar antlr-4.7.2-complete.jar
-* https://code.google.com/archive/p/bluecove/downloads bluecove-gpl-2.1.0.jar bluecove-2.1.0.jar
 * http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
 * http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.8.jar jackson-databind-2.9.8.jar java-annotations-2.9.8.jar
-* https://logging.apache.org/log4j/1.2/download.html log4j-1.2.17.jar
 * https://bitbucket.org/xerial/sqlite-jdbc/downloads sqlite-jdbc-3.23.1.jar
 * https://code.google.com/archive/p/java-simple-serial-connector/downloads jssc.jar, plus C++ source for shared library
 
@@ -342,8 +341,23 @@ Location: http://pydev.org/updates
 We use PyDev to browse the original *Poppy* and *iCub* code.
 
 *** Bluetooth *** <br/>
-The Bluetooth interface library must be built on the Odroid. Instructions to do
-so may be found [here](https://stackoverflow.com/questions/23142071/native-library-bluecove-arm-not-available). We have executed these steps and checked the result into the code repository, so that the libraries are installed as part of the build.
+Code for interfacing with the Bluetooth library BlueZ is based on [this](http://people.csail.mit.edu/albert/bluez-intro/) code from Albert Huang at MIT. We have used it
+to create a library that is, in turn, accessed through the Java Native Interface (JNI).
+The java classes are derived from [TinyB](https://github.com/intel-iot-devkit/tinyb )
+which provides a convenient framework. The JNI library is installed as part of the build,
+but was created originally on the Odroid. Here are instructions:
+
+In the Eclipse build area
+* Execute build_bluez_lib.xml (this creates the JNI include files.
+* Modify the script **copy_source.sh** to point to the directory
+on the Odroid where the build will take place. Execute the script.
+
+Then, on the Odroid,
+in that directory -
+
+```
+  make
+```
 
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
