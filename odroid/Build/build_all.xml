@@ -3,7 +3,7 @@
 	<import file="${basedir}/build.xml"/>
 	<property name="bin.dir" value="${basedir}/../Configuration/bin" />
 	<property name="config.dir" value="${basedir}/../Configuration/etc" />
-	<property name="native.include.dir" value="../../odroid-src/bluez-jni/include"/>
+	<property name="native.include.dir" value="../../odroid-src/tinyb-jni/include"/>
 	
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean, build, deploy" />
@@ -19,7 +19,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="bluez,share,motors,database,speech,command,server,terminal" />
+	<target name="build" depends="tinyb,share,motors,database,speech,command,server,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />
@@ -141,11 +141,11 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="bluez" description="Compile the low energy bluetooth library">
-			<echo message="Compile the bluez interface library" />
+	<target name="tinyb" description="Compile the low energy bluetooth library">
+			<echo message="Compile the TinyB interface library" />
 			<delete dir="${temp.dir}" />
 			<mkdir dir="${temp.dir}"/>
-			<javac	srcdir="../BlueZLib/src"
+			<javac	srcdir="../TinyB/src"
 		       		destdir="${temp.dir}"
 					compiler="javac10+"
 					source="10" target="10"
@@ -154,15 +154,7 @@
 					includeantruntime="false"
 					nativeheaderdir="${native.include.dir}"
 			/>
-			<!-- There is only 1 file that matters -->
-			<move 
-				file="${native.include.dir}/bluezlib_BluetoothManager.h" 
-				tofile="${native.include.dir}/BluetoothManager.h"
-			/>
-			<delete> 
-				<fileset dir="${native.include.dir}" includes="bluezlib_*"/>
-			</delete>
-		<jar destfile="${archive.dir}/bluez-lib.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
+		<jar destfile="${lib.dir}/tinyb-0.5.0.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
 	</target>
 	
 	<!-- Copy the new jar files and configuration files into the local deployment area. -->

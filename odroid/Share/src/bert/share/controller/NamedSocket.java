@@ -28,6 +28,7 @@ public class NamedSocket   {
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
+	private static final long SERVER_ATTEMPT_INTERVAL = 15000;  // 15 secs
 	private static final int SOCKET_TIMEOUT = 60000;  // For normally blocking operations
 	private final String name;
 	private final String host;
@@ -87,11 +88,16 @@ public class NamedSocket   {
 					socket = serverSocket.accept();
 					LOGGER.info(String.format("%s.create: %s accepted connection on port %d after %d attempts", CLSS,name,port,attempts));
 					break;
+					
 				}
 				catch(Exception ex) {
 					success = false;
 					socket = null;
 					LOGGER.severe(String.format("%s.create: ERROR creating server socket %s (%s)", CLSS,name,ex.getMessage()));
+					try { 
+						Thread.sleep(SERVER_ATTEMPT_INTERVAL);  // Something bad has happened, we don't want a hard loop
+					}
+					catch(InterruptedException ignore) {}
 				}
 				attempts++;
 			}

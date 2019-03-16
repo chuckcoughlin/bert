@@ -184,6 +184,14 @@ Configure Bluetooth using the robot's pull-down menu. Configure the adapter so t
 name of "bert_humanoid". Pairing is based on the friendly name and can be initiated
 either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
 
+Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy context="default">``:
+
+```
+  <allow send_interface="org.bluez.GattService1"/>
+  <allow send_interface="org.bluez.GattCharacteristic1"/>
+  <allow send_interface="org.bluez.GattDescriptor1"/>
+```
+
 *** Java ***<br/>
 Download the latest Java 11 Development (JDK) version using:
 ```
@@ -348,7 +356,7 @@ which provides a convenient framework. The JNI library is installed as part of t
 but was created originally on the Odroid. Here are instructions:
 
 In the Eclipse build area
-* Execute build_bluez_lib.xml (this creates the JNI include files.
+* Execute build_bluez_lib.xml to create the JNI include files
 * Modify the script **copy_source.sh** to point to the directory
 on the Odroid where the build will take place. Execute the script.
 
@@ -356,7 +364,7 @@ Then, on the Odroid,
 in that directory -
 
 ```
-  make
+  make -e
 ```
 
 ### Android Studio <a id="android"></a>
