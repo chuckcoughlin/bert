@@ -17,7 +17,7 @@ The *iCub* main project repository is at: https://github.com/robotology/icub-mai
     * [Interprocess Communication](#sockets)
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
-    * [Failures](#failured)
+    * [Failures](#failures)
 ***
 
 
