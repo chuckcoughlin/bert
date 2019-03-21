@@ -295,7 +295,7 @@ public class BluetoothManager {
     
     private native void init() throws BluetoothException;
     private native void delete();
-    private BluetoothManager()
+    public BluetoothManager()
     {
         init();
     }

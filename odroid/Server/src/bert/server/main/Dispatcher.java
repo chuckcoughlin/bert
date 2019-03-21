@@ -48,7 +48,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
        "At your command"
     };
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = "dispatcher";
+	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
 	private final RobotDispatcherModel model;
 	private SocketController commandController = null;

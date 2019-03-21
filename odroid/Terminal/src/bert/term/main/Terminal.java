@@ -37,7 +37,7 @@ public class Terminal extends Thread implements MessageHandler {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = CLSS;
+	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotTerminalModel model;
 	private SocketController socketController = null;
 	private final Condition busy;

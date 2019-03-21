@@ -22,6 +22,9 @@ import bert.share.message.MessageBottle;
  *  The file descriptors are opened on "startup" and closed on 
  *  "shutdown". Change listeners are notified (in a separate Thread) when the
  *  socket is "ready".
+ *  
+ *  NOTE: setting a timeout on normal socket operations like accept() is
+ *        a bad idea. Next time around we end up with a "socket in use error".
  */
 public class NamedSocket   {
 	private static final String CLSS = "NamedSocket";
@@ -29,7 +32,6 @@ public class NamedSocket   {
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
 	private static final long SERVER_ATTEMPT_INTERVAL = 15000;  // 15 secs
-	private static final int SOCKET_TIMEOUT = 60000;  // For normally blocking operations
 	private final String name;
 	private final String host;
 	private final int port;
@@ -83,7 +85,6 @@ public class NamedSocket   {
 			for(;;) {
 				try  {
 					serverSocket = new ServerSocket(port);
-					serverSocket.setSoTimeout(SOCKET_TIMEOUT);
 					LOGGER.info(String.format("%s.create: %s as server listening on port %d", CLSS,name,port));
 					socket = serverSocket.accept();
 					LOGGER.info(String.format("%s.create: %s accepted connection on port %d after %d attempts", CLSS,name,port,attempts));

@@ -35,7 +35,7 @@ public class Command extends Thread implements MessageHandler {
 	private final static String CLSS = "Command";
 	private static final String USAGE = "Usage: command <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static final String LOG_ROOT = CLSS;
+	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotCommandModel model;
 	private BluetoothController controller = null;
 	private SocketController socketController = null;

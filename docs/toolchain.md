@@ -349,15 +349,16 @@ Location: http://pydev.org/updates
 We use PyDev to browse the original *Poppy* and *iCub* code.
 
 *** Bluetooth *** <br/>
-Code for interfacing with the Bluetooth library BlueZ is based on [this](http://people.csail.mit.edu/albert/bluez-intro/) code from Albert Huang at MIT. We have used it
-to create a library that is, in turn, accessed through the Java Native Interface (JNI).
-The java classes are derived from [TinyB](https://github.com/intel-iot-devkit/tinyb )
-which provides a convenient framework. The JNI library is installed as part of the build,
-but was created originally on the Odroid. Here are instructions:
+Java classes and accompanying Java Native Interface (JNI) source for bluetooth
+integration are derived from [TinyB](https://github.com/intel-iot-devkit/tinyb ).
+A good background source for Bluetooth is Albert Huang at MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/). The JNI library must be built and
+installed on the Odroid.
+
+Here are instructions:
 
 In the Eclipse build area
-* Execute build_bluez_lib.xml to create the JNI include files
-* Modify the script **copy_source.sh** to point to the directory
+* Execute build_tinyb.xml to create the JNI include files
+* Modify the script **install_odroid_source.sh** to point to the directory
 on the Odroid where the build will take place. Execute the script.
 
 Then, on the Odroid,

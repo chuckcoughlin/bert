@@ -57,7 +57,9 @@ public class BluetoothSocket   {
 	 * There is no action for a client.
 	 */
 	public boolean discover() {
-		BluetoothManager manager = BluetoothManager.getBluetoothManager();
+		LOGGER.warning(String.format("%s.discover: Getting bluetooth manager ...", CLSS));
+		BluetoothManager manager = new BluetoothManager();
+		//BluetoothManager manager = BluetoothManager.getBluetoothManager();
 		boolean success = manager.startDiscovery();
 		if( !success ) {
 			LOGGER.warning(String.format("%s.discover: Failed to start discovery", CLSS));

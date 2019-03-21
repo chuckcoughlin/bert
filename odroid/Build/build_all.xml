@@ -10,6 +10,7 @@
 	
 	<!-- Remove the existing target -->
 	<target name="clean" description="Remove existing build products">
+		<delete dir="${lib.dir}"/>
 		<mkdir dir="${lib.dir}"/>
 		<mkdir dir="${robot.dir}/bin"/>
 		<delete dir="${robot.dir}/bin"/>

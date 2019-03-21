@@ -5,7 +5,11 @@
 LIB = /usr/lib/arm-linux-gnuabihf
 BLUETOOTH_LIB = $(LIB)/libbluetooth.so
 BLUETOOTH_INC_DIR = /usr/include/bluetooth
+<<<<<<< HEAD
 CC=g++
+=======
+CC=c++
+>>>>>>> fc99347a586ce3c86069057eb28843a8c1209b6a
 INCDIR = include
 INCS = $(wildcard include/tinyb/*.hpp)
 OBJDIR = build
