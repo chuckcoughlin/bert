@@ -149,3 +149,31 @@ Why did I select Java for this code when the iCub project chose Python?
 
   *** Cross-compilation *** <br/>
   On the build machine, I downloaded [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), then followed the installation steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1), Using a *makefile* and these tools, I compiled C++ code for the Odroid X64. It had a bad format and didn't execute. I gave up on C++ in favor of Java for the core control loop.
+
+*** Cmake *** <br/>
+The [TinyB](https://github.com/intel-iot-devkit/tinyb ) library for Bluetooth integration came with build files for *cmake*.
+I was unable to get a successful compilation on the Odroid. I followed the directions [here](http://fam-haugk.de/starting-with-bluetooth-le-on-the-raspberry-pi) with
+modifications for the Odroid and Java11. With these installs which literally took
+hours, the _cmake_ still never completed successfully.
+```
+sudo apt-get install libgtk2.0-dev
+sudo apt-get install pkg-config
+sudo apt-get --purge autoremove cmake
+sudo apt-get install build-essential
+cd ~
+wget http://www.cmake.org/files/v3.14/cmake-3.14.0.tar.gz
+tar -xzf cmake-3.14.0.tar.gz
+cd cmake-3.14.0
+./configure
+make
+sudo make install
+hash -r
+
+export JAVA_AWT_LIBRARY=$JAVA_HOME/lib/libawt.so
+export JAVA_JVM_LIBRARY=$JAVA_HOME/lib/server/libjvm.so
+export JAVA_INCLUDE_PATH=$JAVA_HOME/include
+export JAVA_INCLUDE_PATH2=$JAVA_HOME/include/linux
+export JAVA_AWT_INCLUDE_PATH=$JAVA_HOME/include
+```
+Since the purpose of all this was to generate a Makefile of about 50 lines, I
+did it the old-fashioned way and edited it by hand, using `make` directly.
