@@ -21,8 +21,6 @@ This document describes the setup and tools used to develop "Bert" and summarize
     * [Eclipse](#eclipse)
     * [Android Studio](#android)
     * [Other Tools](#other)
-  * [Software Architecture](#architecture)
-  * [Failures](#failured)
 ***
 ## Hardware <a id="hardware"></a>
 
@@ -402,6 +400,15 @@ On the build system, configure Android Studio (Tools->Run>Edit Configurations) t
 We make use of the following freely-available applications:
   * [OpenSCAD](http://www.openscad.org) - Construct 3D CAD drawings in script. Export in .stl format. This is useful where the parts are composed from simple geometric shapes.
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
-  * [Sculptris](http://pixologic.com/sculptris) - Sculpt objects free-form. This is useful for molding irregular, rounded or textured parts. Export in .obj format.
+  * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the 
+  original `poppy` design. Export in .obj format for printing.
   * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
   * iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
+
+*** Blender Cheat Sheet ***<br/>
+*Blender* is a sophisticated (read complex)
+modeling application. There are numerous
+keyboard shortcuts that not at all obvious from the interface. Here are a few:
+  * n - expand the navigation widget to allow
+  precise placement of components
+  * x - delete the selected component

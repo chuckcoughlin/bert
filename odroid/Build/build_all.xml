@@ -155,7 +155,7 @@
 					includeantruntime="false"
 					nativeheaderdir="${native.include.dir}"
 			/>
-		<jar destfile="${lib.dir}/tinyb-0.5.0.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
+		<jar destfile="${lib.dir}/tinyb-0.5.1.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
 	</target>
 	
 	<!-- Copy the new jar files and configuration files into the local deployment area. -->

@@ -4,7 +4,7 @@
 -->
 <project name="bert.install.bluezlib" default="all" basedir=".">
 	<import file="${basedir}/build.xml"/>
-	<property name="jar.name" value="tinyb-0.5.0.jar" />
+	<property name="jar.name" value="tinyb-0.5.1.jar" />
 	<property name="src.dir" value="${basedir}/../TinyB/src" />
 	<property name="native.include.dir" value="../../odroid-src/tinyb-jni/include"/>
 	

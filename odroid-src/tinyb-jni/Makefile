@@ -5,18 +5,15 @@
 LIB = /usr/lib/arm-linux-gnuabihf
 BLUETOOTH_LIB = $(LIB)/libbluetooth.so
 BLUETOOTH_INC_DIR = /usr/include/bluetooth
-<<<<<<< HEAD
 CC=g++
-=======
-CC=c++
->>>>>>> fc99347a586ce3c86069057eb28843a8c1209b6a
 INCDIR = include
 INCS = $(wildcard include/tinyb/*.hpp)
 OBJDIR = build
-OBJS = $(patsubst src/%.cxx,build/%.o,$(wildcard src/*.cxx))
+JNIOBJS = $(patsubst jni/%.cxx,build/JNI%.o,$(wildcard jni/*.cxx))
+OBJS   = $(patsubst src/%.cpp,build/%.o,$(wildcard src/*.cpp))
 TARGET = libtinyb.so
 
-CFLAGS  += -I$(INCDIR) -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -fPIC -Wno-psabi
+CFLAGS  += -I$(INCDIR) -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -fPIC -Wno-psabi -Wall
 LIBS += -L$(LIB) -lbluetooth
 LDFLAGS = -shared
 
@@ -27,10 +24,10 @@ LDFLAGS = -shared
 all: $(TARGET) install
 
 $(TARGET): $(OBJS) 
-	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS)
+	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(JNIOBJS) $(OBJS)
 
 # Compile C++ code
-$(OBJDIR)/%.o: src/%.cxx $(INCS) | $(OBJDIR)
+$(OBJDIR)/%.o: jni/%.cxx src/%.cpp (INCS) | $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OBJDIR):

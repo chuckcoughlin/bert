@@ -130,31 +130,31 @@ While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) 
 Why did I select Java for this code when the iCub project chose Python?
   * Familiarity - over 2 decades of working with Java
   * Refactoring - the refactoring capabilities of Eclipse are unparalleled, in my opinion, and make code re-structuring quick, easy and accurate
-  * Code-Debug-Cycle - problems are more likely to be discovered by the compiler rather than run-time
+  * Code-Debug-Cycle - problems are more likely to be discovered by the compiler rather than run-time as with Python
   * Debugging - via Eclipse we can set breakpoints and inspect run-state not only locally, but on the target robot
   * Performance - Java executes an order of magnitude faster than Python
   * Threading - the Java threading model is more straightforward (IMHO)
   * Cross-compiling - difficulties creating Odroid executables precluded my use of C++.
 
-  #### Failures <a id="failures"/>
-  This section documents some ideas that were tried and abandoned.
+#### Failures <a id="failures"/>
+This section documents some ideas that were tried and abandoned.
 
-  *** Gradle *** <br/>
-  ``Gradle`` is a modern tool for building software of several flavors.  To install ``Gradle`` use ``homebrew``:
-  ```
+*** Gradle *** <br/>
+``Gradle`` is a modern tool for building software of several flavors.  To install ``Gradle`` use ``homebrew``:
+```
      brew install gradle
      brew install gradle-completion
-  ```
-  I totally failed to create a C++ build script for cross-compilation (Mac to Odroid). Moreover after nearly a week of trying, I gave up on the Java building also. I was unable to create an environment to conveniently share re-usable code among separate top level targets. I'm sure it can be done, I just lost interest. *ant* does everything I need.
+```
+I totally failed to create a C++ build script for cross-compilation (Mac to Odroid). Moreover after nearly a week of trying, I gave up on the Java building also. I was unable to create an environment to conveniently share re-usable code among separate top level targets. I'm sure it can be done, I just lost interest. *ant* does everything I need.
 
-  *** Cross-compilation *** <br/>
-  On the build machine, I downloaded [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), then followed the installation steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1), Using a *makefile* and these tools, I compiled C++ code for the Odroid X64. It had a bad format and didn't execute. I gave up on C++ in favor of Java for the core control loop.
+*** Cross-compilation *** <br/>
+On the build machine, I downloaded [GNU Embedded Toolchain for ARM]( https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads), then followed the installation steps outlined [here](https://gnu-mcu-eclipse.github.io/toolchain/arm/install/#macos-1), Using a *makefile* and these tools, I compiled C++ code for the Odroid X64. It had a bad format and didn't execute. I gave up on C++ in favor of Java for the core control loop.
 
 *** Cmake *** <br/>
 The [TinyB](https://github.com/intel-iot-devkit/tinyb ) library for Bluetooth integration came with build files for *cmake*.
-I was unable to get a successful compilation on the Odroid. I followed the directions [here](http://fam-haugk.de/starting-with-bluetooth-le-on-the-raspberry-pi) with
+I was unable to get a successful compilation of the JNI code on the Odroid. I followed the directions [here](http://fam-haugk.de/starting-with-bluetooth-le-on-the-raspberry-pi) with
 modifications for the Odroid and Java11. With these installs which literally took
-hours, the _cmake_ still never completed successfully.
+hours, the _cmake_ build still never completed successfully.
 ```
 sudo apt-get install libgtk2.0-dev
 sudo apt-get install pkg-config
@@ -176,4 +176,4 @@ export JAVA_INCLUDE_PATH2=$JAVA_HOME/include/linux
 export JAVA_AWT_INCLUDE_PATH=$JAVA_HOME/include
 ```
 Since the purpose of all this was to generate a Makefile of about 50 lines, I
-did it the old-fashioned way and edited it by hand, using `make` directly.
+did it the old-fashioned way and edited it by hand, to use `make` directly.
