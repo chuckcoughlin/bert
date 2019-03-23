@@ -400,7 +400,7 @@ On the build system, configure Android Studio (Tools->Run>Edit Configurations) t
 We make use of the following freely-available applications:
   * [OpenSCAD](http://www.openscad.org) - Construct 3D CAD drawings in script. Export in .stl format. This is useful where the parts are composed from simple geometric shapes.
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
-  * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the 
+  * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the
   original `poppy` design. Export in .obj format for printing.
   * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
   * iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
@@ -409,6 +409,13 @@ We make use of the following freely-available applications:
 *Blender* is a sophisticated (read complex)
 modeling application. There are numerous
 keyboard shortcuts that not at all obvious from the interface. Here are a few:
+  * ctl-a - launch apply menu
+  * D - duplicate selected object
+  * L - link (ctl/shift)
+  * g - enter mode for direct manipulation of objects. Follow with x,y,z,s or r. Exit with <ENTER>.
+  * m - create collection of selected objects
   * n - expand the navigation widget to allow
-  precise placement of components
-  * x - delete the selected component
+  precise positioning of objects
+  * r - rotate (after "g")
+  * s - scale (after "g")
+  * t - toggle left-side toolbar
