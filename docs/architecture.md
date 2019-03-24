@@ -152,9 +152,9 @@ On the build machine, I downloaded [GNU Embedded Toolchain for ARM]( https://dev
 
 *** Cmake *** <br/>
 The [TinyB](https://github.com/intel-iot-devkit/tinyb ) library for Bluetooth integration came with build files for *cmake*.
-I was unable to get a successful compilation of the JNI code on the Odroid. I followed the directions [here](http://fam-haugk.de/starting-with-bluetooth-le-on-the-raspberry-pi) with
+I was unable to get a successful compilation of the JNI code on the Odroid. I followed the directions [here](http://fam-haugk.de/starting-with-bluetooth-le-on-the-raspberry-pi) and [here](http://www.martinnaughton.com/2017/07/install-intel-tinyb-java-bluetooth.html) with
 modifications for the Odroid and Java11. With these installs which literally took
-hours, the _cmake_ build still never completed successfully.
+hours and used up over 10% of available disk space,  the _cmake_ build still never completed successfully.
 ```
 sudo apt-get install libgtk2.0-dev
 sudo apt-get install pkg-config

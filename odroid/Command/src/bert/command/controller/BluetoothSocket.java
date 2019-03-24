@@ -58,8 +58,7 @@ public class BluetoothSocket   {
 	 */
 	public boolean discover() {
 		LOGGER.warning(String.format("%s.discover: Getting bluetooth manager ...", CLSS));
-		BluetoothManager manager = new BluetoothManager();
-		//BluetoothManager manager = BluetoothManager.getBluetoothManager();
+		BluetoothManager manager = BluetoothManager.getBluetoothManager();
 		boolean success = manager.startDiscovery();
 		if( !success ) {
 			LOGGER.warning(String.format("%s.discover: Failed to start discovery", CLSS));

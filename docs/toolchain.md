@@ -164,11 +164,13 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install sqlite3
   sudo apt install vsftp
   sudo apt install libjssc-java
+  sudo apt-get install libglib2.0-dev
   sudo apt-get install libbluetooth-dev
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
   sudo apt-get autoclean -y
+  sudo cp /usr/lib/arm-linux-gnueabihf/glib-2.0/include/glibconfig.h /usr/include/glib-2.0
 ```
 The reason for ``firefox`` is that we were not able to properly configure the proxy server in ``chromium``, the default browser.
 
@@ -361,7 +363,11 @@ Then, on the Odroid,
 in that directory -
 
 ```
-  make -e
+  sudo chmod 777 /usr/lib/arm-linux-gnuebihf
+
+  make tinyb
+  make -e jni
+  make install
 ```
 
 ### Android Studio <a id="android"></a>
@@ -400,7 +406,7 @@ On the build system, configure Android Studio (Tools->Run>Edit Configurations) t
 We make use of the following freely-available applications:
   * [OpenSCAD](http://www.openscad.org) - Construct 3D CAD drawings in script. Export in .stl format. This is useful where the parts are composed from simple geometric shapes.
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
-  * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the 
+  * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the
   original `poppy` design. Export in .obj format for printing.
   * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
   * iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.

@@ -526,7 +526,7 @@ JNIEXPORT jboolean JNICALL Java_jssc_SerialNativeInterface_writeBytes
 /*
  * Reading data from the port
  *
- * Rewrited in 2.5.0 (using select() function for correct block reading in MacOS X)
+ * Rewritten in 2.5.0 (using select() function for correct block reading in MacOS X)
  */
 JNIEXPORT jbyteArray JNICALL Java_jssc_SerialNativeInterface_readBytes
   (JNIEnv *env, jobject object, jlong portHandle, jint byteCount){
@@ -545,7 +545,7 @@ JNIEXPORT jbyteArray JNICALL Java_jssc_SerialNativeInterface_readBytes
     FD_CLR(portHandle, &read_fd_set);
     jbyteArray returnArray = env->NewByteArray(byteCount);
     env->SetByteArrayRegion(returnArray, 0, byteCount, lpBuffer);
-    delete lpBuffer;
+    delete[] lpBuffer;
     return returnArray;
 }
 
