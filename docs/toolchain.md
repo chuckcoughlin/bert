@@ -415,6 +415,13 @@ We make use of the following freely-available applications:
 *Blender* is a sophisticated (read complex)
 modeling application. There are numerous
 keyboard shortcuts that not at all obvious from the interface. Here are a few:
+  * ctl-a - launch apply menu
+  * D - duplicate selected object
+  * L - link (ctl/shift)
+  * g - enter mode for direct manipulation of objects. Follow with x,y,z,s or r. Exit with <ENTER>.
+  * m - create collection of selected objects
   * n - expand the navigation widget to allow
-  precise placement of components
-  * x - delete the selected component
+  precise positioning of objects
+  * r - rotate (after "g")
+  * s - scale (after "g")
+  * t - toggle left-side toolbar
