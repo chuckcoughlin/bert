@@ -7,12 +7,12 @@ package bert.command.controller;
 import java.util.List;
 import java.util.logging.Logger;
 
-import tinyb.BluetoothDevice;
-import tinyb.BluetoothException;
-import tinyb.BluetoothGattCharacteristic;
-import tinyb.BluetoothGattService;
-import tinyb.BluetoothManager;
-import tinyb.BluetoothNotification;
+import bluez.BluetoothCharacteristic;
+import bluez.BluetoothDevice;
+import bluez.BluetoothException;
+import bluez.BluetoothManager;
+import bluez.BluetoothNotification;
+import bluez.BluetoothService;
 
 
 /**
@@ -32,9 +32,9 @@ public class BluetoothSocket   {
 	private static final int READ_POLL_INTERVAL = 60000; 
 	private final String mac;
 	private final String uuid;
-	private BluetoothGattCharacteristic characteristic;
+	private BluetoothCharacteristic characteristic;
 	private BluetoothDevice device;
-	private BluetoothGattService service;
+	private BluetoothService service;
 
 	/**
 	 * Constructor:
@@ -73,8 +73,8 @@ public class BluetoothSocket   {
 					for(BluetoothDevice dev:devices) {
 						LOGGER.info(String.format("%s.discover: found paired device %s at %s", CLSS,dev.getName(),dev.getAddress()));
 						if( dev.getAddress().equalsIgnoreCase(mac)) {
-							List<BluetoothGattService> services = dev.getServices();
-							for(BluetoothGattService serv:services) {
+							List<BluetoothService> services = dev.getServices();
+							for(BluetoothService serv:services) {
 								if( serv.getUUID().equalsIgnoreCase(uuid)) {
 									this.service = serv;
 									this.device = dev;

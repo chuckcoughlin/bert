@@ -3,7 +3,7 @@
  */
 module bert.command {
 	requires transitive  bert.share;
-	requires transitive tinyb;
+	requires transitive bluez;
 	requires bert.speech;
 	requires bert.sql;
 	exports bert.command.model;
