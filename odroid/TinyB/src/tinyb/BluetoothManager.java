@@ -45,10 +45,10 @@ public class BluetoothManager {
     
     static {
         try {
-            System.loadLibrary("tinybjni");
+            System.loadLibrary("tinyb");
         } 
         catch (UnsatisfiedLinkError ule) {
-        	LOGGER.warning(String.format("%s.constructor: Failed to load library: libtinybjni.so (%s)",CLSS,ule.getLocalizedMessage()));
+        	LOGGER.warning(String.format("%s.constructor: Failed to load library: libtinyb.so (%s)",CLSS,ule.getLocalizedMessage()));
         }
     }
 
