@@ -24,7 +24,7 @@
    $Id:$
 */
 
-package bluez;
+package btj;
 
 /**
  * Represents the information gather about a remote device during an HCI Inquiry.

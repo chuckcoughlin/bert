@@ -4,9 +4,9 @@
 -->
 <project name="bert.install.bluezlib" default="all" basedir=".">
 	<import file="${basedir}/build.xml"/>
-	<property name="jar.name" value="bluez-1.0.1.jar" />
-	<property name="src.dir" value="${basedir}/../BlueZ/src" />
-	<property name="native.include.dir" value="../../odroid-src/bluez-jni/include"/>
+	<property name="jar.name" value="btj-1.0.1.jar" />
+	<property name="src.dir" value="${basedir}/../Bluetooth/src" />
+	<property name="native.include.dir" value="../../odroid-src/btj-1.0.1/include"/>
 	
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean,build,jar,deploy" />

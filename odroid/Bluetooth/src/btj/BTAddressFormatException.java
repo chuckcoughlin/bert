@@ -24,62 +24,29 @@
    $Id:$
 */
 
-package bluez;
-
-import java.util.*;
+package btj;
 
 /**
- * Stores the results of an HCI inquiry. Each result is an InquiryInfoDevice object.
+ * Exception thrown when problems occur when parsing a String to a BTAddress object.
  * 
  * @author Edward Kay, ed.kay@appliancestudio.com
+ * @see BTAddress
  * @version 1.0
  */
-public class InquiryInfo 
+public class BTAddressFormatException extends Exception 
 {
 	/**
-	 * The number of devices that responded.
+	 * Constructs a BTAddressException with no detail message.
 	 */
-	public byte num_responses;
-	/**
-	 * The details of each device which responded to the enquiry. These are represented as InquiryInfoDevice objects.
-	 */
-	private Vector devices = new Vector();
+	public BTAddressFormatException () {}
 
 	/**
-	 * Default constructor.
-	 */
-	public InquiryInfo()
-	{
-	}
-	
-	/**
-	 * Constructor.
+	 * Constructs a BTAddressException including a detail message.
 	 * 
-	 * @param _num_responses The number of responses.
+	 * @param s Message detailing why the exception occurred.
 	 */
-	public InquiryInfo(byte _num_responses)
+	public BTAddressFormatException(String s)
 	{
-		this.num_responses = _num_responses;
-	}
-
-	/**
-	 * Adds an InquiryInfoDevice object to the Vector of devices.
-	 * 
-	 * @param dev An InquiryInfoDevice object.
-	 */
-	public void addDevice(InquiryInfoDevice dev)
-	{
-		devices.addElement(dev);
-		return;
-	}
-
-	/**
-	 * Returns the Vector representation of the InquiryInfoDevice objects.
-	 * 
-	 * @return Devices found.
-	 */
-	public Vector devices()
-	{
-		return devices;
+		super(s);
 	}
 }

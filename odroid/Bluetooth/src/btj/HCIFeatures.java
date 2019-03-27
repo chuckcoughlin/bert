@@ -24,7 +24,7 @@
    $Id:$
 */
 
-package bluez;
+package btj;
 
 /**
  * Representation of the features supported by an HCI device.

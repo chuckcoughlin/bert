@@ -26,12 +26,12 @@
    $Id:$
 */
 
-package bluez;
+package btj;
 
 /**
  * This class provides the methods to access the underlying BlueZ functions.
  * All of the native methods defined in this class are implemented, via the
- * Java Native Interface (JNI) in C. See the bluez.c file and associated
+ * Java Native Interface (JNI) in C. See the btj.c file and associated
  * comments for full details.
  * 
  * If you wish to incorporate Bluetooth functionality (using the BlueZ stack)
@@ -49,7 +49,7 @@ public class BlueZ
 	// This is usually called "libjbluez.so" under UNIX/Linux, but is loaded
 	// with the "jbluez" string, since this is how JNI implements platform
 	// independence.
-	static {System.loadLibrary("bluez");}
+	static {System.loadLibrary("bluetoothjni");}
 
 	/* HCI Open Device */
 	/**

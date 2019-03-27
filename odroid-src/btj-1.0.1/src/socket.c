@@ -1,0 +1,6 @@
+/*
+ * Bluetooth socket
+ */
+
+char* read() {
+}

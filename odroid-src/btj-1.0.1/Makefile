@@ -1,11 +1,11 @@
 #
-#  Compile the shared JNI library needed by the bluez java project.
-#  Code based on JBluez-1.0 Edward Kay <ed.kay@appliancestudio.com>
-#  There are two libraries combined here, one the C++ native
-#  implementation, the other the JNI java interface.
+# Compile the shared JNI library needed by the btj project.
+# We also include 'btj', a command-line application used
+# for testing. "btj -h" for a list of options.
 #
 #  make -e
 #  make install
+#  make btj
 #
 CC=gcc
 CFLAGS  += -I$(INCDIR) \
@@ -14,27 +14,33 @@ CFLAGS  += -I$(INCDIR) \
 INCDIR = include
 LDFLAGS = -shared
 LIB = /usr/lib/arm-linux-gnueabihf
-LIBBLUEZ  = libbluez.so
+LIBBTJ  = libbluetoothjni.so
 LIBS += -L$(LIB) -lbluetooth
 OBJS    = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
 
 
 #  * Compile and link the native implementation
-all: $(LIBBLUEZ)
+all: $(LIBBTJ) 
+
+btj: $(OBJDIR)/btj.o
+	$(CC) $(LIBS) -lbluetoothjni -o $@ $<
 
 # Compile C code
 $(OBJDIR)/%.o: src/%.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(LIBBLUEZ): $(OBJS)
-    $(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS)
+$(OBJDIR)/btj.o: test/btj.c| $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(LIBBTJ): $(OBJS)
+	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS)
 
 install:
-	-cp $(LIBBLUEZ) $(BERT_HOME)/lib
+	-cp $(LIBBTJ) $(BERT_HOME)/lib
 
 clean:
-	-rm -f $(LIBBLUEZ)
+	-rm -f $(LIBBTJ) btj
 	-rm -rf $(OBJDIR)
 
 
@@ -42,4 +48,4 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 
-.PHONY: all clean install
+.PHONY: all test clean install

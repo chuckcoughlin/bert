@@ -12,7 +12,7 @@ MP=$MP:lib/bert-command.jar
 MP=$MP:lib/bert-common.jar
 MP=$MP:lib/bert-database.jar
 MP=$MP:lib/bert-speech.jar
-MP=${MP}:lib/bluez-1.0.1.jar
+MP=${MP}:lib/btj-1.0.1.jar
 
 # Allow debugging on port 8002
 X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8002"

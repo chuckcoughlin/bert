@@ -174,6 +174,11 @@ Install some missing tools and update the system. We have found that the *apt* c
 ```
 The reason for ``firefox`` is that we were not able to properly configure the proxy server in ``chromium``, the default browser.
 
+In `/etc/ld.so.conf.d`, add a file named `robot.conf` containing the single line:
+```
+  /usr/local/robot/lib
+```
+
 To shutdown,
 ```
   sudo shutdown -h now
@@ -349,18 +354,21 @@ Location: http://pydev.org/updates
 We use PyDev to browse the original *Poppy* and *iCub* code.
 
 *** Bluetooth *** <br/>
-Programmatic access to Bluetooth requires a native interface to the shared  library `libbluetooth.so` (BlueZ 5.43). The minimalist implementation [JBlueZ](http://jbluez.sourceforge.net/) by Edward Kay was used as a starting
-point to understand JNI. It was combined with code from a book by Albert Huang
-of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/) that
-included elementary Bluetooth code in C.
+Programmatic access to Bluetooth requires a native interface to the Odroid's
+shared  library `libbluetooth.so` (BlueZ 5.48). A minimalist implementation [JBlueZ](http://jbluez.sourceforge.net/)
+by Edward Kay provided great example of the Java Native Interface (JNI).
+Code from a book by Albert Huang
+of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/) helped
+me understand structures involved with discovery and data transfer.
 
-The `bluez` JNI library must be built and
-installed on the Odroid. Here are instructions:
+The `libbluetoothjni` library is designed to communicate with the local
+device and transfer strings back and forth with its pair (the android tablet).
+The library must be built and installed on the Odroid. Here are instructions:
 
-Under the Eclipse build project:
-* Execute build_bluez.xml to compile the Java classes and create the include files
+On the development machine, under the Eclipse build project:
+* Execute `build_btj.xml` to compile the Java classes and create include files
 for the JNI library.
-* Modify the script **install_odroid_source.sh** to point to the directory
+* Modify the script **install_odroid_source.sh** so that it points to the directory
 on the Odroid where the build will take place. Execute the script.
 
 Then, on the Odroid,
@@ -369,6 +377,14 @@ in that directory -
 ```
   make -e
   make install
+  make btj
+```
+
+In addition to the shared library, _libbluetoothjni.so_, the build process creates
+application `btj` that provides command-line access for testing.
+For a list of options, type:
+```
+  btj -h
 ```
 
 ### Android Studio <a id="android"></a>

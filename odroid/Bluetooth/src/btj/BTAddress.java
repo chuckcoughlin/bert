@@ -24,7 +24,7 @@
    $Id:$
 */
 
-package bluez;
+package btj;
 
 import java.util.StringTokenizer;
 

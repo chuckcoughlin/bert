@@ -24,7 +24,7 @@
    $Id:$
 */
 
-package bluez;
+package btj;
 
 /**
  * This HCIDeviceInfo class is the information relating to a local HCI device.

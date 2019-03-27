@@ -24,7 +24,7 @@
    $Id:$
 */
 
-package bluez;
+package btj;
 
 /**
  * Data object to represent the stats for local devices. It is used as a field in HCIDeviceInfo. This class is essentially a Java representation of the <code>hci_dev_stats</code> struct in the <code>hci.h</code> file provided in the BlueZ libraries.

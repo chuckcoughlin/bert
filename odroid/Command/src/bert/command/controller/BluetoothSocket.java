@@ -7,12 +7,11 @@ package bert.command.controller;
 import java.util.List;
 import java.util.logging.Logger;
 
-import bluez.BluetoothCharacteristic;
-import bluez.BluetoothDevice;
-import bluez.BluetoothException;
-import bluez.BluetoothManager;
-import bluez.BluetoothNotification;
-import bluez.BluetoothService;
+import btj.BluetoothCharacteristic;
+import btj.BluetoothDevice;
+import btj.BluetoothException;
+import btj.BluetoothManager;
+import btj.BluetoothService;
 
 
 /**
@@ -58,7 +57,7 @@ public class BluetoothSocket   {
 	 */
 	public boolean discover() {
 		LOGGER.warning(String.format("%s.discover: Getting bluetooth manager ...", CLSS));
-		BluetoothManager manager = BluetoothManager.getBluetoothManager();
+		BluetoothManager manager = BluetoothManager.getInstance();
 		boolean success = manager.startDiscovery();
 		if( !success ) {
 			LOGGER.warning(String.format("%s.discover: Failed to start discovery", CLSS));
@@ -109,7 +108,7 @@ public class BluetoothSocket   {
 			LOGGER.warning(String.format("%s.startup: before discovery completed",CLSS));
 		}
 		else {
-			characteristic.enableValueNotifications(new StringNotification());
+			characteristic.enableValueNotifications();
 		}
 	}
 	
@@ -157,17 +156,9 @@ public class BluetoothSocket   {
 	 */
 	public void write(String text) {
 		if( characteristic!=null ) {
-			characteristic.writeValue(text.getBytes());
+			characteristic.writeValue(text);
 		}
 	}
 	
-	
-
-	public class StringNotification implements BluetoothNotification<byte[]>  {
-		
-		public void run(byte[] bytes) {
-			LOGGER.info(String.format("%s.StringNotification: Got one!", CLSS));
-		}
-	}
 }
 

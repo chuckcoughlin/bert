@@ -24,7 +24,7 @@
    $Id:$
 */
 
-package bluez;
+package btj;
 
 /**
  * Exception thrown when problems occur within the BlueZ native code.
