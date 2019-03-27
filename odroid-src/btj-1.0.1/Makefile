@@ -13,9 +13,9 @@ CFLAGS  += -I$(INCDIR) \
 		   -fPIC -Wno-psabi
 INCDIR = include
 LDFLAGS = -shared
-LIB = /usr/lib/arm-linux-gnueabihf
+LD_LIBRARY_PATH = /usr/lib/arm-linux-gnueabihf:/usr/local/robot/lib
+LIBS = -L/usr/local/robot/lib
 LIBBTJ  = libbluetoothjni.so
-LIBS += -L$(LIB) -lbluetooth
 OBJS    = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
 
@@ -24,7 +24,10 @@ OBJDIR  = obj
 all: $(LIBBTJ) 
 
 btj: $(OBJDIR)/btj.o
-	$(CC) $(LIBS) -lbluetoothjni -o $@ $<
+	$(CC) $(LIBS) -o $@ $< -lbluetoothjni -lbluetooth
+
+simplescan: $(OBJDIR)/simplescan.o
+	$(CC) $(LIBS) -o $@ $< -lbluetooth
 
 # Compile C code
 $(OBJDIR)/%.o: src/%.c| $(OBJDIR)
@@ -33,8 +36,11 @@ $(OBJDIR)/%.o: src/%.c| $(OBJDIR)
 $(OBJDIR)/btj.o: test/btj.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
+$(OBJDIR)/simplescan.o: test/simplescan.c| $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
 $(LIBBTJ): $(OBJS)
-	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS)
+	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) -lbluetooth
 
 install:
 	-cp $(LIBBTJ) $(BERT_HOME)/lib

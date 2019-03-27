@@ -21,10 +21,10 @@ public class BluetoothManager {
     
     static {
         try {
-            System.loadLibrary("btj");
+            System.loadLibrary("bluetoothjni");
         } 
         catch (UnsatisfiedLinkError ule) {
-        	LOGGER.warning(String.format("%s.constructor: Failed to load library: libbluebert.so (%s)",CLSS,ule.getLocalizedMessage()));
+        	LOGGER.warning(String.format("%s.constructor: Failed to load library: bluetoothjni.so (%s)",CLSS,ule.getLocalizedMessage()));
         }
     }
 
