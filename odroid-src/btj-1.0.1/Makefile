@@ -10,6 +10,8 @@
 CC=gcc
 CFLAGS  += -I$(INCDIR) \
            -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" \
+		   -I/usr/include/dbus-1.0 \
+		   -I/usr/lib/arm-linux-gnueabihf/dbus-1.0/include \
 		   -fPIC -Wno-psabi
 INCDIR = include
 LDFLAGS = -shared
@@ -18,19 +20,43 @@ LIBS = -L/usr/local/robot/lib
 LIBBTJ  = libbluetoothjni.so
 OBJS    = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
+TESTS   = btj simplescan l2capserver l2capclient rfcommserver rfcommclient dbus
 
 
 #  * Compile and link the native implementation
 all: $(LIBBTJ) 
 
+# Compile C code
+$(OBJDIR)/%.o: src/%.c| $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(LIBBTJ): $(OBJS)
+	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) -lbluetooth
+
+tests: $(TESTS)
+
 btj: $(OBJDIR)/btj.o
 	$(CC) $(LIBS) -o $@ $< -lbluetoothjni -lbluetooth
+
+dbus: $(OBJDIR)/dbus.o
+	$(CC) $(LIBS) -o $@ $< -ldbus-1 
+
+l2capclient: $(OBJDIR)/l2capclient.o
+	$(CC) $(LIBS) -o $@ $< -lbluetooth
+
+l2capserver: $(OBJDIR)/l2capserver.o
+	$(CC) $(LIBS) -o $@ $< -lbluetooth
 
 simplescan: $(OBJDIR)/simplescan.o
 	$(CC) $(LIBS) -o $@ $< -lbluetooth
 
-# Compile C code
-$(OBJDIR)/%.o: src/%.c| $(OBJDIR)
+rfcommclient: $(OBJDIR)/rfcommclient.o
+	$(CC) $(LIBS) -o $@ $< -lbluetooth
+
+rfcommserver: $(OBJDIR)/rfcommserver.o
+	$(CC) $(LIBS) -o $@ $< -lbluetooth
+
+$(OBJDIR)/dbus.o: test/dbus.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OBJDIR)/btj.o: test/btj.c| $(OBJDIR)
@@ -39,14 +65,24 @@ $(OBJDIR)/btj.o: test/btj.c| $(OBJDIR)
 $(OBJDIR)/simplescan.o: test/simplescan.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(LIBBTJ): $(OBJS)
-	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) -lbluetooth
+$(OBJDIR)/l2capclient.o: test/l2capclient.c| $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(OBJDIR)/l2capserver.o: test/l2capserver.c| $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(OBJDIR)/rfcommserver.o: test/rfcommserver.c| $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+$(OBJDIR)/rfcommclient.o: test/rfcommclient.c| $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
 
 install:
 	-cp $(LIBBTJ) $(BERT_HOME)/lib
 
 clean:
-	-rm -f $(LIBBTJ) btj
+	-rm -f $(LIBBTJ) $(TESTS)
 	-rm -rf $(OBJDIR)
 
 

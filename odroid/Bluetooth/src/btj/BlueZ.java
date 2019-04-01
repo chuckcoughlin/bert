@@ -45,11 +45,6 @@ package btj;
  */
 public class BlueZ 
 {
-	// Load the library containing the native code implementation.
-	// This is usually called "libjbluez.so" under UNIX/Linux, but is loaded
-	// with the "jbluez" string, since this is how JNI implements platform
-	// independence.
-	static {System.loadLibrary("bluetoothjni");}
 
 	/* HCI Open Device */
 	/**

@@ -164,13 +164,12 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install sqlite3
   sudo apt install vsftp
   sudo apt install libjssc-java
-  sudo apt-get install libglib2.0-dev
   sudo apt-get install libbluetooth-dev
+  sudo apt-get install libdbus-1-dev
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
   sudo apt-get autoclean -y
-  sudo cp /usr/lib/arm-linux-gnueabihf/glib-2.0/include/glibconfig.h /usr/include/glib-2.0
 ```
 The reason for ``firefox`` is that we were not able to properly configure the proxy server in ``chromium``, the default browser.
 
@@ -361,6 +360,20 @@ Code from a book by Albert Huang
 of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/) helped
 me understand structures involved with discovery and data transfer.
 
+======================== BlueCove ========================================
+[bluecove](https://code.google.com/archive/p/bluecove/wikis/Documentation.wiki)
+[Linux Module](http://bluecove.org/bluecove-gpl/
+https://code.google.com/archive/p/bluecove/downloads)
+[BlueCove Examples](http://bluecove.org/bluecove-examples/index.html)
+bluecove-2.1.0.jar
+bluecove-gpl-2.1.0.jar
+and accompanying sources.
+[dbus](http://www.linuxfromscratch.org/blfs/view/stable/general/dbus.html)
+[DBUS API (how do I use this?)](https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/adapter-api.txt)
+======================================================================
+[BlueZ w/ DBUS](https://github.com/hypfvieh/bluez-dbus)
+======================================================================
+[Basics of Bluetooth](https://opensourceforu.com/2015/06/linux-without-wires-the-basics-of-bluetooth/)
 The `libbluetoothjni` library is designed to communicate with the local
 device and transfer strings back and forth with its pair (the android tablet).
 The library must be built and installed on the Odroid. Here are instructions:

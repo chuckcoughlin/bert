@@ -119,11 +119,12 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 */
 	@Override
 	public void run() {
-
+		LOGGER.info(String.format("%s: Starting run loop ...",CLSS));
 		try {
 			for(;;) {
 				lock.lock();
 				try{
+					LOGGER.info(String.format("%s: Entering wait for cycle %d ...",CLSS,cycleCount));
 					busy.await();
 					long startCycle = System.currentTimeMillis();
 					LOGGER.info(String.format("%s: Cycle %d ...",CLSS,cycleCount));
@@ -196,10 +197,11 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	
 	/**
 	 * We've gotten a request. It may have come from either a pipe
-	 * or the timer.
+	 * or the timer. Signal the busy lock, so main loop proceeds.
 	 */
 	@Override
 	public synchronized void handleRequest(MessageBottle request) {
+		LOGGER.info(String.format("%s.handleRequest: Received request %s",CLSS,request.fetchRequestType().name()));
 		lock.lock();
 		try {
 			currentRequest = request;
@@ -268,6 +270,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		else if(request.fetchRequestType().equals(RequestType.COMMAND)) {
 			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
+			LOGGER.warning(String.format("%s.createResponseForLocalRequest: command=%s",CLSS,command));
 			if( command.equalsIgnoreCase(BottleConstants.COMMAND_HALT)) {
 				System.exit(0);     // Rely on ShutdownHandler cleanup connections
 			}
@@ -283,7 +286,6 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			}
 			else {
 				String msg = String.format("Unrecognized command: %s",command);
-				LOGGER.warning(String.format("%s.createResponseForLocalRequest: %s",CLSS,msg));
 				request.assignError(msg);
 			}
 		}
@@ -384,7 +386,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		runner.createControllers();
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(runner)));
 		runner.startup();
-		runner.run();
+		runner.start();
 	}
 
 

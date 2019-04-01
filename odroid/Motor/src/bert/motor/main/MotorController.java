@@ -7,7 +7,6 @@ package bert.motor.main;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -114,9 +113,16 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				// Do nothing if the joint isn't in our group.
 				String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
 				MotorConfiguration mc = configurations.get(jointName);
-				if( mc==null ) { return; }
+				if( mc==null ) { 
+					return; 
+				}
+				else {
+					LOGGER.info(String.format("%s.receiveRequest (%s): for %s",CLSS,request.fetchRequestType().name(),jointName));
+				}
 			}
-
+			else {
+				LOGGER.info(String.format("%s.receiveRequest: Non-single group request (%s)",CLSS,request.fetchRequestType().name()));
+			}
 			running.signal();
 		}
 		finally {

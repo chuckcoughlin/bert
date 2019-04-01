@@ -7,7 +7,6 @@ package bert.motor.main;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -244,6 +243,7 @@ public class MotorGroupController implements Controller,MotorManager {
 		if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
 			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
+			LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",CLSS,request.fetchRequestType().name(),property.name(),joint.name()));
 			String text = "";
 			String jointName = Joint.toText(joint);
 			MotorConfiguration mc = model.getMotors().get(joint.name());

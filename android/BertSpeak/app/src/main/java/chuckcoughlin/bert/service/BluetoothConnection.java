@@ -50,7 +50,8 @@ public class BluetoothConnection {
 	}
 
 
-	public void openConnections(BluetoothDevice device) {
+	public void openConnections(BluetoothDevice dev) {
+	    this.device = dev;
         if( connectionThread!=null && connectionThread.isAlive() && !connectionThread.isInterrupted() ) {
 			Log.i(CLSS, "socket connection already in progress ...");
 			return;
@@ -129,8 +130,8 @@ public class BluetoothConnection {
                 Log.e(CLSS,String.format("write: Error writing to %s before connection",device.getName()));
 			}
 		}
-		catch(Exception ioe) {
-            Log.e(CLSS,String.format("write: Error writing %d bytes to %s(%s)",text.length(),device.getName(),ioe.getLocalizedMessage()));
+		catch(Exception ex) {
+            Log.e(CLSS,String.format("write: Error writing %d bytes to %s(%s)",text.length(),device.getName(),ex.getLocalizedMessage()),ex);
 		}
 	}
 	
@@ -227,20 +228,21 @@ public class BluetoothConnection {
             if( socket!=null ) {
                 try {
                     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    Log.i(CLSS,String.format("startup: opened %s for read",device.getName()));
+                    Log.i(CLSS,String.format("openPorts: opened %s for read",device.getName()));
                     try {
                         out = new PrintWriter(socket.getOutputStream(),true);
-                        Log.i(CLSS,String.format("startup: opened %s for write",device.getName()));
+                        Log.i(CLSS,String.format("openPorts: opened %s for write",device.getName()));
+                        write("Tablet is connected");
                     }
                     catch (Exception ex) {
-                        reason = String.format("The tablet failed to open a socket for reading due to %s",ex.getMessage());
-                        Log.i(CLSS,String.format("startup: ERROR opening %s for write (%s)",CLSS,device.getName(),ex.getMessage()));
+                        reason = String.format("The tablet failed to open a socket for writing due to %s",ex.getMessage());
+                        Log.i(CLSS,String.format("openPorts: ERROR opening %s for write (%s)",CLSS,device.getName(),ex.getMessage()),ex);
                         handler.handleSocketError(reason);
                     }
                 }
                 catch (Exception ex) {
                     reason = String.format("The tablet failed to open a socket for reading due to %s",ex.getMessage());
-                    Log.i(CLSS,String.format("startup: ERROR opening %s for read (%s)",CLSS,device.getName(),ex.getMessage()));
+                    Log.i(CLSS,String.format("openPorts: ERROR opening %s for read (%s)",CLSS,device.getName(),ex.getMessage()),ex);
                     handler.handleSocketError(reason);
                 }
             }

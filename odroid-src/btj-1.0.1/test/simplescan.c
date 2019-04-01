@@ -1,6 +1,7 @@
 /*
  * A simple program that detects nearby Bluetooth devices.
  * Albert Huang - "Bluetooth for Programmers"
+ * See: https://opensourceforu.com/2015/06/linux-without-wires-the-basics-of-bluetooth/
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +26,8 @@ int main(int argc, char **argv){
   }
   len  = 8;
   max_rsp = 255;
-  flags = IREQ_CACHE_FLUSH;
+  //flags = IREQ_CACHE_FLUSH;
+  flags = 0;
   ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
   num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
   if( num_rsp < 0 ) perror("hci_inquiry");

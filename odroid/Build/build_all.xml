@@ -20,7 +20,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="btj,share,motors,database,speech,command,server,terminal" />
+	<target name="build" depends="bluezdbus,share,motors,database,speech,command,server,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />
@@ -142,20 +142,19 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="btj" description="Compile the bluetooth interface library">
-			<echo message="Compile the Bluetooth interface library" />
+	<target name="bluezdbus" description="Compile the bluetooth-dbus library">
+			<echo message="Compile the Bluetooth-Dbus library" />
 			<delete dir="${temp.dir}" />
 			<mkdir dir="${temp.dir}"/>
-			<javac	srcdir="../Bluetooth/src"
+			<javac	srcdir="../BluezDbus/src"
 		       		destdir="${temp.dir}"
 					compiler="javac10+"
 					source="10" target="10"
 					debug="true"
 					modulepath="${archive.dir}"
 					includeantruntime="false"
-					nativeheaderdir="${native.include.dir}"
 			/>
-		<jar destfile="${lib.dir}/btj-1.0.1.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
+		<jar destfile="${lib.dir}/bluez-dbus-0.1.1.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
 	</target>
 	
 	<!-- Copy the new jar files and configuration files into the local deployment area. -->

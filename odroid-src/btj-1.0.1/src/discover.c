@@ -1,5 +1,5 @@
 /*
  * Bluetooth discovery interface.
  */
-int discover() {
+void discover() {
 }

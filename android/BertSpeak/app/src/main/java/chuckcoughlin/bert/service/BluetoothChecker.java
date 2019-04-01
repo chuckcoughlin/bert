@@ -104,7 +104,7 @@ public class BluetoothChecker {
                 while (cycle < 10 && !success) {
                     pairedDevices = adapter.getBondedDevices();
                     for (BluetoothDevice bluetoothDevice : pairedDevices) {
-                        if( cycle==9 ) Log.i(CLSS, String.format("BluetoothChecker: Found %s %s %s", bluetoothDevice.getName(), bluetoothDevice.getType(), bluetoothDevice.getAddress()));
+                        if( cycle==0 ) Log.i(CLSS, String.format("BluetoothChecker: Found %s %s %s", bluetoothDevice.getName(), bluetoothDevice.getType(), bluetoothDevice.getAddress()));
                         if( bluetoothDevice.getName().equalsIgnoreCase(deviceName) ) {
                             success = true;
                             handler.setBluetoothDevice(bluetoothDevice);
@@ -122,6 +122,7 @@ public class BluetoothChecker {
             }
 
             if (success) {
+                Log.i(CLSS, String.format("BluetoothChecker: Connected to %s", deviceName));
                 handler.receiveBluetoothConnection();
             }
             else {

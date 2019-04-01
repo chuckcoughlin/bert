@@ -168,7 +168,7 @@ public class Command extends Thread implements MessageHandler {
         runner.createControllers();
         Runtime.getRuntime().addShutdownHook(new ShutdownHook(runner));
         runner.startup();
-        runner.run();
+        runner.start();
 	}
 
 }

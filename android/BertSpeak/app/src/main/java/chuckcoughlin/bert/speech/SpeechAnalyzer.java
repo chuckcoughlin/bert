@@ -60,15 +60,15 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         // Max number of results. This is three attempts at deciphering, not a 3-word limit.
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
         sr.startListening(intent);
-        Log.i(CLSS,"SpeechRecognizer: listening ...");
+        Log.i(CLSS,"SpeechRecognizer: Listening for audio ...");
     }
 
     // ========================================= RecognitionListener ============================
     public void onReadyForSpeech(Bundle params)  {
-        //Log.i(CLSS, "onReadyForSpeech");
+        Log.i(CLSS, "onReadyForSpeech");
     }
     public void onBeginningOfSpeech(){
-        //Log.i(CLSS, "onBeginningOfSpeech");
+        Log.i(CLSS, "onBeginningOfSpeech");
     }
     // Background level changed ...
     public void onRmsChanged(float rmsdB){
@@ -77,7 +77,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         Log.i(CLSS, "onBufferReceived");
     }
     public void onEndOfSpeech()  {
-        //Log.i(CLSS, "onEndofSpeech");
+        Log.i(CLSS, "onEndofSpeech");
     }
     public void onError(int error)  {
         String reason = null;

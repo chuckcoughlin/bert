@@ -51,18 +51,23 @@ public class StatementParser  {
 	 */
 	public MessageBottle parseStatement(String text) throws Exception {
 		MessageBottle bottle = new MessageBottle();
-		ByteArrayInputStream bais = new ByteArrayInputStream(text.getBytes());
-		CodePointCharStream stream = CharStreams.fromString(text);
-		SpeechSyntaxLexer lexer = new QuietLexer(stream);
-		lexer.removeErrorListeners();  // Quiet lexer gripes
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
-		SpeechSyntaxParser parser = new SpeechSyntaxParser(tokens);
-		parser.removeErrorListeners(); // remove default error listener
-	    parser.addErrorListener(new SpeechErrorListener(bottle));
-		parser.setErrorHandler(new SpeechErrorStrategy(bottle));
-		ParseTree tree = parser.line();   // Start with a line
-		StatementTranslator visitor = new StatementTranslator(bottle,context);
-		visitor.visit(tree);
+		if( text!=null) {
+			ByteArrayInputStream bais = new ByteArrayInputStream(text.getBytes());
+			CodePointCharStream stream = CharStreams.fromString(text);
+			SpeechSyntaxLexer lexer = new QuietLexer(stream);
+			lexer.removeErrorListeners();  // Quiet lexer gripes
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+			SpeechSyntaxParser parser = new SpeechSyntaxParser(tokens);
+			parser.removeErrorListeners(); // remove default error listener
+			parser.addErrorListener(new SpeechErrorListener(bottle));
+			parser.setErrorHandler(new SpeechErrorStrategy(bottle));
+			ParseTree tree = parser.line();   // Start with a line
+			StatementTranslator visitor = new StatementTranslator(bottle,context);
+			visitor.visit(tree);
+		}
+		else {
+			bottle.assignError("Empty");
+		}
 		return bottle;
 	}
 	

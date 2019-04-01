@@ -3,7 +3,7 @@
  */
 module bert.command {
 	requires transitive  bert.share;
-	requires transitive bluetooth.jni;
+	requires transitive bluez.dbus;
 	requires bert.speech;
 	requires bert.sql;
 	exports bert.command.model;

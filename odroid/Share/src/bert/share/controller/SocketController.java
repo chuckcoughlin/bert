@@ -21,6 +21,7 @@ import bert.share.message.MessageHandler;
 public class SocketController implements Controller{
 	private final static String CLSS = "SocketController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
+	private static final long CLIENT_READ_ATTEMPT_INTERVAL = 15000;  // 15 secs
 	protected final NamedSocket socket;
 	protected final MessageHandler dispatcher;
 	protected Thread runner = null;
@@ -125,7 +126,13 @@ public class SocketController implements Controller{
 			
 			while(!Thread.currentThread().isInterrupted() ) {
 				MessageBottle msg = sock.read();
-				if( msg==null) continue;
+				if( msg==null ) {
+					try { 
+						Thread.sleep(CLIENT_READ_ATTEMPT_INTERVAL);  // A read error has happened, we don't want a hard loop
+						continue;
+					}
+					catch(InterruptedException ignore) {}
+				}
 				if( sock.isServer() ) {
 					receiveRequest(msg);
 				}
