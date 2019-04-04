@@ -26,7 +26,6 @@ import bert.speech.process.StatementParser;
 public class BluetoothController implements Controller {
 	private final static String CLSS = "BluetoothController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private static final long CLIENT_READ_ATTEMPT_INTERVAL = 15000;  // 15 secs
 	private final MessageHandler dispatcher;
 	private final StatementParser parser;
 	private final MessageTranslator translator;
@@ -112,13 +111,6 @@ public class BluetoothController implements Controller {
 			try {
 				while(!Thread.currentThread().isInterrupted() ) {
 					String input = sock.read();
-					if( input==null) {
-						try { 
-							Thread.sleep(CLIENT_READ_ATTEMPT_INTERVAL);  // A read error has happened, we don't want a hard loop
-							continue;
-						}
-						catch(InterruptedException ignore) {}
-					}
 					MessageBottle request = parser.parseStatement(input);
 					request.assignSource(HandlerType.COMMAND.name());
 					if( request.fetchError()==null) {
@@ -126,7 +118,7 @@ public class BluetoothController implements Controller {
 					}
 					else {
 						receiveResponse(request);  // Handle error immediately
-					}
+					}	
 				}
 			} 
 			catch (IOException ioe) {

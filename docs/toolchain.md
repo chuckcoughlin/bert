@@ -165,7 +165,7 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install vsftp
   sudo apt install libjssc-java
   sudo apt-get install libbluetooth-dev
-  sudo apt-get install libdbus-1-dev
+  # sudo apt-get install libdbus-1-dev
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
@@ -354,51 +354,92 @@ We use PyDev to browse the original *Poppy* and *iCub* code.
 
 *** Bluetooth *** <br/>
 Programmatic access to Bluetooth requires a native interface to the Odroid's
-shared  library `libbluetooth.so` (BlueZ 5.48). A minimalist implementation [JBlueZ](http://jbluez.sourceforge.net/)
+shared  library `libbluetooth.so` (BlueZ 5.48).
+
+The JNI library must be built on the Odroid. To install the source:
+* Modify the script **install_odroid_source.sh** so that it points to the directory
+on the Odroid where the build will take place. Execute the script.
+
+Then, on the Odroid, in that directory -
+
+======================== TinyB ========================================
+[TinyB](https://github.com/intel-iot-devkit/tinyb ) is a library and Java classes for Bluetooth LE communication.
+ The original distribution builds with `cmake`, but I was never
+able to get that working. I just created a custom `Makefile` to build the code.
+[Doc](https://software.intel.com/en-us/java-for-bluetooth-le-apps) [Examples](https://github.com/intel-iot-devkit/tinyb/tree/master/examples).
+
+Currently integrated with main robot application.
+
+TODO:  when loading the library...
+      Undefined symbol: g_str_equal
+      UnsatisfiedLinkError: tinyb.BluetoothManager.getNativePIVersion()
+
+======================== JBlueZ =====================================
+Based on a minimalist implementation
+[JBlueZ](http://jbluez.sourceforge.net/)
 by Edward Kay provided great example of the Java Native Interface (JNI).
-Code from a book by Albert Huang
+
+This is an attempt to use JNI and link directly to libbluetooth.so.
+
+ Unfortunately this package requires J2ME, which is not the Java on the
+Odroid.
+
+We include sample test applications from code from a book by Albert Huang
 of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/) helped
 me understand structures involved with discovery and data transfer.
 
-======================== BlueCove ========================================
+On the development machine, under the Eclipse build project:
+* Execute `build_jbluez.xml` to compile the Java classes and create include files
+for the JNI library.
+
+```
+  make -e
+  make install
+  make bluez
+```
+
+In addition to the shared library, _libbluetoothjni.so_, the build process creates
+application `jbluez` that provides command-line access for testing.
+For a list of options, type:
+```
+  bluez -h
+```
+
+To run the Java test ...
+```
+  ./run_bluez.sh
+```
+
+TODO: Requires J2ME
+
+======================== BlueCove =====================================
+https://github.com/luugiathuy/Remote-Bluetooth-Android/blob/master/RemoteBluetoothServer/src/com/luugiathuy/apps/remotebluetooth
+http://luugiathuy.com/2011/02/android-java-bluetooth/ - Simple connection using bluecove.
+Used this as a minimalist starting point.
+
 [bluecove](https://code.google.com/archive/p/bluecove/wikis/Documentation.wiki)
 [Linux Module](http://bluecove.org/bluecove-gpl/
-https://code.google.com/archive/p/bluecove/downloads)
 [BlueCove Examples](http://bluecove.org/bluecove-examples/index.html)
-bluecove-2.1.0.jar
+
+[Download](https://code.google.com/archive/p/bluecove/downloads)
+includes source for libraries.
+
+bluecove-2.1.0.jar (includes javax.microedition classes).
 bluecove-gpl-2.1.0.jar
-and accompanying sources.
-[dbus](http://www.linuxfromscratch.org/blfs/view/stable/general/dbus.html)
-[DBUS API (how do I use this?)](https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/adapter-api.txt)
-======================================================================
-[BlueZ w/ DBUS](https://github.com/hypfvieh/bluez-dbus)
-======================================================================
+Jar files include too many dependencies to modularize as-is. We decided to add
+classes as necessary
+
+
+TODO: Makefile for libbluecove.jnilib, and libbluecove.so
+TODO: Remove the Java dependency on J2ME.
+
+=======================================================================================
 [Basics of Bluetooth](https://opensourceforu.com/2015/06/linux-without-wires-the-basics-of-bluetooth/)
 The `libbluetoothjni` library is designed to communicate with the local
 device and transfer strings back and forth with its pair (the android tablet).
 The library must be built and installed on the Odroid. Here are instructions:
 
-On the development machine, under the Eclipse build project:
-* Execute `build_btj.xml` to compile the Java classes and create include files
-for the JNI library.
-* Modify the script **install_odroid_source.sh** so that it points to the directory
-on the Odroid where the build will take place. Execute the script.
 
-Then, on the Odroid,
-in that directory -
-
-```
-  make -e
-  make install
-  make btj
-```
-
-In addition to the shared library, _libbluetoothjni.so_, the build process creates
-application `btj` that provides command-line access for testing.
-For a list of options, type:
-```
-  btj -h
-```
 
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)

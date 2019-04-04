@@ -3,7 +3,6 @@
 	<import file="${basedir}/build.xml"/>
 	<property name="bin.dir" value="${basedir}/../Configuration/bin" />
 	<property name="config.dir" value="${basedir}/../Configuration/etc" />
-	<property name="native.include.dir" value="../../odroid-src/btj-1.0.1/include"/>
 	
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean, build, deploy" />
@@ -20,7 +19,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="bluezdbus,share,motors,database,speech,command,server,terminal" />
+	<target name="build" depends="tinyb,share,motors,database,speech,command,server,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />
@@ -142,11 +141,11 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="bluezdbus" description="Compile the bluetooth-dbus library">
-			<echo message="Compile the Bluetooth-Dbus library" />
+	<target name="tinyb" description="Compile the bluetooth tinyb library">
+			<echo message="Compile the Bluetooth TinyB library" />
 			<delete dir="${temp.dir}" />
 			<mkdir dir="${temp.dir}"/>
-			<javac	srcdir="../BluezDbus/src"
+			<javac	srcdir="../TinyB/src"
 		       		destdir="${temp.dir}"
 					compiler="javac10+"
 					source="10" target="10"
@@ -154,7 +153,7 @@
 					modulepath="${archive.dir}"
 					includeantruntime="false"
 			/>
-		<jar destfile="${lib.dir}/bluez-dbus-0.1.1.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
+		<jar destfile="${lib.dir}/tinyb-0.5.1.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
 	</target>
 	
 	<!-- Copy the new jar files and configuration files into the local deployment area. -->

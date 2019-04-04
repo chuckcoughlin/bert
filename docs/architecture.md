@@ -177,8 +177,3 @@ export JAVA_AWT_INCLUDE_PATH=$JAVA_HOME/include
 ```
 Since the purpose of all this was to generate a Makefile of about 50 lines, I
 did it the old-fashioned way and edited it by hand, to use `make` directly.
-
-*** TinyB *** <br/>
-[TinyB](https://github.com/intel-iot-devkit/tinyb ) is a library and Java classes for Bluetooth LE communication. The JNI library must be built and
-installed on the Odroid. The original distribution builds with `cmake`, but as noted previously, I never got was able to get that working. My `Makefile` built the code, but I was left with unsatisfied externals when loading the library. I
-was never able to resolve the issue and abandoned `TinyB`.

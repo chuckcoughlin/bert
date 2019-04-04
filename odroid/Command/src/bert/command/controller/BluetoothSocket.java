@@ -7,11 +7,12 @@ package bert.command.controller;
 import java.util.List;
 import java.util.logging.Logger;
 
-import btj.BluetoothCharacteristic;
-import btj.BluetoothDevice;
-import btj.BluetoothException;
-import btj.BluetoothManager;
-import btj.BluetoothService;
+import tinyb.BluetoothDevice;
+import tinyb.BluetoothException;
+import tinyb.BluetoothGattCharacteristic;
+import tinyb.BluetoothGattService;
+import tinyb.BluetoothManager;
+import tinyb.BluetoothNotification;
 
 
 /**
@@ -31,9 +32,9 @@ public class BluetoothSocket   {
 	private static final int READ_POLL_INTERVAL = 60000; 
 	private final String mac;
 	private final String uuid;
-	private BluetoothCharacteristic characteristic;
+	private BluetoothGattCharacteristic characteristic;
 	private BluetoothDevice device;
-	private BluetoothService service;
+	private BluetoothGattService service;
 
 	/**
 	 * Constructor:
@@ -57,7 +58,7 @@ public class BluetoothSocket   {
 	 */
 	public boolean discover() {
 		LOGGER.warning(String.format("%s.discover: Getting bluetooth manager ...", CLSS));
-		BluetoothManager manager = BluetoothManager.getInstance();
+		BluetoothManager manager = BluetoothManager.getBluetoothManager();
 		boolean success = manager.startDiscovery();
 		if( !success ) {
 			LOGGER.warning(String.format("%s.discover: Failed to start discovery", CLSS));
@@ -72,8 +73,8 @@ public class BluetoothSocket   {
 					for(BluetoothDevice dev:devices) {
 						LOGGER.info(String.format("%s.discover: found paired device %s at %s", CLSS,dev.getName(),dev.getAddress()));
 						if( dev.getAddress().equalsIgnoreCase(mac)) {
-							List<BluetoothService> services = dev.getServices();
-							for(BluetoothService serv:services) {
+							List<BluetoothGattService> services = dev.getServices();
+							for(BluetoothGattService serv:services) {
 								if( serv.getUUID().equalsIgnoreCase(uuid)) {
 									this.service = serv;
 									this.device = dev;
@@ -108,7 +109,7 @@ public class BluetoothSocket   {
 			LOGGER.warning(String.format("%s.startup: before discovery completed",CLSS));
 		}
 		else {
-			characteristic.enableValueNotifications();
+			characteristic.enableValueNotifications(new StringNotification());
 		}
 	}
 	
@@ -156,9 +157,17 @@ public class BluetoothSocket   {
 	 */
 	public void write(String text) {
 		if( characteristic!=null ) {
-			characteristic.writeValue(text);
+			characteristic.writeValue(text.getBytes());
 		}
 	}
 	
+	
+
+	public class StringNotification implements BluetoothNotification<byte[]>  {
+		
+		public void run(byte[] bytes) {
+			LOGGER.info(String.format("%s.StringNotification: Got one!", CLSS));
+		}
+	}
 }
 
