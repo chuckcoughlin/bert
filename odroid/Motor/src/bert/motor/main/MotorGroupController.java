@@ -88,6 +88,7 @@ public class MotorGroupController implements Controller,MotorManager {
 				Thread t = new Thread(controller);
 				motorControllers.put(group, controller);
 				motorControllerThreads.put(group, t);
+				LOGGER.info(String.format("%s.initialize: Added motor in group %s",CLSS,controller.getGroupName()));
 
 				// Add configurations to the controller for each motor in the group
 				List<String> jointNames = model.getJointNamesForGroup(group);
@@ -98,7 +99,7 @@ public class MotorGroupController implements Controller,MotorManager {
 						motorNameById.put(motor.getId(), jname);
 					}
 					else {
-						LOGGER.warning(String.format("%s.createMotorGroups: Motor %s not found in %s",CLSS,jname,group));
+						LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",CLSS,jname,group));
 					}
 				}
 			}
@@ -141,7 +142,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	 * 	1) Requests that can be satisfied from information in our static
 	 *     configuration. Compose results and return immediately. 
 	 *  2) Commands or requests that can be satisfied by a single port handler,
-	 *     for example requesting status of commanding control of a single joint.
+	 *     for example requesting status or commanding control of a single joint.
 	 *     In this case, we blindly send the request to all port handlers, but
 	 *     expect a reply from only one.
 	 *  3) Global commands or requests. These apply to all motor groups. Examples
@@ -166,6 +167,7 @@ public class MotorGroupController implements Controller,MotorManager {
 			lock.lock();
 			motorsProcessed = 0;
 			positionsInProcess.clear();
+			LOGGER.info(String.format("%s.processRequest: processing %s",CLSS,request.fetchRequestType().name()));
 			for( String key:motorControllers.keySet()) {
 				motorControllers.get(key).receiveRequest(request);
 			}
@@ -201,8 +203,9 @@ public class MotorGroupController implements Controller,MotorManager {
 		this.request.notify();	
 	}
 	/**
-	 * This method is called by the serial controllers. Within them each individual motor generates
-	 * a call. When we have heard from all of them, trigger a reply.
+	 * Update the position map with the response from a single serial controller. 
+	 * Within it each individual motor generates a call. When we have heard from all 
+	 * of them, trigger a reply.
 	 * @param map position of an individual motor.
 	 */
 	public void collectPositions(Map<Integer,Integer> map) {

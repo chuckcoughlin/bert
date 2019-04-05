@@ -6,11 +6,11 @@
 package bert.motor.dynamixel;
 
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import bert.share.common.DynamixelType;
 import bert.share.message.BottleConstants;
+import bert.share.motor.JointProperty;
 
 /**
  * This class contains static methods used to create and interpret different varieties \
@@ -76,18 +76,22 @@ public class DxlMessage  {
 	 * @param id of the motor
 	 * @return byte array with command to read the position
 	 */
-	public static byte[] bytesToGetPosition(int id) {
+	public static byte[] bytesToGetPosition(int id,DynamixelType model) {
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes);
-		bytes[4] = (byte)id; 
-		bytes[5] = (byte)length; 
-		bytes[6] = 0;
-		bytes[7] = READ;
-		bytes[8] = 0x24;    // Current position
-		bytes[9] = 0;
-		bytes[10] = 0x04;   // 4 bytes
-		bytes[11] = 0;
+		setHeader(bytes,id,model);
+		if( model.equals(DynamixelType.AX12)) {
+			LOGGER.info(String.format("%s.bytesToGetPosition: Protocol 1 not implemented",CLSS));
+		}
+		else {
+			bytes[5] = (byte)length; 
+			bytes[6] = 0;
+			bytes[7] = READ;
+			bytes[8] = 0x24;    // Current position
+			bytes[9] = 0;
+			bytes[10] = 0x04;   // 4 bytes
+			bytes[11] = 0;
+		}
 		setCrc(bytes);
 		return bytes;
 	}
@@ -102,15 +106,19 @@ public class DxlMessage  {
 		int dxlSpeed = DxlConversions.speedToDxl(model, speed);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes);
-		bytes[4] = (byte)id; 
-		bytes[5] = (byte)length; 
-		bytes[6] = 0;
-		bytes[7] = WRITE;
-		bytes[8] = 0x20;    // Moving speed
-		bytes[9] = 0;
-		bytes[10] = (byte)(dxlSpeed >>8);
-		bytes[11] = (byte)(dxlSpeed & 0xFF);
+		setHeader(bytes,id,model);
+		if( model.equals(DynamixelType.AX12)) {
+			LOGGER.info(String.format("%s.bytesToSetSpeed: Protocol 1 not implemented",CLSS));
+		}
+		else {
+			bytes[5] = (byte)length; 
+			bytes[6] = 0;
+			bytes[7] = WRITE;
+			bytes[8] = 0x20;    // Moving speed
+			bytes[9] = 0;
+			bytes[10] = (byte)(dxlSpeed >>8);
+			bytes[11] = (byte)(dxlSpeed & 0xFF);
+		}
 		setCrc(bytes);
 		return bytes;
 	}
@@ -125,15 +133,19 @@ public class DxlMessage  {
 		int dxlTorque = DxlConversions.torqueToDxl(model, goal);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes);
-		bytes[4] = (byte)id; 
-		bytes[5] = (byte)length; 
-		bytes[6] = 0;
-		bytes[7] = WRITE;
-		bytes[8] = 0x22;    // Torque Goal
-		bytes[9] = 0;
-		bytes[10] = (byte)(dxlTorque >>8);
-		bytes[11] = (byte)(dxlTorque & 0xFF);
+		setHeader(bytes,id,model); 
+		if( model.equals(DynamixelType.AX12)) {
+			LOGGER.info(String.format("%s.bytesToSetTorque: Protocol 1 not implemented",CLSS));
+		}
+		else {
+			bytes[5] = (byte)length; 
+			bytes[6] = 0;
+			bytes[7] = WRITE;
+			bytes[8] = 0x22;    // Torque Goal
+			bytes[9] = 0;
+			bytes[10] = (byte)(dxlTorque >>8);
+			bytes[11] = (byte)(dxlTorque & 0xFF);
+		}
 		setCrc(bytes);
 		return bytes;
 	}
@@ -167,14 +179,30 @@ public class DxlMessage  {
 	 * @param props properties from the original request
 	 */
 	public static void updatePositionFromBytes(byte[] bytes,Map<String,String> props) {
-		int length = 7;  // Remaining bytes past length including crc
-		if( bytes.length<length ) {
-			String msg = String.format("%s.updatePositionFromBytes: Message too short: %s",CLSS,dump(bytes));
-			props.put(BottleConstants.PROPERTY_ERROR, msg);
+		if( verifyProtocol2Header(bytes) ) {
+			String msg = String.format("%s.updatePositionFromBytes: Protocol2 unimplemented - %s",CLSS,dump(bytes));
+			LOGGER.info(msg);
 		}
-		else if( !verifyHeader(bytes) ) {
-			String msg = String.format("%s.updatePositionFromBytes: Header not found: %s",CLSS,dump(bytes));
-			props.put(BottleConstants.PROPERTY_ERROR, msg);
+		else if( verifyProtocol1Header(bytes) ) {
+			if( bytes.length>5 ) {
+				int id = bytes[2];
+				int err= bytes[4];
+				int pos= bytes[5];
+				if( err==0 ) {
+					props.put(BottleConstants.PROPERTY_PROPERTY,JointProperty.POSITION.name());
+					props.put(BottleConstants.VALUE, String.valueOf(pos));
+				}
+				else {
+					String msg = String.format("%s.updatePositionFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
+					props.put(BottleConstants.PROPERTY_ERROR, msg);
+					LOGGER.severe(msg);
+				}
+			}
+			else {
+				String msg = String.format("%s.updatePositionFromBytes: Message too short: %s",CLSS,dump(bytes));
+				props.put(BottleConstants.PROPERTY_ERROR, msg);
+				LOGGER.severe(msg);
+			}
 		}
 		else {
 			String msg = String.format("%s.updatePositionFromBytes: Unimplemented %s",CLSS,dump(bytes));
@@ -192,24 +220,39 @@ public class DxlMessage  {
 	public static void updatePositionArrayFromBytes(byte[] bytes,Map<Integer,Integer> positions) {
 		int length = 7;  // Expected total length of the buffer
 		if( bytes.length<length ) {
-			LOGGER.severe(String.format("%s.updatePositionFromBytes: Message too short: %s",CLSS,dump(bytes)));
+			LOGGER.severe(String.format("%s.updatePositionArrayFromBytes: Message too short: %s",CLSS,dump(bytes)));
 		}
-		else if( !verifyHeader(bytes) ) {
-			LOGGER.severe(String.format("%s.updatePositionArrayFromBytes: Header not found: %s",CLSS,dump(bytes)));
+		else if( verifyProtocol2Header(bytes) ) {
+			String msg = String.format("%s.updatePositionArrayFromBytes: Protocol2 unimplemented - %s",CLSS,dump(bytes));
+			LOGGER.info(msg);
+		}
+		else if( verifyProtocol1Header(bytes) ) {
+			String msg = String.format("%s.updatePositionArrayFromBytes: Protocol1 unimplemented - %s",CLSS,dump(bytes));
+			LOGGER.info(msg);
 		}
 		else {
-			String msg = String.format("%s.updatePositionFromBytes: Unimplemented - %s",CLSS,dump(bytes));
-			LOGGER.info(msg);
+			LOGGER.severe(String.format("%s.updatePositionArrayFromBytes: Header not found: %s",CLSS,dump(bytes)));
+			
 		}
 	}
 	// ===================================== Private Methods =====================================
 	
-	// The first 4 bytes of all messages are the same
-	private static void setHeader(byte[] bytes) {
+	// Set the header up until the length field. The header differs depending on the 
+	// protocol. It includes the device ID
+	private static void setHeader(byte[] bytes, int id, DynamixelType model) {
 		bytes[0] = (byte)0xFF;
 		bytes[1] = (byte)0xFF;
-		bytes[2] = (byte)0xFD;
-		bytes[3] = 0;
+		// Protocol 1
+		if( model.equals(DynamixelType.AX12) ) {
+			bytes[3] = (byte) id;
+		}
+		// Protocol 2
+		else {
+			bytes[2] = (byte)0xFD;
+			bytes[3] = 0;
+			bytes[4] = (byte) id;
+		}
+		
 	}
 	/**
 	 * Consider bytes 0-(len-2), then insert into last 2 bytes. "oversize" variables
@@ -229,14 +272,28 @@ public class DxlMessage  {
 	    buf[size+1] = (byte) ((crc >> 8) & 0xFF);
 	}
 	
-
-	private static boolean verifyHeader(byte[] bytes) {
+	/**
+	 * Use this only after Protocol2 returns negative. In particular, the AX-12
+	 * motors are Protocol 1.
+	 */
+	private static boolean verifyProtocol1Header(byte[] bytes) {
+		boolean result = false;
+		if( bytes.length> 3 &&
+			bytes[0]==0xFF  &&
+			bytes[0]==0xFF  
+		  ) {
+			
+			result = true;
+		}
+		return result;
+	}
+	private static boolean verifyProtocol2Header(byte[] bytes) {
 		boolean result = false;
 		if( bytes.length> 5 &&
 			bytes[0]==0xFF  &&
-			bytes[0]==0xFF  &&
-			bytes[0]==0xFD  &&
-			bytes[0]==0    ) {
+			bytes[1]==0xFF  &&
+			bytes[2]==0xFD  &&
+			bytes[3]==0    ) {
 			
 			result = true;
 		}
@@ -251,8 +308,7 @@ public class DxlMessage  {
 	 */
 	public static void main(String [] args) {
         byte[] bytes = new byte[16];
-        setHeader(bytes);
-        bytes[4] = 0x01; 
+        setHeader(bytes,0x01,DynamixelType.MX28); 
 		bytes[5] = 0x09; 
 		bytes[6] = 0;
 		bytes[7] = WRITE;
@@ -267,8 +323,7 @@ public class DxlMessage  {
         System.out.println("WRITE  with CRC: "+dump(bytes));
         
         bytes = new byte[11];
-        setHeader(bytes);
-        bytes[4] = 0x01; 
+        setHeader(bytes,0x01,DynamixelType.MX64); 
 		bytes[5] = 0x04; 
 		bytes[6] = 0;
 		bytes[7] = STATUS_RETURN;

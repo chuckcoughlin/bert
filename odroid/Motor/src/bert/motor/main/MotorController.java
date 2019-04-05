@@ -109,19 +109,23 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	public void receiveRequest(MessageBottle request) {
 		lock.lock();
 		try {
+			
 			if( isSingleGroupRequest(request)) {
 				// Do nothing if the joint isn't in our group.
 				String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
+				LOGGER.info(String.format("%s.receiveRequest: processing %s for %s",CLSS,request.fetchRequestType().name(),jointName));
 				MotorConfiguration mc = configurations.get(jointName);
 				if( mc==null ) { 
 					return; 
 				}
 				else {
 					LOGGER.info(String.format("%s.receiveRequest (%s): for %s",CLSS,request.fetchRequestType().name(),jointName));
+					//motorManager.collectProperties(props);
 				}
 			}
 			else {
 				LOGGER.info(String.format("%s.receiveRequest: Non-single group request (%s)",CLSS,request.fetchRequestType().name()));
+				//motorManager.collectPositions(map);
 			}
 			running.signal();
 		}
@@ -172,7 +176,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				MotorConfiguration mc = configurations.get(jointName);
 				JointProperty jp = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, "NONE"));
 				if( jp.equals(JointProperty.POSITION)) {
-					bytes = DxlMessage.bytesToGetPosition(mc.getId());
+					bytes = DxlMessage.bytesToGetPosition(mc.getId(),mc.getType());
 				}
 				else {
 					LOGGER.severe(String.format("%s.messageToBytes: Unimplemented GET_CONFIGURATION for %s",CLSS,jp.name()));
@@ -231,6 +235,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	 * Handle the response from the serial request. 
 	 */
 	public void serialEvent(SerialPortEvent event) {
+		LOGGER.info(String.format("%s.serialEvent callback! port %s: type %d",CLSS,event.getPortName(),event.getEventType()));
 		if(event.isRXCHAR() && request!=null ){
         	// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();
