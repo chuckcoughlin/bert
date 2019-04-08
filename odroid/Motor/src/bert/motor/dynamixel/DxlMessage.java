@@ -21,7 +21,7 @@ import bert.share.motor.JointProperty;
  */
 @SuppressWarnings("unused")
 public class DxlMessage  {
-	private static final String CLSS = "DxlMessage";
+	private static final String CLSS = "PortTest";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final byte BROADCAST_ID = (byte)0xFE; // ID to transmit to all devices connected to port
 	// Constants for the instructions

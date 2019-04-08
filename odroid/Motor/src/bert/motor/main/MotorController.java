@@ -85,9 +85,9 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		for(String key:configurations.keySet()) {
 			MotorConfiguration mc = configurations.get(key);
 			int id = mc.getId();
-			byte[] bytes = DxlMessage.bytesToSetSpeed(id,mc.getType(),mc.getSpeed());
+			byte[] bytes = PortTest.bytesToSetSpeed(id,mc.getType(),mc.getSpeed());
 			writeBytesToSerial(bytes);
-			bytes = DxlMessage.bytesToSetTorque(id,mc.getType(),mc.getTorque());
+			bytes = PortTest.bytesToSetTorque(id,mc.getType(),mc.getTorque());
 			writeBytesToSerial(bytes);
 		}
 		*/
