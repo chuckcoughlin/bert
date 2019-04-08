@@ -16,9 +16,11 @@ import java.util.logging.Logger;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
 import bert.share.logging.LoggerUtility;
+import bert.share.message.BottleConstants;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
+import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
@@ -36,6 +38,7 @@ import bert.term.model.RobotTerminalModel;
 public class Terminal extends Thread implements MessageHandler {
 	private final static String CLSS = "Terminal";
 	private static final String USAGE = "Usage: terminal <robot_root>";
+	private static final long EXIT_WAIT_INTERVAL = 1000;
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotTerminalModel model;
@@ -83,7 +86,12 @@ public class Terminal extends Thread implements MessageHandler {
 				try{
 					busy.await();
 					if( currentRequest==null) break;
-					socketController.receiveRequest(currentRequest);	
+					socketController.receiveRequest(currentRequest);
+					if( currentRequest.fetchRequestType().equals(RequestType.COMMAND)        &&
+						BottleConstants.COMMAND_HALT.equalsIgnoreCase(currentRequest.getProperties().get(BottleConstants.COMMAND_NAME)) ) {
+						Thread.sleep(EXIT_WAIT_INTERVAL);
+						break;
+					}
 				}
 				catch(InterruptedException ie ) {}
 				finally {

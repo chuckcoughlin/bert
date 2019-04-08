@@ -31,13 +31,6 @@ package com.intel.bluetooth;
  */
 class NativeTestInterfaces {
 
-	static boolean loadDllMS() {
-		return NativeLibLoader.isAvailable(BlueCoveImpl.NATIVE_LIB_MS);
-	}
-
-	static boolean loadDllWIDCOMM() {
-		return NativeLibLoader.isAvailable(BlueCoveImpl.NATIVE_LIB_WIDCOMM);
-	}
 
 	static native byte[] testUUIDConversion(byte[] uuidValue);
 

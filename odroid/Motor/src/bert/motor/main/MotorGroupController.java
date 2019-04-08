@@ -50,7 +50,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	private int motorCount;
 	private int motorsProcessed;
 
-	private final Map<String,Integer> positionsInProcess;
+	private final Map<String,String> positionsInProcess;
 	/**
 	 * Constructor:
 	 * @param m the server model
@@ -88,13 +88,14 @@ public class MotorGroupController implements Controller,MotorManager {
 				Thread t = new Thread(controller);
 				motorControllers.put(group, controller);
 				motorControllerThreads.put(group, t);
-				LOGGER.info(String.format("%s.initialize: Added motor in group %s",CLSS,controller.getGroupName()));
+				LOGGER.info(String.format("%s.initialize: Created motor controller for group %s",CLSS,controller.getGroupName()));
 
 				// Add configurations to the controller for each motor in the group
 				List<String> jointNames = model.getJointNamesForGroup(group);
 				for( String jname:jointNames ) {
 					MotorConfiguration motor = motors.get(jname.toUpperCase());
 					if( motor!=null ) {
+						LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,jname,controller.getGroupName()));
 						controller.putMotorConfiguration(jname, motor);
 						motorNameById.put(motor.getId(), jname);
 					}
@@ -213,13 +214,13 @@ public class MotorGroupController implements Controller,MotorManager {
 			for( Integer key:map.keySet() ) {
 				Integer pos = map.get(key);
 				String name = motorNameById.get(key);
-				positionsInProcess.put(name, pos);
+				positionsInProcess.put(name, String.valueOf(pos));
 			}
 		}
 		motorsProcessed++;
 		if(motorsProcessed>=motorCount ) {
 			this.response = this.request;
-			this.response.setPositions(positionsInProcess);
+			this.response.setJointValues(positionsInProcess);
 			waiting.signal();	
 		}
 	}
@@ -227,7 +228,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	// Queries of fixed properties of the motors are the kinds of requests that can be handled
 	// immediately
 	private boolean canHandleImmediately(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
+		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY)) {
 			// Certain properties are constants available from the configuration file.
 			String property = request.getProperty(BottleConstants.PROPERTY_PROPERTY,"");
 			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
@@ -237,13 +238,16 @@ public class MotorGroupController implements Controller,MotorManager {
 				return true;
 			}
 		}
+		else if( request.fetchRequestType().equals(RequestType.GET_METRICS)) {
+			return true;
+		}
 		return false;
 	}
 
 	// The "local" response is simply the original request with some text
-	// to send directly to the user. These values are obtained from the initial configuration.
+	// to return directly to the user. These jointValues are obtained from the initial configuration.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
+		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY)) {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
 			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
 			LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",CLSS,request.fetchRequestType().name(),property.name(),joint.name()));
@@ -277,40 +281,46 @@ public class MotorGroupController implements Controller,MotorManager {
 			}
 			request.setProperty(BottleConstants.TEXT, text);
 		}
+		// Log results as well as returning them.
+		else if( request.fetchRequestType().equals(RequestType.GET_METRICS)) {
+			String text = "The configuration has been written to the logs";
+			request.setProperty(BottleConstants.TEXT, text);
+			for( String group:motorControllers.keySet() ) {
+				MotorController controller = motorControllers.get(group);
+				Map<String,MotorConfiguration> map = controller.getConfigurations();
+				for(String joint:map.keySet()) {
+					MotorConfiguration mc = map.get(joint);
+					LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",joint,mc.getId(),mc.getType().name(),
+									mc.getMinAngle(),mc.getMaxAngle(),mc.getOffset(),(mc.isDirect()?"":"(indirect)") ));
+					request.setProperty(BottleConstants.PROPERTY_JOINT, joint);
+					request.setJointValue(JointProperty.ID.name(), String.valueOf(mc.getId()));
+					request.setJointValue(JointProperty.MOTORTYPE.name(), mc.getType().name());
+					request.setJointValue(JointProperty.MINIMUMANGLE.name(), String.valueOf(mc.getMinAngle()));
+					request.setJointValue(JointProperty.MAXIMUMANGLE.name(), String.valueOf(mc.getMaxAngle()));
+					request.setJointValue(JointProperty.OFFSET.name(), String.valueOf(mc.getOffset()));
+					request.setJointValue(JointProperty.ORIENTATION.name(), (mc.isDirect()?"direct":"indirect"));
+				}
+			}
+		}
 		return request;
 	}
 	// When in development mode, simulate something reasonable as a response.
 	private MessageBottle simulateResponseForRequest(MessageBottle request) {
 		RequestType requestType = request.fetchRequestType();
-		if( requestType.equals(RequestType.GET_CONFIGURATION)) {
+		if( requestType.equals(RequestType.GET_MOTOR_PROPERTY)) {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
 			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
 			String text = "";
 			String jointName = Joint.toText(joint);
 			MotorConfiguration mc = model.getMotors().get(joint.name());
 			switch(property) {
-			case ID:
-				int id = mc.getId();
-				text = "The id of my "+jointName+" is "+id;
-				break;
-			case MOTORTYPE:
-				String modelName = "A X 12";
-				if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
-				else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
-				text = "My "+jointName+" is a dynamixel M X "+modelName;
-				break;
-			case OFFSET:
-				double offset = mc.getOffset();
-				text = "The offset of my "+jointName+" is "+offset;
-				break;
-			case ORIENTATION:
-				String orientation = "indirect";
-				if( mc.isDirect() ) orientation = "direct";
-				text = "The orientation of my "+jointName+" is "+orientation;
+			case POSITION:
+				int position = 0;
+				text = "The position of my "+jointName+" is "+position;
 				break;
 			default:
 				text = "";
-				request.assignError(property.name()+" is not a property that I can look up");
+				request.assignError(property.name()+" is not a property that I can read");
 				break;
 			}
 			request.setProperty(BottleConstants.TEXT, text);

@@ -47,7 +47,7 @@ public class MotorConfiguration implements Serializable  {
 	} 
 	
 	/** 
-	 * Constructor: Sets fixed attributes. The rest are left at default values.
+	 * Constructor: Sets fixed attributes. The rest are left at default jointValues.
 	 * @param name of the motor
 	 * @param type Dynamixel model
 	 * @param isDirect true if orientation is "forward"

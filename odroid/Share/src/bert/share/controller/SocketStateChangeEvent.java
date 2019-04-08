@@ -22,7 +22,7 @@ public class SocketStateChangeEvent extends EventObject {
 	 * Constructor. Value is a simple object (not null,not a QualifiedValue)
 	 * @param source the event originator
 	 * @param name the name of the connection that originated the event
-	 * @param state the new state taken from one of the defined values in this class
+	 * @param state the new state taken from one of the defined jointValues in this class
 	 */
 	public SocketStateChangeEvent(Object source,String name,String state)  {
 		super(source);

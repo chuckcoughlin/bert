@@ -40,6 +40,7 @@ public class NamedSocket   {
 	private Socket socket;
 	private BufferedReader in = null;
 	private PrintWriter out =null;
+	private Thread readThread = null;
 
 	/**
 	 * Constructor: Use this constructor from the server process.
@@ -158,6 +159,7 @@ public class NamedSocket   {
 	 */
 	public void shutdown() {
 		LOGGER.info(String.format("%s.shutdown: %s ... ",CLSS,name));
+		if( readThread!=null ) readThread.interrupt();
 		if(in!=null) {
 			try{ in.close();} catch(IOException ignore) {}
 			in = null;
@@ -171,7 +173,7 @@ public class NamedSocket   {
 			if(serverSocket!=null) serverSocket.close();
 		}
 		catch(IOException ioe) {}
-			
+		LOGGER.info(String.format("%s.shutdown: %s complete.",CLSS,name));	
 	}
 	/**
 	 * Read from the socket. The read will block and wait for data to appear. 
@@ -182,6 +184,7 @@ public class NamedSocket   {
 	 */
 	public MessageBottle read() {
 		MessageBottle bottle = null;
+		readThread = Thread.currentThread();
 		try {
 			if(in!=null )  {
 				LOGGER.info(String.format("%s.read: reading %s ... ",CLSS,name));

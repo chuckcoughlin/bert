@@ -84,17 +84,9 @@ public class BlueCoveImpl {
 	public static final int nativeLibraryVersionExpected = versionMajor1 * 1000000 + versionMajor2 * 10000
 			+ versionMinor * 100 + versionBuild;
 
-	public static final String STACK_WINSOCK = "winsock";
-
-	public static final String STACK_WIDCOMM = "widcomm";
-
-	public static final String STACK_BLUESOLEIL = "bluesoleil";
-
-	public static final String STACK_TOSHIBA = "toshiba";
 
 	public static final String STACK_BLUEZ = "bluez";
 
-	public static final String STACK_OSX = "mac";
 
 	public static final String STACK_EMULATOR = "emulator";
 
@@ -104,11 +96,6 @@ public class BlueCoveImpl {
 	// This variable can be used to simplify development/test builds
 	private static final boolean oneDLLbuild = false;
 
-	public static final String NATIVE_LIB_MS = "intelbth";
-
-	public static final String NATIVE_LIB_WIDCOMM = oneDLLbuild ? NATIVE_LIB_MS : "bluecove";
-
-	public static final String NATIVE_LIB_TOSHIBA = "bluecove";
 
 	public static final String NATIVE_LIB_BLUEZ = "bluecove";
 
@@ -117,7 +104,6 @@ public class BlueCoveImpl {
 	/**
 	 * To work on BlueSoleil version 2.3 we need to compile C++ code /MT the same as winsock.
 	 */
-	public static final String NATIVE_LIB_BLUESOLEIL = NATIVE_LIB_MS;
 
 	static final int BLUECOVE_STACK_DETECT_MICROSOFT = 1;
 
@@ -310,21 +296,10 @@ public class BlueCoveImpl {
 	}
 
 	private int getStackId(String stack) {
-		if (STACK_WIDCOMM.equalsIgnoreCase(stack)) {
-			return BLUECOVE_STACK_DETECT_WIDCOMM;
-		} else if (STACK_BLUESOLEIL.equalsIgnoreCase(stack)) {
-			return BLUECOVE_STACK_DETECT_BLUESOLEIL;
-		} else if (STACK_TOSHIBA.equalsIgnoreCase(stack)) {
-			return BLUECOVE_STACK_DETECT_TOSHIBA;
-		} else if (STACK_WINSOCK.equalsIgnoreCase(stack)) {
-			return BLUECOVE_STACK_DETECT_MICROSOFT;
-		} else if (STACK_BLUEZ.equalsIgnoreCase(stack)) {
+		if (STACK_BLUEZ.equalsIgnoreCase(stack)) {
 			return BLUECOVE_STACK_DETECT_BLUEZ;
-		} else if (STACK_WINSOCK.equalsIgnoreCase(stack)) {
-			return BLUECOVE_STACK_DETECT_OSX;
-		} else if (STACK_EMULATOR.equalsIgnoreCase(stack)) {
-			return BLUECOVE_STACK_DETECT_EMULATOR;
-		} else {
+		} 
+		else {
 			return 0;
 		}
 	}
@@ -429,18 +404,6 @@ public class BlueCoveImpl {
 				loadNativeLibraries(detectorStack);
 				stackSelected = detectorStack.getStackID();
 				break;
-			case NativeLibLoader.OS_MAC_OS_X:
-				detectorStack = new BluetoothStackOSX();
-				loadNativeLibraries(detectorStack);
-				stackSelected = detectorStack.getStackID();
-				break;
-			case NativeLibLoader.OS_WINDOWS:
-			case NativeLibLoader.OS_WINDOWS_CE:
-				detectorStack = createDetectorOnWindows(stackFirstDetector);
-				if (DebugLog.isDebugEnabled()) {
-					detectorStack.enableNativeDebug(DebugLog.class, true);
-				}
-				break;
 			default:
 				throw new BluetoothStateException("BlueCove not available");
 
@@ -461,17 +424,8 @@ public class BlueCoveImpl {
 			int detectorID = getStackId(detectorStack.getStackID());
 			if ((aval & detectorID) != 0) {
 				stackSelected = detectorStack.getStackID();
-			} else if ((aval & BLUECOVE_STACK_DETECT_MICROSOFT) != 0) {
-				stackSelected = STACK_WINSOCK;
-			} else if ((aval & BLUECOVE_STACK_DETECT_WIDCOMM) != 0) {
-				stackSelected = STACK_WIDCOMM;
-			} else if ((aval & BLUECOVE_STACK_DETECT_BLUESOLEIL) != 0) {
-				stackSelected = STACK_BLUESOLEIL;
-			} else if ((aval & BLUECOVE_STACK_DETECT_TOSHIBA) != 0) {
-				stackSelected = STACK_TOSHIBA;
-			} else if ((aval & BLUECOVE_STACK_DETECT_OSX) != 0) {
-				stackSelected = STACK_OSX;
-			} else {
+			} 
+			else {
 				DebugLog.fatal("BluetoothStack not detected");
 				throw new BluetoothStateException("BluetoothStack not detected");
 			}
@@ -855,46 +809,6 @@ public class BlueCoveImpl {
 		return ((BluetoothStackHolder.getBluetoothStack().getFeatureSet() & featureID) != 0) ? TRUE : FALSE;
 	}
 
-	private BluetoothStack createDetectorOnWindows(String stackFirst) throws BluetoothStateException {
-		if (stackFirst != null) {
-			DebugLog.debug("detector stack", stackFirst);
-			BluetoothStack detectorStack;
-			if (STACK_WIDCOMM.equalsIgnoreCase(stackFirst)) {
-				detectorStack = new BluetoothStackWIDCOMM();
-				if (isNativeLibrariesAvailable(detectorStack)) {
-					return detectorStack;
-				}
-			} else if (STACK_BLUESOLEIL.equalsIgnoreCase(stackFirst)) {
-				detectorStack = new BluetoothStackBlueSoleil();
-				if (isNativeLibrariesAvailable(detectorStack)) {
-					return detectorStack;
-				}
-			} else if (STACK_WINSOCK.equalsIgnoreCase(stackFirst)) {
-				detectorStack = new BluetoothStackMicrosoft();
-				if (isNativeLibrariesAvailable(detectorStack)) {
-					return detectorStack;
-				}
-			} else if (STACK_TOSHIBA.equalsIgnoreCase(stackFirst)) {
-				detectorStack = new BluetoothStackToshiba();
-				if (isNativeLibrariesAvailable(detectorStack)) {
-					return detectorStack;
-				}
-			} else {
-				throw new IllegalArgumentException("Invalid BlueCove detector stack [" + stackFirst + "]");
-			}
-		}
-		BluetoothStack stack = new BluetoothStackMicrosoft();
-		if (isNativeLibrariesAvailable(stack)) {
-			return stack;
-		}
-
-		stack = new BluetoothStackWIDCOMM();
-		if (isNativeLibrariesAvailable(stack)) {
-			return stack;
-		}
-
-		throw new BluetoothStateException("BlueCove libraries not available");
-	}
 
 	/**
 	 * @deprecated use setConfigProperty("bluecove.stack", ...);
@@ -927,14 +841,9 @@ public class BlueCoveImpl {
 		BluetoothStack newStack;
 		if ((detectorStack != null) && (detectorStack.getStackID()).equalsIgnoreCase(stack)) {
 			newStack = detectorStack;
-		} else if (STACK_WIDCOMM.equalsIgnoreCase(stack)) {
-			newStack = new BluetoothStackWIDCOMM();
-		} else if (STACK_BLUESOLEIL.equalsIgnoreCase(stack)) {
-			newStack = new BluetoothStackBlueSoleil();
-		} else if (STACK_TOSHIBA.equalsIgnoreCase(stack)) {
-			newStack = new BluetoothStackToshiba();
-		} else {
-			newStack = new BluetoothStackMicrosoft();
+		} 
+		else {
+			newStack = new BluetoothStackBlueZ();
 		}
 		loadNativeLibraries(newStack);
 		int libraryVersion = newStack.getLibraryVersion();

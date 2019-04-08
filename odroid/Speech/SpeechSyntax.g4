@@ -17,12 +17,16 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-	Salutation? (Command|Halt|Shutdown)                       			# handleSingleWordCommand
+	  Salutation? List Article? Properties Of Article? Motors		# handleListCommand1
+	| Salutation? List Article? Motor Properties					# handleListCommand2
+	| Salutation? (Command|Halt|Shutdown)                      		# handleSingleWordCommand
+	| Salutation													# doNothing
 	;
       
 // Request for information
 question:
 	  How Adjective 'are' 'you'               				    # attributeQuestion
+	| What 'is' Article? Configuration                          # configurationQuestion
 	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion
 	| What 'is' Article? Metric   				                # metricsQuestion
 	| What 'is' Article? Axis? Property Of Article? Side? Joint # positionQuestion
@@ -37,14 +41,19 @@ declaration:
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'old'|'tall';
 Axis: 'x'|'y'|'z';
-Command: 'attention'|'freeze'|'relax'|'wake up';
+Command: ('attention'|'freeze'|'relax'|'wake up');
+Configuration: 'configuration';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 How: 'how';
+List: ('tell me'|'list'|'what are');
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
+Motors: 'devices'|'joints'|'motors';
+Motor: 'device'|'joint'|'motor';
 Of: 'of';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder';
+Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'motor types'|'orientations'|'speeds'|'torques';
 Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'motor type'|'orientation'|'speed'|'torque';
-Salutation:'bert'|'burt';
+Salutation:('bert'|'burt');
 Shutdown: 'power off'|'shut down'|'shutdown';
 Side: 'left'|'right';
 What: 'what';

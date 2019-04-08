@@ -51,7 +51,7 @@
 
 /* JNI includes */
 #include <jni.h>
-#include "btj_BlueZ.h"
+#include "jbluez_BlueZ.h"
 
 /* Bluetooth includes */
 #include <sys/ioctl.h>
@@ -65,7 +65,7 @@ void throwException(JNIEnv *env, char *msg)
 	/* Throw a BlueZException in Java, with the given message */
 	jclass exception_cls;
 	
-	exception_cls = (*env)->FindClass(env, "btj/BlueZException");
+	exception_cls = (*env)->FindClass(env, "jbluez/BlueZException");
 	if ((*env)->ThrowNew(env, exception_cls, msg) < 0)
 	{
 		/* If there was a problem even throwing the exception, something */
@@ -77,7 +77,7 @@ void throwException(JNIEnv *env, char *msg)
 	return;
 }
 
-JNIEXPORT jint JNICALL Java_btj_hciOpenDevice
+JNIEXPORT jint JNICALL Java_jbluez_hciOpenDevice
   (JNIEnv *env, jobject obj, jint hciID)
 {
 	/* Open the specified HCI device */
@@ -85,12 +85,12 @@ JNIEXPORT jint JNICALL Java_btj_hciOpenDevice
 
 	dd = hci_open_dev(hciID);
 	if (dd < 0)
-		throwException(env, "Java_btj_hciOpenDevice: HCI Device open failed");
+		throwException(env, "Java_jbluez_hciOpenDevice: HCI Device open failed");
 
 	return dd;
 }
 
-JNIEXPORT void JNICALL Java_btj_hciCloseDevice
+JNIEXPORT void JNICALL Java_jbluez_hciCloseDevice
   (JNIEnv *env, jobject obj, jint dd)
 {
 	/* Close the specified HCI device */
@@ -98,7 +98,7 @@ JNIEXPORT void JNICALL Java_btj_hciCloseDevice
 	return;
 }
 
-JNIEXPORT jint JNICALL Java_btj_hciCreateConnection
+JNIEXPORT jint JNICALL Java_jbluez_hciCreateConnection
   (JNIEnv *env, jobject obj, jint dd, jstring bdaddr_jstr, jint ptype, jint clkoffset, jshort rswitch, jint timeOut)
 {
 	/* Create a connection. The handle is returned as a jint. */
@@ -114,7 +114,7 @@ JNIEXPORT jint JNICALL Java_btj_hciCreateConnection
 	/* Create the connection */
 	if (hci_create_connection(dd, &bdaddr, ptype, clkoffset, rswitch, &handle, timeOut) < 0)
 	{
-		throwException(env, "Java_btj_hciCreateConnection: Unable to create connection");
+		throwException(env, "Java_jbluez_hciCreateConnection: Unable to create connection");
 		return -1;
 	}
 
@@ -122,17 +122,17 @@ JNIEXPORT jint JNICALL Java_btj_hciCreateConnection
 	return (jint) handle;
 }
 
-JNIEXPORT void JNICALL Java_btj_hciDisconnect
+JNIEXPORT void JNICALL Java_jbluez_hciDisconnect
   (JNIEnv *env, jobject obj, jint dd, jint handle, jshort reason, jint timeOut)
 {
 	/* Disconnect */
 	if (hci_disconnect(dd, handle, 0x13, timeOut) < 0)
-		throwException(env, "Java_btj_hciDisconnect: Unable to disconnect");
+		throwException(env, "Java_jbluez_hciDisconnect: Unable to disconnect");
 
 	return;
 }
 
-JNIEXPORT jobject JNICALL Java_btj_hciInquiry
+JNIEXPORT jobject JNICALL Java_jbluez_hciInquiry
   (JNIEnv *env, jobject obj, jint dd, jint length, jint max_num_rsp, jlong flags)
 {
 	/* Perform an HCI inquiry - result is returned as a */
@@ -154,21 +154,21 @@ JNIEXPORT jobject JNICALL Java_btj_hciInquiry
 	num_rsp = hci_inquiry(dd, length, max_num_rsp, NULL, &inq_info, flags);
 	if (num_rsp < 0)
 	{
-		throwException(env, "Java_btj_hciInquiry: Inquiry failed");
+		throwException(env, "Java_jbluez_hciInquiry: Inquiry failed");
 		return 0;
 	}
 
 	/* Create a new instance of InquiryInfo */
-	ii_cls = (*env)->FindClass(env, "btj/InquiryInfo");
+	ii_cls = (*env)->FindClass(env, "jbluez/InquiryInfo");
 	ii_con_id = (*env)->GetMethodID(env, ii_cls, "<init>", "(B)V");
-	ii_add_id = (*env)->GetMethodID(env, ii_cls, "addDevice", "(Lcom/appliancestudio/jbtj/InquiryInfoDevice;)V");
+	ii_add_id = (*env)->GetMethodID(env, ii_cls, "addDevice", "(Lcom/appliancestudio/jjbluez/InquiryInfoDevice;)V");
 	info = (*env)->NewObject(env, ii_cls, ii_con_id, num_rsp);
 
 	/* For each of the responses, create a new InquiryInfoDevice object */
 	/* and add it to the InquiryInfo class.                             */
-	iid_cls = (*env)->FindClass(env, "btj/InquiryInfoDevice");
-	iid_con_id = (*env)->GetMethodID(env, iid_cls, "<init>", "(Lcom/appliancestudio/jbtj/BTAddress;SSSSSSI)V");
-	ba_cls = (*env)->FindClass(env, "btj/BTAddress");
+	iid_cls = (*env)->FindClass(env, "jbluez/InquiryInfoDevice");
+	iid_con_id = (*env)->GetMethodID(env, iid_cls, "<init>", "(Lcom/appliancestudio/jjbluez/BTAddress;SSSSSSI)V");
+	ba_cls = (*env)->FindClass(env, "jbluez/BTAddress");
 
 	for (i=0; i<num_rsp; i++)
 	{
@@ -202,7 +202,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciInquiry
 	return info;
 }
 
-JNIEXPORT jobject JNICALL Java_btj_hciDevInfo
+JNIEXPORT jobject JNICALL Java_jbluez_hciDevInfo
   (JNIEnv *env, jobject obj, jint hciID)
 {
 	/* Get the device info for a local HCI device given its device ID */
@@ -221,7 +221,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevInfo
 	/* Get the info */
 	if (hci_devinfo(hciID, &di) < 0)
 	{
-		throwException(env, "Java_btj_hciDevInfo: Failed to get device info");
+		throwException(env, "Java_jbluez_hciDevInfo: Failed to get device info");
 		return 0;
 	}
 
@@ -233,7 +233,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevInfo
 	/*************************/
 
 	/* Find the HCIDeviceStats class and constructor */
-	ds_cls = (*env)->FindClass(env, "btj/HCIDeviceStats");
+	ds_cls = (*env)->FindClass(env, "jbluez/HCIDeviceStats");
 	ds_con_id = (*env)->GetMethodID(env, ds_cls, "<init>", "(JJJJJJJJJJ)V");
 
 	/* Populate the jvalue array for passing the arguments to the HCIDeviceStats constructor */
@@ -258,7 +258,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevInfo
 	/****************************/
 
 	/* Find the HCIFeatures class and constructor */
-	df_cls = (*env)->FindClass(env, "btj/HCIFeatures");
+	df_cls = (*env)->FindClass(env, "jbluez/HCIFeatures");
 	df_con_id = (*env)->GetMethodID(env, df_cls, "<init>", "(SSSSSSSS)V");
 
 	/* Populate the jvalue array for passing the arguments to the HCIFeatures constructor */
@@ -275,7 +275,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevInfo
 	/********************/
 
 	/* Create a BTAddress object for the Bluetooth device address */
-	bda_cls = (*env)->FindClass(env, "btj/BTAddress");
+	bda_cls = (*env)->FindClass(env, "jbluez/BTAddress");
 	bda_con_id = (*env)->GetMethodID(env, bda_cls, "<init>", "(Ljava/lang/String;)V");
 	baswap(&bdaddr_cpy, &di.bdaddr);
 	bdaddr_str = batostr(&bdaddr_cpy); // Convert from bdaddr_t to char*
@@ -289,8 +289,8 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevInfo
 	/************************
 
 	/* Find the HCIDeviceInfo class and constructor */
-	di_cls = (*env)->FindClass(env, "btj/HCIDeviceInfo");
-	di_con_id = (*env)->GetMethodID(env, di_cls, "<init>", "(ILjava/lang/String;Lcom/appliancestudio/jbtj/BTAddress;JSLcom/appliancestudio/jbluez/HCIFeatures;JJJIIIILcom/appliancestudio/jbluez/HCIDeviceStats;)V");
+	di_cls = (*env)->FindClass(env, "jbluez/HCIDeviceInfo");
+	di_con_id = (*env)->GetMethodID(env, di_cls, "<init>", "(ILjava/lang/String;Lcom/appliancestudio/jjbluez/BTAddress;JSLcom/appliancestudio/jbluez/HCIFeatures;JJJIIIILcom/appliancestudio/jbluez/HCIDeviceStats;)V");
 
 	/* Populate the jvalue array for passing the arguments to the HCIDeviceInfo constructor */
 	cons_args[0].i  = (jint)    di.dev_id;
@@ -317,7 +317,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevInfo
 	return info;
 }
 
-JNIEXPORT jobject JNICALL Java_btj_hciDevBTAddress
+JNIEXPORT jobject JNICALL Java_jbluez_hciDevBTAddress
   (JNIEnv *env, jobject obj, jint hciID)
 {
 	/* Finds the Bluetooth address of the given HCI device, */
@@ -332,12 +332,12 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevBTAddress
 	/* Get the Bluetooth address */
 	if (hci_devba(hciID, &bdaddr) < 0)
 	{
-		throwException(env, "Java_btj_hciDevBTAddress: Unable to get Bluetooth address for device");
+		throwException(env, "Java_jbluez_hciDevBTAddress: Unable to get Bluetooth address for device");
 		return 0;
 	}
 
 	/* Create a BTAddress object for the Bluetooth device address */
-	bda_cls = (*env)->FindClass(env, "btj/BTAddress");
+	bda_cls = (*env)->FindClass(env, "jbluez/BTAddress");
 	bda_con_id = (*env)->GetMethodID(env, bda_cls, "<init>", "(Ljava/lang/String;)V");
 	baswap(&bdaddr_cpy, &bdaddr);
 	bdaddr_str = batostr(&bdaddr_cpy); // Convert from bdaddr_t to char*
@@ -348,7 +348,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciDevBTAddress
 	return bdaddr_obj;
 }
 
-JNIEXPORT jint JNICALL Java_btj_hciDeviceID
+JNIEXPORT jint JNICALL Java_jbluez_hciDeviceID
   (JNIEnv *env, jobject obj, jstring bdaddr_jstr)
 {
 	/* Find the HCI device ID for a local device with the given BT address */
@@ -362,7 +362,7 @@ JNIEXPORT jint JNICALL Java_btj_hciDeviceID
 	/* Find the device ID */
 	devID = hci_devid(bdaddr_str);
 	if (devID < 0)
-		throwException(env, "Java_btj_hciDeviceID: Unable to get device ID");
+		throwException(env, "Java_jbluez_hciDeviceID: Unable to get device ID");
 
 	/* Inform the Java VM the native code no longer needs access to bdaddr_str */
 	(*env)->ReleaseStringUTFChars(env, bdaddr_jstr, bdaddr_str);
@@ -370,7 +370,7 @@ JNIEXPORT jint JNICALL Java_btj_hciDeviceID
 	return devID;
 }
 
-JNIEXPORT jstring JNICALL Java_btj_hciLocalName
+JNIEXPORT jstring JNICALL Java_jbluez_hciLocalName
   (JNIEnv *env, jobject obj, jint dd, jint timeOut)
 {
 	/* Read the name of a local Bluetooth device, returned as a Java String. */
@@ -380,7 +380,7 @@ JNIEXPORT jstring JNICALL Java_btj_hciLocalName
 	/* Get the name */
 	if (hci_local_name(dd, sizeof(name_str), name_str, timeOut) < 0)
 	{
-		throwException(env, "Java_btj_hciLocalName: Unable to read local name");
+		throwException(env, "Java_jbluez_hciLocalName: Unable to read local name");
 		return 0;
 	}
 
@@ -390,7 +390,7 @@ JNIEXPORT jstring JNICALL Java_btj_hciLocalName
 	return name_jstr;
 }
 
-JNIEXPORT jstring JNICALL Java_btj_hciRemoteName
+JNIEXPORT jstring JNICALL Java_jbluez_hciRemoteName
   (JNIEnv *env, jobject obj, jint dd, jstring bdaddr_jstr, jint timeOut)
 {
 	/* Read the name of a remote Bluetooth device, returned as a Java String. */
@@ -407,7 +407,7 @@ JNIEXPORT jstring JNICALL Java_btj_hciRemoteName
 	/* Get the name */
 	if (hci_remote_name(dd, &bdaddr, sizeof(name_str), name_str, timeOut) < 0)
 	{
-		throwException(env, "Java_btj_hciRemoteName: Unable to read remote name");
+		throwException(env, "Java_jbluez_hciRemoteName: Unable to read remote name");
 		return 0;
 	}
 
@@ -417,7 +417,7 @@ JNIEXPORT jstring JNICALL Java_btj_hciRemoteName
 	return name_jstr;
 }
 
-JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteFeatures
+JNIEXPORT jobject JNICALL Java_jbluez_hciReadRemoteFeatures
   (JNIEnv *env, jobject obj, jint dd, jint handle, jint timeOut)
 {
 	/* Read the features of a remote device, returned as */
@@ -432,7 +432,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteFeatures
 	/* Read the remote features */
 	if (hci_read_remote_features(dd, handle, features, timeOut) < 0)
 	{
-		throwException(env, "Java_btj_hciReadRemoteFeatures: Unable to read remote features");
+		throwException(env, "Java_jbluez_hciReadRemoteFeatures: Unable to read remote features");
 		return 0;
 	}
 
@@ -441,7 +441,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteFeatures
 		features_args[i].s = (jshort) features[i];
 
 	/* Create a new HCIFeatures object */
-	features_cls = (*env)->FindClass(env, "btj/HCIFeatures");
+	features_cls = (*env)->FindClass(env, "jbluez/HCIFeatures");
 	features_con_id = (*env)->GetMethodID(env, features_cls, "<init>", "(SSSSSSSS)V");
 	features_obj = (*env)->NewObject(env, features_cls, features_con_id, features_args);
 
@@ -449,7 +449,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteFeatures
 	return features_obj;
 }
 
-JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteVersion
+JNIEXPORT jobject JNICALL Java_jbluez_hciReadRemoteVersion
   (JNIEnv *env, jobject obj, jint dd, jint handle, jint timeOut)
 {
 	/* Read the version information of a remote device, returned as */
@@ -463,7 +463,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteVersion
 	/* Read the remote version info */
 	if (hci_read_remote_version(dd, (uint16_t) handle, &ver, timeOut) < 0)
 	{
-		throwException(env, "Java_btj_hciReadRemoteVersion: Unable to read remote version");
+		throwException(env, "Java_jbluez_hciReadRemoteVersion: Unable to read remote version");
 		return 0;
 	}
 
@@ -475,7 +475,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteVersion
 	ver_args[4].i = ver.lmp_subver;
 
 	/* Create a new HCIVersion object */
-	ver_cls = (*env)->FindClass(env, "btj/HCIVersion");
+	ver_cls = (*env)->FindClass(env, "jbluez/HCIVersion");
 	ver_con_id = (*env)->GetMethodID(env, ver_cls, "<init>", "(ISISI)V");
 	ver_obj = (*env)->NewObjectA(env, ver_cls, ver_con_id, ver_args);
 
@@ -484,7 +484,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadRemoteVersion
 }
 
 
-JNIEXPORT jobject JNICALL Java_btj_hciReadLocalVersion
+JNIEXPORT jobject JNICALL Java_jbluez_hciReadLocalVersion
   (JNIEnv *env, jobject obj, jint dd, jint timeOut)
 {
 	/* Read the version information of a local device, returned as */
@@ -498,7 +498,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadLocalVersion
 	/* Read the local version info */
 	if (hci_read_local_version(dd, &ver, timeOut) < 0)
 	{
-		throwException(env, "Java_btj_hciReadLocalVersion: Unable to read local version");
+		throwException(env, "Java_jbluez_hciReadLocalVersion: Unable to read local version");
 		return 0;
 	}
 
@@ -510,7 +510,7 @@ JNIEXPORT jobject JNICALL Java_btj_hciReadLocalVersion
 	ver_args[4].i = ver.lmp_subver;
 
 	/* Create a new HCIVersion object */
-	ver_cls = (*env)->FindClass(env, "btj/HCIVersion");
+	ver_cls = (*env)->FindClass(env, "jbluez/HCIVersion");
 	ver_con_id = (*env)->GetMethodID(env, ver_cls, "<init>", "(ISISI)V");
 	ver_obj = (*env)->NewObjectA(env, ver_cls, ver_con_id, ver_args);
 

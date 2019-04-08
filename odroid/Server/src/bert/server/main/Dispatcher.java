@@ -46,7 +46,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private String[] phrases = {
        "Bert is ready",
        "At your command",
-       "Bert is listening"
+       "I'm listening"
     };
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();

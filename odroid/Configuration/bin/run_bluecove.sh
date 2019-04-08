@@ -4,9 +4,9 @@
 cd ${BERT_HOME}
 mkdir -p logs
 
-MP=lib/btj-1.0.1.jar
+MP=lib/bluecove-2.1.0a.jar
 
 # Allow debugging on port 8000
 X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
 
-java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m btj.jni/btj.Main
+java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/app.BluetoothServer

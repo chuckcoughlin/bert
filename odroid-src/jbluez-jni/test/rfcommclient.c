@@ -33,15 +33,18 @@ int main(int argc, char **argv) {
     }
 
 
-    do {
+    for(;;) {
         len = read(s, buf, sizeof buf);
 
-     if( len>0 ) {
-         buf[len]=0;
-         printf("%s\n",buf);
-         write(s, buf, strlen(buf));
-     }
-    } while(len>0)nt");
+        if( len>0 ) {
+            buf[len]=0;
+            printf("%s\n",buf);
+            write(s, buf, strlen(buf));
+        }
+		else {
+			break;
+		}
+    } 
 
     close(s);
     return 0;

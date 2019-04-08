@@ -14,13 +14,9 @@ This document describes the setup and tools used to develop "Bert" and summarize
 ## Table of Contents <a id="table-of-contents"></a>
   * [Hardware](#hardware)
     * [Skeleton](#skeleton)
-      * [Legs](#skeleton-legs)
     * [Motors](#motors)
   * [System Setup](#system)
     * [Odroid](#odroid)
-      * [Configuration](#configuration)
-      * [Java](#java)
-      * [PyPot](#pypot)
   * [Software Development](#software)
     * [Eclipse](#eclipse)
     * [Android Studio](#android)
@@ -103,8 +99,7 @@ Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.o
 ### Odroid <a id="odroid"></a>
 [toc](#table-of-contents)
 
-*** Initial Configuration <a id="configuration"></a> ***<br/>
-
+*** Initial Configuration ***<br/>
 The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. The instructions below assume an initial board setup as described  [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf).
 
 A USB extension board is required as slots are used for:
@@ -201,7 +196,7 @@ Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy
   <allow send_interface="org.bluez.GattDescriptor1"/>
 ```
 
-*** Java <a id="java"></a>***<br/>
+*** Java ***<br/>
 Download the latest Java 11 Development (JDK) version using:
 ```
   sudo apt install openjdk-11-jdk-headless
@@ -220,7 +215,7 @@ Make a scaled-down Java Runtime Environment that includes only the packages used
 ```
 All scripts that launch the robot applications refer to this *jre*. This command must be refreshed each time applications are updated.
 
-*** PyPot <a id="pypot"></a> ***<br/>
+*** PyPot <a id="pypot"></a>***<br/>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
 ```
   sudo apt-get install python-pip
@@ -291,6 +286,12 @@ In order to make environment variables accessible within *ant*, edit the run con
 This makes *BERT_HOME* accessible as *${bert.home)* inside the script.
 
 In addition to the *ant* scripts, there are a few shell scripts. To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
+
+To execute a build, from the *Build* project:
+```
+  build_all.xml
+  deploy.sh
+```
 
 *** Archive *** <br/>
 The *Archive* project is a collection of open-source library modules.
@@ -417,7 +418,7 @@ To run the Java test ...
 
 TODO: Requires J2ME
 
-======================== BlueCove =====================================
+======================== Bluecove =====================================
 https://github.com/luugiathuy/Remote-Bluetooth-Android/blob/master/RemoteBluetoothServer/src/com/luugiathuy/apps/remotebluetooth
 http://luugiathuy.com/2011/02/android-java-bluetooth/ - Simple connection using bluecove.
 Used this as a minimalist starting point.
@@ -450,7 +451,6 @@ The library must be built and installed on the Odroid. Here are instructions:
 [toc](#table-of-contents)
 
 *** General *** <br/>
-
 The tablet application, ***BertSpeak*** is the only Human Machine Interface (HMI) in normal operation.  Most importantly, it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
 
 The control application is a standard Android application built using Android Studio 3.3. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:

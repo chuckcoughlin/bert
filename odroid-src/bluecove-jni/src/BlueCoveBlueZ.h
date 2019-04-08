@@ -36,7 +36,6 @@
 #include <bluetooth/hci_lib.h>
 
 #include "com_intel_bluetooth_BluetoothStackBlueZ.h"
-#include "com_intel_bluetooth_BluetoothStackBlueZConsts.h"
 #include "common.h"
 
 #ifndef SOCKET_ERROR
@@ -76,9 +75,10 @@ void* jlong2ptr(jlong l);
 #define SERVICE_SEARCH_NO_RECORDS           com_intel_bluetooth_BluetoothStackBlueZConsts_SERVICE_SEARCH_NO_RECORDS
 #define SERVICE_SEARCH_DEVICE_NOT_REACHABLE com_intel_bluetooth_BluetoothStackBlueZConsts_SERVICE_SEARCH_DEVICE_NOT_REACHABLE
 
-#define NOAUTHENTICATE_NOENCRYPT com_intel_bluetooth_BluetoothStackBlueZConsts_NOAUTHENTICATE_NOENCRYPT
-#define AUTHENTICATE_NOENCRYPT   com_intel_bluetooth_BluetoothStackBlueZConsts_AUTHENTICATE_NOENCRYPT
-#define AUTHENTICATE_ENCRYPT     com_intel_bluetooth_BluetoothStackBlueZConsts_AUTHENTICATE_ENCRYPT
+/* Taken from ServiceRecord.java */
+#define NOAUTHENTICATE_NOENCRYPT 0
+#define AUTHENTICATE_NOENCRYPT   1
+#define AUTHENTICATE_ENCRYPT     2
 
 
 #define DATA_ELEMENT_TYPE_NULL     com_intel_bluetooth_BluetoothStackBlueZConsts_DataElement_NULL

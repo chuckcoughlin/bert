@@ -16,13 +16,14 @@ import bert.share.motor.JointProperty;
  * This class contains static methods used to create and interpret different varieties \
  * of Dynamixel serial messages. Code is derived from Pypot dynamixel.v2.py and the Dynamixel
  * documentation at http://emanual.robotis.com. Applies to MX64, MX28, AX12A models.
- * 
- * Protocol 2.0.
+ * The documentation is unclear about the protocol version for AX-12 models, but it appears
+ * to be Protocol 2.0. We have coded on this assumption.
  */
 @SuppressWarnings("unused")
 public class DxlMessage  {
 	private static final String CLSS = "DxlMessage";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
+	private static final byte BROADCAST_ID = (byte)0xFE; // ID to transmit to all devices connected to port
 	// Constants for the instructions
 	private static final byte PING = 0x01;   // Instruction that checks whether the Packet has arrived
 	private static final byte READ = 0x02; 	// Instruction to read data from the Device
@@ -37,6 +38,8 @@ public class DxlMessage  {
 	private static final byte SYNC_WRITE = (byte)0x83; // For multiple devices, Instruction to write data on the same Address with the same length at once
 	private static final byte BULK_READ  = (byte)0x92; // For multiple devices, Instruction to read data from different Addresses with different lengths at once
 	private static final byte BULK_WRITE = (byte)0x93; 
+	
+	
 	private static int[] crc_table = {
 	        0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,
 	        0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
@@ -72,26 +75,58 @@ public class DxlMessage  {
 	        0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202
 	};
 	/**
-	 * Create a serial message to read the current position of a motor specific
-	 * @param id of the motor
-	 * @return byte array with command to read the position
+	 * Create a serial message to broadcast a ping request to all motors.
+	 * This is taken directly from http://emanual.robotis.com/docs/en/dxl/protocol2/
+	 * example 5.1.4.2. (crc = 31,42)
+	 * @return byte array for message
 	 */
-	public static byte[] bytesToGetPosition(int id,DynamixelType model) {
-		int length = 7;  // Remaining bytes past length including crc
+	public static byte[] bytesToBroadcastPing() {
+		int length = 3;  // Remaining bytes past length including 2-byte crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes,id,model);
-		if( model.equals(DynamixelType.AX12)) {
-			LOGGER.info(String.format("%s.bytesToGetPosition: Protocol 1 not implemented",CLSS));
-		}
-		else {
-			bytes[5] = (byte)length; 
-			bytes[6] = 0;
-			bytes[7] = READ;
-			bytes[8] = 0x24;    // Current position
-			bytes[9] = 0;
-			bytes[10] = 0x04;   // 4 bytes
-			bytes[11] = 0;
-		}
+		setHeader(bytes,BROADCAST_ID);
+		bytes[5] = (byte)length; 
+		bytes[6] = 0;
+		bytes[7] = PING;
+		setCrc(bytes);
+		return bytes;
+	}
+	/**
+	 * Create a serial message to read a specified property of a motor.
+	 * @param id of the motor
+	 * @param propertyName the name of the desired property (must be a joint property)
+	 * @return byte array with command to read the property
+	 */
+	public static byte[] bytesToGetProperty(int id,String propertyName) {
+		int length = 7;  // Remaining bytes past length including 2-byte crc
+		byte[] bytes = new byte[length+7];  // Account for header and length
+		setHeader(bytes,id);
+		bytes[5] = (byte)length; 
+		bytes[6] = 0;
+		bytes[7] = READ;
+		bytes[8] = DxlConversions.addressForProperty(propertyName);
+		bytes[9] = 0;
+		bytes[10] = 0x04;   // 4 bytes of data
+		bytes[11] = 0;
+		setCrc(bytes);
+		return bytes;
+	}
+	
+	/**
+	 * Create a broadcast message to return a specified property of all motors.
+	 * @param propertyName the name of the desired property (must be a joint property)
+	 * @return byte array with broadcast command to read the property
+	 */
+	public static byte[] bytesToListProperty(String propertyName) {
+		int length = 7;  // Remaining bytes past length including 2-byte crc
+		byte[] bytes = new byte[length+7];  // Account for header and length
+		setHeader(bytes,BROADCAST_ID);
+		bytes[5] = (byte)length; 
+		bytes[6] = 0;
+		bytes[7] = READ;
+		bytes[8] = DxlConversions.addressForProperty(propertyName);
+		bytes[9] = 0;
+		bytes[10] = 0x04;   // 4 bytes of data
+		bytes[11] = 0;
 		setCrc(bytes);
 		return bytes;
 	}
@@ -106,19 +141,14 @@ public class DxlMessage  {
 		int dxlSpeed = DxlConversions.speedToDxl(model, speed);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes,id,model);
-		if( model.equals(DynamixelType.AX12)) {
-			LOGGER.info(String.format("%s.bytesToSetSpeed: Protocol 1 not implemented",CLSS));
-		}
-		else {
-			bytes[5] = (byte)length; 
-			bytes[6] = 0;
-			bytes[7] = WRITE;
-			bytes[8] = 0x20;    // Moving speed
-			bytes[9] = 0;
-			bytes[10] = (byte)(dxlSpeed >>8);
-			bytes[11] = (byte)(dxlSpeed & 0xFF);
-		}
+		setHeader(bytes,id);
+		bytes[5] = (byte)length; 
+		bytes[6] = 0;
+		bytes[7] = WRITE;
+		bytes[8] = 0x20;    // Moving speed
+		bytes[9] = 0;
+		bytes[10] = (byte)(dxlSpeed >>8);
+		bytes[11] = (byte)(dxlSpeed & 0xFF);
 		setCrc(bytes);
 		return bytes;
 	}
@@ -133,19 +163,15 @@ public class DxlMessage  {
 		int dxlTorque = DxlConversions.torqueToDxl(model, goal);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes,id,model); 
-		if( model.equals(DynamixelType.AX12)) {
-			LOGGER.info(String.format("%s.bytesToSetTorque: Protocol 1 not implemented",CLSS));
-		}
-		else {
-			bytes[5] = (byte)length; 
-			bytes[6] = 0;
-			bytes[7] = WRITE;
-			bytes[8] = 0x22;    // Torque Goal
-			bytes[9] = 0;
-			bytes[10] = (byte)(dxlTorque >>8);
-			bytes[11] = (byte)(dxlTorque & 0xFF);
-		}
+		setHeader(bytes,id); 
+		bytes[5] = (byte)length; 
+		bytes[6] = 0;
+		bytes[7] = WRITE;
+		bytes[8] = 0x22;    // Torque Goal
+		bytes[9] = 0;
+		bytes[10] = (byte)(dxlTorque >>8);
+		bytes[11] = (byte)(dxlTorque & 0xFF);
+
 		setCrc(bytes);
 		return bytes;
 	}
@@ -179,34 +205,28 @@ public class DxlMessage  {
 	 * @param props properties from the original request
 	 */
 	public static void updatePositionFromBytes(byte[] bytes,Map<String,String> props) {
-		if( verifyProtocol2Header(bytes) ) {
-			String msg = String.format("%s.updatePositionFromBytes: Protocol2 unimplemented - %s",CLSS,dump(bytes));
+		String msg = "";
+		if( verifyHeader(bytes) ) {
+			msg = String.format("%s.updatePositionFromBytes: %s",CLSS,dump(bytes));
 			LOGGER.info(msg);
-		}
-		else if( verifyProtocol1Header(bytes) ) {
-			if( bytes.length>5 ) {
-				int id = bytes[2];
-				int err= bytes[4];
-				int pos= bytes[5];
-				if( err==0 ) {
-					props.put(BottleConstants.PROPERTY_PROPERTY,JointProperty.POSITION.name());
+		
+			int id = bytes[4];
+			int err= bytes[8];
+			int pos= bytes[9];
+			if( err==0 ) {
+				props.put(BottleConstants.PROPERTY_PROPERTY,JointProperty.POSITION.name());
 					props.put(BottleConstants.VALUE, String.valueOf(pos));
-				}
-				else {
-					String msg = String.format("%s.updatePositionFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
-					props.put(BottleConstants.PROPERTY_ERROR, msg);
-					LOGGER.severe(msg);
-				}
 			}
 			else {
-				String msg = String.format("%s.updatePositionFromBytes: Message too short: %s",CLSS,dump(bytes));
+				msg = String.format("%s.updatePositionFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
 				props.put(BottleConstants.PROPERTY_ERROR, msg);
 				LOGGER.severe(msg);
 			}
 		}
 		else {
-			String msg = String.format("%s.updatePositionFromBytes: Unimplemented %s",CLSS,dump(bytes));
-			LOGGER.info(msg);
+			msg = String.format("%s.updatePositionFromBytes: Illegal message: %s",CLSS,dump(bytes));
+			props.put(BottleConstants.PROPERTY_ERROR, msg);
+			LOGGER.severe(msg);
 		}
 	}
 	
@@ -222,12 +242,8 @@ public class DxlMessage  {
 		if( bytes.length<length ) {
 			LOGGER.severe(String.format("%s.updatePositionArrayFromBytes: Message too short: %s",CLSS,dump(bytes)));
 		}
-		else if( verifyProtocol2Header(bytes) ) {
+		else if( verifyHeader(bytes) ) {
 			String msg = String.format("%s.updatePositionArrayFromBytes: Protocol2 unimplemented - %s",CLSS,dump(bytes));
-			LOGGER.info(msg);
-		}
-		else if( verifyProtocol1Header(bytes) ) {
-			String msg = String.format("%s.updatePositionArrayFromBytes: Protocol1 unimplemented - %s",CLSS,dump(bytes));
 			LOGGER.info(msg);
 		}
 		else {
@@ -237,23 +253,40 @@ public class DxlMessage  {
 	}
 	// ===================================== Private Methods =====================================
 	
-	// Set the header up until the length field. The header differs depending on the 
-	// protocol. It includes the device ID
-	private static void setHeader(byte[] bytes, int id, DynamixelType model) {
+	// Set the header up until the length field. The header includes the device ID.
+	// Protocol 2. 5 bytes
+	private static void setHeader(byte[] bytes, int id) {
 		bytes[0] = (byte)0xFF;
 		bytes[1] = (byte)0xFF;
-		// Protocol 1
-		if( model.equals(DynamixelType.AX12) ) {
-			bytes[3] = (byte) id;
-		}
-		// Protocol 2
-		else {
-			bytes[2] = (byte)0xFD;
-			bytes[3] = 0;
-			bytes[4] = (byte) id;
-		}
-		
+		bytes[2] = (byte)0xFD;
+		bytes[3] = 0;
+		bytes[4] = (byte)id;
 	}
+	
+	// Set the header up until the length field. The header includes the device ID.
+	// Protocol 1. 3 bytes
+	private static void setProtocol1Header(byte[] bytes, int id) {
+		bytes[0] = (byte)0xFF;
+		bytes[1] = (byte)0xFF;
+		bytes[2] = (byte) id;
+	}
+	/**
+	 * Consider bytes 0-(len-2), then insert into last bytes. "oversize" variables
+	 * to avoid problem with no "unsigned" in Java. Ultimately we discard all except
+	 * low order bits.
+	 * @see http://emanual.robotis.com/docs/en/dxl/protocol1/
+	 * @param buf the byte buffer
+	 */
+	public static void setChecksum( byte[] buf ) {
+		int size = buf.length - 1;   // Exclude bytes to hold Checksum
+		int sum = 0;    // Instruction checksum.
+	    for( int j=2; j < size; j++ ) {
+	    	sum = sum+buf[j];
+	    }
+	    sum = sum&0xFF;
+	    buf[size]   =  (byte)(255-sum);
+	}
+	
 	/**
 	 * Consider bytes 0-(len-2), then insert into last 2 bytes. "oversize" variables
 	 * to avoid problem with no "unsigned" in Java.
@@ -272,24 +305,10 @@ public class DxlMessage  {
 	    buf[size+1] = (byte) ((crc >> 8) & 0xFF);
 	}
 	
-	/**
-	 * Use this only after Protocol2 returns negative. In particular, the AX-12
-	 * motors are Protocol 1.
-	 */
-	private static boolean verifyProtocol1Header(byte[] bytes) {
+	
+	private static boolean verifyHeader(byte[] bytes) {
 		boolean result = false;
-		if( bytes.length> 3 &&
-			bytes[0]==0xFF  &&
-			bytes[0]==0xFF  
-		  ) {
-			
-			result = true;
-		}
-		return result;
-	}
-	private static boolean verifyProtocol2Header(byte[] bytes) {
-		boolean result = false;
-		if( bytes.length> 5 &&
+		if( bytes.length> 7 &&
 			bytes[0]==0xFF  &&
 			bytes[1]==0xFF  &&
 			bytes[2]==0xFD  &&
@@ -300,15 +319,44 @@ public class DxlMessage  {
 		return result;
 	}
 	
-	
+	/**
+	 * Unused, we hope.
+	 */
+	private static boolean verifyProtocol1Header(byte[] bytes) {
+		boolean result = false;
+		if( bytes.length> 4 &&
+			bytes[0]==0xFF  &&
+			bytes[1]==0xFF  
+		  ) {
+			
+			result = true;
+		}
+		return result;
+	}
 	
 	/**
 	 * Test using example in Robotis documentation for WRITE command and status, 5.3.3.2 and 5.3.3.3.
 	 * http://emanual.robotis.com/docs/en/dxl/protocol2
 	 */
 	public static void main(String [] args) {
-        byte[] bytes = new byte[16];
-        setHeader(bytes,0x01,DynamixelType.MX28); 
+		// Protocol 1, not used.
+		byte[] bytes = new byte[8];
+		setProtocol1Header(bytes,0x01);
+		bytes[3] = 4;    // Bytes past this field.
+		bytes[4] = READ;
+		bytes[5] = 0x2B;
+		bytes[6] = 0x1;
+		setChecksum(bytes);
+		// Should be CC
+        System.out.println("READ  with checksum: "+dump(bytes));
+        
+		// Protocol 2
+        bytes = bytesToBroadcastPing();
+        // Should be 31,42
+        System.out.println("PING  with CRC: "+dump(bytes));
+        
+        bytes = new byte[16];
+        setHeader(bytes,0x01); 
 		bytes[5] = 0x09; 
 		bytes[6] = 0;
 		bytes[7] = WRITE;
@@ -323,7 +371,7 @@ public class DxlMessage  {
         System.out.println("WRITE  with CRC: "+dump(bytes));
         
         bytes = new byte[11];
-        setHeader(bytes,0x01,DynamixelType.MX64); 
+        setHeader(bytes,0x01); 
 		bytes[5] = 0x04; 
 		bytes[6] = 0;
 		bytes[7] = STATUS_RETURN;

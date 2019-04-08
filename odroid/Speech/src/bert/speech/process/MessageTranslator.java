@@ -28,23 +28,40 @@ public class MessageTranslator  {
 
 	public String messsageToText(MessageBottle msg) {
 		String text = "I don't understand the response";
-		String error = msg.fetchError();
-		if( error!=null && !error.isEmpty() ) {
-			text = error;
-		}
-		else if(msg.fetchRequestType().equals(RequestType.NOTIFICATION)) {
-			text = msg.getProperty(BottleConstants.TEXT, "Received empty notification.");
-		}
-		else if(msg.fetchRequestType().equals(RequestType.GET_METRIC)) {
-			text = msg.fetchError();
-			if( text==null || text.isEmpty() ) {
-				text = msg.getProperty(BottleConstants.TEXT, "??");
+		if( msg!=null ) {
+			String error = msg.fetchError();
+			if( error!=null && !error.isEmpty() ) {
+				text = error;
+			}
+			else if(msg.fetchRequestType().equals(RequestType.NOTIFICATION)) {
+				text = msg.getProperty(BottleConstants.TEXT, "Received empty notification.");
+			}
+			else if(msg.fetchRequestType().equals(RequestType.GET_METRIC)) {
+				text = msg.fetchError();
+				if( text==null || text.isEmpty() ) {
+					text = msg.getProperty(BottleConstants.TEXT, "??");
+				}
+			}
+			else if(msg.fetchRequestType().equals(RequestType.GET_METRICS)) {
+				text = msg.fetchError();
+				if( text==null || text.isEmpty() ) {
+					text = msg.getProperty(BottleConstants.TEXT, "??");
+				}
+			}
+			else if(msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
+				text = msg.fetchError();
+				if( text==null || text.isEmpty() ) {
+					text = msg.getProperty(BottleConstants.TEXT, "??");
+				}
+			}
+			else {
+				String property = msg.getProperty(BottleConstants.PROPERTY_PROPERTY, "unknown");
+				String value = msg.getProperty(BottleConstants.VALUE, "0");
+				text = String.format("My %s is %s", property,value);
 			}
 		}
 		else {
-			String property = msg.getProperty(BottleConstants.PROPERTY_PROPERTY, "unknown");
-			String value = msg.getProperty(BottleConstants.VALUE, "0");
-			text = String.format("My %s is %s", property,value);
+			text = "I received an empty message";
 		}
 		return text;
 	}

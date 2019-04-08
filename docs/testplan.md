@@ -16,6 +16,16 @@ a feature that is actively being debugged.
 [toc](#table-of-contents)
 The purpose of this section is to validate wiring and addressing of the stepper motors.
 * ![green](/images/ball_green.png) Validate Connections  - use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
+* ![green](/images/ball_yellow.png) Read the robot configuration - use the terminal application to list configured motor
+parameters, including: id, motor type. This does not involve reading the motors directly. A typical request:
+```
+    what is your configuration
+```
+* ![yellow](/images/ball_yellow.png) Read the status of all motors/joints - use the terminal application to read of
+motor parameters, including: id, position, velocity. A typical request:
+```
+    describe your motors
+```
 * ![yellow](/images/ball_yellow.png) Read Positions - use the terminal application to request the current position of each joint. Move the joint manually and verify that the reported position changes. A typical query:
 ```
     what is the position of your left elbow

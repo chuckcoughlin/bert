@@ -42,7 +42,7 @@
 	<target name ="jar" description="Create a jar ">
     	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
     		<manifest>
-    			<attribute name="Main-Class" value="bluecove.app.Main"/>
+    			<attribute name="Main-Class" value="app.BluetoothServer"/>
     		</manifest>
     	</jar>
 	</target>

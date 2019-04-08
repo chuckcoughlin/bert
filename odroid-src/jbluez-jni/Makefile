@@ -10,36 +10,31 @@
 CC=gcc
 CFLAGS  += -I$(INCDIR) \
            -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" \
-		   -I/usr/include/dbus-1.0 \
-		   -I/usr/lib/arm-linux-gnueabihf/dbus-1.0/include \
 		   -fPIC -Wno-psabi
 INCDIR = include
 LDFLAGS = -shared
 LD_LIBRARY_PATH = /usr/lib/arm-linux-gnueabihf:/usr/local/robot/lib
 LIBS = -L/usr/local/robot/lib
-LIBBTJ  = libbluetoothjni.so
+LIBLLUEZ  = libbluezjni.so
 OBJS    = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
-TESTS   = btj simplescan l2capserver l2capclient rfcommserver rfcommclient dbus
+TESTS   = bluez simplescan l2capserver l2capclient rfcommserver rfcommclient
 
 
 #  * Compile and link the native implementation
-all: $(LIBBTJ) 
+all: $(LIBLLUEZ) 
 
 # Compile C code
 $(OBJDIR)/%.o: src/%.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(LIBBTJ): $(OBJS)
+$(LIBLLUEZ): $(OBJS)
 	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) -lbluetooth
 
 tests: $(TESTS)
 
-btj: $(OBJDIR)/btj.o
-	$(CC) $(LIBS) -o $@ $< -lbluetoothjni -lbluetooth
-
-dbus: $(OBJDIR)/dbus.o
-	$(CC) $(LIBS) -o $@ $< -ldbus-1 
+bluez: $(OBJDIR)/bluez.o
+	$(CC) $(LIBS) -o $@ $< -lbluezjni -lbluetooth
 
 l2capclient: $(OBJDIR)/l2capclient.o
 	$(CC) $(LIBS) -o $@ $< -lbluetooth
@@ -56,10 +51,7 @@ rfcommclient: $(OBJDIR)/rfcommclient.o
 rfcommserver: $(OBJDIR)/rfcommserver.o
 	$(CC) $(LIBS) -o $@ $< -lbluetooth
 
-$(OBJDIR)/dbus.o: test/dbus.c| $(OBJDIR)
-	$(CC) -c $(CFLAGS) -o $@ $<
-
-$(OBJDIR)/btj.o: test/btj.c| $(OBJDIR)
+$(OBJDIR)/bluez.o: test/bluez.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OBJDIR)/simplescan.o: test/simplescan.c| $(OBJDIR)
@@ -79,10 +71,10 @@ $(OBJDIR)/rfcommclient.o: test/rfcommclient.c| $(OBJDIR)
 
 
 install:
-	-cp $(LIBBTJ) $(BERT_HOME)/lib
+	-cp $(LIBLLUEZ) $(BERT_HOME)/lib
 
 clean:
-	-rm -f $(LIBBTJ) $(TESTS)
+	-rm -f $(LIBLLUEZ) $(TESTS)
 	-rm -rf $(OBJDIR)
 
 

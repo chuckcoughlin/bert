@@ -38,9 +38,26 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		this.bottle = bot;
 	}
 	
-	// ================================= Overridden Methods =====================================
 	// These do the actual translations. Text->RequestBottle.
 	// NOTE: Any action, state or pose names require database access to fill in the details.
+	// ================================= Overridden Methods =====================================
+	// 
+	@Override 
+	public Object visitHandleListCommand1(SpeechSyntaxParser.HandleListCommand1Context ctx) {
+		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
+		String pname = ctx.Properties().getText();                     // plural
+		bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,pname.substring(0, pname.length()-1));  // drop the s
+		return null;
+	}
+	
+	@Override 
+	public Object visitHandleListCommand2(SpeechSyntaxParser.HandleListCommand2Context ctx) {
+		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
+		String pname = ctx.Properties().getText();                     // plural
+		bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,pname.substring(0, pname.length()-1));  // drop the s
+		return null;
+	}
+	
 	@Override 
 	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
 		if( ctx.Command()!=null) {
@@ -94,16 +111,23 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	}
 	
 	@Override 
+	// Get internal configuration parameters. There are no options.
+	public Object visitConfigurationQuestion(SpeechSyntaxParser.ConfigurationQuestionContext ctx) {
+		bottle.assignRequestType(RequestType.GET_METRICS);
+		return null;
+	}
+	
+	@Override 
 	// what is the id of your left hip y?
 	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
-		bottle.assignRequestType(RequestType.GET_CONFIGURATION);
+		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
 		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
 		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
 		try {
 			bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,JointProperty.valueOf(property).name());
-			// If side or axis were set previously, use those values as defaults
+			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
 			sharedDictionary.put(SharedKey.SIDE.name(), side);
@@ -146,14 +170,14 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// what is the z position of your left hip?
 	// Identical to JointPropertyQuestion, but different word order
 	public Object visitPositionQuestion(SpeechSyntaxParser.PositionQuestionContext ctx) {
-		bottle.assignRequestType(RequestType.GET_CONFIGURATION);
+		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
 		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
 		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
 		try {
 			bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,JointProperty.valueOf(property).name());
-			// If side or axis were set previously, use those values as defaults
+			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
 			sharedDictionary.put(SharedKey.SIDE.name(), side);
@@ -224,6 +248,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				if( side.equalsIgnoreCase("left"))         result = Joint.LEFT_KNEE_Y;
 				else if( side.equalsIgnoreCase("right"))   result = Joint.RIGHT_KNEE_Y;
 			}
+		}
+		else if( bodyPart.equalsIgnoreCase("NECK")) {
+			result = Joint.HEAD_Y;
 		}
 		else if( bodyPart.equalsIgnoreCase("SHOULDER") || bodyPart.equalsIgnoreCase("ARM")) {
 			if(axis!=null && side!=null) {

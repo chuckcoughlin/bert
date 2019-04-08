@@ -7,18 +7,24 @@ package bert.motor.dynamixel;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import bert.share.common.DynamixelType;
+import bert.share.motor.JointProperty;
 
 /**
- * This class contains static methods used to convert between Dynamixel values and engineering units.
+ * This class contains static methods used to convert between Dynamixel jointValues and engineering units.
  * Code is derived from Pypot dynamixel.conversion.py
  */
 public class DxlConversions  {
 	private static final String CLSS = "DynamixelConversions";
+	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static Map<DynamixelType,Integer> resolution;         // Increments for 360 deg by type
 	private static Map<DynamixelType,Double> torque;              // Max torque ~ Nm
 	private static Map<DynamixelType,Double> velocity;            // Angular velocity ~ deg/s
+	// Constants for control table addressses. These must be the same for MX28,MX64,AX12
+	private static final byte PRESENT_POSITION = (byte)0x24; 
+	
 	static {
 		resolution = new HashMap<>();
 		resolution.put(DynamixelType.AX12,1024);
@@ -71,5 +77,16 @@ public class DxlConversions  {
 
 	public static int torqueToDxl(DynamixelType model,double value) {
 	    return (int)Math.round(value * 10.23);
+	}
+	
+	// Convert the named property to a control table address. These need to 
+	// be independent of motor type
+	public static byte addressForProperty(String name) {
+		byte address = 0;
+		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = PRESENT_POSITION;
+		else {
+			LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)",CLSS,name));
+		}
+		return address;
 	}
 }
