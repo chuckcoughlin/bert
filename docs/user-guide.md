@@ -28,7 +28,7 @@ options from the vocabulary list in the next section.
 ##### Queries
 ```
     Describe yourself
-    List your motors
+    List the positions of your joints
     How old are you?
     What is your cycle time?
     What is the id of your left shoulder z?

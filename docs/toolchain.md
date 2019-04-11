@@ -170,6 +170,13 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
   sudo apt-get autoclean -y
+
+  sudo chmod 666 /dev/ttyACM*
+```
+
+As super-user, set the serial port permissions by creating file `/etc/udev/rules.d/50-ttyusb.rules` with the following contents:
+```
+KERNEL=="ttyACM*",MODE="0666"
 ```
 The reason for ``firefox`` is that we were not able to properly configure the proxy server in ``chromium``, the default browser.
 
@@ -197,12 +204,13 @@ Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy
 ```
 
 *** Java ***<br/>
-Download the latest Java 11 Development (JDK) version using:
+Download the latest Java Development (JDK) version using:
 ```
   sudo apt install openjdk-11-jdk-headless
 ````
 Installing the JDK allows us to compile on the Odroid, if necessary. Of course,
 we also need the runtime. Unfortunately at the time of this writing, OpenJDK-11 installs Java 10.0.2.
+This means that the JDK on the development system also needs to be Java 10.
 
 Once the build has been executed on the Development system (and deployed), edit ``/etc/environment``, adding the following directories to the **PATH** variable (before  */usr/bin*):
 ```
@@ -283,7 +291,14 @@ In order to make environment variables accessible within *ant*, edit the run con
   -Dbert.home="${env_var:BERT_HOME}"
 ```
 
-This makes *BERT_HOME* accessible as *${bert.home)* inside the script.
+This makes *BERT_HOME* accessible as *${bert.home)* inside the script. If ``eclipse`` does not recognize variables from the environment, then
+* Edit `/Applications/Eclipse.app/Contents/Info.plist` and change the entry *eclipse* to *eclipse.sh*.
+* Add executable file `/Applications/Eclipse.app/Contents/MacOs/eclipse.sh` with contents:
+```
+  #!/bin/sh
+  logger "`dirname \"$0\"`/eclipse"
+  exec "`dirname \"$0\"`/eclipse" $@
+```
 
 In addition to the *ant* scripts, there are a few shell scripts. To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
 
@@ -502,3 +517,9 @@ keyboard shortcuts that not at all obvious from the interface. Here are a few:
   * r - rotate (after "g")
   * s - scale (after "g")
   * t - toggle left-side toolbar
+
+  *** Useful Commands I Always Forget ***
+
+  In *atom*, generate a preview with cntrl-shift-m.
+
+  To query the module in a jar file: `jar --file="<file>" --describe-module`

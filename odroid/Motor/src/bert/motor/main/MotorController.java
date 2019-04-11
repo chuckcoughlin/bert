@@ -93,19 +93,27 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		*/
 	}
 	
+	/**
+	 * Dynamixel documentation: No parity, 1 stop bit, 8 bits of data, no flow control
+	 */
 	public void initialize() {
 		LOGGER.info(String.format("%s.initialize: Initializing port %s)",CLSS,port.getPortName()));
 		try {
-			port.openPort();
+			boolean success = port.openPort();
+			if( success && port.isOpened()) {
 			port.setParams(BAUD_RATE, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);  
             //port.setEventsMask(SerialPort.MASK_RXCHAR);
             port.setEventsMask(0xFF);
             port.purgePort(SerialPort.PURGE_RXCLEAR);
             port.purgePort(SerialPort.PURGE_TXCLEAR);
             port.addEventListener(this);
+			}
+			else {
+				LOGGER.severe(String.format("%s.initialize: Failed to open port %s for %s",CLSS,port.getPortName(),group));
+			}
 		}
 		catch(SerialPortException spe) {
-			LOGGER.severe(String.format("%s.initialize: Error opening port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",CLSS,port.getPortName(),group,spe.getLocalizedMessage()));
 		}
 		LOGGER.info(String.format("%s.initialize: Initialized port %s)",CLSS,port.getPortName()));
 	}

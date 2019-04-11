@@ -12,7 +12,7 @@ rsync -r mods bert:/usr/local/robot
 
 cd ../Configuration
 echo "Synchronizing configuration files, database ..."
-rsync -r etc bin bert:/usr/local/robot
+rsync -r etc bin pylib bert:/usr/local/robot
 
 cd ../Build
 echo "Synchronizing application jar files ..."

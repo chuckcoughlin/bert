@@ -12,7 +12,7 @@ import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
 /**
- * Exerccise a port connected to the Dynamixels.
+ * Exercise a port connected to the Dynamixels.
  */
 @SuppressWarnings("unused")
 public class PortTest implements Runnable,SerialPortEventListener {
@@ -27,14 +27,23 @@ public class PortTest implements Runnable,SerialPortEventListener {
 	public void run() {
 		boolean success = true;
 		try {
+			success = port.closePort();
+			System.out.println(String.format("PortTest.close: Success = %s",(success?"true":"false")));
+			
+		}
+		catch(SerialPortException ignore) {}
+		
+			
+		try {	
 			// Open the port
+			delay();
 			success = port.openPort();
 			System.out.println(String.format("PortTest.open: Success = %s",(success?"true":"false")));
-			System.out.println(String.format("PortTest.open: isOPened = %s",(port.isOpened()?"true":"false")));
+			System.out.println(String.format("PortTest.open: isOpened = %s",(port.isOpened()?"true":"false")));
 
 			// Configure the port
 			delay();
-			success = port.setParams(BAUD_RATE, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+			success = port.setParams(BAUD_RATE, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE,false,false);
 			System.out.println(String.format("PortTest.setParams: Success = %s",(success?"true":"false")));
 
 			delay();
@@ -58,7 +67,7 @@ public class PortTest implements Runnable,SerialPortEventListener {
 		try {
 			// Write the buffer
 			success = port.writeBytes(bytes);
-			System.out.println(String.format("PortTest.open: Success = %s",(success?"true":"false")));
+			System.out.println(String.format("PortTest.writeBytes: Success = %s writing %d bytes ",(success?"true":"false"),bytes.length));
 		}
 		catch(SerialPortException spe) {
 			System.out.println(String.format("PortTest: Error writing %s (%s)",DxlMessage.dump(bytes),spe.getLocalizedMessage()));
@@ -66,11 +75,21 @@ public class PortTest implements Runnable,SerialPortEventListener {
 
 		// Read
 		delay();
+		delay();
+		delay();
+		delay();
+		delay();
 		try {
 			// Read the port
+			int incount  = port.getInputBufferBytesCount();
+			int outcount = port.getOutputBufferBytesCount();
+			System.out.println(String.format("PortTest.getInputBufferBytesCount: %d bytes ready to read, %d bytes to write",incount,outcount));
+			if( incount>0 ) {
 			bytes = port.readBytes();
+			if( bytes!=null )
 			System.out.println(String.format("PortTest.readBytes: Got %d bytes",bytes.length));
 			System.out.println(String.format("PortTest.readBytes: %s",DxlMessage.dump(bytes)));
+			}
 		}
 		catch(SerialPortException spe) {
 			System.out.println(String.format("PortTest: Error reading (%s)",spe.getLocalizedMessage()));
@@ -91,7 +110,7 @@ public class PortTest implements Runnable,SerialPortEventListener {
 	 */
 	private void delay() {
 		try {
-			Thread.currentThread().sleep(1000);
+			Thread.sleep(1000);
 		}
 		catch(InterruptedException ignore) {}
 	}

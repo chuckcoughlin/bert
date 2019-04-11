@@ -21,10 +21,11 @@ parameters, including: id, motor type. This does not involve reading the motors 
 ```
     what is your configuration
 ```
-* ![yellow](/images/ball_yellow.png) Read the status of all motors/joints - use the terminal application to read of
-motor parameters, including: id, position, velocity. A typical request:
+* ![yellow](/images/ball_yellow.png) Read a single attribute for all joints - use the terminal application. Available attributes
+ include: position and velocity. Values are read directly from the motors. A typical request:
 ```
-    describe your motors
+    tell me your joint positions
+    list the speeds of your motors
 ```
 * ![yellow](/images/ball_yellow.png) Read Positions - use the terminal application to request the current position of each joint. Move the joint manually and verify that the reported position changes. A typical query:
 ```
