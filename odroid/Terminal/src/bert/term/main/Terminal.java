@@ -105,7 +105,9 @@ public class Terminal extends Thread implements MessageHandler {
 		finally {
 			shutdown();
 		}
+		
 		Database.getInstance().shutdown();
+		LOGGER.warning(String.format("%s: exiting...",CLSS));
 		System.exit(0);
 	}
 	

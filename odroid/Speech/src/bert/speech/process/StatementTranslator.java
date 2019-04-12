@@ -46,6 +46,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitHandleListCommand1(SpeechSyntaxParser.HandleListCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
 		String pname = ctx.Properties().getText();                     // plural
+		if( pname.equalsIgnoreCase("angles")) pname = "positions";
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,pname.substring(0, pname.length()-1).toUpperCase());  // drop the s
 		return null;
 	}
@@ -53,7 +54,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	public Object visitHandleListCommand2(SpeechSyntaxParser.HandleListCommand2Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
-		String pname = ctx.Properties().getText();                     // plural
+		String pname = ctx.Properties().getText();   // plural
+		if( pname.equalsIgnoreCase("angles")) pname = "positions";  
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,pname.substring(0, pname.length()-1).toUpperCase());  // drop the s
 		return null;
 	}
@@ -122,7 +124,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
 		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
-		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
+		if( property.equalsIgnoreCase("angle")) property = "POSITION";
+		else if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
 		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
 		try {
@@ -169,12 +172,14 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// what is the z position of your left hip?
 	// Identical to JointPropertyQuestion, but different word order
-	public Object visitPositionQuestion(SpeechSyntaxParser.PositionQuestionContext ctx) {
+	public Object visitMotorPropertyQuestion(SpeechSyntaxParser.MotorPropertyQuestionContext ctx) {
 		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
-		if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
+		if( property.equalsIgnoreCase("angle")) property = "POSITION";
+		else if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
 		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
+		
 		try {
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.valueOf(property).name());
 			// If side or axis were set previously, use those jointValues as defaults

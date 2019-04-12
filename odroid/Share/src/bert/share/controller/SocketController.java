@@ -78,6 +78,7 @@ public class SocketController implements Controller{
 	 */
 	@Override
 	public void receiveRequest(MessageBottle request ) {
+		if( request==null ) return;   // Can happen if socket closed (e.g. shutdown)
 		if( server ) {
 			dispatcher.handleRequest(request);
 		}

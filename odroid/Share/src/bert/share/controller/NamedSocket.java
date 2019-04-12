@@ -155,11 +155,14 @@ public class NamedSocket   {
 	}
 	
 	/**
-	 * Close IO streams.
+	 * Close IO streams. Closing the socket should interrupt any read.
 	 */
 	public void shutdown() {
-		LOGGER.info(String.format("%s.shutdown: %s ... ",CLSS,name));
-		if( readThread!=null ) readThread.interrupt();
+		try {
+			if( socket!=null) socket.close();
+			if(serverSocket!=null) serverSocket.close();
+		}
+		catch(IOException ioe) {}
 		if(in!=null) {
 			try{ in.close();} catch(IOException ignore) {}
 			in = null;
@@ -168,11 +171,6 @@ public class NamedSocket   {
 			out.close();
 			out = null;
 		}
-		try {
-			if( socket!=null) socket.close();
-			if(serverSocket!=null) serverSocket.close();
-		}
-		catch(IOException ioe) {}
 		LOGGER.info(String.format("%s.shutdown: %s complete.",CLSS,name));	
 	}
 	/**

@@ -48,8 +48,8 @@ public enum Joint
 			case ABS_X: text = "abdomen x"; break;
 			case ABS_Y: text = "abdomen y"; break;
 			case ABS_Z: text = "abdomen z"; break;
-			case BUST_X: text = "bust x"; break;
-			case BUST_Y: text = "bust y"; break;
+			case BUST_X: text = "chest horizontal"; break;
+			case BUST_Y: text = "chest vertical"; break;
 			case HEAD_Y: text = "neck y"; break;
 			case HEAD_Z: text = "neck z"; break;
 			case LEFT_ANKLE_Y: text = "left ankle"; break;
@@ -59,8 +59,8 @@ public enum Joint
 			case LEFT_HIP_Y:   text = "left hip y"; break;
 			case LEFT_HIP_Z:   text = "left hip z"; break;
 			case LEFT_KNEE_Y:  text = "left knee"; break;
-			case LEFT_SHOULDER_X: text = "left shoulder x"; break;
-			case LEFT_SHOULDER_Y: text = "left shoulder y"; break;
+			case LEFT_SHOULDER_X: text = "left shoulder horizontal"; break;
+			case LEFT_SHOULDER_Y: text = "left shoulder vertical"; break;
 			case RIGHT_ANKLE_Y: text = "right ankle"; break;
 			case RIGHT_ARM_Z:   text = "right arm z"; break;
 			case RIGHT_ELBOW_Y:  text = "right elbow"; break;
@@ -68,8 +68,8 @@ public enum Joint
 			case RIGHT_HIP_Y:    text = "right hip y"; break;
 			case RIGHT_HIP_Z:    text = "right hip z"; break;
 			case RIGHT_KNEE_Y:   text = "right knee"; break;
-			case RIGHT_SHOULDER_X: text = "right shoulder x"; break;
-			case RIGHT_SHOULDER_Y: text = "right shoulder y"; break;
+			case RIGHT_SHOULDER_X: text = "right shoulder horizontal"; break;
+			case RIGHT_SHOULDER_Y: text = "right shoulder vertical"; break;
 			case UNKNOWN: text = "unknown"; break;
 		}
 		return text;

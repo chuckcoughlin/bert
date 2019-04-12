@@ -8,9 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.motor.model.RobotMotorModel;
@@ -45,12 +42,9 @@ public class MotorGroupController implements Controller,MotorManager {
 	private final Map<String,Thread> motorControllerThreads;
 	private MessageBottle currentRequest;
 	private final boolean development;
-	private final Condition waiting;
-	private final Lock lock;
 	private int motorCount;
 	private int motorsProcessed;
 	private MessageHandler responseHandler = null;  // Dispatcher
-	private boolean stopped = false;
 
 	private final Map<String,String> parametersInProcess;
 	/**
@@ -66,8 +60,6 @@ public class MotorGroupController implements Controller,MotorManager {
 		this.motorsProcessed = 0;
 		this.motorNameById = new HashMap<>();
 		this.parametersInProcess = new HashMap<>();
-		this.lock = new ReentrantLock();
-		this.waiting = lock.newCondition();
 		LOGGER.info(String.format("%s.constructor: os.arch = %s",CLSS,System.getProperty("os.arch")));  // x86_64
 		LOGGER.info(String.format("%s.constructor: os.name = %s",CLSS,System.getProperty("os.name")));  // Mac OS X
 		development = System.getProperty("os.arch").startsWith("x86");
@@ -139,7 +131,6 @@ public class MotorGroupController implements Controller,MotorManager {
 				motorControllerThreads.get(key).interrupt();
 			}
 		}
-		stopped = true;
 	}
 
 	/**
@@ -278,7 +269,7 @@ public class MotorGroupController implements Controller,MotorManager {
 		}
 		// Log configuration metrics. The response will contain a map of motor types by ID 
 		else if( request.fetchRequestType().equals(RequestType.GET_METRICS)) {
-			String text = "The configuration has been written to the logs";
+			String text = "Motor configuration parameters have been logged";
 			request.setProperty(BottleConstants.TEXT, text);
 			for( String group:motorControllers.keySet() ) {
 				MotorController controller = motorControllers.get(group);

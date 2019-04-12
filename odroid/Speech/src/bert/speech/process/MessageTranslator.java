@@ -8,7 +8,10 @@ import java.util.logging.Logger;
 
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
+import bert.share.message.MetricType;
 import bert.share.message.RequestType;
+import bert.share.motor.Joint;
+import bert.share.motor.JointProperty;
 
 
 /**
@@ -26,43 +29,61 @@ public class MessageTranslator  {
 	}
 	
 
+	/**
+	 * In many cases, text is set in the Dispatcher or MotorController. Use those
+	 * versions preferentially.
+	 * @param msg the response
+	 * @return pronounceable text
+	 */
 	public String messsageToText(MessageBottle msg) {
-		String text = "I don't understand the response";
-		if( msg!=null ) {
+		String text = null;
+		if( msg!=null  ) {
 			String error = msg.fetchError();
 			if( error!=null && !error.isEmpty() ) {
 				text = error;
 			}
-			else if(msg.fetchRequestType().equals(RequestType.NOTIFICATION)) {
-				text = msg.getProperty(BottleConstants.TEXT, "Received empty notification.");
+			if( text==null || text.isEmpty() ) {
+				text = msg.getProperty(BottleConstants.TEXT,"");
 			}
-			else if(msg.fetchRequestType().equals(RequestType.GET_METRIC)) {
-				text = msg.fetchError();
-				if( text==null || text.isEmpty() ) {
-					text = msg.getProperty(BottleConstants.TEXT, "??");
+			
+			if( text==null || text.isEmpty() ) {
+				RequestType type = msg.fetchRequestType();
+				if(type.equals(RequestType.NOTIFICATION)) {
+					text = "Received empty notification.";
 				}
-			}
-			else if(msg.fetchRequestType().equals(RequestType.GET_METRICS)) {
-				text = msg.fetchError();
-				if( text==null || text.isEmpty() ) {
-					text = msg.getProperty(BottleConstants.TEXT, "??");
+				// We expect the Dispatcher to fill these in ...
+				else if(type.equals(RequestType.GET_METRIC)) {
+					MetricType metric = MetricType.valueOf(msg.getProperty(BottleConstants.METRIC_NAME, "NAME"));
+					text = String.format("The metric %s is unknown", metric.name().toLowerCase());
 				}
-			}
-			else if(msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
-				text = msg.fetchError();
-				if( text==null || text.isEmpty() ) {
-					text = msg.getProperty(BottleConstants.TEXT, "??");
+				else if(type.equals(RequestType.GET_METRICS)) {
+					text = "Motor metrics have been written to log files";
 				}
-			}
-			else {
-				String property = msg.getProperty(BottleConstants.PROPERTY_NAME, "unknown");
-				String value = msg.getProperty(property, "0");
-				text = String.format("My %s is %s", property,value);
+				// We expect the MotorGroupController to fill these in ...
+				else if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
+					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
+					Joint joint   = Joint.valueOf(msg.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN").toUpperCase());
+					String value       = msg.getProperty(propertyName, "");
+					text = String.format("The %s of my %s is %s", propertyName,Joint.toText(joint),value);
+				}
+				else if(type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
+					text = String.format("Motor %s have been written to log files", propertyName.toLowerCase());
+				}
+				else {
+					String property = msg.getProperty(BottleConstants.PROPERTY_NAME, "unknown");
+					String value = msg.getProperty(property, "unknown");
+					text = String.format("My %s is %s", property,value);
+				}
 			}
 		}
 		else {
 			text = "I received an empty message";
 		}
+		if(text==null || text.isEmpty()) text = "I don't understand the response";
 		return text;
 	}
+	
+	// ============================================== Helper Methods ===================================
+
 }

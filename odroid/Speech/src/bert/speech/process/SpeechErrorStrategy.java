@@ -76,12 +76,11 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	String msg = "";
     	if( offender != null ) {
     		msg = String.format("I misunderstood the word \"%s\"",offender.getText());
-    		
     	}
     	else {
     		msg = "I don't understand";
     	}
-    	LOGGER.warning(String.format("%s: %s",CLSS,msg));
+    	LOGGER.info(String.format("WARNING: %s: %s",CLSS,msg));
 		bottle.assignError(msg);
     }
 }

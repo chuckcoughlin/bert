@@ -29,7 +29,7 @@ question:
 	| What 'is' Article? Configuration                          # configurationQuestion
 	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion
 	| What 'is' Article? Metric   				                # metricsQuestion
-	| What 'is' Article? Axis? Property Of Article? Side? Joint # positionQuestion
+	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
 	;
 
 // Convey information to the robot.
@@ -51,8 +51,8 @@ Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Of: 'of';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder';
-Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'motor types'|'orientations'|'speeds'|'torques';
-Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'motor type'|'orientation'|'speed'|'torque';
+Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques';
+Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque';
 Salutation:('bert'|'burt');
 Shutdown: 'power off'|'shut down'|'shutdown';
 Side: 'left'|'right';
