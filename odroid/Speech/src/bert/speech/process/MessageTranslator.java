@@ -55,8 +55,8 @@ public class MessageTranslator  {
 				}
 			}
 			else {
-				String property = msg.getProperty(BottleConstants.PROPERTY_PROPERTY, "unknown");
-				String value = msg.getProperty(BottleConstants.VALUE, "0");
+				String property = msg.getProperty(BottleConstants.PROPERTY_NAME, "unknown");
+				String value = msg.getProperty(property, "0");
 				text = String.format("My %s is %s", property,value);
 			}
 		}

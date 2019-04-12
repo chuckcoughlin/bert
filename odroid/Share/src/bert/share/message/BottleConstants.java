@@ -11,20 +11,17 @@ package bert.share.message;
  */
 public interface BottleConstants   {   
 	
-	// Well-known properties that define the request/response syntax
-	public final static String PROPERTY_ERROR      = "error";      // The last request resulted in an error
-	public final static String PROPERTY_JOINT      = "joint";      // Value is a Joint name
-	public final static String PROPERTY_METRIC     = "metric";     // Value is a MetricType
-	public final static String PROPERTY_PROPERTY   = "property";   // Property to set or get, a JointProperty
-	public final static String PROPERTY_RESPONSE   = "response";   // Value is a ResponseType
-	public final static String PROPERTY_REQUEST    = "request";    // Value is a RequestType
-	public final static String PROPERTY_SOURCE     = "source";     // Source of message, ControllerType
-	
-	// Keys
-	public final static String COMMAND_NAME        = "command";
-	public final static String POSE_NAME           = "pose";
-	public final static String TEXT     = "text";     // End-user appropriate text result
-	public final static String VALUE    = "value";    // Single-value result	
+	// Well-known keys for the properties map inside a request/response
+	// Additional data values as appropriate are keyed with the JointProperty keys
+	public final static String COMMAND_NAME        = "command";    // Value is a well-known command name, see below
+	public final static String ERROR               = "error";      // Request resulted in an error, value is error text
+	public final static String JOINT_NAME          = "joint";      // Request applies to this joint, value is a Joint
+	public final static String METRIC_NAME         = "metric";     // Value is a MetricType
+	public final static String POSE_NAME           = "pose";       // Name of a pose, must exist in database
+	public final static String PROPERTY_NAME       = "property";   // Value is a JointProperty. Subject of original request.
+	public final static String TYPE                = "type";       // Type of request, a RequestType
+	public final static String SOURCE              = "source";     // Original source of request, value is a HandlerType
+	public final static String TEXT                = "text";       // End-user appropriate text result
 	
 	// Command names
 	public final static String COMMAND_FREEZE      = "freeze";

@@ -68,6 +68,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		catch(SerialPortException spe) {
 			LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
 		}
+		stopped = true;
 	}
 	
 	/**
@@ -94,28 +95,30 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	}
 	
 	/**
+	 * Open and configure the port.
 	 * Dynamixel documentation: No parity, 1 stop bit, 8 bits of data, no flow control
 	 */
 	public void initialize() {
 		LOGGER.info(String.format("%s.initialize: Initializing port %s)",CLSS,port.getPortName()));
-		try {
-			boolean success = port.openPort();
-			if( success && port.isOpened()) {
-			port.setParams(BAUD_RATE, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);  
-            //port.setEventsMask(SerialPort.MASK_RXCHAR);
-            port.setEventsMask(0xFF);
-            port.purgePort(SerialPort.PURGE_RXCLEAR);
-            port.purgePort(SerialPort.PURGE_TXCLEAR);
-            port.addEventListener(this);
+		if( !port.isOpened()) {
+			try {
+				boolean success = port.openPort();
+				if( success && port.isOpened()) {
+					port.setParams(BAUD_RATE, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);  
+					port.setEventsMask(SerialPort.MASK_RXCHAR);
+					port.purgePort(SerialPort.PURGE_RXCLEAR);
+					port.purgePort(SerialPort.PURGE_TXCLEAR);
+					port.addEventListener(this);
+				}
+				else {
+					LOGGER.severe(String.format("%s.initialize: Failed to open port %s for %s",CLSS,port.getPortName(),group));
+				}
 			}
-			else {
-				LOGGER.severe(String.format("%s.initialize: Failed to open port %s for %s",CLSS,port.getPortName(),group));
+			catch(SerialPortException spe) {
+				LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",CLSS,port.getPortName(),group,spe.getLocalizedMessage()));
 			}
+			LOGGER.info(String.format("%s.initialize: Initialized port %s)",CLSS,port.getPortName()));
 		}
-		catch(SerialPortException spe) {
-			LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",CLSS,port.getPortName(),group,spe.getLocalizedMessage()));
-		}
-		LOGGER.info(String.format("%s.initialize: Initialized port %s)",CLSS,port.getPortName()));
 	}
 	public void setStopped(boolean flag) { this.stopped = flag; }
 	
@@ -123,17 +126,17 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	public void receiveRequest(MessageBottle request) {
 		lock.lock();
 		try {
-			
 			if( isSingleGroupRequest(request)) {
 				// Do nothing if the joint isn't in our group.
-				String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
-				LOGGER.info(String.format("%s.receiveRequest: %s processing %s for %s",CLSS,group,request.fetchRequestType().name(),jointName));
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
+				String propertyName = request.getProperty(jointName,"UNKNOWN");
 				MotorConfiguration mc = configurations.get(jointName);
 				if( mc==null ) { 
 					return; 
 				}
 				else {
-					LOGGER.info(String.format("%s.receiveRequest %s (%s): for %s",CLSS,group,request.fetchRequestType().name(),jointName));
+					LOGGER.info(String.format("%s.receiveRequest %s (%s): for %s (%s)",CLSS,group,request.fetchRequestType().name(),
+							jointName,propertyName));
 				}
 			}
 			else {
@@ -158,16 +161,8 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				running.await();
 				LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,group,port.getPortName()));
 				byte[] bytes = messageToBytes(currentRequest);
-				bytes = DxlMessage.bytesToBroadcastPing();   /// Stub
 				writeBytesToSerial(bytes);
-				LOGGER.info(String.format("%s.run: %s wrote %s",CLSS,group,DxlMessage.dump(bytes)));
-				try {
-					byte[] responseBytes = port.readBytes(4);
-					LOGGER.info(String.format("%s.run: %s read %s",CLSS,group,DxlMessage.dump(responseBytes)));
-				}
-                catch (SerialPortException ex) {
-                    System.out.println(ex);
-                }	
+				LOGGER.info(String.format("%s.run: %s wrote %d bytes",CLSS,group,bytes.length));	
 			}
 			catch(InterruptedException ie ) {}
 			finally {
@@ -178,6 +173,16 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	
 	
 	// ============================= Private Helper Methods =============================
+	// Get the value of the supplied property from the specified array. Create a map to 
+	// be aggregated by the MotorManager with similar responses from other motors.
+	private Map<Integer,String> createPropertyMapFromBytes(String propertyName,byte[] bytes) {
+		Map<Integer,String> props = new HashMap<>();
+		if( currentRequest!=null) {
+			DxlMessage.updateParameterArrayFromBytes(propertyName,props,bytes);
+		}
+		return props;
+	}
+	
 	/**
 	 * @param msg the request
 	 * @return true if this is the type of message satisfied by a single controller.
@@ -190,54 +195,46 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		return false;
 	}
 	
+	// Convert the request message into a command for the serial port
 	private byte[] messageToBytes(MessageBottle request) {
-		LOGGER.info(String.format("%s.messageToBytes: %s converting request",CLSS,group));
 		byte[] bytes = null;
 		if( request!=null) {
 			RequestType type = request.fetchRequestType();
 			if( type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-				String jointName = request.getProperty(BottleConstants.PROPERTY_JOINT, "");
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
 				MotorConfiguration mc = configurations.get(jointName);
-				JointProperty jp = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, "NONE"));
-				bytes = DxlMessage.bytesToGetProperty(mc.getId(),jp.name());
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
+				bytes = DxlMessage.bytesToGetProperty(mc.getId(),propertyName);
 			}
 			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
-				bytes = DxlMessage.bytesToListProperty(request.getProperty(BottleConstants.PROPERTY_PROPERTY,"UNKNOWN"));
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
+				bytes = DxlMessage.bytesToListProperty(propertyName);
 			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
 			}
-			LOGGER.info(String.format("%s.messageToBytes: request (%s) is (%s)",CLSS,request.fetchRequestType(),DxlMessage.dump(bytes)));
+			LOGGER.info(String.format("%s.messageToBytes: request(%s) = (%s)",CLSS,request.fetchRequestType(),DxlMessage.dump(bytes)));
 		}
 		return bytes;
 	}
 	
-	// Already known to be a single group request. Here we are handling the response.
-	private void updatePropertiesFromBytes(byte[] bytes,Map<String,String> props) {
+	// Already known to be a single group request. Here we are readying the response.
+	// We update the properties in the request from our serial message.
+	private void updateCurrentRequestFromBytes(byte[] bytes) {
 		if( currentRequest!=null) {
 			RequestType type = currentRequest.fetchRequestType();
+			Map<String,String> properties = currentRequest.getProperties();
 			if( type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-				JointProperty jp = JointProperty.valueOf(currentRequest.getProperty(BottleConstants.PROPERTY_PROPERTY, "NONE"));
-				if( jp.equals(JointProperty.POSITION)) {
-					DxlMessage.updatePositionFromBytes(bytes,props);
-				}
-				else {
-					LOGGER.severe(String.format("%s.bytesToProperties: Unhandled response to GET_MOTOR_PROPERTY for %s",CLSS,jp.name()));
-				}
+				String jointName = currentRequest.getProperty(BottleConstants.JOINT_NAME, "");
+				DxlMessage.updateParameterFromBytes(jointName,properties,bytes);
 			}
 			else {
-				LOGGER.severe( String.format("%s.bytesToProperties: Unhandled response for %s",CLSS,type.name()));
+				LOGGER.severe( String.format("%s.updateCurrentRequestFromBytes: Unhandled response for %s",CLSS,type.name()));
 			}
 		}
 	}
 	
-	private Map<Integer,Integer> bytesToPositions(byte[] bytes) {
-		Map<Integer,Integer> positions = new HashMap<>();
-		if( currentRequest!=null) {
-			DxlMessage.updatePositionArrayFromBytes(bytes,positions);
-		}
-		return positions;
-	}
+
 	
 	private void writeBytesToSerial(byte[] bytes) {
 		if( bytes!=null && bytes.length>0 ) {
@@ -257,42 +254,28 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	 * Handle the response from the serial request. 
 	 */
 	public void serialEvent(SerialPortEvent event) {
-		LOGGER.info(String.format("%s.serialEvent callback!!! port %s: type %d",CLSS,event.getPortName(),event.getEventType()));
 		if(event.isRXCHAR() && currentRequest!=null ){
-        	// The value is the number of bytes in the read buffer
+			// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();
+			LOGGER.info(String.format("%s.serialEvent callback port %s: bytes %d",CLSS,event.getPortName(),byteCount));
             if(byteCount>0){
                 try {
                     byte[] bytes = port.readBytes(byteCount);
+                    LOGGER.info(String.format("%s.serialEvent: read = (%s)",CLSS,DxlMessage.dump(bytes)));
                     if( isSingleGroupRequest(currentRequest)) {
-                    	updatePropertiesFromBytes(bytes,currentRequest.getProperties());
-                    	motorManager.collectProperties(currentRequest.getProperties());
+                    	updateCurrentRequestFromBytes(bytes);
+                    	motorManager.handleUpdatedProperties(currentRequest.getProperties());
                     }
-                    // We get a callback for every individual motor
+                    // We get a callback for every individual motor. Any errors get swallowed, but logged.
                     else {
-                    	Map<Integer,Integer> map = bytesToPositions(bytes);
-                    	motorManager.collectPositions(map);
+                    	String propertyName = currentRequest.getProperty(BottleConstants.PROPERTY_NAME, "NONE");
+                    	Map<Integer,String> map = createPropertyMapFromBytes(propertyName,bytes);
+                    	motorManager.aggregateMotorProperties(map);
                     }
                 }
                 catch (SerialPortException ex) {
                     System.out.println(ex);
                 }
-            }
-        }
-        else if(event.isCTS()){
-            if(event.getEventValue() == 1){
-            	LOGGER.info(String.format("%s.serialEvent: CTS for %s is ON",CLSS,port.getPortName()));
-            }
-            else {
-            	LOGGER.info(String.format("%s.serialEvent: CTS for %s is OFF",CLSS,port.getPortName()));
-            }
-        }
-        else if(event.isDSR()){
-            if(event.getEventValue() == 1){
-            	LOGGER.info(String.format("%s.serialEvent: DSR for %s is ON",CLSS,port.getPortName()));
-            }
-            else {
-            	LOGGER.info(String.format("%s.serialEvent: DSR for %s is OFF",CLSS,port.getPortName()));
             }
         }
     }

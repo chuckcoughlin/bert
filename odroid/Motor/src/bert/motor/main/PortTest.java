@@ -75,10 +75,6 @@ public class PortTest implements Runnable,SerialPortEventListener {
 
 		// Read
 		delay();
-		delay();
-		delay();
-		delay();
-		delay();
 		try {
 			// Read the port
 			int incount  = port.getInputBufferBytesCount();

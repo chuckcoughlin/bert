@@ -46,7 +46,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitHandleListCommand1(SpeechSyntaxParser.HandleListCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
 		String pname = ctx.Properties().getText();                     // plural
-		bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,pname.substring(0, pname.length()-1));  // drop the s
+		bottle.setProperty(BottleConstants.PROPERTY_NAME,pname.substring(0, pname.length()-1).toUpperCase());  // drop the s
 		return null;
 	}
 	
@@ -54,7 +54,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitHandleListCommand2(SpeechSyntaxParser.HandleListCommand2Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
 		String pname = ctx.Properties().getText();                     // plural
-		bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,pname.substring(0, pname.length()-1));  // drop the s
+		bottle.setProperty(BottleConstants.PROPERTY_NAME,pname.substring(0, pname.length()-1).toUpperCase());  // drop the s
 		return null;
 	}
 	
@@ -98,10 +98,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.assignRequestType(RequestType.GET_METRIC);
 		String attribute = ctx.Adjective().getText();
 		if( attribute.equalsIgnoreCase("old") ) {
-			bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.AGE.name());
+			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.AGE.name());
 		}
 		else if(	attribute.equalsIgnoreCase("tall")   ) {
-			bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.HEIGHT.name());
+			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.HEIGHT.name());
 		}
 		else {
 			String msg = String.format("I don't know what %s means",attribute);
@@ -126,7 +126,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
 		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
 		try {
-			bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,JointProperty.valueOf(property).name());
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.valueOf(property).name());
 			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
@@ -135,7 +135,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
 			sharedDictionary.put(SharedKey.AXIS.name(), axis);
 			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
-			bottle.setProperty(BottleConstants.PROPERTY_JOINT,joint.name());
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("I don't have a property %s, that I know of",property);
@@ -150,14 +150,14 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.assignRequestType(RequestType.GET_METRIC);
 		String metric = ctx.Metric().getText().toUpperCase();
 		if( metric.equalsIgnoreCase("cycle time") ) {
-			bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.CYCLETIME.name());
+			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.CYCLETIME.name());
 		}
 		else if(metric.equalsIgnoreCase("duty cycle") ) {
-			bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.DUTYCYCLE.name());
+			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.DUTYCYCLE.name());
 		}
 		else {
 			try {
-				bottle.setProperty(BottleConstants.PROPERTY_METRIC,MetricType.valueOf(metric).name());
+				bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.valueOf(metric).name());
 			}
 			catch(IllegalArgumentException iae) {
 				String msg = String.format("I did't know that I had a %s",metric);
@@ -176,7 +176,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
 		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
 		try {
-			bottle.setProperty(BottleConstants.PROPERTY_PROPERTY,JointProperty.valueOf(property).name());
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.valueOf(property).name());
 			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
@@ -185,7 +185,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
 			sharedDictionary.put(SharedKey.AXIS.name(), axis);
 			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
-			bottle.setProperty(BottleConstants.PROPERTY_JOINT,joint.name());
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("I don't have a property %s, that I know of",property);

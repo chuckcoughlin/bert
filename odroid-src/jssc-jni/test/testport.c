@@ -87,18 +87,27 @@ int main(int argc, char* argv[]) {
 	printf("testport: set baudrate and timed read\n");
 
     /* BROADCAST PING */
-	unsigned char bbuf[10];
+	// Protocol 2
+	//unsigned char bbuf[10];
+	//bbuf[0] = 0xFF;
+	//bbuf[1] = 0xFF;
+	//bbuf[2] = 0xFD;
+	//bbuf[3] = 0x00;
+	//bbuf[4] = 0xFE;
+	//bbuf[5] = 0x03;
+	//bbuf[6] = 0x00;
+	//bbuf[7] = 0x01;
+	//bbuf[8] = 0x31;
+	//bbuf[9] = 0x42;
+	// Protocol 1
+	unsigned char bbuf[6];
 	bbuf[0] = 0xFF;
 	bbuf[1] = 0xFF;
-	bbuf[2] = 0xFD;
-	bbuf[3] = 0x00;
-	bbuf[4] = 0xFE;
-	bbuf[5] = 0x03;
-	bbuf[6] = 0x00;
-	bbuf[7] = 0x01;
-	bbuf[8] = 0x31;
-	bbuf[9] = 0x42;
-	wlen = write(fd, bbuf, 10);
+	bbuf[2] = 0xFE;
+	bbuf[3] = 0x02;
+	bbuf[4] = 0x01;
+	bbuf[5] = 0xFE;
+	wlen = write(fd, bbuf, 6);
 	if (wlen != sizeof(bbuf)) {
 	    printf("testport: Error from write: %d, %d\n", wlen, errno);
 		return -1;

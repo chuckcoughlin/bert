@@ -10,7 +10,7 @@ import java.util.Map;
  *  the callback utilized by MotorContrtollers
  */
 public interface MotorManager  {
-	public void collectPositions(Map<Integer,Integer> map);
-	public void collectProperties(Map<String,String> props);
+	public void aggregateMotorProperties(Map<Integer,String> map);
+	public void handleUpdatedProperties(Map<String,String> updates);
 	public int getControllerCount();
 }

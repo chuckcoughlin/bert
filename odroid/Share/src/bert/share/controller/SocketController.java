@@ -87,8 +87,8 @@ public class SocketController implements Controller{
 	}
 	
 	/**
-	 * If the parent is a server, then it supplies the response directly.
-	 * Otherwise it comes from the pipe.
+	 * If the parent is a server, then write the response to the socket.
+	 * Otherwise we are on the receiving end. Handle it.
 	 * @param response
 	 */
 	@Override

@@ -18,6 +18,7 @@ import bert.share.common.DynamixelType;
 import bert.share.controller.Controller;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
+import bert.share.message.MessageHandler;
 import bert.share.message.RequestType;
 import bert.share.motor.Joint;
 import bert.share.motor.JointProperty;
@@ -42,15 +43,16 @@ public class MotorGroupController implements Controller,MotorManager {
 	private final Map<String,MotorController> motorControllers;
 	private final Map<Integer,String> motorNameById;
 	private final Map<String,Thread> motorControllerThreads;
-	private MessageBottle request;
-	private MessageBottle response;
+	private MessageBottle currentRequest;
 	private final boolean development;
 	private final Condition waiting;
 	private final Lock lock;
 	private int motorCount;
 	private int motorsProcessed;
+	private MessageHandler responseHandler = null;  // Dispatcher
+	private boolean stopped = false;
 
-	private final Map<String,String> positionsInProcess;
+	private final Map<String,String> parametersInProcess;
 	/**
 	 * Constructor:
 	 * @param m the server model
@@ -59,12 +61,11 @@ public class MotorGroupController implements Controller,MotorManager {
 		this.model = m;
 		this.motorControllers = new HashMap<>();
 		this.motorControllerThreads = new HashMap<>();
-		this.request = null;
-		this.response = null;
+		this.currentRequest = null;
 		this.motorCount = 0;
 		this.motorsProcessed = 0;
 		this.motorNameById = new HashMap<>();
-		this.positionsInProcess = new HashMap<>();
+		this.parametersInProcess = new HashMap<>();
 		this.lock = new ReentrantLock();
 		this.waiting = lock.newCondition();
 		LOGGER.info(String.format("%s.constructor: os.arch = %s",CLSS,System.getProperty("os.arch")));  // x86_64
@@ -109,6 +110,8 @@ public class MotorGroupController implements Controller,MotorManager {
 	
 	@Override
 	public int getControllerCount() { return motorControllers.size(); }
+	
+	public void setResponseHandler(MessageHandler mh) { this.responseHandler = mh; }
 
 	@Override
 	public void start() {
@@ -136,9 +139,11 @@ public class MotorGroupController implements Controller,MotorManager {
 				motorControllerThreads.get(key).interrupt();
 			}
 		}
+		stopped = true;
 	}
 
 	/**
+	 * Called by the Dispatcher when confronted with Motor requests.
 	 * There are 3 kinds of messages that we process:
 	 * 	1) Requests that can be satisfied from information in our static
 	 *     configuration. Compose results and return immediately. 
@@ -154,33 +159,23 @@ public class MotorGroupController implements Controller,MotorManager {
 	 * @param request
 	 * @return the response, usually containing current joint positions.
 	 */
-	public MessageBottle processRequest(MessageBottle request) {
-		this.response = null;
+	public void processRequest(MessageBottle request) {
 		if( canHandleImmediately(request) ) {
-			response = createResponseForLocalRequest(request);
+			responseHandler.handleResponse(createResponseForLocalRequest(request));
 		}
 		else if(development ) {
-			response = simulateResponseForRequest(request);
+			responseHandler.handleResponse(simulateResponseForRequest(request));
 		}
 		else {
-			// Post requests to all motor controller threads. The thread(s) that can handle
-			// the request will do so. Merge results in call-back and respond.
-			lock.lock();
+			this.currentRequest = request;
 			motorsProcessed = 0;
-			positionsInProcess.clear();
+			parametersInProcess.clear();
+			
 			LOGGER.info(String.format("%s.processRequest: processing %s",CLSS,request.fetchRequestType().name()));
 			for( String key:motorControllers.keySet()) {
 				motorControllers.get(key).receiveRequest(request);
-			}
-			// The response becomes defined in the collectPositions() call-back
-			// so is available for return.
-			try {
-				waiting.await();
-			}
-			catch(InterruptedException ie) {}
-			
+			}	
 		}
-		return response;
 	}
 	
 	@Override
@@ -189,48 +184,48 @@ public class MotorGroupController implements Controller,MotorManager {
 	public void receiveResponse(MessageBottle response) {}
 	// =========================== Motor Manager Interface ====================================
 	/**
-	 * This method is called by the controller that handled a request that pertained to
-	 * a single motor.
-	 * @param props the properties modified by or read by the controller
-	 */
-	public void collectProperties(Map<String,String> props) {
-		this.response = this.request;
-		if( props!=null ) {
-			for(Object key:props.keySet()) {
-				String name = key.toString();
-				this.response.setProperty(name, props.get(name));
-			}
-		}
-		this.request.notify();	
-	}
-	/**
-	 * Update the position map with the response from a single serial controller. 
-	 * Within it each individual motor generates a call. When we have heard from all 
-	 * of them, trigger a reply.
+	 * Update the property map with the response from a single serial controller. 
+	 * We assume that all controllers have analyzed for the same property. When we have heard
+	 * from all the controllers, forward reply back to the Dispatcher.
 	 * @param map position of an individual motor.
 	 */
-	public void collectPositions(Map<Integer,Integer> map) {
+	public void aggregateMotorProperties(Map<Integer,String> map) {
 		if( map!=null ) {
 			for( Integer key:map.keySet() ) {
-				Integer pos = map.get(key);
+				String param = map.get(key);
 				String name = motorNameById.get(key);
-				positionsInProcess.put(name, String.valueOf(pos));
+				parametersInProcess.put(name, param);
 			}
 		}
 		motorsProcessed++;
 		if(motorsProcessed>=motorCount ) {
-			this.response = this.request;
-			this.response.setJointValues(positionsInProcess);
-			waiting.signal();	
+			this.currentRequest.setJointValues(parametersInProcess);
+			responseHandler.handleResponse(currentRequest);
 		}
 	}
+	
+	/**
+	 * This method is called by the controller that handled a request that pertained to
+	 * a single motor. Forward result to the Dispatcher.
+	 * @param props the properties modified by or read by the controller
+	 */
+	public void handleUpdatedProperties(Map<String,String> props) {
+		if( props!=null ) {
+			for(Object key:props.keySet()) {
+				String name = key.toString();
+				this.currentRequest.setProperty(name, props.get(key));
+			}
+		}
+		responseHandler.handleResponse(currentRequest);		
+	}
+
 	// =========================== Private Helper Methods =====================================
 	// Queries of fixed properties of the motors are the kinds of requests that can be handled
-	// immediately
+	// immediately. Results are created from the original configuration file
 	private boolean canHandleImmediately(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY)) {
 			// Certain properties are constants available from the configuration file.
-			String property = request.getProperty(BottleConstants.PROPERTY_PROPERTY,"");
+			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");
 			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
 				property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
 				property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
@@ -248,8 +243,8 @@ public class MotorGroupController implements Controller,MotorManager {
 	// to return directly to the user. These jointValues are obtained from the initial configuration.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY)) {
-			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
-			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
+			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""));
+			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"));
 			LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",CLSS,request.fetchRequestType().name(),property.name(),joint.name()));
 			String text = "";
 			String jointName = Joint.toText(joint);
@@ -263,7 +258,7 @@ public class MotorGroupController implements Controller,MotorManager {
 				String modelName = "A X 12";
 				if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
 				else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
-				text = "My "+jointName+" is a dynamixel M X "+modelName;
+				text = "My "+jointName+" is a dynamixel "+modelName;
 				break;
 			case OFFSET:
 				double offset = mc.getOffset();
@@ -281,7 +276,7 @@ public class MotorGroupController implements Controller,MotorManager {
 			}
 			request.setProperty(BottleConstants.TEXT, text);
 		}
-		// Log results as well as returning them.
+		// Log configuration metrics. The response will contain a map of motor types by ID 
 		else if( request.fetchRequestType().equals(RequestType.GET_METRICS)) {
 			String text = "The configuration has been written to the logs";
 			request.setProperty(BottleConstants.TEXT, text);
@@ -292,13 +287,8 @@ public class MotorGroupController implements Controller,MotorManager {
 					MotorConfiguration mc = map.get(joint);
 					LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",joint,mc.getId(),mc.getType().name(),
 									mc.getMinAngle(),mc.getMaxAngle(),mc.getOffset(),(mc.isDirect()?"":"(indirect)") ));
-					request.setProperty(BottleConstants.PROPERTY_JOINT, joint);
-					request.setJointValue(JointProperty.ID.name(), String.valueOf(mc.getId()));
+					request.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.MOTORTYPE.name());
 					request.setJointValue(JointProperty.MOTORTYPE.name(), mc.getType().name());
-					request.setJointValue(JointProperty.MINIMUMANGLE.name(), String.valueOf(mc.getMinAngle()));
-					request.setJointValue(JointProperty.MAXIMUMANGLE.name(), String.valueOf(mc.getMaxAngle()));
-					request.setJointValue(JointProperty.OFFSET.name(), String.valueOf(mc.getOffset()));
-					request.setJointValue(JointProperty.ORIENTATION.name(), (mc.isDirect()?"direct":"indirect"));
 				}
 			}
 		}
@@ -308,8 +298,8 @@ public class MotorGroupController implements Controller,MotorManager {
 	private MessageBottle simulateResponseForRequest(MessageBottle request) {
 		RequestType requestType = request.fetchRequestType();
 		if( requestType.equals(RequestType.GET_MOTOR_PROPERTY)) {
-			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_PROPERTY, ""));
-			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.PROPERTY_JOINT, "UNKNOWN"));
+			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""));
+			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"));
 			String text = "";
 			String jointName = Joint.toText(joint);
 			MotorConfiguration mc = model.getMotors().get(joint.name());

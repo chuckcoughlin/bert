@@ -135,12 +135,11 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 						if( isLocalRequest(currentRequest) ) {
 							// Handle local request -create response
 							MessageBottle response = createResponseForLocalRequest(currentRequest);
-							sendResponse(response);
+							handleResponse(response);
 						}
 						else {
-							// Handle motor request
-							MessageBottle response  = motorGroupController.processRequest(currentRequest );
-							sendResponse(response);
+							// Handle motor request. The controller forwards response here via "handleResponse".
+							motorGroupController.processRequest(currentRequest );
 						}
 					}
 					LOGGER.info(String.format("%s: Cycle %d complete.",CLSS,cycleCount));
@@ -184,6 +183,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	}
 	@Override
 	public void shutdown() {
+		motorGroupController.stop();
 		LOGGER.info(String.format("%s.shutdown: Shutting down 1 ...",CLSS));
 		if(commandController!=null )    commandController.stop();
 		LOGGER.info(String.format("%s.shutdown: Shutting down 2 ...",CLSS));
@@ -214,19 +214,20 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	}
 	
 	/**
-	 * None of our controllers use this. The MotorGroupController
-	 * replies directly.
+	 * This is called by "sub-controllers" - Timer and MotorGroup. Forward the response on to
+	 * the appropriate socket controller for transmission to the original source of the request.
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
-		lock.lock();
-		try {
-			currentRequest = null;
-			LOGGER.info(String.format("%s.handleResponse: Unexpected response, shutting down",CLSS));
-			busy.signal();
+		String source = response.fetchSource();
+		if( source.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {	
+			commandController.receiveResponse(response);
 		}
-		finally {
-			lock.unlock();
+		else if( source.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
+			terminalController.receiveResponse(response);
+		}
+		else {
+			LOGGER.warning(String.format("%s.handleResponse: Unknown destination - %s, ignored",CLSS,source));
 		}
 	}
 	
@@ -236,7 +237,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	// to send directly to the user.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
-			MetricType metric = MetricType.valueOf(request.getProperty(BottleConstants.PROPERTY_METRIC, "NAME"));
+			MetricType metric = MetricType.valueOf(request.getProperty(BottleConstants.METRIC_NAME, "NAME"));
 			String text = "";
 			switch(metric) {
 				case AGE:
@@ -315,7 +316,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		startMessage.setProperty(BottleConstants.TEXT, selectRandomText());
 		LOGGER.info(String.format("%s: Bert is ready ... (to %s)",CLSS,sourceName));
 		startMessage.assignSource(sourceName);
-		sendResponse(startMessage);
+		handleResponse(startMessage);
 	}
     /**
      * Select a random startup phrase from the list.
@@ -326,20 +327,6 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
         int index = (int)(rand*phrases.length);
         return phrases[index];
     }
-	
-	// Return response to the request source.
-	private void sendResponse(MessageBottle response) {
-		String source = response.fetchSource();
-		if( source.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {	
-			commandController.receiveResponse(response);
-		}
-		else if( source.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
-			terminalController.receiveResponse(response);
-		}
-		else {
-			LOGGER.warning(String.format("%s.sendResponse: Unknown destination - %s, ignored",CLSS,source));
-		}
-	}
 	
 	
 	// =============================== SocketStateChangeListener ============================================
@@ -384,6 +371,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 		Dispatcher runner = new Dispatcher(model,mgc);
+		mgc.setResponseHandler(runner);
 		runner.createControllers();
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(runner)));
 		runner.startup();

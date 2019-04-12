@@ -1,6 +1,7 @@
 /**
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
+ * Not used, as currently all our motors are configured with Protocol 1.
  */
 
 package bert.motor.dynamixel;
@@ -14,22 +15,23 @@ import bert.share.motor.JointProperty;
 
 /**
  * This class contains static methods used to convert between Dynamixel jointValues and engineering units.
- * Code is derived from Pypot dynamixel.conversion.py
- * Protocol 1 only.
+ * Code is derived from Pypot dynamixel.conversion.py and ROBOTIS documentation
+ * e.g.: http://support.robotis.com/en/product/actuator/dynamixel/mx_series/mx-28(2.0).htm
+ * Protocol version 2.
  */
-public class DxlConversions  {
-	private static final String CLSS = "DynamixelConversions";
+public class DxlConversionsV2  {
+	private static final String CLSS = "DynamixelConversionsV2";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static Map<DynamixelType,Integer> resolution;         // Increments for 360 deg by type
 	private static Map<DynamixelType,Double> torque;              // Max torque ~ Nm
 	private static Map<DynamixelType,Double> velocity;            // Angular velocity ~ deg/s
+
 	// Constants for control table addressses. These must be the same for MX28,MX64,AX12
-	private static final byte GOAL_POSITION    = (byte)0x1E;  // low, high bytes
-	private static final byte MOVING_SPEED     = (byte)0x20;  // low, high bytes
-	private static final byte TORQUE_LIMIT     = (byte)0x22;  // low, high bytes
-	private static final byte PRESENT_POSITION = (byte)0x24;  // low, high bytes
-	private static final byte PRESENT_SPEED    = (byte)0x26;  // low, high bytes
-	private static final byte PRESENT_LOAD     = (byte)0x28;  // low, high bytes
+	private static final byte GOAL_POSITION    = (byte)116; 
+	private static final byte GOAL_VELOCITY    = (byte)104;
+	private static final byte PRESENT_POSITION = (byte)132; 
+	private static final byte PRESENT_SPEED    = (byte)128; 
+	private static final byte PRESENT_LOAD     = (byte)126; 
 	
 	static {
 		resolution = new HashMap<>();
@@ -89,11 +91,9 @@ public class DxlConversions  {
 	// of that property. These need to  be independent of motor type.
 	public static byte addressForPresentProperty(String name) {
 		byte address = 0;
-		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = PRESENT_POSITION;
-		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) address = PRESENT_SPEED;
-		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) address = PRESENT_LOAD;
+		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = (byte)132;
 		else {
-			LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)",CLSS,name));
+			LOGGER.warning(String.format("%s.addressForPresentProperty: Unrecognized property name (%s)",CLSS,name));
 		}
 		return address;
 	}
@@ -102,8 +102,8 @@ public class DxlConversions  {
 	// Valid for Protocol 1 only.
 	public static byte dataBytesForProperty(String name) {
 		byte length = 0;
-		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) length = 2;
-		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) length = 2;
+		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) length = 4;
+		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) length = 4;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) length = 2;
 		else {
 			LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)",CLSS,name));
