@@ -17,7 +17,9 @@ public enum JointProperty
 	ORIENTATION,
 	POSITION,
 	SPEED,
-	TORQUE
+	TEMPERATURE,
+	TORQUE,
+	VOLTAGE
 	;
           
  /**

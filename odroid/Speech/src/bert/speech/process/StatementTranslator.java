@@ -43,6 +43,79 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// ================================= Overridden Methods =====================================
 	// 
 	@Override 
+	// How tall are you?
+	public Object visitAttributeQuestion(SpeechSyntaxParser.AttributeQuestionContext ctx) {
+		bottle.assignRequestType(RequestType.GET_METRIC);
+		String attribute = ctx.Adjective().getText();
+		if( attribute.equalsIgnoreCase("old") ) {
+			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.AGE.name());
+		}
+		else if(	attribute.equalsIgnoreCase("tall")   ) {
+			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.HEIGHT.name());
+		}
+		else {
+			String msg = String.format("I don't know what %s means",attribute);
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
+	// Get internal configuration parameters. There are no options.
+	public Object visitConfigurationQuestion(SpeechSyntaxParser.ConfigurationQuestionContext ctx) {
+		bottle.assignRequestType(RequestType.GET_CONFIGURATION);
+		return null;
+	}
+	@Override 
+	// Get internal configuration parameters. There are no options.
+	public Object visitConfigurationRequest(SpeechSyntaxParser.ConfigurationRequestContext ctx) {
+		bottle.assignRequestType(RequestType.GET_CONFIGURATION);
+		return null;
+	}
+	@Override 
+	// list the limits of your left hip y? (same logic as "handleBulkPropertyRequest)
+	public Object visitHandleBulkPropertyQuestion(SpeechSyntaxParser.HandleBulkPropertyQuestionContext ctx) {
+		if( ctx.Limits() != null ) bottle.assignRequestType(RequestType.GET_LIMITS);
+		else bottle.assignRequestType(RequestType.GET_GOALS);
+		try {
+			// If side or axis were set previously, use those jointValues as defaults
+			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+			if( ctx.Side()!=null ) side = ctx.Side().getText();
+			sharedDictionary.put(SharedKey.SIDE.name(), side);
+			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+			sharedDictionary.put(SharedKey.AXIS.name(), axis);
+			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		}
+		catch(IllegalArgumentException iae) {
+			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
+	// what are the limits of your left hip y? (same logic as "handleBulkPropertyQuestion)
+	public Object visitHandleBulkPropertyRequest(SpeechSyntaxParser.HandleBulkPropertyRequestContext ctx) {
+		if( ctx.Limits() != null ) bottle.assignRequestType(RequestType.GET_LIMITS);
+		else bottle.assignRequestType(RequestType.GET_GOALS);
+		try {
+			// If side or axis were set previously, use those jointValues as defaults
+			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+			if( ctx.Side()!=null ) side = ctx.Side().getText();
+			sharedDictionary.put(SharedKey.SIDE.name(), side);
+			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+			sharedDictionary.put(SharedKey.AXIS.name(), axis);
+			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		}
+		catch(IllegalArgumentException iae) {
+			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
 	public Object visitHandleListCommand1(SpeechSyntaxParser.HandleListCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
 		String pname = ctx.Properties().getText();                     // plural
@@ -94,30 +167,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	@Override 
-	// How tall are you?
-	public Object visitAttributeQuestion(SpeechSyntaxParser.AttributeQuestionContext ctx) {
-		bottle.assignRequestType(RequestType.GET_METRIC);
-		String attribute = ctx.Adjective().getText();
-		if( attribute.equalsIgnoreCase("old") ) {
-			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.AGE.name());
-		}
-		else if(	attribute.equalsIgnoreCase("tall")   ) {
-			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.HEIGHT.name());
-		}
-		else {
-			String msg = String.format("I don't know what %s means",attribute);
-			bottle.assignError(msg);
-		}
-		return null;
-	}
+
 	
-	@Override 
-	// Get internal configuration parameters. There are no options.
-	public Object visitConfigurationQuestion(SpeechSyntaxParser.ConfigurationQuestionContext ctx) {
-		bottle.assignRequestType(RequestType.GET_METRICS);
-		return null;
-	}
+
 	
 	@Override 
 	// what is the id of your left hip y?

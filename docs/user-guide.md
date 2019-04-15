@@ -43,11 +43,11 @@ There is no visible response to these statements.
 "Bert" has a fixed vocabulary when it comes to names of parameters in
 various categories.
   * Axes: x, y, z
-  * Body part: abs, ankle, arm, bust, elbow, head, hip, knee, neck, shoulder
+  * Body parts: abs, ankle, arm, bust, chest, elbow, head, hip, knee, neck, shoulder
   * Core property: age, cadence, cycle time, duty cycle, height, name
-  * Joint Property: id, maximum angle, minimum angle, motor type, offset,
-     orientation, position, speed, torque
-  * Side: left, right
+  * Joint Properties: id, maximum angle, minimum angle, motor type, offset,
+     orientation, position, speed, temperature, torque, voltage
+  * Sides: left, right
 
 *********************************************************
   ### Android Application <a id="android"></a>

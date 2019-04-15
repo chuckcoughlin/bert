@@ -56,7 +56,7 @@ public class MessageTranslator  {
 					MetricType metric = MetricType.valueOf(msg.getProperty(BottleConstants.METRIC_NAME, "NAME"));
 					text = String.format("The metric %s is unknown", metric.name().toLowerCase());
 				}
-				else if(type.equals(RequestType.GET_METRICS)) {
+				else if(type.equals(RequestType.GET_CONFIGURATION)) {
 					text = "Motor metrics have been written to log files";
 				}
 				// We expect the MotorGroupController to fill these in ...

@@ -10,8 +10,10 @@ package bert.share.message;
 public enum RequestType
 {
 	COMMAND,                 // Execute a non-motor-related command
+	GET_CONFIGURATION,       // A list of robot properties from the configuration file
+	GET_GOALS,               // The current target settings
+	GET_LIMITS,              // The EEPROM-resident limits
 	GET_METRIC,              // A local property of the robot
-	GET_METRICS,             // A list of local properties of the robot
 	GET_MOTOR_PROPERTY,      // A motor property
 	LIST_MOTOR_PROPERTY,     // List a property for all motors
 	NOTIFICATION,            // Unsolicited message from server

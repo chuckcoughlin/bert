@@ -2,19 +2,23 @@
     <string name="app_name">BertSpeak</string>
     <!-- Labels in the navigation bar -->
     <string name="cover_tab_label">Cover</string>
-    <string name="log_tab_label">Log</string>
+    <string name="dispatcher_log_tab_label">Logs</string>
     <string name="settings_tab_label">Settings</string>
+    <string name="tables_tab_label">Tables</string>
+    <string name="transcript_tab_label">Transcript</string>
     <!-- Titles as they appear at the top of each page -->
     <string name="action_settings">Settings</string>
     <string name="fragmentCoverLabel">Bert"</string>
-    <string name="fragmentLogsLabel">Spoken Record</string>
+    <string name="fragmentLogsLabel">Dispatcher Logs</string>
     <string name="fragmentSettingsLabel">Configuration Settings</string>
+    <string name="fragmentTableTabLabel">Table</string>
+    <string name="fragmentTranscriptLabel">Transcript</string>
     <!-- Strings for Cover tab-->
     <string name="coverParameterBluetooth">Bluetooth</string>
     <string name="coverParameterSocket">Socket</string>
     <string name="coverParameterVoice">Voice</string>
 
-    <!-- Strings for Log tab-->
+    <!-- Strings for Dispatcher Log tab-->
     <string name="logButtonClear">Clear</string>
     <string name="logButtonFreeze">Freeze</string>
     <string name="logButtonThaw">Unfreeze</string>

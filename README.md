@@ -3,6 +3,7 @@
 
 
  For further details see the [architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md), [toolchain](https://github.com/chuckcoughlin/bert/tree/master/docs/toolchain.md), [test plan](https://github.com/chuckcoughlin/bert/tree/master/docs/testplan.md), [implementation](https://github.com/chuckcoughlin/bert/tree/master/docs/implementation.md) and [user-guide](http://github.com/chuckcoughlin/bert/tree/master/docs/user-guide.md) documents.
+ The test plan contains current testing status and is a good indication of the project's progress.
 
  ![Bert](/images/current_state.png)
  ```                  Bert - Most Recent Picture     ```

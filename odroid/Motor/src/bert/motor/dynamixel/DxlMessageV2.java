@@ -162,7 +162,7 @@ public class DxlMessageV2  {
 	 * @return byte array with command to set speed
 	 */
 	public static byte[] bytesToSetTorque(int id,DynamixelType model,double goal) {
-		int dxlTorque = DxlConversions.torqueToDxl(model, goal);
+		int dxlTorque = DxlConversions.torqueToDxl(goal);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
 		setHeader(bytes,id); 

@@ -77,14 +77,15 @@ public class DxlConversions  {
 		return (int)(Math.round(direction + Math.abs(value) / (6 * speed_factor)));
 	}
 	
-	public static double dxlToTorque(DynamixelType model,double value) {
-	    return value / 10.23;
-	}
-
-	public static int torqueToDxl(DynamixelType model,double value) {
-	    return (int)Math.round(value * 10.23);
-	}
+	// % of max (assumes EEPROM max torque is 1023)
+	public static int torqueToDxl(double value) { return (int)Math.round(value * 10.23); }
+	public static double dxlToTorque(double value) { return value / 10.23; }
 	
+	// deg C
+	public static double dxlToTemperature(byte value) { return value; }
+	// volts
+	public static double dxlToVoltage(byte value) { return value; }
+
 	// Convert the named property to a control table address for the present state
 	// of that property. These need to  be independent of motor type.
 	public static byte addressForPresentProperty(String name) {
@@ -104,7 +105,9 @@ public class DxlConversions  {
 		byte length = 0;
 		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) length = 2;
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) length = 2;
+		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) length = 1;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) length = 2;
+		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) length = 1;
 		else {
 			LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)",CLSS,name));
 		}

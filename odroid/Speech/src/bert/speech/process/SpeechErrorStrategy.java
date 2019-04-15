@@ -36,7 +36,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	}
 	
 	/**
-	 * This appears to be a top-level view of things...
+	 * This appears to be a top-level view of things 
 	 */
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
@@ -74,7 +74,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	
     	Token offender = re.getOffendingToken();
     	String msg = "";
-    	if( offender != null ) {
+    	if( offender != null && offender.getText()!=null && !offender.getText().isEmpty() ) {
     		msg = String.format("I misunderstood the word \"%s\"",offender.getText());
     	}
     	else {

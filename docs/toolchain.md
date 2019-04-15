@@ -74,7 +74,7 @@ The main power pack, shown below, was constructed from a decorative tin that my 
 
 Once [pypot](#pypot) is installed on the Odroid then the *herborist* application is available to configure and address the Dynamixel motors.
 ```
-python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist/herborist.py
+python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist2/herborist.py
 ```
 
 Initially, the devices can be found with the following parameters:
@@ -263,7 +263,6 @@ From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Wo
   - Configuration: This area is a collection of files that configure the robot. These include: scripts for installing and running, the SQL database for pose and action
   storage and XML hardware definition.
   - Database: Java code for interaction with the SQLite database.
-  - JSSC: C++ native code for the serial interface. This applies only to the build machine and is used only as a stub for some tests.
   - Motor: Java code for control of the various servo motors on the robot. These are executed by the _dispatcher_ application.
   - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications. Set to disabled.
   - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors. Set to disabled.

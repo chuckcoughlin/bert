@@ -15,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.List;
-
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.logs.LogRecyclerAdapter;
 import chuckcoughlin.bert.speech.SpokenTextManager;
@@ -26,7 +24,7 @@ import chuckcoughlin.bert.speech.SpokenTextManager;
  * This fragment allows perusal of the robot's spoken interactions..
  */
 
-public class LogsFragment extends BasicAssistantFragment  {
+public class TranscriptFragment extends BasicAssistantFragment  {
     private final static String CLSS = "LogFragment";
     private RecyclerView.LayoutManager layoutManager;
     private LogRecyclerAdapter adapter;
@@ -36,9 +34,9 @@ public class LogsFragment extends BasicAssistantFragment  {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_logs, container, false);
+        rootView = inflater.inflate(R.layout.fragment_dispatcher_logs, container, false);
         TextView textView = rootView.findViewById(R.id.fragmentLogsText);
-        textView.setText(R.string.fragmentLogsLabel);
+        textView.setText(R.string.fragmentTranscriptLabel);
 
         logMessageView = rootView.findViewById(R.id.logs_recycler_view);
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.

@@ -224,7 +224,7 @@ public class MotorGroupController implements Controller,MotorManager {
 				return true;
 			}
 		}
-		else if( request.fetchRequestType().equals(RequestType.GET_METRICS)) {
+		else if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			return true;
 		}
 		return false;
@@ -268,7 +268,7 @@ public class MotorGroupController implements Controller,MotorManager {
 			request.setProperty(BottleConstants.TEXT, text);
 		}
 		// Log configuration metrics. The response will contain a map of motor types by ID 
-		else if( request.fetchRequestType().equals(RequestType.GET_METRICS)) {
+		else if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			String text = "Motor configuration parameters have been logged";
 			request.setProperty(BottleConstants.TEXT, text);
 			for( String group:motorControllers.keySet() ) {

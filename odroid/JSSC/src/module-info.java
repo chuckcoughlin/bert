@@ -1,9 +1,0 @@
-/**
- * 
- */
-/**
- * @author chuckc
- *
- */
-module jssc {
-}
