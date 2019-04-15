@@ -27,9 +27,11 @@ public class DxlConversions  {
 	private static final byte GOAL_POSITION    = (byte)0x1E;  // low, high bytes
 	private static final byte MOVING_SPEED     = (byte)0x20;  // low, high bytes
 	private static final byte TORQUE_LIMIT     = (byte)0x22;  // low, high bytes
+	private static final byte PRESENT_LOAD     = (byte)0x28;  // low, high bytes
 	private static final byte PRESENT_POSITION = (byte)0x24;  // low, high bytes
 	private static final byte PRESENT_SPEED    = (byte)0x26;  // low, high bytes
-	private static final byte PRESENT_LOAD     = (byte)0x28;  // low, high bytes
+	private static final byte PRESENT_TEMPERATURE = (byte)0x2B;  // single byte
+	private static final byte PRESENT_VOLTAGE     = (byte)0x2A;  // single byte
 	
 	static {
 		resolution = new HashMap<>();
@@ -37,6 +39,7 @@ public class DxlConversions  {
 		resolution.put(DynamixelType.MX28,4096); 
 		resolution.put(DynamixelType.MX64,4096); 
 		
+		// Values ~ Nm
 		torque = new HashMap<>();
 		torque.put(DynamixelType.AX12,1.2);
 		torque.put(DynamixelType.MX28,2.5); 
@@ -78,13 +81,27 @@ public class DxlConversions  {
 	}
 	
 	// % of max (assumes EEPROM max torque is 1023)
-	public static int torqueToDxl(double value) { return (int)Math.round(value * 10.23); }
-	public static double dxlToTorque(double value) { return value / 10.23; }
-	
+	// Positive number is CW. Each unit represents .1%.
+	public static int torqueToDxl(DynamixelType type,boolean isDirect,double value) {
+		boolean cw = isDirect;
+		if( value<0.) cw = !cw;
+		int val = (int)(value*10.23/torque.get(type));
+		if( !cw ) val = val | 0x400;
+		return val; 
+	}
+	public static double dxlToTorque(DynamixelType type,boolean isDirect,byte b1,byte b2) {
+		int raw = b1+256*b2;
+		boolean cw = isDirect;
+		if( (raw & 0x400) != 0 ) cw = !cw;
+		raw = raw&0x3FF;
+		double result = raw*torque.get(type);
+		if(!cw) result = -result;
+		return result;
+	}
 	// deg C
-	public static double dxlToTemperature(byte value) { return value; }
+	public static double dxlToTemperature(byte value) { return (double)value; }
 	// volts
-	public static double dxlToVoltage(byte value) { return value; }
+	public static double dxlToVoltage(byte value) { return ((double)value)/10.; }
 
 	// Convert the named property to a control table address for the present state
 	// of that property. These need to  be independent of motor type.
@@ -92,7 +109,9 @@ public class DxlConversions  {
 		byte address = 0;
 		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = PRESENT_POSITION;
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) address = PRESENT_SPEED;
+		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) address = PRESENT_TEMPERATURE;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) address = PRESENT_LOAD;
+		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) address = PRESENT_VOLTAGE;
 		else {
 			LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)",CLSS,name));
 		}
@@ -112,5 +131,31 @@ public class DxlConversions  {
 			LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)",CLSS,name));
 		}
 		return length;
+	}
+	// Convert the raw data bytes text describing the value and units. It may or may not use the second byte.
+	// Presumably the ultimate will have more context.
+	public static String textForProperty(String name,DynamixelType type,boolean isDirect,byte b1,byte b2) {
+		name = name.toLowerCase();
+		String text = "";
+		double value = valueForProperty(name,type,isDirect,b1,b2);
+		if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) text = String.format("%.0f degrees centigrade",value);
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) text = String.format("%.0f newton-meters",value);
+		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name()))text = String.format("%.1f volts",value);
+		else {
+			LOGGER.warning(String.format("%s.textForProperty: Unrecognized property name (%s)",CLSS,name));
+		}
+		return text;
+	}
+	// Convert the raw data bytes into a double value. It may or may not use the second byte.
+	// Valid for Protocol 1 only.
+	public static double valueForProperty(String name,DynamixelType type,boolean isDirect,byte b1,byte b2) {
+		double value = 0.;
+		if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) value = dxlToTemperature(b1);
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) value = dxlToTorque(type,isDirect,b1,b2);
+		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) value = dxlToVoltage(b1);
+		else {
+			LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)",CLSS,name));
+		}
+		return value;
 	}
 }

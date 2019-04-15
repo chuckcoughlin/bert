@@ -118,8 +118,8 @@ public class DxlMessage  {
 	 * @param goal in n/m
 	 * @return byte array with command to set speed
 	 */
-	public static byte[] bytesToSetTorque(int id,DynamixelType model,double goal) {
-		int dxlTorque = DxlConversions.torqueToDxl(goal);
+	public static byte[] bytesToSetTorque(int id,DynamixelType model,boolean isDirect,double goal) {
+		int dxlTorque = DxlConversions.torqueToDxl(model,isDirect,goal);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
 		setHeader(bytes,id); 
@@ -158,24 +158,27 @@ public class DxlMessage  {
 	}
 	
 	/**
-	 * Analyze a response buffer for position of a motor. Augment the
+	 * Analyze a response buffer for some parameter of a motor. Augment the
 	 * supplied Properties with the result (possibly an error).
 	 * @param props properties from a MessageBottle
 	 * @param bytes status response from the controller
-	 * @return the position from the status response
+	 * @return the parameter value from the status response
 	 */
-	public static void updateParameterFromBytes(String parameterName,Map<String,String> props,byte[] bytes) {
+	public static void updateParameterFromBytes(String parameterName,DynamixelType type,boolean isDirect,Map<String,String> props,byte[] bytes) {
 		String msg = "";
 		if( verifyHeader(bytes) ) {
 			msg = String.format("%s.updateParameterFromBytes: %s",CLSS,dump(bytes));
-			LOGGER.info(msg);
 		
 			int id = bytes[2];
 			int err= bytes[4];
-			int param= bytes[5] + 256*bytes[6];
+			
+			double value = DxlConversions.valueForProperty(parameterName,type,isDirect,bytes[5],bytes[6]);
+			String text = DxlConversions.textForProperty(parameterName,type,isDirect,bytes[5],bytes[6]);
 			if( err==0 ) {
 				props.put(BottleConstants.PROPERTY_NAME,parameterName);
-					props.put(parameterName, String.valueOf(param));
+				props.put(BottleConstants.TEXT,text);
+				props.put(parameterName,String.valueOf(value));
+				
 			}
 			else {
 				msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));

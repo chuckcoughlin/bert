@@ -19,7 +19,8 @@ public enum JointProperty
 	SPEED,
 	TEMPERATURE,
 	TORQUE,
-	VOLTAGE
+	VOLTAGE,
+	UNRECONIZED
 	;
           
  /**

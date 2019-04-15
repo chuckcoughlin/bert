@@ -17,6 +17,7 @@ import bert.share.controller.Controller;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.RequestType;
+import bert.share.motor.Joint;
 import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 import jssc.SerialPort;
@@ -220,14 +221,22 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	
 	// Already known to be a single group request. Here we are readying the response.
 	// We update the properties in the request from our serial message.
+	// The properties must include motor type and orientation
 	private void updateCurrentRequestFromBytes(byte[] bytes) {
 		if( currentRequest!=null) {
 			RequestType type = currentRequest.fetchRequestType();
 			Map<String,String> properties = currentRequest.getProperties();
 			if( type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-				String jointName = currentRequest.getProperty(BottleConstants.JOINT_NAME, "");
-				DxlMessage.updateParameterFromBytes(jointName,properties,bytes);
-			}
+				String jointName = currentRequest.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
+				MotorConfiguration mc = getMotorConfiguration(jointName);
+				String propertyName = currentRequest.getProperty(BottleConstants.PROPERTY_NAME, "UNKNOWN");
+				DxlMessage.updateParameterFromBytes(propertyName,mc.getType(),mc.isDirect(),properties,bytes);
+				String partial = properties.get(BottleConstants.TEXT);
+				if( partial!=null && !partial.isEmpty()) {
+					Joint joint = Joint.valueOf(jointName);
+					properties.put(BottleConstants.TEXT,String.format("My %s %s is %s", Joint.toText(joint),propertyName.toLowerCase(),partial));
+				}	
+			} 
 			else {
 				LOGGER.severe( String.format("%s.updateCurrentRequestFromBytes: Unhandled response for %s",CLSS,type.name()));
 			}

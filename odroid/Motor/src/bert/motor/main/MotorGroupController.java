@@ -214,10 +214,13 @@ public class MotorGroupController implements Controller,MotorManager {
 	// Queries of fixed properties of the motors are the kinds of requests that can be handled
 	// immediately. Results are created from the original configuration file
 	private boolean canHandleImmediately(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY)) {
+		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) || 
+			request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) ) {
 			// Certain properties are constants available from the configuration file.
 			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");
 			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
+				property.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name()) ||
+				property.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name()) ||
 				property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
 				property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
 				property.equalsIgnoreCase(JointProperty.ORIENTATION.name()) ) {
@@ -240,30 +243,40 @@ public class MotorGroupController implements Controller,MotorManager {
 			String text = "";
 			String jointName = Joint.toText(joint);
 			MotorConfiguration mc = model.getMotors().get(joint.name());
-			switch(property) {
-			case ID:
-				int id = mc.getId();
-				text = "The id of my "+jointName+" is "+id;
-				break;
-			case MOTORTYPE:
-				String modelName = "A X 12";
-				if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
-				else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
-				text = "My "+jointName+" is a dynamixel "+modelName;
-				break;
-			case OFFSET:
-				double offset = mc.getOffset();
-				text = "The offset of my "+jointName+" is "+offset;
-				break;
-			case ORIENTATION:
-				String orientation = "indirect";
-				if( mc.isDirect() ) orientation = "direct";
-				text = "The orientation of my "+jointName+" is "+orientation;
-				break;
-			default:
-				text = "";
-				request.assignError(property.name()+" is not a property that I can look up");
-				break;
+			if( mc!=null ) {
+				switch(property) {
+				case ID:
+					int id = mc.getId();
+					text = "The id of my "+jointName+" is "+id;
+					break;
+				case MAXIMUMANGLE:
+					text = String.format("The maximum angle of my %s is %.0f degrees",jointName,mc.getMaxAngle());
+					break;
+				case MINIMUMANGLE:
+					text = String.format("The minimum angle of my %s is %.0f degrees",jointName,mc.getMinAngle());
+				case MOTORTYPE:
+					String modelName = "A X 12";
+					if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
+					else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
+					text = "My "+jointName+" is a dynamixel "+modelName;
+					break;
+				case OFFSET:
+					double offset = mc.getOffset();
+					text = "The offset of my "+jointName+" is "+offset;
+					break;
+				case ORIENTATION:
+					String orientation = "indirect";
+					if( mc.isDirect() ) orientation = "direct";
+					text = "The orientation of my "+jointName+" is "+orientation;
+					break;
+				default:
+					text = "";
+					request.assignError(property.name()+" is not a property that I can look up");
+					break;
+				}
+			}
+			else {
+				request.assignError(String.format("The configuration file does not include joint %s", joint.name()));
 			}
 			request.setProperty(BottleConstants.TEXT, text);
 		}
@@ -282,6 +295,49 @@ public class MotorGroupController implements Controller,MotorManager {
 					request.setJointValue(JointProperty.MOTORTYPE.name(), mc.getType().name());
 				}
 			}
+		}
+		else if( request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
+			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""));
+			LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",CLSS,request.fetchRequestType().name(),property.name()));
+			String text = "";
+			Map<String,MotorConfiguration> mcs = model.getMotors();
+			for( String jointName:mcs.keySet() ) {
+				MotorConfiguration mc = mcs.get(jointName);
+				switch(property) {
+				case ID:
+					int id = mc.getId();
+					text = "The id of "+jointName+" is "+id;
+					break;
+				case MAXIMUMANGLE:
+					text = String.format("The maximum angle for %s is %.0f degrees",jointName,mc.getMaxAngle());
+					break;
+				case MINIMUMANGLE:
+					text = String.format("The minimum angle for %s is %.0f degrees",jointName,mc.getMinAngle());
+					break;
+				case MOTORTYPE:
+					String modelName = "A X 12";
+					if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
+					else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
+					text = jointName+" is a dynamixel "+modelName;
+					break;
+				case OFFSET:
+					double offset = mc.getOffset();
+					text = "The offset of "+jointName+" is "+offset;
+					break;
+				case ORIENTATION:
+					String orientation = "indirect";
+					if( mc.isDirect() ) orientation = "direct";
+					text = "The orientation of "+jointName+" is "+orientation;
+					break;
+				default:
+					text = "";
+					request.assignError(property.name()+" is not a property that I can look up");
+					break;
+				}
+				LOGGER.info(text);
+			}
+			text = String.format("The %ss of all motors have been logged",property.name().toLowerCase());
+			request.setProperty(BottleConstants.TEXT, text);
 		}
 		return request;
 	}

@@ -158,11 +158,12 @@ public class DxlMessageV2  {
 	/**
 	 * Create a serial message to set the torque goal for a motor
 	 * @param id of the motor
+	 * @param isDirect affects the sign of the result
 	 * @param goal in n/m
 	 * @return byte array with command to set speed
 	 */
-	public static byte[] bytesToSetTorque(int id,DynamixelType model,double goal) {
-		int dxlTorque = DxlConversions.torqueToDxl(goal);
+	public static byte[] bytesToSetTorque(int id,DynamixelType model,boolean isDirect,double goal) {
+		int dxlTorque = DxlConversions.torqueToDxl(model,isDirect,goal);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
 		setHeader(bytes,id); 

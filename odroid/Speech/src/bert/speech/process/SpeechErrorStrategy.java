@@ -75,7 +75,7 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     	Token offender = re.getOffendingToken();
     	String msg = "";
     	if( offender != null && offender.getText()!=null && !offender.getText().isEmpty() ) {
-    		msg = String.format("I misunderstood the word \"%s\"",offender.getText());
+    		msg = String.format("I don't understood the word \"%s\"",offender.getText());
     	}
     	else {
     		msg = "I don't understand";

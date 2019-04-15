@@ -11,7 +11,6 @@ import bert.share.message.MessageBottle;
 import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.motor.Joint;
-import bert.share.motor.JointProperty;
 
 
 /**

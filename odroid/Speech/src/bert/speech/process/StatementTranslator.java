@@ -50,7 +50,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		if( attribute.equalsIgnoreCase("old") ) {
 			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.AGE.name());
 		}
-		else if(	attribute.equalsIgnoreCase("tall")   ) {
+		else if( attribute.equalsIgnoreCase("tall")   ) {
 			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.HEIGHT.name());
 		}
 		else {
@@ -76,18 +76,18 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitHandleBulkPropertyQuestion(SpeechSyntaxParser.HandleBulkPropertyQuestionContext ctx) {
 		if( ctx.Limits() != null ) bottle.assignRequestType(RequestType.GET_LIMITS);
 		else bottle.assignRequestType(RequestType.GET_GOALS);
-		try {
-			// If side or axis were set previously, use those jointValues as defaults
-			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
-			if( ctx.Side()!=null ) side = ctx.Side().getText();
-			sharedDictionary.put(SharedKey.SIDE.name(), side);
-			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
-			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-			sharedDictionary.put(SharedKey.AXIS.name(), axis);
-			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
-			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
-		}
-		catch(IllegalArgumentException iae) {
+
+		// If side or axis were set previously, use those jointValues as defaults
+		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		sharedDictionary.put(SharedKey.SIDE.name(), side);
+		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+		bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+
+		if( joint.equals(Joint.UNKNOWN) ) {
 			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
 			bottle.assignError(msg);
 		}
@@ -98,18 +98,17 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitHandleBulkPropertyRequest(SpeechSyntaxParser.HandleBulkPropertyRequestContext ctx) {
 		if( ctx.Limits() != null ) bottle.assignRequestType(RequestType.GET_LIMITS);
 		else bottle.assignRequestType(RequestType.GET_GOALS);
-		try {
-			// If side or axis were set previously, use those jointValues as defaults
-			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
-			if( ctx.Side()!=null ) side = ctx.Side().getText();
-			sharedDictionary.put(SharedKey.SIDE.name(), side);
-			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
-			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-			sharedDictionary.put(SharedKey.AXIS.name(), axis);
-			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
-			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
-		}
-		catch(IllegalArgumentException iae) {
+
+		// If side or axis were set previously, use those jointValues as defaults
+		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		sharedDictionary.put(SharedKey.SIDE.name(), side);
+		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+		bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		if( joint.equals(Joint.UNKNOWN) ) {
 			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
 			bottle.assignError(msg);
 		}
@@ -118,18 +117,30 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	public Object visitHandleListCommand1(SpeechSyntaxParser.HandleListCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
-		String pname = ctx.Properties().getText();                     // plural
-		if( pname.equalsIgnoreCase("angles")) pname = "positions";
-		bottle.setProperty(BottleConstants.PROPERTY_NAME,pname.substring(0, pname.length()-1).toUpperCase());  // drop the s
+		String pname = ctx.Properties().getText();  // plural
+		try {
+			JointProperty jp = determineJointProperty(pname);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name()); 
+		}
+		catch(IllegalArgumentException iae) {
+			String msg = String.format("My joints don't hava a property %s, that I know of",pname.toLowerCase());
+			bottle.assignError(msg);
+		}
 		return null;
 	}
 	
 	@Override 
 	public Object visitHandleListCommand2(SpeechSyntaxParser.HandleListCommand2Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
-		String pname = ctx.Properties().getText();   // plural
-		if( pname.equalsIgnoreCase("angles")) pname = "positions";  
-		bottle.setProperty(BottleConstants.PROPERTY_NAME,pname.substring(0, pname.length()-1).toUpperCase());  // drop the s
+		String pname = ctx.Properties().getText();  // plural
+		try {
+			JointProperty jp = determineJointProperty(pname);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name()); 
+		}
+		catch(IllegalArgumentException iae) {
+			String msg = String.format("My joints don't hava a property %s, that I know of",pname.toLowerCase());
+			bottle.assignError(msg);
+		}
 		return null;
 	}
 	
@@ -176,12 +187,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
 		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
-		if( property.equalsIgnoreCase("angle")) property = "POSITION";
-		else if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
-		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
-		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
+		
 		try {
-			bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.valueOf(property).name());
+			JointProperty jp =  determineJointProperty(property);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
@@ -227,13 +236,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitMotorPropertyQuestion(SpeechSyntaxParser.MotorPropertyQuestionContext ctx) {
 		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
-		if( property.equalsIgnoreCase("angle")) property = "POSITION";
-		else if( property.equalsIgnoreCase("maximum angle")) property = "MAXIMUMANGLE";
-		else if( property.equalsIgnoreCase("minimum angle")) property = "MINIMUMANGLE";
-		else if( property.equalsIgnoreCase("motor type")) property = "MOTORTYPE";
 		
 		try {
-			bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.valueOf(property).name());
+			JointProperty jp = determineJointProperty(property);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
@@ -259,31 +265,31 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			if(axis!=null) {
 				if( axis.equalsIgnoreCase("X"))    		result = Joint.ABS_X;
 				else if( axis.equalsIgnoreCase("Y"))    result = Joint.ABS_Y;
-				else if( axis.equalsIgnoreCase("Z"))    result = Joint.ABS_Z;
+				else                                    result = Joint.ABS_Z;
 			}
 		}
 		else if( bodyPart.equalsIgnoreCase("ANKLE")) {
 			if(side!=null) {
 				if( side.equalsIgnoreCase("left"))         result = Joint.LEFT_ANKLE_Y;
-				else if( side.equalsIgnoreCase("right"))   result = Joint.RIGHT_ANKLE_Y;
+				else                                       result = Joint.RIGHT_ANKLE_Y;
 			}
 		}
-		else if( bodyPart.equalsIgnoreCase("BUST")) {
+		else if( bodyPart.equalsIgnoreCase("BUST") || bodyPart.equalsIgnoreCase("CHEST") ) {
 			if(axis!=null) {
 				if( axis.equalsIgnoreCase("X"))    		result = Joint.BUST_X;
-				else if( axis.equalsIgnoreCase("Y"))    result = Joint.BUST_Y;
+				else                                    result = Joint.BUST_Y;
 			}
 		}
 		else if( bodyPart.equalsIgnoreCase("ELBOW")) {
 			if(side!=null) {
 				if( side.equalsIgnoreCase("left"))         result = Joint.LEFT_ELBOW_Y;
-				else if( side.equalsIgnoreCase("right"))   result = Joint.RIGHT_ELBOW_Y;
+				else                                       result = Joint.RIGHT_ELBOW_Y;
 			}
 		}
 		else if( bodyPart.equalsIgnoreCase("HEAD") || bodyPart.equalsIgnoreCase("NECK")) {
 			if(axis!=null) {
 				if( axis.equalsIgnoreCase("Y"))         result = Joint.HEAD_Y;
-				else if( axis.equalsIgnoreCase("Z"))    result = Joint.HEAD_Z;
+				else                                    result = Joint.HEAD_Z;
 			}
 		}
 		else if( bodyPart.equalsIgnoreCase("HIP")) {
@@ -291,38 +297,56 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				if( side.equalsIgnoreCase("left")) {
 					if( axis.equalsIgnoreCase("X"))    		result = Joint.LEFT_HIP_X;
 					else if( axis.equalsIgnoreCase("Y"))    result = Joint.LEFT_HIP_Y;
-					else if( axis.equalsIgnoreCase("Z"))    result = Joint.LEFT_HIP_Z;
+					else                                    result = Joint.LEFT_HIP_Z;
 				}
 				else if( side.equalsIgnoreCase("right")) {
 					if( axis.equalsIgnoreCase("X"))    		result = Joint.RIGHT_HIP_X;
 					else if( axis.equalsIgnoreCase("Y"))    result = Joint.RIGHT_HIP_Y;
-					else if( axis.equalsIgnoreCase("Z"))    result = Joint.RIGHT_HIP_Z;
+					else                                    result = Joint.RIGHT_HIP_Z;
 				}
 			}
 		}
 		else if( bodyPart.equalsIgnoreCase("KNEE")) {
 			if(side!=null) {
 				if( side.equalsIgnoreCase("left"))         result = Joint.LEFT_KNEE_Y;
-				else if( side.equalsIgnoreCase("right"))   result = Joint.RIGHT_KNEE_Y;
+				else                                       result = Joint.RIGHT_KNEE_Y;
 			}
-		}
-		else if( bodyPart.equalsIgnoreCase("NECK")) {
-			result = Joint.HEAD_Y;
 		}
 		else if( bodyPart.equalsIgnoreCase("SHOULDER") || bodyPart.equalsIgnoreCase("ARM")) {
 			if(axis!=null && side!=null) {
 				if( side.equalsIgnoreCase("left")) {
 					if( axis.equalsIgnoreCase("X"))    		result = Joint.LEFT_SHOULDER_X;
 					else if( axis.equalsIgnoreCase("Y"))    result = Joint.LEFT_SHOULDER_Y;
-					else if( axis.equalsIgnoreCase("Z"))    result = Joint.LEFT_ARM_Z;
+					else                                    result = Joint.LEFT_ARM_Z;
 				}
 				else if( side.equalsIgnoreCase("right")) {
 					if( axis.equalsIgnoreCase("X"))    		result = Joint.RIGHT_SHOULDER_X;
 					else if( axis.equalsIgnoreCase("Y"))    result = Joint.RIGHT_SHOULDER_Y;
-					else if( axis.equalsIgnoreCase("Z"))    result = Joint.RIGHT_ARM_Z;
+					else                                    result = Joint.RIGHT_ARM_Z;
 				}
 			}
 		}
+		if( result.equals(Joint.UNKNOWN)) {
+			LOGGER.info(String.format("WARNING: StatementTranslator.determineJoint did not find a match for %s",bodyPart));
+		}
+		return result;
+	}
+	
+	// Determine a joint property from the supplied string. Take care of recognized
+	// aliases in one place. The name may be plural in some settings.
+	private JointProperty determineJointProperty(String pname) throws IllegalArgumentException  {
+		JointProperty result = JointProperty.UNRECONIZED;
+		if( pname.endsWith("s") || pname.endsWith("S")) {
+			pname = pname.substring(0, pname.length()-1).toUpperCase();
+		}
+		if( pname.equalsIgnoreCase("angle")) pname = "POSITION";
+		else if( pname.equalsIgnoreCase("load")) pname = "TORQUE";
+		else if( pname.equalsIgnoreCase("maximum angle")) pname = "MAXIMUMANGLE";
+		else if( pname.equalsIgnoreCase("minimum angle")) pname = "MINIMUMANGLE";
+		else if( pname.equalsIgnoreCase("motor type")) pname = "MOTORTYPE";
+		else if( pname.equalsIgnoreCase("velocity"))  pname = "SPEED";
+		else if( pname.equalsIgnoreCase("velocitie")) pname = "SPEED";
+		result = JointProperty.valueOf(pname.toUpperCase());
 		return result;
 	}
 }

@@ -21,7 +21,7 @@ command:
     | Salutation? List Article? Configuration                    # configurationRequest
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
-	| Salutation? List Article? Motor Properties				# handleListCommand2
+	| Salutation? List Article? Motor? Properties				# handleListCommand2
 	| Salutation? (Command|Halt|Shutdown)                      	# doNothing
 	;
 
@@ -55,9 +55,9 @@ Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Of: 'of'|'on'|'for';
-Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder';
-Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques';
-Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque';
+Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
+Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
+Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Salutation:'bert'|'burt';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Side: 'left'|'right';
