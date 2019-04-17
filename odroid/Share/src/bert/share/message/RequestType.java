@@ -14,7 +14,7 @@ public enum RequestType
 	GET_GOALS,               // The current target settings
 	GET_LIMITS,              // The EEPROM-resident limits
 	GET_METRIC,              // A local property of the robot
-	GET_MOTOR_PROPERTY,      // A motor property
+	GET_MOTOR_PROPERTY,      // Current value of a motor property
 	LIST_MOTOR_PROPERTY,     // List a property for all motors
 	NOTIFICATION,            // Unsolicited message from server
     PLAY_STEP,

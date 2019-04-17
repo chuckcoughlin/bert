@@ -19,9 +19,8 @@ The purpose of this section is to validate wiring and addressing of the stepper 
 It also validates the conversion of raw readings from the motors into proper engineering
 units.
 * ![green](/images/ball_green.png) Validate Connections  - use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
-* ![yellow](/images/ball_yellow.png) Joint IDs - verify that the pairing of name to ID
-is correct for every joint. A complete list of joint names and properties may be found
-in the *Vocabulary* section of the user guide. A typical query:
+* ![green](/images/ball_green.png) Joint IDs - verify that the pairing of name to ID
+is correct for every joint.  Syntax of the query:
 ```
     what is the id of your left hip y
 ```
@@ -30,21 +29,29 @@ values of a selected attribute for all joints. Verify conversions from raw readi
 to engineering units. Available
  parameters include: position, speed, load, voltage and temperature. Values are read directly
 from the motors, scaled and logged.
-(At a later time the values will be displayed on the tablet.) A typical request:
+(At a later time the values will be displayed on the tablet.) Typical requests:
 ```
     tell me your joint positions
     list the speeds of your motors
 ```
-
+* ![yellow](/images/ball_yellow.png) Joint Properties - use the terminal application to
+read the current values of joint properties. A complete list of joint names and properties may be found
+in the *Vocabulary* section of the user guide. In addition to properties configured in the configuration
+file (like: id, motor type, orientation, minimum angle and maximum angle), properties include current
+values read directly from the motor (like: position, speed, load, temperature,
+and voltage). A typical query:
+```
+    what is the position of your left elbow
+```
 ### b - Calibration <a id="calibration"></a>
 The purpose of this section is to validate stepper motor configuration parameters
 and to verify the correct orientation.
 
-* ![green](/images/ball_green.png) Read Configuration - use the terminal application to
+* ![green](/images/ball_green.png) Configuration File - use the terminal application to
 dump motor parameters from the XML configuration file. Values are sent to a log file.
 The parameter list includes: id, motor type, orientation and angle limits. The request is:
 ```
-   what is your configuration
+   describe your configuration
 ```
 * ![yellow](/images/ball_yellow.png) Hardware Limits - use the terminal application to query limits
 that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
@@ -52,6 +59,13 @@ Values include angle, speed and and torque limits. Results are logged.
 Typical syntax:
 ```
     what are the limits on your right knee
+```
+* ![yellow](/images/ball_yellow.png) Goals - use the terminal application to list
+the current goals for a joint. Goal parameters
+include angle, speed and and torque limits. Results are logged.
+Typical syntax:
+```
+    what are the targets for your left shoulder x
 ```
 * ![yellow](/images/ball_yellow.png) Positions - use the terminal application to
 revisit the detection of position. In particular, check that the orientation is

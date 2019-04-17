@@ -20,9 +20,10 @@ import bert.share.motor.JointProperty;
 public class DxlConversions  {
 	private static final String CLSS = "DynamixelConversions";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static Map<DynamixelType,Integer> resolution;         // Increments for 360 deg by type
-	private static Map<DynamixelType,Double> torque;              // Max torque ~ Nm
-	private static Map<DynamixelType,Double> velocity;            // Angular velocity ~ deg/s
+	private static Map<DynamixelType,Integer> range;         // Range of motion in degrees
+	private static Map<DynamixelType,Integer> resolution;    // Increments for 360 deg by type
+	private static Map<DynamixelType,Double> torque;         // Max torque ~ Nm
+	private static Map<DynamixelType,Double> velocity;       // Angular velocity ~ deg/s
 	// Constants for control table addressses. These must be the same for MX28,MX64,AX12
 	private static final byte GOAL_POSITION    = (byte)0x1E;  // low, high bytes
 	private static final byte MOVING_SPEED     = (byte)0x20;  // low, high bytes
@@ -34,58 +35,71 @@ public class DxlConversions  {
 	private static final byte PRESENT_VOLTAGE     = (byte)0x2A;  // single byte
 	
 	static {
+		range = new HashMap<>();
+		range.put(DynamixelType.AX12,300);
+		range.put(DynamixelType.MX28,360); 
+		range.put(DynamixelType.MX64,360); 
+		
 		resolution = new HashMap<>();
 		resolution.put(DynamixelType.AX12,1024);
 		resolution.put(DynamixelType.MX28,4096); 
 		resolution.put(DynamixelType.MX64,4096); 
 		
-		// Values ~ Nm
+		// Full-scale speeds ~ deg/sec
+		velocity = new HashMap<>();
+		velocity.put(DynamixelType.AX12,684.);
+		velocity.put(DynamixelType.MX28,700.); 
+		velocity.put(DynamixelType.MX64,700.);
+			    
+		// Full-scale torque ~ Nm
 		torque = new HashMap<>();
 		torque.put(DynamixelType.AX12,1.2);
 		torque.put(DynamixelType.MX28,2.5); 
 		torque.put(DynamixelType.MX64,6.0); 
 	}
 
-	
-	public static double dxlToDegree(DynamixelType model,double value) {
-	    int maxPosition = resolution.get(model);
-	    double maxDeg   = 360.;
-	    return ((maxDeg * value) / (maxPosition-1)) - maxDeg/2;
+	// Offset so that 0 deg is the reference.
+	public static int degreeToDxl(DynamixelType type,boolean isDirect,double value) {
+		int r = range.get(type);
+		int offset = r/2;
+		int res = resolution.get(type);
+		if( isDirect ) value = -value;
+		int val = (int)(value+offset)*res/r;
+		return val;
 	}
-
-	public static int degreeToDxl(DynamixelType model,double value) {
-	    int maxPosition = resolution.get(model);
-	    double maxDeg   = 360.;
-	    int pos = (int)Math.round((maxPosition-1) * ((maxDeg/2 + value) / maxDeg));
-	    pos = Math.min(Math.max(pos, 0), maxPosition - 1);
-	    return pos;
+	public static double dxlToDegree(DynamixelType type,boolean isDirect,byte b1,byte b2) {
+		int raw = b1+256*b2;
+		int r = range.get(type);
+		int offset = r/2;
+		int res = resolution.get(type);
+		double result = raw*r/res - offset;
+		if( isDirect ) result = -result;
+		return result;
 	}
 	// Speed is deg/sec
-	public static double dxlToSpeed(DynamixelType model,double value) {
-		int cw = (int)(value/1024);
-		double speed = value%1024;
-		int direction = (-2 * cw + 1);
-		double speed_factor = 0.114;
-		if( model.equals(DynamixelType.AX12) ) speed_factor = 0.111;
-		return direction * (speed * speed_factor) * 6;
+	public static int speedToDxl(DynamixelType type,boolean isDirect,double value) {
+		boolean cw = isDirect;
+		if( value<0.) cw = !cw;
+		int val = (int)(value*1023./velocity.get(type));
+		if( !cw ) val = val | 0x400;
+		return val;
+	}
+	public static double dxlToSpeed(DynamixelType type,boolean isDirect,byte b1,byte b2) {
+		int raw = b1+256*b2;
+		boolean cw = isDirect;
+		if( (raw & 0x400) != 0 ) cw = !cw;
+		raw = raw&0x3FF;
+		double result = raw*velocity.get(type)/1023;
+		if(!cw) result = -result;
+		return result;
 	}
 	
-	public static int speedToDxl(DynamixelType model,double value) {
-		int direction = 0; 
-		if( value < 0 ) direction = 1024;
-		double speed_factor = 0.114;
-		if( model.equals(DynamixelType.AX12) ) speed_factor = 0.111;
-		double max_value = 1023 * speed_factor * 6;
-		value = Math.min(Math.max(value, -max_value), max_value);
-		return (int)(Math.round(direction + Math.abs(value) / (6 * speed_factor)));
-	}
-	
-	// % of max (assumes EEPROM max torque is 1023)
+	// N-m (assumes EEPROM max torque is 1023)
 	// Positive number is CW. Each unit represents .1%.
 	public static int torqueToDxl(DynamixelType type,boolean isDirect,double value) {
 		boolean cw = isDirect;
 		if( value<0.) cw = !cw;
-		int val = (int)(value*10.23/torque.get(type));
+		int val = (int)(value*1023./torque.get(type));
 		if( !cw ) val = val | 0x400;
 		return val; 
 	}
@@ -94,7 +108,7 @@ public class DxlConversions  {
 		boolean cw = isDirect;
 		if( (raw & 0x400) != 0 ) cw = !cw;
 		raw = raw&0x3FF;
-		double result = raw*torque.get(type);
+		double result = raw*torque.get(type)/1023.;
 		if(!cw) result = -result;
 		return result;
 	}
@@ -138,7 +152,9 @@ public class DxlConversions  {
 		name = name.toLowerCase();
 		String text = "";
 		double value = valueForProperty(name,type,isDirect,b1,b2);
-		if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) text = String.format("%.0f degrees centigrade",value);
+		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) text = String.format("%.0f degrees clock-wise",value);
+		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) text = String.format("%.0f degrees per second",value);
+		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) text = String.format("%.0f degrees centigrade",value);
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) text = String.format("%.0f newton-meters",value);
 		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name()))text = String.format("%.1f volts",value);
 		else {
@@ -150,7 +166,9 @@ public class DxlConversions  {
 	// Valid for Protocol 1 only.
 	public static double valueForProperty(String name,DynamixelType type,boolean isDirect,byte b1,byte b2) {
 		double value = 0.;
-		if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) value = dxlToTemperature(b1);
+		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) value = dxlToDegree(type,isDirect,b1,b2);
+		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) value = dxlToSpeed(type,isDirect,b1,b2);
+		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) value = dxlToTemperature(b1);
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) value = dxlToTorque(type,isDirect,b1,b2);
 		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) value = dxlToVoltage(b1);
 		else {

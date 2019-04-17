@@ -254,6 +254,7 @@ public class MotorGroupController implements Controller,MotorManager {
 					break;
 				case MINIMUMANGLE:
 					text = String.format("The minimum angle of my %s is %.0f degrees",jointName,mc.getMinAngle());
+					break;
 				case MOTORTYPE:
 					String modelName = "A X 12";
 					if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";

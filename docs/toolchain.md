@@ -89,7 +89,10 @@ Initially, the devices can be found with the following parameters:
 The Dynamixel configuration setup is shown below:
 
 ![poppy](/images/dynamixel_configuration.png)
-````                        Dynamixel Configuration Setup````
+```                        Dynamixel Configuration Setup```
+
+For our purposes, positive values of position, load and speed refer to the clock-wise direction for
+joints with a *direct* orientation and counter-clock-wise for those joints configured as *indirect*.
 
 Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limits for each motor. In each case, set the baud rate to 1000000 and return delay time to 0.
 
@@ -216,12 +219,6 @@ Once the build has been executed on the Development system (and deployed), edit 
 ```
    /usr/local/robot/bin
 ```
-
-Make a scaled-down Java Runtime Environment that includes only the packages used by the robot applications. This results in a significant savings in memory.
-```
-   jlink --module-path /usr/local/robot/mods --add-modules java.base java.xml --output /usr/local/robot/java
-```
-All scripts that launch the robot applications refer to this *jre*. This command must be refreshed each time applications are updated.
 
 *** PyPot <a id="pypot"></a>***<br/>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
