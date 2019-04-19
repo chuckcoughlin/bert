@@ -86,34 +86,43 @@ int main(int argc, char* argv[]) {
 	set_mincount(fd, 0);                /* set to pure timed read */
 	printf("testport: set baudrate and timed read\n");
 
-    /* BROADCAST PING */
-	// Protocol 2
-	//unsigned char bbuf[10];
-	//bbuf[0] = 0xFF;
-	//bbuf[1] = 0xFF;
-	//bbuf[2] = 0xFD;
-	//bbuf[3] = 0x00;
-	//bbuf[4] = 0xFE;
-	//bbuf[5] = 0x03;
-	//bbuf[6] = 0x00;
-	//bbuf[7] = 0x01;
-	//bbuf[8] = 0x31;
-	//bbuf[9] = 0x42;
+    /* Request position - concatenate 2 requests.- left ankle, right ankle */
 	// Protocol 1
-	unsigned char bbuf[6];
-	bbuf[0] = 0xFF;
-	bbuf[1] = 0xFF;
-	bbuf[2] = 0xFE;
-	bbuf[3] = 0x02;
-	bbuf[4] = 0x01;
-	bbuf[5] = 0xFE;
-	wlen = write(fd, bbuf, 6);
-	if (wlen != sizeof(bbuf)) {
+	unsigned char buf1[8];
+	buf1[0] = 0xFF;
+	buf1[1] = 0xFF;
+	buf1[2] = 0x0F;
+	buf1[3] = 0x04;
+	buf1[4] = 0x00;
+	buf1[5] = 0x20;
+	buf1[6] = 0x06;
+	buf1[7] = 0xC6;
+	unsigned char buf2[8];
+	buf2[0] = 0xFF;
+	buf2[1] = 0xFF;
+	buf2[2] = 0x19;
+	buf2[3] = 0x04;
+	buf2[4] = 0x00;
+	buf2[5] = 0x23;
+	buf2[6] = 0x09;
+	buf2[7] = 0xB6;
+	wlen = write(fd, buf1, 8);
+	if (wlen != sizeof(buf1)) {
 	    printf("testport: Error from write: %d, %d\n", wlen, errno);
 		return -1;
 	}
-	printf("testport: Successfully wrote %d bytes\n",wlen);
+	/* NOTE: tcdrain was necessary for this to complete. */
 	int result = tcdrain(fd);    /* delay for output to complete */
+	if( result!=0 ) {
+	  printf("testport: Error executing tcdrain (%d)\n",errno);
+	}
+	wlen = write(fd, buf2, 8);
+	if (wlen != sizeof(buf2)) {
+	    printf("testport: Error from write: %d, %d\n", wlen, errno);
+		return -1;
+	}
+	printf("testport: Successfully wrote 2x%d bytes\n",wlen);
+	result = tcdrain(fd);    /* delay for output to complete */
 	if( result!=0 ) {
 	  printf("testport: Error executing tcdrain (%d)\n",errno);
 	}

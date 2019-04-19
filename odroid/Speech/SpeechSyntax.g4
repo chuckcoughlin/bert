@@ -57,7 +57,7 @@ Motor: 'device'|'joint'|'motor';
 Of: 'of'|'on'|'for';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
-Property: 'id'|'position'|'offset'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
+Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Salutation:'bert'|'burt';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Side: 'left'|'right';

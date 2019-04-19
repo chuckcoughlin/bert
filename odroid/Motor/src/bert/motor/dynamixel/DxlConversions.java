@@ -25,9 +25,12 @@ public class DxlConversions  {
 	private static Map<DynamixelType,Double> torque;         // Max torque ~ Nm
 	private static Map<DynamixelType,Double> velocity;       // Angular velocity ~ deg/s
 	// Constants for control table addressses. These must be the same for MX28,MX64,AX12
-	private static final byte GOAL_POSITION    = (byte)0x1E;  // low, high bytes
-	private static final byte MOVING_SPEED     = (byte)0x20;  // low, high bytes
-	private static final byte TORQUE_LIMIT     = (byte)0x22;  // low, high bytes
+	public static final byte LIMIT_BLOCK_ADDRESS = (byte)6;
+	public static final byte LIMIT_BLOCK_BYTES   = (byte)9;
+	public static final byte GOAL_BLOCK_ADDRESS  = (byte)0x1E;
+	public static final byte GOAL_BLOCK_BYTES    = (byte)6;
+	private static final byte MAXIMUM_ANGLE     = (byte)0x06;  // low, high bytes
+	private static final byte MINIMUM_ANGLE     = (byte)0x08;  // low, high bytes
 	private static final byte PRESENT_LOAD     = (byte)0x28;  // low, high bytes
 	private static final byte PRESENT_POSITION = (byte)0x24;  // low, high bytes
 	private static final byte PRESENT_SPEED    = (byte)0x26;  // low, high bytes
@@ -121,7 +124,9 @@ public class DxlConversions  {
 	// of that property. These need to  be independent of motor type.
 	public static byte addressForPresentProperty(String name) {
 		byte address = 0;
-		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = PRESENT_POSITION;
+		if( name.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name()))      address = MAXIMUM_ANGLE;
+		else if( name.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name())) address = MINIMUM_ANGLE;
+		else if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = PRESENT_POSITION;
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) address = PRESENT_SPEED;
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) address = PRESENT_TEMPERATURE;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) address = PRESENT_LOAD;
@@ -136,7 +141,9 @@ public class DxlConversions  {
 	// Valid for Protocol 1 only.
 	public static byte dataBytesForProperty(String name) {
 		byte length = 0;
-		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) length = 2;
+		if( name.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name())) length = 2;
+		else if( name.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name())) length = 2;
+		else if( name.equalsIgnoreCase(JointProperty.POSITION.name())) length = 2;
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) length = 2;
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) length = 1;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) length = 2;
@@ -152,7 +159,9 @@ public class DxlConversions  {
 		name = name.toLowerCase();
 		String text = "";
 		double value = valueForProperty(name,type,isDirect,b1,b2);
-		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) text = String.format("%.0f degrees clock-wise",value);
+		if( name.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name())) text = String.format("%.0f degrees",value);
+		else if( name.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name())) text = String.format("%.0f degrees",value);
+		else if( name.equalsIgnoreCase(JointProperty.POSITION.name())) text = String.format("%.0f degrees",value);
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) text = String.format("%.0f degrees per second",value);
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) text = String.format("%.0f degrees centigrade",value);
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) text = String.format("%.0f newton-meters",value);
@@ -166,13 +175,15 @@ public class DxlConversions  {
 	// Valid for Protocol 1 only.
 	public static double valueForProperty(String name,DynamixelType type,boolean isDirect,byte b1,byte b2) {
 		double value = 0.;
-		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) value = dxlToDegree(type,isDirect,b1,b2);
+		if( name.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name())) value = dxlToDegree(type,isDirect,b1,b2);
+		else if( name.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name())) value = dxlToDegree(type,isDirect,b1,b2);
+		else if( name.equalsIgnoreCase(JointProperty.POSITION.name())) value = dxlToDegree(type,isDirect,b1,b2);
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) value = dxlToSpeed(type,isDirect,b1,b2);
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) value = dxlToTemperature(b1);
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) value = dxlToTorque(type,isDirect,b1,b2);
 		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) value = dxlToVoltage(b1);
 		else {
-			LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)",CLSS,name));
+			LOGGER.warning(String.format("%s.valueForProperty: Unrecognized property name (%s)",CLSS,name));
 		}
 		return value;
 	}

@@ -40,7 +40,6 @@ public class NamedSocket   {
 	private Socket socket;
 	private BufferedReader in = null;
 	private PrintWriter out =null;
-	private Thread readThread = null;
 
 	/**
 	 * Constructor: Use this constructor from the server process.
@@ -182,7 +181,6 @@ public class NamedSocket   {
 	 */
 	public MessageBottle read() {
 		MessageBottle bottle = null;
-		readThread = Thread.currentThread();
 		try {
 			if(in!=null )  {
 				LOGGER.info(String.format("%s.read: reading %s ... ",CLSS,name));
@@ -196,6 +194,9 @@ public class NamedSocket   {
 			else {
 				LOGGER.warning(String.format("%s.read: Attempt to read from %s before port is open (ignored)",CLSS,name));
 			}
+		}
+		catch(NullPointerException npe) {
+			LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",CLSS,name,npe.getLocalizedMessage()));
 		}
 		catch(IOException ioe) {
 			LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",CLSS,name,ioe.getLocalizedMessage()));

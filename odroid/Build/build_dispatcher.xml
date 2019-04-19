@@ -1,8 +1,8 @@
 <!-- Build and deploy the dispatcher code -->
 <project name="bert.install.loop" default="all" basedir=".">
 	<import file="${basedir}/build.xml"/>
-	<property name="jar.name" value="bert-server.jar" />
-	<property name="src.dir" value="${basedir}/../Server/src" />
+	<property name="jar.name" value="bert-dispatcher.jar" />
+	<property name="src.dir" value="${basedir}/../Dispatcher/src" />
 	
 	<!-- This target will build the core application and deploy it to the robot -->
 	<target name="all" depends="clean, build, jar, deploy" />

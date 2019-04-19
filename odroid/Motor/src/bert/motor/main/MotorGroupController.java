@@ -186,9 +186,10 @@ public class MotorGroupController implements Controller,MotorManager {
 				String param = map.get(key);
 				String name = motorNameById.get(key);
 				parametersInProcess.put(name, param);
+				LOGGER.info(String.format("%s.aggregateMotorProperties: received %s (%d) = %s",CLSS,name,key,param));
+				motorsProcessed++;   // Assume there are no duplicates
 			}
 		}
-		motorsProcessed++;
 		if(motorsProcessed>=motorCount ) {
 			this.currentRequest.setJointValues(parametersInProcess);
 			responseHandler.handleResponse(currentRequest);

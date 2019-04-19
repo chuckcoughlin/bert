@@ -341,6 +341,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		if( pname.equalsIgnoreCase("angle")) pname = "POSITION";
 		else if( pname.equalsIgnoreCase("load")) pname = "TORQUE";
+		else if( pname.equalsIgnoreCase("max angle")) pname = "MAXIMUMANGLE";
+		else if( pname.equalsIgnoreCase("min angle")) pname = "MINIMUMANGLE";
 		else if( pname.equalsIgnoreCase("maximum angle")) pname = "MAXIMUMANGLE";
 		else if( pname.equalsIgnoreCase("minimum angle")) pname = "MINIMUMANGLE";
 		else if( pname.equalsIgnoreCase("motor type")) pname = "MOTORTYPE";

@@ -139,8 +139,8 @@ public class DxlMessageV2  {
 	 * @param speed in degrees/sec
 	 * @return byte array with command to set speed
 	 */
-	public static byte[] bytesToSetSpeed(int id,DynamixelType model,double speed) {
-		int dxlSpeed = DxlConversions.speedToDxl(model, speed);
+	public static byte[] bytesToSetSpeed(int id,DynamixelType model,boolean isDirect,double speed) {
+		int dxlSpeed = DxlConversions.speedToDxl(model, isDirect, speed);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
 		setHeader(bytes,id);

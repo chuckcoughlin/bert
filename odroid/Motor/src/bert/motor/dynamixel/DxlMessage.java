@@ -5,12 +5,16 @@
 
 package bert.motor.dynamixel;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import bert.share.common.DynamixelType;
 import bert.share.message.BottleConstants;
 import bert.share.motor.JointProperty;
+import bert.share.motor.MotorConfiguration;
 
 /**
  * This class contains static methods used to create and interpret different varieties \
@@ -36,8 +40,7 @@ public class DxlMessage  {
 	private static final byte STATUS_RETURN = 0x55; // Return Instruction for the Instruction Packet
 	private static final byte SYNC_READ  = (byte)0x82; 	// For multiple devices, Instruction to read data from the same Address with the same length at once
 	private static final byte SYNC_WRITE = (byte)0x83; // For multiple devices, Instruction to write data on the same Address with the same length at once
-	private static final byte BULK_READ  = (byte)0x92; // For multiple devices, Instruction to read data from different Addresses with different lengths at once
-	private static final byte BULK_WRITE = (byte)0x93; 
+	private static final byte BULK_READ  = (byte)0x92; // For multiple devices, Instruction to read data from different Addresses with different lengths at once 
 	
 	/**
 	 * Create a serial message to broadcast a ping request to all motors.
@@ -53,7 +56,39 @@ public class DxlMessage  {
 		setChecksum(bytes);
 		return bytes;
 	}
-	
+	/**
+	 * Create a serial message to read the current goals of a particular motor.
+	 * @param id of the motor
+	 * @return byte array with command to read the block of RAM
+	 */
+	public static byte[] bytesToGetGoals(int id) {
+		int length = 4;  // Remaining bytes past length including checksum
+		byte[] bytes = new byte[length+4];  // Account for header and length
+		setHeader(bytes,id);
+		bytes[3] = (byte)length; 
+		bytes[4] = READ;
+		bytes[5] = DxlConversions.GOAL_BLOCK_ADDRESS;
+		bytes[6] = DxlConversions.GOAL_BLOCK_BYTES;
+		setChecksum(bytes);
+		return bytes;
+	}
+	/**
+	 * Create a serial message to read the block of limits contained in EEPROM
+	 * for a particular motor.
+	 * @param id of the motor
+	 * @return byte array with command to read the block of EEPROM
+	 */
+	public static byte[] bytesToGetLimits(int id) {
+		int length = 4;  // Remaining bytes past length including checksum
+		byte[] bytes = new byte[length+4];  // Account for header and length
+		setHeader(bytes,id);
+		bytes[3] = (byte)length; 
+		bytes[4] = READ;
+		bytes[5] = DxlConversions.LIMIT_BLOCK_ADDRESS;
+		bytes[6] = DxlConversions.LIMIT_BLOCK_BYTES;
+		setChecksum(bytes);
+		return bytes;
+	}
 	/**
 	 * Create a serial message to read a specified property of a motor.
 	 * @param id of the motor
@@ -73,21 +108,49 @@ public class DxlMessage  {
 	}
 	
 	/**
-	 * Create a broadcast message to return the present status of a specified property
-	 * for of all motors.
+	 * Create a bulk read message to interrogate a list of motors for a specified
+	 * property. Unfortunately AX-12 motors do not support this request, so must be
+	 * queried separately (thus the list). Note that the bulk read results in individual
+	 * responses from each motor.
 	 * @param propertyName the name of the desired property (must be a joint property)
-	 * @return byte array with broadcast command to read the property 
+	 * @return list of byte arrays with bulk read plus extras for any AX-12. 
 	 */
-	public static byte[] bytesToListProperty(String propertyName) {
-		int length = 4;  // Remaining bytes past length including checksum
+	public static List<byte[]> byteArrayListToListProperty(String propertyName,Collection<MotorConfiguration> configurations) {
+		List<byte[]> messages = new ArrayList<>();
+		int count = configurations.size();   // Number of motors, less AX-12
+		for( MotorConfiguration mc:configurations) {
+			if(mc.getType().equals(DynamixelType.AX12) ) {
+				int length = 4;  // Remaining bytes past length including checksum
+				byte[] bytes = new byte[length+4];  // Account for header and length
+				setHeader(bytes,mc.getId());
+				bytes[3] = (byte)length; 
+				bytes[4] = READ;
+				bytes[5] = DxlConversions.addressForPresentProperty(propertyName);
+				bytes[6] = DxlConversions.dataBytesForProperty(propertyName);
+				setChecksum(bytes);
+				messages.add(bytes);
+				count--;
+			}
+		}
+		
+		// Now lay out the bulk read message for everyone else.
+		int length = 3*count+3;  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,BROADCAST_ID);
 		bytes[3] = (byte)length; 
-		bytes[4] = READ;
-		bytes[5] = DxlConversions.addressForPresentProperty(propertyName);
-		bytes[6] = DxlConversions.dataBytesForProperty(propertyName);
+		bytes[4] = BULK_READ;
+		bytes[5] = 0;
+		int addr = 6;
+		for(MotorConfiguration mc:configurations) {
+			if(mc.getType().equals(DynamixelType.AX12) ) continue;
+			bytes[addr] = DxlConversions.dataBytesForProperty(propertyName);
+			bytes[addr+1] = (byte)mc.getId();
+			bytes[addr+2] = DxlConversions.addressForPresentProperty(propertyName);
+			addr += 3;
+		}
 		setChecksum(bytes);
-		return bytes;
+		messages.add(bytes);
+		return messages;
 	}
 	
 	/**
@@ -96,8 +159,8 @@ public class DxlMessage  {
 	 * @param speed in degrees/sec
 	 * @return byte array with command to set speed
 	 */
-	public static byte[] bytesToSetSpeed(int id,DynamixelType model,double speed) {
-		int dxlSpeed = DxlConversions.speedToDxl(model, speed);
+	public static byte[] bytesToSetSpeed(int id,DynamixelType model,boolean isDirect,double speed) {
+		int dxlSpeed = DxlConversions.speedToDxl(model, isDirect, speed);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
 		setHeader(bytes,id);
@@ -156,13 +219,110 @@ public class DxlMessage  {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+	/**
+	 * Analyze a response buffer returned from a request for goal values for a motor. Goals
+	 * parameters are: position, speed, torque. Results will be entered in the properties map.
+	 * Use the absolute value for speeds and torques.
+	 * @param type the model of the motor
+	 * @param isDirect the orientation of the motor
+	 * @param props properties from a MessageBottle
+	 * @param bytes status response from the controller
+	 */
+	public static void updateGoalsFromBytes(DynamixelType type,boolean isDirect,Map<String,String> props,byte[] bytes) {
+		String msg = "";
+		if( verifyHeader(bytes) ) {
+			msg = String.format("%s.updateGoalsFromBytes: %s",CLSS,dump(bytes));
+		
+			int id = bytes[2];
+			int err= bytes[4];
+			
+			String parameterName = JointProperty.POSITION.name();
+			double v1 = DxlConversions.valueForProperty(parameterName,type,isDirect,bytes[5],bytes[6]);
+			String t1  = DxlConversions.textForProperty(parameterName,type,isDirect,bytes[5],bytes[6]);
+			props.put(parameterName,String.valueOf(v1));
+			
+			parameterName = JointProperty.SPEED.name();    // Non-directional
+			double v2 = DxlConversions.valueForProperty(parameterName,type,true,bytes[7],bytes[8]);
+			String t2  = DxlConversions.textForProperty(parameterName,type,true,bytes[7],bytes[8]);
+			props.put(parameterName,String.valueOf(v2));
+			
+			parameterName = JointProperty.TORQUE.name();   // Non-directional
+			double v3 = DxlConversions.valueForProperty(parameterName,type,true,bytes[9],bytes[10]);
+			String t3  = DxlConversions.textForProperty(parameterName,type,true,bytes[9],bytes[10]);
+			props.put(parameterName,String.valueOf(v3));
+			
+			String text = String.format("Goal position, speed and torque are : %s, %s, %s", t1,t2,t3);
+			if( err==0 ) {
+				props.put(BottleConstants.TEXT,text);	
+			}
+			else {
+				msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
+				props.put(BottleConstants.ERROR, msg);
+				LOGGER.severe(msg);
+			}
+		}
+		else {
+			msg = String.format("%s.updateGoalsFromBytes: Illegal message: %s",CLSS,dump(bytes));
+			props.put(BottleConstants.ERROR, msg);
+			LOGGER.severe(msg);
+		}
+	}
+	/**
+	 * Analyze a response buffer returned from a request for EEPROM limits for a motor. Limit
+	 * parameters are: angles, temperature, voltage and torque. Of these we extract only the
+	 * angles and torque. Results will be entered in the properties map.
+	 * @param type the model of the motor
+	 * @param isDirect the orientation of the motor
+	 * @param props properties from a MessageBottle
+	 * @param bytes status response from the controller
+	 */
+	public static void updateLimitsFromBytes(DynamixelType type,boolean isDirect,Map<String,String> props,byte[] bytes) {
+		String msg = "";
+		if( verifyHeader(bytes) ) {
+			msg = String.format("%s.updateLimitsFromBytes: %s",CLSS,dump(bytes));
+		
+			int id = bytes[2];
+			int err= bytes[4];
+			
+			String parameterName = JointProperty.MAXIMUMANGLE.name(); // CW
+			double v1 = DxlConversions.valueForProperty(parameterName,type,isDirect,bytes[5],bytes[6]);
+			String t1  = DxlConversions.textForProperty(parameterName,type,isDirect,bytes[5],bytes[6]);
+			props.put(parameterName,String.valueOf(v1));
+			
+			parameterName = JointProperty.MINIMUMANGLE.name();   // CCW
+			double v2 = DxlConversions.valueForProperty(parameterName,type,isDirect,bytes[7],bytes[8]);
+			String t2  = DxlConversions.textForProperty(parameterName,type,isDirect,bytes[7],bytes[8]);
+			props.put(parameterName,String.valueOf(v2));
+			
+			parameterName = JointProperty.TORQUE.name();    // Non-directional
+			double v3 = DxlConversions.valueForProperty(parameterName,type,true,bytes[12],bytes[13]);
+			String t3  = DxlConversions.textForProperty(parameterName,type,true,bytes[12],bytes[13]);
+			props.put(parameterName,String.valueOf(v3));
+			
+			String text = String.format("Limiting angles and torque are : %s, %s, %s", t1,t2,t3);
+			if( err==0 ) {
+				props.put(BottleConstants.TEXT,text);	
+			}
+			else {
+				msg = String.format("%s.updateLimitsFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
+				props.put(BottleConstants.ERROR, msg);
+				LOGGER.severe(msg);
+			}
+		}
+		else {
+			msg = String.format("%s.updateLimitsFromBytes: Illegal message: %s",CLSS,dump(bytes));
+			props.put(BottleConstants.ERROR, msg);
+			LOGGER.severe(msg);
+		}
+	}
 	/**
 	 * Analyze a response buffer for some parameter of a motor. Augment the
 	 * supplied Properties with the result (possibly an error).
+	 * @param parameterName the requested parameter
+	 * @param type the model of the motor
+	 * @param isDirect the orientation of the motor
 	 * @param props properties from a MessageBottle
 	 * @param bytes status response from the controller
-	 * @return the parameter value from the status response
 	 */
 	public static void updateParameterFromBytes(String parameterName,DynamixelType type,boolean isDirect,Map<String,String> props,byte[] bytes) {
 		String msg = "";
@@ -194,30 +354,45 @@ public class DxlMessage  {
 	}
 	
 	/**
-	 * Analyze the response buffer for motor positions (probably only one) and
-	 * update the supplied position map accordingly. Log errors, there's not much
-	 * else we can do.
+	 * Analyze the response buffer for the indicated motor parameter and
+	 * update the supplied position map accordingly. There may be several responses concatenated.
+	 * We assume that the parameter is 2 bytes. Log errors, there's not much else we can do.
 	 * @param parameterName the name of the Joint property being handled
+	 * @param configurations a map of motor configurations by id
 	 * @param bytes status response from the controller
-	 * @param positions an array of positions by id, supplied.
+	 * @param parameters an array of positions by id, supplied. This is augmented by the method.
 	 */
-	public static void updateParameterArrayFromBytes(String parameterName, Map<Integer,String> parameters,byte[] bytes) {
+	public static void updateParameterArrayFromBytes(String parameterName, Map<Integer,MotorConfiguration> configurations,byte[] bytes,Map<Integer,String> parameters) {
 		String msg = "";
-		if( verifyHeader(bytes) ) {
-			int id = bytes[2];
-			int err= bytes[4];
-			int param= bytes[5] + 256*bytes[6];
-			if( err==0 ) {
-				parameters.put(id, String.valueOf(param));
+		int length = 7;
+		int index  = 0;
+		while( index<bytes.length ) {
+			if( verifyHeader(bytes,index) ) {
+				int id = bytes[index+2];
+				length = bytes[index+3] + 4;  // Takes care of fixed bytes pre-length
+				int err= bytes[index+4];
+				MotorConfiguration mc =  configurations.get(id);
+				if( err==0 && mc!=null ) {
+					DynamixelType type = mc.getType();
+					boolean isDirect   = mc.isDirect();
+					double param= DxlConversions.valueForProperty(parameterName,type,isDirect,bytes[index+5],bytes[index+6]);
+					parameters.put(id, String.valueOf(param));
+				}
+				else if(err!=0){
+					msg = String.format("%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",CLSS,id,err,dump(bytes));
+					LOGGER.severe(msg);
+				}
+				// mc = null
+				else {
+					msg = String.format("%s.updateParameterArrayFromBytes: id of %d not supplied in motor configurations",CLSS,id,dump(bytes));
+					LOGGER.severe(msg);
+				}
 			}
 			else {
-				msg = String.format("%s.updatePositionFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
-				LOGGER.severe(msg);
+				LOGGER.severe(String.format("%s.updateParameterArrayFromBytes: Header not found: %s",CLSS,dump(bytes)));
+
 			}
-		}
-		else {
-			LOGGER.severe(String.format("%s.updatePositionArrayFromBytes: Header not found: %s",CLSS,dump(bytes)));
-			
+			index = index+length;
 		}
 	}
 	// ===================================== Private Methods =====================================
@@ -252,7 +427,7 @@ public class DxlMessage  {
 	 */
 	private static boolean verifyHeader(byte[] bytes) {
 		boolean result = false;
-		if( bytes.length > 6     &&
+		if( bytes.length > 5     &&
 			bytes[0]==(byte)0xFF &&
 			bytes[1]==(byte)0xFF  
 		  ) {
@@ -262,6 +437,17 @@ public class DxlMessage  {
 		return result;
 	}
 
+	private static boolean verifyHeader(byte[] bytes,int index) {
+		boolean result = false;
+		if( bytes.length > index+5     &&
+			bytes[index]  ==(byte)0xFF &&
+			bytes[index+1]==(byte)0xFF  
+		  ) {
+			
+			result = true;
+		}
+		return result;
+	}
 	
 	/**
 	 * Test using example in Robotis documentation for WRITE command and status, 5.3.3.2 and 5.3.3.3.
