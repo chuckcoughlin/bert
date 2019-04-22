@@ -4,15 +4,7 @@
  */
 package bert.command.controller;
 
-import java.util.List;
 import java.util.logging.Logger;
-
-import tinyb.BluetoothDevice;
-import tinyb.BluetoothException;
-import tinyb.BluetoothGattCharacteristic;
-import tinyb.BluetoothGattService;
-import tinyb.BluetoothManager;
-import tinyb.BluetoothNotification;
 
 
 /**
@@ -20,9 +12,7 @@ import tinyb.BluetoothNotification;
  *  of the service that it provides. It encapsulates a bi-directional
  *  connection between client and server used for text messages.
  *  
- *  The file descriptors are opened on "startup" and closed on 
- *  "shutdown". Change listeners are notified (in a separate Thread) when the
- *  socket is "ready".
+ *  This class is currently gutted waiting for BlueCove implementation.
  */
 public class BluetoothSocket   {
 	private static final String CLSS = "BluetoothSocket";
@@ -32,9 +22,6 @@ public class BluetoothSocket   {
 	private static final int READ_POLL_INTERVAL = 60000; 
 	private final String mac;
 	private final String uuid;
-	private BluetoothGattCharacteristic characteristic;
-	private BluetoothDevice device;
-	private BluetoothGattService service;
 
 	/**
 	 * Constructor:
@@ -43,10 +30,7 @@ public class BluetoothSocket   {
 	 */
 	public BluetoothSocket(String mac,String uuid) {
 		this.mac = mac;
-		this.uuid = uuid;  
-		this.device = null;
-		this.service = null;
-		this.characteristic = null;
+		this.uuid = uuid;
 	}
 	
 	public String getName() {return CLSS;}
@@ -58,44 +42,8 @@ public class BluetoothSocket   {
 	 */
 	public boolean discover() {
 		LOGGER.warning(String.format("%s.discover: Getting bluetooth manager ...", CLSS));
-		BluetoothManager manager = BluetoothManager.getBluetoothManager();
-		boolean success = manager.startDiscovery();
-		if( !success ) {
-			LOGGER.warning(String.format("%s.discover: Failed to start discovery", CLSS));
-		}
-		else {
-			int attempts = 1;
-			success = false;
-			while(!success ) {
-				// Keep polling for the desired device 
-				try  {
-					List<BluetoothDevice>devices = manager.getDevices();
-					for(BluetoothDevice dev:devices) {
-						LOGGER.info(String.format("%s.discover: found paired device %s at %s", CLSS,dev.getName(),dev.getAddress()));
-						if( dev.getAddress().equalsIgnoreCase(mac)) {
-							List<BluetoothGattService> services = dev.getServices();
-							for(BluetoothGattService serv:services) {
-								if( serv.getUUID().equalsIgnoreCase(uuid)) {
-									this.service = serv;
-									this.device = dev;
-									this.characteristic = serv.getCharacteristics().get(0); // Assume only one characteristic
-									success = true;
-									break;
-								}
-							}
-						}
-					}
-					Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
-				}
-
-				catch(InterruptedException ie) {
-					if( attempts%CLIENT_LOG_INTERVAL==0) {
-						LOGGER.warning(String.format("%s.discover: Strii trying ..", CLSS));
-					}
-				}
-			}
-			attempts++;
-		}
+		boolean success = true;
+	
 		
 		return success;
 	}
@@ -105,22 +53,14 @@ public class BluetoothSocket   {
 	 * Open IO streams for reading and writing.
 	 */
 	public void startup() {
-		if( characteristic==null ) {
-			LOGGER.warning(String.format("%s.startup: before discovery completed",CLSS));
-		}
-		else {
-			characteristic.enableValueNotifications(new StringNotification());
-		}
+		LOGGER.warning(String.format("%s.startup: before discovery completed",CLSS));
+
 	}
 	
 	/**
 	 * Release native memory.
 	 */
 	public void shutdown() {
-		characteristic.disableValueNotifications();
-		characteristic.close();
-		service.close();
-		device.close();
 	}
 
 	/**
@@ -130,23 +70,6 @@ public class BluetoothSocket   {
 	 */
 	public String read() {
 		String text = null;
-		if(characteristic!=null )  {
-			try {
-				for(;;) {
-					byte[] raw = characteristic.readValue();
-					text = new String(raw);
-					if( !text.isEmpty()) break;
-					Thread.sleep(READ_POLL_INTERVAL);
-				}
-			}
-			catch(BluetoothException ble) {
-				LOGGER.severe(String.format("%s.read: ERROR %s ... ",CLSS,ble.getLocalizedMessage()));
-				text = "Error";
-			}
-			catch(InterruptedException ioe) {
-				text = "Interrupted";
-			}
-		}
 
 		return text;
 	}
@@ -156,18 +79,8 @@ public class BluetoothSocket   {
 	 * Write plain text to the socket.
 	 */
 	public void write(String text) {
-		if( characteristic!=null ) {
-			characteristic.writeValue(text.getBytes());
-		}
-	}
-	
-	
 
-	public class StringNotification implements BluetoothNotification<byte[]>  {
-		
-		public void run(byte[] bytes) {
-			LOGGER.info(String.format("%s.StringNotification: Got one!", CLSS));
-		}
+
 	}
 }
 

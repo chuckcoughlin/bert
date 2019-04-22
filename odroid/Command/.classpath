@@ -6,12 +6,7 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/Database">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/Share">
+	<classpathentry combineaccessrules="false" kind="src" path="/Speech">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
@@ -21,12 +16,17 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/Speech">
+	<classpathentry combineaccessrules="false" kind="src" path="/Share">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/TinyB">
+	<classpathentry combineaccessrules="false" kind="src" path="/Database">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/Bluecove">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

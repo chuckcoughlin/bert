@@ -32,8 +32,8 @@ public class MainActivityPagerAdapter extends FragmentStatePagerAdapter {
         super(fm);
 
         tabTitles = new String[] {
-                ctx.getString(R.string.cover_tab_label),ctx.getString(R.string.dispatcher_log_tab_label),
-                ctx.getString(R.string.transcript_tab_label),ctx.getString(R.string.tables_tab_label),
+                ctx.getString(R.string.cover_tab_label),
+                ctx.getString(R.string.transcript_tab_label),ctx.getString(R.string.dispatcher_log_tab_label),ctx.getString(R.string.tables_tab_label),
                 ctx.getString(R.string.settings_tab_label)};
         Log.i(CLSS,"Constructor ...");
     }
@@ -52,10 +52,10 @@ public class MainActivityPagerAdapter extends FragmentStatePagerAdapter {
                 frag = new CoverFragment();
                 break;
             case 1:
-                frag = new DispatcherLogsFragment();
+                frag = new TranscriptFragment();
                 break;
             case 2:
-                frag = new TranscriptFragment();
+                frag = new DispatcherLogsFragment();
                 break;
             case 3:
                 frag =  new TablesTabFragment();

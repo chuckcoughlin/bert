@@ -1,7 +1,7 @@
 /*
  *  From: Luu Gia Thuy - http://luugiathuy.com/2011/02/android-java-bluetooth/
  */
-package app;
+package bluecove;
 
 public class BluetoothServer {
 	public static void main(String[] args) {

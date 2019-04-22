@@ -5,8 +5,11 @@
 #  There are two libraries combined here, one the C++ native
 #  implementation, the other the JNI java interface.
 #
+#  We also build 'tinyb' a small test application
+
 #  make -e tinyb
 #  make install
+#  make tests
 #
 CC=gcc
 CXX=g++
@@ -22,7 +25,7 @@ LDFLAGS = -shared
 LIB = /usr/lib/arm-linux-gnueabihf
 LIBJNI    = libjavatinyb.so
 LIBTINYB  = libtinyb.so
-LIBS += -L$(LIB) -lbluetooth
+LIBS += -L$(LIB) -L$(BERT_HOME)/lib
 JNICFLAGS += -I$(INCDIR) \
            -I$(APIDIR) \
            -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" \
@@ -33,18 +36,20 @@ OBJS    = $(patsubst src/%.cpp,obj/%.o,$(wildcard src/*.cpp))
 COBJS    = $(patsubst src/%.c,cobj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
 COBJDIR  = cobj
+TESTS    = tinyb
 
 
 
 #  * Compile and link the native implementation
-tinyb: $(LIBTINYB) $(LIBJNI)
-	-cp $(LIBTINYB) $(LIBJNI) $(BERT_HOME)/lib
+all: $(LIBTINYB) $(LIBJNI)
 
 $(LIBTINYB): $(OBJS) $(COBJS)
-	$(CXX) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) $(COBJS) -lbluetooth
+	$(CXX) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) $(COBJS) -lbluetooth -lglib-2.0
+	cp $@ $(BERT_HOME)/lib
 
 $(LIBJNI): $(JNIOBJS)
-	$(CXX) $(LDFLAGS) $(LIBS) -o $@ $(JNIOBJS) -lbluetooth
+	$(CXX) $(LDFLAGS) $(LIBS) -o $@ $(JNIOBJS) -lbluetooth -llibtinyb
+	cp $@ $(BERT_HOME)/lib
 
 # Compile C++ code
 $(OBJDIR)/%.o: src/%.cpp| $(OBJDIR)
@@ -58,12 +63,20 @@ $(COBJDIR)/%.o: src/%.c| $(COBJDIR)
 $(JNIOBJDIR)/%.o: jni/%.cxx | $(JNIOBJDIR)
 	$(CXX) -c $(JNICFLAGS) -o $@ $<
 
+tests: $(TESTS)
+
+tinyb: $(OBJDIR)/tinyb.o
+	$(CC) $(LIBS) -o $@ $< -lbluetooth -llibtinyb -llibjavatinyb
+
+$(OBJDIIR)/tinyb.o: tests/tinyb.c } $(OBJDIR)
+	$(CC) -c $(CFLAGS) -o $@ $<
+
 install:
 	-cp $(LIBTINYB) $(LIBJNI) $(BERT_HOME)/lib
 
 clean:
 	-rm -f $(LIBTINYB) $(LIBJNI)
-	-rm -f $(BERT_HOME)/$(LIBTINYB) $(BERT_HOME)/$(LIBJNI)
+	-rm -f $(BERT_HOME)/lib/$(LIBTINYB) $(BERT_HOME)/lib/$(LIBJNI)
 	-rm -rf $(OBJDIR) $(JNIOBJDIR) $(COBJDIR)
 
 

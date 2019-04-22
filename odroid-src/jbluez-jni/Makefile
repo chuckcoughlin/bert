@@ -51,22 +51,22 @@ rfcommclient: $(OBJDIR)/rfcommclient.o
 rfcommserver: $(OBJDIR)/rfcommserver.o
 	$(CC) $(LIBS) -o $@ $< -lbluetooth
 
-$(OBJDIR)/bluez.o: test/bluez.c| $(OBJDIR)
+$(OBJDIR)/bluez.o: tests/bluez.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(OBJDIR)/simplescan.o: test/simplescan.c| $(OBJDIR)
+$(OBJDIR)/simplescan.o: tests/simplescan.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(OBJDIR)/l2capclient.o: test/l2capclient.c| $(OBJDIR)
+$(OBJDIR)/l2capclient.o: tests/l2capclient.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(OBJDIR)/l2capserver.o: test/l2capserver.c| $(OBJDIR)
+$(OBJDIR)/l2capserver.o: tests/l2capserver.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(OBJDIR)/rfcommserver.o: test/rfcommserver.c| $(OBJDIR)
+$(OBJDIR)/rfcommserver.o: tests/rfcommserver.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(OBJDIR)/rfcommclient.o: test/rfcommclient.c| $(OBJDIR)
+$(OBJDIR)/rfcommclient.o: tests/rfcommclient.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 
@@ -82,4 +82,4 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 
-.PHONY: all test clean install
+.PHONY: all tests clean install

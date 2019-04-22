@@ -2,7 +2,7 @@
  */
 module bluecove {
 	requires transitive java.logging;
-	exports app;
+	exports bluecove;
 	exports javax.bluetooth;
 	exports javax.microedition.io;
 }

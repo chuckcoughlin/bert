@@ -1,7 +1,8 @@
 /*
  * https://people.csail.mit.edu/albert/bluez-intro/x559.html#l2cap-server.c
  */
- #include <stdio.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>

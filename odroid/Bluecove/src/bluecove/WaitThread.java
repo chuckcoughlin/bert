@@ -1,5 +1,5 @@
 
-package app;
+package bluecove;
 
 import javax.bluetooth.DiscoveryAgent;
 import javax.bluetooth.LocalDevice;

@@ -3,16 +3,19 @@
  * Albert Huang - "Bluetooth for Programmers"
  */
 #include <stdio.h>
-#include <errno.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
 
+
 int main(int argc, char **argv) {
     struct sockaddr_rc addr = { 0 };
+	int len;
     int s, status;
     //char dest[18] = "23:A1:57:F8:A1:89";  // ??
+	char buf[256];
     char dest[18] = "C0:D3:C0:72:94:6A";
 
     // allocate a socket
@@ -27,8 +30,8 @@ int main(int argc, char **argv) {
     printf("rfcommclient: connecting ...\n");
     status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
 
-    if(status){
-        printf("rfcommclient: failed to connect the device!\n");
+    if(status!=0){
+        perror("Failed to connect");
         return -1;
     }
 

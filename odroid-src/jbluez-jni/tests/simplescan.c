@@ -15,7 +15,8 @@ int main(int argc, char **argv){
   inquiry_info *ii = NULL;
   int max_rsp, num_rsp;
   int dev_id, sock, len, flags;
-  int i;char addr[19] = { 0 };
+  int i;
+  char addr[19] = { 0 };
   char name[248] = { 0 };
   dev_id = hci_get_route(NULL);
   printf("Simplescan: got route %d\n",dev_id);

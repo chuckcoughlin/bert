@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
         status = send(s, message, strlen(message),0);
     }
 
-    if( status < 0 ) perror("uh oh");
+    if( status < 0 ) perror("Failed to connect");
 
     close(s);
 }

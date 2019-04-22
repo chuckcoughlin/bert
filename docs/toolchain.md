@@ -387,9 +387,12 @@ able to get that working. I just created a custom `Makefile` to build the code.
 
 Currently integrated with main robot application.
 
-TODO:  when loading the library...
-      Undefined symbol: g_str_equal
-      UnsatisfiedLinkError: tinyb.BluetoothManager.getNativePIVersion()
+when loading the library...
+      UnsatisfiedLinkError:  g_cclosure_marshall_generic
+        in tinyb.BluetoothManager.getNativeAPIVersion
+          BluetoothManager.getBluetoothManager
+  issue: this method was introduced in libc6 2.30. The Odroid has 2.27.
+  Get this error on all native methods.
 
 ======================== JBlueZ =====================================
 Based on a minimalist implementation
@@ -399,7 +402,8 @@ by Edward Kay provided great example of the Java Native Interface (JNI).
 This is an attempt to use JNI and link directly to libbluetooth.so.
 
  Unfortunately this package requires J2ME, which is not the Java on the
-Odroid.
+Odroid. It also relies on DBus which is yet-another-interface to learn/debug.
+On the plus side this is relatively up-to-date. Vers 5.50, June 2018.
 
 We include sample test applications from code from a book by Albert Huang
 of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/) helped
@@ -444,7 +448,7 @@ includes source for libraries.
 bluecove-2.1.0.jar (includes javax.microedition classes).
 bluecove-gpl-2.1.0.jar
 Jar files include too many dependencies to modularize as-is. We decided to add
-classes as necessary
+classes as necessary. Converted to java.util.logger (removed log4j).
 
 
 TODO: Makefile for libbluecove.jnilib, and libbluecove.so
@@ -464,7 +468,7 @@ The library must be built and installed on the Odroid. Here are instructions:
 *** General *** <br/>
 The tablet application, ***BertSpeak*** is the only Human Machine Interface (HMI) in normal operation.  Most importantly, it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
 
-The control application is a standard Android application built using Android Studio 3.3. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
+The control application is a standard Android application built using Android Studio 3.4. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
     ```ANDROID_HOME=~/Library/Androd/sdk```
 
 *** Voice Commands ***<br/>
