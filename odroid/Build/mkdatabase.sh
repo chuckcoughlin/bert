@@ -19,12 +19,14 @@ sqlite3 $DB < ${SQL}/createTables.sql
 
 # Change to CSV mode and load pose and action tables
 cd ${CSV}
-cat Pose.csv | tail -n 1|sed -e 's/	/,/g' >/tmp/poses
+cat Pose.csv | tail -n 1|sed -e 's/	/,/g' >/tmp/pose
+cat PoseMap.csv | tail -n 1|sed -e 's/	/,/g' >/tmp/posemap
 
 cd ${ETC}
 sqlite3 $DB << EOF
 .mode csv
-.import /tmp/poses Pose
+.import /tmp/pose Pose
+.import /tmp/posemap PoseMap
 EOF
 
 cp ${DB} ${BERT_HOME}/etc/${DB}

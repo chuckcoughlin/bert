@@ -13,6 +13,7 @@ import bert.share.controller.Controller;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
+import bert.share.message.RequestType;
 import bert.speech.process.MessageTranslator;
 import bert.speech.process.StatementParser;
 
@@ -78,11 +79,9 @@ public class StdioController implements Controller {
 	 * Forward requests to the Terminal dispatcher.
 	 */
 	public class StdinReader implements Runnable {
-		private MessageHandler dispatcher;
 		
 		
 		public StdinReader(MessageHandler disp) {
-			this.dispatcher = disp;
 		}
 
 		/**
@@ -110,11 +109,12 @@ public class StdioController implements Controller {
 					else {
 						MessageBottle request = parser.parseStatement(input);
 						request.assignSource(HandlerType.TERMINAL.name());
-						if( request.fetchError()==null) {
-							receiveRequest(request);
+						if( request.fetchError()!=null || request.fetchRequestType().equals(RequestType.NOTIFICATION)) {
+							receiveResponse(request);  // Handle locally/immediately
 						}
 						else {
-							receiveResponse(request);  // Handle error immediately
+							receiveRequest(request);
+							
 						}	
 					}
 				}

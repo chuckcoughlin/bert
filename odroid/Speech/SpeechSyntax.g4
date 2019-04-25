@@ -22,7 +22,8 @@ command:
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
 	| Salutation? List Article? Motor? Properties				# handleListCommand2
-	| Salutation? (Command|Halt|Shutdown)                      	# doNothing
+	| Salutation? NAME                      					# handleCustomCommand
+	| Salutation? (Move) Article? Motor? Value Unit?            # moveMotor
 	;
 
 // Request for information
@@ -37,6 +38,10 @@ question:
 
 // Convey information to the robot.
 declaration:
+	'you' 'are' NAME											# declarePose1
+	| Article Pose 'is' NAME                                    # declarePose2
+	| When 'i' 'say' NAME Pose NAME								# mapPoseToCommand1
+	| NAME Means To NAME								        # mapPoseToCommand2
 	;
 
 
@@ -51,20 +56,27 @@ Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 How: 'how';
 List: ('tell me'|'describe'|'list'|'what are');
 Limits: 'limits';
+Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
+Move: 'move';
 Of: 'of'|'on'|'for';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
+Pose: 'assume the pose'|'take the pose'|'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Salutation:'bert'|'burt';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Side: 'left'|'right';
+To: 'to become'|'to';
+Unit: 'degrees';
+Value: DIGIT+;
 What: 'what';
+When: 'when';
 
 
-COMMA: ',';   // Not a fragment because of "value"
+COMMA: ',';  
 COLON: ':';
 NAME:  (ALPHA (ALPHA|DIGIT|DASH|SLASH|UNDERSCORE|PERIOD)*);
 

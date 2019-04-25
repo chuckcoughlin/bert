@@ -11,6 +11,7 @@ package bert.speech.process;
 public enum SharedKey
 {
             AXIS,
+            POSE,   // Current pose
             SIDE
             ;
           

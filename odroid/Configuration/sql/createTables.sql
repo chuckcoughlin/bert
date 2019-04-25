@@ -70,6 +70,12 @@ CREATE TABLE Pose (
 	RIGHT_SHOULDER_X	int NULL,
 	RIGHT_SHOULDER_Y	int NULL
 );
+-- The PoseMap table maps commands to poses.
+DROP TABLE IF EXISTS PoseMap;
+CREATE TABLE PoseMap (
+	command	text PRIMARY_KEY,
+	pose text NOT NULL
+);
 
 -- The MotorState table holds configurable parameters of each motor.
 -- The intent is hold presets rather than current state.

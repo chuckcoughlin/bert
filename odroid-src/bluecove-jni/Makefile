@@ -10,14 +10,12 @@
 CC=gcc
 CFLAGS  += -I$(INCDIR) \
            -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" \
-		   -I/usr/include/dbus-1.0 \
-		   -I/usr/lib/arm-linux-gnueabihf/dbus-1.0/include \
 		   -fPIC -Wno-psabi
 INCDIR = include
 LDFLAGS = -shared
 LD_LIBRARY_PATH = /usr/lib/arm-linux-gnueabihf:/usr/local/robot/lib
 LIBS = -L/usr/local/robot/lib
-LIBBTJ  = libbluetoothjni.so
+LIBBLUECOVE  = libbluecove.so
 OBJS    = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
 TESTS   = btj simplescan l2capserver l2capclient rfcommserver rfcommclient dbus
@@ -30,16 +28,13 @@ all: $(LIBBTJ)
 $(OBJDIR)/%.o: src/%.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(LIBBTJ): $(OBJS)
+$(LIBBLUECOVE): $(OBJS)
 	$(CC) $(LDFLAGS) $(LIBS) -o $@ $(OBJS) -lbluetooth
 
 tests: $(TESTS)
 
 btj: $(OBJDIR)/btj.o
-	$(CC) $(LIBS) -o $@ $< -lbluetoothjni -lbluetooth
-
-dbus: $(OBJDIR)/dbus.o
-	$(CC) $(LIBS) -o $@ $< -ldbus-1 
+	$(CC) $(LIBS) -o $@ $< -lbluecove -lbluetooth
 
 l2capclient: $(OBJDIR)/l2capclient.o
 	$(CC) $(LIBS) -o $@ $< -lbluetooth
@@ -79,10 +74,10 @@ $(OBJDIR)/rfcommclient.o: test/rfcommclient.c| $(OBJDIR)
 
 
 install:
-	-cp $(LIBBTJ) $(BERT_HOME)/lib
+	-cp $(LIBBLUECOVE) $(BERT_HOME)/lib
 
 clean:
-	-rm -f $(LIBBTJ) $(TESTS)
+	-rm -f $(LIBBLUECOVE) $(TESTS)
 	-rm -rf $(OBJDIR)
 
 

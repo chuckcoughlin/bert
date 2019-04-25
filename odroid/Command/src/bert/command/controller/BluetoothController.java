@@ -15,6 +15,7 @@ import bert.share.controller.SocketStateChangeListener;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
+import bert.share.message.RequestType;
 import bert.speech.process.MessageTranslator;
 import bert.speech.process.StatementParser;
 
@@ -113,11 +114,12 @@ public class BluetoothController implements Controller {
 					String input = sock.read();
 					MessageBottle request = parser.parseStatement(input);
 					request.assignSource(HandlerType.COMMAND.name());
-					if( request.fetchError()==null) {
-						receiveRequest(request);
+					if( request.fetchError()!=null || request.fetchRequestType().equals(RequestType.NOTIFICATION)) {
+						receiveResponse(request);  // Handle locally/immediately
 					}
 					else {
-						receiveResponse(request);  // Handle error immediately
+						receiveRequest(request);
+						
 					}	
 				}
 			} 

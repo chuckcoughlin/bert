@@ -27,15 +27,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import javax.bluetooth.BluetoothStateException;
-import javax.bluetooth.DeviceClass;
-import javax.bluetooth.DiscoveryAgent;
-import javax.bluetooth.DiscoveryListener;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.RemoteDevice;
-import javax.bluetooth.ServiceRecord;
+import bluecove.javax.bluetooth.BluetoothStateException;
+import bluecove.javax.bluetooth.DeviceClass;
+import bluecove.javax.bluetooth.DiscoveryAgent;
+import bluecove.javax.bluetooth.DiscoveryListener;
+import bluecove.javax.bluetooth.LocalDevice;
+import bluecove.javax.bluetooth.RemoteDevice;
+import bluecove.javax.bluetooth.ServiceRecord;
 
-import com.intel.bluetooth.DebugLog;
+
 
 /**
  * This class provides a stand-alone test for Blue Cove
@@ -43,6 +43,8 @@ import com.intel.bluetooth.DebugLog;
  */
 public class SimpleDiscovery {
 
+	
+	
 	public static void main(String[] args) {
 
 		LocalDevice l;
@@ -118,11 +120,11 @@ public class SimpleDiscovery {
 		}
 
 		public void deviceDiscovered(RemoteDevice btDevice, DeviceClass cod) {
-			DebugLog.debug("deviceDiscovered");
+			System.out.println("deviceDiscovered");
 			devices.add(btDevice);
 			StringBuffer name;
 			try {
-				DebugLog.debug("call getFriendlyName");
+				System.out.println("call getFriendlyName");
 				name = new StringBuffer(btDevice.getFriendlyName(false));
 			} catch (IOException ioe) {
 				ioe.printStackTrace();

@@ -2,18 +2,17 @@ package bluecove;
 
 import java.io.InputStream;
 
-import javax.microedition.io.StreamConnection;
+import bluecove.javax.microedition.io.StreamConnection;
 
 public class ProcessConnectionThread implements Runnable {
 private StreamConnection mConnection;
 	
-	// Constant that indicate command from devices
+	// Constants that indicate commands from devices
 	private static final int EXIT_CMD = -1;
 	private static final int KEY_RIGHT = 1;
 	private static final int KEY_LEFT = 2;
 	
-	public ProcessConnectionThread(StreamConnection connection)
-	{
+	public ProcessConnectionThread(StreamConnection connection) {
 		mConnection = connection;
 	}
 	

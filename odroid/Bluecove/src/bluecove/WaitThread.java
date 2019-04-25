@@ -1,13 +1,13 @@
 
 package bluecove;
 
-import javax.bluetooth.DiscoveryAgent;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.UUID;
+import bluecove.javax.bluetooth.DiscoveryAgent;
+import bluecove.javax.bluetooth.LocalDevice;
+import bluecove.javax.bluetooth.UUID;
+import bluecove.javax.microedition.io.Connector;
+import bluecove.javax.microedition.io.StreamConnection;
+import bluecove.javax.microedition.io.StreamConnectionNotifier;
 
-import javax.microedition.io.StreamConnection;
-import javax.microedition.io.StreamConnectionNotifier;
-import javax.microedition.io.Connector;
 
 public class WaitThread implements Runnable {
 

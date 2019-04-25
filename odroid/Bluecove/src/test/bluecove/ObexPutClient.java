@@ -27,8 +27,11 @@ package test.bluecove;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.microedition.io.Connector;
-import javax.obex.*;
+import bluecove.javax.microedition.io.Connector;
+import bluecove.javax.obex.ClientSession;
+import bluecove.javax.obex.HeaderSet;
+import bluecove.javax.obex.Operation;
+import bluecove.javax.obex.ResponseCodes;
 
 /**
  *
@@ -80,7 +83,5 @@ public class ObexPutClient {
         putOperation.close();
 
         clientSession.disconnect(null);
-
-        clientSession.close();
     }
 }

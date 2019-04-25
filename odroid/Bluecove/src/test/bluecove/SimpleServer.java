@@ -26,15 +26,13 @@ package test.bluecove;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import javax.bluetooth.BluetoothStateException;
-import javax.bluetooth.DiscoveryAgent;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.UUID;
-import javax.microedition.io.Connector;
-import javax.microedition.io.StreamConnection;
-import javax.microedition.io.StreamConnectionNotifier;
-
-import com.intel.bluetooth.DebugLog;
+import bluecove.javax.bluetooth.BluetoothStateException;
+import bluecove.javax.bluetooth.DiscoveryAgent;
+import bluecove.javax.bluetooth.LocalDevice;
+import bluecove.javax.bluetooth.UUID;
+import bluecove.javax.microedition.io.Connector;
+import bluecove.javax.microedition.io.StreamConnection;
+import bluecove.javax.microedition.io.StreamConnectionNotifier;
 
 public class SimpleServer {
 	
@@ -99,7 +97,7 @@ public class SimpleServer {
 				new SimpleServer(Consts.TEST_SERVERNAME_PREFIX + "1");
 			}
 		} catch (Throwable e) {
-			DebugLog.fatal("initialization error", e);
+			System.err.println("initialization error"+e.getLocalizedMessage());
 		}
 	}
 }

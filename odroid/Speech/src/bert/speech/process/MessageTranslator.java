@@ -20,6 +20,13 @@ import bert.share.motor.Joint;
 public class MessageTranslator  {
 	private static final String CLSS = "MessageTranslator";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
+	// Acknowledgements to a statement
+	private String[] acks = {
+       "O K",
+       "okay",
+       "acknowledged",
+       "so noted"
+    };
 	
 	/**
 	 * Constructor.
@@ -84,5 +91,12 @@ public class MessageTranslator  {
 	}
 	
 	// ============================================== Helper Methods ===================================
-
+	/**
+	 * @return an affirmative response.
+	 */
+	public String randomAcknowledgement() {
+		double rand = Math.random();
+        int index = (int)(rand*acks.length);
+        return acks[index];
+	}
 }

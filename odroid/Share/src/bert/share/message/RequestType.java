@@ -16,7 +16,7 @@ public enum RequestType
 	GET_METRIC,              // A local property of the robot
 	GET_MOTOR_PROPERTY,      // Current value of a motor property
 	LIST_MOTOR_PROPERTY,     // List a property for all motors
-	NOTIFICATION,            // Unsolicited message from server
+	NOTIFICATION,            // Unsolicited message from server or parser
     PLAY_STEP,
 	RECORD_STEP,
 	SET_MOTOR_PROPERTY,       // For a particular motor

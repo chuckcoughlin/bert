@@ -27,14 +27,14 @@ package test.bluecove;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.bluetooth.DiscoveryAgent;
-import javax.bluetooth.LocalDevice;
-import javax.microedition.io.Connector;
-import javax.obex.HeaderSet;
-import javax.obex.Operation;
-import javax.obex.ResponseCodes;
-import javax.obex.ServerRequestHandler;
-import javax.obex.SessionNotifier;
+import bluecove.javax.bluetooth.DiscoveryAgent;
+import bluecove.javax.bluetooth.LocalDevice;
+import bluecove.javax.microedition.io.Connector;
+import bluecove.javax.obex.HeaderSet;
+import bluecove.javax.obex.Operation;
+import bluecove.javax.obex.ResponseCodes;
+import bluecove.javax.obex.ServerRequestHandler;
+import bluecove.javax.obex.SessionNotifier;
 
 /**
  *

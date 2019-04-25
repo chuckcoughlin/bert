@@ -26,6 +26,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final HashMap<String,String> sharedDictionary;
 	private final MessageBottle bottle;
+	private final MessageTranslator messageTranslator;
 	
 	/**
 	 * Constructor.
@@ -36,6 +37,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public StatementTranslator(MessageBottle bot,HashMap<String,String> shared) {
 		this.sharedDictionary = shared;
 		this.bottle = bot;
+		this.messageTranslator = new MessageTranslator();
 	}
 	
 	// These do the actual translations. Text->RequestBottle.
@@ -69,6 +71,23 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// Get internal configuration parameters. There are no options.
 	public Object visitConfigurationRequest(SpeechSyntaxParser.ConfigurationRequestContext ctx) {
 		bottle.assignRequestType(RequestType.GET_CONFIGURATION);
+		return null;
+	}
+	@Override 
+	// Set the current pose
+	public Object visitDeclarePose1(SpeechSyntaxParser.DeclarePose1Context ctx) {
+		String pose = ctx.NAME().getText();
+		sharedDictionary.put(SharedKey.POSE.name(), pose);
+		bottle.assignRequestType(RequestType.NOTIFICATION);
+		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
+		return null;
+	}
+	@Override
+	public Object visitDeclarePose2(SpeechSyntaxParser.DeclarePose2Context ctx) {
+		String pose = ctx.NAME().getText();
+		sharedDictionary.put(SharedKey.POSE.name(), pose);
+		bottle.assignRequestType(RequestType.NOTIFICATION);
+		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
 		return null;
 	}
 	@Override 

@@ -28,17 +28,18 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import javax.bluetooth.BluetoothStateException;
-import javax.bluetooth.DataElement;
-import javax.bluetooth.DeviceClass;
-import javax.bluetooth.DiscoveryAgent;
-import javax.bluetooth.DiscoveryListener;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.RemoteDevice;
-import javax.bluetooth.ServiceRecord;
-import javax.bluetooth.UUID;
-import javax.microedition.io.Connector;
-import javax.microedition.io.StreamConnection;
+import bluecove.javax.bluetooth.BluetoothStateException;
+import bluecove.javax.bluetooth.DataElement;
+import bluecove.javax.bluetooth.DeviceClass;
+import bluecove.javax.bluetooth.DiscoveryAgent;
+import bluecove.javax.bluetooth.DiscoveryListener;
+import bluecove.javax.bluetooth.LocalDevice;
+import bluecove.javax.bluetooth.RemoteDevice;
+import bluecove.javax.bluetooth.ServiceRecord;
+import bluecove.javax.bluetooth.UUID;
+import bluecove.javax.microedition.io.Connector;
+import bluecove.javax.microedition.io.StreamConnection;
+
 
 public class SimpleClient implements DiscoveryListener  {
 
