@@ -21,7 +21,7 @@
 #define CPP__FILE "BlueCoveBlueZ_Tests.c"
 
 #include "BlueCoveBlueZ.h"
-#include "com_intel_bluetooth_BluetoothStackBlueZNativeTests.h"
+#include "bluecove_bluetooth_BluetoothStackBlueZNativeTests.h"
 #include <dlfcn.h>
 #include <bluetooth/sdp_lib.h>
 

@@ -14,7 +14,7 @@ This document describes the setup and tools used to develop "Bert" and summarize
 ## Table of Contents <a id="table-of-contents"></a>
   * [Hardware](#hardware)
     * [Skeleton](#skeleton)
-    * [Motors](#motors)
+    * [Joints](#joints)
   * [System Setup](#system)
     * [Odroid](#odroid)
   * [Software Development](#software)
@@ -86,17 +86,26 @@ Initially, the devices can be found with the following parameters:
    ID       :  1
 ```
 
-The Dynamixel configuration setup is shown below:
+The Dynamixel setup for flashing EEPROM is shown below:
 
 ![poppy](/images/dynamixel_configuration.png)
-```                        Dynamixel Configuration Setup```
-
-For our purposes, positive values of position, load and speed refer to the clock-wise direction for
-joints with a *direct* orientation and counter-clock-wise for those joints configured as *indirect*.
-
-Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limits for each motor. In each case, set the baud rate to 1000000 and return delay time to 0.
+```                        Dynamixel Flashing Setup```
 
 *Note: When the motors were fresh from the manufacturer ``herborist`` continually froze when flashing the EEPROM. I was forced to use Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings.  Once a motor was configured initially, ``herborist`` seems to work just fine.*
+
+
+In the motor EEPROM and RAM configuration, angles are defined such that 0 deg is at the bottom when viewing the front of the motor, 180 deg is to the top. Values decrease going clock-wise. Thus, for our purposes, decreasing values of position, load and speed all refer to the clock-wise direction.
+Refer to the worksheet in the *git* repository at ``cad/DynamixelConfiguration.ods`` to find id and angle limit settings for each motor. In each case, set the baud rate to 1000000 and return delay time to 0.
+
+
+In order to correct for a consistent user-view of position, joints may be corrected for orientation and given a fixed offset. A joint configured as *indirect* might be considered as if viewed from the back-side. The corrections give the following meanings to angular positions. These definitions should apply equally to joints on both sides of the body.
+
+| Joint | Definition | Min Angle | Max Angle |
+| :------ | :---------------------------------------------------: | --------: | ---------: |
+| Ankle | Angle between the bottom of the foot and shin, frontwards.| 45 | 180 |
+| Elbow | Angle between the upper and lower arms, measured frontwards. | 45 | 180 |
+| Knee | Angle between the thigh and lower leg, measured toward the back. | 45 | 180 |
+<center>``Angular Position Definitions``                     </center>
 
 ## System Setup <a id="system"/>
 ### Odroid <a id="odroid"></a>
@@ -449,10 +458,14 @@ bluecove-2.1.0.jar (includes javax.microedition classes).
 bluecove-gpl-2.1.0.jar
 Jar files include too many dependencies to modularize as-is. We decided to add
 classes as necessary. Converted to java.util.logger (removed log4j).
+Removed the Java dependency on J2ME.
+
+TODO: Makefile for libbluecove.so
 
 
-TODO: Makefile for libbluecove.jnilib, and libbluecove.so
-TODO: Remove the Java dependency on J2ME.
+The standard jar files included the "stacks", native library code, though not the
+one we needed, for ARM. Consequently had to build from source and use code
+that brought on a GPL dependency.
 
 =======================================================================================
 [Basics of Bluetooth](https://opensourceforu.com/2015/06/linux-without-wires-the-basics-of-bluetooth/)

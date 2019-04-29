@@ -49,74 +49,67 @@ independent processes to have a common understanding of the parameters.
 	     replaced by the build scripts.
 	-->
 	<property name="name">bert</property>
-	<property name="release">@RELEASE@</property>
-	<property name="date">@DATE@</property>
+	<property name="release">1.0</property>
+	<property name="date">04/25/2019 16:32</property>
 	<!--  Cadence in msecs refers to the record frequency  -->
 	<property name="cadence">1000</property>
+	<!--  Name of machine hosting the server process  -->
+	<property name="hostname">localhost</property>
 	<!--  Used by the terminal  -->
 	<property name="prompt">bert: </property>
 
-	<!-- The following section defines client-side applications that are also known to the server.
-		 Each application communicates in both directions over its own socket.
+	<!-- The following section defines client-side processes that are also known to the server.
+		 Each client process communicates in both directions over its own socket.
+		 Device UUID for Bluetooth - must match hardcoded value in tablet code
 	-->
 	<controller name="terminal" type="TERMINAL">
-		<socket  port="9044"/>
+		<socket  name="terminal" port="11044"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<socket  port="9045"/>
+		<socket  name="command" port="11045"/>
+		<socket  type="bluetooth"  uuid="33001101-0000-2000-8080-00815FAB34FF"/>
 	</controller>
 
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
 	     a serial connection. The names must exist in the enumeration bert.share.motor.Joint.
+	     There is an upper body group and a lower body group.
     -->
-	<controller name="torso" type="SERIAL">
-		<port  name="torso" device="@PORT_TORSO@" />
-		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="-45" max="45" orientation="indirect" />
-		<joint name="ABS_Y"        type="MX64" id="31" offset="0" min="-50" max="12" orientation="indirect" />
-		<joint name="ABS_Z"        type="MX28" id="33" offset="0" min="-90" max="90" orientation="direct" />
-		<joint name="BUST_X"       type="MX28" id="35" offset="0" min="-40" max="40" orientation="indirect" />
-		<joint name="BUST_Y"       type="MX28" id="34" offset="0" min="-67" max="27" orientation="indirect" />
-	</controller>
-	<controller name="left_leg" type="SERIAL">
-		<port  name="left_leg" device="@PORT_LEFT_LEG@" />
+	<controller name="lower" type="SERIAL">
+		<port  name="lower" device="/dev/ttyACM1" />
 		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="0" min="-45" max="45" orientation="direct" />
 		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="0" min="-30" max="28.5" orientation="direct" />
 		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="0" min="-104" max="84" orientation="direct" />
 		<joint name="LEFT_HIP_Z"   type="MX28" id="12" offset="0" min="-25" max="90" orientation="indirect" />
 		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-90" min="-3.5" max="134" orientation="direct" />
-	</controller>
-	<controller name="right_leg" type="SERIAL">
-		<port  name="right_leg" device="@PORT_RIGHT_LEG@" />
 		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="0" min="-45" max="45" orientation="indirect" />
 		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="0" min="-28.5" max="30" orientation="direct" />
 		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="0" min="-85" max="105" orientation="indirect" />
 		<joint name="RIGHT_HIP_Z"      type="MX28" id="22" offset="0" min="-90" max="25" orientation="indirect" />
 		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="0" min="-134" max="3.5" orientation="indirect" />
 	</controller>
-	<controller name="left_arm" type="SERIAL">
-		<port  name="left_arm" device="@PORT_LEFT_ARM@" />
+	<controller name="upper" type="SERIAL">
+		<port  name="upper" device="/dev/ttyACM0" />
 		<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="0" min="-105" max="105" orientation="indirect" />
 		<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="0" min="-148" max="1" orientation="direct" />
 		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="90" min="-105" max="110" orientation="indirect" />
 		<joint name="LEFT_SHOULDER_Y"  type="MX28" id="41" offset="0" min="-120" max="155" orientation="direct" />
-	</controller>
-	<controller name="right_arm" type="SERIAL">
-		<port  name="right_arm" device="@PORT_RIGHT_ARM@" />
 		<joint name="RIGHT_ARM_Z"      type="MX28" id="53" offset="0" min="-105" max="105" orientation="indirect" />
 		<joint name="RIGHT_ELBOW_Y"    type="MX28" id="54" offset="0" min="-1" max="148" orientation="indirect" />
 		<joint name="RIGHT_SHOULDER_X" type="MX28" id="52" offset="90" min="-110" max="105" orientation="indirect" />
 		<joint name="RIGHT_SHOULDER_Y" type="MX28" id="51" offset="90" min="-155" max="120" orientation="indirect" />
-	</controller>
-	<controller name="head" type="SERIAL">
-		<port  name="head" device="@PORT_HEAD@" />
 		<joint name="HEAD_Y"       type="AX12" id="37" offset="20" min="-45" max="6" orientation="indirect" />
 		<joint name="HEAD_Z"       type="AX12" id="36" offset="0" min="-90" max="90" orientation="direct" />
+		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="-45" max="45" orientation="indirect" />
+		<joint name="ABS_Y"        type="MX64" id="31" offset="0" min="-50" max="12" orientation="indirect" />
+		<joint name="ABS_Z"        type="MX28" id="33" offset="0" min="-90" max="90" orientation="direct" />
+		<joint name="BUST_X"       type="MX28" id="35" offset="0" min="-40" max="40" orientation="indirect" />
+		<joint name="BUST_Y"       type="MX28" id="34" offset="0" min="-67" max="27" orientation="indirect" />
 	</controller>
 </robot>
 ```
 
 #### Interprocess Communication <a id="sockets"/>
-The major components are all independent linux processes. They communicate via sockets. Port numbers are defined in the configuration file.
+The major components are independent linux processes. They communicate via sockets. Port numbers are defined in the configuration file. The tablet communicates via Bluetooth.
 
 
 ## Appendices <a id="appendices"/>

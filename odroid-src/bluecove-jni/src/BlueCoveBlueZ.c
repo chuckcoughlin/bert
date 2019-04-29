@@ -28,21 +28,6 @@
 
 int bluezVersionMajor = 0;
 
-JNIEXPORT jboolean JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_isNativeCodeLoaded
-  (JNIEnv *env, jobject peer) {
-    return JNI_TRUE;
-}
-
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getLibraryVersionNative
-  (JNIEnv *env, jobject peer) {
-    return com_intel_bluetooth_BluetoothStackBlueZ_NATIVE_LIBRARY_VERSION;
-}
-
-JNIEXPORT void JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_enableNativeDebug
-  (JNIEnv *env, jobject peer, jclass loggerClass, jboolean on) {
-    enableNativeDebug(env, loggerClass, on);
-}
-
 int deviceClassBytesToInt(uint8_t* deviceClass) {
     return ((deviceClass[2] & 0xff)<<16)|((deviceClass[1] & 0xff)<<8)|(deviceClass[0] & 0xff);
 }

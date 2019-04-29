@@ -103,11 +103,17 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
 		sharedDictionary.put(SharedKey.AXIS.name(), axis);
-		Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
-		bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
-
-		if( joint.equals(Joint.UNKNOWN) ) {
-			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+		Joint joint = null;
+		if( ctx.Joint()!=null ) {
+			joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			if( joint.equals(Joint.UNKNOWN)) {
+				String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+				bottle.assignError(msg);
+			}
+		}
+		else {
+			String msg = String.format("You didn't specify the name of a joint");
 			bottle.assignError(msg);
 		}
 		return null;
@@ -203,10 +209,33 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	
 	@Override 
 	// what is the id of your left hip y?
-	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
+	public Object visitJointPropertyQuestion1(SpeechSyntaxParser.JointPropertyQuestion1Context ctx) {
 		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
 		
+		try {
+			JointProperty jp =  determineJointProperty(property);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
+			// If side or axis were set previously, use those jointValues as defaults
+			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+			if( ctx.Side()!=null ) side = ctx.Side().getText();
+			sharedDictionary.put(SharedKey.SIDE.name(), side);
+			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+			sharedDictionary.put(SharedKey.AXIS.name(), axis);
+			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		}
+		catch(IllegalArgumentException iae) {
+			String msg = String.format("I don't have a property %s, that I know of",property);
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	// what is your left ankle position?  (exactly same logic as previous).
+	public Object visitJointPropertyQuestion2(SpeechSyntaxParser.JointPropertyQuestion2Context ctx) {
+		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
+		String property = ctx.Property().getText().toUpperCase();
 		try {
 			JointProperty jp =  determineJointProperty(property);
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
@@ -275,6 +304,28 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
+	@Override 
+	// move your left hip y to 45 degrees
+	public Object visitMoveMotor(SpeechSyntaxParser.MoveMotorContext ctx) {
+		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
+
+		// If side or axis were set previously, use those jointValues as defaults
+		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		sharedDictionary.put(SharedKey.SIDE.name(), side);
+		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+		bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		if( joint.equals(Joint.UNKNOWN) ) {
+			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+			bottle.assignError(msg);
+		}
+		bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
+		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
+		return null;
+	}
 	//===================================== Helper Methods ======================================
 	// Determine the specific joint from the body part, side and axis. (The latter two are
 	// not always needed).
@@ -311,7 +362,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				else                                    result = Joint.HEAD_Z;
 			}
 		}
-		else if( bodyPart.equalsIgnoreCase("HIP")) {
+		else if( bodyPart.equalsIgnoreCase("HIP") || bodyPart.equalsIgnoreCase("THIGH")) {
 			if(axis!=null && side!=null) {
 				if( side.equalsIgnoreCase("left")) {
 					if( axis.equalsIgnoreCase("X"))    		result = Joint.LEFT_HIP_X;

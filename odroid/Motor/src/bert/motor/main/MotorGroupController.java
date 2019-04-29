@@ -228,6 +228,16 @@ public class MotorGroupController implements Controller,MotorManager {
 				return true;
 			}
 		}
+		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
+			// Some properties cannot be set. Catch them here in order to formulate an error response.
+			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");
+			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
+				property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
+				property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
+				property.equalsIgnoreCase(JointProperty.ORIENTATION.name()) ) {
+				return true;
+			}
+		}
 		else if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			return true;
 		}
@@ -341,8 +351,13 @@ public class MotorGroupController implements Controller,MotorManager {
 			text = String.format("The %ss of all motors have been logged",property.name().toLowerCase());
 			request.setProperty(BottleConstants.TEXT, text);
 		}
+		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
+			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");
+			request.assignError("I cannot change a motor "+property.toLowerCase());
+		}
 		return request;
 	}
+	
 	// When in development mode, simulate something reasonable as a response.
 	private MessageBottle simulateResponseForRequest(MessageBottle request) {
 		RequestType requestType = request.fetchRequestType();

@@ -23,7 +23,7 @@ command:
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
 	| Salutation? List Article? Motor? Properties				# handleListCommand2
 	| Salutation? NAME                      					# handleCustomCommand
-	| Salutation? (Move) Article? Motor? Value Unit?            # moveMotor
+	| Salutation? (Move) Article? Side? Joint Axis? To Value Unit?  # moveMotor
 	;
 
 // Request for information
@@ -31,7 +31,8 @@ question:
         How Adjective 'are' 'you'                               # attributeQuestion
 	| What 'is' Article? Configuration                          # configurationQuestion
 	| What 'are' Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
-	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion
+	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
+	| What 'is' Article? Side? Joint Axis? Property 			# jointPropertyQuestion2
 	| What 'is' Article? Metric   				    			# metricsQuestion
 	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
 	;
@@ -54,7 +55,7 @@ Configuration: 'configuration';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 How: 'how';
-List: ('tell me'|'describe'|'list'|'what are');
+List: ('tell me'|'describe'|'list');
 Limits: 'limits';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
@@ -62,7 +63,7 @@ Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Move: 'move';
 Of: 'of'|'on'|'for';
-Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
+Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Pose: 'assume the pose'|'take the pose'|'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';

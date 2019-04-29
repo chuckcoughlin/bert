@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import bert.share.common.DynamixelType;
 import bert.share.message.BottleConstants;
 import bert.share.motor.JointProperty;
+import bert.share.motor.MotorConfiguration;
 
 /**
  * This class contains static methods used to create and interpret different varieties \
@@ -139,11 +140,11 @@ public class DxlMessageV2  {
 	 * @param speed in degrees/sec
 	 * @return byte array with command to set speed
 	 */
-	public static byte[] bytesToSetSpeed(int id,DynamixelType model,boolean isDirect,double speed) {
-		int dxlSpeed = DxlConversions.speedToDxl(model, isDirect, speed);
+	public static byte[] bytesToSetSpeed(MotorConfiguration mc,double speed) {
+		int dxlSpeed = DxlConversions.speedToDxl(mc, speed);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes,id);
+		setHeader(bytes,mc.getId());
 		bytes[5] = (byte)length; 
 		bytes[6] = 0;
 		bytes[7] = WRITE;
@@ -162,11 +163,11 @@ public class DxlMessageV2  {
 	 * @param goal in n/m
 	 * @return byte array with command to set speed
 	 */
-	public static byte[] bytesToSetTorque(int id,DynamixelType model,boolean isDirect,double goal) {
-		int dxlTorque = DxlConversions.torqueToDxl(model,isDirect,goal);
+	public static byte[] bytesToSetTorque(MotorConfiguration mc,double goal) {
+		int dxlTorque = DxlConversions.torqueToDxl(mc,goal);
 		int length = 7;  // Remaining bytes past length including crc
 		byte[] bytes = new byte[length+7];  // Account for header and length
-		setHeader(bytes,id); 
+		setHeader(bytes,mc.getId()); 
 		bytes[5] = (byte)length; 
 		bytes[6] = 0;
 		bytes[7] = WRITE;

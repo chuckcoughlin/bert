@@ -87,16 +87,12 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	 */
 	@Override
 	public void start() {
-		/*
-		for(String key:configurationsByName.keySet()) {
-			MotorConfiguration mc = configurationsByName.get(key);
-			int id = mc.getId();
-			byte[] bytes = PortTest.bytesToSetSpeed(id,mc.getType(),mc.getSpeed());
+
+		List<byte[]>messages = DxlMessage.byteArrayListToInitializeRAM(configurationsByName);
+		for(byte[] bytes:messages) {
 			writeBytesToSerial(bytes);
-			bytes = PortTest.bytesToSetTorque(id,mc.getType(),mc.getTorque());
-			writeBytesToSerial(bytes);
+			LOGGER.info(String.format("%s.start: %s wrote %d bytes to initialize",CLSS,group,bytes.length));
 		}
-		*/
 	}
 	
 	/**
@@ -247,6 +243,13 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				bytes = DxlMessage.bytesToGetProperty(mc.getId(),propertyName);
 			}
+			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
+				MotorConfiguration mc = configurationsByName.get(jointName);
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
+				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
+				bytes = DxlMessage.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
+			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
 			}
@@ -286,18 +289,18 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 			if( type.equals(RequestType.GET_GOALS)) {
 				String jointName = currentRequest.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
 				MotorConfiguration mc = getMotorConfiguration(jointName);
-				DxlMessage.updateGoalsFromBytes(mc.getType(),mc.isDirect(),properties,bytes);
+				DxlMessage.updateGoalsFromBytes(mc,properties,bytes);
 			} 
 			else if( type.equals(RequestType.GET_LIMITS)) {
 				String jointName = currentRequest.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
 				MotorConfiguration mc = getMotorConfiguration(jointName);
-				DxlMessage.updateLimitsFromBytes(mc.getType(),mc.isDirect(),properties,bytes);
+				DxlMessage.updateLimitsFromBytes(mc,properties,bytes);
 			} 
 			else if( type.equals(RequestType.GET_MOTOR_PROPERTY)) {
 				String jointName = currentRequest.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
 				MotorConfiguration mc = getMotorConfiguration(jointName);
 				String propertyName = currentRequest.getProperty(BottleConstants.PROPERTY_NAME, "UNKNOWN");
-				DxlMessage.updateParameterFromBytes(propertyName,mc.getType(),mc.isDirect(),properties,bytes);
+				DxlMessage.updateParameterFromBytes(propertyName,mc,properties,bytes);
 				String partial = properties.get(BottleConstants.TEXT);
 				if( partial!=null && !partial.isEmpty()) {
 					Joint joint = Joint.valueOf(jointName);
