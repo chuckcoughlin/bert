@@ -66,12 +66,22 @@ public class DxlConversions  {
 	}
 
 	public static int degreeToDxl(MotorConfiguration mc,double value) {
+		if( value>mc.getMaxAngle()) {
+			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (max = %.0f)",CLSS,mc.getName().name(),value,mc.getMaxAngle()));
+			value = mc.getMaxAngle();
+		}
+		if( value<mc.getMinAngle()) {
+			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (min = %.0f)",CLSS,mc.getName().name(),value,mc.getMinAngle()));
+			value = mc.getMinAngle();
+		}
 		value = value - mc.getOffset();
 		int r = range.get(mc.getType());
 		if( !mc.isDirect() ) value = r - value;
 		int res = resolution.get(mc.getType());
 		int val = (int)(value*res/r);
 		val = val&res;
+		LOGGER.info(String.format("%s.degreeToDxl: %s b1,b2: %02X,%02X, offset %.0f %s",CLSS,mc.getName().name(),
+				(byte)(val >>8),val&0xFF,mc.getOffset(),(mc.isDirect()?"DIRECT":"INDIRECT")));
 		return val;
 	}
 	// The range in degrees is split in increments by resolution. 180deg is "up" when looking at
@@ -86,8 +96,8 @@ public class DxlConversions  {
 		double result = (double)raw*r/res;
 		if( !mc.isDirect() ) result = r - result;
 		result = result + mc.getOffset();
-		LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %.0f result %.0f",CLSS,mc.getType().name(),b1,b2,
-				mc.getOffset(),result));
+		LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %.0f %s result %.0f",CLSS,mc.getName().name(),b1,b2,
+				mc.getOffset(),(mc.isDirect()?"DIRECT":"INDIRECT"),result));
 		return result;
 	}
 	// Speed is deg/sec

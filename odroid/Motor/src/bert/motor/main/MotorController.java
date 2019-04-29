@@ -307,6 +307,13 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 					properties.put(BottleConstants.TEXT,String.format("My %s %s is %s", Joint.toText(joint),propertyName.toLowerCase(),partial));
 				}	
 			} 
+			// The only interesting response is the error code.
+			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+				String err =  DxlMessage.errorMessageFromStatus(bytes);
+				if( err!=null && !err.isEmpty() ) {
+					currentRequest.assignError(err);
+				}
+			} 
 			else {
 				LOGGER.severe( String.format("%s.updateCurrentRequestFromBytes: Unhandled response for %s",CLSS,type.name()));
 			}

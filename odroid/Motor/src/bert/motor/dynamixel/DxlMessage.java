@@ -180,8 +180,8 @@ public class DxlMessage  {
 		bytes[3] = (byte)length; 
 		bytes[4] = WRITE;
 		bytes[5] = DxlConversions.addressForGoalProperty(propertyName);
-		bytes[6] = (byte)(dxlValue >>8);
-		bytes[7] = (byte)(dxlValue & 0xFF);
+		bytes[6] = (byte)(dxlValue & 0xFF);
+		bytes[7] = (byte)(dxlValue >>8);
 		setChecksum(bytes);
 		return bytes;
 	}
@@ -206,7 +206,24 @@ public class DxlMessage  {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+	/**
+	 * The only interesting information in a status message from a write 
+	 * to a single device is the error code.
+	 * @param bytes
+	 * @return
+	 */
+	public static String errorMessageFromStatus(byte[] bytes) {
+		String msg = null;
+		if( bytes.length >4 ) {
+			byte error = bytes[4];
+			if( error!=0x00 ) {
+				byte id = bytes[2];
+				msg = String.format("Motor %d encountered %s",id,descriptionForError(error));
+				LOGGER.severe(msg);
+			}
+		}
+		return msg;
+	}
 	
 	/**
 	 * Analyze a response buffer returned from a request for goal values for a motor. Goals
@@ -385,6 +402,18 @@ public class DxlMessage  {
 		}
 	}
 	// ===================================== Private Methods =====================================
+	// Return a string describing the error. We only check one bit.
+	private static String descriptionForError(byte err) {
+		String description = "Unrecognized error";
+		if( (err&0x01) != 0x00 ) description = "an instruction error";
+		else if( (err&0x02) != 0x00 ) description = "an overload error";
+		else if( (err&0x04) != 0x00 ) description = "an incorrect checksum";
+		else if( (err&0x08) != 0x00 ) description = "a range error";
+		else if( (err&0x10) != 0x00 ) description = "overheating";
+		else if( (err&0x20) != 0x00 ) description = "a position outside angle limits";
+		else if( (err&0x40) != 0x00 ) description = "an input voltage outside the acceptable range";
+		return description;
+	}
 	// Set the header up until the length field. The header includes the device ID.
 	// Protocol 1. 3 bytes
 	private static void setHeader(byte[] bytes, int id) {
