@@ -26,7 +26,7 @@
 
 #include <dlfcn.h>
 
-JNIEXPORT jlong JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_openSDPSessionImpl
+JNIEXPORT jlong JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_openSDPSessionImpl
   (JNIEnv* env, jobject peer) {
     sdp_session_t* session = sdp_connect(BDADDR_ANY, BDADDR_LOCAL, SDP_RETRY_IF_BUSY);
     if (!session) {
@@ -36,7 +36,7 @@ JNIEXPORT jlong JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_openSDPSess
     return ptr2jlong(session);
 }
 
-JNIEXPORT void JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_closeSDPSessionImpl
+JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_closeSDPSessionImpl
   (JNIEnv* env, jobject peer, jlong sdpSessionHandle, jboolean quietly) {
     if (sdpSessionHandle == 0) {
         return;
@@ -105,7 +105,7 @@ sdp_record_t* bluecove_sdp_extract_pdu(JNIEnv* env, const uint8_t *pdata, int bu
     return rec;
 }
 
-JNIEXPORT jlong JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_registerSDPServiceImpl
+JNIEXPORT jlong JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_registerSDPServiceImpl
   (JNIEnv* env, jobject peer, jlong sdpSessionHandle, jlong localDeviceBTAddress, jbyteArray record) {
     sdp_session_t* session = (sdp_session_t*)jlong2ptr(sdpSessionHandle);
     sdp_record_t *rec = createNativeSDPrecord(env, record);
@@ -127,7 +127,7 @@ JNIEXPORT jlong JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_registerSDP
     return handle;
 }
 
-JNIEXPORT void JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_updateSDPServiceImpl
+JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_updateSDPServiceImpl
   (JNIEnv* env, jobject peer, jlong sdpSessionHandle, jlong localDeviceBTAddress, jlong handle, jbyteArray record) {
     sdp_session_t* session = (sdp_session_t*)jlong2ptr(sdpSessionHandle);
     sdp_record_t *rec = createNativeSDPrecord(env, record);
@@ -144,7 +144,7 @@ JNIEXPORT void JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_updateSDPSer
     sdp_record_free(rec);
 }
 
-JNIEXPORT void JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_unregisterSDPServiceImpl
+JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_unregisterSDPServiceImpl
   (JNIEnv* env, jobject peer, jlong sdpSessionHandle, jlong localDeviceBTAddress, jlong handle, jbyteArray record) {
     sdp_session_t* session = (sdp_session_t*)jlong2ptr(sdpSessionHandle);
     sdp_record_t *rec;

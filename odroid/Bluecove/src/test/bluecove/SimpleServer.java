@@ -26,13 +26,13 @@ package test.bluecove;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import bluecove.javax.bluetooth.BluetoothStateException;
-import bluecove.javax.bluetooth.DiscoveryAgent;
-import bluecove.javax.bluetooth.LocalDevice;
-import bluecove.javax.bluetooth.UUID;
-import bluecove.javax.microedition.io.Connector;
-import bluecove.javax.microedition.io.StreamConnection;
-import bluecove.javax.microedition.io.StreamConnectionNotifier;
+import bc.javax.bluetooth.BluetoothStateException;
+import bc.javax.bluetooth.DiscoveryAgent;
+import bc.javax.bluetooth.LocalDevice;
+import bc.javax.bluetooth.UUID;
+import bc.javax.microedition.io.Connector;
+import bc.javax.microedition.io.StreamConnection;
+import bc.javax.microedition.io.StreamConnectionNotifier;
 
 public class SimpleServer {
 	

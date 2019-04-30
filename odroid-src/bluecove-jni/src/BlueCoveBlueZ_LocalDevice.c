@@ -26,7 +26,7 @@
 #include <bluetooth/hci_lib.h>
 #include <sys/ioctl.h>
 
-JNIEXPORT jintArray JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getLocalDevicesID
+JNIEXPORT jintArray JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_getLocalDevicesID
 (JNIEnv *env, jobject peer) {
     int s = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
     if (s < 0) {
@@ -85,7 +85,7 @@ JNIEXPORT jintArray JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getLoca
     return result;
 }
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeGetDeviceID
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_nativeGetDeviceID
 (JNIEnv *env, jobject peer, jint id, jlong findLocalDeviceBTAddress) {
     bool findDevice = (id >= 0) || (findLocalDeviceBTAddress > 0);
     if (findDevice) {
@@ -157,7 +157,7 @@ JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeGetDev
     }
 }
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeOpenDevice
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_nativeOpenDevice
 (JNIEnv *env, jobject peer, jint deviceID) {
     int deviceDescriptor = hci_open_dev(deviceID);
     if (deviceDescriptor < 0) {
@@ -168,12 +168,12 @@ JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeOpenDe
     return deviceDescriptor;
 }
 
-JNIEXPORT void JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeCloseDevice
+JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_nativeCloseDevice
 (JNIEnv *env, jobject peer, jint deviceDescriptor) {
     hci_close_dev(deviceDescriptor);
 }
 
-JNIEXPORT jlong JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getLocalDeviceBluetoothAddressImpl
+JNIEXPORT jlong JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_getLocalDeviceBluetoothAddressImpl
 (JNIEnv *env, jobject peer, jint deviceDescriptor) {
     bdaddr_t address;
     int error = hci_read_bd_addr(deviceDescriptor, &address, LOCALDEVICE_ACCESS_TIMEOUT);
@@ -189,7 +189,7 @@ JNIEXPORT jlong JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getLocalDev
     return deviceAddrToLong(&address);
 }
 
-JNIEXPORT jstring JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeGetDeviceName
+JNIEXPORT jstring JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_nativeGetDeviceName
 (JNIEnv *env, jobject peer, jint deviceDescriptor) {
     char* name = (char*)malloc(DEVICE_NAME_MAX_SIZE);
     jstring nameString = NULL;
@@ -200,7 +200,7 @@ JNIEXPORT jstring JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeGet
     return nameString;
 }
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeGetDeviceClass
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_nativeGetDeviceClass
 (JNIEnv *env, jobject peer, jint deviceDescriptor) {
     uint8_t deviceClass[3];
     if (!hci_read_class_of_dev(deviceDescriptor, deviceClass, LOCALDEVICE_ACCESS_TIMEOUT)) {
@@ -210,7 +210,7 @@ JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeGetDev
     }
 }
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeSetLocalDeviceDiscoverable
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_nativeSetLocalDeviceDiscoverable
 (JNIEnv *env, jobject peer, jint deviceDescriptor, jint mode) {
 
     uint8_t scan_enable = SCAN_PAGE;
@@ -242,7 +242,7 @@ JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeSetLoc
     return hci_write_current_iac_lap(deviceDescriptor, 1, lap, LOCALDEVICE_ACCESS_TIMEOUT);
 }
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_nativeGetLocalDeviceDiscoverable
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_nativeGetLocalDeviceDiscoverable
 (JNIEnv *env, jobject peer, jint deviceDescriptor) {
     uint8_t lap[3  * MAX_IAC_LAP];
     uint8_t num_iac = 1;

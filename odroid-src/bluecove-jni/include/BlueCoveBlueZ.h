@@ -61,19 +61,21 @@ void debugServiceRecord(JNIEnv *env, sdp_record_t* sdpRecord);
 jlong ptr2jlong(void * ptr);
 void* jlong2ptr(jlong l);
 
-#define NOT_DISCOVERABLE bluecove_bluetooth_BluetoothStackBlueZConsts_NOT_DISCOVERABLE
-#define GIAC             bluecove_bluetooth_BluetoothStackBlueZConsts_GIAC
-#define LIAC             bluecove_bluetooth_BluetoothStackBlueZConsts_LIAC
+/* The following are copied from DiscoveryAgent.java */
+#define NOT_DISCOVERABLE 0
+#define GIAC             0x9E8B33
+#define LIAC             0x9E8B00
 
-#define INQUIRY_COMPLETED  bluecove_bluetooth_BluetoothStackBlueZConsts_INQUIRY_COMPLETED
-#define INQUIRY_TERMINATED bluecove_bluetooth_BluetoothStackBlueZConsts_INQUIRY_TERMINATED
-#define INQUIRY_ERROR      bluecove_bluetooth_BluetoothStackBlueZConsts_INQUIRY_ERROR
+/* The following are copied from DiscoveryListener.java */
+#define INQUIRY_COMPLETED  0x00
+#define INQUIRY_TERMINATED 0x05
+#define INQUIRY_ERROR      0x07
 
-#define SERVICE_SEARCH_COMPLETED            bluecove_bluetooth_BluetoothStackBlueZConsts_SERVICE_SEARCH_COMPLETED
-#define SERVICE_SEARCH_TERMINATED           bluecove_bluetooth_BluetoothStackBlueZConsts_SERVICE_SEARCH_TERMINATED
-#define SERVICE_SEARCH_ERROR                bluecove_bluetooth_BluetoothStackBlueZConsts_SERVICE_SEARCH_ERROR
-#define SERVICE_SEARCH_NO_RECORDS           bluecove_bluetooth_BluetoothStackBlueZConsts_SERVICE_SEARCH_NO_RECORDS
-#define SERVICE_SEARCH_DEVICE_NOT_REACHABLE bluecove_bluetooth_BluetoothStackBlueZConsts_SERVICE_SEARCH_DEVICE_NOT_REACHABLE
+#define SERVICE_SEARCH_COMPLETED  0x01
+#define SERVICE_SEARCH_TERMINATED 0x02
+#define SERVICE_SEARCH_ERROR      0x03
+#define SERVICE_SEARCH_NO_RECORDS 0x04
+#define SERVICE_SEARCH_DEVICE_NOT_REACHABLE 0x06
 
 /* Taken from ServiceRecord.java */
 #define NOAUTHENTICATE_NOENCRYPT 0
@@ -81,30 +83,33 @@ void* jlong2ptr(jlong l);
 #define AUTHENTICATE_ENCRYPT     2
 
 
-#define DATA_ELEMENT_TYPE_NULL     bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_NULL
-#define DATA_ELEMENT_TYPE_U_INT_1  bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_U_INT_1
-#define DATA_ELEMENT_TYPE_U_INT_2  bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_U_INT_2
-#define DATA_ELEMENT_TYPE_U_INT_4  bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_U_INT_4
-#define DATA_ELEMENT_TYPE_U_INT_8  bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_U_INT_8
-#define DATA_ELEMENT_TYPE_U_INT_16 bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_U_INT_16
-#define DATA_ELEMENT_TYPE_INT_1    bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_INT_1
-#define DATA_ELEMENT_TYPE_INT_2    bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_INT_2
-#define DATA_ELEMENT_TYPE_INT_4    bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_INT_4
-#define DATA_ELEMENT_TYPE_INT_8    bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_INT_8
-#define DATA_ELEMENT_TYPE_INT_16   bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_INT_16
-#define DATA_ELEMENT_TYPE_URL      bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_URL
-#define DATA_ELEMENT_TYPE_UUID     bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_UUID
-#define DATA_ELEMENT_TYPE_BOOL     bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_BOOL
-#define DATA_ELEMENT_TYPE_STRING   bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_STRING
-#define DATA_ELEMENT_TYPE_DATSEQ   bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_DATSEQ
-#define DATA_ELEMENT_TYPE_DATALT   bluecove_bluetooth_BluetoothStackBlueZConsts_DataElement_DATALT
+#define RETRIEVEDEVICES_OPTION_CACHED 0x00
+#define RETRIEVEDEVICES_OPTION_PREKNOWN 0x01
 
-#define BT_CONNECTION_ERROR_UNKNOWN_PSM         bluecove_bluetooth_BluetoothStackBlueZConsts_CONNECTION_ERROR_UNKNOWN_PSM
-#define BT_CONNECTION_ERROR_SECURITY_BLOCK      bluecove_bluetooth_BluetoothStackBlueZConsts_CONNECTION_ERROR_SECURITY_BLOCK
-#define BT_CONNECTION_ERROR_NO_RESOURCES        bluecove_bluetooth_BluetoothStackBlueZConsts_CONNECTION_ERROR_NO_RESOURCES
-#define BT_CONNECTION_ERROR_FAILED_NOINFO       bluecove_bluetooth_BluetoothStackBlueZConsts_CONNECTION_ERROR_FAILED_NOINFO
-#define BT_CONNECTION_ERROR_TIMEOUT             bluecove_bluetooth_BluetoothStackBlueZConsts_CONNECTION_ERROR_TIMEOUT
-#define BT_CONNECTION_ERROR_UNACCEPTABLE_PARAMS bluecove_bluetooth_BluetoothStackBlueZConsts_CONNECTION_ERROR_UNACCEPTABLE_PARAMS
+#define DATA_ELEMENT_TYPE_NULL 0x0000
+#define DATA_ELEMENT_TYPE_U_INT_1 0x0008
+#define DATA_ELEMENT_TYPE_U_INT_2 0x0009
+#define DATA_ELEMENT_TYPE_U_INT_4 0x000A
+#define DATA_ELEMENT_TYPE_U_INT_8 0x000B
+#define DATA_ELEMENT_TYPE_U_INT_16 0x000C
+#define DATA_ELEMENT_TYPE_INT_1 0x0010
+#define DATA_ELEMENT_TYPE_INT_2 0x0011
+#define DATA_ELEMENT_TYPE_INT_4 0x0012
+#define DATA_ELEMENT_TYPE_INT_8 0x0013
+#define DATA_ELEMENT_TYPE_INT_16 0x0014
+#define DATA_ELEMENT_TYPE_URL 0x0040
+#define DATA_ELEMENT_TYPE_UUID 0x0018
+#define DATA_ELEMENT_TYPE_BOOL 0x0028
+#define DATA_ELEMENT_TYPE_STRING 0x0020
+#define DATA_ELEMENT_TYPE_DATSEQ 0x0030
+#define DATA_ELEMENT_TYPE_DATALT 0x0038
+
+#define BT_CONNECTION_ERROR_UNKNOWN_PSM  1
+#define BT_CONNECTION_ERROR_SECURITY_BLOCK 2
+#define BT_CONNECTION_ERROR_NO_RESOURCES 3
+#define BT_CONNECTION_ERROR_FAILED_NOINFO 4
+#define BT_CONNECTION_ERROR_TIMEOUT 5
+#define BT_CONNECTION_ERROR_UNACCEPTABLE_PARAMS 6
 
 #define BLUEZ_VERSION_MAJOR_3 3
 #define BLUEZ_VERSION_MAJOR_4 4

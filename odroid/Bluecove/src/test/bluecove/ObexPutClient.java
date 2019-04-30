@@ -27,11 +27,11 @@ package test.bluecove;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import bluecove.javax.microedition.io.Connector;
-import bluecove.javax.obex.ClientSession;
-import bluecove.javax.obex.HeaderSet;
-import bluecove.javax.obex.Operation;
-import bluecove.javax.obex.ResponseCodes;
+import bc.javax.microedition.io.Connector;
+import bc.javax.obex.ClientSession;
+import bc.javax.obex.HeaderSet;
+import bc.javax.obex.Operation;
+import bc.javax.obex.ResponseCodes;
 
 /**
  *

@@ -26,19 +26,19 @@ package bluecove.bluetooth;
 
 import java.io.IOException;
 
-import bluecove.javax.bluetooth.BluetoothStateException;
-import bluecove.javax.bluetooth.DeviceClass;
-import bluecove.javax.bluetooth.DiscoveryListener;
-import bluecove.javax.bluetooth.RemoteDevice;
-import bluecove.javax.bluetooth.ServiceRegistrationException;
-import bluecove.javax.bluetooth.UUID;
+import bc.bluetooth.BluetoothConnectionNotifierParams;
+import bc.bluetooth.BluetoothConnectionParams;
+import bc.bluetooth.ServiceRecordImpl;
+import bc.javax.bluetooth.BluetoothStateException;
+import bc.javax.bluetooth.DeviceClass;
+import bc.javax.bluetooth.DiscoveryListener;
+import bc.javax.bluetooth.RemoteDevice;
+import bc.javax.bluetooth.ServiceRegistrationException;
+import bc.javax.bluetooth.UUID;
 
 /**
- * New native stack support should ONLY implement this interface. No other classes should ideally be changed except
- * BlueCoveImpl where the instance of new class should be created.
- *
- * <p>
- * <b><u>Your application should not use this class directly.</u></b>
+ * This should be the only class with direct reference to external methods.
+ * This class loads the shared library.
  */
 public interface BluetoothStack {
 
@@ -56,7 +56,7 @@ public interface BluetoothStack {
 	 *            DebugLog.class
 	 * @param on
 	 */
-	public void enableNativeDebug(Class nativeDebugCallback, boolean on);
+	//public void enableNativeDebug(Class nativeDebugCallback, boolean on);
 
 	/**
 	 * Call is made when we want to use this stack.
@@ -169,14 +169,14 @@ public interface BluetoothStack {
 	/**
 	 * called by JSR-82 code Device Inquiry
 	 *
-	 * @see bluecove.javax.bluetooth.DiscoveryAgent#startInquiry(int, javax.bluetooth.DiscoveryListener)
+	 * @see bc.javax.bluetooth.DiscoveryAgent#startInquiry(int, javax.bluetooth.DiscoveryListener)
 	 */
 	public boolean startInquiry(int accessCode, DiscoveryListener listener) throws BluetoothStateException;
 
 	/**
 	 * called by JSR-82 code Device Inquiry
 	 *
-	 * @see bluecove.javax.bluetooth.DiscoveryAgent#cancelInquiry(javax.bluetooth.DiscoveryListener)
+	 * @see bc.javax.bluetooth.DiscoveryAgent#cancelInquiry(javax.bluetooth.DiscoveryListener)
 	 */
 	public boolean cancelInquiry(DiscoveryListener listener);
 
@@ -188,7 +188,7 @@ public interface BluetoothStack {
 	public String getRemoteDeviceFriendlyName(long address) throws IOException;
 
 	/**
-	 * @see bluecove.javax.bluetooth.DiscoveryAgent#retrieveDevices(int)
+	 * @see bc.javax.bluetooth.DiscoveryAgent#retrieveDevices(int)
 	 * @return null if not implemented
 	 */
 	public RemoteDevice[] retrieveDevices(int option);
@@ -210,7 +210,7 @@ public interface BluetoothStack {
 	/**
 	 * called by JSR-82 code Service search
 	 *
-	 * @see bluecove.javax.bluetooth.DiscoveryAgent#searchServices(int[],UUID[],javax.bluetooth.RemoteDevice,
+	 * @see bc.javax.bluetooth.DiscoveryAgent#searchServices(int[],UUID[],javax.bluetooth.RemoteDevice,
 	 *      javax.bluetooth.DiscoveryListener)
 	 */
 	public int searchServices(int[] attrSet, UUID[] uuidSet, RemoteDevice device, DiscoveryListener listener)
@@ -219,7 +219,7 @@ public interface BluetoothStack {
 	/**
 	 * called by JSR-82 code Service search
 	 *
-	 * @see bluecove.javax.bluetooth.DiscoveryAgent#cancelServiceSearch(int)
+	 * @see bc.javax.bluetooth.DiscoveryAgent#cancelServiceSearch(int)
 	 */
 	public boolean cancelServiceSearch(int transID);
 

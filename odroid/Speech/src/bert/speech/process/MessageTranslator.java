@@ -79,7 +79,7 @@ public class MessageTranslator  {
 				else {
 					String property = msg.getProperty(BottleConstants.PROPERTY_NAME, "unknown");
 					String value = msg.getProperty(property, "unknown");
-					text = String.format("My %s is %s", property,value);
+					text = String.format("Its %s is %s", property.toLowerCase(),value);
 				}
 			}
 		}

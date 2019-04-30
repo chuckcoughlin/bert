@@ -28,13 +28,13 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import bluecove.javax.bluetooth.DataElement;
-import bluecove.javax.bluetooth.DeviceClass;
-import bluecove.javax.bluetooth.DiscoveryListener;
-import bluecove.javax.bluetooth.LocalDevice;
-import bluecove.javax.bluetooth.RemoteDevice;
-import bluecove.javax.bluetooth.ServiceRecord;
-import bluecove.javax.bluetooth.UUID;
+import bc.javax.bluetooth.DataElement;
+import bc.javax.bluetooth.DeviceClass;
+import bc.javax.bluetooth.DiscoveryListener;
+import bc.javax.bluetooth.LocalDevice;
+import bc.javax.bluetooth.RemoteDevice;
+import bc.javax.bluetooth.ServiceRecord;
+import bc.javax.bluetooth.UUID;
 
 
 /**

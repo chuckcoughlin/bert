@@ -9,4 +9,5 @@ MP=lib/bluecove-2.1.0a.jar
 # Allow debugging on port 8000
 X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
 
-java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/bluecove.BluetoothServer
+echo "Run the Bluetooth Manager"
+java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/bluecove.BluetoothManager

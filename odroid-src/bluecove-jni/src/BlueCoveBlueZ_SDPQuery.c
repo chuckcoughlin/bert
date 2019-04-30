@@ -26,7 +26,7 @@
 
 void populateServiceRecord(JNIEnv *env, jobject serviceRecord, sdp_record_t* sdpRecord, sdp_list_t* attributeList);
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_runSearchServicesImpl
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_runSearchServicesImpl
   (JNIEnv *env, jobject peer, jobject searchServicesThread, jlong localDeviceBTAddress, jobjectArray uuidValues, jlong remoteDeviceAddressLong) {
 
     // Prepare serviceDiscoveredCallback
@@ -112,7 +112,7 @@ searchServicesImplEnd:
     return rc;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_populateServiceRecordAttributeValuesImpl
+JNIEXPORT jboolean JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_populateServiceRecordAttributeValuesImpl
   (JNIEnv *env, jobject peer, jlong localDeviceBTAddress, jlong remoteDeviceAddressLong, jlong sdpSession, jlong handle, jintArray attrIDs, jobject serviceRecord) {
     sdp_session_t* session = (sdp_session_t*)jlong2ptr(sdpSession);
     sdp_session_t* close_session_on_return = NULL;

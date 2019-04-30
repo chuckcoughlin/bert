@@ -25,7 +25,7 @@
 #include <bluetooth/hci.h>
 #include <sys/ioctl.h>
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_runDeviceInquiryImpl
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_runDeviceInquiryImpl
 (JNIEnv *env, jobject peer, jobject inquiryRunnable, jobject startedNotify, jint deviceID, jint deviceDescriptor, jint accessCode, jint inquiryLength, jint maxResponses, jobject listener) {
     struct DeviceInquiryCallback callback;
     DeviceInquiryCallback_Init(&callback);
@@ -63,13 +63,13 @@ JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_runDeviceInq
     return rc;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_deviceInquiryCancelImpl
+JNIEXPORT jboolean JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_deviceInquiryCancelImpl
 (JNIEnv *env, jobject peer, jint deviceDescriptor) {
     int err = hci_send_cmd(deviceDescriptor, OGF_LINK_CTL, OCF_INQUIRY_CANCEL, 0, NULL);
     return (err == 0);
 }
 
-JNIEXPORT jstring JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getRemoteDeviceFriendlyNameImpl
+JNIEXPORT jstring JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_getRemoteDeviceFriendlyNameImpl
 (JNIEnv *env, jobject peer, jint deviceDescriptor, jlong remoteAddress) {
     bdaddr_t address;
     longToDeviceAddr(remoteAddress, &address);
@@ -82,7 +82,7 @@ JNIEXPORT jstring JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getRemote
     return (*env)->NewStringUTF(env, name);
 }
 
-JNIEXPORT jstring JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getRemoteDeviceVersionInfoImpl
+JNIEXPORT jstring JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_getRemoteDeviceVersionInfoImpl
   (JNIEnv *env, jobject peer, jint deviceDescriptor, jlong remoteDeviceAddressLong) {
     struct hci_conn_info_req *conn_info;
     struct hci_version ver;
@@ -114,7 +114,7 @@ JNIEXPORT jstring JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getRemote
     return (*env)->NewStringUTF(env, info);
 }
 
-JNIEXPORT jint JNICALL Java_com_intel_bluetooth_BluetoothStackBlueZ_getRemoteDeviceRSSIImpl
+JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_getRemoteDeviceRSSIImpl
   (JNIEnv *env, jobject peer, jint deviceDescriptor, jlong remoteDeviceAddressLong) {
     struct hci_request rq;
     struct hci_conn_info_req *conn_info;

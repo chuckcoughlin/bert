@@ -27,12 +27,12 @@ package test.bluecove;
 import java.io.IOException;
 import java.util.Vector;
 
-import bluecove.javax.bluetooth.DeviceClass;
-import bluecove.javax.bluetooth.DiscoveryAgent;
-import bluecove.javax.bluetooth.DiscoveryListener;
-import bluecove.javax.bluetooth.LocalDevice;
-import bluecove.javax.bluetooth.RemoteDevice;
-import bluecove.javax.bluetooth.ServiceRecord;
+import bc.javax.bluetooth.DeviceClass;
+import bc.javax.bluetooth.DiscoveryAgent;
+import bc.javax.bluetooth.DiscoveryListener;
+import bc.javax.bluetooth.LocalDevice;
+import bc.javax.bluetooth.RemoteDevice;
+import bc.javax.bluetooth.ServiceRecord;
 
 
 

@@ -18,7 +18,7 @@ LIBS = -L/usr/local/robot/lib
 LIBBLUECOVE  = libbluecove.so
 OBJS    = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
-TESTS   = BlueCoveBlueZ_Tests
+TESTS   = bluecove
 
 
 #  * Compile and link the native implementation
@@ -33,10 +33,10 @@ $(LIBBLUECOVE): $(OBJS)
 
 tests: $(TESTS)
 
-BlueCoveBlueZ_Tests: $(OBJDIR)/BlueCoveBlueZ_Tests.o
+bluecove: $(OBJDIR)/bluecove.o
 	$(CC) $(LIBS) -o $@ $< -lbluecove -lbluetooth
 
-$(OBJDIR)/BlueCoveBlueZ_Tests.o: tests/BlueCoveBlueZ_Tests.c| $(OBJDIR)
+$(OBJDIR)/bluecove.o: tests/bluecove.c| $(OBJDIR)
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 install:
