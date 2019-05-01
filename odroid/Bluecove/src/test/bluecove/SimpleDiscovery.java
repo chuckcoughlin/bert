@@ -27,11 +27,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import bc.javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.DiscoveryAgent;
+import javax.bluetooth.LocalDevice;
+
 import bc.javax.bluetooth.DeviceClass;
-import bc.javax.bluetooth.DiscoveryAgent;
 import bc.javax.bluetooth.DiscoveryListener;
-import bc.javax.bluetooth.LocalDevice;
 import bc.javax.bluetooth.RemoteDevice;
 import bc.javax.bluetooth.ServiceRecord;
 
@@ -50,7 +51,8 @@ public class SimpleDiscovery {
 		LocalDevice l;
 		try {
 			l = LocalDevice.getLocalDevice();
-		} catch (BluetoothStateException e) {
+		} 
+		catch (BluetoothStateException e) {
 			System.err.println("Cannot get local device: " + e);
 			return;
 		}

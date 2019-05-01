@@ -26,7 +26,7 @@
 #include <poll.h>
 #include <bluetooth/rfcomm.h>
 
-JNIEXPORT jlong JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfOpenClientConnectionImpl
+JNIEXPORT jlong JNICALL Java_bluecove_core_BluetoothStackBlueZ_connectionRfOpenClientConnectionImpl
   (JNIEnv* env, jobject peer, jlong localDeviceBTAddress, jlong address, jint channel, jboolean authenticate, jboolean encrypt, jint timeout) {
     debug("RFCOMM connect, channel %d", channel);
 
@@ -97,7 +97,7 @@ JNIEXPORT jlong JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRf
     return handle;
 }
 
-JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfCloseClientConnection
+JNIEXPORT void JNICALL Java_bluecove_core_BluetoothStackBlueZ_connectionRfCloseClientConnection
   (JNIEnv* env, jobject peer, jlong handle) {
     debug("RFCOMM disconnect, handle %li", handle);
     // Closing channel, further sends and receives will be disallowed.
@@ -109,7 +109,7 @@ JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfC
     }
 }
 
-JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_rfGetSecurityOptImpl
+JNIEXPORT jint JNICALL Java_bluecove_core_BluetoothStackBlueZ_rfGetSecurityOptImpl
   (JNIEnv *env, jobject peer, jlong handle) {
     int socket_opt = 0;
     socklen_t len = sizeof(socket_opt);
@@ -129,7 +129,7 @@ JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_rfGetSecurity
     }
 }
 
-JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfRead
+JNIEXPORT jint JNICALL Java_bluecove_core_BluetoothStackBlueZ_connectionRfRead
   (JNIEnv* env, jobject peer, jlong handle, jbyteArray b, jint off, jint len ) {
     jbyte *bytes = (*env)->GetByteArrayElements(env, b, 0);
     int done = 0;
@@ -209,7 +209,7 @@ rfReadEnd:
     return done;
 }
 
-JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfReadAvailable
+JNIEXPORT jint JNICALL Java_bluecove_core_BluetoothStackBlueZ_connectionRfReadAvailable
   (JNIEnv* env, jobject peer, jlong handle) {
     struct pollfd fds;
     int timeout = 10; // milliseconds
@@ -231,7 +231,7 @@ JNIEXPORT jint JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfR
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfWrite__JI
+JNIEXPORT void JNICALL Java_bluecove_core_BluetoothStackBlueZ_connectionRfWrite__JI
   (JNIEnv* env, jobject peer, jlong handle, jint b) {
     char c = (char)b;
     if (send(handle, &c, 1, 0) != 1) {
@@ -239,7 +239,7 @@ JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfW
     }
 }
 
-JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfWrite__J_3BII
+JNIEXPORT void JNICALL Java_bluecove_core_BluetoothStackBlueZ_connectionRfWrite__J_3BII
   (JNIEnv* env, jobject peer, jlong handle, jbyteArray b, jint off, jint len) {
 
     jbyte *bytes = (*env)->GetByteArrayElements(env, b, 0);
@@ -258,11 +258,11 @@ JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfW
     (*env)->ReleaseByteArrayElements(env, b, bytes, 0);
 }
 
-JNIEXPORT void JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_connectionRfFlush
+JNIEXPORT void JNICALL Java_bluecove_core_BluetoothStackBlueZ_connectionRfFlush
   (JNIEnv* env, jobject peer, jlong handle) {
 }
 
-JNIEXPORT jlong JNICALL Java_bluecove_bluetooth_BluetoothStackBlueZ_getConnectionRfRemoteAddress
+JNIEXPORT jlong JNICALL Java_bluecove_core_BluetoothStackBlueZ_getConnectionRfRemoteAddress
   (JNIEnv* env, jobject peer, jlong handle) {
     struct sockaddr_rc remoteAddr;
     socklen_t len = sizeof(remoteAddr);

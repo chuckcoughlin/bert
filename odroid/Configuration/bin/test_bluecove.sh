@@ -1,6 +1,8 @@
 #!/bin/sh
 # Execute canned bluecove tests
 # Run one of 4 tests based on command arguments
+cd ${BERT_HOME}
+mkdir -p logs
 
 MP=lib/bluecove-2.1.0a.jar
 
@@ -31,5 +33,5 @@ then
 	java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/test.bluecove.SimpleServer
 else
 	echo "Data Exchange with Android"
-	java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/bluecove.BluetoothManager
+	java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/bluecove.bluetooth.BluetoothManager
 fi

@@ -30,7 +30,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import bc.javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.BluetoothStateException;
+
 import bc.javax.bluetooth.DataElement;
 import bc.javax.bluetooth.ServiceRecord;
 import bc.javax.bluetooth.ServiceRegistrationException;

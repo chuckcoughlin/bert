@@ -24,7 +24,7 @@
  *  
  *  @version $Id: LocalDevice.java 2530 2008-12-09 18:52:53Z skarzhevskyy $
  */
-package bc.javax.bluetooth;
+package javax.bluetooth;
 
 import java.util.Hashtable;
 
@@ -33,6 +33,9 @@ import bc.bluetooth.BluetoothConnectionNotifierServiceRecordAccess;
 import bc.bluetooth.BluetoothConsts;
 import bc.bluetooth.RemoteDeviceHelper;
 import bc.bluetooth.ServiceRecordsRegistry;
+import bc.javax.bluetooth.DeviceClass;
+import bc.javax.bluetooth.ServiceRecord;
+import bc.javax.bluetooth.ServiceRegistrationException;
 import bc.javax.microedition.io.Connection;
 import bluecove.bluetooth.BluetoothManager;
 import bluecove.bluetooth.BluetoothStack;

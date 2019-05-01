@@ -28,7 +28,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import bc.javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.BluetoothStateException;
+
 import bc.javax.bluetooth.DiscoveryListener;
 import bc.javax.bluetooth.RemoteDevice;
 import bc.javax.bluetooth.ServiceRecord;

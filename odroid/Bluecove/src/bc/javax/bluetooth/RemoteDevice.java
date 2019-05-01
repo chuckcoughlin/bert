@@ -29,6 +29,9 @@ package bc.javax.bluetooth;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.LocalDevice;
+
 import bc.bluetooth.RemoteDeviceHelper;
 import bc.javax.microedition.io.Connection;
 

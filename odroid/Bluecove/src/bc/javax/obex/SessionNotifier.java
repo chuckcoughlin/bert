@@ -28,7 +28,8 @@ package bc.javax.obex;
 
 import java.io.IOException;
 
-import bc.javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.BluetoothStateException;
+
 import bc.javax.bluetooth.ServiceRegistrationException;
 import bc.javax.microedition.io.Connection;
 

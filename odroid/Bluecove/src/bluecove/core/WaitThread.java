@@ -1,8 +1,9 @@
 
 package bluecove.core;
 
-import bc.javax.bluetooth.DiscoveryAgent;
-import bc.javax.bluetooth.LocalDevice;
+import javax.bluetooth.DiscoveryAgent;
+import javax.bluetooth.LocalDevice;
+
 import bc.javax.bluetooth.UUID;
 import bc.javax.microedition.io.Connector;
 import bc.javax.microedition.io.StreamConnection;

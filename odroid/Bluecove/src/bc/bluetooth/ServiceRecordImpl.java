@@ -30,10 +30,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
+import javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.LocalDevice;
+
 import bc.bluetooth.BluetoothConsts.DeviceClassConsts;
-import bc.javax.bluetooth.BluetoothStateException;
 import bc.javax.bluetooth.DataElement;
-import bc.javax.bluetooth.LocalDevice;
 import bc.javax.bluetooth.RemoteDevice;
 import bc.javax.bluetooth.ServiceRecord;
 import bc.javax.bluetooth.UUID;

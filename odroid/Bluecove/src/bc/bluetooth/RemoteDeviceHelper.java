@@ -30,8 +30,9 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.bluetooth.DiscoveryAgent;
+
 import bc.bluetooth.WeakVectorFactory.WeakVector;
-import bc.javax.bluetooth.DiscoveryAgent;
 import bc.javax.bluetooth.RemoteDevice;
 import bc.javax.bluetooth.ServiceRecord;
 import bc.javax.microedition.io.Connection;

@@ -27,8 +27,9 @@ package test.bluecove;
 import java.io.IOException;
 import java.io.InputStream;
 
-import bc.javax.bluetooth.DiscoveryAgent;
-import bc.javax.bluetooth.LocalDevice;
+import javax.bluetooth.DiscoveryAgent;
+import javax.bluetooth.LocalDevice;
+
 import bc.javax.microedition.io.Connector;
 import bc.javax.obex.HeaderSet;
 import bc.javax.obex.Operation;

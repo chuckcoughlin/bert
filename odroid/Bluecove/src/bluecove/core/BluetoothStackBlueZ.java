@@ -25,6 +25,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.bluetooth.BluetoothStateException;
+
 import bc.bluetooth.BlueCoveConfigProperties;
 import bc.bluetooth.BlueCoveLocalDeviceProperties;
 import bc.bluetooth.BluetoothConnectionNotifierParams;
@@ -42,7 +44,6 @@ import bc.bluetooth.SearchServicesTerminatedException;
 import bc.bluetooth.SearchServicesThread;
 import bc.bluetooth.ServiceRecordImpl;
 import bc.bluetooth.Utils;
-import bc.javax.bluetooth.BluetoothStateException;
 import bc.javax.bluetooth.DataElement;
 import bc.javax.bluetooth.DeviceClass;
 import bc.javax.bluetooth.DiscoveryListener;
@@ -73,7 +74,7 @@ public class BluetoothStackBlueZ implements BluetoothStack {
     private final static int LISTEN_BACKLOG_RFCOMM = 4;
     private final static int LISTEN_BACKLOG_L2CAP = 4;
 
-    private final static Vector<Long> devicesUsed = new Vector<>();
+    private final static Vector<Integer> devicesUsed = new Vector<>();
     private int deviceID = -1;
     private int deviceDescriptor;
     private long localDeviceBTAddress;
@@ -117,20 +118,19 @@ public class BluetoothStackBlueZ implements BluetoothStack {
 
 
 
-    private native int nativeGetDeviceID(int id, long findLocalDeviceBTAddress) throws BluetoothStateException;
+    private native int nativeGetDeviceID(long findLocalDeviceBTAddress) throws BluetoothStateException;
 
     private native int nativeOpenDevice(int deviceID) throws BluetoothStateException;
 
+    /**
+     * Found the address via "hcitool dev" on the server machine, then added to our constants.
+     */
     public void initialize() throws BluetoothStateException {
-        long findLocalDeviceBTAddress = -1;
-        int findID = Integer.parseInt(System.getProperties().get(BlueCoveConfigProperties.PROPERTY_LOCAL_DEVICE_ID).toString());
-        String deviceAddressStr = System.getProperties().get(BlueCoveConfigProperties.PROPERTY_LOCAL_DEVICE_ADDRESS).toString();
-        if (deviceAddressStr != null) {
-            findLocalDeviceBTAddress = Long.parseLong(deviceAddressStr, 16);
-        }
-        int foundDeviceID = nativeGetDeviceID(findID, findLocalDeviceBTAddress);
-        if (devicesUsed.contains(new Long(foundDeviceID))) {
-            throw new BluetoothStateException("LocalDevice " + foundDeviceID + " alredy in use");
+        String deviceAddressStr = BlueCoveConstants.SERVER_MAC;
+        long findLocalDeviceBTAddress = Long.parseLong(deviceAddressStr, 16);
+        int foundDeviceID = nativeGetDeviceID(findLocalDeviceBTAddress);
+        if (devicesUsed.contains(foundDeviceID)) {
+            throw new BluetoothStateException("LocalDevice " + foundDeviceID + " already in use");
         }
 
         this.deviceID = foundDeviceID;
@@ -154,7 +154,7 @@ public class BluetoothStackBlueZ implements BluetoothStack {
         // propertiesMap.put("bluecove.stack.version", );
         propertiesMap.put(BlueCoveLocalDeviceProperties.LOCAL_DEVICE_PROPERTY_DEVICE_ID, String.valueOf(deviceID));
 
-        devicesUsed.addElement(new Long(deviceID));
+        devicesUsed.addElement(deviceID);
     }
 
     private native void nativeCloseDevice(int deviceDescriptor);
@@ -170,7 +170,7 @@ public class BluetoothStackBlueZ implements BluetoothStack {
         }
         nativeCloseDevice(deviceDescriptor);
         if (deviceID >= 0) {
-            devicesUsed.removeElement(new Long(deviceID));
+            devicesUsed.removeElement(deviceID);
             deviceID = -1;
         }
     }

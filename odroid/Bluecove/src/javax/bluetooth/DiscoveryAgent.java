@@ -24,12 +24,16 @@
  *
  *  @version $Id: DiscoveryAgent.java 2530 2008-12-09 18:52:53Z skarzhevskyy $
  */
-package bc.javax.bluetooth;
+package javax.bluetooth;
 
 import java.util.logging.Logger;
 
 import bc.bluetooth.RemoteDeviceHelper;
 import bc.bluetooth.SelectServiceHandler;
+import bc.javax.bluetooth.DiscoveryListener;
+import bc.javax.bluetooth.RemoteDevice;
+import bc.javax.bluetooth.ServiceRecord;
+import bc.javax.bluetooth.UUID;
 import bluecove.bluetooth.BluetoothStack;
 
 /**

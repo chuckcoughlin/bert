@@ -24,7 +24,7 @@
  *
  *  @version $Id: BluetoothStateException.java 2530 2008-12-09 18:52:53Z skarzhevskyy $
  */ 
-package bc.javax.bluetooth;
+package javax.bluetooth;
 
 import java.io.IOException;
 

@@ -21,9 +21,7 @@
 #define CPP__FILE "BlueCoveBlueZ.c"
 
 #include "BlueCoveBlueZ.h"
-
 #include <dlfcn.h>
-
 #include <bluetooth/sdp_lib.h>
 
 int bluezVersionMajor = 0;

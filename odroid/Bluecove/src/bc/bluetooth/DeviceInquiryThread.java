@@ -25,7 +25,8 @@ package bc.bluetooth;
 
 import java.util.logging.Logger;
 
-import bc.javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.BluetoothStateException;
+
 import bc.javax.bluetooth.DiscoveryListener;
 import bluecove.bluetooth.BluetoothStack;
 

@@ -35,7 +35,7 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 
-#include "bluecove_bluetooth_BluetoothStackBlueZ.h"
+#include "bluecove_core_BluetoothStackBlueZ.h"
 #include "common.h"
 
 #ifndef SOCKET_ERROR

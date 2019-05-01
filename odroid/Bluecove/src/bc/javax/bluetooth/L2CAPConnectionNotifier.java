@@ -28,6 +28,8 @@ package bc.javax.bluetooth;
 
 import java.io.IOException;
 
+import javax.bluetooth.BluetoothStateException;
+
 import bc.javax.microedition.io.Connection;
 
 /**

@@ -26,10 +26,11 @@ package bluecove.bluetooth;
 
 import java.io.IOException;
 
+import javax.bluetooth.BluetoothStateException;
+
 import bc.bluetooth.BluetoothConnectionNotifierParams;
 import bc.bluetooth.BluetoothConnectionParams;
 import bc.bluetooth.ServiceRecordImpl;
-import bc.javax.bluetooth.BluetoothStateException;
 import bc.javax.bluetooth.DeviceClass;
 import bc.javax.bluetooth.DiscoveryListener;
 import bc.javax.bluetooth.RemoteDevice;

@@ -24,7 +24,8 @@
  */
 package bc.bluetooth;
 
-import bc.javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.BluetoothStateException;
+
 import bc.javax.bluetooth.DiscoveryListener;
 
 /**
