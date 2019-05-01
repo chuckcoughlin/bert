@@ -1,19 +1,35 @@
 #!/bin/sh
 # Execute canned bluecove tests
-# Requires access to BERT_HOME
-cd ${BERT_HOME}
-mkdir -p logs
+# Run one of 4 tests based on command arguments
 
 MP=lib/bluecove-2.1.0a.jar
 
 # Allow debugging on port 8000
 X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
 
-echo "Simple Discovery Test"
-java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/test.bluecove.SimpleDiscovery
+if [ $# -lt 1 ]
+then
+	echo "Usage: $0 arg"
+	echo "   1 - simple discovery"
+	echo "   2 - search for services"
+	echo "   3 - simple server"
+	echo "   4 - Luu Gia Thuy, simple android connection"
+	exit 2
+fi
 
-echo "Services Discovery Test"
-java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/test.bluecove.ServicesSearch
-
-echo "Simple Server Test"
-java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/test.bluecove.SimpleServer
+if [ $1 -eq 1 ]
+then
+	echo "Simple Discovery Test"
+	java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/test.bluecove.SimpleDiscovery
+elif [ $1 -eq 2 ]
+then
+	echo "Services Discovery Test"
+	java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/test.bluecove.ServicesSearch
+elif [ $1 -eq 3 ]
+then
+	echo "Simple Server Test"
+	java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/test.bluecove.SimpleServer
+else
+	echo "Data Exchange with Android"
+	java $X --module-path $MP -Djava.library.path=/usr/local/robot/lib -m bluecove/bluecove.BluetoothManager
+fi

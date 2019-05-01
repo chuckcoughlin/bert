@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  * Simple implementation of java.util.StringTokenizer for J2ME Taken from
  * com.pyx4me.core.utils
  */
-class UtilsStringTokenizer {
+public class UtilsStringTokenizer {
 
 	private int currentPosition;
 

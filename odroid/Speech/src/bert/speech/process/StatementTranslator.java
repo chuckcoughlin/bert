@@ -316,10 +316,13 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
 		sharedDictionary.put(SharedKey.AXIS.name(), axis);
-		Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
-		bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		Joint joint = Joint.UNKNOWN;
+		if( ctx.Joint() != null ) {
+			joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		}
 		if( joint.equals(Joint.UNKNOWN) ) {
-			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+			String msg = String.format("I don't have a joint likre that");
 			bottle.assignError(msg);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
@@ -331,6 +334,11 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// not always needed).
 	private Joint determineJoint(String bodyPart,String axis,String side) {
 		Joint result = Joint.UNKNOWN;
+		
+		// Handle some synonyms
+		if( axis!=null && axis.equalsIgnoreCase("horizontal") ) axis="Z";
+		if( axis!=null && axis.equalsIgnoreCase("vertical") )   axis="Y";
+		
 		if( bodyPart.equalsIgnoreCase("ABS")) {
 			if(axis!=null) {
 				if( axis.equalsIgnoreCase("X"))    		result = Joint.ABS_X;

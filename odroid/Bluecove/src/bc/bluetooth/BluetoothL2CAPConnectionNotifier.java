@@ -37,7 +37,7 @@ import bluecove.bluetooth.BluetoothStack;
  *
  *
  */
-class BluetoothL2CAPConnectionNotifier extends BluetoothConnectionNotifierBase implements L2CAPConnectionNotifier {
+public class BluetoothL2CAPConnectionNotifier extends BluetoothConnectionNotifierBase implements L2CAPConnectionNotifier {
 
 	private int psm = -1;
 

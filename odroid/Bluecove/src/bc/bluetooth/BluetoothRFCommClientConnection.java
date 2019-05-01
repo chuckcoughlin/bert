@@ -33,7 +33,7 @@ import bluecove.bluetooth.BluetoothStack;
  *
  *
  */
-class BluetoothRFCommClientConnection extends BluetoothRFCommConnection {
+public class BluetoothRFCommClientConnection extends BluetoothRFCommConnection {
 	private final static String CLSS = "BluetoothRFCommClientConnection";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	
@@ -57,7 +57,7 @@ class BluetoothRFCommClientConnection extends BluetoothRFCommConnection {
 		}
 	}
 
-	void closeConnectionHandle(long handle) throws IOException {
+	public void closeConnectionHandle(long handle) throws IOException {
 		RemoteDeviceHelper.disconnected(this);
 		bluetoothStack.connectionRfCloseClientConnection(handle);
 	}

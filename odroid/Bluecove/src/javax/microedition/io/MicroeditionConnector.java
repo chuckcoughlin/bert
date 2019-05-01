@@ -22,7 +22,7 @@
  *
  *  @version $Id: MicroeditionConnector.java 2523 2008-12-09 01:09:17Z skarzhevskyy $
  */
-package bc.bluetooth;
+package javax.microedition.io;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -33,6 +33,15 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
+import bc.bluetooth.BluetoothConnectionNotifierParams;
+import bc.bluetooth.BluetoothConnectionParams;
+import bc.bluetooth.BluetoothConsts;
+import bc.bluetooth.BluetoothL2CAPClientConnection;
+import bc.bluetooth.BluetoothL2CAPConnectionNotifier;
+import bc.bluetooth.BluetoothRFCommClientConnection;
+import bc.bluetooth.BluetoothRFCommConnectionNotifier;
+import bc.bluetooth.RemoteDeviceHelper;
+import bc.bluetooth.UtilsStringTokenizer;
 import bc.javax.bluetooth.BluetoothConnectionException;
 import bc.javax.bluetooth.L2CAPConnection;
 import bc.javax.bluetooth.SocketConnection;

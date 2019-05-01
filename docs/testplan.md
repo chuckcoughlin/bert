@@ -43,6 +43,7 @@ values read directly from the motor (like: position, speed, load, temperature,
 and voltage). A typical query:
 ```
     what is the position of your left elbow
+    what is your right ankle position
 ```
 ### b - Calibration <a id="calibration"></a>
 The purpose of this section is to validate stepper motor configuration parameters
@@ -87,6 +88,7 @@ move a joint to a specified position. Make sure that any attempts to drive it
 out-of-range are clipped . Sample command syntax:
 ```
     move your left knee to 90 degrees
+    set the left elbow position to 90 degrees
 ```
 
 * ![gray](/images/ball_gray.png) Record Pose - assign a name to the current position

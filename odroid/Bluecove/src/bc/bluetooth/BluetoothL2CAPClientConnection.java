@@ -32,7 +32,7 @@ import bluecove.bluetooth.BluetoothStack;
 /**
  *
  */
-class BluetoothL2CAPClientConnection extends BluetoothL2CAPConnection {
+public class BluetoothL2CAPClientConnection extends BluetoothL2CAPConnection {
 	private final static String CLSS = "BluetoothL2CAPClientConnection";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	
@@ -61,7 +61,7 @@ class BluetoothL2CAPClientConnection extends BluetoothL2CAPConnection {
 	 *
 	 * @see com.intel.bluetooth.BluetoothL2CAPConnection#closeConnectionHandle(long)
 	 */
-	void closeConnectionHandle(long handle) throws IOException {
+	public void closeConnectionHandle(long handle) throws IOException {
 		RemoteDeviceHelper.disconnected(this);
 		bluetoothStack.l2CloseClientConnection(handle);
 	}

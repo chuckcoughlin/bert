@@ -32,7 +32,7 @@ import bc.javax.microedition.io.StreamConnection;
 import bc.javax.microedition.io.StreamConnectionNotifier;
 import bluecove.bluetooth.BluetoothStack;
 
-class BluetoothRFCommConnectionNotifier extends BluetoothConnectionNotifierBase implements StreamConnectionNotifier {
+public class BluetoothRFCommConnectionNotifier extends BluetoothConnectionNotifierBase implements StreamConnectionNotifier {
 
 	private int rfcommChannel = -1;
 

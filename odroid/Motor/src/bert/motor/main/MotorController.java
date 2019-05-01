@@ -328,7 +328,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				boolean success = port.writeBytes(bytes);
 				port.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);   // Force the write to complete
 				if( !success ) {
-					LOGGER.severe(String.format("%s.writeBytesToSerial: Failed write of %d bytes to %s",CLSS,bytes.length));
+					LOGGER.severe(String.format("%s.writeBytesToSerial: Failed write of %d bytes to %s",CLSS,bytes.length,port.getPortName()));
 				}
 			}
 			catch(SerialPortException spe) {

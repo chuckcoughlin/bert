@@ -104,7 +104,9 @@ In order to correct for a consistent user-view of position, joints may be correc
 | :------ | :---------------------------------------------------: | --------: | ---------: |
 | Ankle | Angle between the bottom of the foot and shin, frontwards.| 45 | 180 |
 | Elbow | Angle between the upper and lower arms, measured frontwards. | 45 | 180 |
-| Knee | Angle between the thigh and lower leg, measured toward the back. | 45 | 180 |
+| Knee | Angle between the thigh and lower leg, measured toward the back. | 50 | 180 |
+| Neck(y)| Angle the head is tipped. 0 is horizontal, positive is up. |-5|20|
+| Neck(z)| Angle the head is facing. 0 is straight ahead, positive to the right. |-45|45|
 <center>``Angular Position Definitions``                     </center>
 
 ## System Setup <a id="system"/>
@@ -177,7 +179,6 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt install vsftp
   sudo apt install libjssc-java
   sudo apt-get install libbluetooth-dev
-  # sudo apt-get install libdbus-1-dev
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y

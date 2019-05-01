@@ -24,26 +24,41 @@ The lists below show typical statements that Bert will recognize.
 The full range of understanding comes from combining these patterns with
 options from the vocabulary list in the next section.
 ##### Commands
+```
+  describe your configuration
+  halt
+  list the speeds of your motors
+  move your left knee to 90 degrees
+  set the head horizontal position to 0
+  "sit"
+```
 
 ##### Queries
 ```
-    Describe yourself
-    List the positions of your joints
-    How old are you?
-    What is your cycle time?
-    What is the id of your left shoulder z?
-    What is the z position of your neck?
+    How old are you
+    what are the limits on your right elbow (EEPROM hard limits)
+    what are the targets for your neck horizontal (position, speed, torque)
+    What is your height
+    What is the id of your left shoulder vertical
+    What is the vertical position of your neck 
+    what is your left ankle temperature
 ```
 ##### Settings
 Infrequently it may be necessary to inform the robot of some fact.
-There is no visible response to these statements.
+```
+  "sit" means to become "sitting"
+  your pose is "saluting"
+  when I say "sit" take the pose "sitting"
+```
 
 *********************************************************
 ### c - Vocabulary <a id="vocabulary"></a>
 "Bert" has a fixed vocabulary when it comes to names of parameters in
 various categories.
-  * Axes: x, y, z
-  * Body parts: abs, ankle, arm, bust, chest, elbow, head, hip, knee, neck, shoulder
+  * Axes: x, y, z, horizontal, vertical
+  * Body parts (joints): abs, ankle, arm, bust, chest, elbow, head, hip,
+  knee, neck, shoulder
+  * Commands: exit, halt, shutdown, stop
   * Core property: age, cadence, cycle time, duty cycle, height, name
   * Joint Properties: id, maximum angle, minimum angle, motor type, offset,
      orientation, position, speed, temperature, torque, voltage

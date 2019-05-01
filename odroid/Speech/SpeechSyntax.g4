@@ -49,7 +49,7 @@ declaration:
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'old'|'tall';
-Axis: 'x'|'y'|'z';
+Axis: 'x'|'y'|'z'|'horizontal'|'vertical';
 Command: ('attention'|'freeze'|'relax'|'wake up');
 Configuration: 'configuration';
 Goals: 'goals'|'targets';
@@ -72,14 +72,15 @@ Shutdown: 'power off'|'shut down'|'shutdown';
 Side: 'left'|'right';
 To: 'to become'|'to';
 Unit: 'degrees';
-Value: DIGIT+;
+Value: NUMBER;
 What: 'what';
 When: 'when';
 
 
 COMMA: ',';  
 COLON: ':';
-NAME:  (ALPHA (ALPHA|DIGIT|DASH|SLASH|UNDERSCORE|PERIOD)*);
+NAME:  (ALPHA(ALPHA|DIGIT|DASH|SLASH|UNDERSCORE|PERIOD)*);
+NUMBER: (DASH?DIGIT*PERIOD?DIGIT+);
 
 
 
