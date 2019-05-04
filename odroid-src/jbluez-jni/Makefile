@@ -18,7 +18,7 @@ LIBS = -L/usr/local/robot/lib
 LIBLLUEZ  = libbluezjni.so
 OBJS    = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 OBJDIR  = obj
-TESTS   = bluez simplescan l2capserver l2capclient rfcommserver rfcommclient
+TESTS   = bluez simplescan l2capserver l2capclient rfcommserver rfcommclient gatt
 
 
 #  * Compile and link the native implementation

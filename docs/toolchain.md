@@ -405,43 +405,60 @@ when loading the library...
   Get this error on all native methods.
 
 ======================== JBlueZ =====================================
+
 Based on a minimalist implementation
 [JBlueZ](http://jbluez.sourceforge.net/)
-by Edward Kay provided great example of the Java Native Interface (JNI).
-
-This is an attempt to use JNI and link directly to libbluetooth.so.
-
- Unfortunately this package requires J2ME, which is not the Java on the
+by Edward Kay provides a great example of the Java Native Interface (JNI).
+It's intent is to use JNI and link directly to libbluetooth.so.
+The original package required J2ME, which is not the Java on the
 Odroid. It also relies on DBus which is yet-another-interface to learn/debug.
 On the plus side this is relatively up-to-date. Vers 5.50, June 2018.
+
+Since we don't need a full-featured Bluetooth interface, we have simplified things
+considerably by making use of GATT (Generic Atributes)
+Bluetooth profiles. The only characteristics we require are two to read and write
+simple strings. Following instructions [here](https://stackoverflow.com/questions/25427768/bluez-how-to-set-up-a-gatt-server-from-the-command-line), we created a GATT server on the Odroid using _bluetoothctl_.
+```
+bluetoothctl
+  menu gatt
+  register-service 0xFFFF # (Choose yes when asked if primary service)
+  register-characteristic 0xAAAA read       # (Select a value of 1 when prompted)
+  register-characteristic 0xBBBB write      # (Select a value of 2 when prompted)
+  register-characteristic 0xCCCC read,write # (Select a value of 0 when prompted)
+  register-application # (This commits the services/characteristics and registers the profile)
+  back
+  advertise on
+  exit
+```
+
+
+
+On the development machine, the _Eclipse_ build project creates the include files
+needed for the JNI interface library. The ``install_odroid_source.sh`` script
+copies these and other source files onto the Odroid in preparation for building the JNI library
+_libbluetoothjni.so_ and _jbluez_ test
+application. From the home directory on the Odroid:
+
+```
+  cd bluez_jni
+  make -e
+  make install
+  make tests
+```
+
+For a list of test options, type:
+```
+  jbluez -h
+```
+
+To run similar tests from Java ...
+```
+  ${BERT_HOME}/bin/test_bluez.sh
+```
 
 We include sample test applications from code from a book by Albert Huang
 of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/) helped
 me understand structures involved with discovery and data transfer.
-
-On the development machine, under the Eclipse build project:
-* Execute `build_jbluez.xml` to compile the Java classes and create include files
-for the JNI library.
-
-```
-  make -e
-  make install
-  make bluez
-```
-
-In addition to the shared library, _libbluetoothjni.so_, the build process creates
-application `jbluez` that provides command-line access for testing.
-For a list of options, type:
-```
-  bluez -h
-```
-
-To run the Java test ...
-```
-  ./run_bluez.sh
-```
-
-TODO: Requires J2ME
 
 ======================== Bluecove =====================================
 https://github.com/luugiathuy/Remote-Bluetooth-Android/blob/master/RemoteBluetoothServer/src/com/luugiathuy/apps/remotebluetooth

@@ -29,11 +29,11 @@ import bert.sql.pose.PoseTable;
 public class Database {
 	private final static String CLSS = "Database";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private Connection connection = null;
-	
-	private static Database instance = null;
 	@SuppressWarnings("unused")
 	private final static JDBC driver = new JDBC(); // Force driver to be loaded
+	
+	private Connection connection = null;
+	private static Database instance = null;
 	private final MotorStateTable motor;
 	private final PoseTable pose;
  
@@ -55,6 +55,14 @@ public class Database {
 			}
 		}
 		return instance;
+	}
+	/**
+	 * 
+	 * @param command user entered string
+	 * @return the corresponding pose name if it exists, otherwise NULL
+	 */
+	public String getPoseForCommand(String command) {
+		return pose.getPoseForCommand(connection,command);
 	}
 	/**
 	 * Populate the Motor table with information from the configuration file.

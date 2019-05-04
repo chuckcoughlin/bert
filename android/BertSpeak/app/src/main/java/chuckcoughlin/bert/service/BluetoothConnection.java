@@ -4,21 +4,15 @@
  */
 package chuckcoughlin.bert.service;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.UUID;
-
-import chuckcoughlin.bert.common.BertConstants;
-import chuckcoughlin.bert.db.SettingsManager;
 
 /**
  *  This socket communicates across a Bluetooth network to the robot which acts
@@ -35,7 +29,9 @@ public class BluetoothConnection {
 
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
-    private static final String DEVICE_UUID = "33001101-0000-2000-8080-00815FAB34FF";
+    //private static final UUID SERVICE_UUID = UUID.fromString("0000110A-0000-1000-8000-00805F9B34FB");
+	private static final UUID SERVICE_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	//private static final String SERVICE_UUID = "0000110B-0000-1000-8000-00805F9B34FB";
 	private BluetoothDevice device;
 	private BluetoothSocket socket;
 	private BufferedReader in = null;
@@ -122,9 +118,15 @@ public class BluetoothConnection {
 	public void write(String text) {
 		try {
 			if( out!=null ) {
-				out.println(text);
-				out.flush();
-				Log.i(CLSS,String.format("write: wrote %d bytes to %s. ",CLSS,text.length(),device.getName()));
+				if(!out.checkError() ) {
+					Log.i(CLSS, String.format("write: writing ... %s (%d bytes) to %s. ", text, text.length(), device.getName()));
+					out.println(text);
+					out.flush();
+					Log.i(CLSS, String.format("write: wrote %d bytes to %s. ", text.length(), device.getName()));
+				}
+				else {
+					Log.e(CLSS,String.format("write: CheckError before write",device.getName()));
+				}
 			}
 			else {
                 Log.e(CLSS,String.format("write: Error writing to %s before connection",device.getName()));
@@ -190,9 +192,38 @@ public class BluetoothConnection {
             int attempts = 0;
             for (;; ) {
                 try {
+                	UUID uuid = null;
 					Log.i(CLSS, String.format("create: Attempting to connect to %s", device.getName()));
-                    UUID uuid = UUID.fromString(DEVICE_UUID);
-					socket = device.createRfcommSocketToServiceRecord(uuid);
+
+					/*
+					if( device.fetchUuidsWithSdp() ) {
+						ParcelUuid[] uuids = device.getUuids();
+						Log.i(CLSS, String.format("run: %s returned %d service UUIDs",device.getName(), uuids.length));
+						for( ParcelUuid id:uuids) {
+							uuid = id.getUuid();
+							Log.i(CLSS, String.format("run: %s: service UUID = %s",device.getName(), uuid.toString()));
+						}
+						if( uuid==null ) {
+							reason = String.format("There were no servoce UUIDs found on %s", device.getName());
+							Log.w(CLSS, String.format("run: ERROR %s", reason));
+							handler.handleSocketError(reason);
+							break;
+						}
+					}
+					else {
+						reason = String.format("The tablet failed to fetch service UUIDS to %s", device.getName());
+						Log.w(CLSS, String.format("run: ERROR %s", reason));
+						handler.handleSocketError(reason);
+						break;
+					}
+					*/
+					//BluetoothGatt gatt = device.connectGatt(((VoiceService)handler).getApplicationContext(),true,new GattCallback());
+					//BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
+					//bluetoothConnectionManager.registerConnectionCallback(bluetoothConnectionCallback);
+
+
+					socket = device.createInsecureRfcommSocketToServiceRecord(SERVICE_UUID);
+					socket.connect();
                     Log.i(CLSS, String.format("create: connected to %s after %d attempts", device.getName(), attempts));
                     reason = openPorts();
                     break;
@@ -214,7 +245,8 @@ public class BluetoothConnection {
             }
             if (reason==null) {
                 handler.receiveSocketConnection();
-            } else {
+            }
+            else {
                 handler.handleBluetoothError(reason);
             }
         }

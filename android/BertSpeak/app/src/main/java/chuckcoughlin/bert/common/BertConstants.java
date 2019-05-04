@@ -24,7 +24,7 @@ public class BertConstants {
 
     // These are the default values for the settings
     public static final String BERT_SERVER_HINT="192.168.1.20";
-    public static final String BERT_PORT_HINT="11046";
+    public static final String BERT_PORT_HINT="1-30";
     public static final String BERT_PAIRED_DEVICE_HINT="bert_humanoid";
     public static final String BERT_SERVICE_UUID_HINT="33001101-0000-2000-8080-00815FAB34FF";
 

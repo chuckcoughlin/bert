@@ -22,7 +22,7 @@ public enum RequestType
 	SET_MOTOR_PROPERTY,       // For a particular motor
 	SET_POSE,
 	GET_POSE,
-	SET_STATE,               // A global motor configuration, like torque
+	SET_STATE,               // A global configuration, like ignoring
 	NONE
     ;
           

@@ -1,12 +1,14 @@
 # Software Architecture
 
 Control software embedded in the "Bert" project  takes its inspiration from two sources: [Poppy](https://www.poppy-project.org) by
-[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it). Our implementation deviates significantly, however. The core language is Java instead of C++ and Python; the feature-set has been greatly simplified; we have added natural-language speech processing with the integration of an Android tablet.
+[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it). Our implementation deviates significantly, however. The core language is Java instead of C++ and Python. The feature-set has been greatly simplified - and we have added natural-language speech processing with the integration of an Android tablet.
 
 *Poppy* version 1.0.2 source is at: https://github.com/poppy-project/poppy-humanoid. The project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
 robotic platform for science, art and education"](https://hal.inria.fr/tel-01104641v1/document) by Matthieu Lapeyre. A full list of project authors may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md.
 
 The *iCub* main project repository is at: https://github.com/robotology/icub-main. At its core, *iCub* uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/).
+
+The bulk of this document addresses various design issues and approaches to their solutions.
 
 ***
 ## Table of Contents <a id="table-of-contents"></a>
@@ -15,6 +17,7 @@ The *iCub* main project repository is at: https://github.com/robotology/icub-mai
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
     * [Interprocess Communication](#sockets)
+    * [Poses](#poses)
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
     * [Failures](#failures)
@@ -109,8 +112,30 @@ independent processes to have a common understanding of the parameters.
 ```
 
 #### Interprocess Communication <a id="sockets"/>
-The major components are independent linux processes. They communicate via sockets. Port numbers are defined in the configuration file. The tablet communicates via Bluetooth.
+The major components are independent linux processes. They communicate via sockets. Port numbers are defined in the configuration file. The tablet communicates via a Bluetooth General Attributes (GATT) profile.
 
+#### Poses <a id="poses"/>
+A "pose" is a position of the robot as a whole, comprising settings for each of its joints. Poses may be
+generated offline or as a result of recording joint values when the robot has been positioned for some
+purpose.  For each joint, the pose records torque, speed and position. Torque and speed are in percent
+of maximum and position is in degrees. Torque is a measure of how pliant the joint is. Speed refers to
+how fast the motor will move to the desired position. All values are integers. Null values
+imply that the current setting will not be changed. Not all parameters are required.
+
+| Name	| Parameter	| ABS_X	| ABS_Y |	ABS_Z ...
+| -------- | --------- | ------- | ------ | ------
+|relaxing|	torque	|0	|0
+|standing|	position|	0	|90
+|standing|	speed	|25|	null
+|standing|	torque	|100|	75
+<center>``Partial View of a Sample "Pose" Table``</center>
+
+In the sample database table shown above, only 3 of the 25 actual joints are shown. The "relaxed" pose contains
+only the single line to set torque to a zero setting. This effectively renders the robot limp.
+The "standing" setting defines all three parameters. Note that the ABS_Y speed is null. This
+means that for ABS-Y the speed at which it travels to 90 degrees is the same as the last
+time the joint was used. On power-up speeds are 100% and torques are 0%. Unless specified in
+the pose, torques are automatically set to 100% whenever a joint is moved.
 
 ## Appendices <a id="appendices"/>
 #### Why Java?<a id="whyjava"/>

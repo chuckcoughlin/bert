@@ -24,6 +24,7 @@
 
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+#include <syslog.h>
 #include <sys/ioctl.h>
 
 JNIEXPORT jintArray JNICALL Java_bluecove_core_BluetoothStackBlueZ_getLocalDevicesID
@@ -93,6 +94,7 @@ JNIEXPORT jint JNICALL Java_bluecove_core_BluetoothStackBlueZ_nativeGetDeviceID
             throwBluetoothStateException(env, "Failed to create Bluetooth socket. [%d] %s", errno, strerror(errno));
             return 0;
         }
+        syslog(LOG_INFO,"nativeGetDeviceID: created socket: %i", s);
         struct hci_dev_list_req *dl;
         struct hci_dev_req *dr;
         dl = (struct hci_dev_list_req*)malloc(HCI_MAX_DEV * sizeof(*dr) + sizeof(*dl));
@@ -135,11 +137,12 @@ JNIEXPORT jint JNICALL Java_bluecove_core_BluetoothStackBlueZ_nativeGetDeviceID
         if (dev_id < 0) {
             throwBluetoothStateException(env, "Bluetooth Device %X not found", findLocalDeviceBTAddress);
         }
+        syslog(LOG_INFO,"nativeGetDeviceID: device %X is %i", findLocalDeviceBTAddress,dev_id);
         return dev_id;
     } else {
         int dev_id = hci_get_route(NULL);
         if (dev_id < 0) {
-            debug("hci_get_route : %i", dev_id);
+            syslog(LOG_INFO,"nativeGetDeviceID: hci_get_route : %i", dev_id);
             throwBluetoothStateException(env, "Bluetooth Device is not available");
             return 0;
         } else {
@@ -152,7 +155,7 @@ JNIEXPORT jint JNICALL Java_bluecove_core_BluetoothStackBlueZ_nativeOpenDevice
 (JNIEnv *env, jobject peer, jint deviceID) {
     int deviceDescriptor = hci_open_dev(deviceID);
     if (deviceDescriptor < 0) {
-        debug("hci_open_dev : %i", deviceDescriptor);
+        syslog(LOG_ERR,"nativeDeviceOpen: hci_open_dev failed: %i (%d %s)", deviceDescriptor,errno,strerror(errno));
         throwBluetoothStateException(env, "HCI device open failed");
         return 0;
     }

@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(CLSS,"Constructor ...");
     }
 
-
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
      * @param savedInstanceState

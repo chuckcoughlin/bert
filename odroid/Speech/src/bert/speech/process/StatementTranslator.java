@@ -15,7 +15,7 @@ import bert.share.motor.Joint;
 import bert.share.motor.JointProperty;
 import bert.speech.antlr.SpeechSyntaxBaseVisitor;
 import bert.speech.antlr.SpeechSyntaxParser;
-
+import bert.sql.db.Database;
 
 /**
  *  This translator takes spoken lines of text and converts them into
@@ -173,20 +173,11 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
 		if( ctx.Command()!=null) {
 			String cmd = ctx.Command().getText();
-			if( cmd.equalsIgnoreCase("relax") ) {
-				bottle.assignRequestType(RequestType.SET_STATE);
-				//bottle.setProperty(BottleConstants.STATE_NAME,"relax");
+			if( cmd.startsWith("ignore")||cmd.equalsIgnoreCase("go to sleep") || cmd.startsWith("sleep")) {
+				sharedDictionary.put(SharedKey.ASLEEP.name(),"true");
 			}
-			else if( cmd.equalsIgnoreCase("freeze") ||
-					cmd.equalsIgnoreCase("stop") ) {
-				bottle.assignRequestType(RequestType.SET_STATE);
-				bottle.setProperty(BottleConstants.POSE_NAME,"freeze");
-			}
-			else if( cmd.equalsIgnoreCase("attention") ||
-					cmd.equalsIgnoreCase("wake up") ) {
-				bottle.assignRequestType(RequestType.SET_POSE);
-				bottle.setProperty(BottleConstants.POSE_NAME,"attention");
-
+			else if( cmd.startsWith("pay attention")||cmd.equalsIgnoreCase("wake up") ) {
+				sharedDictionary.put(SharedKey.ASLEEP.name(),"false");
 			}
 			else {
 				String msg = String.format("I do not know how to %s",cmd);
@@ -200,6 +191,21 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if(ctx.Shutdown()!=null) {
 			bottle.assignRequestType(RequestType.COMMAND);
 			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SHUTDOWN);
+		}
+		// NAME holds a pose of action
+		else if(ctx.NAME()!=null) {
+			String cmd = ctx.NAME().getText();
+			if( cmd!=null && !cmd.isEmpty() ) {
+				String pose = Database.getInstance().getPoseForCommand(cmd);
+				if( pose!=null ) {
+					bottle.assignRequestType(RequestType.SET_POSE);
+					bottle.setProperty(BottleConstants.POSE_NAME,pose );
+				}
+				else {
+					String msg = String.format("I do not know how to respond to %s",cmd);
+					bottle.assignError(msg);
+				}
+			}
 		}
 		return null;
 	}

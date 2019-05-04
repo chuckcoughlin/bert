@@ -23,6 +23,7 @@
 #include "BlueCoveBlueZ.h"
 #include <dlfcn.h>
 #include <bluetooth/sdp_lib.h>
+#include <syslog.h>
 
 int bluezVersionMajor = 0;
 
@@ -81,11 +82,17 @@ void convertUUIDBytesToUUID(jbyte *bytes, uuid_t* uuid) {
     memcpy(&uuid->value, bytes, 128/8);
 }
 
+/*
+ * Use this opportunity to initialize syslog
+ */
 int getBlueZVersionMajor(JNIEnv* env) {
     if(!bluezVersionMajor) {
+		char* syslogIdent = "bert";
         char* libraryName = "libbluetooth.so";
         char* functionName = "hci_local_name";
         void* functionHandle;
+
+		openlog(syslogIdent,LOG_CONS|LOG_NDELAY,LOG_USER);
 
         void* libraryHandle = dlopen(libraryName, RTLD_LAZY);
         if(!libraryHandle) {

@@ -23,7 +23,7 @@ public class SpokenTextManager implements TextToSpeech.OnInitListener {
     private static volatile SpokenTextManager instance = null;
     private final FixedSizeList<TextMessage> textList;
     private final List<TextMessageObserver> observers;
-    private final Annunciator annunciator;
+    //private final Annunciator annunciator;
 
     /**
      * Constructor is private per Singleton pattern. This forces use of the single instance.
@@ -32,7 +32,7 @@ public class SpokenTextManager implements TextToSpeech.OnInitListener {
     private SpokenTextManager(Context ctx) {
         textList = new FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES);
         observers = new ArrayList<>();
-        annunciator = new Annunciator(ctx,this);
+        //annunciator = new Annunciator(ctx,this);
     }
 
     /**

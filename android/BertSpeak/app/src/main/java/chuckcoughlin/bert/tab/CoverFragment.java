@@ -64,6 +64,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     public void onResume() {
         super.onResume();
         Log.i(CLSS,"onResume: registering as observer");
+        ServiceStatusManager.initialize();  // May have lost its instance
         ServiceStatusManager.getInstance().register(this);
     }
 

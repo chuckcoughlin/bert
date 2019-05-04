@@ -216,7 +216,9 @@ public class VoiceService extends Service implements VoiceServiceHandler {
             if (!currentState.equals(FacilityState.ACTIVE)) {
                 reportConnectionState(currentFacility, FacilityState.WAITING);
                 bluetoothConnection.openConnections(bluetoothDevice);
-            }// Start socket
+                Log.i(CLSS, String.format("%s: Set connection to %s (%s %s)",CLSS, bluetoothDevice.getName(), bluetoothDevice.getType(), bluetoothDevice.getAddress()));
+            }
+            // Start socket
             else {
                 Handler mainHandler = new Handler(this.getMainLooper());
                 mainHandler.post(new Runnable() {

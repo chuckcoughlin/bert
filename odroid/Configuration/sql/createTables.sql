@@ -43,7 +43,8 @@ CREATE TABLE Action (
 -- Each pose is represented on a single line
 DROP TABLE IF EXISTS Pose;
 CREATE TABLE Pose (
-	name	text PRIMARY KEY,
+	name	text NOT NULL,
+	parameter    text NOT NULL,
 	ABS_X	int NULL,
 	ABS_Y	int NULL,
 	ABS_Z	int NULL,
@@ -68,7 +69,8 @@ CREATE TABLE Pose (
 	RIGHT_HIP_Z	int NULL,
 	RIGHT_KNEE_Y	int NULL,
 	RIGHT_SHOULDER_X	int NULL,
-	RIGHT_SHOULDER_Y	int NULL
+	RIGHT_SHOULDER_Y	int NULL,
+	UNIQUE (name,parameter)
 );
 -- The PoseMap table maps commands to poses.
 DROP TABLE IF EXISTS PoseMap;

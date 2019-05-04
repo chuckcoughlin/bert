@@ -17,13 +17,12 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-	  Salutation? (Command|Halt|Shutdown)                        # handleSingleWordCommand
-    | Salutation? List Article? Configuration                    # configurationRequest
+      Salutation? List Article? Configuration                    # configurationRequest
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
 	| Salutation? List Article? Motor? Properties				# handleListCommand2
-	| Salutation? NAME                      					# handleCustomCommand
 	| Salutation? (Move) Article? Side? Joint Axis? To Value Unit?  # moveMotor
+	| Salutation? (Command|Halt|Shutdown|NAME)                  # handleSingleWordCommand
 	;
 
 // Request for information
@@ -50,7 +49,7 @@ declaration:
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'old'|'tall';
 Axis: 'x'|'y'|'z'|'horizontal'|'vertical';
-Command: ('attention'|'freeze'|'relax'|'wake up');
+Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');
 Configuration: 'configuration';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';

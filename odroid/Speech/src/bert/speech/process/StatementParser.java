@@ -37,6 +37,7 @@ public class StatementParser  {
 	 * Initialize the shared dictionary
 	 */
 	private void initialize() {
+		context.put(SharedKey.ASLEEP.name(),"false");
 		context.put(SharedKey.AXIS.name(),"x");
 		context.put(SharedKey.SIDE.name(),"right");
 	}

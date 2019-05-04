@@ -19,8 +19,8 @@ sqlite3 $DB < ${SQL}/createTables.sql
 
 # Change to CSV mode and load pose and action tables
 cd ${CSV}
-cat Pose.csv | tail -n 1|sed -e 's/	/,/g' >/tmp/pose
-cat PoseMap.csv | tail -n 1|sed -e 's/	/,/g' >/tmp/posemap
+cat Pose.csv | tail -n+2|sed -e 's/	/,/g' >/tmp/pose
+cat PoseMap.csv | tail -n+2|sed -e 's/	/,/g' >/tmp/posemap
 
 cd ${ETC}
 sqlite3 $DB << EOF
