@@ -119,6 +119,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         // Fill the list view with the strings the recognizer thought it could have heard, there should be 5, based on the call
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         //display results. The zeroth result is usually the space-separated one.
+        assert matches != null;
         for (int i = 0; i < matches.size(); i++) {
             Log.i(CLSS, "result " + matches.get(i));
         }

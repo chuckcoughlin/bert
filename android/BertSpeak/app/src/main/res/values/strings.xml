@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">BertSpeak</string>
+    <!-- SYstem-level variables -->
+    <string name="appbar_scrolling_view_behavior">true</string>
     <!-- Labels in the navigation bar -->
     <string name="cover_tab_label">Cover</string>
     <string name="dispatcher_log_tab_label">Logs</string>

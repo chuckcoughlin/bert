@@ -33,6 +33,7 @@ public class NotificationActionReceiver extends BroadcastReceiver {
         Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         context.sendBroadcast(it);
 
+        assert action != null;
         if(action.equalsIgnoreCase(context.getString(R.string.notificationStop))) System.exit(0);
     }
 }

@@ -81,6 +81,7 @@ public class SettingsFragment extends BasicAssistantListFragment  {
             EditText editText = convertView.findViewById(R.id.settingsEditView);
             // Populate the data into the template view using the data object
             //Log.i(CLSS,String.format("adapter.getView setting %s = %s",nv.getName(),nv.getValue()));
+            assert nv != null;
             nameView.setText(nv.getName());
             editText.setText(nv.getValue());
             editText.setHint(nv.getHint());

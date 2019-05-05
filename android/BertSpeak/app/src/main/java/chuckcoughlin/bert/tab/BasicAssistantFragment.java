@@ -24,15 +24,19 @@ public class BasicAssistantFragment extends Fragment implements AssistantFragmen
 
 
     public int getPageNumber() {
+        assert getArguments() != null;
         return getArguments().getInt(PAGE_ARG);
     }
     public void setPageNumber(int page) {
+        assert getArguments() != null;
         getArguments().putInt(PAGE_ARG, page);
     }
     public String getTitle()   {
+        assert getArguments() != null;
         return getArguments().getString(TITLE_ARG);
     }
     public void setTitle(String title)   {
+        assert getArguments() != null;
         getArguments().putString(TITLE_ARG, title);
     }
 

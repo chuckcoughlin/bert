@@ -259,6 +259,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         // Stop foreground service and remove the notification.
         stopForeground(true);
         BluetoothManager bmgr = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
+        assert bmgr != null;
         bmgr.getAdapter().cancelDiscovery();
 
         // Stop the foreground service.

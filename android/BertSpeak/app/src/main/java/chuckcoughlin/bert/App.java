@@ -27,6 +27,7 @@ public class App extends Application {
             serviceChannel.enableLights(true);
             serviceChannel.setLightColor(Color.BLUE);
             NotificationManager manager = getSystemService(NotificationManager.class);
+            assert manager != null;
             manager.createNotificationChannel(serviceChannel);
             Log.i(CLSS,String.format("createNotificationChannel: %s (%s)",
                     BertConstants.NOTIFICATION_CHANNEL_NAME,BertConstants.NOTIFICATION_CHANNEL_ID));
