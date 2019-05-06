@@ -185,6 +185,7 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt-get autoclean -y
 
   sudo chmod 666 /dev/ttyACM*
+  sudo hciconfig hci0 piscan
 ```
 
 As super-user, set the serial port permissions by creating file `/etc/udev/rules.d/50-ttyusb.rules` with the following contents:
@@ -196,6 +197,12 @@ The reason for ``firefox`` is that we were not able to properly configure the pr
 In `/etc/ld.so.conf.d`, add a file named `robot.conf` containing the single line:
 ```
   /usr/local/robot/lib
+```
+
+Edit `/lib/systemd/system/bluetooth.service`
+Replace the existing similar line with:
+```
+   ExecStart=/usr/lib/bluetooth/bluetoothd -C
 ```
 
 To shutdown,
@@ -380,65 +387,24 @@ Location: http://pydev.org/updates
 We use PyDev to browse the original *Poppy* and *iCub* code.
 
 *** Bluetooth *** <br/>
+
+An excellent introduction to Bluetooth is a book by Albert Huang
+of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
 Programmatic access to Bluetooth requires a native interface to the Odroid's
-shared  library `libbluetooth.so` (BlueZ 5.48).
-
-The JNI library must be built on the Odroid. To install the source:
-* Modify the script **install_odroid_source.sh** so that it points to the directory
-on the Odroid where the build will take place. Execute the script.
-
-Then, on the Odroid, in that directory -
-
-======================== TinyB ========================================
-[TinyB](https://github.com/intel-iot-devkit/tinyb ) is a library and Java classes for Bluetooth LE communication.
- The original distribution builds with `cmake`, but I was never
-able to get that working. I just created a custom `Makefile` to build the code.
-[Doc](https://software.intel.com/en-us/java-for-bluetooth-le-apps) [Examples](https://github.com/intel-iot-devkit/tinyb/tree/master/examples).
-
-Currently integrated with main robot application.
-
-when loading the library...
-      UnsatisfiedLinkError:  g_cclosure_marshall_generic
-        in tinyb.BluetoothManager.getNativeAPIVersion
-          BluetoothManager.getBluetoothManager
-  issue: this method was introduced in libc6 2.30. The Odroid has 2.27.
-  Get this error on all native methods.
-
-======================== JBlueZ =====================================
-
-Based on a minimalist implementation
-[JBlueZ](http://jbluez.sourceforge.net/)
-by Edward Kay provides a great example of the Java Native Interface (JNI).
-It's intent is to use JNI and link directly to libbluetooth.so.
-The original package required J2ME, which is not the Java on the
-Odroid. It also relies on DBus which is yet-another-interface to learn/debug.
-On the plus side this is relatively up-to-date. Vers 5.50, June 2018.
-
-Since we don't need a full-featured Bluetooth interface, we have simplified things
-considerably by making use of GATT (Generic Atributes)
-Bluetooth profiles. The only characteristics we require are two to read and write
-simple strings. Following instructions [here](https://stackoverflow.com/questions/25427768/bluez-how-to-set-up-a-gatt-server-from-the-command-line), we created a GATT server on the Odroid using _bluetoothctl_.
-```
-bluetoothctl
-  menu gatt
-  register-service 0xFFFF # (Choose yes when asked if primary service)
-  register-characteristic 0xAAAA read       # (Select a value of 1 when prompted)
-  register-characteristic 0xBBBB write      # (Select a value of 2 when prompted)
-  register-characteristic 0xCCCC read,write # (Select a value of 0 when prompted)
-  register-application # (This commits the services/characteristics and registers the profile)
-  back
-  advertise on
-  exit
-```
-
-
+shared  library `libbluetooth.so` (BlueZ 5.48). Our choice for this interface
+is JBlueZ](http://jbluez.sourceforge.net/)
+by Edward Kay augmented by code from the book mentioned above. This is a minimalist
+implementation and we have simplified even
+further, using RFCOMM to transfer strings between the tablet and Odroid.
 
 On the development machine, the _Eclipse_ build project creates the include files
 needed for the JNI interface library. The ``install_odroid_source.sh`` script
 copies these and other source files onto the Odroid in preparation for building the JNI library
 _libbluetoothjni.so_ and _jbluez_ test
-application. From the home directory on the Odroid:
+Applications. (Modify the script so that it points to the directory
+on the Odroid where the build will take place.)
 
+To build, on the Odroid, in that directory -
 ```
   cd bluez_jni
   make -e
@@ -446,51 +412,19 @@ application. From the home directory on the Odroid:
   make tests
 ```
 
-For a list of test options, type:
-```
-  jbluez -h
-```
+
 
 To run similar tests from Java ...
 ```
   ${BERT_HOME}/bin/test_bluez.sh
 ```
 
-We include sample test applications from code from a book by Albert Huang
-of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/) helped
-me understand structures involved with discovery and data transfer.
-
-======================== Bluecove =====================================
-https://github.com/luugiathuy/Remote-Bluetooth-Android/blob/master/RemoteBluetoothServer/src/com/luugiathuy/apps/remotebluetooth
-http://luugiathuy.com/2011/02/android-java-bluetooth/ - Simple connection using bluecove.
-Used this as a minimalist starting point.
-
-[bluecove](https://code.google.com/archive/p/bluecove/wikis/Documentation.wiki)
-[Linux Module](http://bluecove.org/bluecove-gpl/
-[BlueCove Examples](http://bluecove.org/bluecove-examples/index.html)
-
-[Download](https://code.google.com/archive/p/bluecove/downloads)
-includes source for libraries.
-
-bluecove-2.1.0.jar (includes javax.microedition classes).
-bluecove-gpl-2.1.0.jar
-Jar files include too many dependencies to modularize as-is. We decided to add
-classes as necessary. Converted to java.util.logger (removed log4j).
-Removed the Java dependency on J2ME.
-
-TODO: Makefile for libbluecove.so
-
-
-The standard jar files included the "stacks", native library code, though not the
-one we needed, for ARM. Consequently had to build from source and use code
-that brought on a GPL dependency.
-
-=======================================================================================
-[Basics of Bluetooth](https://opensourceforu.com/2015/06/linux-without-wires-the-basics-of-bluetooth/)
-The `libbluetoothjni` library is designed to communicate with the local
-device and transfer strings back and forth with its pair (the android tablet).
-The library must be built and installed on the Odroid. Here are instructions:
-
+ISSUES ====
+1) Need to re-issue following command on startup to start serial protocol
+  sudo sdptool add SP
+2) Through the UI connect headset on tablet after startup
+3) In ~/jbluez-jni. Android does not detect rfcomm server going away.
+   ./rfcommserver
 
 
 ### Android Studio <a id="android"></a>

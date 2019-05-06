@@ -154,8 +154,10 @@ Why did I select Java for this code when the iCub project chose Python?
   * Threading - the Java threading model is more straightforward (IMHO)
   * Cross-compiling - difficulties creating Odroid executables precluded my use of C++.
 
-#### Failures <a id="failures"/>
-This section documents some ideas that were tried and abandoned.
+### Failures <a id="failures"/>
+This section documents ideas that were tried and abandoned. The implication here is not
+so much that these ideas won't work, but rather that I couldn't get them to work or found
+more expedient alternatives.
 
 *** Gradle *** <br/>
 ``Gradle`` is a modern tool for building software of several flavors.  To install ``Gradle`` use ``homebrew``:
@@ -195,3 +197,41 @@ export JAVA_AWT_INCLUDE_PATH=$JAVA_HOME/include
 ```
 Since the purpose of all this was to generate a Makefile of about 50 lines, I
 did it the old-fashioned way and edited it by hand, to use `make` directly.
+
+*** TinyB *** </br>
+[TinyB](https://github.com/intel-iot-devkit/tinyb ) is a library and Java classes for Bluetooth LE communication.
+ The original distribution builds with `cmake`, but I was never
+able to get that working. I just created a custom `Makefile` to build the code.
+and integrate it with the main robot application.
+
+Unfortunately when loading the JNI library ...
+```
+      UnsatisfiedLinkError:  g_cclosure_marshall_generic
+        in tinyb.BluetoothManager.getNativeAPIVersion
+          BluetoothManager.getBluetoothManager
+```
+The underlying issue is that the missing method was introduced in libc6 2.30.
+The Odroid has 2.27. I get this error on all native methods. I assume it is a
+result of using C++ in the interface library.
+
+*** Bluecove ***</br>
+*BlueCove* is yet another Bluetooth library available from [here](https://code.google.com/archive/p/bluecove/wikis/Documentation.wiki). A well written example for a simple connection is written by [Luu Gia Thuy](
+https://github.com/luugiathuy/Remote-Bluetooth-Android/blob/master/RemoteBluetoothServer/src/com/luugiathuy/apps/remotebluetooth)
+
+Unfortunately the project jar files contained too many dependencies to modularize into Java 10 jars.
+I decided to build the jar from scratch, adding classes as necessary. I converted logging to java.util.logger (removing the log4j dependencies. I removed the Java dependency on J2ME.
+
+The standard jar files included the "stacks", native library code for different target architectures,
+though not the one we needed, for ARM. Consequently I had to build from source using code
+that brought on a GPL dependency.
+
+This just got too complicated.
+
+
+*** GATT *** <br/>
+Since we don't need a full-featured Bluetooth interface, the idea was to simplify things
+considerably by making use of GATT (Generic Atributes)
+Bluetooth profiles. The only characteristics we require are two to read and write
+simple strings. Following instructions [here](https://stackoverflow.com/questions/25427768/bluez-how-to-set-up-a-gatt-server-from-the-command-line), we attempted to create a GATT server on the Odroid using
+ _bluetoothctl_. The reported syntax for setting service characteristics in _bluetoothctl_
+ didn't work and I was never successful in creating a registration.

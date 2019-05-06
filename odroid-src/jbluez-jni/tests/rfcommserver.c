@@ -41,6 +41,16 @@ int main(int argc, char **argv)
     if( bytes_read > 0 ) {
         printf("received [%s]\n", buf);
     }
+	// respond with a reply ...
+	strcpy(buf,"A reply from Bert\n");
+    printf("%s\n",buf);
+    write(client, buf, strlen(buf));
+
+    // read data from the client again
+    bytes_read = read(client, buf, sizeof(buf));
+    if( bytes_read > 0 ) {
+        printf("received [%s]\n", buf);
+    }
 
     // close connection
     close(client);

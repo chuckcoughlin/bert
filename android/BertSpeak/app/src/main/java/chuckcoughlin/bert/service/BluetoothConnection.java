@@ -6,6 +6,7 @@ package chuckcoughlin.bert.service;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.os.ParcelUuid;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -26,7 +27,7 @@ public class BluetoothConnection {
 	private static final String CLSS = "BluetoothConnection";
     private final VoiceServiceHandler handler;
     private ConnectionThread connectionThread = null;
-
+	private static final int BUFFER_SIZE = 256;
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
     //private static final UUID SERVICE_UUID = UUID.fromString("0000110A-0000-1000-8000-00805F9B34FB");
@@ -36,13 +37,15 @@ public class BluetoothConnection {
 	private BluetoothSocket socket;
 	private BufferedReader in = null;
 	private PrintWriter out =null;
+	private final char[] buffer;
 
 	/**
 	 * Constructor: Use this version for processes that are clients
 	 * @param handler the parent fragment
 	 */
 	public BluetoothConnection(VoiceServiceHandler handler) {
-        this.handler = handler;
+        this.buffer  = new char[BUFFER_SIZE];
+		this.handler = handler;
 	}
 
 
@@ -90,23 +93,20 @@ public class BluetoothConnection {
 	 *
 	 * @return either a RequestBottle or a ResponseBottle as appropriate.
 	 */
-	public String readLine() {
+	public String read() {
 		String text = null;
 		try {
 			if(in!=null )  {
-				Log.i(CLSS,String.format("readLine: reading ... "));
-				text = in.readLine();
-				while( text==null ) {
-					text = reread();
-				}
-				Log.i(CLSS,String.format("readLine: got %s",text));
+				Log.i(CLSS,String.format("read: reading ... "));
+				int count = in.read(buffer,0,BUFFER_SIZE);
+				Log.i(CLSS,String.format("read: got %d bytes !!",count));
 			}
 			else {
-                Log.e(CLSS,String.format("readLine: Error reading from %s before connection",device.getName()));
+                Log.e(CLSS,String.format("read: Error reading from %s before connection",device.getName()));
 			}
 		}
 		catch(IOException ioe) {
-			Log.e(CLSS,String.format("readLine: Error reading from %s (%s)",device.getName(),ioe.getLocalizedMessage()));
+			Log.e(CLSS,String.format("read: Error reading from %s (%s)",device.getName(),ioe.getLocalizedMessage()));
 		}
 		return text;
 	}
@@ -195,7 +195,6 @@ public class BluetoothConnection {
                 	UUID uuid = null;
 					Log.i(CLSS, String.format("create: Attempting to connect to %s", device.getName()));
 
-					/*
 					if( device.fetchUuidsWithSdp() ) {
 						ParcelUuid[] uuids = device.getUuids();
 						Log.i(CLSS, String.format("run: %s returned %d service UUIDs",device.getName(), uuids.length));
@@ -216,11 +215,9 @@ public class BluetoothConnection {
 						handler.handleSocketError(reason);
 						break;
 					}
-					*/
 					//BluetoothGatt gatt = device.connectGatt(((VoiceService)handler).getApplicationContext(),true,new GattCallback());
 					//BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
 					//bluetoothConnectionManager.registerConnectionCallback(bluetoothConnectionCallback);
-
 
 					socket = device.createInsecureRfcommSocketToServiceRecord(SERVICE_UUID);
 					socket.connect();
@@ -264,7 +261,8 @@ public class BluetoothConnection {
                     try {
                         out = new PrintWriter(socket.getOutputStream(),true);
                         Log.i(CLSS,String.format("openPorts: opened %s for write",device.getName()));
-                        write("Tablet is connected");
+                        write("Tablet is connected !!");
+						read();  // Get response
                     }
                     catch (Exception ex) {
                         reason = String.format("The tablet failed to open a socket for writing due to %s",ex.getMessage());
@@ -278,6 +276,7 @@ public class BluetoothConnection {
                     handler.handleSocketError(reason);
                 }
             }
+
             return reason;
         }
 	}
