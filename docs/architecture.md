@@ -198,6 +198,14 @@ export JAVA_AWT_INCLUDE_PATH=$JAVA_HOME/include
 Since the purpose of all this was to generate a Makefile of about 50 lines, I
 did it the old-fashioned way and edited it by hand, to use `make` directly.
 
+*** JBlueZ ***<br/>
+JBlueZ](http://jbluez.sourceforge.net/)
+by Edward Kay is a minimalist
+implementation of a Bluetooth interface. Its intent is to use JNI and link directly
+to _libbluetooth.so_. However, it requires J2ME which is not the Java on the Odroid.
+It also relies on _DBus_ which is yet-another-interface to learn and debug. It
+also comes with a GPL license.
+
 *** TinyB *** </br>
 [TinyB](https://github.com/intel-iot-devkit/tinyb ) is a library and Java classes for Bluetooth LE communication.
  The original distribution builds with `cmake`, but I was never
@@ -219,7 +227,7 @@ result of using C++ in the interface library.
 https://github.com/luugiathuy/Remote-Bluetooth-Android/blob/master/RemoteBluetoothServer/src/com/luugiathuy/apps/remotebluetooth)
 
 Unfortunately the project jar files contained too many dependencies to modularize into Java 10 jars.
-I decided to build the jar from scratch, adding classes as necessary. I converted logging to java.util.logger (removing the log4j dependencies. I removed the Java dependency on J2ME.
+I decided to build the jar from scratch, adding classes as necessary. I converted logging to java.util.logger (removing _log4j_ dependencies). I removed the Java dependency on J2ME.
 
 The standard jar files included the "stacks", native library code for different target architectures,
 though not the one we needed, for ARM. Consequently I had to build from source using code

@@ -12,6 +12,7 @@ package bert.share.model;
 public interface ConfigurationConstants   {   
 	
 	// Keys for properties
+	public final static String PROPERTY_BLUESERVER_PORT = "blueserver";
 	public final static String PROPERTY_CADENCE     = "cadence";
 	public final static String PROPERTY_CONTROLLER_NAME= "controller"; 
 	public final static String PROPERTY_HOSTNAME    = "hostname"; 

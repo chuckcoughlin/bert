@@ -15,6 +15,7 @@ public enum HandlerType
             COMMAND,
             REQUEST,
             SERIAL,
+            TABLET,
             TERMINAL
             ;
           

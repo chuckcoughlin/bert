@@ -22,6 +22,7 @@ import bert.share.xml.XMLUtility;
 public class RobotCommandModel extends AbstractRobotModel   {
 	private static final String CLSS = "RobotCommandModel";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
+	private int blueserverPort = 11046;
 	private String deviceUUID  = "";
 	private String deviceMAC   = "";
 
@@ -38,7 +39,7 @@ public class RobotCommandModel extends AbstractRobotModel   {
 		analyzeProperties();
 		analyzeMotors();
 	}
-
+	public int getBlueserverPort() { return this.blueserverPort; }
 	public String getDeviceMAC() { return deviceMAC; }
 	/**
 	 * @return bluetooth device service UUID as a String
@@ -71,6 +72,12 @@ public class RobotCommandModel extends AbstractRobotModel   {
 						
 						for( int iSocket=0;iSocket<nSocket;iSocket++) {
 							Element socketElement= (Element)(socketElements.item(iSocket));
+							try {
+								this.blueserverPort = Integer.parseInt(XMLUtility.attributeValue(socketElement, "blueserver"));
+							}
+							catch (NumberFormatException nfe) {
+								LOGGER.warning(String.format("%s.analyzeControllers: Port for \"bluesserver\" missing or not a number (%s)",CLSS,nfe.getLocalizedMessage()));
+							}
 							String socketMAC = XMLUtility.attributeValue(socketElement, "mac");
 							String socketName = XMLUtility.attributeValue(socketElement, "name");
 							String portName = XMLUtility.attributeValue(socketElement, "port");

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import bert.share.controller.Controller;
+import bert.share.controller.NamedSocket;
 import bert.share.controller.SocketStateChangeEvent;
 import bert.share.controller.SocketStateChangeListener;
 import bert.share.message.HandlerType;
@@ -30,7 +31,7 @@ public class BluetoothController implements Controller {
 	private final MessageHandler dispatcher;
 	private final StatementParser parser;
 	private final MessageTranslator translator;
-	private final BluetoothSocket socket;
+	private final NamedSocket socket;
 	private Thread runner = null;
 	private final List<SocketStateChangeListener> changeListeners = new ArrayList<>();
 	/**
@@ -39,11 +40,11 @@ public class BluetoothController implements Controller {
 	 * @param mac address of the tablet device
 	 * @param uuid of the service on that device
 	 */
-	public BluetoothController(MessageHandler launcher,String mac,String uuid) {
+	public BluetoothController(MessageHandler launcher,int port) {
 		this.dispatcher = launcher;
 		this.parser = new StatementParser();
 		this.translator = new MessageTranslator();
-		this.socket = new BluetoothSocket(mac,uuid);
+		this.socket = new NamedSocket(HandlerType.TABLET.name(),port);
 	}
 	
 	public void addChangeListener(SocketStateChangeListener c) {changeListeners.add(c);}
@@ -54,6 +55,7 @@ public class BluetoothController implements Controller {
 		BackgroundReader rdr = new BackgroundReader(socket);
 		runner = new Thread(rdr);
 		runner.start();
+		socket.startup();
 	}
 	@Override
 	public void stop() {
@@ -92,10 +94,10 @@ public class BluetoothController implements Controller {
 	 * Perform a blocking read as a background thread.
 	 */
 	public class BackgroundReader implements Runnable {
-		private BluetoothSocket sock;
+		private NamedSocket sock;
 
 
-		public BackgroundReader(BluetoothSocket s) {
+		public BackgroundReader(NamedSocket s) {
 			this.sock = s;
 		}
 
@@ -105,13 +107,12 @@ public class BluetoothController implements Controller {
 		 *   2) Invoke callback method on dispatcher
 		 */
 		public void run() {
-			sock.discover();
 			sock.startup();
 			notifyChangeListeners(sock.getName(),SocketStateChangeEvent.READY);
 
 			try {
 				while(!Thread.currentThread().isInterrupted() ) {
-					String input = sock.read();
+					String input = sock.readLine();
 					MessageBottle request = parser.parseStatement(input);
 					request.assignSource(HandlerType.COMMAND.name());
 					if( request.fetchError()!=null || request.fetchRequestType().equals(RequestType.NOTIFICATION)) {

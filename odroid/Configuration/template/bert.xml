@@ -10,12 +10,15 @@
 	<property name="name">bert</property>
 	<property name="release">@RELEASE@</property>
 	<property name="date">@DATE@</property>
+	<!--  Socket port used by the bluetooth RFCOMM server  -->
+	<property name="blueserver">11046</property>
 	<!--  Cadence in msecs refers to the record frequency  -->
 	<property name="cadence">1000</property>
 	<!--  Name of machine hosting the server process  -->
 	<property name="hostname">localhost</property>
 	<!--  Used by the terminal  -->
 	<property name="prompt">bert: </property>
+
 
 	<!-- The following section defines client-side processes that are also known to the server.
 		 Each client process communicates in both directions over its own socket. 

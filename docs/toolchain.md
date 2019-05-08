@@ -185,7 +185,6 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt-get autoclean -y
 
   sudo chmod 666 /dev/ttyACM*
-  sudo hciconfig hci0 piscan
 ```
 
 As super-user, set the serial port permissions by creating file `/etc/udev/rules.d/50-ttyusb.rules` with the following contents:
@@ -388,43 +387,34 @@ We use PyDev to browse the original *Poppy* and *iCub* code.
 
 *** Bluetooth *** <br/>
 
-An excellent introduction to Bluetooth is a book by Albert Huang
+Programmatic access to Bluetooth requires a interface to the Odroid's
+bluetooth library `libbluetooth.so` (BlueZ 5.48).
+An excellent introduction is a book by Albert Huang
 of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
-Programmatic access to Bluetooth requires a native interface to the Odroid's
-shared  library `libbluetooth.so` (BlueZ 5.48). Our choice for this interface
-is JBlueZ](http://jbluez.sourceforge.net/)
-by Edward Kay augmented by code from the book mentioned above. This is a minimalist
-implementation and we have simplified even
-further, using RFCOMM to transfer strings between the tablet and Odroid.
+ Starting with Albert's examples and relying
+heavily on lessons learned trying to implement the various packages
+mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed at a custom, minimalist
+daemon using RFCOMM. It communicates with the Java application over sockets.
+Its sole purpose is to transfer strings between the tablet and Odroid.
 
-On the development machine, the _Eclipse_ build project creates the include files
-needed for the JNI interface library. The ``install_odroid_source.sh`` script
-copies these and other source files onto the Odroid in preparation for building the JNI library
-_libbluetoothjni.so_ and _jbluez_ test
-Applications. (Modify the script so that it points to the directory
-on the Odroid where the build will take place.)
+On the development machine, in the _Eclipse_ Build project, the ``install_odroid_source.sh`` script
+copies C source files onto the Odroid in preparation for building the _blueserver_
+daemon and _blueserver_ test application. (This script may have to be modified for
+the correct robot home directory on the Odroid, likewise the init script may have to be
+modified for the tablet bluetooth device address).
 
 To build, on the Odroid, in that directory -
 ```
-  cd bluez_jni
+  cd blueserver
   make -e
   make install
-  make tests
+  cd ${BERT_HOME}/bin
+  sudo ./install_blueserver_init_scripts.sh
 ```
 
+Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
 
-
-To run similar tests from Java ...
-```
-  ${BERT_HOME}/bin/test_bluez.sh
-```
-
-ISSUES ====
-1) Need to re-issue following command on startup to start serial protocol
-  sudo sdptool add SP
-2) Through the UI connect headset on tablet after startup
-3) In ~/jbluez-jni. Android does not detect rfcomm server going away.
-   ./rfcommserver
+The init script launches the Bluetooth Serial Port service and connects to the tablet.
 
 
 ### Android Studio <a id="android"></a>

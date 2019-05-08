@@ -37,8 +37,8 @@ public class Command extends Thread implements MessageHandler {
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotCommandModel model;
-	private BluetoothController controller = null;
-	private SocketController socketController = null;
+	private SocketController tabletController = null;
+	private SocketController dispatchController = null;
 	private final Humanoid robot;
 	private final Condition busy;
 	private MessageBottle currentRequest;
@@ -53,19 +53,18 @@ public class Command extends Thread implements MessageHandler {
 	}
 
 	/**
-	 * This application is only interested in the command controller. There should only be
-	 * one entry in the map. Create a socket controller for clients.
+	 * This application is only interested in the command bluetoothController. There should only be
+	 * one entry in the map. Create a socket bluetoothController for clients.
 	 */
 	@Override
 	public void createControllers() {
-		this.controller = new BluetoothController(this,model.getDeviceMAC(),model.getDeviceUUID());
-		
+		this.tabletController = new SocketController(this,HandlerType.TABLET.name(),"localhost",model.getBlueserverPort());
 		String hostName = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost");
 		Map<String, Integer> sockets = model.getSockets();
 		Iterator<String>walker = sockets.keySet().iterator();
 		String key = walker.next();
 		int port = sockets.get(key);
-		this.socketController = new SocketController(this,HandlerType.COMMAND.name(),hostName,port); 
+		this.dispatchController = new SocketController(this,HandlerType.COMMAND.name(),hostName,port); 
 	}
 	
 	@Override
@@ -84,7 +83,7 @@ public class Command extends Thread implements MessageHandler {
 				try{
 					busy.await();
 					if( currentRequest==null) break;
-					socketController.receiveRequest(currentRequest);	
+					dispatchController.receiveRequest(currentRequest);	
 				}
 				catch(InterruptedException ie ) {}
 				finally {
@@ -105,13 +104,13 @@ public class Command extends Thread implements MessageHandler {
 
 	@Override
 	public void startup() {
-		socketController.start();
-		controller.start();
+		dispatchController.start();
+		tabletController.start();
 	}
 	@Override
 	public void shutdown() {
-		socketController.stop();
-		controller.stop();
+		dispatchController.stop();
+		tabletController.stop();
 	}
 	/**
 	 * We've gotten a request (must be from a different thread than our main loop). Signal
@@ -129,12 +128,12 @@ public class Command extends Thread implements MessageHandler {
 		}
 	}
 	/**
-	 * We've gotten a response. Send it to our Bluetooth controller 
+	 * We've gotten a response. Send it to our Bluetooth bluetoothController 
 	 * which ultimately writes it to the Android tablet.
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
-		controller.receiveResponse(response);
+		tabletController.receiveResponse(response);
 	}
 	
 	/**
