@@ -393,17 +393,18 @@ An excellent introduction is a book by Albert Huang
 of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
  Starting with Albert's examples and relying
 heavily on lessons learned trying to implement the various packages
-mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed at a custom, minimalist
-daemon using RFCOMM. It communicates with the Java application over sockets.
+mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
+daemon using RFCOMM. It communicates with the Java application over sockets and
+the tablet via Bluetooth.
 Its sole purpose is to transfer strings between the tablet and Odroid.
+The tablet uses standard Android Bluetooth classes.
 
 On the development machine, in the _Eclipse_ Build project, the ``install_odroid_source.sh`` script
-copies C source files onto the Odroid in preparation for building the _blueserver_
-daemon and _blueserver_ test application. (This script may have to be modified for
-the correct robot home directory on the Odroid, likewise the init script may have to be
-modified for the tablet bluetooth device address).
+copies C source files onto the Odroid in preparation for building _blueserverd_, the
+daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
+the correct robot home directory on the Odroid).
 
-To build, on the Odroid, in that directory -
+Then to build on the Odroid, from the directory containing the source projects -
 ```
   cd blueserver
   make -e
@@ -414,7 +415,8 @@ To build, on the Odroid, in that directory -
 
 Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
 
-The init script launches the Bluetooth Serial Port service and connects to the tablet.
+The init script launches the Bluetooth Serial Port service which is a necessary
+prerequisite for running the daemon.
 
 
 ### Android Studio <a id="android"></a>
