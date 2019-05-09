@@ -75,8 +75,7 @@ public class Terminal extends Thread implements MessageHandler {
 	
 	/**
 	 * Loop forever reading from the terminal and forwarding the resulting requests
-	 * via socket to the server. We accept responses and forward to the stdio
-	 * controller.
+	 * via socket to the server (dispatcher). We accept its responses and forward to the stdio controller.
 	 */
 	@Override
 	public void run() {	
@@ -124,7 +123,7 @@ public class Terminal extends Thread implements MessageHandler {
 	}
 	/**
 	 * We've gotten a request (must be from a different thread than our main loop). Signal
-	 * to release the lock and send along to the socket.
+	 * to release the lock and send along to the dispatcher.
 	 */
 	@Override
 	public void handleRequest(MessageBottle request) {

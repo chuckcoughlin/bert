@@ -60,8 +60,6 @@ case "$1" in
 	 fi
 	 # Launch Serial Port service and connect bluetooth devices
 	 sdptool add SP
-	 bluetoothctl <!
-	 !
 	 start-stop-daemon --start --pidfile ${PIDFILE} --exec $DAEMON
 	 log_end_msg $?
   ;;

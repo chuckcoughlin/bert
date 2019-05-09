@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.command.controller.BluetoothController;
-import bert.command.model.Humanoid;
 import bert.command.model.RobotCommandModel;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
@@ -37,28 +36,26 @@ public class Command extends Thread implements MessageHandler {
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotCommandModel model;
-	private SocketController tabletController = null;
+	private BluetoothController tabletController = null;
 	private SocketController dispatchController = null;
-	private final Humanoid robot;
 	private final Condition busy;
 	private MessageBottle currentRequest;
 	private final Lock lock;
 	
 	
 	public Command(RobotCommandModel m) {
-		this.robot = Humanoid.getInstance();
 		this.model = m;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
 	}
 
 	/**
-	 * This application is only interested in the command bluetoothController. There should only be
-	 * one entry in the map. Create a socket bluetoothController for clients.
+	 * This application routes requests/responses between the Dispatcher and "blueserverd" daemon. Both
+	 * destinations involve socket controllers.
 	 */
 	@Override
 	public void createControllers() {
-		this.tabletController = new SocketController(this,HandlerType.TABLET.name(),"localhost",model.getBlueserverPort());
+		this.tabletController = new BluetoothController(this,HandlerType.TABLET.name(),model.getBlueserverPort());
 		String hostName = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost");
 		Map<String, Integer> sockets = model.getSockets();
 		Iterator<String>walker = sockets.keySet().iterator();
@@ -71,12 +68,12 @@ public class Command extends Thread implements MessageHandler {
 	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "command"); }
 	
 	/**
-	 * Loop forever reading from the bluetooth tablet. Forward the resulting requests
-	 * via named pipe to the server. We accept responses and forward to the tablet.
+	 * Loop forever reading from the bluetooth daemon (represents the tablet) and forwarding the resulting requests
+	 * via socket to the server (dispatcher). We accept its responses and forward back to the tablet.
+	 * Communication with the tablet consists of simple strings, plus a 4-character header.
 	 */
 	@Override
 	public void run() {
-
 		try {
 			for(;;) {
 				lock.lock();
@@ -114,7 +111,7 @@ public class Command extends Thread implements MessageHandler {
 	}
 	/**
 	 * We've gotten a request (must be from a different thread than our main loop). Signal
-	 * to release the lock to send along to the socket.
+	 * to release the lock to send along to the dispatcher.
 	 */
 	@Override
 	public void handleRequest(MessageBottle request) {

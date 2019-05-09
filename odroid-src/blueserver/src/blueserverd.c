@@ -30,8 +30,9 @@
 #include <bluetooth/rfcomm.h>
 #include "blueserver.h"
 
-int robotfd  = -1;
-int tabletfd = -1;
+int robotfd    = -1;
+inter serverfd = -1;
+int tabletfd   = -1;
 
 
 // There are no command-line arguments.
@@ -64,28 +65,32 @@ void run() {
 	int sock_flags;
 	int status;
 	struct sockaddr_rc address = { 0 };
+	struct sockaddr_rc remote  = { 0 };
 	address.rc_family = AF_BLUETOOTH;
-	address.rc_channel = 1;
-	str2ba(DEST,&address.rc_bdaddr);
+	address.rc_bdaddr = *BDADDR_ANY;
+    address.rc_channel = (uint8_t) 1;
+
 	struct sockaddr_in robot;
 	robot.sin_addr.s_addr = htonl(INADDR_LOOPBACK); /* localhost, 127.0.0.1 */
 	robot.sin_family = AF_INET;
 	robot.sin_port = htons( PORT );
 
+	printf("Opening server socket for tablet ...\n");
+	serverfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+	// Bind socket to port 1 of first available bluetooth adapter.
+    bind(serverfd, (struct sockaddr *)&address, sizeof(address));
+    // put socket into listening mode
+    printf("%s: Socket bound and listening ...\n",PROG);
+
 	for(;;) {
 		if( tabletfd<0 ) {
+    		listen(serverfd, 1); // Accepts one connection
 			// Connect to the tablet
-			syslog(LOG_INFO,"%s: opening socket to the tablet",PROG);
-			tabletfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    		tabletfd = accept(serverfd, (struct sockaddr *)&remote, &opt);
+    		ba2str( &remote.rc_bdaddr, buf );
+    		printf("%s: Accepted connection from %s\n",PROG,buf);
 			sock_flags = fcntl( tabletfd,F_GETFL,0);
 			fcntl(tabletfd,F_SETFL,sock_flags|O_NONBLOCK);
-
-			status = connect(tabletfd,(struct sockaddr*)&address,sizeof(address));
-			if( status!=0 && errno!=EAGAIN ) {
-				syslog(LOG_WARNING,"%s: Error connecting to tablet (%s)",PROG,strerror(errno));
-				exit(2);
-			}
-			syslog(LOG_INFO,"%s: connected to tablet",PROG);
 		}
 
 		if( robotfd<0 ) {
@@ -166,4 +171,6 @@ void stop() {
 	closelog();
 	if(tabletfd>0) close(tabletfd);
 	if(robotfd>0 ) close(robotfd);
+	if(serverfd>0 )close(serverfd);
+	syslog(LOG_INFO,"%s: shut down",PROG);
 }

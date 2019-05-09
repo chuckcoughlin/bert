@@ -24,52 +24,29 @@ import bert.speech.process.StatementParser;
 /**
  * The Bluetooth controller handles input/output to/from an Android tablet via
  * a Bluetooth network. The tablet handles speech-to-text and text-to-speech. 
+ * This extends SocketController to handle translation of MessageBottle objects
+ * to and from the simple text messages recognized by the tablet.
  */
-public class BluetoothController implements Controller {
+public class BluetoothController extends SocketController implements Controller {
 	private final static String CLSS = "BluetoothController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private final MessageHandler dispatcher;
 	private final StatementParser parser;
 	private final MessageTranslator translator;
-	private final NamedSocket socket;
-	private Thread runner = null;
-	private final List<SocketStateChangeListener> changeListeners = new ArrayList<>();
+	
 	/**
-	 * Constructor: For this connection, we act as a server.
+	 * Constructor: For this connection, we act as a client.
 	 * @param launcher the parent application
-	 * @param mac address of the tablet device
-	 * @param uuid of the service on that device
+	 * @param port for socket connection
 	 */
 	public BluetoothController(MessageHandler launcher,int port) {
-		this.dispatcher = launcher;
+		super(launcher,HandlerType.TABLET.name(),"localhost",port);
 		this.parser = new StatementParser();
 		this.translator = new MessageTranslator();
-		this.socket = new NamedSocket(HandlerType.TABLET.name(),port);
 	}
 	
-	public void addChangeListener(SocketStateChangeListener c) {changeListeners.add(c);}
-	public void removeChangeListener(SocketStateChangeListener c) {changeListeners.remove(c);}
-	
-	@Override
-	public void start() {
-		BackgroundReader rdr = new BackgroundReader(socket);
-		runner = new Thread(rdr);
-		runner.start();
-		socket.startup();
-	}
-	@Override
-	public void stop() {
-		if( runner!=null) {
-			LOGGER.info(String.format("%s.stopping ... %s",CLSS,socket.getName()));
-			runner.interrupt();
-			runner = null;
-		}
-		socket.shutdown();
-	}
 	/**
 	 * Format a request from the spoken text arriving from the tablet.
 	 * Forward on to the dispatcher.
-	 * 
 	 */
 	@Override
 	public void receiveRequest(MessageBottle request ) {
@@ -133,25 +110,5 @@ public class BluetoothController implements Controller {
 
 			LOGGER.info(String.format("BackgroundReader,%s stopped",sock.getName()));
 		}
-		// ===================================== Helper Methods ==================================================
-		// Notify listeners in a separate thread
-		protected void notifyChangeListeners(String name,String state) {
-			SocketStateChangeEvent event = new SocketStateChangeEvent(this,name,state);
-			if( changeListeners.isEmpty()) return;  // Nothing to do
-			Thread thread = new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					for(SocketStateChangeListener l: changeListeners) {
-						//log.infof("%s.notifying ... %s of %s",TAG,l.getClass().getName(),value.toString());
-						l.stateChanged(event);
-					}        
-				}
-
-			});
-
-			thread.start();
-		}
-	}
 	
 }

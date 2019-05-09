@@ -72,8 +72,8 @@ public class SocketController implements Controller{
 	}
 	
 	/**
-	 * If the parent is a server, then we get the request from the pipe,
-	 * else it comes from the parent directly.
+	 * If the parent is a server (i.e. the dispatcher), then we get the request from the socket,
+	 * else it comes from the parent using a direct call.
 	 * @param request
 	 */
 	@Override
@@ -88,7 +88,7 @@ public class SocketController implements Controller{
 	}
 	
 	/**
-	 * If the parent is a server, then write the response to the socket.
+	 * If the parent is a server (i.e. the dispatcher), then write the response to the socket.
 	 * Otherwise we are on the receiving end. Handle it.
 	 * @param response
 	 */
