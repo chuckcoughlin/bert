@@ -225,6 +225,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
                     public void run() {
                         analyzer.start();
                         analyzer.listen();
+                        bluetoothConnection.readInThread();
                     }
                 });
                 reportConnectionState(TieredFacility.VOICE,FacilityState.WAITING);
@@ -247,9 +248,11 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     }
 
     // Update any observers with the latest text
+    // Send text to the robot for processing.
     private void reportSpokenText(String text) {
         Log.i(CLSS,String.format("reportSpokenText: %s",text));
         SpokenTextManager.getInstance().processText(text, MessageType.REQUEST);
+        bluetoothConnection.write(text);
     }
 
     private void stopForegroundService() {

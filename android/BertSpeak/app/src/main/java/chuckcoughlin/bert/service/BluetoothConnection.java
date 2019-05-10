@@ -29,6 +29,7 @@ public class BluetoothConnection {
 	private static final String CLSS = "BluetoothConnection";
     private final VoiceServiceHandler handler;
     private ConnectionThread connectionThread = null;
+	private ReaderThread readerThread = null;
 	private static final int BUFFER_SIZE = 256;
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
@@ -111,6 +112,15 @@ public class BluetoothConnection {
 		return text;
 	}
 
+	/**
+	 * Start a thread that loops forever in a blocking read.
+	 */
+	public void readInThread() {
+		if( readerThread==null ) {
+			readerThread = new ReaderThread();
+			readerThread.start();
+		}
+	}
 	
 	/**
 	 * Write plain text to the socket.
@@ -274,5 +284,28 @@ public class BluetoothConnection {
             }
             return reason;
         }
+	}
+	// ================================================= Connection Thread =========================
+	/**
+	 * Check for the network in a separate thread.
+	 */
+	private class ReaderThread extends Thread {
+
+		/**
+		 * Read in a separate thread. Read blocks.
+		 */
+		@Override
+		public void run() {
+			for (; ; ) {
+				try {
+
+					read();
+					Thread.sleep(100);
+				}
+				catch(InterruptedException ex) {
+
+				}
+			}
+		}
 	}
 }

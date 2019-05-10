@@ -76,12 +76,16 @@ void run() {
 	robot.sin_family = AF_INET;
 	robot.sin_port = htons( PORT );
 
-	printf("Opening server socket for tablet ...\n");
-	serverfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+	syslog(LOG_INFO,"Opening server socket for robot ...\n");
+	rserverfd = socket(AF_INET, SOCK_STREAM, 0);
+    bind(rserverfd, (struct sockaddr *)&robot, sizeof(robot));
+    syslog(LOG_INFO,("%s: Socket bound and listening ...",PROG);
+
+	syslog(LOG_INFO,"Opening server socket for tablet ...\n");
+	tserverfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 	// Bind socket to port 1 of first available bluetooth adapter.
-    bind(serverfd, (struct sockaddr *)&address, sizeof(address));
-    // put socket into listening mode
-    printf("%s: Socket bound and listening ...\n",PROG);
+    bind(tserverfd, (struct sockaddr *)&address, sizeof(address));
+    syslog(LOG_INFO,("%s: Bluetooth socket bound and listening ...",PROG);
 
 	for(;;) {
 		if( tabletfd<0 ) {
