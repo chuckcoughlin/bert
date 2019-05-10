@@ -76,7 +76,7 @@ public class StdioController implements Controller {
 
 	/**
 	 * Loop forever reading from the stdin. Use ANTLR to convert text into requests.
-	 * Forward requests to the Terminal dispatcher.
+	 * Forward requests to the Terminal launcher.
 	 */
 	public class StdinReader implements Runnable {
 		

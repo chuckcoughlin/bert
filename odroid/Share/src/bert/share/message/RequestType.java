@@ -5,7 +5,7 @@
 package bert.share.message;
 
 /**
- * These are the recognized commands from command controller to dispatcher.
+ * These are the recognized commands from command controller to launcher.
  */
 public enum RequestType
 {

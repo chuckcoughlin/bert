@@ -21,21 +21,21 @@ import bert.share.message.MessageHandler;
 public class SocketController implements Controller{
 	private final static String CLSS = "SocketController";
 	private Logger LOGGER = Logger.getLogger(CLSS);
-	private static final long CLIENT_READ_ATTEMPT_INTERVAL = 15000;  // 15 secs
+	protected static final long CLIENT_READ_ATTEMPT_INTERVAL = 15000;  // 15 secs
 	protected final NamedSocket socket;
-	protected final MessageHandler dispatcher;
+	protected final MessageHandler launcher;
 	protected Thread runner = null;
 	private final boolean server;  // True of this is created by the server process.
 	protected final List<SocketStateChangeListener> changeListeners = new ArrayList<>();
 
 	/**
 	 * Constructor: Use this constructor from the server process.
-	 * @param launcher the parent application
+	 * @param launcher the parent application, one of the independent processes
 	 * @param name the socket name
 	 * @param port communication port number
 	 */
 	public SocketController(MessageHandler launcher,String name, int port) {
-		this.dispatcher = launcher;
+		this.launcher = launcher;
 		this.server = true;
 		socket = new NamedSocket(name,port); 
 	}
@@ -47,7 +47,7 @@ public class SocketController implements Controller{
 	 * @param port communication port number
 	 */
 	public SocketController(MessageHandler launcher,String name,String hostname,int port) {
-		this.dispatcher = launcher;
+		this.launcher = launcher;
 		this.server = false;
 		socket = new NamedSocket(name,hostname,port); 
 	}
@@ -72,7 +72,7 @@ public class SocketController implements Controller{
 	}
 	
 	/**
-	 * If the parent is a server (i.e. the dispatcher), then we get the request from the socket,
+	 * If the parent is a server (i.e. the launcher), then we get the request from the socket,
 	 * else it comes from the parent using a direct call.
 	 * @param request
 	 */
@@ -80,7 +80,7 @@ public class SocketController implements Controller{
 	public void receiveRequest(MessageBottle request ) {
 		if( request==null ) return;   // Can happen if socket closed (e.g. shutdown)
 		if( server ) {
-			dispatcher.handleRequest(request);
+			launcher.handleRequest(request);
 		}
 		else {
 			socket.write(request);
@@ -88,7 +88,7 @@ public class SocketController implements Controller{
 	}
 	
 	/**
-	 * If the parent is a server (i.e. the dispatcher), then write the response to the socket.
+	 * If the parent is a server (i.e. the launcher), then write the response to the socket.
 	 * Otherwise we are on the receiving end. Handle it.
 	 * @param response
 	 */
@@ -98,7 +98,7 @@ public class SocketController implements Controller{
 			socket.write(response);
 		}
 		else {
-			dispatcher.handleResponse(response);
+			launcher.handleResponse(response);
 		}
 	}
 
@@ -117,7 +117,7 @@ public class SocketController implements Controller{
 		/**
 		 * Forever ...
 		 *   1) Read request/response from socket
-		 *   2) Invoke callback method on dispatcher or
+		 *   2) Invoke callback method on launcher or
 		 *      local method, as appropriate.
 		 */
 		public void run() {

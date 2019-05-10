@@ -38,7 +38,7 @@ public class RepeatingMessageTimer implements Runnable   {
 
 	/**
 	 * Constructor: This version of the constructor supplies a timer name.
-	 * @param launcher parent dispatcher
+	 * @param launcher parent launcher
 	 * @param interval repeat interval ~msecs
 	 */
 	public RepeatingMessageTimer(MessageHandler launcher,long interval)  {
@@ -120,7 +120,7 @@ public class RepeatingMessageTimer implements Runnable   {
 
 	/**
 	 * If top dog is the IDLE dog, then simply "pet" it.
-	 * Otherwise pop the top msg and inform the dispatcher.
+	 * Otherwise pop the top msg and inform the launcher.
 	 * Then "pet" it. 
 	 */
 	protected void fireWatchdog() {

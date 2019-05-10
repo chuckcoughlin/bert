@@ -15,6 +15,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.UUID;
 
+import chuckcoughlin.bert.common.SimpleMessageType;
+
 /**
  *  This socket communicates across a Bluetooth network to the robot which acts
  *  as a server. The messages are simple text strings.
@@ -30,9 +32,7 @@ public class BluetoothConnection {
 	private static final int BUFFER_SIZE = 256;
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
-    //private static final UUID SERVICE_UUID = UUID.fromString("0000110A-0000-1000-8000-00805F9B34FB");
 	private static final UUID SERVICE_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-	//private static final String SERVICE_UUID = "0000110B-0000-1000-8000-00805F9B34FB";
 	private BluetoothDevice device;
 	private BluetoothSocket socket;
 	private BufferedReader in = null;
@@ -215,9 +215,6 @@ public class BluetoothConnection {
 						handler.handleSocketError(reason);
 						break;
 					}
-					//BluetoothGatt gatt = device.connectGatt(((VoiceService)handler).getApplicationContext(),true,new GattCallback());
-					//BluetoothConnectionManager bluetoothConnectionManager = BluetoothConnectionManager.getInstance();
-					//bluetoothConnectionManager.registerConnectionCallback(bluetoothConnectionCallback);
 
 					socket = device.createInsecureRfcommSocketToServiceRecord(SERVICE_UUID);
 					socket.connect();
@@ -261,8 +258,7 @@ public class BluetoothConnection {
                     try {
                         out = new PrintWriter(socket.getOutputStream(),true);
                         Log.i(CLSS,String.format("openPorts: opened %s for write",device.getName()));
-                        write("Tablet is connected !!");
-						read();  // Get response
+                        write(String.format("%s:Tablet is connected", SimpleMessageType.LOG.name()));
                     }
                     catch (Exception ex) {
                         reason = String.format("The tablet failed to open a socket for writing due to %s",ex.getMessage());
@@ -276,7 +272,6 @@ public class BluetoothConnection {
                     handler.handleSocketError(reason);
                 }
             }
-
             return reason;
         }
 	}

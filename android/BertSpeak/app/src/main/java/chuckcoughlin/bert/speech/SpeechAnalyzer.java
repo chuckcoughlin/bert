@@ -131,7 +131,4 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     public void onEvent(int eventType, Bundle params) {
         Log.i(CLSS, "onEvent " + eventType);
     }
-
-
-
 }

@@ -27,7 +27,7 @@ public class TimerController implements Controller  {
 	
 	/**
 	 * Constructor:
-	 * @param launcher the dispatcher parent process
+	 * @param launcher the launcher parent process
 	 * @param interval repeat interval for request submission
 	 */
 	public TimerController(MessageHandler launcher,int interval) {
@@ -47,7 +47,7 @@ public class TimerController implements Controller  {
 		
 	}
 	/**
-	 * Response messages are reported to the dispatcher 
+	 * Response messages are reported to the launcher 
 	 * directly by the timer.
 	 */
 	@Override

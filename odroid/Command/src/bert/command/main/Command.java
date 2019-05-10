@@ -27,7 +27,7 @@ import bert.sql.db.Database;
 
 /**
  * This is the main client class that handles spoken commands and forwards
- * them on to the central dispatcher. It also handles database actions 
+ * them on to the central launcher. It also handles database actions 
  * involving playback and record.
  */
 public class Command extends Thread implements MessageHandler {
@@ -55,7 +55,7 @@ public class Command extends Thread implements MessageHandler {
 	 */
 	@Override
 	public void createControllers() {
-		this.tabletController = new BluetoothController(this,HandlerType.TABLET.name(),model.getBlueserverPort());
+		this.tabletController = new BluetoothController(this,model.getBlueserverPort());
 		String hostName = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost");
 		Map<String, Integer> sockets = model.getSockets();
 		Iterator<String>walker = sockets.keySet().iterator();
@@ -69,7 +69,7 @@ public class Command extends Thread implements MessageHandler {
 	
 	/**
 	 * Loop forever reading from the bluetooth daemon (represents the tablet) and forwarding the resulting requests
-	 * via socket to the server (dispatcher). We accept its responses and forward back to the tablet.
+	 * via socket to the server (launcher). We accept its responses and forward back to the tablet.
 	 * Communication with the tablet consists of simple strings, plus a 4-character header.
 	 */
 	@Override
@@ -110,8 +110,8 @@ public class Command extends Thread implements MessageHandler {
 		tabletController.stop();
 	}
 	/**
-	 * We've gotten a request (must be from a different thread than our main loop). Signal
-	 * to release the lock to send along to the dispatcher.
+	 * We've gotten a request (presumably from the BluetoothController). Signal
+	 * to release the lock to send along to our launcher.
 	 */
 	@Override
 	public void handleRequest(MessageBottle request) {
@@ -125,7 +125,7 @@ public class Command extends Thread implements MessageHandler {
 		}
 	}
 	/**
-	 * We've gotten a response. Send it to our Bluetooth bluetoothController 
+	 * We've gotten a response. Send it to our BluetoothController 
 	 * which ultimately writes it to the Android tablet.
 	 */
 	@Override

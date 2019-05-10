@@ -8,7 +8,7 @@ package bert.share.message;
 /**
  * Recognized types of messsage handler. These are used to match specific
  * process instance with definitions in the configuration file. 
- * The "dispatcher" is a server application and accesses all controllers.
+ * The "launcher" is a server application and accesses all controllers.
  */
 public enum HandlerType
 {

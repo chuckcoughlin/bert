@@ -31,8 +31,9 @@
 #include "blueserver.h"
 
 int robotfd    = -1;
-inter serverfd = -1;
+int rserverfd  = -1;  // Server for robot
 int tabletfd   = -1;
+int tserverfd  = -1;  // Server for tablet
 
 
 // There are no command-line arguments.
@@ -171,6 +172,7 @@ void stop() {
 	closelog();
 	if(tabletfd>0) close(tabletfd);
 	if(robotfd>0 ) close(robotfd);
-	if(serverfd>0 )close(serverfd);
+	if(rserverfd>0 )close(rserverfd);
+	if(tserverfd>0 )close(tserverfd);
 	syslog(LOG_INFO,"%s: shut down",PROG);
 }

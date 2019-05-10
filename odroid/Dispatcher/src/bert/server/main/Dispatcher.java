@@ -36,12 +36,12 @@ import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
 
 /**
- * The dispatcher is its own system process. It's job is to accept requests from 
+ * The launcher is its own system process. It's job is to accept requests from 
  * the command sockets, distribute them to the motor manager channels and post the results.
  */
 public class Dispatcher extends Thread implements MessageHandler,SocketStateChangeListener {
 	private final static String CLSS = "Dispatcher";
-	private static final String USAGE = "Usage: dispatcher <robot_root>";
+	private static final String USAGE = "Usage: launcher <robot_root>";
 	// Start phrases to choose from ...
 	private String[] phrases = {
        "Bert is ready",
@@ -112,7 +112,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	}
 	
 	@Override
-	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "dispatcher"); }
+	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "launcher"); }
 	
 	/**
 	 * Loop forever processing whatever arrives from the various controllers. Each request is
@@ -341,7 +341,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	
 	// ==================================== Main =================================================
 	/**
-	 * Entry point for the dispatcher application that receives commands, processes
+	 * Entry point for the launcher application that receives commands, processes
 	 * them through the serial interfaces to the motors and returns results. 
 	 * 
 	 * Usage: Usage: dispatch <robot_root> 

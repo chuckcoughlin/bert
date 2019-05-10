@@ -28,5 +28,8 @@ public interface BottleConstants   {
 	public final static String COMMAND_HALT        = "halt";
 	public final static String COMMAND_RELAX       = "relax";
 	public final static String COMMAND_SHUTDOWN    = "shutdown";
-	public final static String COMMAND_WAKE        = "wake";	
+	public final static String COMMAND_WAKE        = "wake";
+	
+	// Message from tablet
+	public final static int HEADER_LENGTH = 4;     // Includes semi-colon
 }
