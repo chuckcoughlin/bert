@@ -143,7 +143,8 @@ public class BluetoothConnection {
 			}
 		}
 		catch(Exception ex) {
-            Log.e(CLSS,String.format("write: Error writing %d bytes to %s(%s)",text.length(),device.getName(),ex.getLocalizedMessage()),ex);
+            Log.e(CLSS,String.format("write: Error writing %d bytes to %s(%s)",text.length(),(device==null?"Nn device":device.getName(),
+												ex.getLocalizedMessage()),ex);
 		}
 	}
 	
