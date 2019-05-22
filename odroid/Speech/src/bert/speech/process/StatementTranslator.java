@@ -335,6 +335,37 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
 		return null;
 	}
+	// set the position of your left hip y to 45 degrees
+	public Object visitSetMotor(SpeechSyntaxParser.SetMotorContext ctx) {
+		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
+		// Get the property
+		JointProperty property = determineJointProperty(ctx.Property().getText());
+		
+		// If side or axis were set previously, use those jointValues as defaults
+		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		sharedDictionary.put(SharedKey.SIDE.name(), side);
+		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		Joint joint = Joint.UNKNOWN;
+		if( ctx.Joint() != null ) {
+			joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		}
+		if( joint.equals(Joint.UNKNOWN) ) {
+			String msg = String.format("I don't have a joint likre that");
+			bottle.assignError(msg);
+		}
+		bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
+		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
+		if( !property.equals(JointProperty.POSITION) &&
+			!property.equals(JointProperty.SPEED)    &&
+			!property.equals(JointProperty.TORQUE)  ) {
+			bottle.assignError("Only position, speed and torque are settable for a joint");
+		}
+		return null;
+	}
 	//===================================== Helper Methods ======================================
 	// Determine the specific joint from the body part, side and axis. (The latter two are
 	// not always needed).

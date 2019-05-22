@@ -36,7 +36,6 @@ case "$1" in
   start)
 #       Uncomment for debugging, execute as: sudo bin/bert start
 #        set -x
-		rm -rf ${BERT_HOME}/logs/blueserver*
 	> ${BERTLOG}
 	
 	# This is important. You must wait until the IP address of the machine
@@ -45,14 +44,13 @@ case "$1" in
  	while true; do
           IP="`hostname -I`"
           if [ "$IP" ] ; then
-             echo "IP = ${IP}" >> ${ROSLOG}
              break
           fi
 	  sleep 1
   	done
 	IP=`echo ${IP}|sed -e 's/^[ \t]*//'`
 	echo "IP = ${IP}" >> ${BERTLOG}
-	echo "=============================== /etc/init.d/ros start ===========================" >> ${ROSLOG}
+	echo "=============================== /etc/init.d/blueserver start ===========================" >> ${BERTLOG}
 	if [ -e ${PIDFILE} ]
 	 then
 	 	log_success_msg "Bert blueserver already running ... no action taken"

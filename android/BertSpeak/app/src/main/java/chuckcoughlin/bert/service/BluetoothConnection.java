@@ -33,7 +33,8 @@ public class BluetoothConnection {
 	private static final int BUFFER_SIZE = 256;
 	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
-	private static final UUID SERVICE_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	// Well-known port for Bluetooth serial port service
+	private static final UUID SERIAL_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	private BluetoothDevice device;
 	private BluetoothSocket socket;
 	private BufferedReader in = null;
@@ -126,24 +127,24 @@ public class BluetoothConnection {
 	 * Write plain text to the socket.
 	 */
 	public void write(String text) {
+		String deviceName = (device==null?"No device":(device.getName()==null?"No name":device.getName()));
 		try {
 			if( out!=null ) {
 				if(!out.checkError() ) {
-					Log.i(CLSS, String.format("write: writing ... %s (%d bytes) to %s. ", text, text.length(), device.getName()));
-					out.println(text);
+					Log.i(CLSS, String.format("write: writing ... %s (%d bytes) to %s. ", text, text.length(), deviceName));
+					out.print(text);
 					out.flush();
-					Log.i(CLSS, String.format("write: wrote %d bytes to %s. ", text.length(), device.getName()));
 				}
 				else {
-					Log.e(CLSS,String.format("write: CheckError before write",device.getName()));
+					Log.e(CLSS,String.format("write: out stream error",deviceName));
 				}
 			}
 			else {
-                Log.e(CLSS,String.format("write: Error writing to %s before connection",device.getName()));
+                Log.e(CLSS,String.format("write: Error writing to %s before connection",deviceName));
 			}
 		}
 		catch(Exception ex) {
-            Log.e(CLSS,String.format("write: Error writing %d bytes to %s(%s)",text.length(),(device==null?"Nn device":device.getName(),
+            Log.e(CLSS,String.format("write: Error writing %d bytes to %s(%s)",text.length(),deviceName,
 												ex.getLocalizedMessage()),ex);
 		}
 	}
@@ -201,24 +202,24 @@ public class BluetoothConnection {
 
             // Keep attempting a connection until the server is ready
             int attempts = 0;
+            boolean logged = false;
             for (;; ) {
                 try {
                 	UUID uuid = null;
-					Log.i(CLSS, String.format("create: Attempting to connect to %s", device.getName()));
-
 					if( device.fetchUuidsWithSdp() ) {
 						ParcelUuid[] uuids = device.getUuids();
 						Log.i(CLSS, String.format("run: %s returned %d service UUIDs",device.getName(), uuids.length));
 						for( ParcelUuid id:uuids) {
 							uuid = id.getUuid();
-							Log.i(CLSS, String.format("run: %s: service UUID = %s",device.getName(), uuid.toString()));
+							if(!logged) Log.i(CLSS, String.format("run: %s: service UUID = %s",device.getName(), uuid.toString()));
 						}
 						if( uuid==null ) {
-							reason = String.format("There were no servoce UUIDs found on %s", device.getName());
+							reason = String.format("There were no service UUIDs found on %s", device.getName());
 							Log.w(CLSS, String.format("run: ERROR %s", reason));
 							handler.handleSocketError(reason);
 							break;
 						}
+						logged = true;
 					}
 					else {
 						reason = String.format("The tablet failed to fetch service UUIDS to %s", device.getName());
@@ -226,25 +227,27 @@ public class BluetoothConnection {
 						handler.handleSocketError(reason);
 						break;
 					}
-
-					socket = device.createInsecureRfcommSocketToServiceRecord(SERVICE_UUID);
+					Log.i(CLSS, String.format("run: creating insecure RFComm socket for %s ...",SERIAL_UUID));
+					socket = device.createInsecureRfcommSocketToServiceRecord(SERIAL_UUID);
+					Log.i(CLSS, String.format("run: attempting to connect to %s ...", device.getName()));
 					socket.connect();
-                    Log.i(CLSS, String.format("create: connected to %s after %d attempts", device.getName(), attempts));
+                    Log.i(CLSS, String.format("run: connected to %s after %d attempts", device.getName(), attempts));
                     reason = openPorts();
                     break;
                 }
                 catch (IOException ioe) {
-                    try {
-                        Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
-                    }
-
-                    catch (InterruptedException ie) {
-                        if (attempts % CLIENT_LOG_INTERVAL == 0) {
-                            reason = String.format("The tablet failed to create a client socket to %s due to %s", device.getName(), ioe.getMessage());
-                            Log.w(CLSS, String.format("create: ERROR %s", reason));
-                            handler.handleSocketError(reason);
-                        }
-                    }
+					Log.w(CLSS, String.format("run: IOException connecting to socket (%s)", ioe.getLocalizedMessage()));
+                    // See: https://stackoverflow.com/questions/18657427/ioexception-read-failed-socket-might-closed-bluetooth-on-android-4-3
+					try {
+							Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
+					}
+					catch (InterruptedException ie) {
+						if (attempts % CLIENT_LOG_INTERVAL == 0) {
+							reason = String.format("The tablet failed to create a client socket to %s due to %s", device.getName(), ioe.getMessage());
+							Log.w(CLSS, String.format("run: ERROR %s", reason));
+							handler.handleSocketError(reason);
+						}
+					}
                 }
                 attempts++;
             }
@@ -269,7 +272,7 @@ public class BluetoothConnection {
                     try {
                         out = new PrintWriter(socket.getOutputStream(),true);
                         Log.i(CLSS,String.format("openPorts: opened %s for write",device.getName()));
-                        write(String.format("%s:Tablet is connected", SimpleMessageType.LOG.name()));
+                        write(String.format("the tablet is connected", SimpleMessageType.LOG.name()));
                     }
                     catch (Exception ex) {
                         reason = String.format("The tablet failed to open a socket for writing due to %s",ex.getMessage());

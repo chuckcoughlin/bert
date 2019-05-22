@@ -17,6 +17,7 @@ The bulk of this document addresses various design issues and approaches to thei
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
     * [Interprocess Communication](#sockets)
+    * [Message Structure](#messages)
     * [Poses](#poses)
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
@@ -112,11 +113,32 @@ independent processes to have a common understanding of the parameters.
 ```
 
 #### Interprocess Communication <a id="sockets"/>
-The major components are independent linux processes. They communicate via sockets. Port numbers are defined in the configuration file. The tablet communicates via a Bluetooth General Attributes (GATT) profile.
+The major components, _terminal_,_command_, and _dispatcher_ are independent linux processes and communicate via sockets. Port numbers are defined in the configuration file. There is an additional daemon process, _blueserver_, that serves as an interface between the _command_ process and the Bluetooth Serial Port service.
+
+The tablet is a Bluetooth client based on Java classes that are a standard part of the Android SDK.
+
+#### Message Structure <a id="messages"/>
+*** Internal ***</br>
+The messages passed back and forth to the _dispatcher_ process are instances of class _MessageBottle_.
+In preparation for transmission across the socket connections, the messages are serialized into JSON
+strings and, of course, reconstituted on the other side.
+
+*** Tablet ***</br>
+Messages transmitted to and from the tablet are strings with a simple 4-character header and a 1K-byte
+size limit. Header values are described in the table below:
+
+| Header	| <center>Description</center>|
+| -------- | :------------------------------------------------------------------ |
+|MSG:|	Message from the tablet to the robot. Plain english request or query.	|
+|ANS:|	Reply from the robot. This text is meant to be spoken and appear on the transcription log. |
+|LOG:|	System message from the robot meant to appear on the tablet's log panel. |
+|TBL:|	Define a table to show on the tablet's table panel. Pipe-delimited fields contain: title, column headings. |
+|ROW:|	Append a row to the most-recently defined table. Pipe-delimited fields contain cell values.	|
+<center>``Tablet Message Structure``</center>
 
 #### Poses <a id="poses"/>
 A "pose" is a position of the robot as a whole, comprising settings for each of its joints. Poses may be
-generated offline or as a result of recording joint values when the robot has been positioned for some
+generated offline or as a result of recording joint values when the robot has been manually positioned for some
 purpose.  For each joint, the pose records torque, speed and position. Torque and speed are in percent
 of maximum and position is in degrees. Torque is a measure of how pliant the joint is. Speed refers to
 how fast the motor will move to the desired position. All values are integers. Null values

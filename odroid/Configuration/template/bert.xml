@@ -40,13 +40,13 @@
 		<port  name="lower" device="@PORT_LOWER@" />
 		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="-91" min="60" max="135" orientation="direct" />
 		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="0" min="-30" max="28.5" orientation="direct" />
-		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="0" min="-104" max="84" orientation="direct" />
-		<joint name="LEFT_HIP_Z"   type="MX28" id="12" offset="0" min="-25" max="90" orientation="indirect" />
+		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="-18" min="75" max="225" orientation="direct" />
+		<joint name="LEFT_HIP_Z"   type="MX28" id="12" offset="-160" min="-20" max="45" orientation="direct" />
 		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-4" min="50" max="180" orientation="indirect" />
 		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="-108" min="60" max="135" orientation="indirect" />
 		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="0" min="-28.5" max="30" orientation="direct" />
-		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="0" min="-85" max="105" orientation="indirect" />
-		<joint name="RIGHT_HIP_Z"      type="MX28" id="22" offset="0" min="-90" max="25" orientation="indirect" />
+		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="-18" min="75" max="225" orientation="indirect" />
+		<joint name="RIGHT_HIP_Z"      type="MX28" id="22" offset="-200" min="-20" max="45" orientation="indirect" />
 		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="15" min="50" max="180" orientation="direct" />
 	</controller>
 	<controller name="upper" type="SERIAL">

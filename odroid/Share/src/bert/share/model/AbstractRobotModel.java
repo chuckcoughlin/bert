@@ -96,7 +96,6 @@ public abstract class AbstractRobotModel  {
 	
 
     // ================================ Auxiliary Methods  ===============================
-
 	
 	/**
 	 * Search the model for property elements. The results are saved in the properties member.

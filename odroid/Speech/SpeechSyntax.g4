@@ -22,6 +22,7 @@ command:
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
 	| Salutation? List Article? Motor? Properties				# handleListCommand2
 	| Salutation? (Move) Article? Side? Joint Axis? To Value Unit?  # moveMotor
+	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotor
 	| Salutation? (Command|Halt|Shutdown|NAME)                  # handleSingleWordCommand
 	;
 
@@ -68,6 +69,7 @@ Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angle
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Salutation:'bert'|'burt';
 Shutdown: 'power off'|'shut down'|'shutdown';
+Set: 'set';
 Side: 'left'|'right';
 To: 'to become'|'to';
 Unit: 'degrees';

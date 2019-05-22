@@ -9,7 +9,7 @@
  *
  * See "Bluetooth Essentials for Programmers" by Albert Huang/Larry Rudolph
  *
- * Note: The Serial Port protocol must be configured prior to running.
+ * Note: The Serial Port protocol must be configured prior to running:
  *             sdptool add SP
  */
 
@@ -79,35 +79,37 @@ void run() {
 	syslog(LOG_INFO,"Opening server socket for robot ...\n");
 	rserverfd = socket(AF_INET, SOCK_STREAM, 0);
     bind(rserverfd, (struct sockaddr *)&robot, sizeof(robot));
-    syslog(LOG_INFO,("%s: Socket bound and listening ...",PROG);
+    syslog(LOG_INFO,"%s: Socket bound and listening ...",PROG);
 
 	syslog(LOG_INFO,"Opening server socket for tablet ...\n");
 	tserverfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 	// Bind socket to port 1 of first available bluetooth adapter.
     bind(tserverfd, (struct sockaddr *)&address, sizeof(address));
-    syslog(LOG_INFO,("%s: Bluetooth socket bound and listening ...",PROG);
+    syslog(LOG_INFO,"%s: Bluetooth socket bound and listening ...",PROG);
 
 	for(;;) {
 		if( tabletfd<0 ) {
-    		listen(serverfd, 1); // Accepts one connection
+    		listen(tserverfd, 1); // Accept one connection
 			// Connect to the tablet
-    		tabletfd = accept(serverfd, (struct sockaddr *)&remote, &opt);
+			socklen_t len = sizeof(remote);
+    		tabletfd = accept(tserverfd, (struct sockaddr *)&remote,&len);
     		ba2str( &remote.rc_bdaddr, buf );
-    		printf("%s: Accepted connection from %s\n",PROG,buf);
+    		printf("%s: Accepted bluetooth connection from %s\n",PROG,buf);
 			sock_flags = fcntl( tabletfd,F_GETFL,0);
 			fcntl(tabletfd,F_SETFL,sock_flags|O_NONBLOCK);
 		}
 
 		if( robotfd<0 ) {
+    		listen(rserverfd, 1); // Accept one connection
 			// Connect to the robot
 			syslog(LOG_INFO,"%s: opening socket to the robot",PROG);
-			robotfd = socket(AF_INET , SOCK_STREAM , 0);
-			status = connect( robotfd, (struct sockaddr *)&robot , sizeof(robot));
-			if( status!=0 && errno!=EAGAIN ) {
-				syslog(LOG_WARNING,"%s: Error connecting to robot (%s)",PROG,strerror(errno));
+			socklen_t len = sizeof(robot);
+			robotfd = accept(rserverfd,(struct sockaddr *)&robot, &len);
+			if( robotfd<0 ) {
+				syslog(LOG_WARNING,"%s: Error accepting connection to robot (%s)",PROG,strerror(errno));
 				exit(2);
 			}
-			syslog(LOG_INFO,"%s: connected to robot",PROG);
+			syslog(LOG_INFO,"%s: Accepted robot connection",PROG);
 		}
 
 		// Both sides connected, loop waiting for activity on the ports

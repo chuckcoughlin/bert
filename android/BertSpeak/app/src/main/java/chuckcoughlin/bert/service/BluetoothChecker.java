@@ -123,7 +123,7 @@ public class BluetoothChecker {
             }
 
             if (success) {
-                Log.i(CLSS, String.format("BluetoothChecker: Connected to %s", deviceName));
+                Log.i(CLSS, String.format("BluetoothChecker: Paired to %s", deviceName));
                 handler.receiveBluetoothConnection();
             }
             else {

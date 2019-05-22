@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import bert.share.message.HandlerType;
@@ -69,15 +70,8 @@ public class RobotCommandModel extends AbstractRobotModel   {
 					int nSocket = socketElements.getLength();
 					if( nSocket>0) {
 						handlerTypes.put(controllerName,type.toUpperCase());
-						
 						for( int iSocket=0;iSocket<nSocket;iSocket++) {
 							Element socketElement= (Element)(socketElements.item(iSocket));
-							try {
-								this.blueserverPort = Integer.parseInt(XMLUtility.attributeValue(socketElement, "blueserver"));
-							}
-							catch (NumberFormatException nfe) {
-								LOGGER.warning(String.format("%s.analyzeControllers: Port for \"bluesserver\" missing or not a number (%s)",CLSS,nfe.getLocalizedMessage()));
-							}
 							String socketMAC = XMLUtility.attributeValue(socketElement, "mac");
 							String socketName = XMLUtility.attributeValue(socketElement, "name");
 							String portName = XMLUtility.attributeValue(socketElement, "port");
@@ -98,6 +92,25 @@ public class RobotCommandModel extends AbstractRobotModel   {
 				index++;
 			}
 			properties.put(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, controllerName);
+		}
+	}
+	/**
+	 * Extend the default search for properties to convert the "blueserver" port to an int.
+	 */
+	@Override
+	protected void analyzeProperties() {
+		super.analyzeProperties();
+		String port = properties.getProperty("blueserver");
+		if( port!=null ) {
+			try {
+				this.blueserverPort = Integer.parseInt(properties.getProperty("blueserver"));
+			}
+			catch (NumberFormatException nfe) {
+				LOGGER.warning(String.format("%s.analyzeProperties: Port for \"blueserver\" not a number (%s)",CLSS,nfe.getLocalizedMessage()));
+			}
+		}
+		else {
+			LOGGER.warning(String.format("%s.analyzeProperties: Port for \"blueserver\" missing in XML",CLSS));
 		}
 	}
 }
