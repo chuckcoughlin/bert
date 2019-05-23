@@ -250,6 +250,10 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
 				bytes = DxlMessage.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
 			}
+			else if( type.equals(RequestType.SET_POSE)) {
+				String poseName = request.getProperty(BottleConstants.POSE_NAME, "");
+				bytes = DxlMessage.bytesToSetPose(configurationsByName,poseName);
+			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
 			}

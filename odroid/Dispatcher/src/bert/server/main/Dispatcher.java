@@ -197,7 +197,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	
 	
 	/**
-	 * We've gotten a request. It may have come from either a pipe
+	 * We've gotten a request. It may have come from either a socket
 	 * or the timer. Signal the busy lock, so main loop proceeds.
 	 */
 	@Override
@@ -216,6 +216,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	/**
 	 * This is called by "sub-controllers" - Timer and MotorGroup. Forward the response on to
 	 * the appropriate socket controller for transmission to the original source of the request.
+	 * Note: Notifications are broadcast.
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
@@ -224,6 +225,10 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			commandController.receiveResponse(response);
 		}
 		else if( source.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
+			terminalController.receiveResponse(response);
+		}
+		else if( source.equalsIgnoreCase(HandlerType.DISPATCHER.name()) ) {	
+			commandController.receiveResponse(response);
 			terminalController.receiveResponse(response);
 		}
 		else {
@@ -304,6 +309,10 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			return true;
 		}
 		else if( request.fetchRequestType().equals(RequestType.COMMAND)) {
+			return true;
+		}
+		else if( request.fetchRequestType().equals(RequestType.NOTIFICATION)) {
+			request.assignSource(HandlerType.DISPATCHER.name());  // Setup to broadcast
 			return true;
 		}
 		return false;

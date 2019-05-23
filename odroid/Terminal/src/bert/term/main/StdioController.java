@@ -69,7 +69,7 @@ public class StdioController implements Controller {
 	 */
 	@Override
 	public void receiveResponse(MessageBottle response) {
-		String text = translator.messsageToText(response);
+		String text = translator.messageToText(response);
 		System.out.println(text);
 		System.out.print(prompt);
 	}

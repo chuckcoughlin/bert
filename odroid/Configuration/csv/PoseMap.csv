@@ -1,4 +1,5 @@
 Command	Pose
+reset	home
 salute	saluting
 sit	sitting
 stand	standing

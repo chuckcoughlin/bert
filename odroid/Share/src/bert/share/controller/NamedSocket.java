@@ -88,6 +88,7 @@ public class NamedSocket   {
 					LOGGER.info(String.format("%s.create: %s as server listening on port %d", CLSS,name,port));
 					socket = serverSocket.accept();
 					LOGGER.info(String.format("%s.create: %s accepted connection on port %d after %d attempts", CLSS,name,port,attempts));
+					success = true;
 					break;
 					
 				}
@@ -105,15 +106,16 @@ public class NamedSocket   {
 		}
 		else {
 			// Keep attempting a connection until the server is ready
-			
 			for(;;) {
 				try  {
 					LOGGER.info(String.format("%s.create: %s attempting to connect to server %s on %d ...", CLSS,name,host,port));
 					socket = new Socket(host,port);
 					LOGGER.info(String.format("%s.create: new %s connection from %s on %d after %d attempts", CLSS,name,host,port,attempts));
+					success = true;
 					break;
 				}
 				catch(IOException ioe) {
+					LOGGER.severe(String.format("%s.create: ERROR connecting to server socket %s:%d (%s)", CLSS,host,port,ioe.getMessage()));
 					try {
 						Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
 					}
@@ -122,7 +124,6 @@ public class NamedSocket   {
 							LOGGER.warning(String.format("%s.create: ERROR creating client socket %s (%s)", CLSS,name,ioe.getMessage()));
 						}
 					}
-
 				}
 				attempts++;
 			}
@@ -217,7 +218,13 @@ public class NamedSocket   {
 				LOGGER.info(String.format("%s.readLine: reading %s ... ",CLSS,name));
 				text = in.readLine();
 				while( text==null ) {
-					text = reread();
+					try {
+						Thread.sleep(10000l);
+					}
+					catch(InterruptedException ignore) {}
+					LOGGER.info(String.format("%s.readLine: got null, retrying",CLSS));
+					//text = reread();  // May not need
+					text = in.readLine();
 				}
 				LOGGER.info(String.format("%s.readLine: got %s",CLSS,text));
 			}

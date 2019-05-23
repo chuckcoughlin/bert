@@ -110,8 +110,9 @@ In order to correct for a consistent user-view of position, joints may be correc
 | :------ | :--------------------------------------------------- | --------: | ---------: |
 | Ankle | Angle between the bottom of the foot and shin, frontwards.| 45 | 180 |
 | Elbow | Angle between the upper and lower arms, measured frontwards. | 45 | 180 |
+| Hip(x) | Angle of spread of thighs. 180 is straight down, decreases as the spread increases. | 155 | 205 |
 | Hip(y) | Angle between the torso and thigh, in front. 180 is straight, 90 is forward, horizontal. | 75 | 225 |
-| Hip(z) | Twist of leg with respect to torso. Zero is straight ahead. Negative is knock-kneed. | -30 | 15 |
+| Hip(z) | Twist of leg with respect to torso. Zero is straight ahead. Positive is knock-kneed. | -25 | 45 |
 | Knee | Angle between the thigh and lower leg, measured toward the back. | 50 | 180 |
 | Neck(y)| Angle the head is tipped. 0 is horizontal, positive is up. |-5|20|
 | Neck(z)| Angle the head is facing. 0 is straight ahead, positive to the right. |-45|45|

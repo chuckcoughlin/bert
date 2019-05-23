@@ -67,7 +67,7 @@ public class BluetoothController extends SocketController implements Controller 
 	 */
 	@Override
 	public void receiveResponse(MessageBottle response) {
-		String text = translator.messsageToText(response);
+		String text = translator.messageToText(response);
 		socket.write(String.format("%s:%s",SimpleMessageType.ANS.name(),text));
 	}
 	
@@ -120,6 +120,13 @@ public class BluetoothController extends SocketController implements Controller 
 						catch(Exception ex) {
 							msg.assignError(String.format("Parse failure (%s) on: %s",ex.getLocalizedMessage(),text));
 						}
+					}
+					else if( hdr.equalsIgnoreCase(SimpleMessageType.LOG.name())) {
+						// Strip header from message, then just log it.
+						text = text.substring(BottleConstants.HEADER_LENGTH);
+						LOGGER.info(String.format("%s: %s",sock.getName(),text));
+						continue;
+						
 					}
 					else {
 						msg = new MessageBottle();

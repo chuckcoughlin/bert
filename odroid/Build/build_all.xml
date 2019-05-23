@@ -20,7 +20,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="share,motors,database,speech,command,dispatcher,terminal" />
+	<target name="build" depends="share,database,motors,speech,command,dispatcher,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />

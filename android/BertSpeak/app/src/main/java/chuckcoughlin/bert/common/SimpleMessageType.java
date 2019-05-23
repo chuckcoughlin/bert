@@ -11,7 +11,7 @@ package chuckcoughlin.bert.common;
  */
 public enum SimpleMessageType {
 	ANS,	// Reply from the robot. The tablet should "speak" the contents
-	LOG,    // A system message meant to be appended to the "Log" panel.
+	LOG,    // A system message meant to be appended to the "Log" panel (or syslog).
 	MSG,    // Request or query from the tablet, plain english  
 	ROW,    // Pipe-delimited data to be added to the most recent table          
 	TBL		// Define a table for the table panel. Pipe-delimited title and column headings

@@ -22,7 +22,8 @@ command:
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
 	| Salutation? List Article? Motor? Properties				# handleListCommand2
 	| Salutation? (Move) Article? Side? Joint Axis? To Value Unit?  # moveMotor
-	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotor
+	| Salutation? Set Article? Side? Joint Axis? To Value Unit?     # setMotorPosition
+	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
 	| Salutation? (Command|Halt|Shutdown|NAME)                  # handleSingleWordCommand
 	;
 

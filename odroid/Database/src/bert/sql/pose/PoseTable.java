@@ -8,8 +8,11 @@ package bert.sql.pose;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -81,6 +84,8 @@ public class PoseTable {
 			rs = statement.executeQuery();
 			while(rs.next()) {
 				pose = rs.getString("pose");
+				LOGGER.info(String.format("%s.getPoseForCommand: %s is %s",CLSS,command,pose));
+				break;
 			}
 			rs.close();
 		}
@@ -98,6 +103,59 @@ public class PoseTable {
 			}
 		}
 		return pose;
+	}
+	
+	/** Return a list of column names with non-null values for the indicated pose
+	 * property. There should only be one (or none) row returned.
+	 * @param pose
+	 * @param parameter, e.g. "position","speed","torque"
+	 * @return list of upper-case joint names.
+	 */
+	public Map<String,Double> getPoseJointValuesForParameter(Connection cxn,String pose,String parameter) {
+		Map<String,Double> map = new HashMap<>();
+		PreparedStatement statement = null;
+		ResultSet rs = null;
+		pose = pose.toLowerCase();
+		pose = pose.toLowerCase();
+		String SQL = "select * from pose where pose = ? and parameter = ? ";
+		try {
+			statement = cxn.prepareStatement(SQL);
+			statement.setQueryTimeout(10);  // set timeout to 10 sec.
+			statement.setString(1,pose);
+			statement.setString(2,parameter);
+			rs = statement.executeQuery();
+
+			ResultSetMetaData meta = rs.getMetaData();
+			int colCount = meta.getColumnCount();
+			if( rs.first()) {
+				rs.next();
+				for( int col=1;col<=colCount;++col) {
+					String name = meta.getColumnName(col);
+					if( name.equalsIgnoreCase("pose")) continue;
+					if( name.equalsIgnoreCase("parameter")) continue;
+					Object val = rs.getObject(col);
+					if(val != null ) {
+						Double dbl = Double.valueOf(val.toString());
+						map.put(name.toUpperCase(), dbl);
+					}
+				}
+			}
+			rs.close();
+		}
+		catch(SQLException e) {
+			// if the error message is "out of memory", 
+			// it probably means no database file is found
+			LOGGER.severe(String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
+		}
+		finally {
+			if( rs!=null) {
+				try { rs.close(); } catch(SQLException ignore) {}
+			}
+			if( statement!=null) {
+				try { statement.close(); } catch(SQLException ignore) {}
+			}
+		}
+		return map;
 	}
 	
 }

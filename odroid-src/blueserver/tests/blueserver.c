@@ -24,10 +24,10 @@
 int main(int argc, char* argv[]) {
 	// The only command-line argument is the port number/
 	while(--argc) {
-		printf("%s\n",*(argv++));
-		if(**argv=='-') {
-			printf("%s\n",argv[1]);
-			if( strcmp(argv[1],"h")) {
+		char* arg = *(++argv);
+		if(*arg=='-') {
+			arg++;
+			if( !strcmp(arg,"h")) {
 				usage();
 				exit(1);
 			}

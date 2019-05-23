@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  *
  */
@@ -63,6 +63,16 @@ public class Database {
 	 */
 	public String getPoseForCommand(String command) {
 		return pose.getPoseForCommand(connection,command);
+	}
+	
+	/** Return a list of column names with non-null values for the indicated pose
+	 * property.
+	 * @param pose
+	 * @param parameter, e.g. "position","speed","torque"
+	 * @return list of upper-case joint names.
+	 */
+	public Map<String,Double> getPoseJointValuesForParameter(String poseName,String parameter) {
+		return pose.getPoseJointValuesForParameter(connection,poseName,parameter);
 	}
 	/**
 	 * Populate the Motor table with information from the configuration file.

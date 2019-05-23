@@ -37,21 +37,40 @@ int tserverfd  = -1;  // Server for tablet
 
 
 // There are no command-line arguments.
-int main(int argc, char* argv[]) {
-	pid_t pid = 0; // process ID
-	pid = fork();
-	if(pid < 0) {
-		printf("%s: fork failed!\n",PROG);
-		exit(1);
+int main(int argc, char** argv) {
+
+	bool daemon = true;
+	// The only command-line argument is -f for foreground.
+	while(--argc) {
+		char* arg = *(++argv);  // arg0 is the program name
+		if(*arg=='-') {
+			arg++;
+			if( !strcmp(arg,"f")) {
+				daemon = false;
+			}
+			else if( !strcmp(arg,"h")) {
+				usage();
+				exit(1);
+			}
+		}
 	}
-	if( pid > 0 ) {
-		exit(0);  // Parent process, just exit
+
+	if( daemon==true ) {
+		pid_t pid = 0; // process ID
+		pid = fork();
+		if(pid < 0) {
+			printf("%s: fork failed!\n",PROG);
+			exit(1);
+		}
+		if( pid > 0 ) {
+			exit(0);  // Parent process, just exit
+		}
+		umask(0);
+		chdir("/");   // Set working directory
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
 	}
-	umask(0);
-	chdir("/");   // Set working directory
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
 	start();
 	run();
 	stop();
@@ -76,12 +95,12 @@ void run() {
 	robot.sin_family = AF_INET;
 	robot.sin_port = htons( PORT );
 
-	syslog(LOG_INFO,"Opening server socket for robot ...\n");
+	syslog(LOG_INFO,"%s: Opening server socket for robot ...",PROG);
 	rserverfd = socket(AF_INET, SOCK_STREAM, 0);
     bind(rserverfd, (struct sockaddr *)&robot, sizeof(robot));
     syslog(LOG_INFO,"%s: Socket bound and listening ...",PROG);
 
-	syslog(LOG_INFO,"Opening server socket for tablet ...\n");
+	syslog(LOG_INFO,"%s: Opening server socket for tablet ...",PROG);
 	tserverfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 	// Bind socket to port 1 of first available bluetooth adapter.
     bind(tserverfd, (struct sockaddr *)&address, sizeof(address));
@@ -181,4 +200,10 @@ void stop() {
 	if(rserverfd>0 )close(rserverfd);
 	if(tserverfd>0 )close(tserverfd);
 	syslog(LOG_INFO,"%s: shut down",PROG);
+}
+
+void usage() {
+	printf("Usage:\n");
+	printf("\t-f\t-foreground, do not execute as a daemon\n");
+	printf("\t-h\t-help, print this text\n");
 }

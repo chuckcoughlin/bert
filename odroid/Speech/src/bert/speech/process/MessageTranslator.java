@@ -41,7 +41,7 @@ public class MessageTranslator  {
 	 * @param msg the response
 	 * @return pronounceable text
 	 */
-	public String messsageToText(MessageBottle msg) {
+	public String messageToText(MessageBottle msg) {
 		String text = null;
 		if( msg!=null  ) {
 			String error = msg.fetchError();
@@ -51,7 +51,6 @@ public class MessageTranslator  {
 			if( text==null || text.isEmpty() ) {
 				text = msg.getProperty(BottleConstants.TEXT,"");
 			}
-			
 			if( text==null || text.isEmpty() ) {
 				RequestType type = msg.fetchRequestType();
 				if(type.equals(RequestType.NOTIFICATION)) {

@@ -4,7 +4,7 @@
 export BERT_HOME=/usr/local/robot
 if [ -e /etc/init.d/bert-blueserver ]
 then
-	/etc/init.d/bert-blueserveir stop
+	/etc/init.d/bert-blueserver stop
 fi
 cd ${BERT_HOME}/bin
 cp bert-blueserver /etc/init.d
