@@ -14,6 +14,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -45,6 +46,9 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     private SpeechAnalyzer analyzer = null;
     private boolean isMuted;
     private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
+
+    //private static final boolean IS_EMULATOR = Build.HARDWARE.contains("goldfish");
+    //private static final boolean IS_EMULATOR Build.IS_EMULATOR;
 
     public VoiceService() {
         this.isMuted = false;

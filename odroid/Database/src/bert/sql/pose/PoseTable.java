@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
+ * A pose is a list of positions for each motor. There are up to
+ * three rows in the database for each pose. A row each for:
+ * 		position, speed and torque
  * This class serves as a Java interface to the Pose and PoseMap tables. It provides 
  * methods for finding and reading a pose
  */
@@ -29,42 +32,6 @@ public class PoseTable {
 
 	}
 	
-	
-	/**
-	 * A pose is a list of positions for each motor. There are up to
-	 * three rows in the database for each pose. A row each for:
-	 * 		position, speed and torque
-	 * 
-	 * @param cxn open database connection
-	 * @param name of the pose that is desired
-	 * 
-	 * @return a list of motor positions. If the pose did not
-	 *         exist, the list will be empty.
-	 */
-	public void getPose(Connection cxn,String name) {
-		ResultSet rs = null;
-		try {
-			Statement statement = cxn.createStatement();
-			statement.setQueryTimeout(10);  // set timeout to 10 sec.
-			
-			rs = statement.executeQuery("select * from SfcClassMap");
-			while(rs.next())
-			{
-				String g2 = rs.getString("G2Class");
-			}
-			rs.close();
-		}
-		catch(SQLException e) {
-			// if the error message is "out of memory", 
-			// it probably means no database file is found
-			LOGGER.severe(String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
-		}
-		finally {
-			if( rs!=null) {
-				try { rs.close(); } catch(SQLException ignore) {}
-			}
-		}
-	}
 	/**
 	 * Find the pose associated with a command.
 	 * @cxn an open database connection
