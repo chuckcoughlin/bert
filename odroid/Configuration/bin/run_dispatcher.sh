@@ -9,9 +9,10 @@ MP=${MP}:mods/sqlite-jdbc-3.23.1.jar
 MP=${MP}:mods/jackson-core-2.9.8.jar
 MP=${MP}:mods/jackson-databind-2.9.8.jar
 MP=${MP}:mods/jackson-annotations-2.9.8.jar
+MP=${MP}:lib/bert-database.jar
 MP=${MP}:lib/bert-dispatcher.jar
-MP=$MP:lib/bert-common.jar
-MP=$MP:lib/bert-motors.jar
+MP=${MP}:lib/bert-common.jar
+MP=${MP}:lib/bert-motors.jar
 
 # Allow debugging on port 8000
 X="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"

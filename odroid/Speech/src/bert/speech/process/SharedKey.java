@@ -12,6 +12,7 @@ public enum SharedKey
 {
             ASLEEP,    // Robot ignores requests,
             AXIS,
+            JOINT,
             POSE,      // Current pose
             SIDE
             ;

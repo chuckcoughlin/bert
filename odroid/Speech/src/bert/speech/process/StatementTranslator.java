@@ -24,7 +24,7 @@ import bert.sql.db.Database;
 public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	private static final String CLSS = "StatementTranslator";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
-	private final HashMap<String,String> sharedDictionary;
+	private final HashMap<SharedKey,Object> sharedDictionary;
 	private final MessageBottle bottle;
 	private final MessageTranslator messageTranslator;
 	
@@ -34,7 +34,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	 *            to fully configure it.
 	 * @param shared a parameter dictionary used to communicate between invocations
 	 */
-	public StatementTranslator(MessageBottle bot,HashMap<String,String> shared) {
+	public StatementTranslator(MessageBottle bot,HashMap<SharedKey,Object> shared) {
 		this.sharedDictionary = shared;
 		this.bottle = bot;
 		this.messageTranslator = new MessageTranslator();
@@ -77,7 +77,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// Set the current pose
 	public Object visitDeclarePose1(SpeechSyntaxParser.DeclarePose1Context ctx) {
 		String pose = ctx.NAME().getText();
-		sharedDictionary.put(SharedKey.POSE.name(), pose);
+		sharedDictionary.put(SharedKey.POSE, pose);
 		bottle.assignRequestType(RequestType.NOTIFICATION);
 		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
 		return null;
@@ -85,7 +85,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override
 	public Object visitDeclarePose2(SpeechSyntaxParser.DeclarePose2Context ctx) {
 		String pose = ctx.NAME().getText();
-		sharedDictionary.put(SharedKey.POSE.name(), pose);
+		sharedDictionary.put(SharedKey.POSE, pose);
 		bottle.assignRequestType(RequestType.NOTIFICATION);
 		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
 		return null;
@@ -97,12 +97,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else bottle.assignRequestType(RequestType.GET_GOALS);
 
 		// If side or axis were set previously, use those jointValues as defaults
-		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
 		if( ctx.Side()!=null ) side = ctx.Side().getText();
-		sharedDictionary.put(SharedKey.SIDE.name(), side);
-		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		sharedDictionary.put(SharedKey.SIDE, side);
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		sharedDictionary.put(SharedKey.AXIS, axis);
 		Joint joint = null;
 		if( ctx.Joint()!=null ) {
 			joint = determineJoint(ctx.Joint().getText(),axis,side);
@@ -110,6 +110,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			if( joint.equals(Joint.UNKNOWN)) {
 				String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
 				bottle.assignError(msg);
+			}
+			else {
+				sharedDictionary.put(SharedKey.JOINT, joint);
 			}
 		}
 		else {
@@ -125,17 +128,20 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else bottle.assignRequestType(RequestType.GET_GOALS);
 
 		// If side or axis were set previously, use those jointValues as defaults
-		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
 		if( ctx.Side()!=null ) side = ctx.Side().getText();
-		sharedDictionary.put(SharedKey.SIDE.name(), side);
-		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		sharedDictionary.put(SharedKey.SIDE, side);
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		sharedDictionary.put(SharedKey.AXIS, axis);
 		Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
 		bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		if( joint.equals(Joint.UNKNOWN) ) {
 			String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
 			bottle.assignError(msg);
+		}
+		else {
+			sharedDictionary.put(SharedKey.JOINT, joint);
 		}
 		return null;
 	}
@@ -174,10 +180,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		if( ctx.Command()!=null) {
 			String cmd = ctx.Command().getText();
 			if( cmd.startsWith("ignore")||cmd.equalsIgnoreCase("go to sleep") || cmd.startsWith("sleep")) {
-				sharedDictionary.put(SharedKey.ASLEEP.name(),"true");
+				sharedDictionary.put(SharedKey.ASLEEP,"true");
 			}
 			else if( cmd.startsWith("pay attention")||cmd.equalsIgnoreCase("wake up") ) {
-				sharedDictionary.put(SharedKey.ASLEEP.name(),"false");
+				sharedDictionary.put(SharedKey.ASLEEP,"false");
 			}
 			else {
 				String msg = String.format("I do not know how to %s",cmd);
@@ -223,14 +229,21 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			JointProperty jp =  determineJointProperty(property);
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
-			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+			String side = sharedDictionary.get(SharedKey.SIDE).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
-			sharedDictionary.put(SharedKey.SIDE.name(), side);
-			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+			sharedDictionary.put(SharedKey.SIDE, side);
+			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-			sharedDictionary.put(SharedKey.AXIS.name(), axis);
+			sharedDictionary.put(SharedKey.AXIS, axis);
 			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			if( joint.equals(Joint.UNKNOWN) ) {
+				String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+				bottle.assignError(msg);
+			}
+			else {
+				sharedDictionary.put(SharedKey.JOINT, joint);
+			}
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("I don't have a property %s, that I know of",property);
@@ -246,14 +259,21 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			JointProperty jp =  determineJointProperty(property);
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
-			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+			String side = sharedDictionary.get(SharedKey.SIDE).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
-			sharedDictionary.put(SharedKey.SIDE.name(), side);
-			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+			sharedDictionary.put(SharedKey.SIDE, side);
+			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-			sharedDictionary.put(SharedKey.AXIS.name(), axis);
+			sharedDictionary.put(SharedKey.AXIS, axis);
 			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			if( joint.equals(Joint.UNKNOWN) ) {
+				String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+				bottle.assignError(msg);
+			}
+			else {
+				sharedDictionary.put(SharedKey.JOINT, joint);
+			}
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("I don't have a property %s, that I know of",property);
@@ -295,14 +315,21 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			JointProperty jp = determineJointProperty(property);
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
-			String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+			String side = sharedDictionary.get(SharedKey.SIDE).toString();
 			if( ctx.Side()!=null ) side = ctx.Side().getText();
-			sharedDictionary.put(SharedKey.SIDE.name(), side);
-			String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+			sharedDictionary.put(SharedKey.SIDE, side);
+			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-			sharedDictionary.put(SharedKey.AXIS.name(), axis);
+			sharedDictionary.put(SharedKey.AXIS, axis);
 			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			if( joint.equals(Joint.UNKNOWN) ) {
+				String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+				bottle.assignError(msg);
+			}
+			else {
+				sharedDictionary.put(SharedKey.JOINT, joint);
+			}
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("I don't have a property %s, that I know of",property);
@@ -316,20 +343,26 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
 
 		// If side or axis were set previously, use those jointValues as defaults
-		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
 		if( ctx.Side()!=null ) side = ctx.Side().getText();
-		sharedDictionary.put(SharedKey.SIDE.name(), side);
-		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		sharedDictionary.put(SharedKey.SIDE, side);
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		sharedDictionary.put(SharedKey.AXIS, axis);
 		Joint joint = Joint.UNKNOWN;
+		if(ctx.It()!=null ) {
+			joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
+		}
 		if( ctx.Joint() != null ) {
 			joint = determineJoint(ctx.Joint().getText(),axis,side);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		if( joint.equals(Joint.UNKNOWN) ) {
-			String msg = String.format("I don't have a joint likre that");
+			String msg = String.format("I don't have a joint like that");
 			bottle.assignError(msg);
+		}
+		else {
+			sharedDictionary.put(SharedKey.JOINT, joint);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
 		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
@@ -342,12 +375,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		JointProperty property = JointProperty.POSITION;
 
 		// If side or axis were set previously, use those jointValues as defaults
-		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
 		if( ctx.Side()!=null ) side = ctx.Side().getText();
-		sharedDictionary.put(SharedKey.SIDE.name(), side);
-		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		sharedDictionary.put(SharedKey.SIDE, side);
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		sharedDictionary.put(SharedKey.AXIS, axis);
 		Joint joint = Joint.UNKNOWN;
 		if( ctx.Joint() != null ) {
 			joint = determineJoint(ctx.Joint().getText(),axis,side);
@@ -364,6 +397,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				!property.equals(JointProperty.TORQUE)  ) {
 			bottle.assignError("Only position, speed and torque are settable for a joint");
 		}
+		else {
+			sharedDictionary.put(SharedKey.JOINT, joint);
+		}
 		return null;
 	}
 	// set the position of your left hip y to 45 degrees
@@ -373,20 +409,23 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		JointProperty property = determineJointProperty(ctx.Property().getText());
 		
 		// If side or axis were set previously, use those jointValues as defaults
-		String side = sharedDictionary.get(SharedKey.SIDE.name()).toString();
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
 		if( ctx.Side()!=null ) side = ctx.Side().getText();
-		sharedDictionary.put(SharedKey.SIDE.name(), side);
-		String axis = sharedDictionary.get(SharedKey.AXIS.name()).toString();
+		sharedDictionary.put(SharedKey.SIDE, side);
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-		sharedDictionary.put(SharedKey.AXIS.name(), axis);
+		sharedDictionary.put(SharedKey.AXIS, axis);
 		Joint joint = Joint.UNKNOWN;
 		if( ctx.Joint() != null ) {
 			joint = determineJoint(ctx.Joint().getText(),axis,side);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		if( joint.equals(Joint.UNKNOWN) ) {
-			String msg = String.format("I don't have a joint likre that");
+			String msg = String.format("I don't have a joint like that");
 			bottle.assignError(msg);
+		}
+		else {
+			sharedDictionary.put(SharedKey.JOINT, joint);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
 		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
@@ -394,6 +433,61 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			!property.equals(JointProperty.SPEED)    &&
 			!property.equals(JointProperty.TORQUE)  ) {
 			bottle.assignError("Only position, speed and torque are settable for a joint");
+		}
+		return null;
+	}
+	// straighten your left elbow.
+	public Object visitStraightenJoint(SpeechSyntaxParser.StraightenJointContext ctx) {
+		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
+		// Get the property
+		JointProperty property = JointProperty.POSITION;
+
+		// If side or axis were set previously, use those jointValues as defaults
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
+		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		sharedDictionary.put(SharedKey.SIDE, side);
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS, axis);
+		Joint joint = Joint.UNKNOWN;
+		if(ctx.It()!=null ) {
+			joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
+		}
+		if( ctx.Joint() != null ) {
+			joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+		}
+		if( joint.equals(Joint.UNKNOWN) ) {
+			String msg = String.format("I don't have a joint like that");
+			bottle.assignError(msg);
+		}
+		else if(joint.equals(Joint.LEFT_ELBOW_Y)  ||
+				joint.equals(Joint.RIGHT_ELBOW_Y) ||
+				joint.equals(Joint.LEFT_KNEE_Y)   ||
+				joint.equals(Joint.RIGHT_KNEE_Y)  ||
+				joint.equals(Joint.LEFT_HIP_Y)   ||
+				joint.equals(Joint.RIGHT_HIP_Y )   ) {
+			// Straighten means 180 degrees
+			double value = 180.;
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
+			bottle.setProperty(JointProperty.POSITION.name(),String.valueOf(value));
+			sharedDictionary.put(SharedKey.JOINT, joint);
+		}
+		else if(joint.equals(Joint.HEAD_Y)  ||
+				joint.equals(Joint.HEAD_Z) ||
+				joint.equals(Joint.LEFT_HIP_Z)   ||
+				joint.equals(Joint.RIGHT_HIP_Z)   ) {
+			// Straighten means 0 degrees
+			double value = 0.;
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
+			bottle.setProperty(JointProperty.POSITION.name(),String.valueOf(value));
+			sharedDictionary.put(SharedKey.JOINT, joint);
+		}
+		else {
+			String msg = String.format("It doesn't make sense to straighten a %s",joint.toString());
+			bottle.assignError(msg);
 		}
 		return null;
 	}

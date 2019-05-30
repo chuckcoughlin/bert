@@ -21,9 +21,10 @@ command:
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
 	| Salutation? List Article? Motor? Properties				# handleListCommand2
-	| Salutation? (Move) Article? Side? Joint Axis? To Value Unit?  # moveMotor
-	| Salutation? Set Article? Side? Joint Axis? To Value Unit?     # setMotorPosition
+	| Salutation? (Move) (It | Article? Side? Joint Axis?) To? Value Unit?  # moveMotor
+	| Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?     # setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
+	| Salutation? Straighten (It|Article? Side? Joint Axis? )   # straightenJoint
 	| Salutation? (Command|Halt|Shutdown|NAME)                  # handleSingleWordCommand
 	;
 
@@ -56,13 +57,14 @@ Configuration: 'configuration';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 How: 'how';
+It: 'it';
 List: ('tell me'|'describe'|'list');
 Limits: 'limits';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
-Move: 'move';
+Move: 'bend'|'move'|'turn';
 Of: 'of'|'on'|'for';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Pose: 'assume the pose'|'take the pose'|'pose';
@@ -72,6 +74,7 @@ Salutation:'bert'|'burt';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';
 Side: 'left'|'right';
+Straighten: 'straighten';
 To: 'to become'|'to';
 Unit: 'degrees';
 Value: NUMBER;

@@ -29,7 +29,7 @@ import bert.share.message.MessageBottle;
 public class NamedSocket   {
 	private static final String CLSS = "NamedSocket";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
-	private static final long CLIENT_ATTEMPT_INTERVAL = 2000;  // 2 secs
+	private static final long CLIENT_ATTEMPT_INTERVAL = 5000;  // 5 secs
 	private static final int CLIENT_LOG_INTERVAL = 10;
 	private static final long SERVER_ATTEMPT_INTERVAL = 15000;  // 15 secs
 	private final String name;
@@ -115,7 +115,8 @@ public class NamedSocket   {
 					break;
 				}
 				catch(IOException ioe) {
-					LOGGER.severe(String.format("%s.create: ERROR connecting to server socket %s:%d (%s)", CLSS,host,port,ioe.getMessage()));
+					// Get a "connection refused" when remote party is not running yet.
+					LOGGER.info(String.format("%s.create: ERROR connecting to server socket %s:%d (%s)", CLSS,host,port,ioe.getMessage()));
 					try {
 						Thread.sleep(CLIENT_ATTEMPT_INTERVAL);
 					}
