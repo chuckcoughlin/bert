@@ -321,10 +321,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
 			sharedDictionary.put(SharedKey.AXIS, axis);
-			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
+			Joint joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
+			if( ctx.Joint()!=null ) joint = determineJoint(ctx.Joint().getText(),axis,side);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 			if( joint.equals(Joint.UNKNOWN) ) {
-				String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+				String msg = "You must specify a legal joint";
+				if( ctx.Joint()!=null )  msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
 				bottle.assignError(msg);
 			}
 			else {

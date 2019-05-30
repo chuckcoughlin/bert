@@ -83,12 +83,18 @@ EEPROM limits. A typical query:
 This section includes the first set of tests for driving the position of the robot.
 It also introduces use of the database to store "poses".
 
-* ![gray](/images/ball_gray.png) Move Joint - using the terminal application,
+* ![green](/images/ball_green.png) Move Joint - using the terminal application,
 move a joint to a specified position. Make sure that any attempts to drive it
 out-of-range are clipped . Sample command syntax:
 ```
-    move your left knee to 90 degrees
+    move your left knee to 90 degree
+    move it to 20
+    turn your right thigh x to 180
+    bend it 30
     set the left elbow position to 90 degrees
+    set the position of your left ankle to 60
+    set the left elbow to 90
+    straighten your left knee
 ```
 
 * ![gray](/images/ball_gray.png) Record Pose - assign a name to the current position

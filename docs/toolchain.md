@@ -108,11 +108,17 @@ In order to correct for a consistent user-view of position, joints may be correc
 
 | Joint | <center>Definition</center> | Min Angle | Max Angle |
 | :------ | :--------------------------------------------------- | --------: | ---------: |
+| Abs(x) | Angle of side-to-side bend of the torso. 180 is straight, lower values are to the right. | 150 | 210 |
+| Abs(y) | Angle between the torso and pelvis, front-to-back, measured frontwards. | 150 | 210 |
+| Abs(z) | Angle of twist in the torso. Zero is no twist. Positive is toward the right. | 45 | 45 |
 | Ankle | Angle between the bottom of the foot and shin, frontwards.| 45 | 180 |
+| Arm(z) | Angle of twist of upper arm. Zero is straight ahead. Positive is outward. | -45 | 45 |
+| Bust(x) | Angle of side-to-side bend of the upper body. 180 is straight, lower values are to the right. | 150 | 210 |
+| Bust(y) | Angle between the chest and torso, front-to-back, measured frontwards. | 150 | 210 |
 | Elbow | Angle between the upper and lower arms, measured frontwards. | 45 | 180 |
 | Hip(x) | Angle of spread of thighs. 180 is straight down, decreases as the spread increases. | 155 | 205 |
 | Hip(y) | Angle between the torso and thigh, in front. 180 is straight, 90 is forward, horizontal. | 75 | 225 |
-| Hip(z) | Twist of leg with respect to torso. Zero is straight ahead. Positive is knock-kneed. | -25 | 45 |
+| Hip(z) | Twist of leg with respect to torso. Zero is straight ahead. Negative is knock-kneed. | -45 | 20 |
 | Knee | Angle between the thigh and lower leg, measured toward the back. | 50 | 180 |
 | Neck(y)| Angle the head is tipped. 0 is horizontal, positive is up. |-5|20|
 | Neck(z)| Angle the head is facing. 0 is straight ahead, positive to the right. |-45|45|

@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import bert.share.message.MessageBottle;
+import bert.share.motor.Joint;
 import bert.speech.antlr.SpeechSyntaxLexer;
 import bert.speech.antlr.SpeechSyntaxParser;
 
@@ -39,6 +40,7 @@ public class StatementParser  {
 	private void initialize() {
 		context.put(SharedKey.ASLEEP,"false");
 		context.put(SharedKey.AXIS,"x");
+		context.put(SharedKey.JOINT,Joint.UNKNOWN);
 		context.put(SharedKey.SIDE,"right");
 	}
 	
