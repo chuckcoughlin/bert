@@ -53,12 +53,12 @@
 		<port  name="upper" device="@PORT_UPPER@" />
 		<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="0" min="-105" max="45" orientation="indirect" />
 		<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="17" min="45" max="180" orientation="direct" />
-		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="0" min="-105" max="110" orientation="indirect" />
-		<joint name="LEFT_SHOULDER_Y"  type="MX28" id="41" offset="0" min="-120" max="155" orientation="direct" />
+		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="-70" min="90" max="180" orientation="direct" />
+		<joint name="LEFT_SHOULDER_Y"  type="MX28" id="41" offset="-65" min="-120" max="155" orientation="direct" />
 		<joint name="RIGHT_ARM_Z"      type="MX28" id="53" offset="0" min="-105" max="45" orientation="direct" />
 		<joint name="RIGHT_ELBOW_Y"    type="MX28" id="54" offset="4" min="45" max="180" orientation="indirect" />
-		<joint name="RIGHT_SHOULDER_X" type="MX28" id="52" offset="0" min="-110" max="105" orientation="indirect" />
-		<joint name="RIGHT_SHOULDER_Y" type="MX28" id="51" offset="0" min="-155" max="120" orientation="indirect" />
+		<joint name="RIGHT_SHOULDER_X" type="MX28" id="52" offset="-105" min="90" max="180" orientation="indirect" />
+		<joint name="RIGHT_SHOULDER_Y" type="MX28" id="51" offset="-100" min="-155" max="120" orientation="indirect" />
 		<joint name="HEAD_Y"       type="AX12" id="37" offset="-120" min="-5" max="20" orientation="direct" />
 		<joint name="HEAD_Z"       type="AX12" id="36" offset="-150" min="-30" max="30" orientation="indirect" />
 		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="150" max="210" orientation="direct" />
