@@ -34,6 +34,7 @@ import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
+import bert.sql.db.Database;
 
 /**
  * The launcher is its own system process. It's job is to accept requests from 
@@ -375,6 +376,8 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		
 		RobotMotorModel mmodel = new RobotMotorModel(PathConstants.CONFIG_PATH);
 		mmodel.populate();    // Analyze the xml for motor groups
+		Database.getInstance().startup(PathConstants.DB_PATH);
+		Database.getInstance().populateMotors(mmodel.getMotors());
 		MotorGroupController mgc = new MotorGroupController(mmodel);
 		
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);

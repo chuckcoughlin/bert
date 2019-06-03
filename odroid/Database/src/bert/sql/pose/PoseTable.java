@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import bert.share.motor.MotorConfiguration;
+
 /**
  * A pose is a list of positions for each motor. There are up to
  * three rows in the database for each pose. A row each for:
@@ -74,16 +76,17 @@ public class PoseTable {
 	/** Return a list of column names with non-null values for the indicated pose
 	 * property. There should only be one (or none) row returned.
 	 * @param pose
+	 * @param map contains a map of configurations. Joints not in the list are ignored.
 	 * @param parameter, e.g. "position","speed","torque"
 	 * @return list of upper-case joint names.
 	 */
-	public Map<String,Double> getPoseJointValuesForParameter(Connection cxn,String pose,String parameter) {
+	public Map<String,Double> getPoseJointValuesForParameter(Connection cxn,Map<String,MotorConfiguration>mcmap,String pose,String parameter) {
 		Map<String,Double> map = new HashMap<>();
 		PreparedStatement statement = null;
 		ResultSet rs = null;
 		pose = pose.toLowerCase();
 		pose = pose.toLowerCase();
-		String SQL = "select * from pose where pose = ? and parameter = ? ";
+		String SQL = "select * from pose where name = ? and parameter = ? ";
 		try {
 			statement = cxn.prepareStatement(SQL);
 			statement.setQueryTimeout(10);  // set timeout to 10 sec.
@@ -93,16 +96,22 @@ public class PoseTable {
 
 			ResultSetMetaData meta = rs.getMetaData();
 			int colCount = meta.getColumnCount();
-			if( rs.first()) {
-				rs.next();
+			while(rs.next() ) {
 				for( int col=1;col<=colCount;++col) {
 					String name = meta.getColumnName(col);
-					if( name.equalsIgnoreCase("pose")) continue;
+					if( name.equalsIgnoreCase("name"))      continue;
 					if( name.equalsIgnoreCase("parameter")) continue;
+					if( !mcmap.containsKey(name) )          continue;
 					Object val = rs.getObject(col);
-					if(val != null ) {
-						Double dbl = Double.valueOf(val.toString());
+					if( val==null ) continue;
+					if( val.toString().isEmpty()) continue;
+					try {
+						Double dbl = Double.parseDouble(val.toString());
 						map.put(name.toUpperCase(), dbl);
+					}
+					catch(NumberFormatException nfe) {
+						LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: %s value for %s not a double (%s)",
+								CLSS,parameter,name,nfe.getMessage()));
 					}
 				}
 			}
@@ -111,7 +120,7 @@ public class PoseTable {
 		catch(SQLException e) {
 			// if the error message is "out of memory", 
 			// it probably means no database file is found
-			LOGGER.severe(String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
+			LOGGER.severe(String.format("%s.getPoseJointValuesForParameter: Database error (%s)",CLSS,e.getMessage()));
 		}
 		finally {
 			if( rs!=null) {

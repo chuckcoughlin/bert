@@ -67,12 +67,13 @@ public class Database {
 	
 	/** Return a list of column names with non-null values for the indicated pose
 	 * property.
+	 * @param mcmap a map of configurations. Joints not present are ignored.
 	 * @param pose
 	 * @param parameter, e.g. "position","speed","torque"
 	 * @return list of upper-case joint names.
 	 */
-	public Map<String,Double> getPoseJointValuesForParameter(String poseName,String parameter) {
-		return pose.getPoseJointValuesForParameter(connection,poseName,parameter);
+	public Map<String,Double> getPoseJointValuesForParameter(Map<String,MotorConfiguration>mcmap,String poseName,String parameter) {
+		return pose.getPoseJointValuesForParameter(connection,mcmap,poseName,parameter);
 	}
 	/**
 	 * Populate the Motor table with information from the configuration file.
@@ -85,8 +86,7 @@ public class Database {
 		motor.defineMotors(connection, motorList);
 	}
 	/**
-	 * Create a database connection. Use this for all subsequent queries.
-	 * 
+	 * Create a database connection. Use this for all subsequent queries. 
 	 * @param path to database instance
 	 */
 	public void startup(Path path) {

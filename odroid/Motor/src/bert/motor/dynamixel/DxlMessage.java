@@ -103,6 +103,91 @@ public class DxlMessage  {
 		return messages;
 	}
 	/**
+	 * A pose may consist of any or all of position, speed and torque for the motors it refrerences. Query the database
+	 * to get values. Skip any that have null values. There is a hardware limit of 143 bytes for each array (shouldn't be a problem).
+	 * @param map of the motor configurations keyed by joint name
+	 * @param pose name of the pose to be set
+	 * @return up to 3 byte arrays as required by the pose
+	 */
+	public static List<byte[]> byteArrayListToSetPose(Map<String,MotorConfiguration> map,String pose) {
+		Database db = Database.getInstance();
+		Map<String,Double>torques = db.getPoseJointValuesForParameter(map,pose,"torque");
+		Map<String,Double>speeds = db.getPoseJointValuesForParameter(map,pose,"speed");
+		Map<String,Double>positions = db.getPoseJointValuesForParameter(map,pose,"position");
+		
+		List<byte[]> messages = new ArrayList<>();
+		// First set torques, then speeds, then positions
+		int tc = torques.size();
+		// Torque
+		if( tc>0 ) {
+			int len = (3 * tc) + 8;  //  3 bytes per motor + address + byte count + header + checksum
+			byte[] bytes = new byte[len];
+			setSyncWriteHeader(bytes);
+			bytes[3] = (byte)(len-4);
+			bytes[4] = SYNC_WRITE;
+			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.TORQUE.name());
+			bytes[6] = 0x2;  // 2 bytes
+			int index = 7;
+			for( String key:torques.keySet()) {
+				MotorConfiguration mc = map.get(key);
+				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name(),mc,positions.get(key));
+				bytes[index]= (byte) mc.getId();
+				bytes[index+1] = (byte)(dxlValue & 0xFF);
+				bytes[index+2] = (byte)(dxlValue >>8);
+				index = index+3;
+			}
+			setChecksum(bytes);
+			messages.add(bytes);
+		}
+		
+		int sc = speeds.size();
+		// Speed
+		if( sc>0 ) {
+			int len = (3 * sc) + 8;  //  3 bytes per motor + address + byte count + header + checksum
+			byte[] bytes = new byte[len];
+			setSyncWriteHeader(bytes);
+			bytes[3] = (byte)(len-4);
+			bytes[4] = SYNC_WRITE;
+			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.SPEED.name());
+			bytes[6] = 0x2;  // 2 bytes
+			int index = 7;
+			for( String key:speeds.keySet()) {
+				MotorConfiguration mc = map.get(key);
+				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED.name(),mc,positions.get(key));
+				bytes[index]= (byte) mc.getId();
+				bytes[index+1] = (byte)(dxlValue & 0xFF);
+				bytes[index+2] = (byte)(dxlValue >>8);
+				index = index+3;
+			}
+			setChecksum(bytes);
+			messages.add(bytes);
+		}
+		int pc = positions.size();
+		// Positions
+		if( pc>0 ) {
+			int len = (3 * pc) + 8;  //  3 bytes per motor + address + byte count + header + checksum
+			byte[] bytes = new byte[len];
+			setSyncWriteHeader(bytes);
+			bytes[3] = (byte)(len-4);
+			bytes[4] = SYNC_WRITE;
+			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION.name());
+			bytes[6] = 0x2;  // 2 bytes
+			int index = 7;
+			for( String key:positions.keySet()) {
+				MotorConfiguration mc = map.get(key);
+				//LOGGER.info(String.format("%s.bytesToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.getId(),key,positions.get(key)));
+				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION.name(),mc,positions.get(key));
+				bytes[index]= (byte) mc.getId();
+				bytes[index+1] = (byte)(dxlValue & 0xFF);
+				bytes[index+2] = (byte)(dxlValue >>8);
+				index = index+3;
+			}
+			setChecksum(bytes);
+			messages.add(bytes);
+		}
+		return messages;
+	}
+	/**
 	 * Create a serial message to broadcast a ping request to all motors.
 	 * This is taken directly from http://emanual.robotis.com/docs/en/dxl/protocol1/
 	 * @return byte array for message
@@ -166,99 +251,7 @@ public class DxlMessage  {
 		setChecksum(bytes);
 		return bytes;
 	}
-	/**
-	 * Concatenate 3 serial messages to write position, speed and torque for the motors in a pose. Query the database
-	 * to get values. Skip any that have null values.
-	 * @param map of the motor configurations keyed by joint name
-	 * @param pose name of the pose to be set
-	 * @return byte array with commands to execute the request
-	 */
-	public static byte[] bytesToSetPose(Map<String,MotorConfiguration>map,String pose) {
-		Database db = Database.getInstance();
-		Map<String,Double>torques = db.getPoseJointValuesForParameter(pose,"torque");
-		Map<String,Double>speeds = db.getPoseJointValuesForParameter(pose,"speed");
-		Map<String,Double>positions = db.getPoseJointValuesForParameter(pose,"position");
-		
-		int len = 0;
-		int tc = torques.size();
-		int tl = 0;
-		// Torque
-		if( tc>0 ) {
-			tl = ((2 + 1) * tc) + 4; // Remaining bytes past length including checksum
-			len = len + tl +3;
-		}
-		int sc = speeds.size();
-		int sl = 0;
-		// Speed
-		if( sc>0 ) {
-			sl = ((2 + 1) * tc) + 4; // Remaining bytes past length including checksum
-			len = len + sl + 3;
-		}
-		int pc = positions.size();
-		int pl = 0;
-		// Positions
-		if( pc>0 ) {
-			pl = ((2 + 1) * tc) + 4; // Remaining bytes past length including checksum
-			len = len + pl + 3;
-		}
-		byte[] bytes = new byte[len];
-		int current = 0;
-		if( tc>0 ) {
-			setSyncWriteHeader(bytes,current);
-			bytes[current+3] = (byte)tl;
-			bytes[current+4] = SYNC_WRITE;
-			bytes[current+5] = DxlConversions.addressForGoalProperty(JointProperty.TORQUE.name());
-			bytes[current+6] = 0x2;  // 2 bytes
-			int index = current+7;
-			for( String key:torques.keySet()) {
-				MotorConfiguration mc = map.get(key);
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name(),mc,positions.get(key));
-				bytes[index]= (byte) mc.getId();
-				bytes[index+1] = (byte)(dxlValue & 0xFF);
-				bytes[index+2] = (byte)(dxlValue >>8);
-				index = index+3;
-			}
-			setChecksum(bytes,current,index+1);
-			current = index+1;
-		}
-		if( sc>0 ) {
-			setSyncWriteHeader(bytes,current);
-			bytes[current+3] = (byte)sl;
-			bytes[current+4] = SYNC_WRITE;
-			bytes[current+5] = DxlConversions.addressForGoalProperty(JointProperty.SPEED.name());
-			bytes[current+6] = 0x2;  // 2 bytes
-			int index = current+7;
-			for( String key:positions.keySet()) {
-				MotorConfiguration mc = map.get(key);
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED.name(),mc,positions.get(key));
-				bytes[index]= (byte) mc.getId();
-				bytes[index+1] = (byte)(dxlValue & 0xFF);
-				bytes[index+2] = (byte)(dxlValue >>8);
-				index = index+3;
-			}
-			setChecksum(bytes,current,index+1);
-			current = index+1;
-		}
-		if( pc>0 ) {
-			setSyncWriteHeader(bytes,current);
-			bytes[current+3] = (byte)pl;
-			bytes[current+4] = SYNC_WRITE;
-			bytes[current+5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION.name());
-			bytes[current+6] = 0x2;  // 2 bytes
-			int index = current+7;
-			for( String key:positions.keySet()) {
-				MotorConfiguration mc = map.get(key);
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION.name(),mc,positions.get(key));
-				bytes[index]= (byte) mc.getId();
-				bytes[index+1] = (byte)(dxlValue & 0xFF);
-				bytes[index+2] = (byte)(dxlValue >>8);
-				index = index+3;
-			}
-			setChecksum(bytes,current,index+1);
-			current = index+1;
-		}
-		return bytes;
-	}
+
 	/**
 	 * Create a serial message to write a goal for the motor. Recognized properties are:
 	 * position, speed and torque. All are two byte parameters.
@@ -522,10 +515,10 @@ public class DxlMessage  {
 	}
 	// Set the header up until the length field. The header includes the device ID.
 	// Protocol 1. 3 bytes
-	private static void setSyncWriteHeader(byte[] bytes,int start) {
-		bytes[start] = (byte)0xFF;
-		bytes[start+1] = (byte)0xFF;
-		bytes[start+2] = (byte) 0xFE;
+	private static void setSyncWriteHeader(byte[] bytes) {
+		bytes[0] = (byte)0xFF;
+		bytes[1] = (byte)0xFF;
+		bytes[2] = (byte)0xFE;
 	}
 	
 	/**
@@ -543,23 +536,6 @@ public class DxlMessage  {
 	    }
 	    sum = sum&0xFF;
 	    buf[size]   =  (byte)(255-sum);
-	}
-	/**
-	 * Consider bytes start-end-1, then insert into end byte position. "oversize" variables
-	 * to avoid problem with no "unsigned" in Java. Ultimately we discard all except
-	 * low order bits.
-	 * @see http://emanual.robotis.com/docs/en/dxl/protocol1/
-	 * @param buf the byte buffer
-	 * @param start, the first byte of the buffer
-	 * @param end, the last byte of the buffer (the one holding the checksum)
-	 */
-	public static void setChecksum( byte[] buf, int start,int end ) {
-		int sum = 0;    // Instruction checksum.
-	    for( int j=start+1; j < end-1; j++ ) {
-	    	sum = sum+buf[j];
-	    }
-	    sum = sum&0xFF;
-	    buf[end]   =  (byte)(255-sum);
 	}
 	
 	/**
@@ -609,7 +585,30 @@ public class DxlMessage  {
         bytes = bytesToBroadcastPing();
         // Checksum should be FE
         System.out.println("PING (1)  with checksum: "+dump(bytes));
-
+        
+        // Protocol 1
+        // Sync write
+        bytes = new byte[18];
+        bytes[0] = (byte)0xFF;
+        bytes[1] = (byte)0xFF;
+        bytes[2] = (byte)0xFE;
+		bytes[3] = (byte)0x0E;
+		bytes[4] = SYNC_WRITE;
+		bytes[5] = (byte)0x1E;
+		bytes[6] = (byte)0x04;
+		bytes[7] = (byte)0x00;
+		bytes[8] = (byte)0x10;
+		bytes[9] = (byte)0x00;
+		bytes[10] = (byte)0x50;
+		bytes[11] = (byte)0x01;
+		bytes[12] = (byte)0x01;
+		bytes[13] = (byte)0x20;
+		bytes[14] = (byte)0x02;
+		bytes[15] = (byte)0x60;
+		bytes[16] = (byte)0x03;
+		setChecksum(bytes);
+        // Checksum should be 67
+        System.out.println("SYNC WRITE  with checksum: "+dump(bytes));
 
     }
 }

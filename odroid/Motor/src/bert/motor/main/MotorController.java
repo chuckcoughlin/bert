@@ -216,7 +216,8 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	 *         single write to the serial port.
 	 */
 	private boolean isSingleWriteRequest(MessageBottle msg) {
-		if( msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)){
+		if( msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) ||
+			msg.fetchRequestType().equals(RequestType.SET_POSE))    {
 			return false;
 		}
 		return true;
@@ -250,10 +251,6 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
 				bytes = DxlMessage.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
 			}
-			else if( type.equals(RequestType.SET_POSE)) {
-				String poseName = request.getProperty(BottleConstants.POSE_NAME, "");
-				bytes = DxlMessage.bytesToSetPose(configurationsByName,poseName);
-			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
 			}
@@ -272,6 +269,10 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 			if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				list = DxlMessage.byteArrayListToListProperty(propertyName,configurationsByName.values());
+			}
+			else if( type.equals(RequestType.SET_POSE)) {
+				String poseName = request.getProperty(BottleConstants.POSE_NAME, "");
+				list = DxlMessage.byteArrayListToSetPose(configurationsByName,poseName);
 			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));

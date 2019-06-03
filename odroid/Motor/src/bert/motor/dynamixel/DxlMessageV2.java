@@ -15,11 +15,13 @@ import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 
 /**
+ * UNUSED for the current project.
+ * 
  * This class contains static methods used to create and interpret different varieties \
  * of Dynamixel serial messages. Code is derived from Pypot dynamixel.v2.py and the Dynamixel
  * documentation at http://emanual.robotis.com. Applies to MX64, MX28, AX12A models.
  * The documentation is unclear about the protocol version for AX-12 models, but it appears
- * to be Protocol 2.0. This class applies to preotocol 2 only.
+ * to be Protocol 2.0. This class applies to protocol 2 only.
  */
 @SuppressWarnings("unused")
 public class DxlMessageV2  {

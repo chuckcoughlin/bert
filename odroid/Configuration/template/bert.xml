@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- This file describes "bert", a poppy-like robot. The identical configuration
-     is used for both the server and client-side processes.
+<!-- This file describes "bert", a robot derived from the Poppy project. 
+	 This identical configuration is used for each of the independent processes.
  -->
 <robot>
 	<!-- This first section lists miscellaneous properties. @...@ values are
@@ -22,7 +22,8 @@
 
 	<!-- The following section defines client-side processes that are also known to the server.
 		 Each client process communicates in both directions over its own socket. 
-		 Device UUID for Bluetooth - must match hardcoded value in tablet code
+		 Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
+		 the well-known UUID for RFCOMM.
 	-->
 	<controller name="terminal" type="TERMINAL">
 		<socket  name="terminal" port="11044"/>
