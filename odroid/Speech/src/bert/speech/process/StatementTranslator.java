@@ -48,7 +48,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// How tall are you?
 	public Object visitAttributeQuestion(SpeechSyntaxParser.AttributeQuestionContext ctx) {
 		bottle.assignRequestType(RequestType.GET_METRIC);
-		String attribute = ctx.Adjective().getText();
+		String attribute = ctx.Attribute().getText();
 		if( attribute.equalsIgnoreCase("old") ) {
 			bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.AGE.name());
 		}
@@ -198,10 +198,16 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.assignRequestType(RequestType.COMMAND);
 			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SHUTDOWN);
 		}
-		// NAME holds a pose of action
+		// NAME holds a pose or action (may be one word or two)
 		else if(ctx.NAME()!=null) {
-			String cmd = ctx.NAME().getText();
+			String cmd = ctx.NAME().get(0).getText();
 			if( cmd!=null && !cmd.isEmpty() ) {
+				if(ctx.NAME().size()>1 && ctx.NAME().get(1) !=null  ) {
+					String word2 = ctx.NAME().get(1).getText();
+					if( word2!=null && !word2.isEmpty()) {
+						cmd = cmd + " " + word2;
+					}
+				}
 				String pose = Database.getInstance().getPoseForCommand(cmd);
 				if( pose!=null ) {
 					bottle.assignRequestType(RequestType.SET_POSE);
@@ -216,9 +222,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 
-	
-
-	
 	@Override 
 	// what is the id of your left hip y?
 	public Object visitJointPropertyQuestion1(SpeechSyntaxParser.JointPropertyQuestion1Context ctx) {
@@ -370,11 +373,33 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
 		return null;
 	}
+	@Override 
+	// move slowly
+	public Object visitMoveSpeed(SpeechSyntaxParser.MoveSpeedContext ctx) {
+		bottle.assignRequestType(RequestType.SET_POSE);
+
+		String pose = poseForAdverb(ctx.Adverb().getText());
+		if( pose!=null ) {
+			bottle.setProperty(BottleConstants.POSE_NAME,pose );
+		}
+		return null;
+	}
+	@Override 
+	// What is your current pose?
+	public Object visitPoseQuestion(SpeechSyntaxParser.PoseQuestionContext ctx) {
+		String pose = sharedDictionary.get(SharedKey.POSE).toString();
+		bottle.assignRequestType(RequestType.NOTIFICATION);
+		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
+		return null;
+	}
 	// set your left hip y to 45 degrees
+	// set your left elbow torque to 1.2
+	@Override
 	public Object visitSetMotorPosition(SpeechSyntaxParser.SetMotorPositionContext ctx) {
 		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
-		// This syntax applies only to position
+		// Property defaults to position
 		JointProperty property = JointProperty.POSITION;
+		if( ctx.Property()!=null )  property = determineJointProperty(ctx.Property().getText());
 
 		// If side or axis were set previously, use those jointValues as defaults
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
@@ -393,15 +418,13 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.assignError(msg);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
-		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
+		bottle.setProperty(property.name(),ctx.Value().getText());
 		if( !property.equals(JointProperty.POSITION) &&
-				!property.equals(JointProperty.SPEED)    &&
-				!property.equals(JointProperty.TORQUE)  ) {
-			bottle.assignError("Only position, speed and torque are settable for a joint");
+			!property.equals(JointProperty.SPEED)    &&
+			!property.equals(JointProperty.TORQUE)  ) {
+				bottle.assignError("Only position, speed and torque are settable for a joint");
 		}
-		else {
-			sharedDictionary.put(SharedKey.JOINT, joint);
-		}
+		sharedDictionary.put(SharedKey.JOINT, joint);
 		return null;
 	}
 	// set the position of your left hip y to 45 degrees
@@ -430,7 +453,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			sharedDictionary.put(SharedKey.JOINT, joint);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
-		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
+		bottle.setProperty(property.name(),ctx.Value().getText());
 		if( !property.equals(JointProperty.POSITION) &&
 			!property.equals(JointProperty.SPEED)    &&
 			!property.equals(JointProperty.TORQUE)  ) {
@@ -588,9 +611,20 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( pname.equalsIgnoreCase("maximum angle")) pname = "MAXIMUMANGLE";
 		else if( pname.equalsIgnoreCase("minimum angle")) pname = "MINIMUMANGLE";
 		else if( pname.equalsIgnoreCase("motor type")) pname = "MOTORTYPE";
+		else if( pname.equalsIgnoreCase("speed"))  pname = "SPEED";
+		else if( pname.equalsIgnoreCase("torque"))  pname = "TORQUE";
 		else if( pname.equalsIgnoreCase("velocity"))  pname = "SPEED";
 		else if( pname.equalsIgnoreCase("velocitie")) pname = "SPEED";
 		result = JointProperty.valueOf(pname.toUpperCase());
 		return result;
+	}
+	// The poses returned here are expected to exist in the Pose table of the database.
+	private String poseForAdverb(String adverb)  {
+		String pose = "";
+		if( adverb.toLowerCase().contains("slow")) pose = "slow speed";
+		else if( adverb.toLowerCase().contains("fast")) pose = "fast speed";
+		else if( adverb.toLowerCase().contains("quick")) pose = "fast speed";
+		else pose = "normal speed";
+		return pose;
 	}
 }

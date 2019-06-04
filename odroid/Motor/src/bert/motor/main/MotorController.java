@@ -130,7 +130,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 			if( isSingleGroupRequest(request)) {
 				// Do nothing if the joint isn't in our group.
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
-				String propertyName = request.getProperty(jointName,"UNKNOWN");
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME,"UNKNOWN");
 				MotorConfiguration mc = configurationsByName.get(jointName);
 				if( mc==null ) { 
 					return; 

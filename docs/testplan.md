@@ -69,7 +69,7 @@ Typical syntax:
 ```
     what are the targets for your left shoulder x
 ```
-* ![yellow](/images/ball_yellow.png) Positions - use the terminal application to
+* ![green](/images/ball_green.png) Positions - use the terminal application to
 revisit the detection of position. In particular, check that the orientation is
 proper and limits and values makes sense. E.g. a straight knee should be at 180 deg; the neck
 when facing straight ahead is 0 deg. Fix the configuration file limits to be within the actual
@@ -113,10 +113,19 @@ take that pose. Again, use the terminal application. Sample syntax:
     when I say "salute" take the pose "saluting"
     "sit" means to become "sitting"
 ```
-* ![gray](/images/ball_gray.png) Pose - command the robot to assume a previously recorded
-pose. The command is a single word taken from a previous mapping.
+* ![green](/images/ball_green.png) Pose - command the robot to assume a previously recorded
+pose. The command is a single word taken from a previous mapping. This movement does not
+account for positional conflicts.
 ```
     "salute"
+```
+
+* ![gray](/images/ball_gray.png) Speed - change the speed at which actions are
+executed.
+```
+    move in slow motion
+    move quickly
+    move slowly
 ```
 ### d - Tablet Interaction <a id="tablet"></a>
 Test the integration of the android tablet with the robot, especially as it involves
@@ -139,5 +148,13 @@ should be formatted into proper english sentences. Typical syntax:
 This section includes tests of more complex speech patterns.
 * ![green](/images/ball_green.png) Completed  - these are statements outside the regular
 syntax shown above that are processed in a reasonable manner.
+
+
 * ![yellow](/images/ball_yellow.png) Desired  - the list below consists of statements or queries
 that are useful, but not currently recognized.
+
+Turn interaction on or off.
+```
+  ignore me
+  pay attention
+```

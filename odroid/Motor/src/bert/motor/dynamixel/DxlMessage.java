@@ -130,7 +130,7 @@ public class DxlMessage  {
 			int index = 7;
 			for( String key:torques.keySet()) {
 				MotorConfiguration mc = map.get(key);
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name(),mc,positions.get(key));
+				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name(),mc,torques.get(key));
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
@@ -153,7 +153,7 @@ public class DxlMessage  {
 			int index = 7;
 			for( String key:speeds.keySet()) {
 				MotorConfiguration mc = map.get(key);
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED.name(),mc,positions.get(key));
+				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED.name(),mc,speeds.get(key));
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);

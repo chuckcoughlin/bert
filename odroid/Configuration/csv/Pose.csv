@@ -1,6 +1,7 @@
+# Position in degrees, range depends on joint. Torque 1.2, 2.5, 6.0 Nm (MX64, MX28, AT12). Speeds 684, 700, 700 deg/sec (MX64, MX28, AT12).																										
 Name	Parameter	ABS_X	ABS_Y	ABS_Z	BUST_X	BUST_Y	HEAD_Y	HEAD_Z	LEFT_ANKLE_Y	LEFT_ARM_Z	LEFT_ELBOW_Y	LEFT_HIP_X	LEFT_HIP_Y	LEFT_HIP_Z	LEFT_KNEE_Y	LEFT_SHOULDER_X	LEFT_SHOULDER_Y	RIGHT_ANKLE_Y	RIGHT_ARM_Z	RIGHT_ELBOW_Y	RIGHT_HIP_X	RIGHT_HIP_Y	RIGHT_HIP_Z	RIGHT_KNEE_Y	RIGHT_SHOULDER_X	RIGHT_SHOULDER_Y
-home	position													0												
-relaxing	torque	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
-standing	position	0	90																							
-standing	speed	25	25																							
-standing	torque	50	75																							
+home	position						0	0		0	180	180	180	0	180	180	180	90	0	180	180	180	0	180	180	180
+relaxing	torque	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1	0.1
+fast speed	speed	600	600	600	600	600	400	400	600	600	600	600	600	600	600	600	600	600	600	600	600	600	600	600	600	600
+normal speed	speed	20	20	20	20	20	15	15	20	20	20	20	20	20	20	20	20	20	20	20	20	20	20	20	20	20
+slow speed	speed	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4	4

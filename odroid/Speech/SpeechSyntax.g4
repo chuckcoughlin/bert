@@ -21,21 +21,23 @@ command:
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors	# handleListCommand1
 	| Salutation? List Article? Motor? Properties				# handleListCommand2
-	| Salutation? (Move) (It | Article? Side? Joint Axis?) To? Value Unit?  # moveMotor
+	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?  # moveMotor
+	| Salutation? Move Adverb  									# moveSpeed
 	| Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?     # setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
 	| Salutation? Straighten (It|Article? Side? Joint Axis? )   # straightenJoint
-	| Salutation? (Command|Halt|Shutdown|NAME)                  # handleSingleWordCommand
+	| Salutation? (Command|Halt|Shutdown|NAME NAME?)            # handleSingleWordCommand
 	;
 
 // Request for information
 question:
-        How Adjective 'are' 'you'                               # attributeQuestion
+      How Attribute 'are' 'you'                                 # attributeQuestion
 	| What 'is' Article? Configuration                          # configurationQuestion
 	| What 'are' Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
 	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
 	| What 'is' Article? Side? Joint Axis? Property 			# jointPropertyQuestion2
 	| What 'is' Article? Metric   				    			# metricsQuestion
+	| What 'is' Article? Adjective?  Pose						# poseQuestion
 	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
 	;
 
@@ -43,14 +45,16 @@ question:
 declaration:
 	'you' 'are' NAME											# declarePose1
 	| Article Pose 'is' NAME                                    # declarePose2
-	| When 'i' 'say' NAME Pose NAME								# mapPoseToCommand1
+	| When 'i' 'say' NAME Take Article? Pose NAME				# mapPoseToCommand1
 	| NAME Means To NAME								        # mapPoseToCommand2
 	;
 
 
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
-Adjective: 'old'|'tall';
+Adjective: 'current';
+Adverb: 'in slow motion'|'fast'|'normally'|'quickly'|'slowly'|'slow';
+Attribute: 'old'|'tall';
 Axis: 'x'|'y'|'z'|'horizontal'|'vertical';
 Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');
 Configuration: 'configuration';
@@ -64,10 +68,10 @@ Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
-Move: 'bend'|'move'|'turn';
+Move: 'bend'|'go'|'move'|'turn';
 Of: 'of'|'on'|'for';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
-Pose: 'assume the pose'|'take the pose'|'pose';
+Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Salutation:'bert'|'burt';
@@ -75,6 +79,7 @@ Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';
 Side: 'left'|'right';
 Straighten: 'straighten';
+Take: 'assume' | 'take';
 To: 'to become'|'to';
 Unit: 'degrees';
 Value: NUMBER;
