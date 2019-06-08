@@ -5,7 +5,10 @@
 package bert.speech.process;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
+
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
@@ -90,6 +93,26 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
 		return null;
 	}
+	// Handle a (possible) multi-word command
+	// attention
+	@Override 
+	public Object visitHandleArbitraryCommand(SpeechSyntaxParser.HandleArbitraryCommandContext ctx) {
+
+		if(ctx.NAME()!=null) {
+			String cmd = namesForNodeList(ctx.NAME());
+			String pose = Database.getInstance().getPoseForCommand(cmd);
+			if( pose!=null ) {
+				bottle.assignRequestType(RequestType.SET_POSE);
+				bottle.setProperty(BottleConstants.POSE_NAME,pose );
+			}
+			else {
+				String msg = String.format("I do not know how to respond to \"%s\"",cmd);
+				bottle.assignError(msg);
+			}
+
+		}
+		return null;
+	}
 	@Override 
 	// list the limits of your left hip y? (same logic as "handleBulkPropertyRequest)
 	public Object visitHandleBulkPropertyQuestion(SpeechSyntaxParser.HandleBulkPropertyQuestionContext ctx) {
@@ -145,6 +168,31 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
+	// Handle a multi-word command that includes a word that is already another token type.
+	// Go limp
+	@Override 
+	public Object visitHandleCompoundCommand(SpeechSyntaxParser.HandleCompoundCommandContext ctx) {
+		// We simply want the text from the first token
+		String cmd = "";
+		if( ctx.Move() != null ) cmd = ctx.Move().getText();
+		else if( ctx.Take() != null ) cmd = ctx.Take().getText();
+		else if( ctx.Set() != null ) cmd = ctx.Set().getText();
+
+		if(ctx.NAME()!=null) {
+			cmd = cmd + " " + namesForNodeList(ctx.NAME());
+			String pose = Database.getInstance().getPoseForCommand(cmd);
+			if( pose!=null ) {
+				bottle.assignRequestType(RequestType.SET_POSE);
+				bottle.setProperty(BottleConstants.POSE_NAME,pose );
+			}
+			else {
+				String msg = String.format("I do not know how to respond to \"%s\"",cmd);
+				bottle.assignError(msg);
+			}
+
+		}
+		return null;
+	}
 	@Override 
 	public Object visitHandleListCommand1(SpeechSyntaxParser.HandleListCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
@@ -159,7 +207,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	
+
 	@Override 
 	public Object visitHandleListCommand2(SpeechSyntaxParser.HandleListCommand2Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
@@ -197,27 +245,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if(ctx.Shutdown()!=null) {
 			bottle.assignRequestType(RequestType.COMMAND);
 			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SHUTDOWN);
-		}
-		// NAME holds a pose or action (may be one word or two)
-		else if(ctx.NAME()!=null) {
-			String cmd = ctx.NAME().get(0).getText();
-			if( cmd!=null && !cmd.isEmpty() ) {
-				if(ctx.NAME().size()>1 && ctx.NAME().get(1) !=null  ) {
-					String word2 = ctx.NAME().get(1).getText();
-					if( word2!=null && !word2.isEmpty()) {
-						cmd = cmd + " " + word2;
-					}
-				}
-				String pose = Database.getInstance().getPoseForCommand(cmd);
-				if( pose!=null ) {
-					bottle.assignRequestType(RequestType.SET_POSE);
-					bottle.setProperty(BottleConstants.POSE_NAME,pose );
-				}
-				else {
-					String msg = String.format("I do not know how to respond to \"%s\"",cmd);
-					bottle.assignError(msg);
-				}
-			}
 		}
 		return null;
 	}
@@ -617,6 +644,15 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( pname.equalsIgnoreCase("velocitie")) pname = "SPEED";
 		result = JointProperty.valueOf(pname.toUpperCase());
 		return result;
+	}
+	// Concatenate the elements of NAMES().
+	private String namesForNodeList(List<TerminalNode> names) {
+		StringBuffer buf = new StringBuffer();
+		for( TerminalNode node:names) {
+			if( buf.length()>0) buf.append(" ");
+			buf.append(node.getText());
+		}
+		return buf.toString();
 	}
 	// The poses returned here are expected to exist in the Pose table of the database.
 	private String poseForAdverb(String adverb)  {

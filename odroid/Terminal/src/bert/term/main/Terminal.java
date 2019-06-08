@@ -13,6 +13,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
+import bert.control.main.Solver;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
 import bert.share.logging.LoggerUtility;
@@ -42,14 +43,16 @@ public class Terminal extends Thread implements MessageHandler {
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotTerminalModel model;
+	private final Solver solver;
 	private SocketController socketController = null;
 	private final Condition busy;
 	private StdioController controller = null;
 	private MessageBottle currentRequest;
 	private final Lock lock;
 	
-	public Terminal(RobotTerminalModel m) {
+	public Terminal(Solver s,RobotTerminalModel m) {
 		this.model = m;
+		this.solver = s;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
 	}
@@ -172,9 +175,11 @@ public class Terminal extends Thread implements MessageHandler {
 		
 		RobotTerminalModel model = new RobotTerminalModel(PathConstants.CONFIG_PATH);
 		model.populate();
+		Solver solver = new Solver();
+		solver.configure(PathConstants.URDF_PATH,model);
 		Database.getInstance().startup(PathConstants.DB_PATH);
 		Database.getInstance().populateMotors(model.getMotors());
-		Terminal runner = new Terminal(model);
+		Terminal runner = new Terminal(solver,model);
 		runner.createControllers();
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook(runner));
         runner.startup();

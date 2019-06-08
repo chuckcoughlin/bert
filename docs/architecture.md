@@ -1,4 +1,4 @@
-# Software Architecture
+# High-level Design and Software Architecture
 
 Control software embedded in the "Bert" project  takes its inspiration from two sources: [Poppy](https://www.poppy-project.org) by
 [GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot) and the [iCub Project](http://www.icub.org/bazaar.php) from the [Italian Institute of Technology](https://www.iit.it). Our implementation deviates significantly, however. The core language is Java instead of C++ and Python. The feature-set has been greatly simplified - and we have added natural-language speech processing with the integration of an Android tablet.
@@ -18,15 +18,14 @@ The bulk of this document addresses various design issues and approaches to thei
     * [Configuration](#configuration)
     * [Dynamixel Servos](#dynamixel)
     * [Interprocess Communication](#sockets)
+  * [Design Considerations](#design)
     * [Message Structure](#messages)
     * [Poses](#poses)
+    * [Trajectory Planning](#trajectory)
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
     * [Failures](#failures)
 ***
-
-
-
 
 
 ***
@@ -139,6 +138,8 @@ The major components, _terminal_,_command_, and _dispatcher_ are independent lin
 
 The tablet is a Bluetooth client based on Java classes that are a standard part of the Android SDK.
 
+## Design Considerations <a id="design"/>
+[toc](#table-of-contents)
 #### Message Structure <a id="messages"/>
 *** Internal ***</br>
 The messages passed back and forth to the _dispatcher_ process are instances of class _MessageBottle_.
@@ -181,7 +182,12 @@ means that for ABS-Y the speed at which it travels to 90 degrees is the same as 
 time the joint was used. On power-up speeds are 100% and torques are 0%. Unless specified in
 the pose, torques are automatically set to 100% whenever a joint is moved.
 
+#### Trajectory Planning <a id="trajectory"/>
+For planning purposes the robot is described by a [Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A good tutorial concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials/Building%20a%20Visual%20Robot%20Model%20with%20URDF%20from%20Scratch). The robot is described as a collection
+of "chains" of links and joints. The chains have a common origin at the head.
+
 ## Appendices <a id="appendices"/>
+[toc](#table-of-contents)
 #### Why Java?<a id="whyjava"/>
 In the "Poppy" [thesis](https://hal.inria.fr/tel-01104641v1/document) (section 7.4.1 and following), the author considers use of the Robot Operating System (ROS) for the core software and concludes that it is overly complex and inefficient. This coincides with my own experience with [sarah-bella](https://github.com/chuckcoughlin/sarah-bella). Moreover, I discovered that, at least with Android, ROS messaging was not reliable. Messages were dropped under high load, a situation not acceptable for control applications.
 

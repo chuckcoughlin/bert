@@ -110,7 +110,7 @@ public class BluetoothController extends SocketController implements Controller 
 					}
 					catch(InterruptedException ignore) {}
 				}
-				if( text.length()>BottleConstants.HEADER_LENGTH ) {
+				else if( text.length()>BottleConstants.HEADER_LENGTH ) {
 					String hdr = text.substring(0,BottleConstants.HEADER_LENGTH-1);
 					if( hdr.equalsIgnoreCase(SimpleMessageType.MSG.name())) {
 						// Strip header from message, then translate the rest.

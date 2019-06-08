@@ -125,7 +125,6 @@ executed.
 ```
     move in slow motion
     move quickly
-    move slowly
 ```
 ### d - Tablet Interaction <a id="tablet"></a>
 Test the integration of the android tablet with the robot, especially as it involves

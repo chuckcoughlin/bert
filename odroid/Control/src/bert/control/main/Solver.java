@@ -2,34 +2,34 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.command.model;
+package bert.control.main;
 
+import java.nio.file.Path;
+import java.util.Map;
+
+import bert.share.model.AbstractRobotModel;
+import bert.share.motor.MotorConfiguration;
 
 /**
- *  This class is a singleton and represents the robot.
+ *  This class handles various computations pertaining to the robot,
+ *  including: trajectory planning.
  */
-public class Humanoid {
-	private final static String CLSS = "Humanoid";
-	private static Humanoid instance = null;
-
+public class Solver {
+	private final static String CLSS = "Solver";
 
 	/**
-	 * Constructor is private per Singleton pattern.
+	 * Constructor:
 	 */
-	private Humanoid() {
-
+	public Solver() {
 	}
-
+	
 	/**
-	 * Static method to create and/or fetch the single instance.
+	 * Some of the joint parameters are in the robot configuration file. Use them.
+	 * @param urdfPath
+	 * @param model
 	 */
-	public static Humanoid getInstance() {
-		if( instance==null) {
-			synchronized(Humanoid.class) {
-				instance = new Humanoid();
-			}
-		}
-		return instance;
+	public void configure(Path urdfPath,AbstractRobotModel model) {
+		Map<String,MotorConfiguration> mcmap = model.getMotors();
 	}
 
 

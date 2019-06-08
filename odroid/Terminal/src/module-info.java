@@ -3,6 +3,7 @@
  */
 module bert.terminal {
 	requires transitive bert.share;
+	requires transitive bert.control;
 	requires bert.speech;
 	requires bert.sql;	
 	exports bert.term.main;

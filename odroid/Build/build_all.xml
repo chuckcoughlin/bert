@@ -20,7 +20,7 @@
 		<delete dir="${robot.dir}/lib"/>
 	</target>
 	
-	<target name="build" depends="share,database,motors,speech,command,dispatcher,terminal" />
+	<target name="build" depends="share,database,motors,control,speech,command,dispatcher,terminal" />
 	<target name="command" description="Compile the main command application">
 		<echo message="Compile the Command processor" />
 		<delete dir="${temp.dir}" />
@@ -37,6 +37,21 @@
 			<manifest>
 				<attribute name="Main-Class" value="bert.command.main.Command"/>
 			</manifest>
+		</jar>
+	</target>
+	<target name="control" description="Build code for control calculations">
+		<echo message="Compile the control libraray" />
+		<delete dir="${temp.dir}" />
+		<mkdir dir="${temp.dir}"/>
+		<javac	srcdir="../Control/src"
+		       	destdir="${temp.dir}"
+				compiler="javac10+"
+				source="10" target="10"
+				debug="true"
+				modulepathref="common-modulepath"
+				includeantruntime="false"
+		/>
+		<jar destfile="${lib.dir}/bert-control.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 		</jar>
 	</target>
 	<target name="database" description="Compile the database library">

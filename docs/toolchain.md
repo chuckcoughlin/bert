@@ -290,15 +290,16 @@ From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Wo
   - Command: _command_ is the application that interfaces with the tablet to
   acquire command and request strings. It communicates these to the _dispatcher_
   and obtains responses.
-  - Configuration: This area is a collection of files that configure the robot. These include: scripts for installing and running, the SQL database for pose and action
+  - Configuration: This area is a collection of files that configure the robot. These include: scripts for installing and running, the SQL database for poses and actions.
   storage and XML hardware definition.
+  - Control: Parse the URDF file and apply various control algorithms.
   - Database: Java code for interaction with the SQLite database.
+  - Dispatcher: The _dispatcher_ is a separate application for handling commands,
+  passing them along to the _Motor_ controllers and then forwarding results
+  to the original requestor.
   - Motor: Java code for control of the various servo motors on the robot. These are executed by the _dispatcher_ application.
   - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications. Set to disabled.
   - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors. Set to disabled.
-  - Server: This is the _dispatcher_, a separate application for handling commands,
-  passing them along to the _Motor_ controllers and then forwarding results
-  to the original requestor.
   - Share: Common java code used by one or more of the other projects.
   - Speech: This project holds the _ANTLR_ code which interprets the "natural
    language" request strings.
