@@ -5,31 +5,34 @@
 package bert.control.main;
 
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.logging.Logger;
 
-import bert.share.model.AbstractRobotModel;
-import bert.share.motor.MotorConfiguration;
+import bert.control.urdf.URDFModel;
 
 /**
  *  This class handles various computations pertaining to the robot,
- *  including: trajectory planning.
+ *  including: trajectory planning. Note that the same link object
+ *  may belong to several chains.
  */
 public class Solver {
 	private final static String CLSS = "Solver";
+	private static Logger LOGGER = Logger.getLogger(CLSS);
+	private final URDFModel model;
 
 	/**
 	 * Constructor:
 	 */
 	public Solver() {
+		this.model = new URDFModel();
 	}
 	
 	/**
-	 * Some of the joint parameters are in the robot configuration file. Use them.
+	 * Analyze the URDF file for robot geometry.
 	 * @param urdfPath
-	 * @param model
 	 */
-	public void configure(Path urdfPath,AbstractRobotModel model) {
-		Map<String,MotorConfiguration> mcmap = model.getMotors();
+	public void configure(Path urdfPath) {
+		LOGGER.info(String.format("%s.analyzePath: URDF file(%s)",CLSS,urdfPath.toAbsolutePath().toString()));
+		model.analyzePath(urdfPath);
 	}
 
 

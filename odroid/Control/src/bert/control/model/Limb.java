@@ -1,15 +1,15 @@
 package bert.control.model;
 
 /**
- * A LinkElement is a solid connection between two joints.
+ * A Limb is a solid connection between two joints.
  * A link that is an "origin" or "end-point" connects to
  * only one joint.
  */
-public class LinkElement implements ChainElement {
-	private final static String CLSS = "LinkElement";
+public class Limb {
+	private final static String CLSS = "Limb";
 	private final Link link;
 	
-	public LinkElement(Link lnk) {
+	public Limb(Link lnk) {
 		this.link = lnk;
 	}
 	
@@ -19,9 +19,9 @@ public class LinkElement implements ChainElement {
 
 /**
 
-class LinkElement(object):
+class Limb(object):
     """
-    Base LinkElement class.
+    Base Limb class.
     Parameters
     ----------
     name: string
@@ -37,7 +37,7 @@ class LinkElement(object):
         self.axis_length = length
 
     def __repr__(self):
-        return("LinkElement name={} bounds={}".format(self.name, self.bounds))
+        return("Limb name={} bounds={}".format(self.name, self.bounds))
 
     def _get_rotation_axis(self):
         # Defaults to None
@@ -47,8 +47,8 @@ class LinkElement(object):
         raise NotImplementedError
 
 
-class URDFLink(LinkElement):
-    """LinkElement in URDF representation.
+class URDFLink(Limb):
+    """Limb in URDF representation.
     Parameters
     ----------
     name: str
@@ -75,7 +75,7 @@ class URDFLink(LinkElement):
     """
 
     def __init__(self, name, translation_vector, orientation, rotation, bounds=(None, None), angle_representation="rpy", use_symbolic_matrix=True):
-        LinkElement.__init__(self, name=name, bounds=bounds, length=np.linalg.norm(translation_vector))
+        Limb.__init__(self, name=name, bounds=bounds, length=np.linalg.norm(translation_vector))
         self.use_symbolic_matrix = use_symbolic_matrix
         self.translation_vector = np.array(translation_vector)
         self.orientation = np.array(orientation)
@@ -99,7 +99,7 @@ class URDFLink(LinkElement):
             self.symbolic_transformation_matrix = sympy.lambdify(theta, symbolic_frame_matrix, "numpy")
 
     def __str__(self):
-        return("""URDF LinkElement {} :
+        return("""URDF Limb {} :
     Bounds : {}
     Translation : {}
     Orientation : {}
@@ -133,8 +133,8 @@ class URDFLink(LinkElement):
         return frame_matrix
 
 
-class DHLink(LinkElement):
-    """LinkElement in Denavit-Hartenberg representation.
+class DHLink(Limb):
+    """Limb in Denavit-Hartenberg representation.
     Parameters
     ----------
     name: str
@@ -154,7 +154,7 @@ class DHLink(LinkElement):
     """
 
     def __init__(self, name, d=0, a=0, bounds=None, use_symbolic_matrix=True):
-        LinkElement.__init__(self, use_symbolic_matrix)
+        Limb.__init__(self, use_symbolic_matrix)
 
     def get_transformation_matrix(self, theta, a):
         """ Computes the homogeneous transformation matrix for this link. """
@@ -169,10 +169,10 @@ class DHLink(LinkElement):
                           (0, 0, 0, 1)))
 
 
-class OriginLink(LinkElement):
+class OriginLink(Limb):
     """The link at the origin of the robot"""
     def __init__(self):
-        LinkElement.__init__(self, name="Base link", length=1)
+        Limb.__init__(self, name="Base link", length=1)
 
     def _get_rotation_axis(self):
         return [0, 0, 0, 1]

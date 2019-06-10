@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 
 import bert.command.controller.BluetoothController;
 import bert.command.model.RobotCommandModel;
-import bert.control.main.Solver;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
 import bert.share.logging.LoggerUtility;
@@ -37,7 +36,6 @@ public class Command extends Thread implements MessageHandler {
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotCommandModel model;
-	private final Solver solver;
 	private BluetoothController tabletController = null;
 	private SocketController dispatchController = null;
 	private final Condition busy;
@@ -45,9 +43,8 @@ public class Command extends Thread implements MessageHandler {
 	private final Lock lock;
 	
 	
-	public Command(Solver s,RobotCommandModel m) {
+	public Command(RobotCommandModel m) {
 		this.model = m;
-		this.solver = s;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
 	}
@@ -161,12 +158,10 @@ public class Command extends Thread implements MessageHandler {
 		
 		RobotCommandModel model = new RobotCommandModel(PathConstants.CONFIG_PATH);
 		model.populate();
-		Solver solver = new Solver();
-		solver.configure(PathConstants.URDF_PATH,model);
 		Database.getInstance().startup(PathConstants.DB_PATH);
 		Database.getInstance().populateMotors(model.getMotors());
 		
-        Command runner = new Command(solver,model);
+        Command runner = new Command(model);
         runner.createControllers();
         Runtime.getRuntime().addShutdownHook(new ShutdownHook(runner));
         runner.startup();

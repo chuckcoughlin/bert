@@ -55,7 +55,7 @@ declaration:
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
-Adverb: 'in slow motion'|'fast'|'normally'|'quickly'|'slowly'|'slow';
+Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow';
 Attribute: 'old'|'tall';
 Axis: 'x'|'y'|'z'|'horizontal'|'vertical';
 Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');

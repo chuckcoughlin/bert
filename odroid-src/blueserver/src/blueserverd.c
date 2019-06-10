@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 		pid_t pid = 0; // process ID
 		pid = fork();
 		if(pid < 0) {
-			printf("%s: fork failed!\n",PROG);
+			syslog(LOG_WARNING,"%s: fork failed!\n",PROG);
 			exit(1);
 		}
 		if( pid > 0 ) {
@@ -113,7 +113,7 @@ void run() {
 			socklen_t len = sizeof(remote);
     		tabletfd = accept(tserverfd, (struct sockaddr *)&remote,&len);
     		ba2str( &remote.rc_bdaddr, buf );
-    		printf("%s: Accepted bluetooth connection from %s\n",PROG,buf);
+    		syslog(LOG_INFO,"%s: Accepted bluetooth connection from %s\n",PROG,buf);
 			sock_flags = fcntl( tabletfd,F_GETFL,0);
 			fcntl(tabletfd,F_SETFL,sock_flags|O_NONBLOCK);
 		}
@@ -156,6 +156,10 @@ void run() {
 				}
 				else {
 					// Forward message to tablet
+					if( nbytes<BUFLEN-1 ) {
+						strcat(buf,"\n");
+						nbytes++;
+					}
 					syslog(LOG_INFO,"%s: Sending to tablet (%s)",PROG,buf);
 					send(tabletfd, buf, nbytes, 0);
 				}
@@ -176,6 +180,10 @@ void run() {
 				else {
 					// Forward message to robot
 					syslog(LOG_INFO,"%s: Sending to robot (%s)",PROG,buf);
+					if( nbytes<BUFLEN-1 ) {
+						strcat(buf,"\n");
+						nbytes++;
+					}
 					send(robotfd, buf, nbytes, 0);
 				}
 			}

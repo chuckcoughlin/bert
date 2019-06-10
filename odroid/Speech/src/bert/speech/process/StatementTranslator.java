@@ -657,9 +657,15 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// The poses returned here are expected to exist in the Pose table of the database.
 	private String poseForAdverb(String adverb)  {
 		String pose = "";
-		if( adverb.toLowerCase().contains("slow")) pose = "slow speed";
-		else if( adverb.toLowerCase().contains("fast")) pose = "fast speed";
-		else if( adverb.toLowerCase().contains("quick")) pose = "fast speed";
+		if( adverb.toLowerCase().contains("slow motion")) pose = "very slow speed";
+		else if( adverb.toLowerCase().contains("slow")) {
+			if( adverb.toLowerCase().contains("very") ) pose = "very slow speed";
+			else pose = "slow speed";
+		}
+		else if( adverb.toLowerCase().contains("fast") || adverb.toLowerCase().contains("quick")) {
+			if( adverb.toLowerCase().contains("very") ) pose = "very fast speed";
+			else pose = "fast speed";
+		}
 		else pose = "normal speed";
 		return pose;
 	}

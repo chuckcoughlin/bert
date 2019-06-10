@@ -40,10 +40,12 @@ Here is a diagram that shows the major software components.
 streams of tokens from spoken text into commands for the robot.
 
 #### Configuration <a id="configuration"/>
-The entire robot configuration is described by an .xml file, *bert.xml*. A representative
+The robot configuration is described by an .xml file, *bert.xml*. A representative
 example is shown below.
 The file is read by each of the independent processes, giving them a common understanding
 of site-specific parameters and attributes of the robot.
+
+This file (and not the URDF) is the source of standard joint names and angular limits.
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -133,6 +135,18 @@ with a single command, as long as the motors are daisy-chained on the same seria
 
 We use version 1.0 of the protocol as the motors were delivered with that version.
 
+#### Geometry <a id="geometry"/>
+The geometry of the robot is used for trajectory planning, balance and other purposes. It is described in a
+Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample is shown below:
+```
+  URFD
+```
+
+Upon analysis of this file, the robot is described as a collection
+of "chains" of links. The chains have a common origin at the pelvis and terminate at an
+end effector (e.g. hand or foot).
+
+
 #### Interprocess Communication <a id="sockets"/>
 The major components, _terminal_,_command_, and _dispatcher_ are independent linux processes and communicate via sockets. Port numbers are defined in the configuration file. There is an additional daemon process, _blueserver_, that serves as an interface between the _command_ process and the Bluetooth Serial Port service.
 
@@ -183,8 +197,15 @@ time the joint was used. On power-up speeds are 100% and torques are 0%. Unless 
 the pose, torques are automatically set to 100% whenever a joint is moved.
 
 #### Trajectory Planning <a id="trajectory"/>
-For planning purposes the robot is described by a [Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A good tutorial concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials/Building%20a%20Visual%20Robot%20Model%20with%20URDF%20from%20Scratch). The robot is described as a collection
-of "chains" of links and joints. The chains have a common origin at the head.
+Optimal trajectory planning, such as the Poppy example [here](https://github.com/Phylliade/ikpy/tree/master/src/ikpy) by Pierre Manceron is known to be complex and slow. We go to great lengths to avoid it.
+
+When moving to a set pose, it is usually sufficient to simply use that pose as a goal and move
+to it directly using a single command to the servos. For the most part, collision conflicts are
+avoided by limits on the angular motion of the joints.  For situations not covered in this way, we have adopted a simple set of heuristic tests that are applied prior to each movement. In general,
+these heuristics insert intermediate poses to avoid conflicts en route or truncate motion when the goal position is in itself a conflict. We avoid a full trajectory optimization. The list of checks is as follows:
+A full trajectory optimization is not necessary.
+
+
 
 ## Appendices <a id="appendices"/>
 [toc](#table-of-contents)

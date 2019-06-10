@@ -3,23 +3,32 @@ package bert.control.model;
 import java.util.LinkedList;
 
 /**
- * A Chain represents a linked list of Links
- * alternating with Joints.
+ * A Chain represents a linked list of Links starting with the 
+ * origin link. The name of the chain is the name of its end effector.
  */
 public class Chain {
-	private final static String CLSS = "Solver";
-	private final LinkedList<ChainElement> elements;
+	private final static String CLSS = "Chain";
+	private final LinkedList<Limb> links;
+	private final String name;
 	
-	public Chain() {
-		this.elements = new LinkedList<>();
+	public Chain(String nam) {
+		this.name = nam;
+		this.links = new LinkedList<>();
 	}
 	
-	public void addElement(ChainElement e) {
-		elements.add(e);
+	/**
+	 * The new link is added to the front. The assumption is that we are
+	 * traversing a list by parents, end to the origin.
+	 * @param link
+	 */
+	public void addElement( Limb link) {
+		links.addFirst(link);
 	}
 
-	public LinkedList<ChainElement> getLinks() { return this.elements; }
-	
+	public Limb getEnd() { return links.getLast(); }
+	public Limb getOrigin() { return links.getFirst(); }
+	public LinkedList<Limb> getLinks() { return this.links; }
+	public String getName() { return this.name; }
 	
 	/**
 	def forward_kinematics(self, joints, full_kinematics=False):

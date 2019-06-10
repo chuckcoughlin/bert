@@ -5,10 +5,12 @@ cd ${BERT_HOME}
 mkdir -p logs
 
 MP=mods/jssc-2.8.0.jar
+MP=${MP}:mods/hipparchus-core-1.5.jar
 MP=${MP}:mods/sqlite-jdbc-3.23.1.jar
 MP=${MP}:mods/jackson-core-2.9.8.jar
 MP=${MP}:mods/jackson-databind-2.9.8.jar
 MP=${MP}:mods/jackson-annotations-2.9.8.jar
+MP=${MP}:lib/bert-control.jar
 MP=${MP}:lib/bert-database.jar
 MP=${MP}:lib/bert-dispatcher.jar
 MP=${MP}:lib/bert-common.jar

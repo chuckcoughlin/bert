@@ -35,6 +35,7 @@ import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
+import bert.control.main.Solver;
 
 /**
  * The launcher is its own system process. It's job is to accept requests from 
@@ -60,6 +61,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private final Condition busy;
 	private MessageBottle currentRequest = null;
 	private final Lock lock;
+	private final Solver solver;
 	
 	private int cadence = 1000;     // msecs
 	private	int cycleCount = 0;     // messages processed
@@ -70,11 +72,12 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public Dispatcher(RobotDispatcherModel m,MotorGroupController mgc) {
+	public Dispatcher(RobotDispatcherModel m,Solver s,MotorGroupController mgc) {
 		this.model = m;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
 		this.motorGroupController = mgc;
+		this.solver = s;
 		setName(model.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME,"Bert"));
 		String cadenceString = model.getProperty(ConfigurationConstants.PROPERTY_CADENCE,"1000");  // ~msecs
 		try {
@@ -382,7 +385,9 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
-		Dispatcher runner = new Dispatcher(model,mgc);
+		Solver solver = new Solver();
+		solver.configure(PathConstants.URDF_PATH);
+		Dispatcher runner = new Dispatcher(model,solver,mgc);
 		mgc.setResponseHandler(runner);
 		runner.createControllers();
 		Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(runner)));
