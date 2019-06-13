@@ -8,6 +8,7 @@ package chuckcoughlin.bert.service;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -17,6 +18,7 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.speech.RecognitionService;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -36,7 +38,7 @@ import chuckcoughlin.bert.speech.SpokenTextManager;
  * The service relies on a Bluetooth connection, socket communication and the
  * Android speech recognition classes. Implement as a Singleton, to provide universal access.
  */
-public class VoiceService extends Service implements VoiceServiceHandler {
+public class VoiceService extends RecognitionService implements VoiceServiceHandler {
     private static final String CLSS = "VoiceService";
     private static volatile VoiceService instance = null;
     private static final long ERROR_CYCLE_DELAY = 15000;   // Wait interval for retry after error
@@ -63,9 +65,18 @@ public class VoiceService extends Service implements VoiceServiceHandler {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        throw new UnsupportedOperationException("VoiceService: onBind not yet implemented");
+    public void onCancel(RecognitionService.Callback listener) {
+
     }
+    @Override
+    public void onStartListening(Intent intent,RecognitionService.Callback listener) {
+
+    }
+    @Override
+    public void onStopListening(RecognitionService.Callback listener) {
+
+    }
+
 
     /**
      * Display a notification about us starting.  We put an icon in the status bar.
@@ -200,7 +211,7 @@ public class VoiceService extends Service implements VoiceServiceHandler {
         return( builder.build());
     }
 
-    // Start the 3 actions in order
+    // Start the 3 stages in order
     private void determineNextAction(TieredFacility currentFacility) {
         FacilityState currentState = ServiceStatusManager.getInstance().getStateForFacility(currentFacility);
         if( currentFacility.equals(TieredFacility.BLUETOOTH)) {

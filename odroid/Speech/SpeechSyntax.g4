@@ -33,20 +33,21 @@ command:
 
 // Request for information
 question:
-        How Attribute 'are' 'you'                                     # attributeQuestion
-	| What 'is' Article? Configuration                          # configurationQuestion
+      How Attribute Is 'you'                                     # attributeQuestion
+	| What Is Article? Configuration                          # configurationQuestion
 	| What 'are' Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
-	| What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
-        | What 'is' Article? Side? Joint Axis? Property             # jointPropertyQuestion2
+	| What Is Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
+    | What 'is' Article? Side? Joint Axis? Property             # jointPropertyQuestion2
 	| What 'is' Article? Metric   				    # metricsQuestion
-        | What 'is' Article? Adjective?  Pose                       # poseQuestion
+    | What 'is' Article? Adjective?  Pose                       # poseQuestion
 	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
+	| Where Is Article? Side? Limb								# limbLocationQuestion 
 	;
 
 // Convey information to the robot.
 declaration:
-	'you' 'are' NAME					# declarePose1
-	| Article Pose 'is' NAME                                # declarePose2
+	'you' Is NAME					# declarePose1
+	| Article Pose Is NAME                                # declarePose2
 	| When 'i' 'say' NAME Take Article? Pose NAME		# mapPoseToCommand1
 	| NAME Means To NAME					# mapPoseToCommand2
 	;
@@ -63,8 +64,10 @@ Configuration: 'configuration';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 How: 'how';
+Is: 'is'|'are';
 It: 'it';
 List: ('tell me'|'describe'|'list');
+Limb: 'foot'|'hand'|'lumbar'|'pelvis';
 Limits: 'limits';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
@@ -88,6 +91,7 @@ Value: NUMBER;
 
 What: 'what';
 When: 'when';
+Where: 'where';
 
 
 COMMA: ',';

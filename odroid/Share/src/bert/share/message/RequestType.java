@@ -12,6 +12,7 @@ public enum RequestType
 	COMMAND,                 // Execute a non-motor-related command
 	GET_CONFIGURATION,       // A list of robot properties from the configuration file
 	GET_GOALS,               // The current target settings
+	GET_LIMB_POSITION,       // Current location of a named limb (the tip)
 	GET_LIMITS,              // The EEPROM-resident limits
 	GET_METRIC,              // A local property of the robot
 	GET_MOTOR_PROPERTY,      // Current value of a motor property

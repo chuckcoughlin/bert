@@ -17,11 +17,12 @@ The bulk of this document addresses various design issues and approaches to thei
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
     * [Dynamixel Servos](#dynamixel)
-    * [Interprocess Communication](#sockets)
+    * [Geometry](#geometry)
   * [Design Considerations](#design)
-    * [Message Structure](#messages)
+    * [Control](#control)
+    * [Messaging](#messages)
     * [Poses](#poses)
-    * [Trajectory Planning](#trajectory)
+
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
     * [Failures](#failures)
@@ -137,30 +138,246 @@ We use version 1.0 of the protocol as the motors were delivered with that versio
 
 #### Geometry <a id="geometry"/>
 The geometry of the robot is used for trajectory planning, balance and other purposes. It is described in a
-Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample is shown below:
+Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample is shown below. Axis definitions are as follows:
+
+| Axis | <center>Description</center> |<center>Positive</center>
+| :--: | :---------------------- |
+| x | Front-to-back | Robot's left |
+| y | Side-to-side | Back |
+| z | Vertical | Down |
+
 ```
-  URFD
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SEE: http://wiki.ros.org/urdf/XML for a description of the format
+	 SEE: https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDF for parameter details
+	- rpy means roll, pitch, yaw
+   	- lengths ~ m -->
+<robot name="bert">
+	<link name="PELVIS"/>
+	<link name="RIGHT_HIP_SOCKET"/>
+	<link name="RIGHT_HIP_LINK"/>
+	<link name="RIGHT_THIGH"/>
+	<link name="RIGHT_SHIN"/>
+	<link name="RIGHT_FOOT"/>
+	<link name="LEFT_HIP_SOCKET"/>
+	<link name="LEFT_HIP_LINK"/>
+	<link name="LEFT_THIGH"/>
+	<link name="LEFT_SHIN"/>
+	<link name="LEFT_FOOT"/>
+	<link name="LUMBAR"/>
+	<link name="LOWER_SPINE"/>
+	<link name="SPINE"/>
+	<link name="THORACIC"/>
+	<link name="BACK"/>
+	<link name="CERVICAL"/>
+	<link name="EYES"/>
+	<link name="LEFT_CLAVICLE"/>
+	<link name="LEFT_SHOULDER_LINK"/>
+	<link name="LEFT_UPPER_ARM"/>
+	<link name="LEFT_FOREARM"/>
+	<link name="RIGHT_CLAVICLE"/>
+	<link name="RIGHT_SHOULDER_LINK"/>
+	<link name="RIGHT_UPPER_ARM"/>
+	<link name="RIGHT_FOREARM"/>>
+	<!-- Joint names must match the names in bert.xml -->
+	<joint name="RIGHT_HIP_X" type="revolute">
+		<origin xyz="-0.0225417390633467 0 0" rpy="1.5707963267949 0 0"></origin>
+		<parent link="PELVIS"></parent>
+		<child link="RIGHT_HIP_SOCKET"></child>
+		<axis xyz="0 0 -1"></axis>
+	</joint>
+	<joint name="RIGHT_HIP_Z" type="revolute">
+		<origin xyz="-0.0439986111539757 0 0.005" rpy="0 0 0"></origin>
+		<parent link="RIGHT_HIP_SOCKET"></parent>
+		<child link="RIGHT_HIP_LINK"></child>
+		<axis xyz="0 -1 0"></axis>
+	</joint>
+	<joint name="RIGHT_HIP_Y" type="revolute">
+		<origin xyz="0 -0.024 0" rpy="0 0 0"></origin>
+		<parent link="RIGHT_HIP_LINK"></parent>
+		<child link="RIGHT_THIGH"></child>
+		<axis xyz="-1 0 0"></axis>
+	</joint>
+	<joint name="RIGHT_KNEE_Y" type="revolute">
+		<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"></origin>
+		<parent link="RIGHT_THIGH"></parent>
+		<child link="RIGHT_SHIN"></child>
+		<axis xyz="0 0 -1"></axis>
+	</joint>
+	<joint name="RIGHT_ANKLE_Y" type="revolute">
+		<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"></origin>
+		<parent link="RIGHT_SHIN"></parent>
+		<child link="RIGHT_FOOT"></child>
+		<axis xyz="-1 0 0"></axis>
+	</joint>
+	<joint name="LEFT_HIP_X" type="revolute">
+		<origin xyz="0.0225417390633466 0 0" rpy="1.5707963267949 0 0"></origin>
+		<parent link="PELVIS"></parent>
+		<child link="LEFT_HIP_SOCKET"></child>
+		<axis xyz="0 0 -1"></axis>
+	</joint>
+	<joint name="LEFT_HIP_Z" type="revolute">
+		<origin xyz="0.0439986111539757 0 0.005" rpy="0 0 0"></origin>
+		<parent link="LEFT_HIP_SOCKET"></parent>
+		<child link="LEFT_HIP_LINK"></child>
+		<axis xyz="0 -1 0"></axis>
+	</joint>
+	<joint name="LEFT_HIP_Y" type="revolute">
+		<origin xyz="0 -0.024 0" rpy="0 0 0"></origin>
+		<parent link="LEFT_HIP_LINK"></parent>
+		<child link="LEFT_THIGH"></child>
+		<axis xyz="1 0 0"></axis>
+	</joint>
+	<joint name="LEFT_KNEE_Y" type="revolute">
+		<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"></origin>
+		<parent link="LEFT_THIGH"></parent>
+		<child link="LEFT_SHIN"></child>
+		<axis xyz="0 0 -1"></axis>
+	</joint>
+	<joint name="LEFT_ANKLE_Y" type="revolute">
+		<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"></origin>
+		<parent link="LEFT_SHIN"></parent>
+		<child link="LEFT_FOOT"></child>
+		<axis xyz="1 0 0"></axis>
+	</joint>
+	<joint name="ABS_Y" type="revolute">
+		<origin xyz="0 -0.017 0.061" rpy="1.5707963267949 0 0"></origin>
+		<parent link="PELVIS"></parent>
+		<child link="LUMBAR"></child>
+		<axis xyz="-1 0 0"></axis>
+	</joint>
+	<joint name="ABS_X" type="revolute">
+		<origin xyz="0 0 0" rpy="0 0 0"></origin>
+		<parent link="LUMBAR"></parent>
+		<child link="LOWER_SPINE"></child>
+		<axis xyz="0 0 1"></axis>
+	</joint>
+	<joint name="ABS_Z" type="revolute">
+		<origin xyz="0 0.0516374742048976 0" rpy="0 0 0"></origin>
+		<parent link="LOWER_SPINE"></parent>
+		<child link="SPINE"></child>
+		<axis xyz="0 1 0"></axis>
+	</joint>
+	<joint name="BUST_Y" type="revolute">
+		<origin xyz="0 0.07985 0.0028" rpy="0 0 0"></origin>
+		<parent link="SPINE"></parent>
+		<child link="THORACIC"></child>
+		<axis xyz="-1 0 0"></axis>
+	</joint>
+	<joint name="BUST_X" type="revolute">
+		<origin xyz="0 0 0" rpy="0 0 0"></origin>
+		<parent link="THORACIC"></parent>
+		<child link="BACK"></child>
+		<axis xyz="0 0 1"></axis>
+	</joint>
+	<joint name="HEAD_Z" type="revolute">
+		<origin xyz="0 0.084 0.005" rpy="0 0 0"></origin>
+		<parent link="BACK"></parent>
+		<child link="CERVICAL"></child>
+		<axis xyz="0 1 0"></axis>
+	</joint>
+	<joint name="HEAD_Y" type="revolute">
+		<origin xyz="0 0.02 0" rpy="-0.349065850398866 0 0"></origin>
+		<parent link="CERVICAL"></parent>
+		<child link="EYES"></child>
+		<axis xyz="-1 0 0"></axis>
+	</joint>
+	<joint name="LEFT_SHOULDER_Y" type="revolute">
+		<origin xyz="0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"></origin>
+		<parent link="BACK"></parent>
+		<child link="LEFT_CLAVICLE"></child>
+		<axis xyz="1 0 0"></axis>
+	</joint>
+	<joint name="LEFT_SHOULDER_X" type="revolute">
+		<origin xyz="0.0284 0 0" rpy="3.14159265358979 0 1.5707963267949"></origin>
+		<parent link="LEFT_CLAVICLE"></parent>
+		<child link="LEFT_SHOULDER_LINK"></child>
+		<axis xyz="0 0 1"></axis>
+	</joint>
+	<joint name="LEFT_ARM_Z" type="revolute">
+		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
+		<parent link="LEFT_SHOULDER_LINK"></parent>
+		<child link="LEFT_UPPER_ARM"></child>
+		<axis xyz="0 1 0"></axis>
+	</joint>
+	<joint name="LEFT_ELBOW_Y" type="revolute">
+		<origin xyz="0 0.11175 -0.01" rpy="0 0 0"></origin>
+		<parent link="LEFT_UPPER_ARM"></parent>
+		<child link="LEFT_FOREARM"></child>
+		<axis xyz="1 0 0"></axis>
+	</joint>
+	<joint name="RIGHT_SHOULDER_Y" type="revolute">
+		<origin xyz="-0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"></origin>
+		<parent link="BACK"></parent>
+		<child link="RIGHT_CLAVICLE"></child>
+		<axis xyz="-1 0 0"></axis>
+	</joint>
+	<joint name="RIGHT_SHOULDER_X" type="revolute">
+		<origin xyz="-0.0284 0 0" rpy="3.14159265358979 0 -1.5707963267949"></origin>
+		<parent link="RIGHT_CLAVICLE"></parent>
+		<child link="RIGHT_SHOULDER_LINK"></child>
+		<axis xyz="0 0 -1"></axis>
+	</joint>
+	<joint name="RIGHT_ARM_Z" type="revolute">
+		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
+		<parent link="RIGHT_SHOULDER_LINK"></parent>
+		<child link="RIGHT_UPPER_ARM"></child>
+		<axis xyz="0 1 0"></axis>
+	</joint>
+	<joint name="RIGHT_ELBOW_Y" type="revolute">
+		<origin xyz="0 0.11175 -0.01" rpy="0 0 0"></origin>
+		<parent link="RIGHT_UPPER_ARM"></parent>
+		<child link="RIGHT_FOREARM"></child>
+		<axis xyz="-1 0 0"></axis>
+	</joint>
+</robot>
 ```
 
 Upon analysis of this file, the robot is described as a collection
 of "chains" of links. The chains have a common origin at the pelvis and terminate at an
-end effector (e.g. hand or foot).
+end effector (e.g. hand or foot). The links represent limbs of the body (e.g "thigh").
+A quaternion transform matrix is calculated for each link, describing its orientation and size with respect to
+the parent joint.
 
+Within the joint element, the standard URDF file includes a _limit_ tag. We have removed these as the joint
+angular limits are already defined in the configuration file.
 
-#### Interprocess Communication <a id="sockets"/>
-The major components, _terminal_,_command_, and _dispatcher_ are independent linux processes and communicate via sockets. Port numbers are defined in the configuration file. There is an additional daemon process, _blueserver_, that serves as an interface between the _command_ process and the Bluetooth Serial Port service.
+The _origin_ tag is the transform from the parent link to the child link. It marks the location of the joint
+on the parent link.
+  * xyz - the _x,y,z_ offsets with respect to the parent link origin. All positions are specified in meters.
+  * rpy - represents the rotation around fixed axis: first roll around x, then pitch around y and finally yaw around z. All angles are specified in radians.
 
-The tablet is a Bluetooth client based on Java classes that are a standard part of the Android SDK.
+The _axis_ tag is the joint axis specified in the joint frame. This is the axis of rotation for revolute joints. The axis is specified in the joint frame of reference.
+  * xyz - represents the _x,y,z_ orientation of the joint, always at right angles to the limb. The vector should be normalized.
 
 ## Design Considerations <a id="design"/>
 [toc](#table-of-contents)
-#### Message Structure <a id="messages"/>
-*** Internal ***</br>
-The messages passed back and forth to the _dispatcher_ process are instances of class _MessageBottle_.
+### Control <a id="control"/>
+*** Balance ***</br>
+
+*** Trajectory Planning ***</br>
+Optimal trajectory planning, such as the Poppy example [here](https://github.com/Phylliade/ikpy/tree/master/src/ikpy) by Pierre Manceron is known to be complex and slow. We go to great lengths to avoid it.
+
+When moving to a set pose, it is usually sufficient to simply use that pose as a goal and move
+to it directly using a single command to the servos. For the most part, collision conflicts are
+avoided by limits on the angular motion of the joints.  For situations not covered in this way, we have adopted a simple set of heuristic tests that are applied prior to each movement. In general,
+these heuristics insert intermediate poses to avoid conflicts en route or truncate motion when the goal
+is itself a conflict. We avoid a full trajectory optimization. The list of checks is as follows:
+
+
+#### Messaging<a id="messages"/>
+
+*** Inter-Process ***</br>
+The major components, _terminal_,_command_, and _dispatcher_ are independent linux processes and communicate via sockets. Port numbers are defined in the configuration file.
+
+The messages passed back and forth between these processes are instances of class _MessageBottle_.
 In preparation for transmission across the socket connections, the messages are serialized into JSON
 strings and, of course, reconstituted on the other side.
 
 *** Tablet ***</br>
+The tablet is a Bluetooth client based on Java classes that are a standard part of the Android SDK.
+On the Linux side, there is an additional daemon process, _blueserver_, that serves as an interface between the _command_ process and the Bluetooth Serial Port service.
+
 Messages transmitted to and from the tablet are strings with a simple 4-character header and a 1K-byte
 size limit. Header values are described in the table below:
 
@@ -195,17 +412,6 @@ The "standing" setting defines all three parameters. Note that the ABS_Y speed i
 means that for ABS-Y the speed at which it travels to 90 degrees is the same as the last
 time the joint was used. On power-up speeds are 100% and torques are 0%. Unless specified in
 the pose, torques are automatically set to 100% whenever a joint is moved.
-
-#### Trajectory Planning <a id="trajectory"/>
-Optimal trajectory planning, such as the Poppy example [here](https://github.com/Phylliade/ikpy/tree/master/src/ikpy) by Pierre Manceron is known to be complex and slow. We go to great lengths to avoid it.
-
-When moving to a set pose, it is usually sufficient to simply use that pose as a goal and move
-to it directly using a single command to the servos. For the most part, collision conflicts are
-avoided by limits on the angular motion of the joints.  For situations not covered in this way, we have adopted a simple set of heuristic tests that are applied prior to each movement. In general,
-these heuristics insert intermediate poses to avoid conflicts en route or truncate motion when the goal position is in itself a conflict. We avoid a full trajectory optimization. The list of checks is as follows:
-A full trajectory optimization is not necessary.
-
-
 
 ## Appendices <a id="appendices"/>
 [toc](#table-of-contents)

@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import bert.share.control.Limb;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.MetricType;
@@ -298,7 +299,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 			if( joint.equals(Joint.UNKNOWN) ) {
-				String msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+				String msg = String.format("I don't have a %s joint, that I know of",ctx.Joint().getText());
 				bottle.assignError(msg);
 			}
 			else {
@@ -311,7 +312,27 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	
+	// where is your left forearm
+	public Object visitLimbLocationQuestion(SpeechSyntaxParser.LimbLocationQuestionContext ctx) {
+		bottle.assignRequestType(RequestType.GET_LIMB_POSITION);
+
+		// If side was set previously, use it as default
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
+		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		sharedDictionary.put(SharedKey.SIDE, side);
+		Limb limb = determineLimb(ctx.Limb().getText(),side);
+		bottle.setProperty(BottleConstants.LIMB_NAME,limb.name());
+		if( limb.equals(Limb.UNKNOWN) ) {
+			String msg = String.format("I don't have a %s limb, that I know of",ctx.Limb().getText());
+			bottle.assignError(msg);
+		}
+		else {
+			sharedDictionary.put(SharedKey.LIMB, limb);
+		}
+
+
+		return null;
+	}
 	@Override 
 	// What is your duty cycle?
 	public Object visitMetricsQuestion(SpeechSyntaxParser.MetricsQuestionContext ctx) {
@@ -643,6 +664,32 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( pname.equalsIgnoreCase("velocity"))  pname = "SPEED";
 		else if( pname.equalsIgnoreCase("velocitie")) pname = "SPEED";
 		result = JointProperty.valueOf(pname.toUpperCase());
+		return result;
+	}
+	// Determine the specific limb from the body part and side. (Side is not always needed).
+	private Limb determineLimb(String bodyPart,String side) {
+		Limb result = Limb.UNKNOWN;
+
+		if( bodyPart.equalsIgnoreCase("BACK")) 	result = Limb.BACK;
+		else if( bodyPart.equalsIgnoreCase("FOOT")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Limb.LEFT_FOOT;
+				else                                   result = Limb.RIGHT_FOOT;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("FOREARM") || bodyPart.equalsIgnoreCase("HAND")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Limb.LEFT_FOREARM;
+				else                                   result = Limb.RIGHT_FOREARM;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("LUMBAR")) 	result = Limb.LUMBAR;
+		else if( bodyPart.equalsIgnoreCase("PELVIS")) 	result = Limb.PELVIS;
+
+		
+		if( result.equals(Limb.UNKNOWN)) {
+			LOGGER.info(String.format("WARNING: StatementTranslator.determineLimb did not find a match for %s",bodyPart));
+		}
 		return result;
 	}
 	// Concatenate the elements of NAMES().

@@ -9,6 +9,7 @@ a feature that is actively being debugged. Gray (![gray](/images/ball_gray.png))
   * [Connectivity](#connectivity)
   * [Calibration](#calibration)
   * [Movement](#movement)
+  * [Motion Planning](#planning)
   * [Tablet Interaction](#tablet)
   * [Performance](#performance)
   * [Grammar](#grammar)
@@ -81,7 +82,8 @@ EEPROM limits. A typical query:
 
 ### c - Movement <a id="movement"></a>
 This section includes the first set of tests for driving the position of the robot.
-It also introduces use of the database to store "poses".
+It also introduces use of the database to store "poses". The tests here simply
+drive joints to a goal. There is not yet a concept of trajectory planning.
 
 * ![green](/images/ball_green.png) Move Joint - using the terminal application,
 move a joint to a specified position. Make sure that any attempts to drive it
@@ -96,6 +98,15 @@ out-of-range are clipped . Sample command syntax:
     set the left elbow to 90
     straighten your left knee
 ```
+* ![green](/images/ball_green.png) Change speed - using the terminal application,
+change the speed (~degrees/sec) of a joint and move it to a specified position.
+Sample command syntax:
+```
+    set the speed of your left ankle to 10
+    move quickly
+    move very slowly
+```
+The last two commands set speeds for all joint movements at once.
 
 * ![gray](/images/ball_gray.png) Record Pose - assign a name to the current position
 of the robot. This is called a *Pose*. The name must be a single word. NOTE: In the
@@ -120,20 +131,35 @@ account for positional conflicts.
     "salute"
 ```
 
-* ![gray](/images/ball_gray.png) Speed - change the speed at which actions are
+* ![green](/images/ball_green.png) Speed - change the speed at which actions are
 executed.
 ```
     move in slow motion
     move quickly
+    move very slowly
 ```
-### d - Tablet Interaction <a id="tablet"></a>
+
+### d - Motion Planning <a id="planning"></a>
+Plan motions so as to bring end effectors to a certain position and avoid collisions
+between different parts of the robot.
+
+* ![gray](/images/ball_gray.png) Location - query the robot to determine its understanding
+of the location of one of its limbs. The result contains distances (~m) in three dimensions
+of the far end of the specified limb to the origin which is the center of the pelvis.
+```
+    where is your left hand
+    where are your eyes
+    where is your right ear
+```
+
+### e - Tablet Interaction <a id="tablet"></a>
 Test the integration of the android tablet with the robot, especially as it involves
 spoken text.
 * ![red](/images/ball_red.png) Speech - validate that all commands and queries
 used in the previous section can be executed via speech and that responses are
 likewise formulated into audible sentences.
 
-### e - Performance <a id="performance"></a>
+### f - Performance <a id="performance"></a>
 Test the ability to query performance metrics from the dispatcher.
 * ![green](/images/ball_green.png) Metrics - use the terminal application to query
 the dispatcher for: name, age, height, cadence, cycle time and duty cycle. The results
@@ -143,7 +169,7 @@ should be formatted into proper english sentences. Typical syntax:
   what is your age
 ```
 
-### f - Grammar <a id="grammar"></a>
+### g - Grammar <a id="grammar"></a>
 This section includes tests of more complex speech patterns.
 * ![green](/images/ball_green.png) Completed  - these are statements outside the regular
 syntax shown above that are processed in a reasonable manner.

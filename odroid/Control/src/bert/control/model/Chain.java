@@ -8,7 +8,7 @@ import java.util.LinkedList;
  */
 public class Chain {
 	private final static String CLSS = "Chain";
-	private final LinkedList<Limb> links;
+	private final LinkedList<Link> links;
 	private final String name;
 	
 	public Chain(String nam) {
@@ -21,13 +21,13 @@ public class Chain {
 	 * traversing a list by parents, end to the origin.
 	 * @param link
 	 */
-	public void addElement( Limb link) {
+	public void addElement( Link link) {
 		links.addFirst(link);
 	}
 
-	public Limb getEnd() { return links.getLast(); }
-	public Limb getOrigin() { return links.getFirst(); }
-	public LinkedList<Limb> getLinks() { return this.links; }
+	public Link getEnd() { return links.getLast(); }
+	public Link getOrigin() { return links.getFirst(); }
+	public LinkedList<Link> getLinks() { return this.links; }
 	public String getName() { return this.name; }
 	
 	/**

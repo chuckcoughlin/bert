@@ -1,91 +1,191 @@
-/**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
- *                 MIT License.
- */
 package bert.control.model;
 
-/**
- * These are the canonical names for the linka of the humanoid.
- */
-public enum Link
-{
-	BACK,
-	CERVICAL,
-	EYES,
-	LEFT_CLAVICLE,
-	LEFT_FOOT,
-	LEFT_FOREARM,
-	LEFT_HIP_LINK,
-	LEFT_HIP_SOCKET,
-	LEFT_SHIN,
-	LEFT_SHOULDER_LINK,
-	LEFT_THIGH,
-	LEFT_UPPER_ARM,
-	LOWER_SPINE,
-	LUMBAR,
-	PELVIS,
-	RIGHT_CLAVICLE,
-	RIGHT_FOOT,
-	RIGHT_FOREARM,
-	RIGHT_HIP_LINK,
-	RIGHT_HIP_SOCKET,
-	RIGHT_SHIN,
-	RIGHT_SHOULDER_LINK,
-	RIGHT_THIGH,
-	RIGHT_UPPER_ARM,
-	SPINE,
-	THORACIC,
-	UNKNOWN
-	;
+import org.hipparchus.complex.Quaternion;
+import org.hipparchus.linear.RealVector;
 
-	/**
-	 * Convert the Link enumeration to text that can be pronounced.
-	 * @param joint the enumeration
-	 * @return user-recognizable text
-	 */
-	public static String toText(Link link) {
-		String text = "";
-		switch( link ) {
-			case BACK: text = "back"; break;
-			case CERVICAL: text = "cervical vertibrae"; break;
-			case EYES: text = "eyes"; break;
-			case LEFT_CLAVICLE: text = "left collar bone"; break;
-			case LEFT_FOOT: text = "left foot"; break;
-			case LEFT_FOREARM: text = "left forearm"; break;
-			case LEFT_HIP_LINK: text = "left hip link"; break;
-			case LEFT_HIP_SOCKET: text = "left hip socket"; break;
-			case LEFT_SHIN: text = "left shin"; break;
-			case LEFT_SHOULDER_LINK: text = "left shoulder link"; break;
-			case LEFT_THIGH: text = "left thigh"; break;
-			case LEFT_UPPER_ARM: text = "left upper arm"; break;
-			case LOWER_SPINE: text = "lower spine"; break;
-			case LUMBAR: text = "lumbar"; break;
-			case PELVIS: text = "pelvis"; break;
-			case RIGHT_CLAVICLE: text = "right collar bone"; break;
-			case RIGHT_FOOT: text = "right foot"; break;
-			case RIGHT_FOREARM: text = "right forearm"; break;
-			case RIGHT_HIP_LINK: text = "right hip link"; break;
-			case RIGHT_HIP_SOCKET: text = "right hip socket"; break;
-			case RIGHT_SHIN: text = "right shin"; break;
-			case RIGHT_SHOULDER_LINK: text = "right shoulder link"; break;
-			case RIGHT_THIGH: text = "right thigh"; break;
-			case RIGHT_UPPER_ARM: text = "right upper arm"; break;
-			case SPINE: text = "spine"; break;
-			case THORACIC: text = "thoracic vertibrae"; break;
-			case UNKNOWN: text = "unknown"; break;
-		}
-		return text;
+import bert.share.control.Limb;
+
+/**
+ * A Link is a solid connection between two joints.
+ * A link that is an "origin" or "end-point" connects to
+ * only one joint.
+ */
+public class Link {
+	private final static String CLSS = "Link";
+	private final Limb limb;
+	private Quaternion q0;    // Origin          - quaternion
+
+	
+	public Link(Limb lnk) {
+		this.limb = lnk;
 	}
-	/**
-	 * @return  a comma-separated list of all block states in a single String.
-	 */
-	public static String names()
-	{
-		StringBuffer names = new StringBuffer();
-		for (Link type : Link.values())
-		{
-			names.append(type.name()+", ");
-		}
-		return names.substring(0, names.length()-2);
-	}
+	
+	public String getName() { return this.limb.name(); }
+	public void setOrigin(Quaternion origin) { this.q0 = origin; }
 }
+
+
+/**
+
+class Link(object):
+    """
+    Base Link class.
+    Parameters
+    ----------
+    name: string
+        The name of the limb
+    bounds: tuple
+        Optional : The bounds of the limb. Defaults to None
+    """
+
+    def __init__(self, name, length, bounds=(None, None)):
+        self.bounds = bounds
+        self.name = name
+        self.length = length
+        self.axis_length = length
+
+    def __repr__(self):
+        return("Link name={} bounds={}".format(self.name, self.bounds))
+
+    def _get_rotation_axis(self):
+        # Defaults to None
+        return [0, 0, 0, 1]
+
+    def get_transformation_matrix(self, theta):
+        raise NotImplementedError
+
+
+class URDFLink(Link):
+    """Link in URDF representation.
+    Parameters
+    ----------
+    name: str
+        The name of the limb
+    bounds: tuple
+        Optional : The bounds of the limb. Defaults to None
+    translation_vector: numpy.array
+        The translation vector. (In URDF, attribute "xyz" of the "origin" element)
+    orientation: numpy.array
+        The orientation of the limb. (In URDF, attribute "rpy" of the "origin" element)
+    rotation: numpy.array
+        The rotation axis of the limb. (In URDF, attribute "xyz" of the "axis" element)
+    angle_representation: str
+        Optional : The representation used by the angle. Currently supported representations : rpy. Defaults to rpy, the URDF standard.
+    use_symbolic_matrix: bool
+        whether the transformation matrix is stored as a Numpy array or as a Sympy symbolic matrix.
+    Returns
+    -------
+    URDFLink
+        The limb object
+    Example
+    -------
+    URDFlink()
+    """
+
+    def __init__(self, name, translation_vector, orientation, rotation, bounds=(None, None), angle_representation="rpy", use_symbolic_matrix=True):
+        Link.__init__(self, name=name, bounds=bounds, length=np.linalg.norm(translation_vector))
+        self.use_symbolic_matrix = use_symbolic_matrix
+        self.translation_vector = np.array(translation_vector)
+        self.orientation = np.array(orientation)
+        self.rotation = np.array(rotation)
+
+        if use_symbolic_matrix:
+            # Angle symbolique qui paramètre la rotation du joint en cours
+            theta = sympy.symbols("theta")
+
+            symbolic_frame_matrix = np.eye(4)
+
+            # Apply translation matrix
+            symbolic_frame_matrix = symbolic_frame_matrix * sympy.Matrix(geometry_utils.homogeneous_translation_matrix(*translation_vector))
+
+            # Apply orientation matrix
+            symbolic_frame_matrix = symbolic_frame_matrix * geometry_utils.cartesian_to_homogeneous(geometry_utils.rpy_matrix(*orientation))
+
+            # Apply rotation matrix
+            symbolic_frame_matrix = symbolic_frame_matrix * geometry_utils.cartesian_to_homogeneous(geometry_utils.symbolic_axis_rotation_matrix(rotation, theta), matrix_type="sympy")
+
+            self.symbolic_transformation_matrix = sympy.lambdify(theta, symbolic_frame_matrix, "numpy")
+
+    def __str__(self):
+        return("""URDF Link {} :
+    Bounds : {}
+    Translation : {}
+    Orientation : {}
+    Rotation : {}""".format(self.name, self.bounds, self.translation_vector, self.orientation, self.rotation))
+
+    def _get_rotation_axis(self):
+        return np.dot(
+            geometry_utils.homogeneous_translation_matrix(*self.translation_vector),
+            np.dot(
+                geometry_utils.cartesian_to_homogeneous(geometry_utils.rpy_matrix(*self.orientation)),
+                geometry_utils.cartesian_to_homogeneous_vectors(self.rotation * self.axis_length)
+            )
+        )
+
+    def get_transformation_matrix(self, theta):
+        if self.use_symbolic_matrix:
+            frame_matrix = self.symbolic_transformation_matrix(theta)
+        else:
+            # Init the transformation matrix
+            frame_matrix = np.eye(4)
+
+            # First, apply translation matrix
+            frame_matrix = np.dot(frame_matrix, geometry_utils.homogeneous_translation_matrix(*self.translation_vector))
+
+            # Apply orientation
+            frame_matrix = np.dot(frame_matrix, geometry_utils.cartesian_to_homogeneous(geometry_utils.rpy_matrix(*self.orientation)))
+
+            # Apply rotation matrix
+            frame_matrix = np.dot(frame_matrix, geometry_utils.cartesian_to_homogeneous(geometry_utils.axis_rotation_matrix(self.rotation, theta)))
+
+        return frame_matrix
+
+
+class DHLink(Link):
+    """Link in Denavit-Hartenberg representation.
+    Parameters
+    ----------
+    name: str
+        The name of the limb
+    bounds: tuple
+        Optional : The bounds of the limb. Defaults to None
+    d: float
+        offset along previous z to the common normal
+    a: float
+        offset along previous   to the common normal
+    use_symbolic_matrix: bool
+        whether the transformation matrix is stored as Numpy array or as a Sympy symbolic matrix.
+    Returns
+    -------
+    DHLink:
+        The limb object
+    """
+
+    def __init__(self, name, d=0, a=0, bounds=None, use_symbolic_matrix=True):
+        Link.__init__(self, use_symbolic_matrix)
+
+    def get_transformation_matrix(self, theta, a):
+        """ Computes the homogeneous transformation matrix for this limb. """
+        ct = np.cos(theta + self.theta)
+        st = np.sin(theta + self.theta)
+        ca = np.cos(self.alpha)
+        sa = np.sin(self.alpha)
+
+        return np.matrix(((ct, -st * ca, st * sa, a * ct),
+                          (st, ct * ca, -ct * sa, a * st),
+                          (0, sa, ca, self.d),
+                          (0, 0, 0, 1)))
+
+
+class OriginLink(Link):
+    """The limb at the origin of the robot"""
+    def __init__(self):
+        Link.__init__(self, name="Base limb", length=1)
+
+    def _get_rotation_axis(self):
+        return [0, 0, 0, 1]
+
+    def get_transformation_matrix(self, theta):
+        return np.eye(4)
+
+**/

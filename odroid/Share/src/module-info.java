@@ -10,6 +10,7 @@ module bert.share {
 	
 	exports bert.share.message;
 	exports bert.share.common;
+	exports bert.share.control;
 	exports bert.share.controller;
 	exports bert.share.logging;
 	exports bert.share.model;

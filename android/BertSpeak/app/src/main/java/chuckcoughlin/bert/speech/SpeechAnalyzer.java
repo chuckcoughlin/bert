@@ -110,7 +110,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
                 reason = String.format("ERROR (%d) ",error);
         }
         if( reason!=null) {
-            Log.i(CLSS,  String.format("SpeechRecognition: Error - %s",reason));
+            Log.i(CLSS,  String.format("SpeechRecognizer: Error - %s",reason));
             handler.handleVoiceError(reason);
         }
     }

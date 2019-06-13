@@ -28,7 +28,7 @@ public class BertConstants {
     public static final String BERT_PAIRED_DEVICE_HINT="bert_humanoid";
     public static final String BERT_SERVICE_UUID_HINT="33001101-0000-2000-8080-00815FAB34FF";
 
-    // Intent observer actions
+    // Intent observer recognizer
     public static final String ACTION_FACILITY_STATE = "FacilityState";
     public static final String ACTION_SPOKEN_TEXT  = "SpokenText";
 

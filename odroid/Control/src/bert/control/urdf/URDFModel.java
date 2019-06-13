@@ -13,14 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.hipparchus.complex.Quaternion;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import bert.control.model.Chain;
-import bert.control.model.Limb;
 import bert.control.model.Link;
 import bert.control.model.Revolute;
+import bert.share.control.Limb;
 import bert.share.motor.Joint;
 import bert.share.xml.XMLUtility;
 
@@ -32,8 +33,8 @@ public class URDFModel  {
 	protected Document document;
 	private final Map<String,Chain> chains;
 	private final List<Revolute> ends;
-	private final Map<Link,Limb> limbsByLink;
-	private final Map<Link,Revolute> revolutesByChild;
+	private final Map<Limb,Link> limbsByLink;
+	private final Map<Limb,Revolute> revolutesByChild;
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 
 	
@@ -88,8 +89,8 @@ public class URDFModel  {
 				Node linkNode = links.item(index);
 				String name = XMLUtility.attributeValue(linkNode, "name");
 				try {
-					Link link = Link.valueOf(name);
-					Limb limb = new Limb(link);
+					Limb link = Limb.valueOf(name);
+					Link limb = new Link(link);
 					limbsByLink.put(link, limb);
 					LOGGER.fine(String.format("%s.analyzeChains: Found link %s",CLSS,limb.getName()));
 				}
@@ -110,8 +111,8 @@ public class URDFModel  {
 					NodeList nodes = jointNode.getChildNodes();
 					int nodeCount = nodes.getLength();
 					int nodeIndex = 0;
-					Link parent = null;
-					Link child = null;
+					Limb parent = null;
+					Limb child = null;
 					// We expect at most one child and one parent
 					while( nodeIndex<nodeCount ) {
 						Node childNode = nodes.item(nodeIndex);
@@ -119,7 +120,7 @@ public class URDFModel  {
 							String p = XMLUtility.attributeValue(childNode, "link");
 							if( p!=null ) {
 								try {
-									parent = Link.valueOf(p);
+									parent = Limb.valueOf(p);
 								}
 								catch(IllegalArgumentException iae) {
 									LOGGER.warning(String.format("%s.analyzeChains: parent of %s has unknown name (%s), ignored",CLSS,joint.name(),p));
@@ -130,7 +131,7 @@ public class URDFModel  {
 							String c = XMLUtility.attributeValue(childNode, "link");
 							if( c!=null ) {
 								try {
-									child = Link.valueOf(c);
+									child = Limb.valueOf(c);
 								}
 								catch(IllegalArgumentException iae) {
 									LOGGER.warning(String.format("%s.analyzeChains: child of %s has unknown name (%s), ignored",CLSS,joint.name(),c));
@@ -144,7 +145,7 @@ public class URDFModel  {
 						Revolute rev = new Revolute(joint,parent,child);
 						if( parent == null ) {
 							Chain chain = new Chain(child.name());
-							chain.addElement(new Limb(child));
+							chain.addElement(new Link(child));
 							LOGGER.info(String.format("%s.analyzeChains: New chain(%s)",CLSS,child.name()));
 							ends.add(rev);
 						}
@@ -164,12 +165,14 @@ public class URDFModel  {
 			// the origin and terminate with the end effector.
 			for(Revolute rev:ends ) {
 				Chain chain = chains.get(rev.getName());
-				Link parent = rev.getParent();
+				Limb parent = rev.getParent();
 				while( parent!=null ) {
-					chain.addElement(new Limb(parent));
+					chain.addElement(new Link(parent));
 					rev = revolutesByChild.get(rev.getChild());
 					parent = rev.getParent();
 				}
+				Link origin = chain.getOrigin();
+				origin.setOrigin(Quaternion.ZERO);    // Starting position of the chain
 			}
 		}
 	}
