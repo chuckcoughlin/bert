@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import org.sqlite.JDBC;
 
+import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
 import bert.sql.motor.MotorStateTable;
 import bert.sql.pose.PoseTable;
@@ -81,7 +82,7 @@ public class Database {
 	 * 
 	 * @param motors map of motor configurations by uppercase name
 	 */
-	public void populateMotors(Map<String,MotorConfiguration> motors) {
+	public void populateMotors(Map<Joint,MotorConfiguration> motors) {
 		Collection<MotorConfiguration> motorList = motors.values();
 		motor.defineMotors(connection, motorList);
 	}

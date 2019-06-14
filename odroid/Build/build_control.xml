@@ -35,7 +35,11 @@
 	
 	<!-- Create/copy the jar file into the current build area -->
 	<target name ="jar" description="Create a jar ">
-    	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}"/>
+		<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
+			<manifest>
+					<attribute name="Main-Class" value="bert.control.main.Solver"/>
+			</manifest>
+		</jar>
 	</target>
 	
 	<!-- Copy the jar into the local deployment area -->

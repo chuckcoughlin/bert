@@ -73,7 +73,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	public void initialize() {
 		if( !development ) {
 			Set<String> groupNames = model.getHandlerTypes().keySet();
-			Map<String,MotorConfiguration> motors = model.getMotors(); 
+			Map<Joint,MotorConfiguration> motors = model.getMotors(); 
 			for( String group:groupNames ) {
 				SerialPort port = model.getPortForGroup(group);
 				MotorController controller = new MotorController(group,port,this);
@@ -312,34 +312,34 @@ public class MotorGroupController implements Controller,MotorManager {
 			JointProperty property = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""));
 			LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",CLSS,request.fetchRequestType().name(),property.name()));
 			String text = "";
-			Map<String,MotorConfiguration> mcs = model.getMotors();
-			for( String jointName:mcs.keySet() ) {
-				MotorConfiguration mc = mcs.get(jointName);
+			Map<Joint,MotorConfiguration> mcs = model.getMotors();
+			for( Joint joint:mcs.keySet() ) {
+				MotorConfiguration mc = mcs.get(joint);
 				switch(property) {
 				case ID:
 					int id = mc.getId();
-					text = "The id of "+jointName+" is "+id;
+					text = "The id of "+joint+" is "+id;
 					break;
 				case MAXIMUMANGLE:
-					text = String.format("The maximum angle for %s is %.0f degrees",jointName,mc.getMaxAngle());
+					text = String.format("The maximum angle for %s is %.0f degrees",joint,mc.getMaxAngle());
 					break;
 				case MINIMUMANGLE:
-					text = String.format("The minimum angle for %s is %.0f degrees",jointName,mc.getMinAngle());
+					text = String.format("The minimum angle for %s is %.0f degrees",joint,mc.getMinAngle());
 					break;
 				case MOTORTYPE:
 					String modelName = "A X 12";
 					if( mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28";
 					else if( mc.getType().equals(DynamixelType.MX64)) modelName = "M X 64";
-					text = jointName+" is a dynamixel "+modelName;
+					text = joint+" is a dynamixel "+modelName;
 					break;
 				case OFFSET:
 					double offset = mc.getOffset();
-					text = "The offset of "+jointName+" is "+offset;
+					text = "The offset of "+joint+" is "+offset;
 					break;
 				case ORIENTATION:
 					String orientation = "indirect";
 					if( mc.isDirect() ) orientation = "direct";
-					text = "The orientation of "+jointName+" is "+orientation;
+					text = "The orientation of "+joint+" is "+orientation;
 					break;
 				default:
 					text = "";
@@ -366,7 +366,7 @@ public class MotorGroupController implements Controller,MotorManager {
 			Joint joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"));
 			String text = "";
 			String jointName = Joint.toText(joint);
-			MotorConfiguration mc = model.getMotors().get(joint.name());
+			MotorConfiguration mc = model.getMotors().get(joint);
 			switch(property) {
 			case POSITION:
 				int position = 0;

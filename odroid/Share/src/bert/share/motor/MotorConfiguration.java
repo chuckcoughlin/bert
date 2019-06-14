@@ -77,7 +77,7 @@ public class MotorConfiguration implements Serializable  {
 	public void setIsDirect(boolean flag)    { this.direct = flag; }
 	public void setMinAngle(double angle)    { this.minAngle = angle; }
 	public void setMaxAngle(double angle)    { this.maxAngle = angle; }
-	public void setName(String nam)          { this.name = Joint.valueOf(nam.toUpperCase()); }
+	public void setName(Joint jname)         { this.name = jname; }
 	public void	setOffset(double off)        { this.offset = off; }
 	public void setSpeed(double s)    	     { this.speed = s; }
 	public void setTorque(double t)          { this.torque = t; }

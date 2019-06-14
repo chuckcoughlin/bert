@@ -40,7 +40,7 @@ options from the vocabulary list in the next section.
     what are the targets for your neck horizontal (position, speed, torque)
     What is your height
     What is the id of your left shoulder vertical
-    What is the vertical position of your neck 
+    What is the vertical position of your neck
     what is your left ankle temperature
 ```
 ##### Settings
@@ -78,6 +78,8 @@ there is no necessary interactive control other than speech. The screens shown
 below provide some minimal troubleshooting capabilities.
 
 Make sure that the application is configured in the Settings with Permission for Microphone and Storage.
+Additionally, under Settings->General Management, choose the preferred text-speech engine.
+(I chose Samsung over Google). Install voice data (I chose a British male).
 
 *********************************************************
   ![BertSpeak](/images/bertspeak_cover.png)

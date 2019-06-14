@@ -10,10 +10,10 @@ package bert.speech.process;
  */
 public enum SharedKey
 {
+    		APPENDAGE,
             ASLEEP,    // Robot ignores requests,
             AXIS,
             JOINT,
-            LIMB,
             POSE,      // Current pose
             SIDE
             ;

@@ -41,13 +41,13 @@ question:
 	| What 'is' Article? Metric   				    # metricsQuestion
     | What 'is' Article? Adjective?  Pose                       # poseQuestion
 	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
-	| Where Is Article? Side? Limb								# limbLocationQuestion 
+	| Where Is Article? Side? (Appendage|Joint)	Axis?			# limbLocationQuestion 
 	;
 
 // Convey information to the robot.
 declaration:
 	'you' Is NAME					# declarePose1
-	| Article Pose Is NAME                                # declarePose2
+	| Article Pose Is NAME                              # declarePose2
 	| When 'i' 'say' NAME Take Article? Pose NAME		# mapPoseToCommand1
 	| NAME Means To NAME					# mapPoseToCommand2
 	;
@@ -57,6 +57,7 @@ declaration:
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
 Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow';
+Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Attribute: 'old'|'tall';
 Axis: 'x'|'y'|'z'|'horizontal'|'vertical';
 Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');
@@ -67,7 +68,6 @@ How: 'how';
 Is: 'is'|'are';
 It: 'it';
 List: ('tell me'|'describe'|'list');
-Limb: 'foot'|'hand'|'lumbar'|'pelvis';
 Limits: 'limits';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';

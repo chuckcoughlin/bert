@@ -21,7 +21,14 @@
 	<link name="THORACIC"/>
 	<link name="BACK"/>
 	<link name="CERVICAL"/>
-	<link name="EYES"/>
+	<link name="HEAD">
+		<appendage name="eyes"/>
+		<appendage name="left eye"/>
+		<appendage name="right eye"/>
+		<appendage name="left ear"/>
+		<appendage name="right ear"/>
+		<appendage name="nose"/>
+	</link>
 	<link name="LEFT_CLAVICLE"/>
 	<link name="LEFT_SHOULDER_LINK"/>
 	<link name="LEFT_UPPER_ARM"/>
@@ -130,7 +137,7 @@
 	<joint name="HEAD_Y" type="revolute">
 		<origin xyz="0 0.02 0" rpy="-0.349065850398866 0 0"></origin>
 		<parent link="CERVICAL"></parent>
-		<child link="EYES"></child>
+		<child link="HEAD"></child>
 		<axis xyz="-1 0 0"></axis>
 	</joint>
 	<joint name="LEFT_SHOULDER_Y" type="revolute">

@@ -151,6 +151,8 @@ of the far end of the specified limb to the origin which is the center of the pe
     where are your eyes
     where is your right ear
 ```
+The object of the question may be either an "appendage" (as used in the examples) or a joint. An appendage
+is simply a protuberance somewhere on a limb. The 'URDF' file defines legal names.
 
 ### e - Tablet Interaction <a id="tablet"></a>
 Test the integration of the android tablet with the robot, especially as it involves

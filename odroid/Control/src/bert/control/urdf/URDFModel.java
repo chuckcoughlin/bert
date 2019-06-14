@@ -26,22 +26,21 @@ import bert.share.motor.Joint;
 import bert.share.xml.XMLUtility;
 
 /**
- *  Parse the URDF file and make its contents available as chains of links.
+ *  Parse the URDF file and make its contents available as a chain of links.
+ *  A chain has a tree structure with a single root.
  */
 public class URDFModel  {
 	private static final String CLSS = "URDFModel";
 	protected Document document;
-	private final Map<String,Chain> chains;
-	private final List<Revolute> ends;
-	private final Map<Limb,Link> limbsByLink;
+	private final Chain chain;
+	private final Map<Limb,Link> linksByLimb;
 	private final Map<Limb,Revolute> revolutesByChild;
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 
 	
 	public URDFModel() {
-		this.chains = new HashMap<>();
-		this.ends   = new ArrayList<>();
-		this.limbsByLink = new HashMap<>();
+		this.chain = new Chain();
+		this.linksByLimb = new HashMap<>();
 		this.revolutesByChild = new HashMap<>();
 		this.document = null;
 	}
@@ -49,9 +48,9 @@ public class URDFModel  {
 
 
 	/**
-	 * @return a map of type names for each message handler used by this application.
+	 * @return the tree of links which describes the robot.
 	 */
-	public Map<String,Chain> getChains() { return this.chains; }
+	public Chain getChain() { return this.chain; }
 
     /**
 	 * Expand the supplied path as the URDF XML file.
@@ -63,7 +62,7 @@ public class URDFModel  {
 			byte[] bytes = Files.readAllBytes(filePath);
 			if( bytes!=null ) {
 				this.document = XMLUtility.documentFromBytes(bytes);
-				analyzeChains();
+				analyzeChain();
 			}
 		}
 		catch( IOException ioe) {
@@ -80,7 +79,7 @@ public class URDFModel  {
 	/**
 	 * Search the model for link and joint elements. 
 	 */
-	private void analyzeChains() {
+	private void analyzeChain() {
 		if( this.document!=null ) {
 			NodeList links = document.getElementsByTagName("link");
 			int count = links.getLength();
@@ -89,13 +88,14 @@ public class URDFModel  {
 				Node linkNode = links.item(index);
 				String name = XMLUtility.attributeValue(linkNode, "name");
 				try {
-					Limb link = Limb.valueOf(name);
-					Link limb = new Link(link);
-					limbsByLink.put(link, limb);
-					LOGGER.fine(String.format("%s.analyzeChains: Found link %s",CLSS,limb.getName()));
+					Limb limb = Limb.valueOf(name);
+					Link link = new Link(limb);
+					linksByLimb.put(limb, link);
+					LOGGER.fine(String.format("%s.analyzeChain: Found link %s",CLSS,name));
+					chain.addElement(link);
 				}
 				catch(IllegalArgumentException iae) {
-					LOGGER.warning(String.format("%s.analyzeChains: link element has unknown name (%s), ignored",CLSS,name));
+					LOGGER.warning(String.format("%s.analyzeChain: link element has unknown name (%s), ignored",CLSS,name));
 				}
 				index++;
 			}
@@ -113,7 +113,7 @@ public class URDFModel  {
 					int nodeIndex = 0;
 					Limb parent = null;
 					Limb child = null;
-					// We expect at most one child and one parent
+					// It is required that the Revolute have a parent and a child
 					while( nodeIndex<nodeCount ) {
 						Node childNode = nodes.item(nodeIndex);
 						if( "parent".equals(childNode.getLocalName()) ) {
@@ -123,8 +123,11 @@ public class URDFModel  {
 									parent = Limb.valueOf(p);
 								}
 								catch(IllegalArgumentException iae) {
-									LOGGER.warning(String.format("%s.analyzeChains: parent of %s has unknown name (%s), ignored",CLSS,joint.name(),p));
+									LOGGER.warning(String.format("%s.analyzeChain: parent of %s has unknown name (%s), ignored",CLSS,joint.name(),p));
 								}
+							}
+							else {
+								LOGGER.warning(String.format("%s.analyzeChain: joint %s has no parent, ignored",CLSS,joint.name()));
 							}
 						}
 						else if( "child".equals(childNode.getLocalName()) ) {
@@ -134,24 +137,19 @@ public class URDFModel  {
 									child = Limb.valueOf(c);
 								}
 								catch(IllegalArgumentException iae) {
-									LOGGER.warning(String.format("%s.analyzeChains: child of %s has unknown name (%s), ignored",CLSS,joint.name(),c));
+									LOGGER.warning(String.format("%s.analyzeChain: child of %s has unknown name (%s), ignored",CLSS,joint.name(),c));
 								}
+							}
+							else {
+								LOGGER.warning(String.format("%s.analyzeChain: joint %s has no child, ignored",CLSS,joint.name()));
 							}
 						}
 						nodeIndex++;
 					}
 					
-					if( parent!=null || child!=null ) {  // If both null, we've logged the errors
+					if( parent!=null && child!=null ) {  // If both null, we've logged the errors
 						Revolute rev = new Revolute(joint,parent,child);
-						if( parent == null ) {
-							Chain chain = new Chain(child.name());
-							chain.addElement(new Link(child));
-							LOGGER.info(String.format("%s.analyzeChains: New chain(%s)",CLSS,child.name()));
-							ends.add(rev);
-						}
-						else if(child!=null) {
-							revolutesByChild.put(child, rev);
-						}
+						revolutesByChild.put(child, rev);
 						LOGGER.fine(String.format("%s.analyzeChains: Found revolute %s",CLSS,rev.getName()));
 					}
 				}
@@ -161,18 +159,16 @@ public class URDFModel  {
 				index++;
 			}
 			
-			// Now complete the chains. When complete chain will begin at
-			// the origin and terminate with the end effector.
-			for(Revolute rev:ends ) {
-				Chain chain = chains.get(rev.getName());
+			// Search for origin. Origin is link where no other link has it as a child.
+			for(Revolute rev:revolutesByChild.values() ) {
 				Limb parent = rev.getParent();
-				while( parent!=null ) {
-					chain.addElement(new Link(parent));
-					rev = revolutesByChild.get(rev.getChild());
-					parent = rev.getParent();
+				if( revolutesByChild.get(parent)==null ) {
+					Link root = linksByLimb.get(parent);
+					root.setOrigin(Quaternion.ZERO);
+					chain.setRoot(root);
+					break;
 				}
-				Link origin = chain.getOrigin();
-				origin.setOrigin(Quaternion.ZERO);    // Starting position of the chain
+
 			}
 		}
 	}

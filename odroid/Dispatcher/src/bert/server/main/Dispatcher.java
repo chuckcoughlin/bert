@@ -17,6 +17,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
+import bert.control.main.Solver;
 import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
 import bert.server.model.RobotDispatcherModel;
@@ -35,7 +36,6 @@ import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
-import bert.control.main.Solver;
 
 /**
  * The launcher is its own system process. It's job is to accept requests from 
@@ -386,7 +386,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
 		model.populate();    // Analyze the xml
 		Solver solver = new Solver();
-		solver.configure(PathConstants.URDF_PATH);
+		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
 		Dispatcher runner = new Dispatcher(model,solver,mgc);
 		mgc.setResponseHandler(runner);
 		runner.createControllers();

@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import bert.share.control.Appendage;
 import bert.share.control.Limb;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
@@ -312,24 +313,42 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	// where is your left forearm
+	// where is your left ear
 	public Object visitLimbLocationQuestion(SpeechSyntaxParser.LimbLocationQuestionContext ctx) {
-		bottle.assignRequestType(RequestType.GET_LIMB_POSITION);
-
+		// If axis was set previously, use it as default
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS, axis);
 		// If side was set previously, use it as default
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
 		if( ctx.Side()!=null ) side = ctx.Side().getText();
 		sharedDictionary.put(SharedKey.SIDE, side);
-		Limb limb = determineLimb(ctx.Limb().getText(),side);
-		bottle.setProperty(BottleConstants.LIMB_NAME,limb.name());
-		if( limb.equals(Limb.UNKNOWN) ) {
-			String msg = String.format("I don't have a %s limb, that I know of",ctx.Limb().getText());
-			bottle.assignError(msg);
+		if( ctx.Appendage()==null) {
+			bottle.assignRequestType(RequestType.GET_JOINT_LOCATION);
+			Joint joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
+			if( ctx.Joint()!=null ) joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			if( joint.equals(Joint.UNKNOWN) ) {
+				String msg = String.format("I don't have a joint like that");
+				bottle.assignError(msg);
+			}
+			else {
+				sharedDictionary.put(SharedKey.JOINT, joint);
+			}
 		}
 		else {
-			sharedDictionary.put(SharedKey.LIMB, limb);
+			bottle.assignRequestType(RequestType.GET_APPENDAGE_LOCATION);
+			Appendage appendage = (Appendage)sharedDictionary.get(SharedKey.APPENDAGE);
+			if( ctx.Appendage()!=null )appendage = determineAppendage(ctx.Appendage().getText(),side);
+			bottle.setProperty(BottleConstants.APPENDAGE_NAME,appendage.name());
+			if( appendage.equals(Appendage.UNKNOWN) ) {
+				String msg = String.format("I don't have an appendage %s, that I know of",ctx.Appendage().getText());
+				bottle.assignError(msg);
+			}
+			else {
+				sharedDictionary.put(SharedKey.APPENDAGE, appendage);
+			}
 		}
-
 
 		return null;
 	}
@@ -565,6 +584,47 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	//===================================== Helper Methods ======================================
+	// Determine the specific appendage from the body part and side. (Side is not always needed).
+	private Appendage determineAppendage(String bodyPart,String side) {
+		Appendage result = Appendage.UNKNOWN;
+		
+		if( bodyPart.equalsIgnoreCase("EAR")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Appendage.LEFT_EAR;
+				else                                   result = Appendage.RIGHT_EAR;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("EYE") || bodyPart.equalsIgnoreCase("EYES")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Appendage.LEFT_EYE;
+				else                                   result = Appendage.RIGHT_EYE;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("FINGER") || bodyPart.equalsIgnoreCase("HAND")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Appendage.LEFT_FINGER;
+				else                                   result = Appendage.RIGHT_FINGER;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("FOOT") || bodyPart.equalsIgnoreCase("TOE")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Appendage.LEFT_TOE;
+				else                                   result = Appendage.RIGHT_TOE;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("HEEL") ) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Appendage.LEFT_HEEL;
+				else                                   result = Appendage.RIGHT_HEEL;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("NOSE")) 	result = Appendage.NOSE;
+
+		if( result.equals(Limb.UNKNOWN)) {
+			LOGGER.info(String.format("WARNING: StatementTranslator.determineLimb did not find a match for %s",bodyPart));
+		}
+		return result;
+	}
 	// Determine the specific joint from the body part, side and axis. (The latter two are
 	// not always needed).
 	private Joint determineJoint(String bodyPart,String axis,String side) {
@@ -666,32 +726,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		result = JointProperty.valueOf(pname.toUpperCase());
 		return result;
 	}
-	// Determine the specific limb from the body part and side. (Side is not always needed).
-	private Limb determineLimb(String bodyPart,String side) {
-		Limb result = Limb.UNKNOWN;
 
-		if( bodyPart.equalsIgnoreCase("BACK")) 	result = Limb.BACK;
-		else if( bodyPart.equalsIgnoreCase("FOOT")) {
-			if(side!=null) {
-				if( side.equalsIgnoreCase("left"))     result = Limb.LEFT_FOOT;
-				else                                   result = Limb.RIGHT_FOOT;
-			}
-		}
-		else if( bodyPart.equalsIgnoreCase("FOREARM") || bodyPart.equalsIgnoreCase("HAND")) {
-			if(side!=null) {
-				if( side.equalsIgnoreCase("left"))     result = Limb.LEFT_FOREARM;
-				else                                   result = Limb.RIGHT_FOREARM;
-			}
-		}
-		else if( bodyPart.equalsIgnoreCase("LUMBAR")) 	result = Limb.LUMBAR;
-		else if( bodyPart.equalsIgnoreCase("PELVIS")) 	result = Limb.PELVIS;
-
-		
-		if( result.equals(Limb.UNKNOWN)) {
-			LOGGER.info(String.format("WARNING: StatementTranslator.determineLimb did not find a match for %s",bodyPart));
-		}
-		return result;
-	}
 	// Concatenate the elements of NAMES().
 	private String namesForNodeList(List<TerminalNode> names) {
 		StringBuffer buf = new StringBuffer();

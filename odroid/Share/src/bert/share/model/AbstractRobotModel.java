@@ -17,6 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
 import bert.share.xml.XMLUtility;
 
@@ -31,7 +32,7 @@ public abstract class AbstractRobotModel  {
 	protected final Properties properties;
 	protected final Map<String,String> handlerTypes;  // Message handler types by handler name
 	protected final Map<String,Integer> sockets;      // Socket port by handler name
-	protected final Map<String,MotorConfiguration> motors; // Motor configuration by motor name
+	protected final Map<Joint,MotorConfiguration> motors; // Motor configuration by motor name
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 
 	
@@ -69,7 +70,7 @@ public abstract class AbstractRobotModel  {
 	/**
 	 * @return a map of motor configuration objects by motor name (upper case).
 	 */
-	public Map<String,MotorConfiguration> getMotors() { return this.motors; }
+	public Map<Joint,MotorConfiguration> getMotors() { return this.motors; }
 	/**
 	 * @return a map of socket attributes keyed by controller name.
 	 *         The key list is sufficient to get the controller names.
@@ -146,7 +147,10 @@ public abstract class AbstractRobotModel  {
 									MotorConfiguration motor = new MotorConfiguration();
 									motor.setController(controller);
 									String value = XMLUtility.attributeValue(joint, "name");
-									if( value!=null) motor.setName(value);
+									if( value!=null) {
+										Joint name = Joint.valueOf(value.toUpperCase());
+										motor.setName(name);
+									}
 									value = XMLUtility.attributeValue(joint, "type");
 									if( value!=null) motor.setType(value);
 									value = XMLUtility.attributeValue(joint, "id"); 
@@ -165,7 +169,7 @@ public abstract class AbstractRobotModel  {
 									if( value!=null && !value.isEmpty()) {
 										motor.setIsDirect(value.equalsIgnoreCase("direct"));
 									}
-									motors.put(motor.getName().name(),motor);
+									motors.put(motor.getName(),motor);
 									LOGGER.fine(String.format("%s.analyzeMotors: Found %s",CLSS,motor.getName().name()));
 								}
 							}

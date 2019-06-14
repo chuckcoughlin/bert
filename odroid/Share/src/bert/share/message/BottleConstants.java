@@ -13,10 +13,10 @@ public interface BottleConstants   {
 	
 	// Well-known keys for the properties map inside a request/response
 	// Additional data values as appropriate are keyed with the JointProperty keys
+	public final static String APPENDAGE_NAME      = "appendage";  // Request applies to this appendage, value is a Appendage
 	public final static String COMMAND_NAME        = "command";    // Value is a well-known command name, see below
 	public final static String ERROR               = "error";      // Request resulted in an error, value is error text
 	public final static String JOINT_NAME          = "joint";      // Request applies to this joint, value is a Joint
-	public final static String LIMB_NAME           = "limb";       // Request applies to this limb, value is a Limb
 	public final static String METRIC_NAME         = "metric";     // Value is a MetricType
 	public final static String POSE_NAME           = "pose";       // Name of a pose, must exist in database
 	public final static String PROPERTY_NAME       = "property";   // Value is a JointProperty. Subject of original request.

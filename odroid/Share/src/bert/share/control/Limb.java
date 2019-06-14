@@ -12,7 +12,7 @@ public enum Limb
 {
 	BACK,
 	CERVICAL,
-	EYES,
+	HEAD,
 	LEFT_CLAVICLE,
 	LEFT_FOOT,
 	LEFT_FOREARM,
@@ -49,7 +49,7 @@ public enum Limb
 		switch( limb ) {
 			case BACK: text = "back"; break;
 			case CERVICAL: text = "cervical vertibrae"; break;
-			case EYES: text = "eyes"; break;
+			case HEAD: text = "head"; break;
 			case LEFT_CLAVICLE: text = "left collar bone"; break;
 			case LEFT_FOOT: text = "left foot"; break;
 			case LEFT_FOREARM: text = "left forearm"; break;
