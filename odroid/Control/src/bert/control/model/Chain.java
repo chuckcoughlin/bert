@@ -11,7 +11,11 @@ import bert.share.motor.Joint;
 
 /**
  * A Chain represents a tree of Links starting with the 
- * origin link.
+ * "root" link. The position of links within the chain are
+ * all relative to the root link. 
+ * 
+ * Changes to the "inertial frame" as detected by the IMU
+ * are all handled here.
  */
 public class Chain {
 	private final static String CLSS = "Chain";
@@ -40,9 +44,9 @@ public class Chain {
 	 * Traverse the entire chain, clearing temporary calculations in each link.
 	 * @return
 	 */
-	public void clear() {
+	public void invalidate() {
 		for(Link link:linksByLimb.values()) {
-			link.clear();
+			link.invalidate();
 		}
 	}
 	/**

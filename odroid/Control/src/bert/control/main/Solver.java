@@ -39,8 +39,8 @@ public class Solver {
 	 * Traverse the tree, clearing all the intermediate calculations (Quaternions).
 	 * This forces them to be re-calculated.
 	 */
-	public void clearTree() {
-		model.getChain().clear();
+	public void invalidateTree() {
+		model.getChain().invalidate();
 	}
 	/**
 	 * Analyze the URDF file for robot geometry.

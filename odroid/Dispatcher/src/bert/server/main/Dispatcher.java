@@ -249,14 +249,14 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
 		// The following two requests simply use the current positions of the motors, whatever they are
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
-			solver.clearTree();
+			solver.invalidateTree();
 			String appendageName = request.getProperty(BottleConstants.APPENDAGE_NAME, Appendage.UNKNOWN.name());
 			double[] xyz = solver.getLocation(Appendage.valueOf(appendageName));
 			String text = String.format("%s is located at %0.2f %0.2f %0.2f meters",appendageName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
 			request.setProperty(BottleConstants.TEXT, text);
 		}
 		else if(request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION) ) {
-			solver.clearTree();
+			solver.invalidateTree();
 			String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
 			double[] xyz = solver.getLocation(Joint.valueOf(jointName));
 			String text = String.format("The center of joint %s is located at %0.2f %0.2f %0.2f meters",jointName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
