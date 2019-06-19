@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.hipparchus.complex.Quaternion;
 
+import bert.share.control.Appendage;
 import bert.share.control.Limb;
 import bert.share.motor.Joint;
 
@@ -21,6 +22,7 @@ public class Link {
 	private Quaternion q0;    // Origin          - quaternion
 	private Link parent;
 	private final List<Link> children;
+	private final Map<Appendage,QHolder> appendages;
 	private final Map<Joint,QHolder> joints;
 
 	/**
@@ -32,11 +34,16 @@ public class Link {
 		this.limb = lnk;
 		this.parent=null;
 		this.children = new ArrayList<>();
+		this.appendages = new HashMap<>();
 		this.joints = new HashMap<>();
 	}
 	
 	public Limb getName() { return this.limb; }
+	public void addAppendage(Appendage a,QHolder q) { appendages.put(a,q); }
 	public void addChild(Link child) { this.children.add(child); }
+	public void clear() {
+		
+	}
 	public void setOrigin(Quaternion origin) { this.q0 = origin; }
 	public Link getParent() { return this.parent; }
 	public void setParent(Link p) { this.parent = p; }

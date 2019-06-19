@@ -2,14 +2,12 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.control.urdf;
+package bert.control.model;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -18,9 +16,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import bert.control.model.Chain;
-import bert.control.model.Link;
-import bert.control.model.Revolute;
+import bert.share.control.Appendage;
 import bert.share.control.Limb;
 import bert.share.motor.Joint;
 import bert.share.xml.XMLUtility;
@@ -93,6 +89,26 @@ public class URDFModel  {
 					linksByLimb.put(limb, link);
 					LOGGER.fine(String.format("%s.analyzeChain: Found link %s",CLSS,name));
 					chain.addElement(link);
+					
+					NodeList appendages = linkNode.getChildNodes();
+					int acount = appendages.getLength();
+					int aindex=0;
+					while(aindex<acount) {
+						Node node = appendages.item(aindex);
+						if( node.getLocalName().equalsIgnoreCase("appendage")) {
+							String aname = XMLUtility.attributeValue(linkNode, "name");
+							String text = XMLUtility.attributeValue(linkNode, "xyz");
+							if( text!=null ) {
+								double[] xyz = doubleArrayFromString(text);
+								Appendage a = Appendage.valueOf(aname.toUpperCase());
+								QHolder q = new QHolder(xyz,null);  // No rotation
+								link.addAppendage(a, q);
+							}
+						}
+						aindex++;
+					}
+
+					
 				}
 				catch(IllegalArgumentException iae) {
 					LOGGER.warning(String.format("%s.analyzeChain: link element has unknown name (%s), ignored",CLSS,name));
@@ -171,6 +187,21 @@ public class URDFModel  {
 
 			}
 		}
+	}
+	
+	// ============================================= Helper Methods ==============================================
+	private double[] doubleArrayFromString(String text) {
+		double [] result = new double[3];
+		String[] raw = text.split(" ");
+		for(int i=0;i<raw.length;i++) {
+			try {
+				result[i] = Double.parseDouble(raw[1]);
+			}
+			catch(NumberFormatException nfe) {
+				LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",CLSS,text,nfe.getLocalizedMessage()));
+			}
+		}
+		return result;
 	}
 }
 

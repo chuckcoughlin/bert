@@ -10,8 +10,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import bert.control.model.TestRobotModel;
-import bert.control.urdf.URDFModel;
+import bert.control.model.URDFModel;
 import bert.share.common.PathConstants;
+import bert.share.control.Appendage;
 import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
 
@@ -35,6 +36,13 @@ public class Solver {
 	}
 	
 	/**
+	 * Traverse the tree, clearing all the intermediate calculations (Quaternions).
+	 * This forces them to be re-calculated.
+	 */
+	public void clearTree() {
+		model.getChain().clear();
+	}
+	/**
 	 * Analyze the URDF file for robot geometry.
 	 * @param mc a map of MotorConfigurations
 	 * @param urdfPath
@@ -49,7 +57,7 @@ public class Solver {
 	 * Return the position of a specified appendage in x,y,z coordinates in meters from the
 	 * robot origin in the pelvis.
 	 */
-	public double[] getLocation(String appendage) {
+	public double[] getLocation(Appendage appendage) {
 		double[] xyz = new double[3];
 		return xyz;
 	}
@@ -77,8 +85,8 @@ public class Solver {
 		Solver solver = new Solver();
 		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
 		
-        System.out.println("SOLVER: ");
-
+		double[] xyz = solver.getLocation(Joint.ABS_Y);   // Just to top of pelvis
+        System.out.println(String.format("%s: xyz = %.2f,%.2f,%.2f ",Joint.ABS_Y.name(),xyz[0],xyz[1],xyz[2]));
     }
 
 }

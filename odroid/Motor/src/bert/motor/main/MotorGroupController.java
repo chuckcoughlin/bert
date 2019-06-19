@@ -215,7 +215,7 @@ public class MotorGroupController implements Controller,MotorManager {
 	// Queries of fixed properties of the motors are the kinds of requests that can be handled
 	// immediately. Results are created from the original configuration file
 	private boolean canHandleImmediately(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) || 
+		if( request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) ||
 			request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) ) {
 			// Certain properties are constants available from the configuration file.
 			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");

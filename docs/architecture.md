@@ -12,7 +12,6 @@ The bulk of this document addresses various design issues and approaches to thei
 
 ***
 ## Table of Contents <a id="table-of-contents"></a>
-
   * [Software Architecture](#architecture)
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
@@ -22,7 +21,6 @@ The bulk of this document addresses various design issues and approaches to thei
     * [Control](#control)
     * [Messaging](#messages)
     * [Poses](#poses)
-
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
     * [Failures](#failures)
@@ -354,6 +352,9 @@ The _axis_ tag is the joint axis specified in the joint frame. This is the axis 
 [toc](#table-of-contents)
 ### Control <a id="control"/>
 *** Balance ***</br>
+
+*** Forward Kimematics ***</br>
+Calculation of end-effector location is accomplished via Quaternion multiplication up the chain.
 
 *** Trajectory Planning ***</br>
 Optimal trajectory planning, such as the Poppy example [here](https://github.com/Phylliade/ikpy/tree/master/src/ikpy) by Pierre Manceron is known to be complex and slow. We go to great lengths to avoid it.

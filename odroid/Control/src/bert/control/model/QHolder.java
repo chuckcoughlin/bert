@@ -6,12 +6,18 @@ package bert.control.model;
  */
 public class QHolder {
 	private final static String CLSS = "QHolder";
+	private final double[] translation;
+	private double[] rotation;
 
 	/**
-	 * 
+	 * Holder of information for quaternions. Offsets are meters
+	 * from the source point.
+	 * @param xyz array of offsets in 3 dimension ~m. 
+	 * @param rot rotation array in 3 dimension ~m. 
 	 */
-	public QHolder() {
-
+	public QHolder(double[] xyz,double[] rot) {
+		this.translation = xyz;
+		this.rotation = rot;
 	}
 	
 

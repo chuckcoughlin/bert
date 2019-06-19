@@ -22,6 +22,7 @@ import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
 import bert.server.model.RobotDispatcherModel;
 import bert.share.common.PathConstants;
+import bert.share.control.Appendage;
 import bert.share.controller.SocketController;
 import bert.share.controller.SocketStateChangeEvent;
 import bert.share.controller.SocketStateChangeListener;
@@ -34,6 +35,7 @@ import bert.share.message.MessageHandler;
 import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
+import bert.share.motor.Joint;
 import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
 
@@ -245,7 +247,22 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	// The "local" response is simply the original request with some text
 	// to send directly to the user.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
+		// The following two requests simply use the current positions of the motors, whatever they are
+		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
+			solver.clearTree();
+			String appendageName = request.getProperty(BottleConstants.APPENDAGE_NAME, Appendage.UNKNOWN.name());
+			double[] xyz = solver.getLocation(Appendage.valueOf(appendageName));
+			String text = String.format("%s is located at %0.2f %0.2f %0.2f meters",appendageName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
+			request.setProperty(BottleConstants.TEXT, text);
+		}
+		else if(request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION) ) {
+			solver.clearTree();
+			String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
+			double[] xyz = solver.getLocation(Joint.valueOf(jointName));
+			String text = String.format("The center of joint %s is located at %0.2f %0.2f %0.2f meters",jointName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
+			request.setProperty(BottleConstants.TEXT, text);
+		}
+		else if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
 			MetricType metric = MetricType.valueOf(request.getProperty(BottleConstants.METRIC_NAME, "NAME"));
 			String text = "";
 			switch(metric) {
@@ -309,10 +326,10 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	}
 	
 	private boolean isLocalRequest(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
-			return true;
-		}
-		else if( request.fetchRequestType().equals(RequestType.COMMAND)) {
+		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION) || 
+			request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION)   ||
+			request.fetchRequestType().equals(RequestType.GET_METRIC)			||
+			request.fetchRequestType().equals(RequestType.COMMAND)) {
 			return true;
 		}
 		else if( request.fetchRequestType().equals(RequestType.NOTIFICATION)) {

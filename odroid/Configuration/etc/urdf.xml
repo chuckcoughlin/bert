@@ -22,7 +22,6 @@
 	<link name="BACK"/>
 	<link name="CERVICAL"/>
 	<link name="HEAD">
-		<appendage name="eyes"/>
 		<appendage name="left eye"/>
 		<appendage name="right eye"/>
 		<appendage name="left ear"/>

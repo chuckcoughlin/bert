@@ -349,7 +349,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				sharedDictionary.put(SharedKey.APPENDAGE, appendage);
 			}
 		}
-
 		return null;
 	}
 	@Override 
