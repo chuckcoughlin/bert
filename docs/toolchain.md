@@ -6,7 +6,7 @@ This document describes the setup and tools used to develop "Bert" and summarize
 [GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot).  *Poppy* is supplied in open-source format, both hardware and software. Version 1.0.2 source is at: https://github.com/poppy-project/poppy-humanoid. The repository contains full assembly instructions.
 
 ![bert](/images/bert_scaffold.png)
-````                        Bert Supported by Scaffolding````
+```                        Bert Supported by Scaffolding```
 
 
 

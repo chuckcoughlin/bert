@@ -11,7 +11,7 @@ The *iCub* main project repository is at: https://github.com/robotology/icub-mai
 The bulk of this document addresses various design issues and approaches to their solutions.
 
 ***
-## Table of Contents <a id="table-of-contents"></a>
+## Table of Contents <a id="table-of-contents"/>
   * [Software Architecture](#architecture)
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
@@ -24,18 +24,19 @@ The bulk of this document addresses various design issues and approaches to thei
   * [Appendices](#appendices)
     * [Rationale for Java](#whyjava)
     * [Failures](#failures)
-***
 
 
 ***
 ## Software Architecture <a id="architecture"/>
+[toc](#table-of-contents)
 
 Here is a diagram that shows the major software components.
+
 ![Major Software Components](/images/software_components.png)
-````                        Development - System Architecture ````
+```                        Development - System Architecture ```
 
 #### ANTLR  <a id="antlr"/>
-*ANTLR* is a parsing framework explained [here](https://www.antlr.org/). It is used to convert
+*ANTLR* is a parsing framework explained [here](https://www.antlr.org). It is used to convert
 streams of tokens from spoken text into commands for the robot.
 
 #### Configuration <a id="configuration"/>
@@ -136,13 +137,16 @@ We use version 1.0 of the protocol as the motors were delivered with that versio
 
 #### Geometry <a id="geometry"/>
 The geometry of the robot is used for trajectory planning, balance and other purposes. It is described in a
-Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample is shown below. Axis definitions are as follows:
+Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample, specific to the _Poppy_ may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDFA).
+
+We have added the IMU location and taken other liberties with the standard (e.g. angles in degrees to match
+the Dynamixel output). Axis definitions are as follows:
 
 | Axis | <center>Description</center> |<center>Positive</center>
-| :--: | :---------------------- |
-| x | Front-to-back | Robot's left |
+| :--: | :---------------------- | :-------------: |
+| x | Front-to-back | Robot's Left |
 | y | Side-to-side | Back |
-| z | Vertical | Down |
+| z | Vertical | Up |
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
@@ -350,7 +354,10 @@ The _axis_ tag is the joint axis specified in the joint frame. This is the axis 
 
 ## Design Considerations <a id="design"/>
 [toc](#table-of-contents)
+
 ### Control <a id="control"/>
+[toc](#table-of-contents)
+
 *** Balance ***</br>
 
 *** Forward Kimematics ***</br>
@@ -367,6 +374,7 @@ is itself a conflict. We avoid a full trajectory optimization. The list of check
 
 
 #### Messaging<a id="messages"/>
+[toc](#table-of-contents)
 
 *** Inter-Process ***</br>
 The major components, _terminal_,_command_, and _dispatcher_ are independent linux processes and communicate via sockets. Port numbers are defined in the configuration file.
@@ -433,6 +441,8 @@ Why did I select Java for this code when the iCub project chose Python?
   * Cross-compiling - difficulties creating Odroid executables precluded my use of C++.
 
 ### Failures <a id="failures"/>
+[toc](#table-of-contents)
+
 This section documents ideas that were tried and abandoned. The implication here is not
 so much that these ideas won't work, but rather that I couldn't get them to work or found
 more expedient alternatives.

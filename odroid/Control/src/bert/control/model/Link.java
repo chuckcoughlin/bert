@@ -1,59 +1,53 @@
 package bert.control.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.hipparchus.complex.Quaternion;
 
-import bert.share.control.Appendage;
-import bert.share.control.Limb;
-import bert.share.motor.Joint;
-
 /**
- * In the normal case a Link is a solid connection between joints.
+ * A Link is a solid member between two "LinkPoints" called the "origin"
+ * and "endpoint". Multiple links may be connected to the same source.
  * The joints are always "revolutes", that is rotational only. There
  * is no translation. The joints are always at 0 or 90 degrees to the
  * link. 
  * 
- * The "root" link has a source "joint" that can be rotated arbitrarily
- * around any of the three axes of the reference frame. The angles are
- * given by the IMU output.
- * 
  * Links with no destination joint are called "end effectors" and can
  * be expected to have one or more "appendages" for which 3D locations
  * can be calculated.
+ * 
+ * Positions of joints and appendages are always relative to the "root"
+ * link's origin. Any correction due to IMU readings are handled externally.
+ * 
  */
 public class Link {
 	private final static String CLSS = "Link";
-	private final Limb limb;
+	private final String name;
+	private LinkPoint origin;
+	private LinkPoint endpoint;
 	private Quaternion q;    // Transform          - quaternion
 	private Link parent;
-	private final List<Link> children;
-	private final Map<Appendage,QHolder> appendages;
-	private final Map<Joint,QHolder> joints;
+
+
 
 	/**
-	 * 
-	 * @param lnk
-	 * @param p parent. If null this is the origin.
+	 * Define a link given the name. The name must be unique.
+	 * @param name either a limb or appendage name
 	 */
-	public Link(Limb lnk) {
-		this.limb = lnk;
+	public Link(String nam) {
+		this.name = nam;
 		this.parent=null;
-		this.children = new ArrayList<>();
-		this.appendages = new HashMap<>();
-		this.joints = new HashMap<>();
+		this.origin=null;
+		this.endpoint = null;
+
 	}
 	
-	public Limb getName() { return this.limb; }
-	public void addAppendage(Appendage a,QHolder q) { appendages.put(a,q); }
-	public void addChild(Link child) { this.children.add(child); }
+	public String getName() { return this.name; }
+
 	public void invalidate() {
 		q = null;
 	}
-	public void setOrigin(Quaternion origin) { this.q = origin; }
+	public LinkPoint getEndPoint() { return this.endpoint; }
+	public void setEndPoint(LinkPoint end) { this.endpoint = end; }
+	public LinkPoint getOrigin() { return this.origin; }
+	public void setOrigin(LinkPoint o) { this.origin = o; }
 	public Link getParent() { return this.parent; }
 	public void setParent(Link p) { this.parent = p; }
 }

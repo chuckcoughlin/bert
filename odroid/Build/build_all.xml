@@ -40,7 +40,7 @@
 		</jar>
 	</target>
 	<target name="control" description="Build code for control calculations">
-		<echo message="Compile the control libraray" />
+		<echo message="Compile the control library" />
 		<delete dir="${temp.dir}" />
 		<mkdir dir="${temp.dir}"/>
 		<javac	srcdir="../Control/src"

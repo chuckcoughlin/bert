@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- SEE: http://wiki.ros.org/urdf/XML for a description of the format
-	 SEE: https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDF for parameter details
+<!-- 
+	Right-handed coordinate system: x positive to right, y positive to back, z positive up
 	- rpy means roll, pitch, yaw 
-   	- lengths ~ m -->
+   	- lengths ~ m, angles ~ degrees -->
 <robot name="bert">
+	<!-- The IMU position plsces it relative to the root link's origin. It represents the world-frame. 
+	     Theaxis of rotation represents the movement of the entire robot with respect to this frame.
+	-->
+	<imu> 
+		<origin xyz="0 0 -0.045"?>
+		<axis xyz="0 0 9" />
+	</imu>>
 	<link name="PELVIS"/>
 	<link name="RIGHT_HIP_SOCKET"/>
 	<link name="RIGHT_HIP_LINK"/>
+	<link name="RIGHT_ILLIUM"/>
 	<link name="RIGHT_THIGH"/>
 	<link name="RIGHT_SHIN"/>
-	<link name="RIGHT_FOOT"/>
+	<link name="RIGHT_FOOT">
+		<appendage name="LEFT_TOE"/>
+		<appendage name="LEFT_HEEL"/>
+	</link>
 	<link name="LEFT_HIP_SOCKET"/>
 	<link name="LEFT_HIP_LINK"/>
+	<link name="LEFT_ILLIUM"/>
 	<link name="LEFT_THIGH"/>
 	<link name="LEFT_SHIN"/>
 	<link name="LEFT_FOOT"/>
@@ -22,11 +34,14 @@
 	<link name="BACK"/>
 	<link name="CERVICAL"/>
 	<link name="HEAD">
-		<appendage name="left eye"/>
-		<appendage name="right eye"/>
-		<appendage name="left ear"/>
-		<appendage name="right ear"/>
-		<appendage name="nose"/>
+		<appendage name="LEFT_EYE"/>
+		<appendage name="RIGHT_EYE"/>
+		<appendage name="LEFT_EAR"/>
+		<appendage name="RIGHT_EAR"/>
+		<appendage name="NOSE">
+			<origin xyz="-0.0225417390633467 0 0" />
+			<axis xyz="0 0 -1"/>
+		</appendage>
 	</link>
 	<link name="LEFT_CLAVICLE"/>
 	<link name="LEFT_SHOULDER_LINK"/>
@@ -36,7 +51,10 @@
 	<link name="RIGHT_SHOULDER_LINK"/>
 	<link name="RIGHT_UPPER_ARM"/>
 	<link name="RIGHT_FOREARM"/>>
-	<!-- Joint names must match the names in bert.xml -->
+	<!-- Joint names must match the names in bert.xml 
+		origin is position of joint in parent frame
+		axis is orientation of joint in joint frame
+	-->
 	<joint name="RIGHT_HIP_X" type="revolute">
 		<origin xyz="-0.0225417390633467 0 0" rpy="1.5707963267949 0 0"></origin>
 		<parent link="PELVIS"></parent>

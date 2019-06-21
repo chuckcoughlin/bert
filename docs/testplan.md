@@ -143,9 +143,9 @@ executed.
 Plan motions so as to bring end effectors to a certain position and avoid collisions
 between different parts of the robot.
 
-* ![gray](/images/ball_gray.png) Location - query the robot to determine its understanding
-of the location of one of its limbs. The result contains distances (~m) in three dimensions
-of the far end of the specified limb to the origin which is the center of the pelvis.
+* ![gray](/images/ball_gray.png) Forward Kinematics - query the robot to determine its understanding
+of the location of its joints or appendages. The result contains distances (~m) in three dimensions
+of target to the origin which is the center of the pelvis.
 ```
     where is your left hand
     where are your eyes
@@ -153,6 +153,14 @@ of the far end of the specified limb to the origin which is the center of the pe
 ```
 The object of the question may be either an "appendage" (as used in the examples) or a joint. An appendage
 is simply a protuberance somewhere on a limb. The 'URDF' file defines legal names.
+
+In addition to validating that the syntax works, check numeric results for the following:
+  * ABS_Y: this is the first joint, at the top of the Pelvis. Its position should not change.
+  * ABS_X: connected on top of ABS_Y, verify its position as ABS_Y is moved.
+  * ... and so on. Follow the joints in order until reaching the left finger (and appendage).
+  * RIGHT_HIP_X: this is the first joint in a sub-chain. Its position should not change.
+  * ... likewise, follow the chain of joints to the right toe.
+  * NOSE: make sure that the HEAD appendage calculations are correct.
 
 ### e - Tablet Interaction <a id="tablet"></a>
 Test the integration of the android tablet with the robot, especially as it involves
