@@ -6,6 +6,7 @@
 package bert.share.motor;
 
 import java.io.Serializable;
+import java.util.logging.Logger;
 
 import bert.share.common.DynamixelType;
 
@@ -18,18 +19,21 @@ import bert.share.common.DynamixelType;
  */
 public class MotorConfiguration implements Serializable  {
 	private static final String CLSS = "MotorConfiguration";
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private static final long serialVersionUID = -3452548869138158183L;
 	private Joint name;
 	private DynamixelType type = DynamixelType.MX28;
 	private int id;
 	private String controller;
-	private double offset;
+	private double offset;    // Configured position correction
 	private double minAngle;
 	private double maxAngle;
-	private double speed;
-	private double torque;
 	private boolean direct;
-	
+	// Save the current goal (or actual) values. All other members
+	private double position;  // ~ degrees
+	private double speed;     // ~ degrees/second
+	private double torque;	  // ~ N-m
+	private double travelTime; // ~secs
 	/**
 	 * Default constructor, necessary for serialization. Initialize all members.
 	 */
@@ -41,13 +45,16 @@ public class MotorConfiguration implements Serializable  {
 		this.offset = 0.;
 		this.minAngle = -90.;
 		this.maxAngle = 90.;
-		this.speed = 0.5;     // As fraction of max
-		this.torque = 0.5;    // As fraction of max
 		this.direct = true;
+		this.travelTime = 0.;
+		// These are current goal settings
+		this.position = 0.;     // Pure guess
+		this.speed  = 684.;     // Power-off AX-12
+		this.torque = 0.;       // Power-off value
 	} 
 	
 	/** 
-	 * Constructor: Sets fixed attributes. The rest are left at default jointValues.
+	 * Constructor: Sets configuration attributes. The rest are left at default jointValues.
 	 * @param name of the motor
 	 * @param type Dynamixel model
 	 * @param isDirect true if orientation is "forward"
@@ -68,9 +75,12 @@ public class MotorConfiguration implements Serializable  {
 	public double getOffset()      { return this.offset; }
 	public double getMinAngle()    { return this.minAngle; }
 	public double getMaxAngle()    { return this.maxAngle; }
+	public double getTravelTime()  { return this.travelTime; }
+	public boolean isDirect()      { return this.direct; }
+	// These are the current values
+	public double getPosition()    { return this.position; }
 	public double getSpeed()       { return this.speed; }
 	public double getTorque()      { return this.torque; }
-	public boolean isDirect()      { return this.direct; }
 	
 	public void setController(String cntrl)  { this.controller = cntrl; }
 	public void setId(int identifier)        { this.id = identifier; }
@@ -79,8 +89,42 @@ public class MotorConfiguration implements Serializable  {
 	public void setMaxAngle(double angle)    { this.maxAngle = angle; }
 	public void setName(Joint jname)         { this.name = jname; }
 	public void	setOffset(double off)        { this.offset = off; }
+	public void setType(String typ)          { this.type = DynamixelType.valueOf(typ.toUpperCase()); }
+	
+	public void setProperty(String propertyName, double value) {
+		try {
+			JointProperty jp = JointProperty.valueOf(propertyName.toUpperCase());
+			setProperty(jp,value);
+		}
+		catch(IllegalArgumentException iae) {
+			LOGGER.warning(String.format("%s.setProperty: Illegal property %s (%s)",CLSS,propertyName,iae.getLocalizedMessage()));
+		}
+	}
+	/**
+	 * Use the raw motor value to set the property. If "position", correct by the offset.
+	 * @param jp JointProperty that we are setting
+	 * @param value the new value
+	 */
+	public void setProperty(JointProperty jp, double value) {
+		switch(jp) {
+			case POSITION: setPosition(value+offset); break;
+			case SPEED:	   setSpeed(value);    break;
+			case TORQUE:   setTorque(value);   break;
+			default: break; // Ignore
+		}
+	}
+	/**
+	 * When we set a new position, use the previous position and speed
+	 * to estimate the travel time.
+	 * @param p
+	 */
+	public void setPosition(double p) { 
+		double delta = this.position - p;
+		if( delta<0. ) delta = -delta;
+		if( speed>0. ) this.travelTime = delta/speed;
+		this.position = p; 
+	}
 	public void setSpeed(double s)    	     { this.speed = s; }
 	public void setTorque(double t)          { this.torque = t; }
-	public void setType(String typ)          { this.type = DynamixelType.valueOf(typ.toUpperCase()); }
 	
 }

@@ -17,13 +17,14 @@ public enum RequestType
 	GET_LIMITS,              // The EEPROM-resident limits
 	GET_METRIC,              // A local property of the robot
 	GET_MOTOR_PROPERTY,      // Current value of a motor property
+	GET_POSE,				 // 
+	INITIALIZE_JOINTS,		 // Make sure that all joints are in "sane" positions
 	LIST_MOTOR_PROPERTY,     // List a property for all motors
 	NOTIFICATION,            // Unsolicited message from server or parser
     PLAY_STEP,
 	RECORD_STEP,
 	SET_MOTOR_PROPERTY,       // For a particular motor
 	SET_POSE,
-	GET_POSE,
 	SET_STATE,               // A global configuration, like ignoring
 	NONE
     ;

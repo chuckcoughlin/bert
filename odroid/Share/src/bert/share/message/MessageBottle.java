@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * This class represents the requests and responses that are sent
+ * This class represents the contents of requests and responses that are sent
  * across sockets between parts of the robot. it becomes serialized into JSON.
  * 
  * There is no intrinsic difference between requests and

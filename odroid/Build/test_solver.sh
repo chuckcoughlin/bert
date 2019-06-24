@@ -1,6 +1,6 @@
 #!/bin/sh
-# Execute a test of the location solver. It requires the urdf.xml and
-# bert.xml configuration files located in $BERT_HOME/etc
+# Execute a test of forward kinematics using the location solver. 
+# It requires the urdf.xml and bert.xml configuration files located in $BERT_HOME/etc
 cd ${BERT_HOME}
 mkdir -p logs
 MP=mods/hipparchus-core-1.5.jar

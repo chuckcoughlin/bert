@@ -31,6 +31,8 @@ import jssc.SerialPortException;
  *  group are connected to the same serial port. We respond using call-backs.
  *  
  *  The configuration array has only those joints that are part of the group.
+ *  It is important that the MotorConfiguration objects are the same objects
+ *  (not clones) as those held by the MotorManager (MotorGroupController).
  */
 public class MotorController implements Controller, Runnable, SerialPortEventListener {
 	protected static final String CLSS = "MotorController";
@@ -198,7 +200,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	
 	/**
 	 * @param msg the request
-	 * @return true if this is the type of message satisfied by a single controller.
+	 * @return true if this is the type of request satisfied by a single controller.
 	 */
 	private boolean isSingleGroupRequest(MessageBottle msg) {
 		if( msg.fetchRequestType().equals(RequestType.GET_GOALS) 		 ||
@@ -264,9 +266,12 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		List<byte[]> list = new ArrayList<>();
 		if( request!=null) {
 			RequestType type = request.fetchRequestType();
-			// Unfortunately a broadcast request does not work here. We have to concatenate the
-			// requests into a single long list.
-			if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+			// Unfortunately broadcast requests don't work here. We have to concatenate the
+			// requests into single long lists.
+			if( type.equals(RequestType.INITIALIZE_JOINTS)) {
+				list = DxlMessage.byteArrayListToInitializePositions(configurationsByName.values());
+			}
+			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				list = DxlMessage.byteArrayListToListProperty(propertyName,configurationsByName.values());
 			}

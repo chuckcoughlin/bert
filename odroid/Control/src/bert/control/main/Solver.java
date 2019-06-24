@@ -71,15 +71,15 @@ public class Solver {
 	}
 	
 	/**
-	 * Test calculations of various positions of the robot skeleton. We rely on configuration
-	 * files being written to $BERT_HOME/etc on the development machine.
+	 * Test forward kinematic calculations of various positions of the robot skeleton. 
+	 * We rely on configuration file in $BERT_HOME/etc on the development machine.
 	 */
 	public static void main(String [] args) {
 		// Analyze command-line argument to obtain the robot root directory.
 		String arg = args[0];
 		Path path = Paths.get(arg);
 		PathConstants.setHome(path);;
-		// Analyze the xml for motor configurations
+		// Analyze the xml for motor configurations. Initialize the motor configurations.
 		TestRobotModel model = new TestRobotModel(PathConstants.CONFIG_PATH);
 		model.populate();    //
 		Solver solver = new Solver();

@@ -27,7 +27,7 @@ The bulk of this document addresses various design issues and approaches to thei
 
 
 ***
-## Software Architecture <a id="architecture"/>
+## Software Architecture <a id="architecture"></a>
 [toc](#table-of-contents)
 
 Here is a diagram that shows the major software components.
@@ -35,17 +35,18 @@ Here is a diagram that shows the major software components.
 ![Major Software Components](/images/software_components.png)
 ```                        Development - System Architecture ```
 
-#### ANTLR  <a id="antlr"/>
+#### ANTLR  <a id="antlr"></a>
 *ANTLR* is a parsing framework explained [here](https://www.antlr.org). It is used to convert
 streams of tokens from spoken text into commands for the robot.
 
-#### Configuration <a id="configuration"/>
+#### Configuration <a id="configuration"></a>
 The robot configuration is described by an .xml file, *bert.xml*. A representative
 example is shown below.
 The file is read by each of the independent processes, giving them a common understanding
 of site-specific parameters and attributes of the robot.
 
 This file (and not the URDF) is the source of standard joint names and angular limits.
+@...@ variables get replaced during the build.
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -125,7 +126,7 @@ This file (and not the URDF) is the source of standard joint names and angular l
  </robot>
 ```
 
-#### Dynamixel Servos  <a id="dynamixel"/>
+#### Dynamixel Servos  <a id="dynamixel"></a>
 The control motors are Dynamixel MX-64, MX-28 and AT-12A models from [Robotis](http://en.robotis.com).
 The servos feature their own PID control. A single write of a target position, speed and torque is all that is
 required for control. There is no need for a constant refresh action.
@@ -135,7 +136,7 @@ with a single command, as long as the motors are daisy-chained on the same seria
 
 We use version 1.0 of the protocol as the motors were delivered with that version.
 
-#### Geometry <a id="geometry"/>
+#### Geometry <a id="geometry"></a>
 The geometry of the robot is used for trajectory planning, balance and other purposes. It is described in a
 Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample, specific to the _Poppy_ may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDFA).
 
@@ -335,9 +336,9 @@ the Dynamixel output). Axis definitions are as follows:
 </robot>
 ```
 
-Upon analysis of this file, the robot is described as a collection
-of "chains" of links. The chains have a common origin at the pelvis and terminate at an
-end effector (e.g. hand or foot). The links represent limbs of the body (e.g "thigh").
+Upon analysis of this file, the robot is described as a tree or
+"chain" of links. The tree has a single origin in the center of the pelvis. There are
+multiple terminations or "end effector" (e.g. finger or toe). The links represent limbs of the body (e.g "thigh").
 A quaternion transform matrix is calculated for each link, describing its orientation and size with respect to
 the parent joint.
 
@@ -358,6 +359,20 @@ The _axis_ tag is the joint axis specified in the joint frame. This is the axis 
 ### Control <a id="control"/>
 [toc](#table-of-contents)
 
+*** Internal Controller ***</br>
+There are numerous situations where a single user command results in multiple motor commands internally.
+An ``InternalController`` handles these and it offer two very different scheduling options.
+
+The first is a ``TimerQueue`` that allows requests to be scheduled for a future time and, optionally, repeated.
+Think of handling the recording of motions at a clocked interval, or trying to balance, taking continuous
+measurements from the IMU.
+
+The second option is a ``SequentialQueue`` where queued requests are executed in sequence. A request is not
+submitted until its predecessor finishes. Optionally an inter-request delay may be specified.
+Think of the situation of moving between two poses, but ab intervening motion is required to avoid a conflict.
+The final motion cannot take place until the avoidance maneuver has fully completed (motion complete, not
+simply command delivered).  There is a separate sequential queue for each partial chain.
+
 *** Balance ***</br>
 
 *** Forward Kimematics ***</br>
@@ -373,7 +388,7 @@ these heuristics insert intermediate poses to avoid conflicts en route or trunca
 is itself a conflict. We avoid a full trajectory optimization. The list of checks is as follows:
 
 
-#### Messaging<a id="messages"/>
+#### Messaging<a id="messages"></a>
 [toc](#table-of-contents)
 
 *** Inter-Process ***</br>
@@ -399,7 +414,7 @@ size limit. Header values are described in the table below:
 |ROW:|	Append a row to the most-recently defined table. Pipe-delimited fields contain cell values.	|
 <center>``Tablet Message Structure``</center>
 
-#### Poses <a id="poses"/>
+#### Poses <a id="poses"></a>
 A "pose" is a position of the robot as a whole, comprising settings for each of its joints. Poses may be
 generated offline or as a result of recording joint values when the robot has been manually positioned for some
 purpose.  For each joint, the pose records torque, speed and position. Torque and speed are in percent
@@ -422,9 +437,9 @@ means that for ABS-Y the speed at which it travels to 90 degrees is the same as 
 time the joint was used. On power-up speeds are 100% and torques are 0%. Unless specified in
 the pose, torques are automatically set to 100% whenever a joint is moved.
 
-## Appendices <a id="appendices"/>
+## Appendices <a id="appendices"></a>
 [toc](#table-of-contents)
-#### Why Java?<a id="whyjava"/>
+#### Why Java?<a id="whyjava"></a>
 In the "Poppy" [thesis](https://hal.inria.fr/tel-01104641v1/document) (section 7.4.1 and following), the author considers use of the Robot Operating System (ROS) for the core software and concludes that it is overly complex and inefficient. This coincides with my own experience with [sarah-bella](https://github.com/chuckcoughlin/sarah-bella). Moreover, I discovered that, at least with Android, ROS messaging was not reliable. Messages were dropped under high load, a situation not acceptable for control applications.
 
 This same author noted that the "Pypot" software developed in Python for Poppy had severe performance limitations that placed strict limits on its design.
@@ -440,7 +455,7 @@ Why did I select Java for this code when the iCub project chose Python?
   * Threading - the Java threading model is more straightforward (IMHO)
   * Cross-compiling - difficulties creating Odroid executables precluded my use of C++.
 
-### Failures <a id="failures"/>
+### Failures <a id="failures"></a>
 [toc](#table-of-contents)
 
 This section documents ideas that were tried and abandoned. The implication here is not

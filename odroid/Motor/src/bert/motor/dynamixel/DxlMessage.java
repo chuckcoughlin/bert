@@ -7,12 +7,14 @@ package bert.motor.dynamixel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import bert.share.common.DynamixelType;
 import bert.share.message.BottleConstants;
+import bert.share.motor.Joint;
 import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 import bert.sql.db.Database;
@@ -56,7 +58,52 @@ public class DxlMessage  {
 		}
 		return messages;
 	}
-	
+	/**
+	 * Iterate through the list of motor configurations to determine which, if any, are outside the max-min
+	 * angle ranges. For those outside, move the position to a legal value.
+	 * @param configurations a list of motor configuration objects
+	 * @return list of byte arrays with bulk read plus extras for any AX-12. 
+	 */
+	public static List<byte[]> byteArrayListToInitializePositions(Collection<MotorConfiguration> configurations) {
+		List<MotorConfiguration> outliers = new ArrayList<>();  // Will hold the joints that need moving.
+		
+		for(MotorConfiguration mc:configurations) {
+			double pos = mc.getPosition();
+			if( pos>mc.getMaxAngle() ) {
+				mc.setPosition(mc.getMaxAngle());
+			}
+			else if(pos<mc.getMinAngle()) {
+				mc.setPosition(mc.getMinAngle());
+				outliers.add(mc);
+			}
+		}
+		
+		List<byte[]> messages = new ArrayList<>();
+
+		int pc = outliers.size();
+		// Positions
+		if( pc>0 ) {
+			int len = (3 * pc) + 8;  //  3 bytes per motor + address + byte count + header + checksum
+			byte[] bytes = new byte[len];
+			setSyncWriteHeader(bytes);
+			bytes[3] = (byte)(len-4);
+			bytes[4] = SYNC_WRITE;
+			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION.name());
+			bytes[6] = 0x2;  // 2 bytes
+			int index = 7;
+			for( MotorConfiguration mc:outliers) {
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",CLSS,mc.getName().name(),mc.getPosition()));
+				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION.name(),mc,mc.getPosition());
+				bytes[index]= (byte) mc.getId();
+				bytes[index+1] = (byte)(dxlValue & 0xFF);
+				bytes[index+2] = (byte)(dxlValue >>8);
+				index = index+3;
+			}
+			setChecksum(bytes);
+			messages.add(bytes);
+		}
+		return messages;
+	}
 	/**
 	 * Create a bulk read message to interrogate a list of motors for a specified
 	 * property. Unfortunately AX-12 motors do not support this request, so must be
@@ -134,6 +181,7 @@ public class DxlMessage  {
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
+				mc.setTorque(torques.get(key));
 				index = index+3;
 			}
 			setChecksum(bytes);
@@ -157,6 +205,7 @@ public class DxlMessage  {
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
+				mc.setSpeed(speeds.get(key));
 				index = index+3;
 			}
 			setChecksum(bytes);
@@ -180,6 +229,7 @@ public class DxlMessage  {
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
+				mc.setPosition(positions.get(key));
 				index = index+3;
 			}
 			setChecksum(bytes);
@@ -270,6 +320,9 @@ public class DxlMessage  {
 		bytes[6] = (byte)(dxlValue & 0xFF);
 		bytes[7] = (byte)(dxlValue >>8);
 		setChecksum(bytes);
+		if( propertyName.equalsIgnoreCase(JointProperty.POSITION.name()))   mc.setPosition(value);
+		else if( propertyName.equalsIgnoreCase(JointProperty.SPEED.name())) mc.setSpeed(value);
+		else if( propertyName.equalsIgnoreCase(JointProperty.TORQUE.name()))mc.setTorque(value);
 		return bytes;
 	}
 	/**
@@ -338,16 +391,19 @@ public class DxlMessage  {
 			double v1 = DxlConversions.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
 			String t1  = DxlConversions.textForProperty(parameterName,mc,bytes[5],bytes[6]);
 			props.put(parameterName,String.valueOf(v1));
+			mc.setPosition(v1);
 			
 			parameterName = JointProperty.SPEED.name();    // Non-directional
 			double v2 = DxlConversions.valueForProperty(parameterName,mc,bytes[7],bytes[8]);
 			String t2  = DxlConversions.textForProperty(parameterName,mc,bytes[7],bytes[8]);
 			props.put(parameterName,String.valueOf(v2));
+			mc.setSpeed(v2);
 			
 			parameterName = JointProperty.TORQUE.name();   // Non-directional
 			double v3 = DxlConversions.valueForProperty(parameterName,mc,bytes[9],bytes[10]);
 			String t3  = DxlConversions.textForProperty(parameterName,mc,bytes[9],bytes[10]);
 			props.put(parameterName,String.valueOf(v3));
+			mc.setTorque(v3);
 			
 			String text = String.format("Goal position, speed and torque are : %s, %s, %s", t1,t2,t3);
 			if( err==0 ) {
@@ -438,7 +494,7 @@ public class DxlMessage  {
 				props.put(BottleConstants.PROPERTY_NAME,parameterName);
 				props.put(BottleConstants.TEXT,text);
 				props.put(parameterName,String.valueOf(value));
-				
+				mc.setProperty(parameterName, value);
 			}
 			else {
 				msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
@@ -475,6 +531,7 @@ public class DxlMessage  {
 				if( err==0 && mc!=null ) {
 					double param= DxlConversions.valueForProperty(parameterName,mc,bytes[index+5],bytes[index+6]);
 					parameters.put(id, String.valueOf(param));
+					mc.setProperty(parameterName, param);
 				}
 				else if(err!=0){
 					msg = String.format("%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",CLSS,id,err,dump(bytes));

@@ -1,5 +1,7 @@
 package bert.control.model;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import bert.control.main.Solver;
+import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
 import bert.share.control.Limb;
 import bert.share.motor.Joint;
@@ -95,5 +99,23 @@ public class Chain {
 	 */
 	public void setOrigin( double[] o) { this.origin = o; }
 	
+	/**
+	 * Test calculations of various positions of the robot vs the "inertial frame". 
+	 * We rely on configuration file in $BERT_HOME/etc on the development machine.
+	 */
+	public static void main(String [] args) {
+		// Analyze command-line argument to obtain the robot root directory.
+		String arg = args[0];
+		Path path = Paths.get(arg);
+		PathConstants.setHome(path);;
+		// Analyze the xml for motor configurations
+		TestRobotModel model = new TestRobotModel(PathConstants.CONFIG_PATH);
+		model.populate();    //
+		Solver solver = new Solver();
+		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
+		
+		double[] xyz = solver.getLocation(Joint.ABS_Y);   // Just to top of pelvis
+        System.out.println(String.format("%s: xyz = %.2f,%.2f,%.2f ",Joint.ABS_Y.name(),xyz[0],xyz[1],xyz[2]));
+    }
 }
 

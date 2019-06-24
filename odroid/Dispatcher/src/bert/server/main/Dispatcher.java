@@ -20,13 +20,15 @@ import java.util.logging.Logger;
 import bert.control.main.Solver;
 import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
+import bert.server.controller.InternalController;
+import bert.server.controller.QueueName;
+import bert.server.message.SequentialMessage;
 import bert.server.model.RobotDispatcherModel;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
 import bert.share.controller.SocketController;
 import bert.share.controller.SocketStateChangeEvent;
 import bert.share.controller.SocketStateChangeListener;
-import bert.share.controller.TimerController;
 import bert.share.logging.LoggerUtility;
 import bert.share.message.BottleConstants;
 import bert.share.message.HandlerType;
@@ -36,6 +38,7 @@ import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.motor.Joint;
+import bert.share.motor.JointProperty;
 import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
 
@@ -58,7 +61,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private final RobotDispatcherModel model;
 	private SocketController commandController = null;
 	private SocketController terminalController= null;
-	private TimerController timerController       = null;
+	private InternalController internalController     = null;
 	private MotorGroupController motorGroupController = null;
 	private final Condition busy;
 	private MessageBottle currentRequest = null;
@@ -95,6 +98,9 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 * The server creates controllers for the Terminal and Command sockets, and a controller
 	 * for repeating requests (on a timer). The motor group controller has its own model and is already
 	 * instantiated at this point..
+	 * 
+	 * The internal controller is used for those instances where multiple or repeating messages are
+	 * required for a single user request.
 	 */
 	public void createControllers() {
 		Map<String, Integer> sockets = model.getSockets();
@@ -114,7 +120,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 				LOGGER.info(String.format("%s: created terminal controller",CLSS));
 			}
 		}
-		timerController = new TimerController(this,cadence);
+		internalController = new InternalController(this);
 	}
 	
 	@Override
@@ -171,19 +177,29 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		System.exit(0);
 	}
 	
-	
-	public void initialize() {
-
-	}
+	/**
+	 * On startup, initiate a short message sequence to bring the robot into a sane state.
+	 */
 	@Override
 	public void startup() {
 		if(commandController!=null )  commandController.start();
 		if(terminalController!=null ) terminalController.start();
-		if(timerController!=null )    timerController.start();
+		if(internalController!=null )    internalController.start();
 		if(motorGroupController!=null ) {
 			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
 			motorGroupController.initialize();
 			motorGroupController.start();
+			// Set the speed to "normal" rate
+			SequentialMessage msg = new SequentialMessage(RequestType.SET_POSE,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
+			internalController.receiveRequest(msg);
+			// Read all the joint positions
+			msg = new SequentialMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
+			internalController.receiveRequest(msg);
+			// Bring any joints that are outside sane limits into compliance
+			msg = new SequentialMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
+			internalController.receiveRequest(msg);
 		}
 		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
 	}
@@ -195,7 +211,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		LOGGER.info(String.format("%s.shutdown: Shutting down 2 ...",CLSS));
 		if(terminalController!=null )   terminalController.stop();
 		LOGGER.info(String.format("%s.shutdown: Shutting down 3 ...",CLSS));
-		if(timerController!=null )      timerController.stop();
+		if(internalController!=null )      internalController.stop();
 		LOGGER.info(String.format("%s.shutdown: Shutting down 4 ...",CLSS));
 		if(motorGroupController!=null ) motorGroupController.stop();
 		LOGGER.info(String.format("%s.shutdown: complete.",CLSS));
@@ -236,6 +252,9 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		else if( source.equalsIgnoreCase(HandlerType.DISPATCHER.name()) ) {	
 			commandController.receiveResponse(response);
 			terminalController.receiveResponse(response);
+		}
+		else if( source.equalsIgnoreCase(HandlerType.INTERNAL.name()) ) {
+			internalController.receiveResponse(response);
 		}
 		else {
 			LOGGER.warning(String.format("%s.handleResponse: Unknown destination - %s, ignored",CLSS,source));

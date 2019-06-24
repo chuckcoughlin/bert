@@ -14,6 +14,7 @@ public enum HandlerType
 {
             COMMAND,
             DISPATCHER,
+            INTERNAL,
             REQUEST,
             SERIAL,
             TABLET,
