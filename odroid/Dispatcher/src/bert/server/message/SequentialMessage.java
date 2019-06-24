@@ -17,7 +17,6 @@ public class SequentialMessage extends MessageBottle implements InternalMessage 
 	private static final long serialVersionUID = 4356286171135500677L;
 	private static final String CLSS = "SequentialMessage";
 	private long executionTime = 0;
-	private long messageInterval = 0;   // ~msecs
 	private QueueName queue = QueueName.GLOBAL;
 
 	
@@ -37,23 +36,6 @@ public class SequentialMessage extends MessageBottle implements InternalMessage 
 	public QueueName getQueue() { return this.queue; }
 	public void setQueue(QueueName q) { this.queue = q; }
 	
-	public long getMessageInterval() { return this.messageInterval; }
-	/**
-	 * Set the number of millisecs past the execution time of this message
-	 * that a subsequent message must wait before it can execute.
-	 * @param delay ~ msecs
-	 */
-	public void setMessageInterval(long delay) { this.messageInterval = delay; }
-
-	/**
-	 * Set the number of seconds past the execution time of this message
-	 * that a subsequent message must wait before it can execute.
-	 * @param delay ~ msecs
-	 */
-	public void setSecondsMessageInterval(double delay) {
-		setMessageInterval((long)(delay*1000)); 
- 
-	}
 	
 	@Override
 	public String toString() {

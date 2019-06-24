@@ -134,7 +134,7 @@ take that pose. Again, use the terminal application. Sample syntax:
     when I say "salute" take the pose "saluting"
     "sit" means to become "sitting"
 ```
-* ![green](/images/ball_green.png) ``Pose`` - command the robot to assume a previously recorded
+* ![green](/images/ball_green.png) ``Pose`` - command the robot to assume a previously stored
 pose. The command is a single word taken from a previous mapping. This movement does not
 account for positional conflicts.
 ```

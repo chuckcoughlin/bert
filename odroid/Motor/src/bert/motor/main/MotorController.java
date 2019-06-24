@@ -83,19 +83,14 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	 */
 	public int getMotorCount() { return configurationsByName.size(); }
 	/**
-	 * Configure the physical motors in the group, synchronizing their settings with the
-	 * contents of the configuration file. This will trigger the SerialEvent call-backs,
-	 * but the request is null, so these get ignored.
+	 * At one point, we thought we should initialize the motors somehow.  This is now
+	 * taken care of by the dispatcher. The dispatcher:
+	 * 	1) requests a list of current positions (thus updating the MotorConfigurations)
+	 * 	2) sets travel speeds to "normal"
+	 * 	3) moves any limbs that are "out-of-bounds" back into range.
 	 */
 	@Override
-	public void start() {
-
-		List<byte[]>messages = DxlMessage.byteArrayListToInitializeRAM(configurationsByName);
-		for(byte[] bytes:messages) {
-			writeBytesToSerial(bytes);
-			LOGGER.info(String.format("%s.start: %s wrote %d bytes to initialize",CLSS,group,bytes.length));
-		}
-	}
+	public void start() {}
 	
 	/**
 	 * Open and configure the port.
@@ -252,6 +247,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
 				bytes = DxlMessage.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
+				if(propertyName.equalsIgnoreCase("POSITION")) request.setDuration(mc.getTravelTime());
 			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
@@ -270,6 +266,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 			// requests into single long lists.
 			if( type.equals(RequestType.INITIALIZE_JOINTS)) {
 				list = DxlMessage.byteArrayListToInitializePositions(configurationsByName.values());
+				request.setDuration(DxlMessage.getMostRecentTravelTime());
 			}
 			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
@@ -278,6 +275,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 			else if( type.equals(RequestType.SET_POSE)) {
 				String poseName = request.getProperty(BottleConstants.POSE_NAME, "");
 				list = DxlMessage.byteArrayListToSetPose(configurationsByName,poseName);
+				request.setDuration(DxlMessage.getMostRecentTravelTime());
 			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));

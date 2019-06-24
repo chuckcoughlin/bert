@@ -41,7 +41,7 @@ public class SequentialQueue extends LinkedList<SequentialMessage>  {
 		long now = System.nanoTime()/1000000;
 		if(nextAllowedExecuteTime < now) nextAllowedExecuteTime = now;
 		msg.setExecutionTime(nextAllowedExecuteTime);
-		nextAllowedExecuteTime += msg.getMessageInterval();
+		nextAllowedExecuteTime += msg.getDuration();
 		return msg;
 	}
 	

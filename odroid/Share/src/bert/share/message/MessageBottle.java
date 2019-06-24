@@ -31,11 +31,34 @@ public class MessageBottle implements Serializable {
 	private static final String CLSS = "MessageBottle";
 	protected static final Logger LOGGER = Logger.getLogger(CLSS);
 	public Map<String,String> properties;  // Multiple properties for a single motor
-	public Map<String,String> jointValues; // A single property for multiple motors 
+	public Map<String,String> jointValues; // A single property for multiple motors
+	private long duration = 0;   // ~msecs
 	
 	public MessageBottle() {
 		this.properties = new HashMap<>();
 		this.jointValues = new HashMap<>();
+	}
+	
+	public long getDuration() { return this.duration; }
+	/**
+	 * Set the number of millisecs that the motion commanded by this
+	 * request is expected to last. Often this represents the required
+	 * time buffer between subsequent commands, especially those affecting
+	 * the same sub-chain.
+	 * @param period ~ msecs
+	 */
+	public void setDuration(long period) { this.duration = period; }
+
+	/**
+	 * Set the number of seconds past the execution time of this message
+	 * that a subsequent message must wait before it can execute. This
+	 * also represents the length of time needed to complete the commanded
+	 * motion.
+	 * @param period ~ secs
+	 */
+	public void setSecondsDuration(double period) {
+		setDuration((long)(period*1000)); 
+ 
 	}
 	
 	public String getJointValue(String joint,String defaultValue) {

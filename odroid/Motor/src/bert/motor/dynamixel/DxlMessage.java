@@ -30,6 +30,7 @@ import bert.sql.db.Database;
 public class DxlMessage  {
 	private static final String CLSS = "DxlMessage";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
+	private static long travelTime = 0;
 	private static final byte BROADCAST_ID = (byte)0xFE; // ID to transmit to all devices connected to port
 	// Constants for the instructions
 	private static final byte PING = 0x01;   // Instruction that checks whether the Packet has arrived
@@ -46,18 +47,12 @@ public class DxlMessage  {
 	private static final byte BULK_READ  = (byte)0x92; // For multiple devices, Instruction to read data from different Addresses with different lengths at once 
 	
 	/**
-	 * Initialize motor RAM on power-up. The initializations are identical for all motors, so we can use a SYNC Write.
-	 * However, there may be several parameters to initialize, so we return an array of messages
-	 * Set: Torque enable.
-	 * Note: We are in "Joint" mode merely by the fact that angle limits are set.
+	 * As each method that generates motor motions is invoked, it calculates time to execute the movement.
+	 * The result is stored as a static parameter, good only until the next method is run.
+	 * @return the maximum travel time as calculated by the most recent byte syntax generator. Time ~msecs. 
 	 */
-	public static List<byte[]> byteArrayListToInitializeRAM(Map<String,MotorConfiguration> map)  {
-		List<byte[]> messages = new ArrayList<>();
-		for(String key:map.keySet()) {
-			MotorConfiguration mc = map.get(key);
-		}
-		return messages;
-	}
+	public static long getMostRecentTravelTime() { return travelTime; }
+	
 	/**
 	 * Iterate through the list of motor configurations to determine which, if any, are outside the max-min
 	 * angle ranges. For those outside, move the position to a legal value.
@@ -67,6 +62,7 @@ public class DxlMessage  {
 	public static List<byte[]> byteArrayListToInitializePositions(Collection<MotorConfiguration> configurations) {
 		List<MotorConfiguration> outliers = new ArrayList<>();  // Will hold the joints that need moving.
 		
+		travelTime = 0;
 		for(MotorConfiguration mc:configurations) {
 			double pos = mc.getPosition();
 			if( pos>mc.getMaxAngle() ) {
@@ -75,6 +71,7 @@ public class DxlMessage  {
 			else if(pos<mc.getMinAngle()) {
 				mc.setPosition(mc.getMinAngle());
 				outliers.add(mc);
+				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
 			}
 		}
 		
@@ -214,6 +211,7 @@ public class DxlMessage  {
 		int pc = positions.size();
 		// Positions
 		if( pc>0 ) {
+			travelTime = 0;
 			int len = (3 * pc) + 8;  //  3 bytes per motor + address + byte count + header + checksum
 			byte[] bytes = new byte[len];
 			setSyncWriteHeader(bytes);
@@ -230,6 +228,7 @@ public class DxlMessage  {
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
 				mc.setPosition(positions.get(key));
+				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
 				index = index+3;
 			}
 			setChecksum(bytes);
@@ -320,7 +319,10 @@ public class DxlMessage  {
 		bytes[6] = (byte)(dxlValue & 0xFF);
 		bytes[7] = (byte)(dxlValue >>8);
 		setChecksum(bytes);
-		if( propertyName.equalsIgnoreCase(JointProperty.POSITION.name()))   mc.setPosition(value);
+		if( propertyName.equalsIgnoreCase(JointProperty.POSITION.name())) {
+			mc.setPosition(value);
+			travelTime = mc.getTravelTime();
+		}
 		else if( propertyName.equalsIgnoreCase(JointProperty.SPEED.name())) mc.setSpeed(value);
 		else if( propertyName.equalsIgnoreCase(JointProperty.TORQUE.name()))mc.setTorque(value);
 		return bytes;

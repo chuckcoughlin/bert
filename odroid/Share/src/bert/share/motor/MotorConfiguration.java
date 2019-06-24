@@ -33,7 +33,7 @@ public class MotorConfiguration implements Serializable  {
 	private double position;  // ~ degrees
 	private double speed;     // ~ degrees/second
 	private double torque;	  // ~ N-m
-	private double travelTime; // ~secs
+	private long travelTime; // ~msecs
 	/**
 	 * Default constructor, necessary for serialization. Initialize all members.
 	 */
@@ -46,7 +46,7 @@ public class MotorConfiguration implements Serializable  {
 		this.minAngle = -90.;
 		this.maxAngle = 90.;
 		this.direct = true;
-		this.travelTime = 0.;
+		this.travelTime = 0;
 		// These are current goal settings
 		this.position = 0.;     // Pure guess
 		this.speed  = 684.;     // Power-off AX-12
@@ -75,7 +75,7 @@ public class MotorConfiguration implements Serializable  {
 	public double getOffset()      { return this.offset; }
 	public double getMinAngle()    { return this.minAngle; }
 	public double getMaxAngle()    { return this.maxAngle; }
-	public double getTravelTime()  { return this.travelTime; }
+	public long getTravelTime()	   { return this.travelTime; }
 	public boolean isDirect()      { return this.direct; }
 	// These are the current values
 	public double getPosition()    { return this.position; }
@@ -121,7 +121,7 @@ public class MotorConfiguration implements Serializable  {
 	public void setPosition(double p) { 
 		double delta = this.position - p;
 		if( delta<0. ) delta = -delta;
-		if( speed>0. ) this.travelTime = delta/speed;
+		if( speed>0. ) this.travelTime = (long)(1000.*delta/speed);  // ~msecs
 		this.position = p; 
 	}
 	public void setSpeed(double s)    	     { this.speed = s; }
