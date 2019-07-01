@@ -7,4 +7,6 @@ module bert.control {
 	requires transitive bert.share;
 	requires hipparchus.core;
 	exports bert.control.main;
+	exports bert.control.controller;
+	exports bert.control.message;
 }

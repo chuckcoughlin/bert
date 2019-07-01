@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 import bert.control.controller.InternalController;
 import bert.control.controller.QueueName;
 import bert.control.main.Solver;
-import bert.control.message.SequentialMessage;
+import bert.control.message.InternalMessage;
 import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
 import bert.server.model.RobotDispatcherModel;

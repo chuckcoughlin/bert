@@ -18,6 +18,7 @@ public enum RequestType
 	GET_METRIC,              // A local property of the robot
 	GET_MOTOR_PROPERTY,      // Current value of a motor property
 	GET_POSE,				 // 
+	IDLE,					 // Internal message used to keep the timer queue "alive"
 	INITIALIZE_JOINTS,		 // Make sure that all joints are in "sane" positions
 	LIST_MOTOR_PROPERTY,     // List a property for all motors
 	NOTIFICATION,            // Unsolicited message from server or parser

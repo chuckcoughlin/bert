@@ -8,7 +8,7 @@ robotic platform for science, art and education"](https://hal.inria.fr/tel-01104
 
 The *iCub* main project repository is at: https://github.com/robotology/icub-main. At its core, *iCub* uses Yet Another Robot Platform [(YARP)](http://www.yarp.it/).
 
-The bulk of this document addresses various design issues and approaches to their solutions.
+The bulk of this document addresses various design issues and approaches to their solutions (or lack thereof).
 
 ***
 ## Table of Contents <a id="table-of-contents"/>
@@ -40,13 +40,12 @@ Here is a diagram that shows the major software components.
 streams of tokens from spoken text into commands for the robot.
 
 #### Configuration <a id="configuration"></a>
-The robot configuration is described by an .xml file, *bert.xml*. A representative
+Robot attributes and connectivity are defined in an .xml file, *bert.xml*. A representative
 example is shown below.
 The file is read by each of the independent processes, giving them a common understanding
 of site-specific parameters and attributes of the robot.
 
-This file (and not the URDF) is the source of standard joint names and angular limits.
-@...@ variables get replaced during the build.
+Substitution parameters, @...@, are replaced with site-specific values during the build.
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -132,13 +131,13 @@ The servos feature their own PID control. A single write of a target position, s
 required for control. There is no need for a constant refresh action.
 
 A further efficiency is provided by the *SYNC WRITE* directive. This allows control of multiple motors
-with a single command, as long as the motors are daisy-chained on the same serial port.
+with a single command, as long as the affected motors are daisy-chained on the same serial port.
 
 We use version 1.0 of the protocol as the motors were delivered with that version.
 
 #### Geometry <a id="geometry"></a>
 The geometry of the robot is used for trajectory planning, balance and other purposes. It is described in a
-Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample, specific to the _Poppy_ may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDFA).
+Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample, specific to _Poppy_, may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDFA).
 
 We have added the IMU location and taken other liberties with the standard (e.g. angles in degrees to match
 the Dynamixel output). Axis definitions are as follows:
@@ -336,7 +335,7 @@ the Dynamixel output). Axis definitions are as follows:
 </robot>
 ```
 
-Upon analysis of this file, the robot is described as a tree or
+Analysis of this file, results in a description of the robot as a tree or
 "chain" of links. The tree has a single origin in the center of the pelvis. There are
 multiple terminations or "end effector" (e.g. finger or toe). The links represent limbs of the body (e.g "thigh").
 A quaternion transform matrix is calculated for each link, describing its orientation and size with respect to
@@ -354,7 +353,6 @@ The _axis_ tag is the joint axis specified in the joint frame. This is the axis 
   * xyz - represents the _x,y,z_ orientation of the joint, always at right angles to the limb. The vector should be normalized.
 
 ## Design Considerations <a id="design"/>
-[toc](#table-of-contents)
 
 ### Control <a id="control"/>
 [toc](#table-of-contents)
@@ -364,7 +362,7 @@ There are numerous situations where a single user command results in multiple mo
 An ``InternalController`` handles these and it offers two very different scheduling options.
 
 The first is a ``TimerQueue`` that allows requests to be scheduled for a future time and, optionally, repeated.
-Think of handling the recording of motions at a clocked interval, or trying to balance, taking continuous
+This is useful, for example, when handling motions for recording at clocked intervals, or when balancing and taking continuous
 measurements from the IMU.
 
 The second option is a ``SequentialQueue`` where queued requests are executed in sequence. A request is not
@@ -399,8 +397,14 @@ In preparation for transmission across the socket connections, the messages are 
 strings and, of course, reconstituted on the other side.
 
 *** Internal ***</br>
-The _dispatcher_ makes use of _InternalMessage_ a sub-class of _MessageBottle_ that incorporates delay
-and sequential queuing features.
+A single user request may spawn additional internal messages in order to complete the action.
+The  _dispatcher_ makes use of the _InternalMessage_ class for this purpose. These message have extra properties not available
+to external requestors.
+ * delay - wait before executing for th first time ~msecs
+ * duration - for a message on a named queue, delay a subsequent message's execution ~msecs
+ * queue - name of a sequential queue (or NULL). The message will not execute until all prior messages in that queue have executed.
+ * repeatInterval - delay for a repeated message ~msecs
+ * shouldRepeat - if true, the message will be re-queued when complete
 
 *** Tablet ***</br>
 The tablet is a Bluetooth client based on Java classes that are a standard part of the Android SDK.
@@ -416,6 +420,7 @@ size limit. Header values are described in the table below:
 |LOG:|	System message from the robot meant to appear on the tablet's log panel. |
 |TBL:|	Define a table to show on the tablet's table panel. Pipe-delimited fields contain: title, column headings. |
 |ROW:|	Append a row to the most-recently defined table. Pipe-delimited fields contain cell values.	|
+
 <center>``Tablet Message Structure``</center>
 
 #### Poses <a id="poses"></a>
@@ -432,6 +437,7 @@ imply that the current setting will not be changed. Not all parameters are requi
 |standing|	position|	0	|90
 |standing|	speed	|25|	null
 |standing|	torque	|100|	75
+
 <center>``Partial View of a Sample "Pose" Table``</center>
 
 In the sample database table shown above, only 3 of the 25 actual joints are shown. The "relaxed" pose contains

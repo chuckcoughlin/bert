@@ -10,9 +10,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import bert.control.message.InternalMessage;
-import bert.control.message.TimedMessage;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
+import bert.share.message.RequestType;
 
 /**
  *  Patterned after a watchdog timer which manages a collection of "watchdogs". The dogs
@@ -28,7 +28,7 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	protected boolean stopped = true;
 	protected Thread timerThread = null;
-	protected final TimedMessage idleMessage;
+	protected final InternalMessage idleMessage;
 	protected long currentTime = 0;
 	protected String name = CLSS;
 	private final MessageHandler dispatcher;
@@ -39,14 +39,15 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 	 */
 	public TimedQueue(MessageHandler launcher)  {
 		this.dispatcher = launcher;
-		this.idleMessage = new TimedMessage();
+		this.idleMessage = new InternalMessage(RequestType.IDLE);
 		idleMessage.setShouldRepeat(true);
 		idleMessage.setRepeatInterval(IDLE_DELAY);
 	}
 
 
 	/**
-	 * Add a new message to the list ordered by its absolute execution time. 
+	 * Add a new message to the list ordered by its absolute execution time
+	 * which must be already set. 
 	 * The list is never empty, there is at least the IDLE message.
 	 * @param msg message to be added
 	 */
@@ -80,15 +81,14 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 
 	/**
 	 * If top message is the IDLE messsage, then simply "pet" it.
-	 * Otherwise pop the top msg and inform the launcher.
-	 * Then "pet" it. 
+	 * Otherwise pop the top msg and inform the launcher to execute.
 	 */
 	private synchronized void fireExecutor() {
 		InternalMessage msg = removeFirst();
-		if( msg.equals(idleMessage) ) {
+		if( msg.fetchRequestType().equals(RequestType.IDLE) ) {
 			long now = System.nanoTime()/1000000;
-			idleMessage.setExecutionTime(now+IDLE_DELAY);
-			add(idleMessage);
+			msg.setExecutionTime(now+msg.getRepeatInterval());
+			add(msg);
 		}
 		else {
 			LOGGER.info(String.format("%s.fireExecutor: dispatching %s ...",CLSS,((MessageBottle)msg).fetchRequestType().name()));
