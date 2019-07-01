@@ -361,7 +361,7 @@ The _axis_ tag is the joint axis specified in the joint frame. This is the axis 
 
 *** Internal Controller ***</br>
 There are numerous situations where a single user command results in multiple motor commands internally.
-An ``InternalController`` handles these and it offer two very different scheduling options.
+An ``InternalController`` handles these and it offers two very different scheduling options.
 
 The first is a ``TimerQueue`` that allows requests to be scheduled for a future time and, optionally, repeated.
 Think of handling the recording of motions at a clocked interval, or trying to balance, taking continuous
@@ -397,6 +397,10 @@ The major components, _terminal_,_command_, and _dispatcher_ are independent lin
 The messages passed back and forth between these processes are instances of class _MessageBottle_.
 In preparation for transmission across the socket connections, the messages are serialized into JSON
 strings and, of course, reconstituted on the other side.
+
+*** Internal ***</br>
+The _dispatcher_ makes use of _InternalMessage_ a sub-class of _MessageBottle_ that incorporates delay
+and sequential queuing features.
 
 *** Tablet ***</br>
 The tablet is a Bluetooth client based on Java classes that are a standard part of the Android SDK.

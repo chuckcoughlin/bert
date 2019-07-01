@@ -84,16 +84,16 @@ public class MotorGroupController implements Controller,MotorManager {
 				LOGGER.info(String.format("%s.initialize: Created motor controller for group %s",CLSS,controller.getGroupName()));
 
 				// Add configurations to the controller for each motor in the group
-				List<String> jointNames = model.getJointNamesForGroup(group);
-				for( String jname:jointNames ) {
-					MotorConfiguration motor = motors.get(jname.toUpperCase());
+				List<Joint> joints = model.getJointsForGroup(group);
+				for( Joint joint:joints ) {
+					MotorConfiguration motor = motors.get(joint);
 					if( motor!=null ) {
-						LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,jname,controller.getGroupName()));
-						controller.putMotorConfiguration(jname, motor);
-						motorNameById.put(motor.getId(), jname);
+						//LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name(),controller.getGroupName()));
+						controller.putMotorConfiguration(joint.name(), motor);
+						motorNameById.put(motor.getId(), joint.name());
 					}
 					else {
-						LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",CLSS,jname,group));
+						LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",CLSS,joint.name(),group));
 					}
 				}
 			}

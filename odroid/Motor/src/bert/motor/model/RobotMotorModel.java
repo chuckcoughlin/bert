@@ -17,6 +17,7 @@ import org.w3c.dom.NodeList;
 
 import bert.share.message.HandlerType;
 import bert.share.model.AbstractRobotModel;
+import bert.share.motor.Joint;
 import bert.share.xml.XMLUtility;
 import jssc.SerialPort;
 
@@ -27,17 +28,17 @@ import jssc.SerialPort;
 public class RobotMotorModel extends AbstractRobotModel  {
 	private static final String CLSS = "MotorManager";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
-	private final Map<String,List<String>> joints;   // List of joints by group
+	private final Map<String,List<Joint>> jointsByGroup;   // List of joints by group
 	
 	private final Map<String,SerialPort> ports;                  // Port objects by group
 	
 	public RobotMotorModel(Path configPath) {
 		super(configPath);
-		this.joints = new HashMap<>();
+		this.jointsByGroup = new HashMap<>();
 		this.ports  = new HashMap<>();
 	}
    
-	public List<String> getJointNamesForGroup(String group) { return this.joints.get(group); }
+	public List<Joint> getJointsForGroup(String group) { return this.jointsByGroup.get(group); }
 	public SerialPort getPortForGroup(String group) { return this.ports.get(group); }
 	
 	// Analyze the document
@@ -49,7 +50,7 @@ public class RobotMotorModel extends AbstractRobotModel  {
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the XML for the SERIAL controllers. Create a map of ports by controller. 
+	 * Search the XML for the SERIAL controllers. Create a map of joints by controller (group). 
 	 */
 	@Override
 	public void analyzeControllers() {
@@ -77,15 +78,21 @@ public class RobotMotorModel extends AbstractRobotModel  {
 					NodeList jointElements = controllerElement.getElementsByTagName("joint");
 					int jcount = jointElements.getLength();
 					int jindex = 0;
-					List<String> jointNames = new ArrayList<>();
+					List<Joint> joints = new ArrayList<>();
 					while(jindex<jcount) {
 						Element jointElement= (Element)(jointElements.item(jindex));
 						String jname = XMLUtility.attributeValue(jointElement, "name").toUpperCase();
-						jointNames.add(jname);
-						LOGGER.fine(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
+						try {
+							Joint joint = Joint.valueOf(jname);
+							joints.add(joint);
+							//LOGGER.info(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
+						}
+						catch(IllegalArgumentException iae) {
+							LOGGER.warning(String.format("%s.analyzeControllers: %s is not a legal joint name ",CLSS,jname));
+						}
 						jindex++;
 					}
-					joints.put(group, jointNames);
+					jointsByGroup.put(group, joints);
 				}			
 				index++;
 			}

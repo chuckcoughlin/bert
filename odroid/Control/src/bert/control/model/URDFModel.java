@@ -81,7 +81,8 @@ public class URDFModel  {
 		if( this.document!=null ) {
 			// ================================== IMU ===============================================
 			NodeList imus = document.getElementsByTagName("imu");
-			if( imus.getLength()>0 ) {   
+			if( imus.getLength()>0 ) {  
+				//LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS));
 				Node imuNode = imus.item(0); // Should only be one
 				NodeList childNodes = imuNode.getChildNodes();
 				int childCount = childNodes.getLength();
@@ -89,12 +90,12 @@ public class URDFModel  {
 				String text = null;
 				while(childIndex<childCount) {
 					Node cNode = childNodes.item(childIndex);
-					if( cNode.getLocalName().equalsIgnoreCase("origin")) {
+					if( "origin".equalsIgnoreCase(cNode.getLocalName())) {
 						text  = XMLUtility.attributeValue(cNode, "xyz");
 						double[] xyz = doubleArrayFromString(text);
 						chain.setOrigin(xyz);
 					}
-					else if( cNode.getLocalName().equalsIgnoreCase("axis")) {
+					else if( "axis".equalsIgnoreCase(cNode.getLocalName())) {
 						text = XMLUtility.attributeValue(cNode, "xyz");
 						double[] xyz = doubleArrayFromString(text);
 						chain.setAxes(xyz);
@@ -110,10 +111,11 @@ public class URDFModel  {
 			while(index<count) {
 				Node linkNode = links.item(index);
 				String name = XMLUtility.attributeValue(linkNode, "name");
+				//LOGGER.info(String.format("%s.analyzeChain: Link %s ...",CLSS,name));
 				try {
-					Limb limb = Limb.valueOf(name);
+					Limb limb = Limb.valueOf(name.toUpperCase());
 					limbList.add(limb);
-					LOGGER.fine(String.format("%s.analyzeChain: Found link %s",CLSS,name));
+					//LOGGER.info(String.format("%s.analyzeChain: Found link %s",CLSS,name));
 
 
 					NodeList appendages = linkNode.getChildNodes();
@@ -121,10 +123,9 @@ public class URDFModel  {
 					int aindex=0;
 					while(aindex<acount) {
 						Node node = appendages.item(aindex);
-						if( node.getLocalName().equalsIgnoreCase("appendage")) {
-							String aname = XMLUtility.attributeValue(linkNode, "name");
-							double[] origin = null;
-							double[] axis   = null;
+						if( "appendage".equalsIgnoreCase(node.getLocalName())) {
+							String aname = XMLUtility.attributeValue(node, "name");
+
 							NodeList childNodes = node.getChildNodes();
 							int childCount = childNodes.getLength();
 							int childIndex=0;
@@ -143,11 +144,13 @@ public class URDFModel  {
 							link.setEndPoint(end);
 							chain.addElement(link);
 						}
+						aindex++;
 					}
 
 				}
 				catch(IllegalArgumentException iae) {
-					LOGGER.warning(String.format("%s.analyzeChain: link element has unknown name (%s), ignored",CLSS,name));
+					LOGGER.warning(String.format("%s.analyzeChain: link or appendage has unknown name: %s, ignored (%s)",CLSS,name,iae.getLocalizedMessage()));
+					iae.printStackTrace();
 				}
 				index++;
 			}
@@ -158,6 +161,7 @@ public class URDFModel  {
 			while(index<count) {
 				Node jointNode = joints.item(index);
 				String name = XMLUtility.attributeValue(jointNode, "name");
+				//LOGGER.info(String.format("%s.analyzeChain: Joint %s ...",CLSS,name));
 				try {
 					Joint joint = Joint.valueOf(name);
 					NodeList childNodes = jointNode.getChildNodes();
@@ -211,7 +215,7 @@ public class URDFModel  {
 						link.setParent(parentLink);
 					}
 					revolutesByChild.put(child, rev);
-					LOGGER.fine(String.format("%s.analyzeChains: Found revolute %s",CLSS,rev.getName()));
+					//LOGGER.fine(String.format("%s.analyzeChains: Found revolute %s",CLSS,rev.getName()));
 				}
 				catch(IllegalArgumentException iae) {
 					LOGGER.warning(String.format("%s.analyzeChains: link element has unknown name (%s), ignored",CLSS,name));
@@ -222,7 +226,7 @@ public class URDFModel  {
 			// Search for origin. Origin is link where no other link has it as a child.
 			for(Link link:chain.getLinks() ) {
 				Link parent = link.getParent();
-				if( parent==null ) {
+				if( parent!=null ) {
 					parent.setOrigin(new LinkPoint());
 					chain.setRoot(parent);
 					break;

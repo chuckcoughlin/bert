@@ -3,17 +3,18 @@
  *                 MIT License.
  *
  */
-package bert.server.controller;
+package bert.control.controller;
 
 import java.util.LinkedList;
 import java.util.logging.Logger;
 
-import bert.server.message.SequentialMessage;
+import bert.control.message.SequentialMessage;
 
 /**
  *  Holds a list of requests to be executed in sequence.
  */
 public class SequentialQueue extends LinkedList<SequentialMessage>  {
+	private static final long serialVersionUID = -3633729383458991404L;
 	protected static final String CLSS = "SequentialQueue";
 	private Logger LOGGER = Logger.getLogger(CLSS);
 	private boolean inProgress;

@@ -8,7 +8,7 @@
 	     Theaxis of rotation represents the movement of the entire robot with respect to this frame.
 	-->
 	<imu> 
-		<origin xyz="0 0 -0.045"?>
+		<origin xyz="0 0 -0.045" />
 		<axis xyz="0 0 9" />
 	</imu>>
 	<link name="PELVIS"/>
@@ -18,8 +18,8 @@
 	<link name="RIGHT_THIGH"/>
 	<link name="RIGHT_SHIN"/>
 	<link name="RIGHT_FOOT">
-		<appendage name="LEFT_TOE"/>
-		<appendage name="LEFT_HEEL"/>
+		<appendage name="RIGHT_TOE"/>
+		<appendage name="RIGHT_HEEL"/>
 	</link>
 	<link name="LEFT_HIP_SOCKET"/>
 	<link name="LEFT_HIP_LINK"/>

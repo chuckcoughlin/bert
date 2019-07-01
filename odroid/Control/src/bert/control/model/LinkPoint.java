@@ -45,7 +45,7 @@ public class LinkPoint {
 		
 	
 	public String getName() { return joint.name(); }
-	public LinkPointType getType() { return this.getType(); }
+	public LinkPointType getType() { return this.type; }
 	public Appendage getAppendage() { return this.appendage; }
 	public double[] getAxis() { return this.axis; }
 	public Joint getJoint() { return this.joint; }

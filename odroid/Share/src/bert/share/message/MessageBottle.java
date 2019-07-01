@@ -49,17 +49,7 @@ public class MessageBottle implements Serializable {
 	 */
 	public void setDuration(long period) { this.duration = period; }
 
-	/**
-	 * Set the number of seconds past the execution time of this message
-	 * that a subsequent message must wait before it can execute. This
-	 * also represents the length of time needed to complete the commanded
-	 * motion.
-	 * @param period ~ secs
-	 */
-	public void setSecondsDuration(double period) {
-		setDuration((long)(period*1000)); 
- 
-	}
+
 	
 	public String getJointValue(String joint,String defaultValue) {
 		String value = this.jointValues.get(joint);
@@ -144,8 +134,17 @@ public class MessageBottle implements Serializable {
 	public void assignRequestType(RequestType type) {
 		setProperty(BottleConstants.TYPE, type.name());
 	}
-
-	
+	/**
+	 * Set the number of seconds past the execution time of this message
+	 * that a subsequent message must wait before it can execute. This
+	 * most likely represents the length of time needed to complete the
+	 * commanded motion.
+	 * @param period ~ secs
+	 */
+	public void assignSecondsDuration(double period) {
+		setDuration((long)(period*1000)); 
+ 
+	}
 	/**
 	 * Convenience method to retrieve the ControllerType of the message source.
 	 * 

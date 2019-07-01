@@ -2,15 +2,15 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.server.controller;
+package bert.control.controller;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import bert.server.message.InternalMessage;
-import bert.server.message.TimedMessage;
+import bert.control.message.InternalMessage;
+import bert.control.message.TimedMessage;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
 
@@ -22,6 +22,7 @@ import bert.share.message.MessageHandler;
  *  the list, the IDLE dog.
  */
 public class TimedQueue extends LinkedList<InternalMessage> implements Runnable   {
+	private static final long serialVersionUID = -5509446352724816963L;
 	private final static String CLSS = "TimedQueue";
 	private final static int IDLE_DELAY = 60000;    // One minute
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
@@ -54,7 +55,6 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 		 insertMessage(msg);
 	}
 	public String getName()   { return this.name; }
-
 	
 	/**
 	 * Insert a new message into the list in execution order.
@@ -67,6 +67,9 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 			InternalMessage im = iter.next();
 			if(im.getExecutionTime()>msg.getExecutionTime()) {
 				add(index, msg);
+				long now = System.nanoTime()/1000000;
+				LOGGER.info(String.format("%s.insertMessage: %s scheduled in %d msecs position %d",
+						CLSS,((MessageBottle)msg).fetchRequestType().name(),msg.getExecutionTime()-now,index));
 				if( index==0) timerThread.interrupt();   // We've replaced the head
 				return;
 			}
@@ -88,6 +91,7 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 			add(idleMessage);
 		}
 		else {
+			LOGGER.info(String.format("%s.fireExecutor: dispatching %s ...",CLSS,((MessageBottle)msg).fetchRequestType().name()));
 			dispatcher.handleRequest((MessageBottle)msg);
 		}
 		timerThread.interrupt();

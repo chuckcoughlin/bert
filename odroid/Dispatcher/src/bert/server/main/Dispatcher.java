@@ -17,12 +17,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
+import bert.control.controller.InternalController;
+import bert.control.controller.QueueName;
 import bert.control.main.Solver;
+import bert.control.message.SequentialMessage;
 import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
-import bert.server.controller.InternalController;
-import bert.server.controller.QueueName;
-import bert.server.message.SequentialMessage;
 import bert.server.model.RobotDispatcherModel;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
@@ -189,16 +189,17 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
 			motorGroupController.initialize();
 			motorGroupController.start();
-			// Set the speed to "normal" rate
-			SequentialMessage msg = new SequentialMessage(RequestType.SET_POSE,QueueName.GLOBAL);
+			// Set the speed to "normal" rate. Delay to all startup to complete
+			InternalMessage msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
+			msg.setDelay(5000);   // 5 sec delay
 			internalController.receiveRequest(msg);
 			// Read all the joint positions
-			msg = new SequentialMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
+			msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
 			internalController.receiveRequest(msg);
 			// Bring any joints that are outside sane limits into compliance
-			msg = new SequentialMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
+			msg = new InternalMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
 			internalController.receiveRequest(msg);
 		}
 		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
@@ -242,6 +243,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
+		LOGGER.info(String.format("%s.handleResponse: Received responsse %s",CLSS,response.fetchRequestType().name()));
 		String source = response.fetchSource();
 		if( source.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {	
 			commandController.receiveResponse(response);
