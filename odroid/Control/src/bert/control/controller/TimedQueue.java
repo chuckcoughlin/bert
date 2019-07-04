@@ -141,7 +141,7 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 			} 
 			// An interruption allows a recognition of re-ordering the queue
 			catch (InterruptedException e) {
-				LOGGER.info(String.format("%s.run: wait interrupted ---",getName()));
+				//LOGGER.info(String.format("%s.run: wait interrupted ---",getName()));
 			}
 			catch( Exception ex ) {
 				LOGGER.log(Level.SEVERE,String.format("%s.Exception during timeout processing (%s)",CLSS,ex.getLocalizedMessage()),

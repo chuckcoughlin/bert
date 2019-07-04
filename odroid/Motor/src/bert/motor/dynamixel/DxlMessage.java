@@ -56,6 +56,7 @@ public class DxlMessage  {
 	/**
 	 * Iterate through the list of motor configurations to determine which, if any, are outside the max-min
 	 * angle ranges. For those outside, move the position to a legal value.
+	 * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
 	 * @param configurations a list of motor configuration objects
 	 * @return list of byte arrays with bulk read plus extras for any AX-12. 
 	 */
@@ -66,9 +67,13 @@ public class DxlMessage  {
 		for(MotorConfiguration mc:configurations) {
 			double pos = mc.getPosition();
 			if( pos>mc.getMaxAngle() ) {
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s at %.0f (max=%.0f)",CLSS,mc.getName().name(),pos,mc.getMaxAngle()));
 				mc.setPosition(mc.getMaxAngle());
+				outliers.add(mc);
+				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
 			}
 			else if(pos<mc.getMinAngle()) {
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s at %.0f (min=%.0f)",CLSS,mc.getName().name(),pos,mc.getMinAngle()));
 				mc.setPosition(mc.getMinAngle());
 				outliers.add(mc);
 				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
@@ -76,7 +81,6 @@ public class DxlMessage  {
 		}
 		
 		List<byte[]> messages = new ArrayList<>();
-
 		int pc = outliers.size();
 		// Positions
 		if( pc>0 ) {
@@ -149,6 +153,7 @@ public class DxlMessage  {
 	/**
 	 * A pose may consist of any or all of position, speed and torque for the motors it refrerences. Query the database
 	 * to get values. Skip any that have null values. There is a hardware limit of 143 bytes for each array (shouldn't be a problem).
+	 * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
 	 * @param map of the motor configurations keyed by joint name
 	 * @param pose name of the pose to be set
 	 * @return up to 3 byte arrays as required by the pose
@@ -387,7 +392,7 @@ public class DxlMessage  {
 			msg = String.format("%s.updateGoalsFromBytes: %s",CLSS,dump(bytes));
 		
 			int id = bytes[2];
-			int err= bytes[4];
+			byte err= bytes[4];
 			
 			String parameterName = JointProperty.POSITION.name();
 			double v1 = DxlConversions.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
@@ -412,7 +417,7 @@ public class DxlMessage  {
 				props.put(BottleConstants.TEXT,text);	
 			}
 			else {
-				msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
+				msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",CLSS,err,descriptionForError(err));
 				props.put(BottleConstants.ERROR, msg);
 				LOGGER.severe(msg);
 			}
@@ -440,7 +445,7 @@ public class DxlMessage  {
 			msg = String.format("%s.updateLimitsFromBytes: %s",CLSS,dump(bytes));
 		
 			int id = bytes[2];
-			int err= bytes[4];
+			byte err= bytes[4];
 			
 			String parameterName = JointProperty.MINIMUMANGLE.name(); // CW
 			double v1 = DxlConversions.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
@@ -462,7 +467,7 @@ public class DxlMessage  {
 				props.put(BottleConstants.TEXT,text);	
 			}
 			else {
-				msg = String.format("%s.updateLimitsFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
+				msg = String.format("%s.updateLimitsFromBytes: message returned error %d (%s)",CLSS,err,descriptionForError(err));
 				props.put(BottleConstants.ERROR, msg);
 				LOGGER.severe(msg);
 			}
@@ -488,7 +493,7 @@ public class DxlMessage  {
 			msg = String.format("%s.updateParameterFromBytes: %s",CLSS,dump(bytes));
 		
 			int id = bytes[2];
-			int err= bytes[4];
+			byte err= bytes[4];
 			
 			double value = DxlConversions.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
 			String text = DxlConversions.textForProperty(parameterName,mc,bytes[5],bytes[6]);
@@ -499,7 +504,7 @@ public class DxlMessage  {
 				mc.setProperty(parameterName, value);
 			}
 			else {
-				msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",CLSS,err,dump(bytes));
+				msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",CLSS,err,descriptionForError(err));
 				props.put(BottleConstants.ERROR, msg);
 				LOGGER.severe(msg);
 			}
@@ -528,7 +533,7 @@ public class DxlMessage  {
 			if( verifyHeader(bytes,index) ) {
 				int id = bytes[index+2];
 				length = bytes[index+3] + 4;  // Takes care of fixed bytes pre-length
-				int err= bytes[index+4];
+				byte err= bytes[index+4];
 				MotorConfiguration mc =  configurations.get(id);
 				if( err==0 && mc!=null ) {
 					double param= DxlConversions.valueForProperty(parameterName,mc,bytes[index+5],bytes[index+6]);
@@ -536,7 +541,8 @@ public class DxlMessage  {
 					mc.setProperty(parameterName, param);
 				}
 				else if(err!=0){
-					msg = String.format("%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",CLSS,id,err,dump(bytes));
+					msg = String.format("%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",CLSS,id,err,
+							descriptionForError(err));
 					LOGGER.severe(msg);
 				}
 				// mc = null

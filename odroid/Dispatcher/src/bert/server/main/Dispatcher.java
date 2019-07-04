@@ -43,8 +43,10 @@ import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
 
 /**
- * The launcher is its own system process. It's job is to accept requests from 
+ * The Dispatcher is its own system process. It's job is to accept requests from 
  * the command sockets, distribute them to the motor manager channels and post the results.
+ * For complicated requests it may invoke the services of the "Solver" and insert 
+ * internal intermediate requests.
  */
 public class Dispatcher extends Thread implements MessageHandler,SocketStateChangeListener {
 	private final static String CLSS = "Dispatcher";
@@ -132,7 +134,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 */
 	@Override
 	public void run() {
-		LOGGER.info(String.format("%s: Starting run loop ...",CLSS));
+		//LOGGER.info(String.format("%s: Starting run loop ...",CLSS));
 		try {
 			for(;;) {
 				lock.lock();
@@ -189,6 +191,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
 			motorGroupController.initialize();
 			motorGroupController.start();
+
 			// Set the speed to "normal" rate. Delay to all startup to complete
 			InternalMessage msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
@@ -218,7 +221,6 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		LOGGER.info(String.format("%s.shutdown: complete.",CLSS));
 	}
 	
-	
 	/**
 	 * We've gotten a request. It may have come from either a socket
 	 * or the timer. Signal the busy lock, so main loop proceeds.
@@ -243,7 +245,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
-		LOGGER.info(String.format("%s.handleResponse: Received responsse %s",CLSS,response.fetchRequestType().name()));
+		LOGGER.info(String.format("%s.handleResponse: Received response %s",CLSS,response.fetchRequestType().name()));
 		String source = response.fetchSource();
 		if( source.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {	
 			commandController.receiveResponse(response);
@@ -263,8 +265,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 	}
 	
-	
-	
+
 	// The "local" response is simply the original request with some text
 	// to send directly to the user.
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {

@@ -12,7 +12,11 @@ import bert.control.message.InternalMessage;
 
 /**
  *  Holds a list of requests to be executed in sequence. In general,
- *  requests in the same queue affect the same robot sub-chain of motors.
+ *  requests on the same queue affect the same robot sub-chain of motors.
+ *  
+ *  The inProcess flag true means that there is a message from the queue
+ *  currently being executed by the dispatcher. This is used to prevent
+ *  immediate execution of a new request if inappropriate.
  */
 public class SequentialQueue extends LinkedList<InternalMessage>  {
 	private static final long serialVersionUID = -3633729383458991404L;

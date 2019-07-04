@@ -75,6 +75,10 @@ public class MessageTranslator  {
 					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
 					text = String.format("Motor %s have been written to log files", propertyName.toLowerCase());
 				}
+				else if(type.equals(RequestType.SET_POSE)) {
+					String propertyName = msg.getProperty(BottleConstants.POSE_NAME, "");
+					text = String.format("I am %s", propertyName.toLowerCase());
+				}
 				else {
 					String property = msg.getProperty(BottleConstants.PROPERTY_NAME, "unknown");
 					String value = msg.getProperty(property, "unknown");

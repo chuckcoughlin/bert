@@ -185,12 +185,12 @@ public class NamedSocket   {
 		MessageBottle bottle = null;
 		try {
 			if(in!=null )  {
-				LOGGER.info(String.format("%s.read: reading %s ... ",CLSS,name));
+				//LOGGER.info(String.format("%s.read: reading %s ... ",CLSS,name));
 				String json = in.readLine();
 				while( json==null ) {
 					json = reread();
 				}
-				LOGGER.info(String.format("%s.read: got %s",CLSS,json));
+				LOGGER.info(String.format("%s.read: %s got %s",CLSS,name,json));
 				if( json!=null) bottle = MessageBottle.fromJSON(json);
 			}
 			else {

@@ -85,15 +85,19 @@ public class InternalController implements Controller  {
 			InternalMessage msg = (InternalMessage)response;
 			SequentialQueue queue = sequentialQueues.get(msg.getQueue());
 			if( queue!=null ) {
-				LOGGER.info(String.format("%s: receiveResponse received sequential response (%s) queue %s",CLSS,response.fetchRequestType().name(),
-						(queue.isInProgress()?"IN PROGRESS":"IDLE")));
 				if( queue.isEmpty() ) {
 					queue.setInProgress(false);
+					LOGGER.info(String.format("%s: receiveResponse received %s (%s) queue now IDLE",CLSS,response.fetchRequestType().name(),
+							msg.getQueue()));
 				}
 				else {
+					queue.setInProgress(true);
+					LOGGER.info(String.format("%s: receiveResponse received sequential response %s (%s) queue IN PROGRESS",CLSS,
+							response.fetchRequestType().name(),msg.getQueue()));
 					msg = queue.removeFirst(); 
 					timedQueue.addMessage(msg);  // Just in case there's a required delay
 				}
+				
 			}
 			// The response is not associated with a queue. The only consideration
 			// now is if it is repeated. Otherwise we do nothing.

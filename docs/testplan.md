@@ -81,10 +81,10 @@ EEPROM limits. A typical query:
     what are the limits of your left elbow
 ```
 
-* ![gray](/images/ball_gray.png) ``Sane Startup`` - when the robot is first powered on,
+* ![green](/images/ball_green.png) ``Sane Startup`` - when the robot is first powered on,
 its limbs are in unknown positions. Read the positions of all joints and move those
 that are outside configured limits to the closest "legal" value. When this initialization
-is complete, issue a startup response.
+is complete, issue a response stating that the robot is ready.
 ```
   bert is ready
 ```

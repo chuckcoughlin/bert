@@ -101,13 +101,13 @@ public class MotorConfiguration implements Serializable  {
 		}
 	}
 	/**
-	 * Use the raw motor value to set the property. If "position", correct by the offset.
+	 * Use the motor value to set the corresponding property.
 	 * @param jp JointProperty that we are setting
 	 * @param value the new value
 	 */
 	public void setProperty(JointProperty jp, double value) {
 		switch(jp) {
-			case POSITION: setPosition(value+offset); break;
+			case POSITION: setPosition(value); break;
 			case SPEED:	   setSpeed(value);    break;
 			case TORQUE:   setTorque(value);   break;
 			default: break; // Ignore

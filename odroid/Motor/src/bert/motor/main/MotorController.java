@@ -38,6 +38,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	protected static final String CLSS = "MotorController";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final int BAUD_RATE = 1000000;
+	private static final int MIN_WRITE_INTERVAL = 25; // msecs between writes
 	private final Condition running;
 	private final String group;                 // Group name
 	private final Lock lock;
@@ -47,6 +48,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	private final Map<Integer,MotorConfiguration> configurationsById;
 	private final Map<String,MotorConfiguration> configurationsByName;
 	private MessageBottle currentRequest;
+	private long timeOfLastWrite;
 
 	public MotorController(String name,SerialPort p,MotorManager mm) {
 		this.group = name;
@@ -57,6 +59,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		this.currentRequest = null;
 		this.lock = new ReentrantLock();
 		this.running = lock.newCondition();
+		this.timeOfLastWrite = System.nanoTime()/1000000; 
 	}
 
 	public String getGroupName() { return this.group; }
@@ -159,7 +162,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 			lock.lock();
 			try{
 				running.await();
-				LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,group,port.getPortName()));
+				// LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,group,port.getPortName()));
 				if(isSingleWriteRequest(currentRequest) ) {
 					byte[] bytes = messageToBytes(currentRequest);
 					writeBytesToSerial(bytes);
@@ -171,7 +174,9 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 						writeBytesToSerial(bytes);
 						LOGGER.info(String.format("%s.run: %s wrote %d bytes",CLSS,group,bytes.length));
 					}
-				}	
+				}
+				
+				if( hasNoResponse(currentRequest)) synthesizeResponse(currentRequest);
 			}
 			catch(InterruptedException ie ) {}
 			finally {
@@ -192,7 +197,20 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 		}
 		return props;
 	}
-	
+	/**
+	 * SYNC_WRITE messages to the controller do not generate serial replies.
+	 * We have to simply assume that the requests succceed.
+	 * @param msg the request
+	 * @return true if this is the type of message that translates into 
+	 *         multiple writes to the serial port.
+	 */
+	private boolean hasNoResponse(MessageBottle msg) {
+		if( msg.fetchRequestType().equals(RequestType.INITIALIZE_JOINTS)   ||
+			msg.fetchRequestType().equals(RequestType.SET_POSE))    {
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * @param msg the request
 	 * @return true if this is the type of request satisfied by a single controller.
@@ -209,11 +227,12 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	
 	/**
 	 * @param msg the request
-	 * @return true if this is the type of message that translates into a 
-	 *         single write to the serial port.
+	 * @return true if this is the type of message that translates into 
+	 *         multiple writes to the serial port.
 	 */
 	private boolean isSingleWriteRequest(MessageBottle msg) {
-		if( msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) ||
+		if( msg.fetchRequestType().equals(RequestType.INITIALIZE_JOINTS)   ||
+			msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) ||
 			msg.fetchRequestType().equals(RequestType.SET_POSE))    {
 			return false;
 		}
@@ -278,13 +297,31 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				request.setDuration(DxlMessage.getMostRecentTravelTime());
 			}
 			else {
-				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
+				LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",CLSS,type.name()));
 			}
 			for(byte[] bytes:list) {
-				LOGGER.info(String.format("%s.messageToBytes: request(%s) = (%s)",CLSS,request.fetchRequestType(),DxlMessage.dump(bytes)));
+				LOGGER.info(String.format("%s.messageToByteList: request(%s) = (%s)",CLSS,request.fetchRequestType(),DxlMessage.dump(bytes)));
 			}
 		}
 		return list;
+	}
+	
+	/**
+	 * We have just written a message to the serial port for which we will get no
+	 * response. Make one up and send it off to the "MotorManager".  Currently there 
+	 * are two request types in this category.
+	 * @param msg the request
+	 * @return true if this is the type of message that translates into 
+	 *         multiple writes to the serial port.
+	 */
+	private void synthesizeResponse(MessageBottle msg) {
+		if( currentRequest.fetchRequestType().equals(RequestType.INITIALIZE_JOINTS) ||
+			currentRequest.fetchRequestType().equals(RequestType.SET_POSE)	) {
+        	motorManager.handleSynthesizedResponse(getMotorCount(),msg.getDuration());
+        } 
+		else  {
+			LOGGER.severe( String.format("%s.synthesizeResponse: Unhandled response for %s",CLSS,msg.fetchRequestType().name()));
+        }
 	}
 	
 	// Already known to be a single group request. Here we are readying the response.
@@ -329,16 +366,25 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	}
 	
 
-	
+	/*
+	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL
+	 */
 	private void writeBytesToSerial(byte[] bytes) {
 		if( bytes!=null && bytes.length>0 ) {
 			try {
+				long now = System.nanoTime()/1000000; 
+				long interval = now - timeOfLastWrite;
+				if( interval<MIN_WRITE_INTERVAL) {
+					Thread.sleep(MIN_WRITE_INTERVAL-interval);
+				}
+				timeOfLastWrite = now;
 				boolean success = port.writeBytes(bytes);
 				port.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);   // Force the write to complete
 				if( !success ) {
 					LOGGER.severe(String.format("%s.writeBytesToSerial: Failed write of %d bytes to %s",CLSS,bytes.length,port.getPortName()));
 				}
 			}
+			catch(InterruptedException ignore) {}
 			catch(SerialPortException spe) {
 				LOGGER.severe(String.format("%s.writeBytesToSerial: Error writing to %s (%s)",CLSS,port.getPortName(),spe.getLocalizedMessage()));
 			}

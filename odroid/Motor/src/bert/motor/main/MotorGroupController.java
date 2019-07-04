@@ -60,8 +60,8 @@ public class MotorGroupController implements Controller,MotorManager {
 		this.motorsProcessed = 0;
 		this.motorNameById = new HashMap<>();
 		this.parametersInProcess = new HashMap<>();
-		LOGGER.info(String.format("%s.constructor: os.arch = %s",CLSS,System.getProperty("os.arch")));  // x86_64
-		LOGGER.info(String.format("%s.constructor: os.name = %s",CLSS,System.getProperty("os.name")));  // Mac OS X
+		LOGGER.info(String.format("%s: os.arch = %s",CLSS,System.getProperty("os.arch")));  // x86_64
+		LOGGER.info(String.format("%s: os.name = %s",CLSS,System.getProperty("os.name")));  // Mac OS X
 		development = System.getProperty("os.arch").startsWith("x86");
 	}
 
@@ -77,11 +77,10 @@ public class MotorGroupController implements Controller,MotorManager {
 			for( String group:groupNames ) {
 				SerialPort port = model.getPortForGroup(group);
 				MotorController controller = new MotorController(group,port,this);
-				motorCount += controller.getMotorCount();
 				Thread t = new Thread(controller);
 				motorControllers.put(group, controller);
 				motorControllerThreads.put(group, t);
-				LOGGER.info(String.format("%s.initialize: Created motor controller for group %s",CLSS,controller.getGroupName()));
+				
 
 				// Add configurations to the controller for each motor in the group
 				List<Joint> joints = model.getJointsForGroup(group);
@@ -96,6 +95,8 @@ public class MotorGroupController implements Controller,MotorManager {
 						LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",CLSS,joint.name(),group));
 					}
 				}
+				motorCount += controller.getMotorCount();
+				LOGGER.info(String.format("%s.initialize: Created motor controller for group %s, %d motors",CLSS,controller.getGroupName(),controller.getMotorCount()));
 			}
 		}
 	}
@@ -180,22 +181,41 @@ public class MotorGroupController implements Controller,MotorManager {
 	 * from all the controllers, forward reply back to the Dispatcher.
 	 * @param map position of an individual motor.
 	 */
-	public void aggregateMotorProperties(Map<Integer,String> map) {
+	public synchronized void aggregateMotorProperties(Map<Integer,String> map) {
 		if( map!=null ) {
 			for( Integer key:map.keySet() ) {
 				String param = map.get(key);
 				String name = motorNameById.get(key);
 				parametersInProcess.put(name, param);
-				LOGGER.info(String.format("%s.aggregateMotorProperties: received %s (%d) = %s",CLSS,name,key,param));
 				motorsProcessed++;   // Assume there are no duplicates
+				//LOGGER.info(String.format("%s.aggregateMotorProperties: received %s (%d of %d) = %s",CLSS,name,motorsProcessed,motorCount,param));
 			}
 		}
 		if(motorsProcessed>=motorCount ) {
+			LOGGER.info(String.format("%s.aggregateMotorProperties: all motors accounted for: responding ...",CLSS));
 			this.currentRequest.setJointValues(parametersInProcess);
 			responseHandler.handleResponse(currentRequest);
 		}
 	}
-	
+	/**
+	 * This method is called by the controller that handled a request that does
+	 * not generate a response. The only information we return is the max 
+	 * duration of all the movements.
+	 * @param count number of motors represented by this controller
+	 * @param duration calculated maximum movement time
+	 */
+	public synchronized void handleSynthesizedResponse(int count,long duration) {
+		motorsProcessed += count;
+		LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",CLSS,currentRequest.fetchRequestType().name(),motorsProcessed,motorCount));
+		if( duration>currentRequest.getDuration() ) currentRequest.setDuration(duration);
+		
+		if(motorsProcessed>=motorCount ) {
+			LOGGER.info(String.format("%s.handleSynthesizedResponse: all motors accounted for: responding ...",CLSS));
+			responseHandler.handleResponse(currentRequest);	
+		}
+	}
+
+
 	/**
 	 * This method is called by the controller that handled a request that pertained to
 	 * a single motor. Forward result to the Dispatcher.

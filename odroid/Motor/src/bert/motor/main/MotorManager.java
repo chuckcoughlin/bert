@@ -11,6 +11,7 @@ import java.util.Map;
  */
 public interface MotorManager  {
 	public void aggregateMotorProperties(Map<Integer,String> map);
+	public void handleSynthesizedResponse(int count,long duration);
 	public void handleUpdatedProperties(Map<String,String> updates);
 	public int getControllerCount();
 }
