@@ -159,15 +159,18 @@ public class NamedSocket   {
 	 * Close IO streams. Closing the socket should interrupt any read.
 	 */
 	public void shutdown() {
+		LOGGER.info(String.format("%s.shutdown: %s closing sockets ...",CLSS,name));
 		try {
 			if( socket!=null) socket.close();
 			if(serverSocket!=null) serverSocket.close();
 		}
 		catch(IOException ioe) {}
+		LOGGER.info(String.format("%s.shutdown: %s closing in ...",CLSS,name));
 		if(in!=null) {
 			try{ in.close();} catch(IOException ignore) {}
 			in = null;
 		}
+		LOGGER.info(String.format("%s.shutdown: %s closing out ...",CLSS,name));
 		if(out!=null) {
 			out.close();
 			out = null;

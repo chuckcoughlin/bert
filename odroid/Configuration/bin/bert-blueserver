@@ -19,16 +19,14 @@
 
 set -e
 export BERT_HOME=/usr/local/robot
-export BERTLOGDIR=/var/log/bert
+export BERTLOGDIR=${BERT_HOME}/logs
 export BERTLOG=${BERTLOGDIR}/blueserver.log
 export DAEMON=${BERT_HOME}/bin/blueserverd
-export PARAMS=""
-export PIDDIR=/var/run/bert
-export PIDFILE=${PIDDIR}/blueserver
+export PIDDIR=${BERT_HOME}/pid
+export PIDFILE=${PIDDIR}/blueserver.pid
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:${BERT_HOME}/bin
 
 . /lib/lsb/init-functions
-mkdir -p ${BERT_HOME}/logs
 mkdir -p ${BERTLOGDIR}
 mkdir -p ${PIDDIR}
 
@@ -53,13 +51,13 @@ case "$1" in
 	echo "=============================== /etc/init.d/blueserver start ===========================" >> ${BERTLOG}
 	if [ -e ${PIDFILE} ]
 	 then
-	 	log_success_msg "Bert blueserver already running ... no action taken"
+	 	log_success_msg "Bert blueserver already running ... no action taken" >> ${BERTLOG}
 	 	return
 	 fi
 	 # Launch Serial Port service and connect bluetooth devices
 	 sdptool add SP
 	 start-stop-daemon --start --pidfile ${PIDFILE} --exec $DAEMON
-	 log_end_msg $?
+	 log_end_msg $? >> ${BERTLOG}
   ;;
 
   restart)
@@ -69,7 +67,7 @@ case "$1" in
 
   stop)
 	start-stop-daemon --stop --retry 5 --oknodo --pidfile ${PIDFILE} 
-	log_end_msg $?
+	log_end_msg $? >> ${BERTLOG}
 	echo "=============================== /etc/init.d/bert-blueserver stopped ===========================" >> ${BERTLOG}
   ;;
   force-reload)
