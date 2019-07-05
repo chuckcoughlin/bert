@@ -12,9 +12,6 @@ import android.util.Log;
 import java.util.HashSet;
 import java.util.Set;
 
-import chuckcoughlin.bert.common.BertConstants;
-import chuckcoughlin.bert.db.SettingsManager;
-
 /**
  * Attempt to discover a Bluetooth network.
  * NOTE: Bluetooth is not supported on the emulator. The adapter will be null.
@@ -25,9 +22,9 @@ public class BluetoothChecker {
     private final String deviceName;
     private final VoiceServiceHandler handler;
 
-    public BluetoothChecker(VoiceServiceHandler handler) {
+    public BluetoothChecker(VoiceServiceHandler handler,String name) {
         this.handler     = handler;
-        this.deviceName  = SettingsManager.getInstance().getSetting(BertConstants.BERT_PAIRED_DEVICE);
+        this.deviceName  = name;
     }
 
 

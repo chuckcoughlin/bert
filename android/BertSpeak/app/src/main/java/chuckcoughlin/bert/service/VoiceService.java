@@ -24,7 +24,7 @@ import android.util.Log;
 
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
-import chuckcoughlin.bert.db.SettingsManager;
+import chuckcoughlin.bert.db.DatabaseManager;
 import chuckcoughlin.bert.speech.MessageType;
 import chuckcoughlin.bert.speech.SpeechAnalyzer;
 import chuckcoughlin.bert.speech.SpokenTextManager;
@@ -45,6 +45,7 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
     private volatile NotificationManager notificationManager;
     private BluetoothConnection bluetoothConnection = null;
     private BluetoothDevice bluetoothDevice = null;
+    private DatabaseManager dbManager = null;
     private SpeechAnalyzer analyzer = null;
     private boolean isMuted;
     private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
@@ -66,7 +67,6 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
 
     @Override
     public void onCancel(RecognitionService.Callback listener) {
-
     }
     @Override
     public void onStartListening(Intent intent,RecognitionService.Callback listener) {
@@ -88,7 +88,7 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         Notification notification = buildNotification();
         instance = this;
-        SettingsManager.initialize(this);
+        dbManager = new DatabaseManager(getApplicationContext());
         SpokenTextManager.initialize(this);
         ServiceStatusManager.initialize();
         startForeground(VOICE_NOTIFICATION, notification);
@@ -104,7 +104,6 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
         if(bluetoothConnection!=null) bluetoothConnection.shutdown();
         if(analyzer!=null) analyzer.shutdown();
         ServiceStatusManager.stop();
-        SettingsManager.stop();
         SpokenTextManager.stop();
         stopForegroundService();
     }
@@ -216,7 +215,8 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
         FacilityState currentState = ServiceStatusManager.getInstance().getStateForFacility(currentFacility);
         if( currentFacility.equals(TieredFacility.BLUETOOTH)) {
             if( !currentState.equals(FacilityState.ACTIVE)) {
-                BluetoothChecker checker = new BluetoothChecker(this);
+                String name = dbManager.getSetting(BertConstants.BERT_PAIRED_DEVICE);
+                BluetoothChecker checker = new BluetoothChecker(this,name);
                 reportConnectionState(currentFacility,FacilityState.WAITING);
                 checker.beginChecking((BluetoothManager)getSystemService(BLUETOOTH_SERVICE));
             }

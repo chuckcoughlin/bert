@@ -12,10 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.WindowManager;
 
-import chuckcoughlin.bert.common.BertConstants;
-import chuckcoughlin.bert.db.SettingsManager;
-import chuckcoughlin.bert.speech.SpokenTextManager;
-import chuckcoughlin.bert.service.ServiceStatusManager;
 import chuckcoughlin.bert.service.VoiceService;
 
 

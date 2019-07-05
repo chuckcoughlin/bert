@@ -15,52 +15,24 @@ import chuckcoughlin.bert.common.BertConstants;
 
 
 /**
- * Application settings are stored in a SQLite database. Since we access from multiple
- * fragments, use a singleton class to avoid repeated allocations. All database operations
- * are encpsulated here. The instance is created and shutdown in the MainActivity. It must
- * be initialized as its first operation.
+ * Persistent application parameters are stored in a SQLite database. The SQLiteOpenHelper
+ * checks for existence and version when the database is first opened. Beyond that the
+ * checks are ignored. Create a separate instance of this class wherever needed.
+ * The database is closed after each transaction.
  */
-public class SettingsManager extends SQLiteOpenHelper {
-    private final static String CLSS = "SettingsManager";
-    private static volatile SettingsManager instance = null;
+public class DatabaseManager extends SQLiteOpenHelper {
+    private final static String CLSS = "DatabaseManager";
     private volatile Context context = null;
 
     /**
-     * Constructor is private per Singleton pattern. This forces use of the single instance.
+     * Constructor requires the activity context.
      * @param context main activity
      */
-    private SettingsManager(Context context) {
+    public DatabaseManager(Context context) {
         super(context, BertConstants.DB_NAME, null, BertConstants.DB_VERSION);
         this.context = context.getApplicationContext();
     }
 
-    /**
-     * Use this method in the initial activity. We need to assign the context.
-     * @param context main activity
-     * @return the Singleton instance
-     */
-    public static synchronized SettingsManager initialize(Context context) {
-        // Use the application context, which will ensure that you
-        // don't accidentally leak an Activity's context.
-        if (instance == null) {
-            instance = new SettingsManager(context.getApplicationContext());
-        }
-        else {
-            Log.w(CLSS,String.format("initialize: Settings manager exists, re-initialization ignored"));
-        }
-        return instance;
-    }
-
-    /**
-     * Use this method for all except the initial acccess.
-     * @return the Singleton instance.
-     */
-    public static synchronized SettingsManager getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("Attempt to return uninitialized copy of Settings manager");
-        }
-        return instance;
-    }
 
     /**
      * Called when the database connection is being configured.
@@ -146,10 +118,7 @@ public class SettingsManager extends SQLiteOpenHelper {
             Log.e(CLSS, String.format("onUpgrade: SQLError: %s", sqle.getLocalizedMessage()));
         }
     }
-    // ================================================= Robot ===============================
-    /**
-     * For access to the robot table, see SBRosManager.
-     */
+
     // ================================================ Settings =============================
     /**
      * Read name/value pairs from the database.
@@ -230,13 +199,5 @@ public class SettingsManager extends SQLiteOpenHelper {
             index++;
         }
         database.close();
-    }
-
-    /**
-     * Called when main activity is destroyed. Clean up any resources.
-     * To use again requires re-initialization.
-     */
-    public static void stop() {
-        instance = null;
     }
 }

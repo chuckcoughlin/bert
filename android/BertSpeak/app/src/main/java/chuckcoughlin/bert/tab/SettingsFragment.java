@@ -20,7 +20,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import chuckcoughlin.bert.R;
-import chuckcoughlin.bert.db.SettingsManager;
+import chuckcoughlin.bert.db.DatabaseManager;
 import chuckcoughlin.bert.common.NameValue;
 
 /**
@@ -29,6 +29,7 @@ import chuckcoughlin.bert.common.NameValue;
  */
 public class SettingsFragment extends BasicAssistantListFragment  {
     private final static String CLSS = "SettingsFragment";
+    private DatabaseManager dbManager = null;
 
     public SettingsFragment() {
         super();
@@ -37,7 +38,8 @@ public class SettingsFragment extends BasicAssistantListFragment  {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        List<NameValue> nvpairs = SettingsManager.getInstance().getSettings();
+        dbManager = new DatabaseManager(getContext().getApplicationContext());
+        List<NameValue> nvpairs = dbManager.getSettings();
         NameValue [] nvarray = nvpairs.toArray(new NameValue[nvpairs.size()]);
         Log.i(CLSS,String.format("onActivityCreated: will display %d name-values",nvarray.length));
         SettingsListAdapter adapter = new SettingsListAdapter(getContext(),nvarray);
@@ -102,7 +104,7 @@ public class SettingsFragment extends BasicAssistantListFragment  {
                     if (!hasFocus) {
                         Log.i(CLSS,String.format("SettingsListAdapter.getView.onFocusChange %d = %s",position,((EditText) v).getText().toString()));
                         nv.setValue(((EditText)v).getText().toString());
-                        SettingsManager.getInstance().updateSetting(nv);
+                        dbManager.updateSetting(nv);
                     }
                 }
             });
@@ -112,5 +114,4 @@ public class SettingsFragment extends BasicAssistantListFragment  {
             return convertView;
         }
     }
-
 }
