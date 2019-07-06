@@ -27,7 +27,7 @@ import chuckcoughlin.bert.common.SimpleMessageType;
  */
 public class BluetoothConnection {
 	private static final String CLSS = "BluetoothConnection";
-    private final VoiceServiceHandler handler;
+    private final BluetoothHandler handler;
     private ConnectionThread connectionThread = null;
 	private ReaderThread readerThread = null;
 	private static final int BUFFER_SIZE = 256;
@@ -45,7 +45,7 @@ public class BluetoothConnection {
 	 * Constructor: Use this version for processes that are clients
 	 * @param handler the parent fragment
 	 */
-	public BluetoothConnection(VoiceServiceHandler handler) {
+	public BluetoothConnection(BluetoothHandler handler) {
         this.buffer  = new char[BUFFER_SIZE];
 		this.handler = handler;
 	}

@@ -40,7 +40,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
     private static final int LOG_MSG_HEIGHT_EXPANDED = 225;
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss.SSS");
     private int expandedPosition = -1;
-    private Activity mainActivity = null;
+    private final LogViewer viewer;
     private RecyclerView recyclerView = null;
     private Context context = null;
     private boolean frozen;
@@ -48,7 +48,8 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
     /**
      * Adapter between the recycler and data source for log messages
      */
-    public LogRecyclerAdapter() {
+    public LogRecyclerAdapter(LogViewer v) {
+        this.viewer = v;
         this.frozen = false;
     }
 
@@ -81,7 +82,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
     public void onBindViewHolder(LogViewHolder holder, int position) {
         Log.i(CLSS,String.format("onBindViewHolder at %d",position));
         boolean expand = (position==expandedPosition);
-        TextMessage msg = SpokenTextManager.getInstance().getLogAtPosition(position);  // Checks index bounds
+        TextMessage msg = viewer.getLogAtPosition(position);  // Checks index bounds
         if( msg==null ) {
             Log.w(CLSS,String.format("Null log holder at %d",position));
             return;
@@ -144,7 +145,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
     // It is important that the widget and backing manager be in synch
     // with respect to item count.
     @Override
-    public int getItemCount() {return SpokenTextManager.getInstance().getLogs().size(); }
+    public int getItemCount() {return viewer.getLogs().size(); }
 
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {

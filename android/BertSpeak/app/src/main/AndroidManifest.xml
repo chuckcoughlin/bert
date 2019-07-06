@@ -33,7 +33,7 @@
         </activity>
 
         <service
-            android:name="chuckcoughlin.bert.service.VoiceService"
+            android:name="chuckcoughlin.bert.service.DispatchService"
             android:enabled="true"
             android:exported="true"
             android:label="@string/notificationLabel">

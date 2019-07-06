@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="chuckcoughlin.bert.tab.DispatcherLogsFragment">
+    tools:context="chuckcoughlin.bert.tab.RobotLogsFragment">
 
     <TextView
         android:id="@+id/fragmentLogsText"

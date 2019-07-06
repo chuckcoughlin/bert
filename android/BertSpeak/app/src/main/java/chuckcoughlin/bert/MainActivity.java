@@ -5,19 +5,33 @@
 
 package chuckcoughlin.bert;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.WindowManager;
 
-import chuckcoughlin.bert.service.VoiceService;
+import chuckcoughlin.bert.service.DispatchService;
+import chuckcoughlin.bert.service.DispatchServiceConnection;
+import chuckcoughlin.bert.speech.Annunciator;
+import chuckcoughlin.bert.speech.SpeechAnalyzer;
+import chuckcoughlin.bert.speech.SpokenTextManager;
 
-
-public class MainActivity extends AppCompatActivity {
+/**
+ * The main activity "owns" the page tab UI fragments. It also contains
+ * the speech components, since they must execute on the main thread
+ * (and not in the service).
+ */
+public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
     private static final String CLSS = "MainActivity";
     private static final String DIALOG_TAG = "dialog";
+    private DispatchService dispatchServoce = null;
+    private DispatchServiceConnection serviceConnection = null;
+    private SpeechAnalyzer analyzer = null;
+    private Annunciator annunciator;
 
     /**
      * A specialized {@link android.support.v4.view.PagerAdapter} that will provide
@@ -32,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
 
     public MainActivity() {
-        Log.d(CLSS,"Constructor ...");
+        Log.d(CLSS,"Main Activity startup ...");
+        this.serviceConnection = new DispatchServiceConnection();
     }
 
     /**
@@ -54,18 +69,60 @@ public class MainActivity extends AppCompatActivity {
         pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(),getApplicationContext());
         viewPager.setAdapter(pagerAdapter);
 
-        // Create the comprehensive voice connection service
-        Intent intent = new Intent(this, VoiceService.class);
+        // Create the comprehensive dispatch connection service
+        Intent intent = new Intent(this, DispatchService.class);
         getApplicationContext().startForegroundService(intent);
     }
 
     /**
-     * Shutdown the VoiceService.
+     * Bind to the DispatchService, start speech analyzer and enunciator
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, DispatchService.class);
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        if(serviceConnection!=null) {
+            analyzer = new SpeechAnalyzer(serviceConnection.getService(),getApplicationContext());
+            analyzer.start();
+        }
+        annunciator = new Annunciator(getApplicationContext(),this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unbindService(serviceConnection);
+        annunciator.stop();
+    }
+
+    /**
+     * Shutdown the DispatchService.
      */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Intent intent = new Intent(this, VoiceService.class);
+        if(analyzer!=null) analyzer.shutdown();
+        Intent intent = new Intent(this, DispatchService.class);
         stopService(intent);
+        annunciator.shutdown();
+        annunciator = null;
+    }
+
+    // =================================== OnInitListener ===============================
+    @Override
+    public void onInit(int status) {
+        Log.i(CLSS,String.format("onInit: SpeechToText status - %d",status));
+        /*
+            For when we need to select an appropriate speaker ... maybe one of these
+            en-gb-x-rjs#male_2-local
+            en-gb-x-fis#male_1-local
+            en-gb-x-fis#male_3-local
+
+        Set<Voice> voices = annunciator.getVoices();
+        for( Voice v:voices) {
+            Log.i(CLSS,String.format("oninit: voice = %s %d",v.getName(),v.describeContents()));
+        }
+          */
     }
 }

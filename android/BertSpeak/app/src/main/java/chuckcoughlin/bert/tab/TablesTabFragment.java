@@ -5,6 +5,8 @@
 
 package chuckcoughlin.bert.tab;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,9 +17,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.logs.LogRecyclerAdapter;
+import chuckcoughlin.bert.logs.LogViewer;
+import chuckcoughlin.bert.service.DispatchService;
+import chuckcoughlin.bert.service.DispatchServiceConnection;
 import chuckcoughlin.bert.speech.SpokenTextManager;
+import chuckcoughlin.bert.speech.TextMessage;
 
 
 /**
@@ -26,8 +35,9 @@ import chuckcoughlin.bert.speech.SpokenTextManager;
  * next table is read.
  */
 
-public class TablesTabFragment extends BasicAssistantFragment  {
+public class TablesTabFragment extends BasicAssistantFragment implements LogViewer {
     private final static String CLSS = "LogFragment";
+    private DispatchServiceConnection serviceConnection = null;
     private RecyclerView.LayoutManager layoutManager;
     private LogRecyclerAdapter adapter;
     private View rootView = null;
@@ -36,6 +46,7 @@ public class TablesTabFragment extends BasicAssistantFragment  {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        this.serviceConnection = new DispatchServiceConnection();
         rootView = inflater.inflate(R.layout.fragment_dispatcher_logs, container, false);
         TextView textView = rootView.findViewById(R.id.fragmentLogsText);
         // This should be replaced by the title of whatever table is to be displayed
@@ -45,7 +56,7 @@ public class TablesTabFragment extends BasicAssistantFragment  {
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
         LinearLayoutManager layoutManager = new LinearLayoutManager(logMessageView.getContext());
         logMessageView.setLayoutManager(layoutManager);
-        adapter = new LogRecyclerAdapter();
+        adapter = new LogRecyclerAdapter(this);
         logMessageView.setAdapter(adapter);
         int scrollPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
         logMessageView.scrollToPosition(scrollPosition);
@@ -68,21 +79,31 @@ public class TablesTabFragment extends BasicAssistantFragment  {
 
         return rootView;
     }
+     // Bind to the DispatchService
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(getContext().getApplicationContext(), DispatchService.class);
+        getContext().getApplicationContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
 
     @Override
     public void onResume() {
         super.onResume();
         Log.i(CLSS,"onResume: registering adapter as observer");
-        SpokenTextManager.getInstance().register(adapter);
+        if( serviceConnection.isBound() ) serviceConnection.getService().registerTextObserver(adapter);
     }
-
     @Override
     public void onPause() {
         super.onPause();
         Log.i(CLSS,"onPause: unregistering adapter as observer");
-        SpokenTextManager.getInstance().unregister(adapter);
+        if( serviceConnection.isBound() ) serviceConnection.getService().unregisterTextObserver(adapter);
     }
-
+    @Override
+    public void onStop() {
+        super.onStop();
+        getContext().getApplicationContext().unbindService(serviceConnection);
+    }
     @Override
     public void onDestroyView() {
         Log.i(CLSS, "onDestroyView");
@@ -93,7 +114,6 @@ public class TablesTabFragment extends BasicAssistantFragment  {
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        SpokenTextManager.getInstance().clear();
     }
 
     /**
@@ -115,4 +135,15 @@ public class TablesTabFragment extends BasicAssistantFragment  {
         }
     }
 
+    //======================================== LogViewer ======================================
+    public TextMessage getLogAtPosition(int position) {
+        TextMessage msg = null;
+        if( serviceConnection.isBound() ) msg = serviceConnection.getService().getLogAtPosition(position);
+        return msg;
+    }
+    public List<TextMessage> getLogs() {
+        List<TextMessage> logs = new ArrayList<>();
+        if( serviceConnection.isBound() ) logs = serviceConnection.getService().getLogs();
+        return logs;
+    }
 }

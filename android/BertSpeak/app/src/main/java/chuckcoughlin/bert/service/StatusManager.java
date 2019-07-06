@@ -13,65 +13,27 @@ import chuckcoughlin.bert.common.IntentObserver;
 
 /**
  * The status manager keeps track of the status of tiered facilities within the
- * Voice service. The singleton instance is created and shutdown in the MainActivity.
+ * Voice service. The DispatchService holds a single instance that is made available
+ * to UI fragments through the binder interface.
  */
-public class ServiceStatusManager {
-    private final static String CLSS = "BertLogManager";
-    private static volatile ServiceStatusManager instance = null;
+public class StatusManager {
+    private final static String CLSS = "StatusManager";
     private final Map<TieredFacility,FacilityState> map;
     private final List<IntentObserver> observers;
 
     /**
-     * Constructor is private per Singleton pattern. This forces use of the single instance.
-     * On start, initialize the state map.
+     * Constructor :  On start, initialize the state map.
      */
-    private ServiceStatusManager() {
+    public StatusManager() {
         map = new HashMap<>();
         map.put(TieredFacility.BLUETOOTH,FacilityState.IDLE);
         map.put(TieredFacility.SOCKET,FacilityState.IDLE);
         map.put(TieredFacility.VOICE,FacilityState.IDLE);
-        observers = new ArrayList<>();
+        this.observers = new ArrayList<>();
     }
 
-    /**
-     * Use this method in the initial activity. We need to assign the context.
-     * @return the Singleton instance
-     */
-    public static synchronized ServiceStatusManager initialize() {
-        // Use the application context, which will ensure that you
-        // don't accidentally leak an Activity's context.
-        if (instance == null) {
-            instance = new ServiceStatusManager();
-        }
-        else {
-            android.util.Log.w(CLSS,String.format("initialize: Status manager exists, re-initialization ignored"));
-        }
-        return instance;
-    }
 
     public FacilityState getStateForFacility(TieredFacility fac) { return map.get(fac); }
-    /**
-     * Called when main activity is destroyed. Clean up any resources.
-     * To use again requires re-initialization.
-     */
-    public static void stop() {
-        if (instance != null) {
-            synchronized (ServiceStatusManager.class) {
-                instance = null;
-            }
-        }
-    }
-    /**
-     * Use this method for all subsequent calls. We often don't have
-     * a convenient context.
-     * @return the Singleton instance.
-     */
-    public static synchronized ServiceStatusManager getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("Attempt to return uninitialized copy of ServiceStatusManager");
-        }
-        return instance;
-    }
 
     public void reportState(TieredFacility fac, FacilityState state) {
         map.put(fac,state);
@@ -94,6 +56,10 @@ public class ServiceStatusManager {
     }
     public void unregister(IntentObserver observer) {
         observers.remove(observer);
+    }
+
+    public void stop() {
+        observers.clear();
     }
 
     /**

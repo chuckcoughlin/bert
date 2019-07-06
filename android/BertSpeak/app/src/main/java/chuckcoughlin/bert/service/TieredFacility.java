@@ -5,7 +5,7 @@
 package chuckcoughlin.bert.service;
 
 /**
- * These are the facilities supported by the VoiceService. These
+ * These are the facilities supported by the DispatchService. These
  * are ordered in that each is dependent on the previous.
  */
 public enum TieredFacility {

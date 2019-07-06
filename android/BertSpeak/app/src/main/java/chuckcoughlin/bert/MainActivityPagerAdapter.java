@@ -13,7 +13,7 @@ import android.util.Log;
 
 import chuckcoughlin.bert.tab.AssistantFragment;
 import chuckcoughlin.bert.tab.CoverFragment;
-import chuckcoughlin.bert.tab.DispatcherLogsFragment;
+import chuckcoughlin.bert.tab.RobotLogsFragment;
 import chuckcoughlin.bert.tab.SettingsFragment;
 import chuckcoughlin.bert.tab.TablesTabFragment;
 import chuckcoughlin.bert.tab.TranscriptFragment;
@@ -33,7 +33,7 @@ public class MainActivityPagerAdapter extends FragmentStatePagerAdapter {
 
         tabTitles = new String[] {
                 ctx.getString(R.string.cover_tab_label),
-                ctx.getString(R.string.transcript_tab_label),ctx.getString(R.string.dispatcher_log_tab_label),ctx.getString(R.string.tables_tab_label),
+                ctx.getString(R.string.transcript_tab_label),ctx.getString(R.string.robot_log_tab_label),ctx.getString(R.string.tables_tab_label),
                 ctx.getString(R.string.settings_tab_label)};
         Log.i(CLSS,"Constructor ...");
     }
@@ -55,7 +55,7 @@ public class MainActivityPagerAdapter extends FragmentStatePagerAdapter {
                 frag = new TranscriptFragment();
                 break;
             case 2:
-                frag = new DispatcherLogsFragment();
+                frag = new RobotLogsFragment();
                 break;
             case 3:
                 frag =  new TablesTabFragment();

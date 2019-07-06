@@ -5,6 +5,7 @@
 
 package chuckcoughlin.bert.tab;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,8 +20,9 @@ import java.util.List;
 
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.IntentObserver;
+import chuckcoughlin.bert.service.DispatchService;
+import chuckcoughlin.bert.service.DispatchServiceConnection;
 import chuckcoughlin.bert.service.FacilityState;
-import chuckcoughlin.bert.service.ServiceStatusManager;
 import chuckcoughlin.bert.service.TieredFacility;
 import chuckcoughlin.bert.service.VoiceConstants;
 
@@ -30,6 +32,7 @@ import chuckcoughlin.bert.service.VoiceConstants;
 
 public class CoverFragment extends BasicAssistantFragment implements IntentObserver {
     private final static String CLSS = "CoverFragment";
+    private DispatchServiceConnection serviceConnection = null;
     ToggleButton bluetoothStatus = null;
     ToggleButton socketStatus = null;
     ToggleButton voiceStatus = null;
@@ -37,6 +40,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     // Inflate the view. It holds a fixed image of the robot
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+        this.serviceConnection = new DispatchServiceConnection();
         Log.i(CLSS,"onCreateView: ....");
         View view = inflater.inflate(R.layout.fragment_cover, container, false);
 
@@ -60,21 +64,32 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
         return view;
     }
 
+    /**
+     * Bind to the DispatchService, start speech analyzer and enunciator
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(getActivity(), DispatchService.class);
+        getActivity().getApplicationContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
     @Override
     public void onResume() {
         super.onResume();
         Log.i(CLSS,"onResume: registering as observer");
-        ServiceStatusManager.initialize();  // May have lost its instance
-        ServiceStatusManager.getInstance().register(this);
+        if( serviceConnection.isBound() ) serviceConnection.getService().registerIntentObserver(this);
     }
-
     @Override
     public void onPause() {
         super.onPause();
         Log.i(CLSS,"onPause: unregistering as observer");
-        ServiceStatusManager.getInstance().unregister(this);
+        if( serviceConnection.isBound() ) serviceConnection.getService().unregisterIntentObserver(this);
     }
-
+    @Override
+    public void onStop() {
+        super.onStop();
+        getActivity().getApplicationContext().unbindService(serviceConnection);
+    }
     @Override
     public void onDestroyView() {
         Log.i(CLSS,"onDestroyView: ...");

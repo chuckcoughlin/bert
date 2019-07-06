@@ -7,9 +7,9 @@ package chuckcoughlin.bert.service;
 import android.bluetooth.BluetoothDevice;
 
 /**
- * The only implementation of this interface is the VoiceService itself.
+ * The only implementation of this interface is the DispatchService itself.
  */
-public interface VoiceServiceHandler {
+public interface BluetoothHandler {
     /**
      * There was an error in the Bluetooth connection attempt.
      * @param reason error description

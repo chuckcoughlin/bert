@@ -8,104 +8,57 @@ package chuckcoughlin.bert.service;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.speech.RecognitionService;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
+import chuckcoughlin.bert.common.IntentObserver;
 import chuckcoughlin.bert.db.DatabaseManager;
 import chuckcoughlin.bert.speech.MessageType;
-import chuckcoughlin.bert.speech.SpeechAnalyzer;
 import chuckcoughlin.bert.speech.SpokenTextManager;
+import chuckcoughlin.bert.speech.TextMessage;
+import chuckcoughlin.bert.speech.TextMessageObserver;
 
 /**
  * This is a foreground service and may be turned on/off with a notifications interface.
  * The voice service manages connections between the robot as and speech/logging facilities.
- * It accepts voice commands from the socket connection to the robot and updates listeners with
+ * It accepts voice commands from the socket connection from the robot and updates listeners with
  * the resulting text. The listeners handle text enunciation and logging.
  *
  * The service relies on a Bluetooth connection, socket communication and the
- * Android speech recognition classes. Implement as a Singleton, to provide universal access.
+ * Android speech recognition classes.
  */
-public class VoiceService extends RecognitionService implements VoiceServiceHandler {
-    private static final String CLSS = "VoiceService";
-    private static volatile VoiceService instance = null;
+public class DispatchService extends Service implements BluetoothHandler {
+    private static final String CLSS = "DispatchService";
     private static final long ERROR_CYCLE_DELAY = 15000;   // Wait interval for retry after error
     private volatile NotificationManager notificationManager;
     private BluetoothConnection bluetoothConnection = null;
     private BluetoothDevice bluetoothDevice = null;
+    private final DispatchServiceBinder binder;
     private DatabaseManager dbManager = null;
-    private SpeechAnalyzer analyzer = null;
+    private StatusManager statusManager = null;
+    private SpokenTextManager textManager = null;
     private boolean isMuted;
-    private static final int VOICE_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
+    private static final int DISPATCH_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
 
     //private static final boolean IS_EMULATOR = Build.HARDWARE.contains("goldfish");
     //private static final boolean IS_EMULATOR Build.IS_EMULATOR;
 
-    public VoiceService() {
+    public DispatchService() {
         this.isMuted = false;
-    }
-
-    /**
-     * Provide a means to access this service from anywhere.
-     * @return the global Singleton instance.
-     */
-    public static synchronized VoiceService getInstance() {
-        return instance;
-    }
-
-    @Override
-    public void onCancel(RecognitionService.Callback listener) {
-    }
-    @Override
-    public void onStartListening(Intent intent,RecognitionService.Callback listener) {
-
-    }
-    @Override
-    public void onStopListening(RecognitionService.Callback listener) {
-
-    }
-
-
-    /**
-     * Display a notification about us starting.  We put an icon in the status bar.
-     * Initialize all the singletons.
-     */
-    @Override
-    public void onCreate() {
-        Log.i(CLSS,"onCreate: Starting foreground service ...");
-        notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        Notification notification = buildNotification();
-        instance = this;
-        dbManager = new DatabaseManager(getApplicationContext());
-        SpokenTextManager.initialize(this);
-        ServiceStatusManager.initialize();
-        startForeground(VOICE_NOTIFICATION, notification);
-    }
-
-    /**
-     * Shutdown the services and the singletons.
-     */
-    @Override
-    public void onDestroy() {
-        notificationManager.cancel(VOICE_NOTIFICATION);
-        instance = null;
-        if(bluetoothConnection!=null) bluetoothConnection.shutdown();
-        if(analyzer!=null) analyzer.shutdown();
-        ServiceStatusManager.stop();
-        SpokenTextManager.stop();
-        stopForegroundService();
+        this.binder = new DispatchServiceBinder(this);
     }
 
 
@@ -123,7 +76,6 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
         if( intent!=null) action = intent.getAction();
         Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",action,flags,startId));
         bluetoothConnection = new BluetoothConnection(this);
-        analyzer = new SpeechAnalyzer(this,getApplicationContext());
 
         if( action==null) {
             reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE);
@@ -136,16 +88,57 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
         }
         else if(action.equalsIgnoreCase(getString(R.string.notificationReset))) {
             if(bluetoothConnection !=null) bluetoothConnection.shutdown();
-            ServiceStatusManager.getInstance().reportState(TieredFacility.SOCKET,FacilityState.IDLE);
-            if( analyzer!=null) analyzer.shutdown();
+            statusManager.reportState(TieredFacility.SOCKET,FacilityState.IDLE);
             determineNextAction(TieredFacility.BLUETOOTH);
         }
         else if(action.equalsIgnoreCase(getString(R.string.notificationStop))) {
-            if( analyzer!=null) analyzer.shutdown();
             stopSelf();
         }
         return(START_STICKY);
     }
+    // A client is binding to the service with bindService()
+    @Override
+    public IBinder onBind(Intent intent) { return this.binder; }
+
+    @Override
+    public boolean onUnbind(Intent intent) {return true;}
+
+     // A client has called bindService after calling unBind()
+    @Override
+    public void onRebind(Intent intent) {
+        super.onRebind(intent);
+    }
+
+    /**
+     * Display a notification about us starting.  We put an icon in the status bar.
+     * Initialize all the singletons.
+     */
+    @Override
+    public void onCreate() {
+        Log.i(CLSS,"onCreate: Starting foreground service ...");
+        notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        Notification notification = buildNotification();
+        dbManager = new DatabaseManager(getApplicationContext());
+        startForeground(DISPATCH_NOTIFICATION, notification);
+        statusManager = new StatusManager();
+        textManager   = new SpokenTextManager();
+    }
+
+    /**
+     * Shutdown the services and the singletons.
+     */
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        notificationManager.cancelAll();
+        if(bluetoothConnection!=null) bluetoothConnection.shutdown();
+        statusManager.stop();
+        textManager.stop();
+        stopForegroundService();
+    }
+
+
+
 
     public void setBluetoothDevice(BluetoothDevice device) { this.bluetoothDevice = device; }
     /*
@@ -212,7 +205,7 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
 
     // Start the 3 stages in order
     private void determineNextAction(TieredFacility currentFacility) {
-        FacilityState currentState = ServiceStatusManager.getInstance().getStateForFacility(currentFacility);
+        FacilityState currentState = statusManager.getStateForFacility(currentFacility);
         if( currentFacility.equals(TieredFacility.BLUETOOTH)) {
             if( !currentState.equals(FacilityState.ACTIVE)) {
                 String name = dbManager.getSetting(BertConstants.BERT_PAIRED_DEVICE);
@@ -238,8 +231,6 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        analyzer.start();
-                        analyzer.listen();
                         bluetoothConnection.readInThread();
                     }
                 });
@@ -259,14 +250,14 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
     // Update any observers with the current state
     private void reportConnectionState(TieredFacility fac, FacilityState state) {
         Log.i(CLSS,String.format("reportConnectionState: %s %s",fac.name(),state.name()));
-        ServiceStatusManager.getInstance().reportState(fac,state);
+        statusManager.reportState(fac,state);
     }
 
     // Update any observers with the latest text
     // Send text to the robot for processing.
     private void reportSpokenText(String text) {
         Log.i(CLSS,String.format("reportSpokenText: %s",text));
-        SpokenTextManager.getInstance().processText(text, MessageType.REQUEST);
+        textManager.processText(text, MessageType.REQUEST);
         bluetoothConnection.write(text);
     }
 
@@ -285,13 +276,13 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
 
     private void toggleMute() {
         isMuted = !isMuted;
-        if(!ServiceStatusManager.getInstance().getStateForFacility(TieredFacility.VOICE).equals(FacilityState.IDLE) ) {
+        if(!statusManager.getStateForFacility(TieredFacility.VOICE).equals(FacilityState.IDLE) ) {
             determineNextAction(TieredFacility.VOICE);
         }
 
     }
 
-    //=================================== VoiceServiceHandler ==============================================
+    //=================================== BluetoothHandler ==============================================
     /**
      * There was an error in the bluetooth connection attempt.
      * @param reason error description
@@ -367,4 +358,23 @@ public class VoiceService extends RecognitionService implements VoiceServiceHand
         }
     }
 
+    // ===================================== Methods Exposed thru Service Binder ====================================
+    public TextMessage getLogAtPosition(int position) {
+        return textManager.getLogAtPosition(position);
+    }
+    public List<TextMessage> getLogs() {
+        return textManager.getLogs();
+    }
+    public void registerIntentObserver(IntentObserver observer)   { statusManager.register(observer); }
+    public void unregisterIntentObserver(IntentObserver observer) { statusManager.unregister(observer);}
+    /*
+     * When a new observer is registered, we don't bother to try
+     * and send a recent history.
+     */
+    public void registerTextObserver(TextMessageObserver observer)   {
+        textManager.register(observer);
+    }
+    public void unregisterTextObserver(TextMessageObserver observer) {
+        textManager.unregister(observer);
+    }
 }

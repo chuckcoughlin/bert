@@ -20,10 +20,10 @@ public class BluetoothChecker {
     private final static String CLSS = "BluetoothChecker";
     private CheckerThread checkerThread = null;
     private final String deviceName;
-    private final VoiceServiceHandler handler;
+    private final BluetoothHandler handler;
 
-    public BluetoothChecker(VoiceServiceHandler handler,String name) {
-        this.handler     = handler;
+    public BluetoothChecker(BluetoothHandler h, String name) {
+        this.handler = h;
         this.deviceName  = name;
     }
 

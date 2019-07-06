@@ -13,8 +13,7 @@ import java.util.Locale;
 
 
 /**
- * Speak a randomly selected message describing an error due to an
- * attempt to crash into a wall.
+ * Pronounce a supplied phrase.
  */
 
 public class Annunciator extends TextToSpeech {

@@ -14,7 +14,7 @@ public class NotificationActionReceiver extends BroadcastReceiver {
     private final static String CLSS = "NotificationActionReceiver";
 
     /**
-     * The user has selected one of the buttons on the VoiceService notification dialog.
+     * The user has selected one of the buttons on the DispatchService notification dialog.
      * @param context the voice service
      * @param incoming intent contains the desired action
      */
@@ -24,7 +24,7 @@ public class NotificationActionReceiver extends BroadcastReceiver {
         Log.i(CLSS,"================================================================");
 
         String action=incoming.getAction();
-        Intent intent = new Intent(context, VoiceService.class);
+        Intent intent = new Intent(context, DispatchService.class);
         intent.setAction(action);
         Log.i(CLSS,String.format("onReceive: action = %s",action));
         context.startService(intent);

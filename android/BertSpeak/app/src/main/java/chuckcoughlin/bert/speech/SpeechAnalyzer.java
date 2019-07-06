@@ -5,7 +5,6 @@
 
 package chuckcoughlin.bert.speech;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,21 +15,20 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
-import chuckcoughlin.bert.MainActivity;
-import chuckcoughlin.bert.service.VoiceServiceHandler;
+import chuckcoughlin.bert.service.BluetoothHandler;
 
 /**
- *This class analyzes speech, converting it into text (lists of words).
- * These methods must be executeed on the main application thread (UI thread).
+ * This class analyzes speech, converting it into text (lists of words).
+ * These methods must be executed on the main application thread (UI thread).
  */
 
 public class SpeechAnalyzer implements  RecognitionListener  {
     private static final String CLSS = "SpeechAnalyzer";
     private final Context context;
     private SpeechRecognizer sr = null;
-    private final VoiceServiceHandler handler;
+    private final BluetoothHandler handler;
 
-    public SpeechAnalyzer(VoiceServiceHandler h,Context c ) {
+    public SpeechAnalyzer(BluetoothHandler h, Context c ) {
         this.context = c;
         this.handler  = h;
     }
