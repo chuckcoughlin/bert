@@ -9,7 +9,6 @@ import android.os.Binder;
 public class DispatchServiceBinder extends Binder {
     private DispatchService service;
 
-
     public DispatchServiceBinder(DispatchService s) {
         this.service = s;
     }

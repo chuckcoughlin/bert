@@ -5,9 +5,12 @@
 
 package chuckcoughlin.bert.tab;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -24,8 +27,7 @@ import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.logs.LogRecyclerAdapter;
 import chuckcoughlin.bert.logs.LogViewer;
 import chuckcoughlin.bert.service.DispatchService;
-import chuckcoughlin.bert.service.DispatchServiceConnection;
-import chuckcoughlin.bert.speech.SpokenTextManager;
+import chuckcoughlin.bert.service.DispatchServiceBinder;
 import chuckcoughlin.bert.speech.TextMessage;
 
 
@@ -33,18 +35,17 @@ import chuckcoughlin.bert.speech.TextMessage;
  * This fragment allows perusal of the robot's spoken interactions..
  */
 
-public class TranscriptFragment extends BasicAssistantFragment implements LogViewer {
+public class TranscriptFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection {
     private final static String CLSS = "LogFragment";
     private RecyclerView.LayoutManager layoutManager;
-    private DispatchServiceConnection serviceConnection = null;
     private LogRecyclerAdapter adapter;
     private View rootView = null;
     private RecyclerView logMessageView;
     private TextView logView;
+    private DispatchService service = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        this.serviceConnection = new DispatchServiceConnection();
         rootView = inflater.inflate(R.layout.fragment_dispatcher_logs, container, false);
         TextView textView = rootView.findViewById(R.id.fragmentLogsText);
         textView.setText(R.string.fragmentTranscriptLabel);
@@ -81,25 +82,25 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
     public void onStart() {
         super.onStart();
         Intent intent = new Intent(getContext().getApplicationContext(), DispatchService.class);
-        getContext().getApplicationContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        getContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE);
     }
     @Override
     public void onResume() {
         super.onResume();
         Log.i(CLSS,"onResume: registering adapter as observer");
-        if( serviceConnection.isBound() ) serviceConnection.getService().registerTextObserver(adapter);
+        if( service!=null ) service.registerTextObserver(adapter);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         Log.i(CLSS,"onPause: unregistering adapter as observer");
-        if( serviceConnection.isBound() ) serviceConnection.getService().unregisterTextObserver(adapter);
+        if( service!=null ) service.unregisterTextObserver(adapter);
     }
     @Override
     public void onStop() {
         super.onStop();
-        getContext().getApplicationContext().unbindService(serviceConnection);
+        getContext().getApplicationContext().unbindService(this);
     }
     @Override
     public void onDestroyView() {
@@ -134,12 +135,27 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
     //======================================== LogViewer ======================================
     public TextMessage getLogAtPosition(int position) {
         TextMessage msg = null;
-        if( serviceConnection.isBound() ) msg = serviceConnection.getService().getLogAtPosition(position);
+        if( service!=null ) msg = service.getLogAtPosition(position);
         return msg;
     }
     public List<TextMessage> getLogs() {
         List<TextMessage> logs = new ArrayList<>();
-        if( serviceConnection.isBound() ) logs = serviceConnection.getService().getLogs();
+        if( service!=null ) logs = service.getLogs();
         return logs;
+    }
+    // =================================== ServiceConnection ===============================
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        if( service!=null ) service.unregisterTextObserver(adapter);
+        service = null;
+    }
+
+    // name.getClassName() contains the class of the service.
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder bndr) {
+        DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
+        service = binder.getService();
+        service.registerTextObserver(adapter);
+        Log.i(CLSS,String.format("onServiceConnected: CONNECTED! %s",name.getClassName()));
     }
 }

@@ -5,9 +5,12 @@
 
 package chuckcoughlin.bert;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -15,23 +18,21 @@ import android.util.Log;
 import android.view.WindowManager;
 
 import chuckcoughlin.bert.service.DispatchService;
-import chuckcoughlin.bert.service.DispatchServiceConnection;
+import chuckcoughlin.bert.service.DispatchServiceBinder;
 import chuckcoughlin.bert.speech.Annunciator;
 import chuckcoughlin.bert.speech.SpeechAnalyzer;
-import chuckcoughlin.bert.speech.SpokenTextManager;
 
 /**
  * The main activity "owns" the page tab UI fragments. It also contains
  * the speech components, since they must execute on the main thread
  * (and not in the service).
  */
-public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
+public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, ServiceConnection {
     private static final String CLSS = "MainActivity";
     private static final String DIALOG_TAG = "dialog";
-    private DispatchService dispatchServoce = null;
-    private DispatchServiceConnection serviceConnection = null;
     private SpeechAnalyzer analyzer = null;
     private Annunciator annunciator;
+    private DispatchService service = null;
 
     /**
      * A specialized {@link android.support.v4.view.PagerAdapter} that will provide
@@ -47,7 +48,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     public MainActivity() {
         Log.d(CLSS,"Main Activity startup ...");
-        this.serviceConnection = new DispatchServiceConnection();
     }
 
     /**
@@ -57,6 +57,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Create the comprehensive dispatch connection service
+        Intent intent = new Intent(this, DispatchService.class);
+        getApplicationContext().startForegroundService(intent);
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
+
         Log.i(CLSS,"onCreate ...");
         // If I absolutely have to start over again with the database ...
         //this.deleteDatabase(BertConstants.DB_NAME);
@@ -68,22 +73,17 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         ViewPager viewPager = findViewById(R.id.viewpager);
         pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(),getApplicationContext());
         viewPager.setAdapter(pagerAdapter);
-
-        // Create the comprehensive dispatch connection service
-        Intent intent = new Intent(this, DispatchService.class);
-        getApplicationContext().startForegroundService(intent);
     }
 
     /**
-     * Bind to the DispatchService, start speech analyzer and enunciator
+     * Bind to the DispatchService, start speech analyzer and annunciator
      */
     @Override
     public void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, DispatchService.class);
-        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-        if(serviceConnection!=null) {
-            analyzer = new SpeechAnalyzer(serviceConnection.getService(),getApplicationContext());
+
+        if( service!=null && analyzer==null) {
+            analyzer = new SpeechAnalyzer(service,getApplicationContext());
             analyzer.start();
         }
         annunciator = new Annunciator(getApplicationContext(),this);
@@ -92,12 +92,12 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     @Override
     public void onStop() {
         super.onStop();
-        unbindService(serviceConnection);
+        unbindService(this);
         annunciator.stop();
     }
 
     /**
-     * Shutdown the DispatchService.
+     * Shutdown the DispatchService and text resources
      */
     @Override
     protected void onDestroy() {
@@ -124,5 +124,23 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             Log.i(CLSS,String.format("oninit: voice = %s %d",v.getName(),v.describeContents()));
         }
           */
+    }
+    // =================================== ServiceConnection ===============================
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        service = null;
+        analyzer.shutdown();
+        analyzer = null;
+    }
+
+    // name.getClassName() contains the class of the service.
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder bndr) {
+        DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
+        service = binder.getService();
+        if( analyzer==null ) {
+            analyzer = new SpeechAnalyzer(service,getApplicationContext());
+            analyzer.start();
+        }
     }
 }

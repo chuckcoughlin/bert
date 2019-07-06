@@ -31,12 +31,15 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     public SpeechAnalyzer(BluetoothHandler h, Context c ) {
         this.context = c;
         this.handler  = h;
+        if( handler==null ) Log.e(CLSS,"SpeechAnalyzer: ERROR: BluetoothHandler is null.");
     }
 
     public void start() {
-        sr = SpeechRecognizer.createSpeechRecognizer(context);
-        sr.setRecognitionListener(SpeechAnalyzer.this);
-        listen();
+        if( sr!=null ) {
+            sr = SpeechRecognizer.createSpeechRecognizer(context);
+            sr.setRecognitionListener(SpeechAnalyzer.this);
+            listen();
+        }
     }
     public void shutdown() {
         if (sr != null) {
@@ -101,6 +104,9 @@ public class SpeechAnalyzer implements  RecognitionListener  {
             case SpeechRecognizer.ERROR_CLIENT:
                 reason = String.format("Error - in client");
                 break;
+            case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                Log.i(CLSS, String.format("Error - recognition service is busy (started twice?)"));
+                break;
             case SpeechRecognizer.ERROR_SERVER:
                 reason = String.format("Error - in server");
                 break;
@@ -108,7 +114,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
                 reason = String.format("ERROR (%d) ",error);
         }
         if( reason!=null) {
-            Log.i(CLSS,  String.format("SpeechRecognizer: Error - %s",reason));
+            Log.e(CLSS,  String.format("SpeechRecognizer: Error - %s",reason));
             handler.handleVoiceError(reason);
         }
     }

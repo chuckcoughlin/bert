@@ -96,9 +96,12 @@ public class DispatchService extends Service implements BluetoothHandler {
         }
         return(START_STICKY);
     }
-    // A client is binding to the service with bindService()
+    // A client is binding to the service with bindService(). This appears to
+    // be called only once no matter how many clients.
     @Override
-    public IBinder onBind(Intent intent) { return this.binder; }
+    public IBinder onBind(Intent intent) {
+        return this.binder;
+    }
 
     @Override
     public boolean onUnbind(Intent intent) {return true;}

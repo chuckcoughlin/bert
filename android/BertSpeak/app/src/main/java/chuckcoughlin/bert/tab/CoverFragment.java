@@ -5,9 +5,12 @@
 
 package chuckcoughlin.bert.tab;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +24,7 @@ import java.util.List;
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.IntentObserver;
 import chuckcoughlin.bert.service.DispatchService;
-import chuckcoughlin.bert.service.DispatchServiceConnection;
+import chuckcoughlin.bert.service.DispatchServiceBinder;
 import chuckcoughlin.bert.service.FacilityState;
 import chuckcoughlin.bert.service.TieredFacility;
 import chuckcoughlin.bert.service.VoiceConstants;
@@ -30,17 +33,16 @@ import chuckcoughlin.bert.service.VoiceConstants;
  * This fragment presents a static "cover" with no dynamic content.
  */
 
-public class CoverFragment extends BasicAssistantFragment implements IntentObserver {
+public class CoverFragment extends BasicAssistantFragment implements IntentObserver, ServiceConnection {
     private final static String CLSS = "CoverFragment";
-    private DispatchServiceConnection serviceConnection = null;
-    ToggleButton bluetoothStatus = null;
-    ToggleButton socketStatus = null;
-    ToggleButton voiceStatus = null;
+    private ToggleButton bluetoothStatus = null;
+    private ToggleButton socketStatus = null;
+    private ToggleButton voiceStatus = null;
+    private DispatchService service = null;
 
     // Inflate the view. It holds a fixed image of the robot
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-        this.serviceConnection = new DispatchServiceConnection();
         Log.i(CLSS,"onCreateView: ....");
         View view = inflater.inflate(R.layout.fragment_cover, container, false);
 
@@ -71,24 +73,28 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     public void onStart() {
         super.onStart();
         Intent intent = new Intent(getActivity(), DispatchService.class);
-        getActivity().getApplicationContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        getActivity().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE);
     }
     @Override
     public void onResume() {
         super.onResume();
-        Log.i(CLSS,"onResume: registering as observer");
-        if( serviceConnection.isBound() ) serviceConnection.getService().registerIntentObserver(this);
+        if( service!=null ) {
+            Log.i(CLSS,"onResume: registering as observer");
+            service.registerIntentObserver(this);
+        }
     }
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(CLSS,"onPause: unregistering as observer");
-        if( serviceConnection.isBound() ) serviceConnection.getService().unregisterIntentObserver(this);
+        if( service!=null ) {
+            Log.i(CLSS,"onPause: unregistering as observer");
+            service.unregisterIntentObserver(this);
+        }
     }
     @Override
     public void onStop() {
         super.onStop();
-        getActivity().getApplicationContext().unbindService(serviceConnection);
+        getActivity().getApplicationContext().unbindService(this);
     }
     @Override
     public void onDestroyView() {
@@ -163,5 +169,19 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
                 updateToggleButton(voiceStatus,actionState);
             }
         }
+    }
+    // =================================== ServiceConnection ===============================
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        if( service!=null ) service.unregisterIntentObserver(this);
+        service = null;
+    }
+
+    // name.getClassName() contains the class of the service.
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder bndr) {
+        DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
+        service = binder.getService();
+        service.registerIntentObserver(this);
     }
 }
