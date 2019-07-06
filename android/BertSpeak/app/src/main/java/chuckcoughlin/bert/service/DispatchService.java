@@ -250,11 +250,7 @@ public class DispatchService extends Service implements BluetoothHandler {
         }
     }
 
-    // Update any observers with the current state
-    private void reportConnectionState(TieredFacility fac, FacilityState state) {
-        Log.i(CLSS,String.format("reportConnectionState: %s %s",fac.name(),state.name()));
-        statusManager.reportState(fac,state);
-    }
+
 
     // Update any observers with the latest text
     // Send text to the robot for processing.
@@ -302,6 +298,13 @@ public class DispatchService extends Service implements BluetoothHandler {
         reportConnectionState(TieredFacility.BLUETOOTH,FacilityState.ACTIVE);
         determineNextAction(TieredFacility.BLUETOOTH);
     }
+    /*
+     * Update any observers with the current state
+     */
+    public void reportConnectionState(TieredFacility fac, FacilityState state) {
+        Log.i(CLSS,String.format("reportConnectionState: %s %s",fac.name(),state.name()));
+        statusManager.reportState(fac,state);
+    }
     /**
      * There was an error in the attempt to create/open sockets.
      * @param reason error description
@@ -327,13 +330,7 @@ public class DispatchService extends Service implements BluetoothHandler {
         reportSpokenText(reason);
         new Thread(new ProcessDelay(TieredFacility.VOICE,ERROR_CYCLE_DELAY)).start();
     }
-    /**
-     * The speech recognizer recorded a result.
-     */
-    public void receiveText(String text) {
-        reportConnectionState(TieredFacility.VOICE,FacilityState.ACTIVE);
-        reportSpokenText(text);
-    }
+
     //=================================== ProcessDelay ==============================================
     /**
      * Use this class to delay the transition to the next step. When we find
@@ -367,6 +364,12 @@ public class DispatchService extends Service implements BluetoothHandler {
     }
     public List<TextMessage> getLogs() {
         return textManager.getLogs();
+    }
+    /**
+     * The speech recognizer recorded a result.
+     */
+    public void receiveText(String text) {
+        reportSpokenText(text);
     }
     public void registerIntentObserver(IntentObserver observer)   { statusManager.register(observer); }
     public void unregisterIntentObserver(IntentObserver observer) { statusManager.unregister(observer);}

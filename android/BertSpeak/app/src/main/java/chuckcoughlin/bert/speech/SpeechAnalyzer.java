@@ -16,6 +16,8 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import chuckcoughlin.bert.service.BluetoothHandler;
+import chuckcoughlin.bert.service.FacilityState;
+import chuckcoughlin.bert.service.TieredFacility;
 
 /**
  * This class analyzes speech, converting it into text (lists of words).
@@ -35,7 +37,8 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     }
 
     public void start() {
-        if( sr!=null ) {
+        if( sr==null ) {
+            Log.i(CLSS,"starting speech recognizer ...");
             sr = SpeechRecognizer.createSpeechRecognizer(context);
             sr.setRecognitionListener(SpeechAnalyzer.this);
             listen();
@@ -51,17 +54,18 @@ public class SpeechAnalyzer implements  RecognitionListener  {
 
     // start or restart recognizer
     public void listen() {
-        if(sr!=null) sr.cancel();
-        String locale =  "us-UK";
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getClass().getPackage().getName());
-        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,false);  // Partials are always empty
-        //Give a hint to the recognizer about what the user is going to say
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        // Max number of results. This is three attempts at deciphering, not a 3-word limit.
-        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
-        sr.startListening(intent);
-        Log.i(CLSS,"SpeechRecognizer: Listening for audio ...");
+        if(sr!=null) {
+            sr.cancel();
+            String locale = "us-UK";
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
+            intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);  // Partials are always empty
+            //Give a hint to the recognizer about what the user is going to say
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            // Max number of results. This is three attempts at deciphering, not a 3-word limit.
+            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+            sr.startListening(intent);
+        }
     }
 
     // ========================================= RecognitionListener ============================
@@ -70,6 +74,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     }
     public void onBeginningOfSpeech(){
         Log.i(CLSS, "onBeginningOfSpeech");
+        handler.reportConnectionState(TieredFacility.VOICE, FacilityState.ACTIVE);
     }
     // Background level changed ...
     public void onRmsChanged(float rmsdB){
@@ -119,7 +124,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         }
     }
     public void onResults(Bundle results) {
-        //Log.i(CLSS, "onResults \n" + results);
+        Log.i(CLSS, "onResults \n" + results);
         // Fill the list view with the strings the recognizer thought it could have heard, there should be 5, based on the call
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         //display results. The zeroth result is usually the space-separated one.
@@ -128,6 +133,8 @@ public class SpeechAnalyzer implements  RecognitionListener  {
             Log.i(CLSS, "result " + matches.get(i));
         }
         handler.receiveText(matches.get(0));
+        handler.reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING);
+        listen();   // Repeat forever
     }
     public void onPartialResults(Bundle partialResults) {
         Log.i(CLSS, "onPartialResults");

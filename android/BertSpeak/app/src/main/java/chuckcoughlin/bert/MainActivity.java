@@ -12,10 +12,13 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.WindowManager;
+
+import java.util.Set;
 
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
@@ -31,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private static final String CLSS = "MainActivity";
     private static final String DIALOG_TAG = "dialog";
     private SpeechAnalyzer analyzer = null;
-    private Annunciator annunciator;
+    private Annunciator annunciator = null;
     private DispatchService service = null;
 
     /**
@@ -86,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             analyzer = new SpeechAnalyzer(service,getApplicationContext());
             analyzer.start();
         }
-        annunciator = new Annunciator(getApplicationContext(),this);
+        annunciator = new Annunciator(this,this);
     }
 
     @Override
@@ -112,18 +115,26 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     // =================================== OnInitListener ===============================
     @Override
     public void onInit(int status) {
-        Log.i(CLSS,String.format("onInit: SpeechToText status - %d",status));
-        /*
-            For when we need to select an appropriate speaker ... maybe one of these
-            en-gb-x-rjs#male_2-local
-            en-gb-x-fis#male_1-local
-            en-gb-x-fis#male_3-local
+        if( status==TextToSpeech.SUCCESS )  {
+            Log.i(CLSS,String.format("onInit: TextToSpeech initialized ..."));
+            /*
+                For when we need to select an appropriate speaker ... maybe one of these
+                en-gb-x-rjs#male_2-local
+                en-gb-x-fis#male_1-local
+                en-gb-x-fis#male_3-local
+            */
+            Set<Voice> voices = annunciator.getVoices();
+            for( Voice v:voices) {
+                Log.i(CLSS,String.format("onInit: voice = %s %d",v.getName(),v.describeContents()));
+            }
 
-        Set<Voice> voices = annunciator.getVoices();
-        for( Voice v:voices) {
-            Log.i(CLSS,String.format("oninit: voice = %s %d",v.getName(),v.describeContents()));
         }
-          */
+        else {
+            Log.e(CLSS,String.format("onInit: TextToSpeech ERROR - %d",status));
+            annunciator = null;  // don't use
+        }
+
+
     }
     // =================================== ServiceConnection ===============================
     @Override

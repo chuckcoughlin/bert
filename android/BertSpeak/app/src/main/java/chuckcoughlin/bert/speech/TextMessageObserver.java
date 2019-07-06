@@ -20,10 +20,9 @@ public interface TextMessageObserver {
    * @param list of messages being the most recent retained by the manager.
    */
   void initialize(final List<TextMessage> list);
-
-    /**
-     * Notify the observer that a new text meesage has been detected.
-     * @param msg the new message
-     */
-    void update(final TextMessage msg);
+  /**
+   * Notify the observer that a new text mesage has been detected.
+   * @param msg the new message
+   */
+  void update(final TextMessage msg);
 }

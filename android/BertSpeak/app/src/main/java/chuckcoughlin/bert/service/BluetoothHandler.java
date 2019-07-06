@@ -37,7 +37,10 @@ public interface BluetoothHandler {
      * The speech recognizer recorded a result.
      */
     public void receiveText(String text);
-
+    /**
+     * Modify status screen
+     */
+    public void reportConnectionState(TieredFacility fac, FacilityState state);
     /**
      * Save the structure of the discovered device.
      * @param device the Bluetooth device representing the robot.
