@@ -28,26 +28,29 @@ import chuckcoughlin.bert.logs.LogRecyclerAdapter;
 import chuckcoughlin.bert.logs.LogViewer;
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
+import chuckcoughlin.bert.service.TextManager;
 import chuckcoughlin.bert.speech.TextMessage;
+import chuckcoughlin.bert.speech.TextMessageObserver;
 
 
 /**
  * This fragment allows perusal of the robot's spoken interactions..
  */
 
-public class TranscriptFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection {
-    private final static String CLSS = "LogFragment";
+public class TranscriptFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection, TextMessageObserver {
+    private final static String CLSS = "TranscriptFragment";
     private RecyclerView.LayoutManager layoutManager;
     private LogRecyclerAdapter adapter;
     private View rootView = null;
     private RecyclerView logMessageView;
     private TextView logView;
     private DispatchService service = null;
+    private TextManager textManager = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_dispatcher_logs, container, false);
-        TextView textView = rootView.findViewById(R.id.fragmentLogsText);
+        rootView = inflater.inflate(R.layout.fragment_transcript, container, false);
+        TextView textView = rootView.findViewById(R.id.fragmentTranscriptText);
         textView.setText(R.string.fragmentTranscriptLabel);
 
         logMessageView = rootView.findViewById(R.id.logs_recycler_view);
@@ -88,14 +91,15 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
     public void onResume() {
         super.onResume();
         Log.i(CLSS,"onResume: registering adapter as observer");
-        if( service!=null ) service.registerTextObserver(adapter);
+        if( service!=null ) service.registerTranscriptViewer(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         Log.i(CLSS,"onPause: unregistering adapter as observer");
-        if( service!=null ) service.unregisterTextObserver(adapter);
+        if( service!=null ) service.unregisterTranscriptViewer(this);
+        textManager = null;
     }
     @Override
     public void onStop() {
@@ -135,19 +139,20 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
     //======================================== LogViewer ======================================
     public TextMessage getLogAtPosition(int position) {
         TextMessage msg = null;
-        if( service!=null ) msg = service.getLogAtPosition(position);
+        if( textManager!=null ) msg = textManager.getTranscriptAtPosition(position);
         return msg;
     }
     public List<TextMessage> getLogs() {
         List<TextMessage> logs = new ArrayList<>();
-        if( service!=null ) logs = service.getLogs();
+        if( textManager!=null ) logs = textManager.getTranscript();
         return logs;
     }
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterTextObserver(adapter);
+        if( service!=null ) service.unregisterTranscriptViewer(this);
         service = null;
+        textManager = null;
     }
 
     // name.getClassName() contains the class of the service.
@@ -155,7 +160,15 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerTextObserver(adapter);
-        Log.i(CLSS,String.format("onServiceConnected: CONNECTED! %s",name.getClassName()));
+        service.registerTranscriptViewer(this);
+    }
+    // =================================== TextMessageObserver ===============================
+    @Override
+    public void initialize(TextManager mgr) {
+        textManager = mgr;
+    }
+    @Override
+    public void update(TextMessage msg) {
+        String text = msg.getMessage();
     }
 }

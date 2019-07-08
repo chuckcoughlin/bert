@@ -434,7 +434,9 @@ Then to build on the Odroid, from the directory containing the source projects -
 Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
 
 The init script launches the Bluetooth Serial Port service which is a necessary
-prerequisite for running the daemon.
+prerequisite for running the daemon. Connection difficulties may arise if too many bluetooth-enabled
+devices are in range leading to incorrect pairings. If so, the Odroid system may report
+"DbusFailedError: host is down".
 
 
 ### Android Studio <a id="android"></a>

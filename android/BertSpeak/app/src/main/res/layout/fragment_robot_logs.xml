@@ -7,7 +7,7 @@
     tools:context="chuckcoughlin.bert.tab.RobotLogsFragment">
 
     <TextView
-        android:id="@+id/fragmentLogsText"
+        android:id="@+id/fragmentRobotLogsText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"

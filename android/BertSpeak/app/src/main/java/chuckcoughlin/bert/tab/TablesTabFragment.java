@@ -28,16 +28,18 @@ import chuckcoughlin.bert.logs.LogRecyclerAdapter;
 import chuckcoughlin.bert.logs.LogViewer;
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
+import chuckcoughlin.bert.service.TextManager;
 import chuckcoughlin.bert.speech.TextMessage;
+import chuckcoughlin.bert.speech.TextMessageObserver;
 
 
 /**
  * This fragment displays data from the robot in tabular form. Only
  * one table is displayed at a time and is completely replaced when the
- * next table is read.
+ * next table is read. The table is dynamically sized to fit the data.
  */
 
-public class TablesTabFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection {
+public class TablesTabFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection, TextMessageObserver {
     private final static String CLSS = "TablesTabFragment";
     private RecyclerView.LayoutManager layoutManager;
     private LogRecyclerAdapter adapter;
@@ -45,12 +47,12 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     private RecyclerView logMessageView;
     private TextView logView;
     private DispatchService service = null;
+    private TextManager textManager = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_dispatcher_logs, container, false);
-        TextView textView = rootView.findViewById(R.id.fragmentLogsText);
-        // This should be replaced by the title of whatever table is to be displayed
+        rootView = inflater.inflate(R.layout.fragment_tables_tab, container, false);
+        TextView textView = rootView.findViewById(R.id.fragmentTablesText);
         textView.setText(R.string.fragmentTableTabLabel);
 
         logMessageView = rootView.findViewById(R.id.logs_recycler_view);
@@ -92,13 +94,16 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     public void onResume() {
         super.onResume();
         Log.i(CLSS,"onResume: registering adapter as observer");
-        if( service!=null ) service.registerTextObserver(adapter);
+        if( service!=null ) service.registerTableViewer(this);
     }
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(CLSS,"onPause: unregistering adapter as observer");
-        if( service!=null ) service.unregisterTextObserver(adapter);
+        Log.i(CLSS, "onPause: unregistering adapter as observer");
+        if (service != null) {
+            service.unregisterTableViewer(this);
+            textManager = null;
+        }
     }
     @Override
     public void onStop() {
@@ -139,19 +144,20 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     //======================================== LogViewer ======================================
     public TextMessage getLogAtPosition(int position) {
         TextMessage msg = null;
-        if( service!=null ) msg = service.getLogAtPosition(position);
+        if( textManager!=null ) msg = textManager.getLogAtPosition(position);
         return msg;
     }
     public List<TextMessage> getLogs() {
         List<TextMessage> logs = new ArrayList<>();
-        if( service!=null ) logs = service.getLogs();
+        if( textManager!=null ) logs = textManager.getTableRows();
         return logs;
     }
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterTextObserver(adapter);
+        if( service!=null ) service.unregisterTableViewer(this);
         service = null;
+        textManager = null;
     }
 
     // name.getClassName() contains the class of the service.
@@ -159,6 +165,16 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerTextObserver(adapter);
+        service.registerTableViewer(this);
+    }
+
+    // =================================== TextMessageObserver ===============================
+    @Override
+    public void initialize(TextManager mgr) {
+        textManager = mgr;
+    }
+    @Override
+    public void update(TextMessage msg) {
+        String text = msg.getMessage();
     }
 }

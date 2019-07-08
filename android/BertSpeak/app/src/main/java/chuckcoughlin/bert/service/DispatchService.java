@@ -25,9 +25,8 @@ import java.util.List;
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
 import chuckcoughlin.bert.common.IntentObserver;
+import chuckcoughlin.bert.common.MessageType;
 import chuckcoughlin.bert.db.DatabaseManager;
-import chuckcoughlin.bert.speech.MessageType;
-import chuckcoughlin.bert.speech.SpokenTextManager;
 import chuckcoughlin.bert.speech.TextMessage;
 import chuckcoughlin.bert.speech.TextMessageObserver;
 
@@ -49,7 +48,7 @@ public class DispatchService extends Service implements BluetoothHandler {
     private final DispatchServiceBinder binder;
     private DatabaseManager dbManager = null;
     private StatusManager statusManager = null;
-    private SpokenTextManager textManager = null;
+    private TextManager textManager = null;
     private boolean isMuted;
     private static final int DISPATCH_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
 
@@ -124,7 +123,7 @@ public class DispatchService extends Service implements BluetoothHandler {
         dbManager = new DatabaseManager(getApplicationContext());
         startForeground(DISPATCH_NOTIFICATION, notification);
         statusManager = new StatusManager();
-        textManager   = new SpokenTextManager();
+        textManager   = new TextManager();
     }
 
     /**
@@ -144,9 +143,9 @@ public class DispatchService extends Service implements BluetoothHandler {
 
 
     public void setBluetoothDevice(BluetoothDevice device) { this.bluetoothDevice = device; }
-    /*
+    /**
      * Build a notification with
-     * --- start
+     * --- reset
      * ---- stop
      * ---- mute
      */
@@ -252,12 +251,12 @@ public class DispatchService extends Service implements BluetoothHandler {
 
 
 
-    // Update any observers with the latest text
-    // Send text to the robot for processing.
+    // Update any observers with the latest text and send text to the robot for processing.
+    // The text originates from the speech recognizer on the tablet (or an error).
     private void reportSpokenText(String text) {
         Log.i(CLSS,String.format("reportSpokenText: %s",text));
-        textManager.processText(text, MessageType.REQUEST);
-        bluetoothConnection.write(text);
+        textManager.processText(MessageType.MSG,text);
+        bluetoothConnection.write(String.format("%s:%s", MessageType.MSG.name(),text));
     }
 
     private void stopForegroundService() {
@@ -359,12 +358,6 @@ public class DispatchService extends Service implements BluetoothHandler {
     }
 
     // ===================================== Methods Exposed thru Service Binder ====================================
-    public TextMessage getLogAtPosition(int position) {
-        return textManager.getLogAtPosition(position);
-    }
-    public List<TextMessage> getLogs() {
-        return textManager.getLogs();
-    }
     /**
      * The speech recognizer recorded a result.
      */
@@ -373,14 +366,11 @@ public class DispatchService extends Service implements BluetoothHandler {
     }
     public void registerIntentObserver(IntentObserver observer)   { statusManager.register(observer); }
     public void unregisterIntentObserver(IntentObserver observer) { statusManager.unregister(observer);}
-    /*
-     * When a new observer is registered, we don't bother to try
-     * and send a recent history.
-     */
-    public void registerTextObserver(TextMessageObserver observer)   {
-        textManager.register(observer);
-    }
-    public void unregisterTextObserver(TextMessageObserver observer) {
-        textManager.unregister(observer);
-    }
+
+    public void registerLogViewer(TextMessageObserver observer) { textManager.registerLogViewer(observer);}
+    public void registerTableViewer(TextMessageObserver observer) { textManager.registerTableViewer(observer);}
+    public void registerTranscriptViewer(TextMessageObserver observer) {textManager.registerTranscriptViewer(observer);}
+    public void unregisterLogViewer(TextMessageObserver observer) { textManager.unregisterLogViewer(observer);}
+    public void unregisterTableViewer(TextMessageObserver observer) { textManager.unregisterTableViewer(observer);}
+    public void unregisterTranscriptViewer(TextMessageObserver observer) {textManager.unregisterTranscriptViewer(observer);}
 }

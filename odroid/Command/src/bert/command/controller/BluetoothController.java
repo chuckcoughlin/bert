@@ -131,7 +131,7 @@ public class BluetoothController extends SocketController implements Controller 
 					else {
 						msg = new MessageBottle();
 						msg.assignRequestType(RequestType.NOTIFICATION);
-						msg.assignError(String.format("Received an unrecognized message from the tablet (%s)",text));
+						msg.assignError(String.format("Message has an unrecognized prefix (%s)",text));
 					}
 				}
 				else {

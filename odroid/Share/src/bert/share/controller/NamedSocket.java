@@ -275,7 +275,7 @@ public class NamedSocket   {
 				LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",CLSS,name,text.length()));
 			}
 			else {
-				LOGGER.warning(String.format("%s.write: Attempt to write to %s before port is open (ignored)",CLSS,name));
+				LOGGER.info(String.format("%s.write: Attempt to write to %s before port is open (ignored)",CLSS,name));
 			}
 		}
 		catch(Exception ioe) {

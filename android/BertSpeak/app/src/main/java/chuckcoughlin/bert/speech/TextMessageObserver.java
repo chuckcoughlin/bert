@@ -7,6 +7,8 @@ package chuckcoughlin.bert.speech;
 
 import java.util.List;
 
+import chuckcoughlin.bert.service.TextManager;
+
 /**
  * Interface for entities which need to be informed about new text messages
  * that are destined to be logged or enunciated.
@@ -14,15 +16,17 @@ import java.util.List;
 public interface TextMessageObserver {
   /**
    * Call this method after an observer newly registers. The
-   * intention is to allow the observer to "catch-up" with the
-   * state of the manager. This is also called after the user
-   * hits "clear".
-   * @param list of messages being the most recent retained by the manager.
+   * manager allows the observer to "catch-up" with the
+   * current state of the message list. The manager should be
+   * retained and used to refresh the displayed list at will.
+   * @param mgr the text manager
    */
-  void initialize(final List<TextMessage> list);
+  void initialize(TextManager mgr);
   /**
-   * Notify the observer that a new text mesage has been detected.
+   * Notify the observer that a new text message has been added
+   * to the manager's list. Only appropriate client types are
+   * included.
    * @param msg the new message
    */
-  void update(final TextMessage msg);
+  void update(TextMessage msg);
 }

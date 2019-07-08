@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.List;
 
 import chuckcoughlin.bert.R;
-import chuckcoughlin.bert.speech.SpokenTextManager;
 import chuckcoughlin.bert.speech.TextMessage;
 import chuckcoughlin.bert.speech.TextMessageObserver;
 
@@ -28,11 +27,9 @@ import chuckcoughlin.bert.speech.TextMessageObserver;
 /**
  * This a link between a RecyclerView and the data backstop.
  * Each element in the list is a string, a text message.
- *
- * Registration with the SpokenTextManager is handled by the parent process.
  */
 
-public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> implements TextMessageObserver {
+public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> {
     private static final String CLSS = LogRecyclerAdapter.class.getSimpleName();
     private static final int MESSAGE_LEN = 45;
     private static final int SOURCE_LEN = 15;
@@ -154,8 +151,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> impl
     }
 
 
-    // ===================== TextMessageObserver =====================
-    @Override
+    // ===================== Called from fragment to update display =====================
     /**
      * We have just registered as an observer. Now catch up.
      * @param list of messages being the most recent retained by the manager.

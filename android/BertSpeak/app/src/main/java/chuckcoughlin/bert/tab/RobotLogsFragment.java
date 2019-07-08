@@ -28,27 +28,28 @@ import chuckcoughlin.bert.logs.LogRecyclerAdapter;
 import chuckcoughlin.bert.logs.LogViewer;
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
+import chuckcoughlin.bert.service.TextManager;
 import chuckcoughlin.bert.speech.TextMessage;
+import chuckcoughlin.bert.speech.TextMessageObserver;
 
 
 /**
  * This fragment shows log messages originating in the robot.
  */
-
-public class RobotLogsFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection {
+public class RobotLogsFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection, TextMessageObserver {
     private final static String CLSS = "RobotLogsFragment";
     private LogRecyclerAdapter adapter;
     private View rootView = null;
     private RecyclerView logMessageView;
     private TextView logView;
     private DispatchService service = null;
+    private TextManager textManager = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.fragment_dispatcher_logs, container, false);
-        TextView textView = rootView.findViewById(R.id.fragmentLogsText);
+        rootView = inflater.inflate(R.layout.fragment_robot_logs, container, false);
+        TextView textView = rootView.findViewById(R.id.fragmentRobotLogsText);
         textView.setText(R.string.fragmentLogsLabel);
-
         logMessageView = rootView.findViewById(R.id.logs_recycler_view);
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
         LinearLayoutManager layoutManager = new LinearLayoutManager(logMessageView.getContext());
@@ -87,8 +88,8 @@ public class RobotLogsFragment extends BasicAssistantFragment implements LogView
     public void onResume() {
         super.onResume();
         if( service!=null ) {
-            Log.i(CLSS,"onResume: registering adapter as observer");
-            service.registerTextObserver(adapter);
+            Log.i(CLSS,"onResume: registering as observer");
+            service.registerLogViewer(this);
         }
     }
 
@@ -96,8 +97,9 @@ public class RobotLogsFragment extends BasicAssistantFragment implements LogView
     public void onPause() {
         super.onPause();
         if( service!=null ) {
-            Log.i(CLSS,"onPause: unregistering adapter as observer");
-            service.unregisterTextObserver(adapter);
+            Log.i(CLSS,"onPause: unregistering as observer");
+            service.unregisterLogViewer(this);
+            textManager = null;
         }
     }
     @Override
@@ -138,19 +140,20 @@ public class RobotLogsFragment extends BasicAssistantFragment implements LogView
     //======================================== LogViewer ======================================
     public TextMessage getLogAtPosition(int position) {
         TextMessage msg = null;
-        if( service!=null ) msg = service.getLogAtPosition(position);
+        if( service!=null ) msg = textManager.getLogAtPosition(position);
         return msg;
     }
     public List<TextMessage> getLogs() {
         List<TextMessage> logs = new ArrayList<>();
-        if( service!=null ) logs = service.getLogs();
+        if( textManager!=null ) logs = textManager.getLogs();
         return logs;
     }
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterTextObserver(adapter);
+        if( service!=null ) service.unregisterLogViewer(this);
         service = null;
+        textManager = null;
     }
 
     // name.getClassName() contains the class of the service.
@@ -158,6 +161,15 @@ public class RobotLogsFragment extends BasicAssistantFragment implements LogView
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerTextObserver(adapter);
+        service.registerLogViewer(this);
+    }
+    // =================================== TextMessageObserver ===============================
+    @Override
+    public void initialize(TextManager mgr) {
+        textManager = mgr;
+    }
+    @Override
+    public void update(TextMessage msg) {
+        String text = msg.getMessage();
     }
 }

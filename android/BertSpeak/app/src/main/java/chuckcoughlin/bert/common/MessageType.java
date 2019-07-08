@@ -9,7 +9,7 @@ package chuckcoughlin.bert.common;
  * These are the recognized header strings for messages between the tablet
  * and robot. The header is separated from the body of the message by a ':'.
  */
-public enum SimpleMessageType {
+public enum MessageType {
 	ANS,	// Reply from the robot. The tablet should "speak" the contents
 	LOG,    // A system message meant to be appended to the "Log" panel (or syslog).
 	MSG,    // Request or query from the tablet, plain english  
@@ -23,7 +23,7 @@ public enum SimpleMessageType {
   public static String names()
   {
     StringBuffer names = new StringBuffer();
-    for (SimpleMessageType type : SimpleMessageType.values()) {
+    for (MessageType type : MessageType.values()) {
       names.append(type.name()+", ");
     }
     return names.substring(0, names.length()-2);

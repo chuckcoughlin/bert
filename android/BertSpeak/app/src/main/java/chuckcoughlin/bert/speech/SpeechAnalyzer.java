@@ -26,9 +26,11 @@ import chuckcoughlin.bert.service.TieredFacility;
 
 public class SpeechAnalyzer implements  RecognitionListener  {
     private static final String CLSS = "SpeechAnalyzer";
+    private static final int END_OF_PHRASE_TIME = 2000; // Silence to indicate end-of-input
     private final Context context;
     private SpeechRecognizer sr = null;
     private final BluetoothHandler handler;
+    private Intent recognizerIntent = null;
 
     public SpeechAnalyzer(BluetoothHandler h, Context c ) {
         this.context = c;
@@ -37,13 +39,11 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     }
 
     public void start() {
-        if( sr==null ) {
-            Log.i(CLSS,"starting speech recognizer ...");
-            sr = SpeechRecognizer.createSpeechRecognizer(context);
-            sr.setRecognitionListener(SpeechAnalyzer.this);
-            listen();
-        }
+        recognizerIntent = createRecognizerIntent();
+        resetSpeechRecognizer();
+        startListening();
     }
+
     public void shutdown() {
         if (sr != null) {
             sr.stopListening();
@@ -52,22 +52,19 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         sr = null;
     }
 
-    // start or restart recognizer
-    public void listen() {
+    private void startListening() {
         if(sr!=null) {
-            sr.cancel();
-            String locale = "us-UK";
-            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
-            intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);  // Partials are always empty
-            //Give a hint to the recognizer about what the user is going to say
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            // Max number of results. This is three attempts at deciphering, not a 3-word limit.
-            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
-            sr.startListening(intent);
+            sr.startListening(recognizerIntent);
         }
     }
+    private void resetSpeechRecognizer() {
 
+        if(sr != null) {
+            sr.destroy();
+        }
+        sr = SpeechRecognizer.createSpeechRecognizer(context);
+        sr.setRecognitionListener(this);
+    }
     // ========================================= RecognitionListener ============================
     public void onReadyForSpeech(Bundle params)  {
         Log.i(CLSS, "onReadyForSpeech");
@@ -97,11 +94,9 @@ public class SpeechAnalyzer implements  RecognitionListener  {
                 break;
             case SpeechRecognizer.ERROR_NO_MATCH:
                 Log.i(CLSS,  String.format("SpeechRecognition: Error - no word match. Enunciate!"));
-                listen();  // Try again
                 break;
             case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                Log.i(CLSS,  String.format("SpeechRecognition: Error - no speech input"));
-                listen();  // Try again
+                Log.d(CLSS,  String.format("SpeechRecognition: Error - speech timeout"));
                 break;
             case SpeechRecognizer.ERROR_NETWORK:
                 reason =  String.format("Network error");
@@ -122,6 +117,10 @@ public class SpeechAnalyzer implements  RecognitionListener  {
             Log.e(CLSS,  String.format("SpeechRecognizer: Error - %s",reason));
             handler.handleVoiceError(reason);
         }
+        // Try again
+        resetSpeechRecognizer();
+        startListening();
+
     }
     public void onResults(Bundle results) {
         Log.i(CLSS, "onResults \n" + results);
@@ -134,12 +133,26 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         }
         handler.receiveText(matches.get(0));
         handler.reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING);
-        listen();   // Repeat forever
+        startListening();   // Repeat forever
     }
     public void onPartialResults(Bundle partialResults) {
         Log.i(CLSS, "onPartialResults");
     }
     public void onEvent(int eventType, Bundle params) {
         Log.i(CLSS, "onEvent " + eventType);
+    }
+
+    private Intent createRecognizerIntent() {
+        String locale = "us-UK";
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getClass().getPackage().getName());
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);  // Partials are always empty
+        intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en");
+        //Give a hint to the recognizer about what the user is going to say
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        // Max number of results. This is three attempts at deciphering, not a 3-word limit.
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        return intent;
     }
 }

@@ -241,7 +241,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	/**
 	 * This is called by "sub-controllers" - Timer and MotorGroup. Forward the response on to
 	 * the appropriate socket controller for transmission to the original source of the request.
-	 * Note: Notifications are broadcast.
+	 * Note: Notifications are broadcast to live controllers.
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {

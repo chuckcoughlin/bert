@@ -5,9 +5,9 @@
 
 package chuckcoughlin.bert.speech;
 
-import android.graphics.Color;
-
 import java.util.Date;
+
+import chuckcoughlin.bert.common.MessageType;
 
 /**
  * Instances of this class are displayed in the log.
@@ -17,7 +17,7 @@ public class TextMessage {
     private final MessageType type;
     private final Date timestamp;
 
-    public TextMessage(String text, MessageType typ) {
+    public TextMessage(MessageType typ, String text) {
         this.msg = text;
         this.type = typ;
         this.timestamp = new Date();

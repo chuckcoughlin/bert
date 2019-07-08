@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
@@ -18,10 +19,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.WindowManager;
 
+import java.util.List;
 import java.util.Set;
 
+import chuckcoughlin.bert.common.IntentObserver;
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
+import chuckcoughlin.bert.service.FacilityState;
+import chuckcoughlin.bert.service.TieredFacility;
+import chuckcoughlin.bert.service.VoiceConstants;
 import chuckcoughlin.bert.speech.Annunciator;
 import chuckcoughlin.bert.speech.SpeechAnalyzer;
 
@@ -30,7 +36,8 @@ import chuckcoughlin.bert.speech.SpeechAnalyzer;
  * the speech components, since they must execute on the main thread
  * (and not in the service).
  */
-public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, ServiceConnection {
+public class MainActivity extends AppCompatActivity
+                          implements IntentObserver,TextToSpeech.OnInitListener, ServiceConnection {
     private static final String CLSS = "MainActivity";
     private static final String DIALOG_TAG = "dialog";
     private SpeechAnalyzer analyzer = null;
@@ -84,11 +91,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     @Override
     public void onStart() {
         super.onStart();
-
-        if( service!=null && analyzer==null) {
-            analyzer = new SpeechAnalyzer(service,getApplicationContext());
-            analyzer.start();
-        }
+        activateSpeechAnalyzer();
         annunciator = new Annunciator(this,this);
     }
 
@@ -97,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         super.onStop();
         unbindService(this);
         annunciator.stop();
+        deactivateSpeechAnalyzer();
     }
 
     /**
@@ -105,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(analyzer!=null) analyzer.shutdown();
+        deactivateSpeechAnalyzer();
         Intent intent = new Intent(this, DispatchService.class);
         stopService(intent);
         annunciator.shutdown();
@@ -136,9 +140,45 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
 
     }
+    // ===================== IntentObserver =====================
+    // Only turn on the speech recognizer if the action state is voice.
+    @Override
+    public void initialize(List<Intent> list) {
+        for(Intent intent:list) {
+            if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
+                update(intent);
+            }
+        }
+    }
+    // For the speech analyzer to be active, the bluetooth socket should be live.
+    // The speed analyzer must run on the "main thread"
+    @Override
+    public void update(Intent intent) {
+        if( intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
+            FacilityState actionState = FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE));
+            TieredFacility tf = TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY));
+            if(tf.equals(TieredFacility.SOCKET) && actionState.equals(FacilityState.ACTIVE)) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        activateSpeechAnalyzer();
+                    }
+                });
+            }
+            else if(tf.equals(TieredFacility.SOCKET) && !actionState.equals(FacilityState.ACTIVE)) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        deactivateSpeechAnalyzer();
+                    }
+                });
+            }
+        }
+    }
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
+        if( service!=null ) service.unregisterIntentObserver(this);
         service = null;
         analyzer.shutdown();
         analyzer = null;
@@ -149,9 +189,27 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        if( analyzer==null ) {
+        activateSpeechAnalyzer();
+        service.registerIntentObserver(this);
+    }
+
+    private void activateSpeechAnalyzer() {
+        if( service!=null && analyzer==null ) {
+            // Mute the beeps ...
+            AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             analyzer = new SpeechAnalyzer(service,getApplicationContext());
             analyzer.start();
         }
+    }
+
+    private void deactivateSpeechAnalyzer() {
+        if( analyzer!=null ) {
+            // Restore the beeps
+            AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND|AudioManager.FLAG_VIBRATE);
+            analyzer.shutdown();
+        }
+        analyzer = null;
     }
 }

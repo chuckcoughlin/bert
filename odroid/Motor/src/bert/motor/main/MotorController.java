@@ -165,8 +165,10 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				// LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,group,port.getPortName()));
 				if(isSingleWriteRequest(currentRequest) ) {
 					byte[] bytes = messageToBytes(currentRequest);
-					writeBytesToSerial(bytes);
-					LOGGER.info(String.format("%s.run: %s wrote %d bytes",CLSS,group,bytes.length));
+					if( bytes!=null ) {
+						writeBytesToSerial(bytes);
+						LOGGER.info(String.format("%s.run: %s wrote %d bytes",CLSS,group,bytes.length));
+					}
 				}
 				else {
 					List<byte[]> byteArrayList = messageToByteList(currentRequest);
@@ -265,8 +267,16 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 				MotorConfiguration mc = configurationsByName.get(jointName);
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
-				bytes = DxlMessage.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
-				if(propertyName.equalsIgnoreCase("POSITION")) request.setDuration(mc.getTravelTime());
+				if( value!=null && !value.isEmpty()) {
+					bytes = DxlMessage.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
+					if(propertyName.equalsIgnoreCase("POSITION")) request.setDuration(mc.getTravelTime());
+				}
+				else {
+					LOGGER.warning(String.format("%s.messageToBytes: Empty property value - ignored (%s)",CLSS,type.name()));
+				}
+			}
+			else if( type.equals(RequestType.NONE)) {
+				LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",CLSS,type.name()));
 			}
 			else {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));

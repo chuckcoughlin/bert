@@ -15,7 +15,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.UUID;
 
-import chuckcoughlin.bert.common.SimpleMessageType;
+import chuckcoughlin.bert.common.MessageType;
 
 /**
  *  This socket communicates across a Bluetooth network to the robot which acts
@@ -109,6 +109,11 @@ public class BluetoothConnection {
 		}
 		catch(IOException ioe) {
 			Log.e(CLSS,String.format("read: Error reading from %s (%s)",device.getName(),ioe.getLocalizedMessage()));
+			// Close and attempt to reopen port
+			text = reread();
+		}
+		catch(NullPointerException npe) {
+			Log.e(CLSS,String.format("read: Error reading from %s (%s)",device.getName(),npe.getLocalizedMessage()));
 			// Close and attempt to reopen port
 			text = reread();
 		}
@@ -274,7 +279,7 @@ public class BluetoothConnection {
                     try {
                         out = new PrintWriter(socket.getOutputStream(),true);
                         Log.i(CLSS,String.format("openPorts: opened %s for write",device.getName()));
-                        write(String.format("%s:the tablet is connected", SimpleMessageType.LOG.name()));
+                        write(String.format("%s:the tablet is connected", MessageType.LOG.name()));
                     }
                     catch (Exception ex) {
                         reason = String.format("The tablet failed to open a socket for writing due to %s",ex.getMessage());
