@@ -193,6 +193,7 @@ public class MainActivity extends AppCompatActivity
         service.registerIntentObserver(this);
     }
 
+    // Turn off the audio to mute the annoying beeping
     private void activateSpeechAnalyzer() {
         if( service!=null && analyzer==null ) {
             // Mute the beeps ...

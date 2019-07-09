@@ -21,16 +21,17 @@ public class BertConstants {
     public static final String BERT_PORT="Port";
     public static final String BERT_PAIRED_DEVICE="Paired Device";
     public static final String BERT_SERVICE_UUID="Paired Device";
+    public static final String BERT_SIMULATED_CONNECTION="Simulated Connection";
 
     // These are the default values for the settings
     public static final String BERT_SERVER_HINT="192.168.1.20";
     public static final String BERT_PORT_HINT="1-30";
     public static final String BERT_PAIRED_DEVICE_HINT="bert_humanoid";
     public static final String BERT_SERVICE_UUID_HINT="33001101-0000-2000-8080-00815FAB34FF";
+    public static final String BERT_SIMULATED_CONNECTION_HINT="false";
 
     // Intent observer recognizer
     public static final String ACTION_FACILITY_STATE = "FacilityState";
-    public static final String ACTION_SPOKEN_TEXT  = "SpokenText";
 
     // Notifications
     public static final String NOTIFICATION_CHANNEL_ID   = "speechServiceChannel";

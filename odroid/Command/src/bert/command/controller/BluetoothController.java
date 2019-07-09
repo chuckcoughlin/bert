@@ -22,7 +22,7 @@ import bert.speech.process.StatementParser;
 
 /**
  * The Bluetooth controller handles input/output to/from an Android tablet via
- * a Bluetooth network. The tablet handles speech-to-text and text-to-speech. 
+ * the blueserverd daemon. The tablet handles speech-to-text and text-to-speech. 
  * This extends SocketController to handle translation of MessageBottle objects
  * to and from the simple text messages recognized by the tablet.
  */
@@ -31,6 +31,7 @@ public class BluetoothController extends SocketController implements Controller 
 	private Logger LOGGER = Logger.getLogger(CLSS);
 	private final StatementParser parser;
 	private final MessageTranslator translator;
+	private boolean suppressingErrors;
 	
 	/**
 	 * Constructor: For this connection, we act as a client.
@@ -41,6 +42,7 @@ public class BluetoothController extends SocketController implements Controller 
 		super(launcher,HandlerType.TABLET.name(),"localhost",port);
 		this.parser = new StatementParser();
 		this.translator = new MessageTranslator();
+		this.suppressingErrors = false;
 	}
 	
 	@Override
@@ -71,7 +73,18 @@ public class BluetoothController extends SocketController implements Controller 
 		socket.write(String.format("%s:%s",SimpleMessageType.ANS.name(),text));
 	}
 	
-	
+	/**
+	 * The request can be handled immediately without being sent to the
+	 * dispatcher. A common scenario is a parsing error;
+	 */
+	private void handleImmediateResponse(MessageBottle request) {
+		if( !suppressingErrors ) receiveResponse(request);
+		else {
+			suppressingErrors = true;  // Suppress replies to consecutive yntax errors
+			String text = translator.messageToText(request);
+			LOGGER.info(String.format("%s.SuppressedErrorMessage: %s",CLSS, text));
+		}
+	}
 	// ===================================== Background Reader ==================================================
 	/**
 	 * Perform a blocking read as a background thread. The specified socket
@@ -141,7 +154,13 @@ public class BluetoothController extends SocketController implements Controller 
 				}
 				
 				msg.assignSource(HandlerType.COMMAND.name());
-				receiveRequest(msg);
+				if( msg.fetchRequestType().equals(RequestType.NONE) || !msg.fetchError().isEmpty() ) {
+					handleImmediateResponse(msg);
+				}
+				else {
+					suppressingErrors = false;
+					receiveRequest(msg);
+				}
 			}
 			LOGGER.info(String.format("BluetoothBackgroundReader,%s stopped",sock.getName()));
 		}

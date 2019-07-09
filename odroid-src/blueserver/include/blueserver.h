@@ -15,3 +15,4 @@ char* HOST = "localhost";
 int   PORT = 11046;  // Must match value in bert.xml
 char* PROMPT = "bert: ";
 char* PROG = "blueserverd";
+char* LOGPATH = "var/log/blueserverd.log";

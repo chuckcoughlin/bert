@@ -44,7 +44,7 @@ public class Terminal extends Thread implements MessageHandler {
 	private final RobotTerminalModel model;
 	private SocketController socketController = null;
 	private final Condition busy;
-	private StdioController controller = null;
+	private StdioController stdioController = null;
 	private MessageBottle currentRequest;
 	private final Lock lock;
 	
@@ -55,12 +55,12 @@ public class Terminal extends Thread implements MessageHandler {
 	}
 
 	/**
-	 * This application contains a stdio controller and a client socket controller
+	 * This application contains a stdio stdioController and a client socket stdioController
 	 */
 	@Override
 	public void createControllers() {
 		String prompt = model.getProperty(ConfigurationConstants.PROPERTY_PROMPT,"bert:");
-		this.controller = new StdioController(this,prompt);
+		this.stdioController = new StdioController(this,prompt);
 		
 		String hostName = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost");
 		Map<String, Integer> sockets = model.getSockets();
@@ -75,7 +75,7 @@ public class Terminal extends Thread implements MessageHandler {
 	
 	/**
 	 * Loop forever reading from the terminal and forwarding the resulting requests
-	 * via socket to the server (launcher). We accept its responses and forward to the stdio controller.
+	 * via socket to the server (launcher). We accept its responses and forward to the stdio stdioController.
 	 */
 	@Override
 	public void run() {	
@@ -114,12 +114,12 @@ public class Terminal extends Thread implements MessageHandler {
 	@Override
 	public void startup() {
 		socketController.start();
-		controller.start();
+		stdioController.start();
 	}
 	@Override
 	public void shutdown() {
 		socketController.stop();
-		controller.stop();
+		stdioController.stop();
 	}
 	/**
 	 * We've gotten a request (must be from a different thread than our main loop). Signal
@@ -138,12 +138,12 @@ public class Terminal extends Thread implements MessageHandler {
 	}
 	
 	/**
-	 * We've gotten a response. Send it to our Stdio controller 
+	 * We've gotten a response. Send it to our Stdio stdioController 
 	 * which ultimately writes it to stdout.
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
-		controller.receiveResponse(response);
+		stdioController.receiveResponse(response);
 	}
 	
 	/**

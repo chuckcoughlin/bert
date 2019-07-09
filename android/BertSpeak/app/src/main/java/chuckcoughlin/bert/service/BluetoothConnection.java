@@ -113,7 +113,7 @@ public class BluetoothConnection {
 			text = reread();
 		}
 		catch(NullPointerException npe) {
-			Log.e(CLSS,String.format("read: Error reading from %s (%s)",device.getName(),npe.getLocalizedMessage()));
+			Log.e(CLSS,String.format("read: Null pointer reading from %s (%s)",device.getName(),npe.getLocalizedMessage()));
 			// Close and attempt to reopen port
 			text = reread();
 		}

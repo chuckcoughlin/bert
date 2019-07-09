@@ -56,6 +56,9 @@ public class MessageTranslator  {
 				if(type.equals(RequestType.NOTIFICATION)) {
 					text = "Received empty notification.";
 				}
+				else if(type.equals(RequestType.NONE)) {
+					text = "Received empty message.";
+				}
 				// We expect the Dispatcher to fill these in ...
 				else if(type.equals(RequestType.GET_METRIC)) {
 					MetricType metric = MetricType.valueOf(msg.getProperty(BottleConstants.METRIC_NAME, "NAME"));

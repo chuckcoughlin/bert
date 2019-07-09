@@ -69,6 +69,8 @@ public class DatabaseManager extends SQLiteOpenHelper {
         execLenient(sqLiteDatabase,statement);
         statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_SERVICE_UUID+"','"+BertConstants.BERT_SERVICE_UUID_HINT+"')";
         execLenient(sqLiteDatabase,statement);
+        statement = "INSERT INTO Settings(Name,Hint) VALUES('"+BertConstants.BERT_SIMULATED_CONNECTION+"','"+BertConstants.BERT_SIMULATED_CONNECTION_HINT+"')";
+        execLenient(sqLiteDatabase,statement);
 
         Log.i(CLSS,String.format("onCreate: Created %s at %s",BertConstants.DB_NAME,context.getDatabasePath(BertConstants.DB_NAME)));
     }

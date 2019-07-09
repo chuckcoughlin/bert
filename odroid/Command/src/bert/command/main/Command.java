@@ -18,9 +18,11 @@ import bert.command.model.RobotCommandModel;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
 import bert.share.logging.LoggerUtility;
+import bert.share.message.BottleConstants;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
+import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
@@ -34,6 +36,7 @@ public class Command extends Thread implements MessageHandler {
 	private final static String CLSS = "Command";
 	private static final String USAGE = "Usage: command <config-file>";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
+	private static final long EXIT_WAIT_INTERVAL = 1000;
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotCommandModel model;
 	private BluetoothController tabletController = null;
@@ -68,7 +71,7 @@ public class Command extends Thread implements MessageHandler {
 	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "command"); }
 	
 	/**
-	 * Loop forever reading from the bluetooth daemon (represents the tablet) and forwarding the resulting requests
+	 * Loop forever reading from the bluetooth daemon (representing the tablet) and forwarding the resulting requests
 	 * via socket to the server (launcher). We accept its responses and forward back to the tablet.
 	 * Communication with the tablet consists of simple strings, plus a 4-character header.
 	 */
@@ -80,7 +83,12 @@ public class Command extends Thread implements MessageHandler {
 				try{
 					busy.await();
 					if( currentRequest==null) break;
-					dispatchController.receiveRequest(currentRequest);	
+					dispatchController.receiveRequest(currentRequest);
+					if( currentRequest.fetchRequestType().equals(RequestType.COMMAND)        &&
+							BottleConstants.COMMAND_HALT.equalsIgnoreCase(currentRequest.getProperties().get(BottleConstants.COMMAND_NAME)) ) {
+							Thread.sleep(EXIT_WAIT_INTERVAL);
+							break;
+						}
 				}
 				catch(InterruptedException ie ) {}
 				finally {
@@ -111,7 +119,7 @@ public class Command extends Thread implements MessageHandler {
 	}
 	/**
 	 * We've gotten a request (presumably from the BluetoothController). Signal
-	 * to release the lock to send along to our launcher.
+	 * to release the lock to send along to the dispatcher.
 	 */
 	@Override
 	public void handleRequest(MessageBottle request) {

@@ -19,15 +19,11 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import chuckcoughlin.bert.R;
 import chuckcoughlin.bert.common.BertConstants;
 import chuckcoughlin.bert.common.IntentObserver;
 import chuckcoughlin.bert.common.MessageType;
 import chuckcoughlin.bert.db.DatabaseManager;
-import chuckcoughlin.bert.speech.TextMessage;
 import chuckcoughlin.bert.speech.TextMessageObserver;
 
 /**
@@ -50,6 +46,7 @@ public class DispatchService extends Service implements BluetoothHandler {
     private StatusManager statusManager = null;
     private TextManager textManager = null;
     private boolean isMuted;
+    private boolean simulatedConnectionMode;
     private static final int DISPATCH_NOTIFICATION = R.string.notificationKey; // Unique id for the Notification.
 
     //private static final boolean IS_EMULATOR = Build.HARDWARE.contains("goldfish");
@@ -58,8 +55,25 @@ public class DispatchService extends Service implements BluetoothHandler {
     public DispatchService() {
         this.isMuted = false;
         this.binder = new DispatchServiceBinder(this);
+        this.simulatedConnectionMode = false;
     }
 
+    /**
+     * Display a notification about us starting.  We put an icon in the status bar.
+     * Initialize all the singletons.
+     */
+    @Override
+    public void onCreate() {
+        Log.i(CLSS,"onCreate: Starting foreground service ...");
+        notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        Notification notification = buildNotification();
+        dbManager = new DatabaseManager(getApplicationContext());
+        String flag = dbManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION);
+        if(flag.equalsIgnoreCase("true"))simulatedConnectionMode = true;
+        startForeground(DISPATCH_NOTIFICATION, notification);
+        statusManager = new StatusManager();
+        textManager   = new TextManager();
+    }
 
     /**
      * The initial intent action is null. Otherwise we receive values when the user clicks on the
@@ -77,10 +91,18 @@ public class DispatchService extends Service implements BluetoothHandler {
         bluetoothConnection = new BluetoothConnection(this);
 
         if( action==null) {
-            reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE);
-            reportConnectionState(TieredFacility.SOCKET, FacilityState.IDLE);  // Just to initialize
-            reportConnectionState(TieredFacility.VOICE, FacilityState.IDLE);   // Just to initialize
-            determineNextAction(TieredFacility.BLUETOOTH);
+            if( simulatedConnectionMode ) {
+                reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.ACTIVE);
+                reportConnectionState(TieredFacility.SOCKET, FacilityState.ACTIVE);  // Just to initialize
+                reportConnectionState(TieredFacility.VOICE, FacilityState.IDLE);   // Just to initialize
+                determineNextAction(TieredFacility.VOICE);
+            }
+            else {
+                reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE);
+                reportConnectionState(TieredFacility.SOCKET, FacilityState.IDLE);  // Just to initialize
+                reportConnectionState(TieredFacility.VOICE, FacilityState.IDLE);   // Just to initialize
+                determineNextAction(TieredFacility.BLUETOOTH);
+            }
         }
         else if(action.equalsIgnoreCase(getString(R.string.notificationMute))) {
             toggleMute();
@@ -109,21 +131,6 @@ public class DispatchService extends Service implements BluetoothHandler {
     @Override
     public void onRebind(Intent intent) {
         super.onRebind(intent);
-    }
-
-    /**
-     * Display a notification about us starting.  We put an icon in the status bar.
-     * Initialize all the singletons.
-     */
-    @Override
-    public void onCreate() {
-        Log.i(CLSS,"onCreate: Starting foreground service ...");
-        notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        Notification notification = buildNotification();
-        dbManager = new DatabaseManager(getApplicationContext());
-        startForeground(DISPATCH_NOTIFICATION, notification);
-        statusManager = new StatusManager();
-        textManager   = new TextManager();
     }
 
     /**
