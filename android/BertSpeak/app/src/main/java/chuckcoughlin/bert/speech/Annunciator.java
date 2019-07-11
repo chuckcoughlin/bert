@@ -21,19 +21,13 @@ import java.util.Set;
 
 public class Annunciator extends TextToSpeech {
     private final static String CLSS="Annunciator";
-    private long id;
+    private final static String UTTERANCE_ID = CLSS;
     /**
-     * The Android facility for pronouncing text.
+     * The Android facility for pronouncing text. Configuration
+     * methods are not effective in the constructor
      */
-    public Annunciator(Activity activity, OnInitListener listener) {
-        super(activity,listener);
-        setLanguage(Locale.UK);
-        setPitch(1.0f);       // Default = 1.0
-        setSpeechRate(1.0f);  // Default = 1.0
-        Set<String> features = new HashSet<>();
-        Voice voice = new Voice("en-GB-SMTm00",Locale.UK,Voice.QUALITY_HIGH,Voice.LATENCY_NORMAL,false,features);
-        setVoice(voice);
-        id = 0;
+    public Annunciator(Context context, OnInitListener listener) {
+        super(context,listener);
     }
 
 
@@ -44,10 +38,31 @@ public class Annunciator extends TextToSpeech {
     public void speak(String text ){
         Log.i(CLSS,String.format("speak: %s",text));
         int result = 0;
-        id = id+1;
-        result = speak(text,TextToSpeech.QUEUE_FLUSH,null,String.valueOf(id));
+        result = speak(text,TextToSpeech.QUEUE_FLUSH,null,UTTERANCE_ID);
         if( result!=SUCCESS ) {
-            Log.w(CLSS,String.format("speak: Error %d pronouncing: %s",result,text));
+            Log.w(CLSS,String.format("speak: %s pronouncing: %s",errorToText(result),text));
         }
+    }
+
+    private String errorToText(int err) {
+        String error = "??";
+        switch(err) {
+            case TextToSpeech.ERROR_INVALID_REQUEST:
+                error = "Invalid request";
+                break;
+            case TextToSpeech.ERROR_NETWORK:
+                error = "Network error";
+                break;
+            case TextToSpeech.ERROR_NETWORK_TIMEOUT:
+                error = "Network timeout";
+                break;
+            case TextToSpeech.ERROR_SYNTHESIS:
+                error = "Failed to synthesize";
+                break;
+            default:
+                error = String.format("Error %d", err);
+                break;
+        }
+        return error;
     }
 }

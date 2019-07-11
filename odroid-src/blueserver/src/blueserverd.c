@@ -108,7 +108,7 @@ void run() {
 	write(logfd,logbuf,strlen(logbuf));
 	rserverfd = socket(AF_INET, SOCK_STREAM, 0);
     bind(rserverfd, (struct sockaddr *)&robot, sizeof(robot));
-	strcpy(logbuf,"Socket bound and listening ...\n");
+	strcpy(logbuf,"Server socket bound and listening ...\n");
 	write(logfd,logbuf,strlen(logbuf));
 
 	strcpy(logbuf,"Opening server socket for tablet ...\n");
@@ -116,11 +116,13 @@ void run() {
 	tserverfd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 	// Bind socket to port 1 of first available bluetooth adapter.
     bind(tserverfd, (struct sockaddr *)&address, sizeof(address));
-	strcpy(logbuf,"Bluetooth socket bound and listening ...\n");
+	strcpy(logbuf,"Bluetooth server socket bound and listening ...\n");
 	write(logfd,logbuf,strlen(logbuf));
 
 	for(;;) {
 		if( tabletfd<0 ) {
+			strcpy(logbuf,"Listening for connection to the tablet\n");
+			write(logfd,logbuf,strlen(logbuf));
     		listen(tserverfd, 1); // Accept one connection
 			// Connect to the tablet
 			socklen_t len = sizeof(remote);
@@ -133,10 +135,10 @@ void run() {
 		}
 
 		if( robotfd<0 ) {
+			strcpy(logbuf,"Listening for connection to the robot\n");
+			write(logfd,logbuf,strlen(logbuf));
     		listen(rserverfd, 1); // Accept one connection
 			// Connect to the robot
-			strcpy(logbuf,"Opening socket to the robot\n");
-			write(logfd,logbuf,strlen(logbuf));
 			socklen_t len = sizeof(robot);
 			robotfd = accept(rserverfd,(struct sockaddr *)&robot, &len);
 			if( robotfd<0 ) {
@@ -174,12 +176,9 @@ void run() {
 					robotfd = -1;
 				}
 				else {
-					// Forward message to tablet
-					if( nbytes<BUFLEN-1 ) {
-						strcat(buf,"\n");
-						nbytes++;
-					}
-					snprintf(logbuf,sizeof(logbuf),"Sending to tablet: (%s)\n",buf);
+					// Forward message to tablet. Text should have new-line.
+					buf[nbytes] = '\0';  // Guarantee null-terminated
+					snprintf(logbuf,sizeof(logbuf),"Sending to tablet: %s",buf);
 					write(logfd,logbuf,strlen(logbuf));
 					send(tabletfd, buf, nbytes, 0);
 				}
@@ -200,12 +199,9 @@ void run() {
 					tabletfd = -1;
 				}
 				else {
-					// Forward message to robot
-					if( nbytes<BUFLEN-1 ) {
-						strcat(buf,"\n");
-						nbytes++;
-					}
-					snprintf(logbuf,sizeof(logbuf),"Sending to robot: (%s)\n",buf);
+					// Forward message to robot. Text should have a new-line.
+					buf[nbytes] = '\0';  // Guarantee null-terminatedY
+					snprintf(logbuf,sizeof(logbuf),"Sending to robot: %s",buf);
 					write(logfd,logbuf,strlen(logbuf));
 					send(robotfd, buf, nbytes, 0);
 				}
@@ -216,7 +212,7 @@ void run() {
 			write(logfd,logbuf,strlen(logbuf));
 			break;
 		}
-	}
+	}    // End of forever loop
 }
 
 void start() {
@@ -233,6 +229,7 @@ void stop() {
 	write(logfd,logbuf,strlen(logbuf));
 	close(logfd);
 }
+
 
 void usage() {
 	printf("Usage:\n");

@@ -8,8 +8,9 @@ package bert.share.message;
 /**
  * These are the recognized header strings for messages between the tablet
  * and robot. The header is separated from the body of the message by a ':'.
+ * The message is terminated with a ';'.
  */
-public enum SimpleMessageType
+public enum MessageType
 {
 	ANS,	// Reply from the robot. The tablet should "speak" the contents
 	LOG,    // A system message meant to be appended to the "Log" panel.
@@ -24,7 +25,7 @@ public enum SimpleMessageType
   public static String names()
   {
     StringBuffer names = new StringBuffer();
-    for (SimpleMessageType type : SimpleMessageType.values())
+    for (MessageType type : MessageType.values())
     {
       names.append(type.name()+", ");
     }

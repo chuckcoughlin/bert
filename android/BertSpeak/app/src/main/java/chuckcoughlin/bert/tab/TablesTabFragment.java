@@ -64,22 +64,6 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
         int scrollPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
         logMessageView.scrollToPosition(scrollPosition);
 
-        Button button = rootView.findViewById(R.id.clearButton);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearButtonClicked();
-            }
-        });
-        button = rootView.findViewById(R.id.freezeButton);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                freezeButtonClicked();
-            }
-        });
-        updateUI();
-
         return rootView;
     }
      // Bind to the DispatchService
@@ -114,31 +98,6 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     public void onDestroyView() {
         Log.i(CLSS, "onDestroyView");
         super.onDestroyView();
-    }
-
-    //======================================== Button Callbacks ======================================
-    //
-    public void clearButtonClicked() {
-        Log.i(CLSS, "Clear button clicked");
-    }
-
-    /**
-     * The Freeze button has purely local control.
-     */
-    public void freezeButtonClicked() {
-        boolean frozen = adapter.isFrozen();
-        adapter.setFrozen(!frozen);
-        updateUI();
-    }
-
-    private void updateUI() {
-        Button button = rootView.findViewById(R.id.freezeButton);
-        if( adapter.isFrozen() ) {
-            button.setText(R.string.logButtonThaw);
-        }
-        else {
-            button.setText(R.string.logButtonFreeze);
-        }
     }
 
     //======================================== LogViewer ======================================

@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -20,16 +21,21 @@ import android.util.Log;
 import android.view.WindowManager;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import chuckcoughlin.bert.common.IntentObserver;
+import chuckcoughlin.bert.common.MessageType;
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
 import chuckcoughlin.bert.service.FacilityState;
+import chuckcoughlin.bert.service.TextManager;
 import chuckcoughlin.bert.service.TieredFacility;
 import chuckcoughlin.bert.service.VoiceConstants;
 import chuckcoughlin.bert.speech.Annunciator;
 import chuckcoughlin.bert.speech.SpeechAnalyzer;
+import chuckcoughlin.bert.speech.TextMessage;
+import chuckcoughlin.bert.speech.TextMessageObserver;
 
 /**
  * The main activity "owns" the page tab UI fragments. It also contains
@@ -37,12 +43,19 @@ import chuckcoughlin.bert.speech.SpeechAnalyzer;
  * (and not in the service).
  */
 public class MainActivity extends AppCompatActivity
-                          implements IntentObserver,TextToSpeech.OnInitListener, ServiceConnection {
+                          implements IntentObserver, TextMessageObserver,TextToSpeech.OnInitListener, ServiceConnection {
     private static final String CLSS = "MainActivity";
-    private static final String DIALOG_TAG = "dialog";
+    private final static String UTTERANCE_ID = CLSS;
     private SpeechAnalyzer analyzer = null;
     private Annunciator annunciator = null;
     private DispatchService service = null;
+    // Start phrases to choose from ...
+    private static final String[] phrases = {
+            "My speech module is ready",
+            "The speech connection is enabled",
+            "I am ready for voice commands",
+            "The speech controller is ready"
+    };
 
     /**
      * A specialized {@link android.support.v4.view.PagerAdapter} that will provide
@@ -92,13 +105,16 @@ public class MainActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         activateSpeechAnalyzer();
-        annunciator = new Annunciator(this,this);
+        annunciator = new Annunciator(getApplicationContext(),this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        unbindService(this);
+        if(service!=null) {
+            unbindService(this);
+            service = null;
+        }
         annunciator.stop();
         deactivateSpeechAnalyzer();
     }
@@ -115,23 +131,32 @@ public class MainActivity extends AppCompatActivity
         annunciator.shutdown();
         annunciator = null;
     }
-
+    /**
+     * Select a random startup phrase from the list.
+     * @return the selected phrase.
+     */
+    private String selectRandomText() {
+        double rand = Math.random();
+        int index = (int)(rand*phrases.length);
+        return phrases[index];
+    }
     // =================================== OnInitListener ===============================
     @Override
     public void onInit(int status) {
         if( status==TextToSpeech.SUCCESS )  {
-            Log.i(CLSS,String.format("onInit: TextToSpeech initialized ..."));
-            /*
-                For when we need to select an appropriate speaker ... maybe one of these
-                en-gb-x-rjs#male_2-local
-                en-gb-x-fis#male_1-local
-                en-gb-x-fis#male_3-local
-            */
             Set<Voice> voices = annunciator.getVoices();
             for( Voice v:voices) {
-                Log.i(CLSS,String.format("onInit: voice = %s %d",v.getName(),v.describeContents()));
+                if( v.getName().equalsIgnoreCase("en-GB-SMTm00") ) {
+                    Log.i(CLSS,String.format("onInit: voice = %s %d",v.getName(),v.describeContents()));
+                    annunciator.setVoice(v);
+                }
             }
 
+            annunciator.setLanguage (Locale.UK);
+            //annunciator.setPitch(0.6f);
+            //annunciator.setSpeechRate(1.2f);
+            Log.i(CLSS,String.format("onInit: TextToSpeech initialized ..."));
+            annunciator.speak (selectRandomText(), TextToSpeech.QUEUE_FLUSH, null,UTTERANCE_ID);
         }
         else {
             Log.e(CLSS,String.format("onInit: TextToSpeech ERROR - %d",status));
@@ -178,7 +203,10 @@ public class MainActivity extends AppCompatActivity
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterIntentObserver(this);
+        if( service!=null ) {
+            service.unregisterIntentObserver(this);
+            service.unregisterTranscriptViewer(this);
+        }
         service = null;
         analyzer.shutdown();
         analyzer = null;
@@ -191,14 +219,13 @@ public class MainActivity extends AppCompatActivity
         service = binder.getService();
         activateSpeechAnalyzer();
         service.registerIntentObserver(this);
+        service.registerTranscriptViewer(this);
     }
 
     // Turn off the audio to mute the annoying beeping
     private void activateSpeechAnalyzer() {
         if( service!=null && analyzer==null ) {
-            // Mute the beeps ...
-            AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            suppressAudio();
             analyzer = new SpeechAnalyzer(service,getApplicationContext());
             analyzer.start();
         }
@@ -206,11 +233,36 @@ public class MainActivity extends AppCompatActivity
 
     private void deactivateSpeechAnalyzer() {
         if( analyzer!=null ) {
-            // Restore the beeps
-            AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND|AudioManager.FLAG_VIBRATE);
+            restoreAudio();
             analyzer.shutdown();
         }
         analyzer = null;
+    }
+
+    private void restoreAudio() {
+        //AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
+    }
+    // Mute the beeps waiting for spoken input. At one point these methods were used to silence
+    // annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
+    private void suppressAudio() {
+        //AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+    }
+
+    // =================================== TextMessageObserver ===============================
+    @Override
+    public void initialize(TextManager mgr) {}
+    /**
+     * If the message is a response from the robot, announce it.
+     * @param msg the new message
+     */
+    @Override
+    public void update(TextMessage msg) {
+        if( msg.getMessageType().equals(MessageType.ANS)) {
+            restoreAudio();
+            annunciator.speak(msg.getMessage());
+            suppressAudio();
+        }
     }
 }

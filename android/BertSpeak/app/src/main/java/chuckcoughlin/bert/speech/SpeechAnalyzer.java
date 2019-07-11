@@ -131,7 +131,9 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         for (int i = 0; i < matches.size(); i++) {
             Log.i(CLSS, "result " + matches.get(i));
         }
-        handler.receiveText(matches.get(0));
+        String text = matches.get(0);
+        text = scrubText(text);
+        handler.receiveSpokenText(text);
         handler.reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING);
         startListening();   // Repeat forever
     }
@@ -152,7 +154,18 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         //Give a hint to the recognizer about what the user is going to say
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         // Max number of results. This is three attempts at deciphering, not a 3-word limit.
-        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2);
         return intent;
+    }
+
+    /**
+     * Perform any cleanup.
+     * For now, replace ° with " degrees"
+     * @param text
+     * @return spiffy-clean text
+     */
+    private String scrubText(String text) {
+        text = text.replace("°"," degrees");
+        return text;
     }
 }

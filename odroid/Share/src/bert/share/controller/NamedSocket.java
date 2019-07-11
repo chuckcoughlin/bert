@@ -265,14 +265,15 @@ public class NamedSocket   {
 	}
 	
 	/**
-	 * Write plain text to the socket.
+	 * Write plain text to the socket. (No added line-feed)
 	 */
 	public void write(String text) {
 		try {
 			if( out!=null ) {
-				out.println(text);
+				LOGGER.info(String.format("%s.write: wrote %s %d bytes (%s)",CLSS,name,text.length(),text));
+				out.println(text);  // Appends new-line
 				out.flush();
-				LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",CLSS,name,text.length()));
+				
 			}
 			else {
 				LOGGER.info(String.format("%s.write: Attempt to write to %s before port is open (ignored)",CLSS,name));

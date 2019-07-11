@@ -188,7 +188,7 @@ public class MotorGroupController implements Controller,MotorManager {
 				String name = motorNameById.get(key);
 				parametersInProcess.put(name, param);
 				motorsProcessed++;   // Assume there are no duplicates
-				//LOGGER.info(String.format("%s.aggregateMotorProperties: received %s (%d of %d) = %s",CLSS,name,motorsProcessed,motorCount,param));
+				LOGGER.info(String.format("%s.aggregateMotorProperties: received %s (%d of %d) = %s",CLSS,name,motorsProcessed,motorCount,param));
 			}
 		}
 		if(motorsProcessed>=motorCount ) {

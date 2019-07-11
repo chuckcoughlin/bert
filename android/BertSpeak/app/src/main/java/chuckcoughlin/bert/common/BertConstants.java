@@ -46,4 +46,6 @@ public class BertConstants {
 
     // Dialog transaction key
     public static final String DIALOG_TRANSACTION_KEY = "dialog";
+    // For messages from robot (Does not include semi-colon)
+    public static final int HEADER_LENGTH = 3;
 }

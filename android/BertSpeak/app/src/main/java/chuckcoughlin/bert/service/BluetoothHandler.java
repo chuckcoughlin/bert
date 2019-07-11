@@ -34,13 +34,17 @@ public interface BluetoothHandler {
      */
     public void handleVoiceError(String reason);
     /**
-     * The speech recognizer recorded a result.
+     * The bluetooth connection received a message
      */
     public void receiveText(String text);
     /**
      * Modify status screen
      */
     public void reportConnectionState(TieredFacility fac, FacilityState state);
+    /**
+     * The speech recognizer recorded a result.
+     */
+    public void receiveSpokenText(String text);
     /**
      * Save the structure of the discovered device.
      * @param device the Bluetooth device representing the robot.

@@ -194,9 +194,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	// The byte array may be the concatenation of several responses.
 	private Map<Integer,String> createPropertyMapFromBytes(String propertyName,byte[] bytes) {
 		Map<Integer,String> props = new HashMap<>();
-		if( currentRequest!=null) {
-			DxlMessage.updateParameterArrayFromBytes(propertyName,configurationsById,bytes,props);
-		}
+		DxlMessage.updateParameterArrayFromBytes(propertyName,configurationsById,bytes,props);
 		return props;
 	}
 	/**
@@ -404,7 +402,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	/**
 	 * Handle the response from the serial request. 
 	 */
-	public void serialEvent(SerialPortEvent event) {
+	public synchronized void serialEvent(SerialPortEvent event) {
 		if(event.isRXCHAR() && currentRequest!=null ){
 			// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();

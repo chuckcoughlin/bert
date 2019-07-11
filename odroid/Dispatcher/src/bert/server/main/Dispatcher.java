@@ -52,10 +52,11 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private final static String CLSS = "Dispatcher";
 	private static final String USAGE = "Usage: launcher <robot_root>";
 	// Start phrases to choose from ...
-	private String[] phrases = {
+	private static final String[] phrases = {
        "Bert is ready",
        "At your command",
-       "I'm listening"
+       "I'm listening",
+       "Speak your wishes"
     };
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();

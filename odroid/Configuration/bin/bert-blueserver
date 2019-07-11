@@ -55,7 +55,6 @@ case "$1" in
 	# Launch Serial Port service and connect bluetooth devices
 	sdptool add SP
 	$DAEMON ${BERTLOG}
-	log_end_msg $? >> ${BERTLOG}
   ;;
 
   restart)
@@ -65,7 +64,6 @@ case "$1" in
 
   stop)
 	killall ${DAEMON} 
-	log_end_msg $? >> ${BERTLOG}
 	echo "============ /etc/init.d/bert-blueserver stopped ============" >> ${BERTLOG}
   ;;
   force-reload)

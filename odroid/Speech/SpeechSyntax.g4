@@ -17,37 +17,38 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-      Salutation? List Article? Configuration                    # configurationRequest
-            | Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
+		Salutation? Initialize Article? Motors   				# initializeJoints
+    | Salutation? List Article? Configuration                   # configurationRequest
+	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors                   # handleListCommand1
 	| Salutation? List Article? Motor? Properties                               # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
 	| Salutation? Move Adverb                                                   # moveSpeed
-            | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?  # setMotorPosition
+    | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
 	| Salutation? Straighten (It|Article? Side? Joint Axis? )   # straightenJoint
-        | Salutation? (Command|Halt|Shutdown)                       # handleSingleWordCommand
-        | Salutation? (Move|Take|Set) NAME+                         # handleCompoundCommand
-        | Salutation? NAME+                                         # handleArbitraryCommand
+	| Salutation? (Command|Halt|Shutdown)                       # handleSingleWordCommand
+	| Salutation? (Move|Take|Set) NAME+                         # handleCompoundCommand
+	| Salutation? NAME+                                         # handleArbitraryCommand
 	;
 
 // Request for information
 question:
-      How Attribute Is 'you'                                     # attributeQuestion
-	| What Is Article? Configuration                          # configurationQuestion
+    How Attribute 'are' 'you'                                    # attributeQuestion
+	| What 'is' Article? Configuration                          # configurationQuestion
 	| What 'are' Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
-	| What Is Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
-    | What 'is' Article? Side? Joint Axis? Property             # jointPropertyQuestion2
-	| What 'is' Article? Metric   				    # metricsQuestion
-    | What 'is' Article? Adjective?  Pose                       # poseQuestion
+    | What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
+    | What 'is' Article? Side? Joint Axis? Property                 # jointPropertyQuestion2
+    | What 'is' Article? Metric   				    # metricsQuestion
+    | What 'is' Article? Adjective?  Pose                           # poseQuestion
 	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
-	| Where Is Article? Side? (Appendage|Joint)	Axis?			# limbLocationQuestion 
+    | Where 'is' Article? Side? (Appendage|Joint)	Axis?       # limbLocationQuestion
 	;
 
 // Convey information to the robot.
 declaration:
-	'you' Is NAME					# declarePose1
-	| Article Pose Is NAME                              # declarePose2
+    'you' 'are' NAME					# declarePose1
+	| Article Pose 'is' NAME                                # declarePose2
 	| When 'i' 'say' NAME Take Article? Pose NAME		# mapPoseToCommand1
 	| NAME Means To NAME					# mapPoseToCommand2
 	;
@@ -65,7 +66,7 @@ Configuration: 'configuration';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 How: 'how';
-Is: 'is'|'are';
+Initialize: 'initialize';
 It: 'it';
 List: ('tell me'|'describe'|'list');
 Limits: 'limits';

@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import bert.share.message.MessageBottle;
+import bert.share.message.RequestType;
 import bert.share.motor.Joint;
 import bert.speech.antlr.SpeechSyntaxLexer;
 import bert.speech.antlr.SpeechSyntaxParser;
@@ -49,12 +50,18 @@ public class StatementParser  {
 	 * This is the method that parses a statement - one line of text. It uses the visitor pattern to
 	 * traverse the parse tree and generate the returned statement prototype. This method parses one line.
 	 * 
+	 * Any partial text is saved off and prepended to the next string.
+	 * 
 	 * @param cmd user-entered english string
 	 * @return a request bottle to be sent to the server
 	 */
 	public MessageBottle parseStatement(String text) throws Exception {
 		MessageBottle bottle = new MessageBottle();
 		if( text!=null) {
+			if( context.get(SharedKey.PARTIAL)!=null ) {
+				text = String.format("%s %s", context.get(SharedKey.PARTIAL),text);
+				context.remove(SharedKey.PARTIAL);
+			}
 			ByteArrayInputStream bais = new ByteArrayInputStream(text.getBytes());
 			CodePointCharStream stream = CharStreams.fromString(text);
 			SpeechSyntaxLexer lexer = new QuietLexer(stream);
@@ -67,6 +74,10 @@ public class StatementParser  {
 			ParseTree tree = parser.line();   // Start with a line
 			StatementTranslator visitor = new StatementTranslator(bottle,context);
 			visitor.visit(tree);
+			
+			if(bottle.fetchRequestType().equals(RequestType.PARTIAL) ) {
+				context.put(SharedKey.PARTIAL,text);
+			}
 		}
 		else {
 			bottle.assignError("Empty");

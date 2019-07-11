@@ -21,12 +21,12 @@ public interface TextMessageObserver {
    * retained and used to refresh the displayed list at will.
    * @param mgr the text manager
    */
-  void initialize(TextManager mgr);
+  public void initialize(TextManager mgr);
   /**
    * Notify the observer that a new text message has been added
    * to the manager's list. Only appropriate client types are
    * included.
    * @param msg the new message
    */
-  void update(TextMessage msg);
+  public void update(TextMessage msg);
 }

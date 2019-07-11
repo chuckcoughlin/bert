@@ -250,7 +250,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-
+	@Override 
+	// initialize your joints
+	public Object visitInitializeJoints(SpeechSyntaxParser.InitializeJointsContext ctx) {
+		bottle.assignRequestType(RequestType.INITIALIZE_JOINTS);
+		return null;
+	}
 	@Override 
 	// what is the id of your left hip y?
 	public Object visitJointPropertyQuestion1(SpeechSyntaxParser.JointPropertyQuestion1Context ctx) {

@@ -69,7 +69,7 @@ public class DispatchService extends Service implements BluetoothHandler {
         Notification notification = buildNotification();
         dbManager = new DatabaseManager(getApplicationContext());
         String flag = dbManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION);
-        if(flag.equalsIgnoreCase("true"))simulatedConnectionMode = true;
+        if("true".equalsIgnoreCase(flag))simulatedConnectionMode = true;
         startForeground(DISPATCH_NOTIFICATION, notification);
         statusManager = new StatusManager();
         textManager   = new TextManager();
@@ -258,13 +258,7 @@ public class DispatchService extends Service implements BluetoothHandler {
 
 
 
-    // Update any observers with the latest text and send text to the robot for processing.
-    // The text originates from the speech recognizer on the tablet (or an error).
-    private void reportSpokenText(String text) {
-        Log.i(CLSS,String.format("reportSpokenText: %s",text));
-        textManager.processText(MessageType.MSG,text);
-        bluetoothConnection.write(String.format("%s:%s", MessageType.MSG.name(),text));
-    }
+
 
     private void stopForegroundService() {
         Log.i(CLSS, "Stop foreground service.");
@@ -294,7 +288,7 @@ public class DispatchService extends Service implements BluetoothHandler {
      */
     public void handleBluetoothError(String reason) {
         reportConnectionState(TieredFacility.BLUETOOTH,FacilityState.ERROR);
-        reportSpokenText(reason);
+        receiveSpokenText(reason);
         new Thread(new ProcessDelay(TieredFacility.BLUETOOTH,ERROR_CYCLE_DELAY)).start();
     }
     /**
@@ -317,7 +311,7 @@ public class DispatchService extends Service implements BluetoothHandler {
      */
     public void handleSocketError(String reason) {
         reportConnectionState(TieredFacility.SOCKET,FacilityState.ERROR);
-        reportSpokenText(reason);
+        receiveSpokenText(reason);
         new Thread(new ProcessDelay(TieredFacility.SOCKET,ERROR_CYCLE_DELAY)).start();
     }
     /**
@@ -328,15 +322,46 @@ public class DispatchService extends Service implements BluetoothHandler {
         determineNextAction(TieredFacility.SOCKET);
     }
     /**
+     * The bluetooth reader recorded a result. The text starts with a
+     * MessageType header.
+     */
+    public void receiveText(String text) {
+        if( text.length() > 4) {
+            try {
+                String hdr = text.substring(0,BertConstants.HEADER_LENGTH);
+                MessageType type = MessageType.valueOf(hdr.toUpperCase());
+                text = text.substring(BertConstants.HEADER_LENGTH+1);
+                textManager.processText(type, text);
+            }
+            catch(IllegalArgumentException iae) {
+                Log.w(CLSS,String.format("receiveText: (%s) has unrecognizedd header",text));
+            }
+        }
+        else {
+            Log.w(CLSS,String.format("receiveText: (%s) is too short",text));
+        }
+    }
+
+    /**
      * The speech recognizer reported an error.
      * @param reason error description
      */
     public void handleVoiceError(String reason) {
         reportConnectionState(TieredFacility.VOICE,FacilityState.ERROR);
-        reportSpokenText(reason);
+        receiveSpokenText(reason);
         new Thread(new ProcessDelay(TieredFacility.VOICE,ERROR_CYCLE_DELAY)).start();
     }
 
+    /**
+     * Send text to the robot for processing. Inform the text manager for dissemination
+     * to any observers.
+     * The text originates from the speech recognizer on the tablet (or an error).
+     */
+    public void receiveSpokenText(String text) {
+        Log.i(CLSS,String.format("reportSpokenText: %s",text));
+        textManager.processText(MessageType.MSG,text);
+        bluetoothConnection.write(String.format("%s:%s", MessageType.MSG.name(),text));
+    }
     //=================================== ProcessDelay ==============================================
     /**
      * Use this class to delay the transition to the next step. When we find
@@ -365,12 +390,6 @@ public class DispatchService extends Service implements BluetoothHandler {
     }
 
     // ===================================== Methods Exposed thru Service Binder ====================================
-    /**
-     * The speech recognizer recorded a result.
-     */
-    public void receiveText(String text) {
-        reportSpokenText(text);
-    }
     public void registerIntentObserver(IntentObserver observer)   { statusManager.register(observer); }
     public void unregisterIntentObserver(IntentObserver observer) { statusManager.unregister(observer);}
 

@@ -19,6 +19,7 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 
 import bert.share.message.MessageBottle;
+import bert.share.message.RequestType;
 
 
 
@@ -30,6 +31,12 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
 	private static final String CLSS = "SpeechErrorStrategy: ";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final MessageBottle bottle;
+	// Phases showing total lack of understanding ...
+	private String[] phrases = {
+       "I don't understand",
+       "Are you talking to me",
+       "I do not comprehend"
+    };
 	
 	public SpeechErrorStrategy(MessageBottle bot) {
 		this.bottle = bot;
@@ -71,14 +78,19 @@ public class SpeechErrorStrategy extends DefaultErrorStrategy {
     
     protected void recordError(Recognizer<?,?> recognizer, RecognitionException re) {
     	// In each case the expected tokens are an expression. Don't bother to list
-    	
     	Token offender = re.getOffendingToken();
     	String msg = "";
     	if( offender != null && offender.getText()!=null && !offender.getText().isEmpty() ) {
-    		msg = String.format("I don't understood the word \"%s\"",offender.getText());
+    		msg = String.format("I don't understand the word \"%s\"",offender.getText());
     	}
-    	else {
-    		msg = "I don't understand";
+    	// Full text can be broken into pieces 
+    	else if (offender.getText()!=null && offender.getText().startsWith("<EOF>") )  {  // EOF
+    		bottle.assignRequestType(RequestType.PARTIAL);
+    	}
+    	else {  // Don't understand
+    		double rand = Math.random();
+            int index = (int)(rand*phrases.length);
+            msg = phrases[index];
     	}
     	LOGGER.info(String.format("WARNING: %s: %s",CLSS,msg));
 		bottle.assignError(msg);

@@ -15,7 +15,7 @@ import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
 import bert.share.message.RequestType;
-import bert.share.message.SimpleMessageType;
+import bert.share.message.MessageType;
 import bert.speech.process.MessageTranslator;
 import bert.speech.process.StatementParser;
 
@@ -70,19 +70,23 @@ public class BluetoothController extends SocketController implements Controller 
 	@Override
 	public void receiveResponse(MessageBottle response) {
 		String text = translator.messageToText(response);
-		socket.write(String.format("%s:%s",SimpleMessageType.ANS.name(),text));
+		text = text.trim();
+		socket.write(String.format("%s:%s",MessageType.ANS.name(),text));
 	}
 	
 	/**
 	 * The request can be handled immediately without being sent to the
-	 * dispatcher. A common scenario is a parsing error;
+	 * dispatcher. A common scenario is a parsing error. For partial messages
+	 * we simply wait until the next parse.
 	 */
 	private void handleImmediateResponse(MessageBottle request) {
-		if( !suppressingErrors ) receiveResponse(request);
-		else {
-			suppressingErrors = true;  // Suppress replies to consecutive yntax errors
-			String text = translator.messageToText(request);
-			LOGGER.info(String.format("%s.SuppressedErrorMessage: %s",CLSS, text));
+		if( !request.fetchRequestType().equals(RequestType.PARTIAL) ) {
+			if( !suppressingErrors ) receiveResponse(request);
+			else {
+				suppressingErrors = true;  // Suppress replies to consecutive yntax errors
+				String text = translator.messageToText(request);
+				LOGGER.info(String.format("%s.SuppressedErrorMessage: %s",CLSS, text));
+			}
 		}
 	}
 	// ===================================== Background Reader ==================================================
@@ -115,8 +119,8 @@ public class BluetoothController extends SocketController implements Controller 
 			
 			while(!Thread.currentThread().isInterrupted() ) {
 				MessageBottle msg = null;
-				String text = sock.readLine();
-				if( text==null  ) {
+				String text = sock.readLine();  // Strips trailing new-line
+				if( text==null || text.isEmpty()  ) {
 					try { 
 						Thread.sleep(CLIENT_READ_ATTEMPT_INTERVAL);  // A read error has happened, we don't want a hard loop
 						continue;
@@ -125,18 +129,20 @@ public class BluetoothController extends SocketController implements Controller 
 				}
 				else if( text.length()>BottleConstants.HEADER_LENGTH ) {
 					String hdr = text.substring(0,BottleConstants.HEADER_LENGTH-1);
-					if( hdr.equalsIgnoreCase(SimpleMessageType.MSG.name())) {
-						// Strip header from message, then translate the rest.
+					if( hdr.equalsIgnoreCase(MessageType.MSG.name())) {
+						// Strip header then translate the rest.
 						try {
-							msg = parser.parseStatement(text.substring(BottleConstants.HEADER_LENGTH));
+							text = text.substring(BottleConstants.HEADER_LENGTH);
+							LOGGER.info(String.format("%s parsing: %s",sock.getName(),text));
+							msg = parser.parseStatement(text);
 						}
 						catch(Exception ex) {
+							msg = new MessageBottle();
+							msg.assignRequestType(RequestType.NOTIFICATION);
 							msg.assignError(String.format("Parse failure (%s) on: %s",ex.getLocalizedMessage(),text));
 						}
 					}
-					else if( hdr.equalsIgnoreCase(SimpleMessageType.LOG.name())) {
-						// Strip header from message, then just log it.
-						text = text.substring(BottleConstants.HEADER_LENGTH);
+					else if( hdr.equalsIgnoreCase(MessageType.LOG.name())) {
 						LOGGER.info(String.format("%s: %s",sock.getName(),text));
 						continue;
 						
@@ -153,8 +159,12 @@ public class BluetoothController extends SocketController implements Controller 
 					msg.assignError(String.format("Received a short message from the tablet (%s)",text));
 				}
 				
+				if( msg==null ) break;  // This happens on shutdown - I don't know how
 				msg.assignSource(HandlerType.COMMAND.name());
-				if( msg.fetchRequestType().equals(RequestType.NONE) || !msg.fetchError().isEmpty() ) {
+				if( msg.fetchRequestType().equals(RequestType.NOTIFICATION) ||
+					msg.fetchRequestType().equals(RequestType.NONE) 		||
+					msg.fetchRequestType().equals(RequestType.PARTIAL) 		||
+					msg.fetchError()!=null ) 							{
 					handleImmediateResponse(msg);
 				}
 				else {

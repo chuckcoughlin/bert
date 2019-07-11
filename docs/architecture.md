@@ -414,7 +414,8 @@ The tablet is a Bluetooth client based on Java classes that are a standard part 
 On the Linux side, there is an additional daemon process, _blueserver_, that serves as an interface between the _command_ process and the Bluetooth Serial Port service.
 
 Messages transmitted to and from the tablet are strings with a simple 4-character header and a 1K-byte
-size limit. Header values are described in the table below:
+size limit. Messages are stripped of any trailing whitespace except for a terminating new-line.
+Header values are described in the table below:
 
 | Header	| <center>Description</center>|
 | -------- | :------------------------------------------------------------------ |
@@ -425,6 +426,10 @@ size limit. Header values are described in the table below:
 |ROW:|	Append a row to the most-recently defined table. Pipe-delimited fields contain cell values.	|
 
 <center>``Tablet Message Structure``</center>
+
+Several messages may be buffered in the same socket transmission to or from the tablet. However, the
+sender appends a new-line to each message to enable both the tablet and robot
+Java code to use `readline()` to parse one message at a time.
 
 #### Poses <a id="poses"></a>
 A "pose" is a position of the robot as a whole, comprising settings for each of its joints. Poses may be

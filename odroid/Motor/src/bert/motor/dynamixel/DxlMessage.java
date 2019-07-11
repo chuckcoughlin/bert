@@ -67,13 +67,15 @@ public class DxlMessage  {
 		for(MotorConfiguration mc:configurations) {
 			double pos = mc.getPosition();
 			if( pos>mc.getMaxAngle() ) {
-				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s at %.0f (max=%.0f)",CLSS,mc.getName().name(),pos,mc.getMaxAngle()));
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
+											CLSS,mc.getName().name(),pos,mc.getMaxAngle()));
 				mc.setPosition(mc.getMaxAngle());
 				outliers.add(mc);
 				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
 			}
 			else if(pos<mc.getMinAngle()) {
-				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s at %.0f (min=%.0f)",CLSS,mc.getName().name(),pos,mc.getMinAngle()));
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (min=%.0f)",
+											CLSS,mc.getName().name(),pos,mc.getMinAngle()));
 				mc.setPosition(mc.getMinAngle());
 				outliers.add(mc);
 				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
@@ -535,10 +537,11 @@ public class DxlMessage  {
 				length = bytes[index+3] + 4;  // Takes care of fixed bytes pre-length
 				byte err= bytes[index+4];
 				MotorConfiguration mc =  configurations.get(id);
-				if( err==0 && mc!=null ) {
+				if( err==0 && mc!=null && bytes.length>index+6 ) {
 					double param= DxlConversions.valueForProperty(parameterName,mc,bytes[index+5],bytes[index+6]);
 					parameters.put(id, String.valueOf(param));
 					mc.setProperty(parameterName, param);
+					LOGGER.info(String.format("%s.updateParameterArrayFromBytes: motor %d %s=%s",CLSS,id,parameterName,String.valueOf(param)));
 				}
 				else if(err!=0){
 					msg = String.format("%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",CLSS,id,err,
@@ -546,8 +549,18 @@ public class DxlMessage  {
 					LOGGER.severe(msg);
 				}
 				// mc = null
+				else if( mc==null ) {
+					msg = String.format("%s.updateParameterArrayFromBytes: motor %d not supplied in motor configurations",CLSS,id,dump(bytes));
+					LOGGER.severe(msg);
+				}
+				// NOTE: Error was not repeatable. Did read not include entire message?
+				else if(bytes.length<=index+6){
+					msg = String.format("%s.updateParameterArrayFromBytes: motor %d input truncated (%s)",CLSS,id,dump(bytes));
+					LOGGER.severe(msg);
+				}
+				// Don't know what this could be ...
 				else {
-					msg = String.format("%s.updateParameterArrayFromBytes: id of %d not supplied in motor configurations",CLSS,id,dump(bytes));
+					msg = String.format("%s.updateParameterArrayFromBytes: programming error at id=%d",CLSS,id,dump(bytes));
 					LOGGER.severe(msg);
 				}
 			}

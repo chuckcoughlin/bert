@@ -14,6 +14,7 @@ public enum SharedKey
             ASLEEP,    // Robot ignores requests,
             AXIS,
             JOINT,
+            PARTIAL,   // Text of an incomplete request
             POSE,      // Current pose
             SIDE
             ;

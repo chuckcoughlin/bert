@@ -107,6 +107,7 @@ public class StdioController implements Controller {
 					 * 4) Send string to stdout
 					 */
 					else {
+						LOGGER.info(String.format("%s parsing: %s",HandlerType.TERMINAL.name(),input));
 						MessageBottle request = parser.parseStatement(input);
 						request.assignSource(HandlerType.TERMINAL.name());
 						if( request.fetchError()!=null || request.fetchRequestType().equals(RequestType.NOTIFICATION)) {

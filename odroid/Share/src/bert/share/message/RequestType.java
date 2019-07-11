@@ -22,6 +22,7 @@ public enum RequestType
 	INITIALIZE_JOINTS,		 // Make sure that all joints are in "sane" positions
 	LIST_MOTOR_PROPERTY,     // List a property for all motors
 	NOTIFICATION,            // Unsolicited message from server or parser
+	PARTIAL,                 // Remainder of text has yet to arrive
     PLAY_STEP,
 	RECORD_STEP,
 	SET_MOTOR_PROPERTY,       // For a particular motor

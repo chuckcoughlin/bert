@@ -19,7 +19,8 @@ import chuckcoughlin.bert.common.MessageType;
 
 /**
  *  This socket communicates across a Bluetooth network to the robot which acts
- *  as a server. The messages are simple text strings.
+ *  as a server. The messages are simple text strings. We append a new-line
+ *  on write and expect one on read.
  *  
  *  The file descriptors are opened on "openConnections" and closed on
  *  "shutdown". Change listeners are notified (in a separate Thread) when the
@@ -93,15 +94,15 @@ public class BluetoothConnection {
 	 * If we get a null, then close the socket and either re-open or re-listen
 	 * depending on whether or not this is the server side, or not.
 	 *
-	 * @return either a RequestBottle or a ResponseBottle as appropriate.
+	 * @return the line of text
 	 */
 	public String read() {
 		String text = null;
 		try {
 			if(in!=null )  {
 				Log.i(CLSS,String.format("read: reading ... "));
-				int count = in.read(buffer,0,BUFFER_SIZE);
-				Log.i(CLSS,String.format("read: got %d bytes !!",count));
+				text = in.readLine();  // Does not include CR
+				Log.i(CLSS,String.format("read: returning: %s",text));
 			}
 			else {
                 Log.e(CLSS,String.format("read: Error reading from %s before connection",device.getName()));
@@ -138,8 +139,8 @@ public class BluetoothConnection {
 		try {
 			if( out!=null ) {
 				if(!out.checkError() ) {
-					Log.i(CLSS, String.format("write: writing ... %s (%d bytes) to %s. ", text, text.length(), deviceName));
-					out.print(text);
+					Log.i(CLSS, String.format("write: writing ... %s (%d bytes) to %s.", text, text.length()+1, deviceName));
+					out.println(text);  // Appends new-line
 					out.flush();
 				}
 				else {
@@ -310,7 +311,8 @@ public class BluetoothConnection {
 			for (; ; ) {
 				try {
 
-					read();
+					String text = read();
+					handler.receiveText(text);
 					Thread.sleep(100);
 				}
 				catch(InterruptedException ex) {
