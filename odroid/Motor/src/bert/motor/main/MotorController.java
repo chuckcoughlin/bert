@@ -38,7 +38,7 @@ public class MotorController implements Controller, Runnable, SerialPortEventLis
 	protected static final String CLSS = "MotorController";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final int BAUD_RATE = 1000000;
-	private static final int MIN_WRITE_INTERVAL = 25; // msecs between writes
+	private static final int MIN_WRITE_INTERVAL = 50; // msecs between writes (25 was too short)
 	private final Condition running;
 	private final String group;                 // Group name
 	private final Lock lock;
