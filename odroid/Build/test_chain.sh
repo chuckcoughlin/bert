@@ -1,7 +1,5 @@
 #!/bin/sh
-# Execute a test of forward kinematics using the location solver. In particular,
-# test rotations of the robot vs the "inertial frame" as if commanded by the IMU.
-# The test requires the urdf.xml and bert.xml configuration files located in $BERT_HOME/etc
+# Execute a test of the URDF file located in $BERT_HOME/etc
 cd ${BERT_HOME}
 mkdir -p logs
 MP=mods/hipparchus-core-1.5.jar

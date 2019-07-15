@@ -55,7 +55,8 @@ public class LoggerUtility {
 		Logger root = Logger.getLogger("");
 		Handler[] handlers = root.getHandlers(); 
 	    for (Handler h : handlers) {
-	        h.setLevel(Level.WARNING);   // Display warnings and worse on console 
+	        h.setLevel(Level.WARNING);   // Display warnings and worse on console
+	        h.setFormatter(new BertFormatter());
 	        if( h instanceof FileHandler ) root.removeHandler(h);
 	    }
 
@@ -79,7 +80,19 @@ public class LoggerUtility {
 	    }  
 	}
 	
-	
+	/**
+	 * Configure the loggers to output INFO to std out, do not send to a log file.
+	 * @param root core name for the log files
+	 */
+	public void configureTestLogger(String rootName) {
+		Logger root = Logger.getLogger("");
+		Handler[] handlers = root.getHandlers(); 
+	    for (Handler h : handlers) {
+	        h.setLevel(Level.INFO);   // Display info and worse on console
+	        h.setFormatter(new BertFormatter());
+	        if( h instanceof FileHandler ) root.removeHandler(h);
+	    }  
+	}
 	public final class BertFormatter extends Formatter {
 		private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS ";
 		private final String LINE_SEPARATOR = System.getProperty("line.separator");

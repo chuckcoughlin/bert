@@ -35,7 +35,6 @@ public class URDFModel  {
 	private final Map<Limb,LinkPoint> revolutesByChild;
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 
-	
 	public URDFModel() {
 		this.chain = new Chain();
 		this.limbList = new ArrayList<>();
@@ -43,8 +42,6 @@ public class URDFModel  {
 		this.document = null;
 	}
     
-
-
 	/**
 	 * @return the tree of links which describes the robot.
 	 */
@@ -68,7 +65,6 @@ public class URDFModel  {
 											CLSS,filePath.toAbsolutePath().toString(),ioe.getLocalizedMessage()));
 		}
 	}
-	
 
     // ================================ Auxiliary Methods  ===============================
 	
@@ -111,12 +107,9 @@ public class URDFModel  {
 			while(index<count) {
 				Node linkNode = links.item(index);
 				String name = XMLUtility.attributeValue(linkNode, "name");
-				//LOGGER.info(String.format("%s.analyzeChain: Link %s ...",CLSS,name));
+				LOGGER.info(String.format("%s.analyzeChain: Link %s ...",CLSS,name));
 				try {
 					Limb limb = Limb.valueOf(name.toUpperCase());
-					limbList.add(limb);
-					//LOGGER.info(String.format("%s.analyzeChain: Found link %s",CLSS,name));
-
 
 					NodeList appendages = linkNode.getChildNodes();
 					int acount = appendages.getLength();
@@ -146,7 +139,6 @@ public class URDFModel  {
 						}
 						aindex++;
 					}
-
 				}
 				catch(IllegalArgumentException iae) {
 					LOGGER.warning(String.format("%s.analyzeChain: link or appendage has unknown name: %s, ignored (%s)",CLSS,name,iae.getLocalizedMessage()));
@@ -161,7 +153,7 @@ public class URDFModel  {
 			while(index<count) {
 				Node jointNode = joints.item(index);
 				String name = XMLUtility.attributeValue(jointNode, "name");
-				//LOGGER.info(String.format("%s.analyzeChain: Joint %s ...",CLSS,name));
+				LOGGER.info(String.format("%s.analyzeChain: Joint %s ...",CLSS,name));
 				try {
 					Joint joint = Joint.valueOf(name);
 					NodeList childNodes = jointNode.getChildNodes();
@@ -215,7 +207,7 @@ public class URDFModel  {
 						link.setParent(parentLink);
 					}
 					revolutesByChild.put(child, rev);
-					//LOGGER.fine(String.format("%s.analyzeChains: Found revolute %s",CLSS,rev.getName()));
+					LOGGER.fine(String.format("%s.analyzeChains: Found revolute %s",CLSS,rev.getName()));
 				}
 				catch(IllegalArgumentException iae) {
 					LOGGER.warning(String.format("%s.analyzeChains: link element has unknown name (%s), ignored",CLSS,name));
@@ -223,7 +215,7 @@ public class URDFModel  {
 				index++;
 			}
 
-			// Search for origin. Origin is link where no other link has it as a child.
+			// Search for origin aka root. Origin is link where no joint has it as a child.
 			for(Link link:chain.getLinks() ) {
 				Link parent = link.getParent();
 				if( parent!=null ) {
@@ -252,5 +244,3 @@ public class URDFModel  {
 		return result;
 	}
 }
-
-

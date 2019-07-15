@@ -9,10 +9,12 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import bert.control.model.Chain;
 import bert.control.model.TestRobotModel;
 import bert.control.model.URDFModel;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
+import bert.share.logging.LoggerUtility;
 import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
 
@@ -34,7 +36,10 @@ public class Solver {
 		this.model = new URDFModel();
 		this.motorConfigurations = null;
 	}
-	
+	/**
+	 * @return the tree of links which describes the robot.
+	 */
+	public URDFModel getModel() { return this.model; }
 	/**
 	 * Traverse the tree, clearing all the intermediate calculations (Quaternions).
 	 * This forces them to be re-calculated.
@@ -49,7 +54,7 @@ public class Solver {
 	 */
 	public void configure(Map<Joint,MotorConfiguration> mc,Path urdfPath) {
 		this.motorConfigurations = mc;
-		LOGGER.info(String.format("%s.analyzePath: URDF file(%s)",CLSS,urdfPath.toAbsolutePath().toString()));
+		LOGGER.info(String.format("%s.configure: URDF file(%s)",CLSS,urdfPath.toAbsolutePath().toString()));
 		model.analyzePath(urdfPath);
 	}
 	
@@ -78,7 +83,10 @@ public class Solver {
 		// Analyze command-line argument to obtain the robot root directory.
 		String arg = args[0];
 		Path path = Paths.get(arg);
-		PathConstants.setHome(path);;
+		PathConstants.setHome(path);
+		// Setup logging to use only a file appender to our logging directory
+		String LOG_ROOT = CLSS.toLowerCase();
+		LoggerUtility.getInstance().configureTestLogger(LOG_ROOT);
 		// Analyze the xml for motor configurations. Initialize the motor configurations.
 		TestRobotModel model = new TestRobotModel(PathConstants.CONFIG_PATH);
 		model.populate();    //

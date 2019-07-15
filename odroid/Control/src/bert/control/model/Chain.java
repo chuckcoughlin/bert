@@ -13,12 +13,15 @@ import bert.control.main.Solver;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
 import bert.share.control.Limb;
+import bert.share.logging.LoggerUtility;
 import bert.share.motor.Joint;
 
 /**
  * A Chain represents a tree of Links starting with the 
  * "root" link. The position of links within the chain are
- * all relative to the root link. 
+ * all relative to the root link (i.e. origin). The URDF
+ * file format doesn't define things in the most convenient
+ * order.
  * 
  * Changes to the "inertial frame" as detected by the IMU
  * are all handled here.
@@ -60,9 +63,26 @@ public class Chain {
 			list.add(link);
 		}
 	}
+	/**
+	 * As we add origin and endpoints, the new link gets added to the various
+	 * maps that allow us to navigate the chain.
+	 * @param name the new link or limb name.
+	 */
+	public void createLink(String name) {
+		Link link = new Link(name.toUpperCase());
+		linksByLimb.put(link.getName(), link);
+	}
+	public void setOriginLinkPoint(Limb link,LinkPoint lp) {
+		
+	}
+
+	public void setEndLinkPoint(Limb link,LinkPoint lp) {
+		
+	}
 
 	public Collection<Link> getLinks() { return linksByLimb.values(); }
 	public Link getLinkForLimb(Limb limb) { return linksByLimb.get(limb); }
+
 	/**
 	 * Traverse the entire chain, clearing temporary calculations in each link.
 	 * @return
@@ -100,22 +120,26 @@ public class Chain {
 	public void setOrigin( double[] o) { this.origin = o; }
 	
 	/**
-	 * Test calculations of various positions of the robot vs the "inertial frame". 
-	 * We rely on configuration file in $BERT_HOME/etc on the development machine.
+	 * Test construction of the chain of robot "limbs" based on the URDF file in 
+	 * $BERT_HOME/etc on the development machine.
 	 */
 	public static void main(String [] args) {
 		// Analyze command-line argument to obtain the robot root directory.
 		String arg = args[0];
 		Path path = Paths.get(arg);
-		PathConstants.setHome(path);;
-		// Analyze the xml for motor configurations
+		PathConstants.setHome(path);
+		// Setup logging to use only a file appender to our logging directory
+		String LOG_ROOT = CLSS.toLowerCase();
+		LoggerUtility.getInstance().configureTestLogger(LOG_ROOT);
+		// Analyze the xml for motor configurations. Initialize the motor configurations.
 		TestRobotModel model = new TestRobotModel(PathConstants.CONFIG_PATH);
 		model.populate();    //
 		Solver solver = new Solver();
 		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
+		Chain chain = solver.getModel().getChain();
 		
-		double[] xyz = solver.getLocation(Joint.ABS_Y);   // Just to top of pelvis
-        System.out.println(String.format("%s: xyz = %.2f,%.2f,%.2f ",Joint.ABS_Y.name(),xyz[0],xyz[1],xyz[2]));
+		Link root = chain.getRoot();
+        System.out.println(String.format("%s: root = %s ",CLSS,root.getName()));
     }
 }
 
