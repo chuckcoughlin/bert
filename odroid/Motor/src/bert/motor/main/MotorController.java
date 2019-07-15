@@ -336,7 +336,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				list = DxlMessage.byteArrayListToListProperty(propertyName,configurationsByName.values());
-				wrapper.setResponseCount(list.size());  // Status packets from READ and BULK READ
+				wrapper.setResponseCount(configurationsByName.size());  // Status packet for each motor
 			}
 			else if( type.equals(RequestType.SET_POSE)) {
 				String poseName = request.getProperty(BottleConstants.POSE_NAME, "");

@@ -57,6 +57,7 @@ public class DxlMessage  {
 	 * Iterate through the list of motor configurations to determine which, if any, are outside the max-min
 	 * angle ranges. For those outside, move the position to a legal value.
 	 * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
+	 * Discount any current readings of zero, it probably means that the motor positions were never evaluated.
 	 * @param configurations a list of motor configuration objects
 	 * @return list of byte arrays with bulk read plus extras for any AX-12. 
 	 */
@@ -66,7 +67,10 @@ public class DxlMessage  {
 		travelTime = 0;
 		for(MotorConfiguration mc:configurations) {
 			double pos = mc.getPosition();
-			if( pos>mc.getMaxAngle() ) {
+			if( pos==0. ) {
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s never evaluated, ignored",CLSS,mc.getName().name()));
+			}
+			else if( pos>mc.getMaxAngle() ) {
 				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
 											CLSS,mc.getName().name(),pos,mc.getMaxAngle()));
 				mc.setPosition(mc.getMaxAngle());
