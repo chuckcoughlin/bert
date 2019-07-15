@@ -45,7 +45,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	private static final int MIN_WRITE_INTERVAL = 50; // msecs between writes (25 was too short)
 	private static final int STATUS_RESPONSE_LENGTH = 8; // byte count
 	private final Condition running;
-	private final Condition waitingOnSerial;
+	private final DxlMessage dxl;
 	private final String group;                 // Group name
 	private final Lock lock;
 	private final SerialPort port;
@@ -59,6 +59,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	private long timeOfLastWrite;
 
 	public MotorController(String name,SerialPort p,MotorManager mm) {
+		this.dxl = new DxlMessage();
 		this.group = name;
 		this.port = p;
 		this.motorManager = mm;
@@ -68,7 +69,6 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 		this.responseQueue = new LinkedList<>();
 		this.lock = new ReentrantLock();
 		this.running = lock.newCondition();
-		this.waitingOnSerial = lock.newCondition();
 		this.timeOfLastWrite = System.nanoTime()/1000000; 
 	}
 
@@ -210,7 +210,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	// The byte array may be the concatenation of several responses.
 	private Map<Integer,String> createPropertyMapFromBytes(String propertyName,byte[] bytes) {
 		Map<Integer,String> props = new HashMap<>();
-		DxlMessage.updateParameterArrayFromBytes(propertyName,configurationsById,bytes,props);
+		dxl.updateParameterArrayFromBytes(propertyName,configurationsById,bytes,props);
 		return props;
 	}
 	/**
@@ -266,20 +266,20 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			if( type.equals(RequestType.GET_GOALS)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
 				MotorConfiguration mc = configurationsByName.get(jointName);
-				bytes = DxlMessage.bytesToGetGoals(mc.getId());
+				bytes = dxl.bytesToGetGoals(mc.getId());
 				wrapper.setResponseCount(1);   // Status message
 			}
 			else if( type.equals(RequestType.GET_LIMITS)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
 				MotorConfiguration mc = configurationsByName.get(jointName);
-				bytes = DxlMessage.bytesToGetLimits(mc.getId());
+				bytes = dxl.bytesToGetLimits(mc.getId());
 				wrapper.setResponseCount(1);   // Status message
 			}
 			else if( type.equals(RequestType.GET_MOTOR_PROPERTY)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
 				MotorConfiguration mc = configurationsByName.get(jointName);
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
-				bytes = DxlMessage.bytesToGetProperty(mc.getId(),propertyName);
+				bytes = dxl.bytesToGetProperty(mc.getId(),propertyName);
 				wrapper.setResponseCount(1);   // Status message
 			}
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
@@ -288,7 +288,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
 				if( value!=null && !value.isEmpty()) {
-					bytes = DxlMessage.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
+					bytes = dxl.bytesToSetProperty(mc,propertyName,Double.parseDouble(value));
 					if(propertyName.equalsIgnoreCase("POSITION")) {
 						long duration = mc.getTravelTime();
 						if(request.getDuration()<duration) request.setDuration(duration);
@@ -308,7 +308,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
 				wrapper.setResponseCount(0);   // Error, there will be no response
 			}
-			LOGGER.info(String.format("%s.messageToBytes: request(%s) = (%s)",CLSS,request.fetchRequestType(),DxlMessage.dump(bytes)));
+			LOGGER.info(String.format("%s.messageToBytes: request(%s) = (%s)",CLSS,request.fetchRequestType(),dxl.dump(bytes)));
 		}
 		return bytes;
 	}
@@ -328,20 +328,20 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			// Unfortunately broadcast requests don't work here. We have to concatenate the
 			// requests into single long lists.
 			if( type.equals(RequestType.INITIALIZE_JOINTS)) {
-				list = DxlMessage.byteArrayListToInitializePositions(configurationsByName.values());
-				long duration = DxlMessage.getMostRecentTravelTime();
+				list = dxl.byteArrayListToInitializePositions(configurationsByName.values());
+				long duration = dxl.getMostRecentTravelTime();
 				if( request.getDuration()<duration ) request.setDuration(duration);
 				wrapper.setResponseCount(0);  // No response
 			}
 			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
-				list = DxlMessage.byteArrayListToListProperty(propertyName,configurationsByName.values());
+				list = dxl.byteArrayListToListProperty(propertyName,configurationsByName.values());
 				wrapper.setResponseCount(configurationsByName.size());  // Status packet for each motor
 			}
 			else if( type.equals(RequestType.SET_POSE)) {
 				String poseName = request.getProperty(BottleConstants.POSE_NAME, "");
-				list = DxlMessage.byteArrayListToSetPose(configurationsByName,poseName);
-				long duration = DxlMessage.getMostRecentTravelTime();
+				list = dxl.byteArrayListToSetPose(configurationsByName,poseName);
+				long duration = dxl.getMostRecentTravelTime();
 				if( request.getDuration()<duration ) request.setDuration(duration);
 				wrapper.setResponseCount(0);  // AYNC WRITE, no responses
 			}
@@ -349,7 +349,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",CLSS,type.name()));
 			}
 			for(byte[] bytes:list) {
-				LOGGER.info(String.format("%s.messageToByteList: request(%s) = (%s)",CLSS,request.fetchRequestType(),DxlMessage.dump(bytes)));
+				LOGGER.info(String.format("%s.messageToByteList: request(%s) = (%s)",CLSS,request.fetchRequestType(),dxl.dump(bytes)));
 			}
 		}
 		return list;
@@ -390,18 +390,18 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			if( type.equals(RequestType.GET_GOALS)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
 				MotorConfiguration mc = getMotorConfiguration(jointName);
-				DxlMessage.updateGoalsFromBytes(mc,properties,bytes);
+				dxl.updateGoalsFromBytes(mc,properties,bytes);
 			} 
 			else if( type.equals(RequestType.GET_LIMITS)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
 				MotorConfiguration mc = getMotorConfiguration(jointName);
-				DxlMessage.updateLimitsFromBytes(mc,properties,bytes);
+				dxl.updateLimitsFromBytes(mc,properties,bytes);
 			} 
 			else if( type.equals(RequestType.GET_MOTOR_PROPERTY)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
 				MotorConfiguration mc = getMotorConfiguration(jointName);
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "UNKNOWN");
-				DxlMessage.updateParameterFromBytes(propertyName,mc,properties,bytes);
+				dxl.updateParameterFromBytes(propertyName,mc,properties,bytes);
 				String partial = properties.get(BottleConstants.TEXT);
 				if( partial!=null && !partial.isEmpty()) {
 					Joint joint = Joint.valueOf(jointName);
@@ -410,7 +410,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			} 
 			// The only interesting response is the error code.
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-				String err =  DxlMessage.errorMessageFromStatus(bytes);
+				String err =  dxl.errorMessageFromStatus(bytes);
 				if( err!=null && !err.isEmpty() ) {
 					request.assignError(err);
 				}
@@ -457,16 +457,17 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			MessageBottle req = wrapper.getMessage();
 			// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();
-			LOGGER.info(String.format("%s.serialEvent callback port %s for %s: bytes %d",
-										CLSS,event.getPortName(),req.fetchRequestType().name(),byteCount));
+			LOGGER.info(String.format("%s.serialEvent callback port %s for %s: expect %d msgs got %d bytes",
+										CLSS,event.getPortName(),req.fetchRequestType().name(),wrapper.getResponseCount(),byteCount));
             if(byteCount>0){
                 try {
                     byte[] bytes = port.readBytes(byteCount);
                     bytes = prependRemainder(bytes);
-                    bytes = DxlMessage.ensureLegalStart(bytes);
-                    LOGGER.info(String.format("%s.serialEvent: read = (%s)",CLSS,DxlMessage.dump(bytes)));
-                    int nbytes = DxlMessage.getMessageLength(bytes);
-                    if( nbytes<0 || bytes.length < nbytes) {
+                    bytes = dxl.ensureLegalStart(bytes);
+                    int nbytes = bytes.length;
+                    LOGGER.info(String.format("%s.serialEvent: read = (%s)",CLSS,dxl.dump(bytes)));
+                    int mlen = dxl.getMessageLength(bytes);  // First message
+                    if( mlen<0 || nbytes < mlen) {
                     	LOGGER.info(String.format("%s.serialEvent Message too short (%d), requires additional read",CLSS,nbytes));
                     	return;
                     }
@@ -492,7 +493,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
             				String name = configurationsById.get(key).getName().name();
             				req.setJointValue(name, param);
             				wrapper.decrementResponseCount();
-            				LOGGER.info(String.format("%s.aggregateMotorProperties: received %s (%d remaining) = %s",
+            				LOGGER.info(String.format("%s.serialEvent: received %s (%d remaining) = %s",
             						CLSS,name,wrapper.getResponseCount(),param));
             			}
                     	if( wrapper.getResponseCount()<=0 ) {

@@ -19,9 +19,11 @@ public class PortTest implements Runnable,SerialPortEventListener {
 	private static final int BAUD_RATE = 1000000;
 	private static final String DEVICE = "/dev/ttyACM0";
 	private final SerialPort port;
+	private final DxlMessage dxl;
 	
 	public PortTest() {
 		port = new SerialPort(DEVICE);
+		dxl = new DxlMessage();
 	}
 	
 	public void run() {
@@ -63,14 +65,14 @@ public class PortTest implements Runnable,SerialPortEventListener {
 		}
 		// Write
 		delay();
-		byte[] bytes = DxlMessage.bytesToBroadcastPing();
+		byte[] bytes = dxl.bytesToBroadcastPing();
 		try {
 			// Write the buffer
 			success = port.writeBytes(bytes);
 			System.out.println(String.format("PortTest.writeBytes: Success = %s writing %d bytes ",(success?"true":"false"),bytes.length));
 		}
 		catch(SerialPortException spe) {
-			System.out.println(String.format("PortTest: Error writing %s (%s)",DxlMessage.dump(bytes),spe.getLocalizedMessage()));
+			System.out.println(String.format("PortTest: Error writing %s (%s)",dxl.dump(bytes),spe.getLocalizedMessage()));
 		}
 
 		// Read
@@ -84,7 +86,7 @@ public class PortTest implements Runnable,SerialPortEventListener {
 			bytes = port.readBytes();
 			if( bytes!=null )
 			System.out.println(String.format("PortTest.readBytes: Got %d bytes",bytes.length));
-			System.out.println(String.format("PortTest.readBytes: %s",DxlMessage.dump(bytes)));
+			System.out.println(String.format("PortTest.readBytes: %s",dxl.dump(bytes)));
 			}
 		}
 		catch(SerialPortException spe) {

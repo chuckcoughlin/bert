@@ -51,8 +51,13 @@ import bert.sql.db.Database;
 public class Dispatcher extends Thread implements MessageHandler,SocketStateChangeListener {
 	private final static String CLSS = "Dispatcher";
 	private static final String USAGE = "Usage: launcher <robot_root>";
-	// Start phrases to choose from ...
-	private static final String[] phrases = {
+	// Phrases to choose from ...
+	private static final String[] mittenPhrases = {
+		"My hands cut easily",
+		"My hands are cold",
+		"Mittens are stylish"
+	};
+	private static final String[] startPhrases = {
        "Bert is ready",
        "At your command",
        "I'm listening",
@@ -193,7 +198,6 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			motorGroupController.initialize();
 			motorGroupController.start();
 
-			/*
 			// Set the speed to "normal" rate. Delay to all startup to complete
 			InternalMessage msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
@@ -206,7 +210,6 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			// Bring any joints that are outside sane limits into compliance
 			msg = new InternalMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
 			internalController.receiveRequest(msg);
-			*/
 		}
 		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
 	}
@@ -316,7 +319,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 					text = "My height when standing is 83 centimeters";
 					break;
 				case MITTENS:
-					text = "My hands cut easily";
+					text = selectRandomText(mittenPhrases);
 					break;
 				case NAME:
 					text = "My name is "+getName();
@@ -371,7 +374,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private void reportStartup(String sourceName) {
 		MessageBottle startMessage = new MessageBottle();
 		startMessage.assignRequestType(RequestType.NOTIFICATION);
-		startMessage.setProperty(BottleConstants.TEXT, selectRandomText());
+		startMessage.setProperty(BottleConstants.TEXT, selectRandomText(startPhrases));
 		LOGGER.info(String.format("%s: Bert is ready ... (to %s)",CLSS,sourceName));
 		startMessage.assignSource(sourceName);
 		handleResponse(startMessage);
@@ -380,7 +383,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
      * Select a random startup phrase from the list.
      * @return the selected phrase.
      */
-    private String selectRandomText() {
+    private String selectRandomText(String[] phrases) {
         double rand = Math.random();
         int index = (int)(rand*phrases.length);
         return phrases[index];

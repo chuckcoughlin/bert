@@ -20,7 +20,7 @@ import bert.share.motor.MotorConfiguration;
 import bert.sql.db.Database;
 
 /**
- * This class contains static methods used to create and interpret different varieties \
+ * This class contains utility methods used to create and interpret different varieties \
  * of Dynamixel serial messages. Code is derived from Pypot dynamixel.v2.py and the Dynamixel
  * documentation at http://emanual.robotis.com. Applies to MX64, MX28, AX12A models.
  * The documentation is unclear about the protocol version for AX-12 models, but it appears
@@ -30,9 +30,8 @@ import bert.sql.db.Database;
 public class DxlMessage  {
 	private static final String CLSS = "DxlMessage";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
-	private static long travelTime = 0;
-	private static final byte BROADCAST_ID = (byte)0xFE; // ID to transmit to all devices connected to port
 	// Constants for the instructions
+	private static final byte BROADCAST_ID = (byte)0xFE; // ID to transmit to all devices connected to port
 	private static final byte PING = 0x01;   // Instruction that checks whether the Packet has arrived
 	private static final byte READ = 0x02; 	// Instruction to read data from the Device
 	private static final byte WRITE= 0x03; 	// Instruction to write data on the Device
@@ -45,13 +44,18 @@ public class DxlMessage  {
 	private static final byte SYNC_READ  = (byte)0x82; 	// For multiple devices, Instruction to read data from the same Address with the same length at once
 	private static final byte SYNC_WRITE = (byte)0x83; // For multiple devices, Instruction to write data on the same Address with the same length at once
 	private static final byte BULK_READ  = (byte)0x92; // For multiple devices, Instruction to read data from different Addresses with different lengths at once 
+	private final DxlConversions converter;
+	private long travelTime = 0;
 	
+	public DxlMessage() {
+		this.converter = new DxlConversions();
+	}
 	/**
 	 * As each method that generates motor motions is invoked, it calculates time to execute the movement.
 	 * The result is stored as a static parameter, good only until the next method is run.
 	 * @return the maximum travel time as calculated by the most recent byte syntax generator. Time ~msecs. 
 	 */
-	public static long getMostRecentTravelTime() { return travelTime; }
+	public long getMostRecentTravelTime() { return travelTime; }
 	
 	/**
 	 * Iterate through the list of motor configurations to determine which, if any, are outside the max-min
@@ -61,7 +65,7 @@ public class DxlMessage  {
 	 * @param configurations a list of motor configuration objects
 	 * @return list of byte arrays with bulk read plus extras for any AX-12. 
 	 */
-	public static List<byte[]> byteArrayListToInitializePositions(Collection<MotorConfiguration> configurations) {
+	public List<byte[]> byteArrayListToInitializePositions(Collection<MotorConfiguration> configurations) {
 		List<MotorConfiguration> outliers = new ArrayList<>();  // Will hold the joints that need moving.
 		
 		travelTime = 0;
@@ -95,12 +99,12 @@ public class DxlMessage  {
 			setSyncWriteHeader(bytes);
 			bytes[3] = (byte)(len-4);
 			bytes[4] = SYNC_WRITE;
-			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION.name());
+			bytes[5] = converter.addressForGoalProperty(JointProperty.POSITION.name());
 			bytes[6] = 0x2;  // 2 bytes
 			int index = 7;
 			for( MotorConfiguration mc:outliers) {
 				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",CLSS,mc.getName().name(),mc.getPosition()));
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION.name(),mc,mc.getPosition());
+				int dxlValue = converter.dxlValueForProperty(JointProperty.POSITION.name(),mc,mc.getPosition());
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
@@ -119,7 +123,7 @@ public class DxlMessage  {
 	 * @param propertyName the name of the desired property (must be a joint property)
 	 * @return list of byte arrays with bulk read plus extras for any AX-12. 
 	 */
-	public static List<byte[]> byteArrayListToListProperty(String propertyName,Collection<MotorConfiguration> configurations) {
+	public List<byte[]> byteArrayListToListProperty(String propertyName,Collection<MotorConfiguration> configurations) {
 		List<byte[]> messages = new ArrayList<>();
 		int count = configurations.size();   // Number of motors, less AX-12
 		for( MotorConfiguration mc:configurations) {
@@ -129,8 +133,8 @@ public class DxlMessage  {
 				setHeader(bytes,mc.getId());
 				bytes[3] = (byte)length; 
 				bytes[4] = READ;
-				bytes[5] = DxlConversions.addressForPresentProperty(propertyName);
-				bytes[6] = DxlConversions.dataBytesForProperty(propertyName);
+				bytes[5] = converter.addressForPresentProperty(propertyName);
+				bytes[6] = converter.dataBytesForProperty(propertyName);
 				setChecksum(bytes);
 				messages.add(bytes);
 				count--;
@@ -147,9 +151,9 @@ public class DxlMessage  {
 		int addr = 6;
 		for(MotorConfiguration mc:configurations) {
 			if(mc.getType().equals(DynamixelType.AX12) ) continue;
-			bytes[addr] = DxlConversions.dataBytesForProperty(propertyName);
+			bytes[addr] = converter.dataBytesForProperty(propertyName);
 			bytes[addr+1] = (byte)mc.getId();
-			bytes[addr+2] = DxlConversions.addressForPresentProperty(propertyName);
+			bytes[addr+2] = converter.addressForPresentProperty(propertyName);
 			addr += 3;
 		}
 		setChecksum(bytes);
@@ -164,7 +168,7 @@ public class DxlMessage  {
 	 * @param pose name of the pose to be set
 	 * @return up to 3 byte arrays as required by the pose
 	 */
-	public static List<byte[]> byteArrayListToSetPose(Map<String,MotorConfiguration> map,String pose) {
+	public List<byte[]> byteArrayListToSetPose(Map<String,MotorConfiguration> map,String pose) {
 		Database db = Database.getInstance();
 		Map<String,Double>torques = db.getPoseJointValuesForParameter(map,pose,"torque");
 		Map<String,Double>speeds = db.getPoseJointValuesForParameter(map,pose,"speed");
@@ -180,12 +184,12 @@ public class DxlMessage  {
 			setSyncWriteHeader(bytes);
 			bytes[3] = (byte)(len-4);
 			bytes[4] = SYNC_WRITE;
-			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.TORQUE.name());
+			bytes[5] = converter.addressForGoalProperty(JointProperty.TORQUE.name());
 			bytes[6] = 0x2;  // 2 bytes
 			int index = 7;
 			for( String key:torques.keySet()) {
 				MotorConfiguration mc = map.get(key);
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name(),mc,torques.get(key));
+				int dxlValue = converter.dxlValueForProperty(JointProperty.TORQUE.name(),mc,torques.get(key));
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
@@ -204,12 +208,12 @@ public class DxlMessage  {
 			setSyncWriteHeader(bytes);
 			bytes[3] = (byte)(len-4);
 			bytes[4] = SYNC_WRITE;
-			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.SPEED.name());
+			bytes[5] = converter.addressForGoalProperty(JointProperty.SPEED.name());
 			bytes[6] = 0x2;  // 2 bytes
 			int index = 7;
 			for( String key:speeds.keySet()) {
 				MotorConfiguration mc = map.get(key);
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED.name(),mc,speeds.get(key));
+				int dxlValue = converter.dxlValueForProperty(JointProperty.SPEED.name(),mc,speeds.get(key));
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
@@ -228,13 +232,13 @@ public class DxlMessage  {
 			setSyncWriteHeader(bytes);
 			bytes[3] = (byte)(len-4);
 			bytes[4] = SYNC_WRITE;
-			bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION.name());
+			bytes[5] = converter.addressForGoalProperty(JointProperty.POSITION.name());
 			bytes[6] = 0x2;  // 2 bytes
 			int index = 7;
 			for( String key:positions.keySet()) {
 				MotorConfiguration mc = map.get(key);
 				//LOGGER.info(String.format("%s.bytesToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.getId(),key,positions.get(key)));
-				int dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION.name(),mc,positions.get(key));
+				int dxlValue = converter.dxlValueForProperty(JointProperty.POSITION.name(),mc,positions.get(key));
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
@@ -252,7 +256,7 @@ public class DxlMessage  {
 	 * This is taken directly from http://emanual.robotis.com/docs/en/dxl/protocol1/
 	 * @return byte array for message
 	 */
-	public static byte[] bytesToBroadcastPing() {
+	public byte[] bytesToBroadcastPing() {
 		int length = 2;  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,BROADCAST_ID);
@@ -266,14 +270,14 @@ public class DxlMessage  {
 	 * @param id of the motor
 	 * @return byte array with command to read the block of RAM
 	 */
-	public static byte[] bytesToGetGoals(int id) {
+	public byte[] bytesToGetGoals(int id) {
 		int length = 4;  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,id);
 		bytes[3] = (byte)length; 
 		bytes[4] = READ;
-		bytes[5] = DxlConversions.GOAL_BLOCK_ADDRESS;
-		bytes[6] = DxlConversions.GOAL_BLOCK_BYTES;
+		bytes[5] = converter.GOAL_BLOCK_ADDRESS;
+		bytes[6] = converter.GOAL_BLOCK_BYTES;
 		setChecksum(bytes);
 		return bytes;
 	}
@@ -283,14 +287,14 @@ public class DxlMessage  {
 	 * @param id of the motor
 	 * @return byte array with command to read the block of EEPROM
 	 */
-	public static byte[] bytesToGetLimits(int id) {
+	public byte[] bytesToGetLimits(int id) {
 		int length = 4;  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,id);
 		bytes[3] = (byte)length; 
 		bytes[4] = READ;
-		bytes[5] = DxlConversions.LIMIT_BLOCK_ADDRESS;
-		bytes[6] = DxlConversions.LIMIT_BLOCK_BYTES;
+		bytes[5] = converter.LIMIT_BLOCK_ADDRESS;
+		bytes[6] = converter.LIMIT_BLOCK_BYTES;
 		setChecksum(bytes);
 		return bytes;
 	}
@@ -300,14 +304,14 @@ public class DxlMessage  {
 	 * @param propertyName the name of the desired property (must be a joint property)
 	 * @return byte array with command to read the property
 	 */
-	public static byte[] bytesToGetProperty(int id,String propertyName) {
+	public byte[] bytesToGetProperty(int id,String propertyName) {
 		int length = 4;  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,id);
 		bytes[3] = (byte)length; 
 		bytes[4] = READ;
-		bytes[5] = DxlConversions.addressForPresentProperty(propertyName);
-		bytes[6] = DxlConversions.dataBytesForProperty(propertyName);
+		bytes[5] = converter.addressForPresentProperty(propertyName);
+		bytes[6] = converter.dataBytesForProperty(propertyName);
 		setChecksum(bytes);
 		return bytes;
 	}
@@ -319,14 +323,14 @@ public class DxlMessage  {
 	 * @param propertyName the name of the desired property (must be a joint property)
 	 * @return byte array with command to read the property
 	 */
-	public static byte[] bytesToSetProperty(MotorConfiguration mc,String propertyName,double value) {
-		int dxlValue = DxlConversions.dxlValueForProperty(propertyName,mc,value);
+	public byte[] bytesToSetProperty(MotorConfiguration mc,String propertyName,double value) {
+		int dxlValue = converter.dxlValueForProperty(propertyName,mc,value);
 		int length = 5;  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,mc.getId());
 		bytes[3] = (byte)length; 
 		bytes[4] = WRITE;
-		bytes[5] = DxlConversions.addressForGoalProperty(propertyName);
+		bytes[5] = converter.addressForGoalProperty(propertyName);
 		bytes[6] = (byte)(dxlValue & 0xFF);
 		bytes[7] = (byte)(dxlValue >>8);
 		setChecksum(bytes);
@@ -343,7 +347,7 @@ public class DxlMessage  {
 	 * @param bytes
 	 * @return a formatted string of the bytes as hex digits.
 	 */
-	public static String dump(byte[] bytes) {
+	public String dump(byte[] bytes) {
 		StringBuffer sb = new StringBuffer();
 		int index = 0;
 		if( bytes!=null ) {
@@ -370,7 +374,7 @@ public class DxlMessage  {
 	 * @param bytes
 	 * @return buffer guaranteed to be a legal message start, else null.
 	 */
-	public static byte[] ensureLegalStart(byte[] bytes) {
+	public byte[] ensureLegalStart(byte[] bytes) {
 		int i = 0;
 		while(i<bytes.length-2) {
 			if( bytes[i]==(byte)0xFF  &&
@@ -393,7 +397,7 @@ public class DxlMessage  {
 	 * @param bytes
 	 * @return
 	 */
-	public static String errorMessageFromStatus(byte[] bytes) {
+	public String errorMessageFromStatus(byte[] bytes) {
 		String msg = null;
 		if( bytes.length >4 ) {
 			byte error = bytes[4];
@@ -410,7 +414,7 @@ public class DxlMessage  {
 	 * @param bytes
 	 * @return the total number of bytes in message, else -1 if there are too few bytes to tell.
 	 */
-	public static int getMessageLength(byte[] bytes) {
+	public int getMessageLength(byte[] bytes) {
 		int len = -1;
 		if( bytes.length>-4 ) {
 			len = bytes[3]+4;
@@ -426,7 +430,7 @@ public class DxlMessage  {
 	 * @param props properties from a MessageBottle
 	 * @param bytes status response from the controller
 	 */
-	public static void updateGoalsFromBytes(MotorConfiguration mc,Map<String,String> props,byte[] bytes) {
+	public void updateGoalsFromBytes(MotorConfiguration mc,Map<String,String> props,byte[] bytes) {
 		String msg = "";
 		if( verifyHeader(bytes) ) {
 			msg = String.format("%s.updateGoalsFromBytes: %s",CLSS,dump(bytes));
@@ -435,20 +439,20 @@ public class DxlMessage  {
 			byte err= bytes[4];
 			
 			String parameterName = JointProperty.POSITION.name();
-			double v1 = DxlConversions.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
-			String t1  = DxlConversions.textForProperty(parameterName,mc,bytes[5],bytes[6]);
+			double v1 = converter.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
+			String t1  = converter.textForProperty(parameterName,mc,bytes[5],bytes[6]);
 			props.put(parameterName,String.valueOf(v1));
 			mc.setPosition(v1);
 			
 			parameterName = JointProperty.SPEED.name();    // Non-directional
-			double v2 = DxlConversions.valueForProperty(parameterName,mc,bytes[7],bytes[8]);
-			String t2  = DxlConversions.textForProperty(parameterName,mc,bytes[7],bytes[8]);
+			double v2 = converter.valueForProperty(parameterName,mc,bytes[7],bytes[8]);
+			String t2  = converter.textForProperty(parameterName,mc,bytes[7],bytes[8]);
 			props.put(parameterName,String.valueOf(v2));
 			mc.setSpeed(v2);
 			
 			parameterName = JointProperty.TORQUE.name();   // Non-directional
-			double v3 = DxlConversions.valueForProperty(parameterName,mc,bytes[9],bytes[10]);
-			String t3  = DxlConversions.textForProperty(parameterName,mc,bytes[9],bytes[10]);
+			double v3 = converter.valueForProperty(parameterName,mc,bytes[9],bytes[10]);
+			String t3  = converter.textForProperty(parameterName,mc,bytes[9],bytes[10]);
 			props.put(parameterName,String.valueOf(v3));
 			mc.setTorque(v3);
 			
@@ -477,7 +481,7 @@ public class DxlMessage  {
 	 * @param props properties from a MessageBottle
 	 * @param bytes status response from the controller
 	 */
-	public static void updateLimitsFromBytes(MotorConfiguration mc,Map<String,String> props,byte[] bytes) {
+	public void updateLimitsFromBytes(MotorConfiguration mc,Map<String,String> props,byte[] bytes) {
 		String msg = "";
 		mc.setIsDirect(true);   
 		mc.setOffset(0.0);
@@ -488,18 +492,18 @@ public class DxlMessage  {
 			byte err= bytes[4];
 			
 			String parameterName = JointProperty.MINIMUMANGLE.name(); // CW
-			double v1 = DxlConversions.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
-			String t1  = DxlConversions.textForProperty(parameterName,mc,bytes[5],bytes[6]);
+			double v1 = converter.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
+			String t1  = converter.textForProperty(parameterName,mc,bytes[5],bytes[6]);
 			props.put(parameterName,String.valueOf(v1));
 			
 			parameterName = JointProperty.MAXIMUMANGLE.name();   // CCW
-			double v2 = DxlConversions.valueForProperty(parameterName,mc,bytes[7],bytes[8]);
-			String t2  = DxlConversions.textForProperty(parameterName,mc,bytes[7],bytes[8]);
+			double v2 = converter.valueForProperty(parameterName,mc,bytes[7],bytes[8]);
+			String t2  = converter.textForProperty(parameterName,mc,bytes[7],bytes[8]);
 			props.put(parameterName,String.valueOf(v2));
 			
 			parameterName = JointProperty.TORQUE.name();    // Non-directional
-			double v3 = DxlConversions.valueForProperty(parameterName,mc,bytes[12],bytes[13]);
-			String t3  = DxlConversions.textForProperty(parameterName,mc,bytes[12],bytes[13]);
+			double v3 = converter.valueForProperty(parameterName,mc,bytes[12],bytes[13]);
+			String t3  = converter.textForProperty(parameterName,mc,bytes[12],bytes[13]);
 			props.put(parameterName,String.valueOf(v3));
 			
 			String text = String.format("Max, min angle and torque limits are : %s, %s, %s", t1,t2,t3);
@@ -527,7 +531,7 @@ public class DxlMessage  {
 	 * @param props properties from a MessageBottle
 	 * @param bytes status response from the controller
 	 */
-	public static void updateParameterFromBytes(String parameterName,MotorConfiguration mc,Map<String,String> props,byte[] bytes) {
+	public void updateParameterFromBytes(String parameterName,MotorConfiguration mc,Map<String,String> props,byte[] bytes) {
 		String msg = "";
 		if( verifyHeader(bytes) ) {
 			msg = String.format("%s.updateParameterFromBytes: %s",CLSS,dump(bytes));
@@ -535,13 +539,14 @@ public class DxlMessage  {
 			int id = bytes[2];
 			byte err= bytes[4];
 			
-			double value = DxlConversions.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
-			String text = DxlConversions.textForProperty(parameterName,mc,bytes[5],bytes[6]);
+			double value = converter.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
+			String text = converter.textForProperty(parameterName,mc,bytes[5],bytes[6]);
 			if( err==0 ) {
 				props.put(BottleConstants.PROPERTY_NAME,parameterName);
 				props.put(BottleConstants.TEXT,text);
 				props.put(parameterName,String.valueOf(value));
 				mc.setProperty(parameterName, value);
+				LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.0f",CLSS,mc.getName(),parameterName,value));
 			}
 			else {
 				msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",CLSS,err,descriptionForError(err));
@@ -565,21 +570,22 @@ public class DxlMessage  {
 	 * @param bytes status response from the controller
 	 * @param parameters an array of positions by id, supplied. This is augmented by the method.
 	 */
-	public static void updateParameterArrayFromBytes(String parameterName, Map<Integer,MotorConfiguration> configurations,byte[] bytes,Map<Integer,String> parameters) {
+	public void updateParameterArrayFromBytes(String parameterName, Map<Integer,MotorConfiguration> configurations,byte[] bytes,Map<Integer,String> parameters) {
 		String msg = "";
 		int length = 7;
 		int index  = 0;
 		while( index<bytes.length ) {
+			LOGGER.info(String.format("%s.updateParameterArrayFromBytes: index %d of %d",CLSS,index,bytes.length));
 			if( verifyHeader(bytes,index) ) {
 				int id = bytes[index+2];
 				length = bytes[index+3] + 4;  // Takes care of fixed bytes pre-length
 				byte err= bytes[index+4];
 				MotorConfiguration mc =  configurations.get(id);
 				if( err==0 && mc!=null && bytes.length>index+6 ) {
-					double param= DxlConversions.valueForProperty(parameterName,mc,bytes[index+5],bytes[index+6]);
+					double param= converter.valueForProperty(parameterName,mc,bytes[index+5],bytes[index+6]);
 					parameters.put(id, String.valueOf(param));
 					mc.setProperty(parameterName, param);
-					LOGGER.info(String.format("%s.updateParameterArrayFromBytes: motor %d %s=%s",CLSS,id,parameterName,String.valueOf(param)));
+					LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%.0f",CLSS,mc.getName(),parameterName,param));
 				}
 				else if(err!=0){
 					msg = String.format("%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",CLSS,id,err,
@@ -611,7 +617,7 @@ public class DxlMessage  {
 	}
 	// ===================================== Private Methods =====================================
 	// Return a string describing the error. We only check one bit.
-	private static String descriptionForError(byte err) {
+	private String descriptionForError(byte err) {
 		String description = "Unrecognized error";
 		if( (err&0x01) != 0x00 ) description = "an instruction error";
 		else if( (err&0x02) != 0x00 ) description = "an overload error";
@@ -624,14 +630,14 @@ public class DxlMessage  {
 	}
 	// Set the header up until the length field. The header includes the device ID.
 	// Protocol 1. 3 bytes
-	private static void setHeader(byte[] bytes, int id) {
+	private void setHeader(byte[] bytes, int id) {
 		bytes[0] = (byte)0xFF;
 		bytes[1] = (byte)0xFF;
 		bytes[2] = (byte) id;
 	}
 	// Set the header up until the length field. The header includes the device ID.
 	// Protocol 1. 3 bytes
-	private static void setSyncWriteHeader(byte[] bytes) {
+	private void setSyncWriteHeader(byte[] bytes) {
 		bytes[0] = (byte)0xFF;
 		bytes[1] = (byte)0xFF;
 		bytes[2] = (byte)0xFE;
@@ -644,7 +650,7 @@ public class DxlMessage  {
 	 * @see http://emanual.robotis.com/docs/en/dxl/protocol1/
 	 * @param buf the byte buffer
 	 */
-	public static void setChecksum( byte[] buf ) {
+	public void setChecksum( byte[] buf ) {
 		int size = buf.length - 1;   // Exclude bytes that hold Checksum
 		int sum = 0;    // Instruction checksum.
 	    for( int j=2; j < size; j++ ) {
@@ -657,7 +663,7 @@ public class DxlMessage  {
 	/**
 	 * Protocol 1
 	 */
-	private static boolean verifyHeader(byte[] bytes) {
+	private boolean verifyHeader(byte[] bytes) {
 		boolean result = false;
 		if( bytes.length > 5     &&
 			bytes[0]==(byte)0xFF &&
@@ -669,7 +675,7 @@ public class DxlMessage  {
 		return result;
 	}
 
-	private static boolean verifyHeader(byte[] bytes,int index) {
+	private boolean verifyHeader(byte[] bytes,int index) {
 		boolean result = false;
 		if( bytes.length > index+5     &&
 			bytes[index]  ==(byte)0xFF &&
@@ -687,20 +693,21 @@ public class DxlMessage  {
 	 */
 	public static void main(String [] args) {
 		// Protocol 1
+		DxlMessage dxl = new DxlMessage();
 		byte[] bytes = new byte[7];
-		setHeader(bytes,0x01);
+		dxl.setHeader(bytes,0x01);
 		bytes[3] = 4;    // Bytes past this field.
 		bytes[4] = READ;
 		bytes[5] = 0x2B;
 		bytes[6] = 0x1;
-		setChecksum(bytes);
+		dxl.setChecksum(bytes);
 		// Should be CC
-        System.out.println("READ  with checksum: "+dump(bytes));
+        System.out.println("READ  with checksum: "+dxl.dump(bytes));
         
         // Protocol 1
-        bytes = bytesToBroadcastPing();
+        bytes = dxl.bytesToBroadcastPing();
         // Checksum should be FE
-        System.out.println("PING (1)  with checksum: "+dump(bytes));
+        System.out.println("PING (1)  with checksum: "+dxl.dump(bytes));
         
         // Protocol 1
         // Sync write
@@ -722,9 +729,9 @@ public class DxlMessage  {
 		bytes[14] = (byte)0x02;
 		bytes[15] = (byte)0x60;
 		bytes[16] = (byte)0x03;
-		setChecksum(bytes);
+		dxl.setChecksum(bytes);
         // Checksum should be 67
-        System.out.println("SYNC WRITE  with checksum: "+dump(bytes));
+        System.out.println("SYNC WRITE  with checksum: "+dxl.dump(bytes));
 
     }
 }

@@ -14,7 +14,7 @@ import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 
 /**
- * This class contains static methods used to convert between Dynamixel jointValues and engineering units.
+ * This class contains methods used to convert between Dynamixel jointValues and engineering units.
  * Code is derived from Pypot dynamixel.conversion.py
  * Protocol 1 only.
  */
@@ -65,7 +65,7 @@ public class DxlConversions  {
 		torque.put(DynamixelType.MX64,6.0); 
 	}
 
-	public static int degreeToDxl(MotorConfiguration mc,double value) {
+	public int degreeToDxl(MotorConfiguration mc,double value) {
 		if( value>mc.getMaxAngle()) {
 			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (max = %.0f)",CLSS,mc.getName().name(),value,mc.getMaxAngle()));
 			value = mc.getMaxAngle();
@@ -87,7 +87,7 @@ public class DxlConversions  {
 	// The range in degrees is split in increments by resolution. 180deg is "up" when looking at
 	// the motor head-on. Zero is at the bottom. Zero degrees is not possible for an AX-12.
 	// CW is < 180 deg. CCW > 180deg
-	public static double dxlToDegree(MotorConfiguration mc,byte b1,byte b2) {
+	public double dxlToDegree(MotorConfiguration mc,byte b1,byte b2) {
 		int raw = (b1&0XFF) + 256*(b2&0XFF);
 		int res = resolution.get(mc.getType());
 		raw = raw & res;
@@ -96,19 +96,19 @@ public class DxlConversions  {
 		double result = (double)raw*r/res;
 		if( !mc.isDirect() ) result = r - result;
 		result = result + mc.getOffset();
-		LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %.0f %s result %.0f",CLSS,mc.getName().name(),b1,b2,
-				mc.getOffset(),(mc.isDirect()?"DIRECT":"INDIRECT"),result));
+		//LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %.0f %s result %.0f",CLSS,mc.getName().name(),b1,b2,
+		//		mc.getOffset(),(mc.isDirect()?"DIRECT":"INDIRECT"),result));
 		return result;
 	}
 	// Speed is deg/sec
-	public static int speedToDxl(MotorConfiguration mc,double value) {
+	public int speedToDxl(MotorConfiguration mc,double value) {
 		boolean cw = mc.isDirect();
 		if( value<0.) cw = !cw;
 		int val = (int)(value*1023./velocity.get(mc.getType()));
 		if( !cw ) val = val | 0x400;
 		return val;
 	}
-	public static double dxlToSpeed(MotorConfiguration mc,byte b1,byte b2) {
+	public double dxlToSpeed(MotorConfiguration mc,byte b1,byte b2) {
 		int raw = (b1&0XFF) + 256*(b2&0XFF);
 		boolean cw = mc.isDirect();
 		if( (raw & 0x400) != 0 ) cw = !cw;
@@ -120,7 +120,7 @@ public class DxlConversions  {
 	
 	// N-m (assumes EEPROM max torque is 1023)
 	// Positive number is CCW. Each unit represents .1%.
-	public static int torqueToDxl(MotorConfiguration mc,double value) {
+	public int torqueToDxl(MotorConfiguration mc,double value) {
 		boolean cw = mc.isDirect();
 		if( value<0.) cw = !cw;
 		int val = (int)(value*1023./torque.get(mc.getType()));
@@ -128,7 +128,7 @@ public class DxlConversions  {
 		return val; 
 	}
 	// For a load the direction is pertinent. Positive implies CW.
-	public static double dxlToLoad(MotorConfiguration mc,byte b1,byte b2) {
+	public double dxlToLoad(MotorConfiguration mc,byte b1,byte b2) {
 		int raw = (b1&0XFF) + 256*(b2&0XFF);
 		boolean cw = mc.isDirect();
 		if( (raw & 0x400) != 0 ) cw = !cw;
@@ -139,7 +139,7 @@ public class DxlConversions  {
 	}
 	// The torque-limit values in the EEPROM don't make sense. AX-12 has 8C FF. M-28/64 A0 FF.
 	// For these values we'll just return the spec limit. Limit/goals are always positive.
-	public static double dxlToTorque(MotorConfiguration mc,byte b1,byte b2) {
+	public double dxlToTorque(MotorConfiguration mc,byte b1,byte b2) {
 		double result = torque.get(mc.getType());   // Spec value
 		if( b2!=0xFF ) {
 			int raw = b1+256*b2;
@@ -149,13 +149,13 @@ public class DxlConversions  {
 		return result;
 	}
 	// deg C
-	public static double dxlToTemperature(byte value) { return (double)value; }
+	public double dxlToTemperature(byte value) { return (double)value; }
 	// volts
-	public static double dxlToVoltage(byte value) { return ((double)value)/10.; }
+	public double dxlToVoltage(byte value) { return ((double)value)/10.; }
 
 	// Convert the named property to a control table address for the present state
 	// of that property. These need to  be independent of motor type.
-	public static byte addressForGoalProperty(String name) {
+	public byte addressForGoalProperty(String name) {
 		byte address = 0;
 		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = GOAL_POSITION;
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) address = GOAL_SPEED;
@@ -167,7 +167,7 @@ public class DxlConversions  {
 	}
 	// Convert the named property to a control table address for the present state
 	// of that property. These need to  be independent of motor type.
-	public static byte addressForPresentProperty(String name) {
+	public byte addressForPresentProperty(String name) {
 		byte address = 0;
 		if( name.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name()))      address = MAXIMUM_ANGLE;
 		else if( name.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name())) address = MINIMUM_ANGLE;
@@ -184,7 +184,7 @@ public class DxlConversions  {
 	// Return the data length for the named property in the control table. We assume that
 	// present values and goals are the same number of bytes.
 	// Valid for Protocol 1 only.
-	public static byte dataBytesForProperty(String name) {
+	public byte dataBytesForProperty(String name) {
 		byte length = 0;
 		if( name.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name())) length = 2;
 		else if( name.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name())) length = 2;
@@ -200,7 +200,7 @@ public class DxlConversions  {
 	}
 	// Convert the value (in engineering units) into a raw setting for the motor
 	// Valid for Protocol 1 only.
-	public static int dxlValueForProperty(String name,MotorConfiguration mc,double value) {
+	public int dxlValueForProperty(String name,MotorConfiguration mc,double value) {
 		int dxlValue = 0;
 		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) dxlValue = degreeToDxl(mc,value);
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) dxlValue =speedToDxl(mc,value);
@@ -212,7 +212,7 @@ public class DxlConversions  {
 	}
 	// Convert the raw data bytes text describing the value and units. It may or may not use the second byte.
 	// Presumably the ultimate will have more context.
-	public static String textForProperty(String name,MotorConfiguration mc,byte b1,byte b2) {
+	public String textForProperty(String name,MotorConfiguration mc,byte b1,byte b2) {
 		name = name.toLowerCase();
 		String text = "";
 		double value = valueForProperty(name,mc,b1,b2);
@@ -230,7 +230,7 @@ public class DxlConversions  {
 	}
 	// Convert the raw data bytes into a double value. It may or may not use the second byte.
 	// Valid for Protocol 1 only.
-	public static double valueForProperty(String name,MotorConfiguration mc,byte b1,byte b2) {
+	public double valueForProperty(String name,MotorConfiguration mc,byte b1,byte b2) {
 		double value = 0.;
 		if( name.equalsIgnoreCase(JointProperty.MAXIMUMANGLE.name())) value = dxlToDegree(mc,b1,b2);
 		else if( name.equalsIgnoreCase(JointProperty.MINIMUMANGLE.name())) value = dxlToDegree(mc,b1,b2);
