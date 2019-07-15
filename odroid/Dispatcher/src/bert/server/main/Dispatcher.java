@@ -193,6 +193,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			motorGroupController.initialize();
 			motorGroupController.start();
 
+			/*
 			// Set the speed to "normal" rate. Delay to all startup to complete
 			InternalMessage msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
@@ -205,6 +206,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			// Bring any joints that are outside sane limits into compliance
 			msg = new InternalMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
 			internalController.receiveRequest(msg);
+			*/
 		}
 		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
 	}
@@ -312,6 +314,9 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 					break;
 				case HEIGHT:
 					text = "My height when standing is 83 centimeters";
+					break;
+				case MITTENS:
+					text = "My hands cut easily";
 					break;
 				case NAME:
 					text = "My name is "+getName();

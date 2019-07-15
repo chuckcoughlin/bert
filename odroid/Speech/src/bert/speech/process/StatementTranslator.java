@@ -429,16 +429,17 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		if(ctx.It()!=null ) {
 			joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
 		}
-		if( ctx.Joint() != null ) {
+		else if( ctx.Joint() != null ) {
 			joint = determineJoint(ctx.Joint().getText(),axis,side);
-			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
+		
 		if( joint.equals(Joint.UNKNOWN) ) {
 			String msg = String.format("I don't have a joint like that");
 			bottle.assignError(msg);
 		}
 		else {
 			sharedDictionary.put(SharedKey.JOINT, joint);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
 		bottle.setProperty(JointProperty.POSITION.name(),ctx.Value().getText());
@@ -587,6 +588,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
+	// why do you wear mittens
+	public Object visitWhyMittens(SpeechSyntaxParser.WhyMittensContext ctx) {
+		bottle.assignRequestType(RequestType.GET_METRIC);
+		bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.MITTENS.name());
+		return null;
+	}
 	//===================================== Helper Methods ======================================
 	// Determine the specific appendage from the body part and side. (Side is not always needed).
 	private Appendage determineAppendage(String bodyPart,String side) {
@@ -635,8 +642,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		Joint result = Joint.UNKNOWN;
 		
 		// Handle some synonyms
-		if( axis!=null && axis.equalsIgnoreCase("horizontal") ) axis="Z";
-		if( axis!=null && axis.equalsIgnoreCase("vertical") )   axis="Y";
+		if( axis!=null ) {
+			if( axis.equalsIgnoreCase("horizontal")  ) axis="Z";
+			else if( axis.equalsIgnoreCase("vertical") ||
+					 axis.equalsIgnoreCase("why")    ) axis="Y";
+		}
+
 		
 		if( bodyPart.equalsIgnoreCase("ABS")) {
 			if(axis!=null) {

@@ -15,6 +15,7 @@ This document describes the setup and tools used to develop "Bert" and summarize
   * [Hardware](#hardware)
     * [Skeleton](#skeleton)
     * [Joints](#joints)
+    * [Tablet](#tablet)
   * [System Setup](#system)
     * [Odroid](#odroid)
   * [Software Development](#software)
@@ -125,6 +126,14 @@ In order to correct for a consistent user-view of position, joints may be correc
 | Shoulder(x) | Angle of spread of the arms. 180 is straight down, 90 is straight out to the side. | 90 | 215 |
 | Shoulder(y) | Angle between the upper arm and chest. 180 is straight down, 90 is forward, horizontal. | 0 | 225 |
 <center>``Angular Position Definitions``                     </center>
+
+### Tablet <a id="tablet"></a>
+[toc](#table-of-contents)
+
+The tablet is a 10" Samsung Galaxy S3 running Android 7.0 (Nougat), API level 24. Android was chosen for its
+speech capabilities. All speech analysis is done on the tablet hosting both text-to-speech and a speech
+recognizer. Unfortunately,the tablet has become stuck in headset mode. We've bought an external speaker
+to be ultimately located in the head.
 
 ## System Setup <a id="system"/>
 ### Odroid <a id="odroid"></a>

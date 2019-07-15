@@ -99,6 +99,8 @@
                 android:textOff=""
                 android:textOn="" />
         </LinearLayout>
+        <include layout="@layout/meter_main"
+            />
     </LinearLayout>
 
 </LinearLayout>

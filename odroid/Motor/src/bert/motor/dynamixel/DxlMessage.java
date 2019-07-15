@@ -361,6 +361,29 @@ public class DxlMessage  {
 		return sb.toString();
 	}
 	/**
+	 * Scan the supplied byte array looking for the message start markers.
+	 * When found return the buffer less any leading junk.
+	 * @param bytes
+	 * @return buffer guaranteed to be a legal message start, else null.
+	 */
+	public static byte[] ensureLegalStart(byte[] bytes) {
+		int i = 0;
+		while(i<bytes.length-2) {
+			if( bytes[i]==(byte)0xFF  &&
+				bytes[i]==(byte)0xFF	) {
+				if( i==0 ) return bytes;
+				else {
+					byte[] copy = new byte[bytes.length-i];
+					System.arraycopy(bytes, i, copy, 0, copy.length);
+					LOGGER.warning(String.format("%s.ensureLegalStart: cut %d bytes to provide legal msg",CLSS,i));
+					return copy;
+				}
+			}
+			i++;
+		}
+		return null;
+	}
+	/**
 	 * The only interesting information in a status message from a write 
 	 * to a single device is the error code.
 	 * @param bytes
@@ -378,7 +401,18 @@ public class DxlMessage  {
 		}
 		return msg;
 	}
-	
+	/**
+	 * Extract the message length. 
+	 * @param bytes
+	 * @return the total number of bytes in message, else -1 if there are too few bytes to tell.
+	 */
+	public static int getMessageLength(byte[] bytes) {
+		int len = -1;
+		if( bytes.length>-4 ) {
+			len = bytes[3]+4;
+		}
+		return len;
+	}
 	/**
 	 * Analyze a response buffer returned from a request for goal values for a motor. Goals
 	 * parameters are: position, speed, torque. Results will be entered in the properties map.

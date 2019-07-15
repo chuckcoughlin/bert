@@ -15,6 +15,7 @@ public enum MetricType
             CYCLETIME,
             DUTYCYCLE,
             HEIGHT,
+            MITTENS,  // why
             NAME
             ;
           

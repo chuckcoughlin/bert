@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 
 import bert.motor.model.RobotMotorModel;
 import bert.share.common.DynamixelType;
-import bert.share.controller.Controller;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
@@ -33,33 +32,26 @@ import jssc.SerialPort;
  * development, then responses are simulated without any direct serial
  * requests being made.
  */
-public class MotorGroupController implements Controller,MotorManager {
+public class MotorGroupController implements MotorManager {
 	private final static String CLSS = "MotorGroupController";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private final RobotMotorModel model;
 	private final Map<String,MotorController> motorControllers;
 	private final Map<Integer,String> motorNameById;
 	private final Map<String,Thread> motorControllerThreads;
-	private MessageBottle currentRequest;
 	private final boolean development;
-	private int motorCount;
-	private int motorsProcessed;
+	private int controllerCount;
 	private MessageHandler responseHandler = null;  // Dispatcher
-
-	private final Map<String,String> parametersInProcess;
 	/**
 	 * Constructor:
 	 * @param m the server model
 	 */
 	public MotorGroupController(RobotMotorModel m) {
 		this.model = m;
+		this.controllerCount = 0;
 		this.motorControllers = new HashMap<>();
 		this.motorControllerThreads = new HashMap<>();
-		this.currentRequest = null;
-		this.motorCount = 0;
-		this.motorsProcessed = 0;
 		this.motorNameById = new HashMap<>();
-		this.parametersInProcess = new HashMap<>();
 		LOGGER.info(String.format("%s: os.arch = %s",CLSS,System.getProperty("os.arch")));  // x86_64
 		LOGGER.info(String.format("%s: os.name = %s",CLSS,System.getProperty("os.name")));  // Mac OS X
 		development = System.getProperty("os.arch").startsWith("x86");
@@ -95,8 +87,8 @@ public class MotorGroupController implements Controller,MotorManager {
 						LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",CLSS,joint.name(),group));
 					}
 				}
-				motorCount += controller.getMotorCount();
-				LOGGER.info(String.format("%s.initialize: Created motor controller for group %s, %d motors",CLSS,controller.getGroupName(),controller.getMotorCount()));
+				controllerCount += 1;
+				LOGGER.info(String.format("%s.initialize: Created motor controller for group %s",CLSS,controller.getGroupName()));
 			}
 		}
 	}
@@ -106,14 +98,12 @@ public class MotorGroupController implements Controller,MotorManager {
 	
 	public void setResponseHandler(MessageHandler mh) { this.responseHandler = mh; }
 
-	@Override
 	public void start() {
 		if(!development ) {
 			for( String key:motorControllers.keySet()) {
 				MotorController controller = motorControllers.get(key);
 				controller.setStopped(false);
 				controller.initialize();
-				controller.start();
 				motorControllerThreads.get(key).start();
 			}
 		}
@@ -122,7 +112,6 @@ public class MotorGroupController implements Controller,MotorManager {
 	/** 
 	 * Called by Dispatcher when it is stopped.
 	 */
-	@Override
 	public void stop() {
 		if(!development ) {
 			for( String key:motorControllers.keySet()) {
@@ -145,8 +134,9 @@ public class MotorGroupController implements Controller,MotorManager {
 	 *     expect a reply from only one.
 	 *  3) Global commands or requests. These apply to all motor groups. Examples
 	 *     include setting a pose or commanding an action, requesting positional state.
-	 *     These requests are satisfied by sending the request to all port handlers,
-	 *     collecting responses from each and combining into a single reply.
+	 *     These requests are satisfied by sending the same request to all port handlers.
+	 *     The single unique request object collects partial results from all
+	 *     controllers. When complete, it is passed here and forwarded to the dispatcher.
 	 * 
 	 * @param request
 	 * @return the response, usually containing current joint positions.
@@ -159,10 +149,6 @@ public class MotorGroupController implements Controller,MotorManager {
 			responseHandler.handleResponse(simulateResponseForRequest(request));
 		}
 		else {
-			this.currentRequest = request;
-			motorsProcessed = 0;
-			parametersInProcess.clear();
-			
 			LOGGER.info(String.format("%s.processRequest: processing %s",CLSS,request.fetchRequestType().name()));
 			for( String key:motorControllers.keySet()) {
 				motorControllers.get(key).receiveRequest(request);
@@ -170,65 +156,48 @@ public class MotorGroupController implements Controller,MotorManager {
 		}
 	}
 	
-	@Override
-	public void receiveRequest(MessageBottle request) {}
-	@Override
-	public void receiveResponse(MessageBottle response) {}
 	// =========================== Motor Manager Interface ====================================
 	/**
-	 * Update the property map with the response from a single serial controller. 
-	 * We assume that all controllers have analyzed for the same property. When we have heard
-	 * from all the controllers, forward reply back to the Dispatcher.
-	 * @param map position of an individual motor.
+	 * When the one of the controllers has detected the response is complete, it calls
+	 * this method. When all controllers have responded the response will be sent off.
+	 * For this to work, it is important that work on the response object
+	 * by synchronized.
+	 * @param rsp the original request
 	 */
-	public synchronized void aggregateMotorProperties(Map<Integer,String> map) {
-		if( map!=null ) {
-			for( Integer key:map.keySet() ) {
-				String param = map.get(key);
-				String name = motorNameById.get(key);
-				parametersInProcess.put(name, param);
-				motorsProcessed++;   // Assume there are no duplicates
-				LOGGER.info(String.format("%s.aggregateMotorProperties: received %s (%d of %d) = %s",CLSS,name,motorsProcessed,motorCount,param));
-			}
-		}
-		if(motorsProcessed>=motorCount ) {
-			LOGGER.info(String.format("%s.aggregateMotorProperties: all motors accounted for: responding ...",CLSS));
-			this.currentRequest.setJointValues(parametersInProcess);
-			responseHandler.handleResponse(currentRequest);
+	public void handleAggregatedResponse(MessageBottle rsp) {
+		int count = rsp.incrementResponderCount();
+		LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",CLSS,rsp.fetchRequestType().name(),count,controllerCount));
+		
+		if(count>=controllerCount ) {
+			LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",CLSS));
+			responseHandler.handleResponse(rsp);	
 		}
 	}
+	
 	/**
-	 * This method is called by the controller that handled a request that does
-	 * not generate a response. The only information we return is the max 
-	 * duration of all the movements.
-	 * @param count number of motors represented by this controller
-	 * @param duration calculated maximum movement time
+	 * This method is called by each controller as it handles a request that does
+	 * not generate a response. Once each controller has responded, we forward the
+	 * result to the dispatcher.
+	 * @param rsp the response
 	 */
-	public synchronized void handleSynthesizedResponse(int count,long duration) {
-		motorsProcessed += count;
-		LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",CLSS,currentRequest.fetchRequestType().name(),motorsProcessed,motorCount));
-		if( duration>currentRequest.getDuration() ) currentRequest.setDuration(duration);
+	public synchronized void handleSynthesizedResponse(MessageBottle rsp) {
+		int count = rsp.incrementResponderCount();
+		LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",CLSS,rsp.fetchRequestType().name(),count,controllerCount));
 		
-		if(motorsProcessed>=motorCount ) {
-			LOGGER.info(String.format("%s.handleSynthesizedResponse: all motors accounted for: responding ...",CLSS));
-			responseHandler.handleResponse(currentRequest);	
+		if(count>=controllerCount ) {
+			LOGGER.info(String.format("%s.handleSynthesizedResponse: all controllers accounted for: responding ...",CLSS));
+			responseHandler.handleResponse(rsp);	
 		}
 	}
 
 
 	/**
 	 * This method is called by the controller that handled a request that pertained to
-	 * a single motor. Forward result to the Dispatcher.
-	 * @param props the properties modified by or read by the controller
+	 * a single motor. It has modified the request directly. Forward result to the Dispatcher.
+	 * @param response the message to be forwarded.
 	 */
-	public void handleUpdatedProperties(Map<String,String> props) {
-		if( props!=null ) {
-			for(Object key:props.keySet()) {
-				String name = key.toString();
-				this.currentRequest.setProperty(name, props.get(key));
-			}
-		}
-		responseHandler.handleResponse(currentRequest);		
+	public void handleSingleMotorResponse(MessageBottle response) {
+		responseHandler.handleResponse(response);		
 	}
 
 	// =========================== Private Helper Methods =====================================

@@ -32,7 +32,8 @@ public class MessageBottle implements Serializable {
 	protected static final Logger LOGGER = Logger.getLogger(CLSS);
 	public Map<String,String> properties;  // Multiple properties for a single motor
 	public Map<String,String> jointValues; // A single property for multiple motors
-	private long duration = 0;   // ~msecs
+	public long duration = 0;   // ~msecs
+	public int responderCount = 0;  // Number of controllers/motors that have contributed
 	
 	public MessageBottle() {
 		this.properties = new HashMap<>();
@@ -49,7 +50,18 @@ public class MessageBottle implements Serializable {
 	 */
 	public void setDuration(long period) { this.duration = period; }
 
-
+	public int getResponderCount() { return this.responderCount; }
+	/**
+	 * Increment the responder count by a specified value. 
+	 * @param increment
+	 * @return the new count
+	 */
+	public int incrementResponderCount(int increment) { responderCount = responderCount+increment; return responderCount; }
+	/**
+	 * Increment the responder count by 1.
+	 * @return the new count
+	 */
+	public int incrementResponderCount() { responderCount = responderCount+1; return responderCount; }
 	
 	public String getJointValue(String joint,String defaultValue) {
 		String value = this.jointValues.get(joint);
@@ -74,14 +86,6 @@ public class MessageBottle implements Serializable {
 		this.properties.put(key, value);
 	}
 
-	/**
-	 * Set the value map all at once. The values are expected to correspond to
-	 * the stated property.
-	 * @param values the new value map.
-	 */
-	public void setJointValues(Map<String,String> values) { this.jointValues = values; }
-	
-	
 	/**
 	 * Use this method to clear the message properties. This conveniently
 	 * allows re-use of the message object when issuing a new command.

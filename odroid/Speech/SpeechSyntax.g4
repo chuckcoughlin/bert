@@ -34,7 +34,7 @@ command:
 
 // Request for information
 question:
-    How Attribute 'are' 'you'                                    # attributeQuestion
+    How Attribute 'are' You                                     # attributeQuestion
 	| What 'is' Article? Configuration                          # configurationQuestion
 	| What 'are' Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
     | What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
@@ -43,6 +43,7 @@ question:
     | What 'is' Article? Adjective?  Pose                           # poseQuestion
 	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
     | Where 'is' Article? Side? (Appendage|Joint)	Axis?       # limbLocationQuestion
+        | 'why' 'do' You Have Mittens									# whyMittens
 	;
 
 // Convey information to the robot.
@@ -60,11 +61,12 @@ Adjective: 'current';
 Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Attribute: 'old'|'tall';
-Axis: 'x'|'y'|'z'|'horizontal'|'vertical';
+Axis: 'x'|'y'|'z'|'horizontal'|'vertical'|'why';
 Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');
 Configuration: 'configuration';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
+Have: 'have'|'wear';
 How: 'how';
 Initialize: 'initialize';
 It: 'it';
@@ -72,6 +74,7 @@ List: ('tell me'|'describe'|'list');
 Limits: 'limits';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
+Mittens: 'mittens';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
@@ -89,11 +92,11 @@ Take: 'assume' | 'take';
 To: 'to become'|'to';
 Unit: 'degrees';
 Value: NUMBER;
+You: 'you';
 
 What: 'what';
 When: 'when';
 Where: 'where';
-
 
 COMMA: ',';
 COLON: ':';

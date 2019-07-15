@@ -4,14 +4,14 @@
  */
 package bert.motor.main;
 
-import java.util.Map;
+import bert.share.message.MessageBottle;
 /**
  *  This interface is satisfied by the MotorManager and describes
  *  the callback utilized by MotorContrtollers
  */
 public interface MotorManager  {
-	public void aggregateMotorProperties(Map<Integer,String> map);
-	public void handleSynthesizedResponse(int count,long duration);
-	public void handleUpdatedProperties(Map<String,String> updates);
+	public void handleAggregatedResponse(MessageBottle response);
+	public void handleSynthesizedResponse(MessageBottle response);
+	public void handleSingleMotorResponse(MessageBottle response);
 	public int getControllerCount();
 }

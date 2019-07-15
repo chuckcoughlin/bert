@@ -45,7 +45,7 @@ public class Terminal extends Thread implements MessageHandler {
 	private SocketController socketController = null;
 	private final Condition busy;
 	private StdioController stdioController = null;
-	private MessageBottle currentRequest;
+	private MessageBottle currentRequest = null;
 	private final Lock lock;
 	
 	public Terminal(RobotTerminalModel m) {
@@ -76,6 +76,8 @@ public class Terminal extends Thread implements MessageHandler {
 	/**
 	 * Loop forever reading from the terminal and forwarding the resulting requests
 	 * via socket to the server (launcher). We accept its responses and forward to the stdio stdioController.
+	 * 
+	 * Note that the locks guarantee that the currentRequest global cannot be modified between the signal and wait.
 	 */
 	@Override
 	public void run() {	

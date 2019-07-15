@@ -128,15 +128,17 @@ Substitution parameters, @...@, are replaced with site-specific values during th
 #### Dynamixel Servos  <a id="dynamixel"></a>
 The control motors are Dynamixel MX-64, MX-28 and AT-12A models from [Robotis](http://en.robotis.com).
 The servos feature their own PID control. A single write of a target position, speed and torque is all that is
-required for control. There is no need for a constant refresh action. There appears to be a maximum
-write frequency, especially for the AT-12A motors. We guarantee at least 25ms between writes
-to the same serial port.
-
+required for control. There is no need for a constant refresh action.
 A further efficiency is provided by the *SYNC WRITE* directive. This allows control of multiple motors
 with a single command, as long as the affected motors are daisy-chained on the same serial port. A
 *SYNC WRITE* command does not return status.
 
 We use version 1.0 of the protocol as the motors were delivered with that version.
+
+Idiosyncrasies:<br/>
+  * There appears to be a maximum write frequency, especially for the AT-12A motors. We guarantee at least 50ms between consecutive writes to the same serial port. The symptom is dropped responses.
+  * There is no guarantee that responses from the serial port correlate 1:1 with the requests. The response
+  buffer can hold partial replies or several replies combined.
 
 #### Geometry <a id="geometry"></a>
 The geometry of the robot is used for trajectory planning, balance and other purposes. It is described in a

@@ -1,6 +1,7 @@
 /**
  * Copyright 2019 Charles Coughlin. All rights reserved.
  *  (MIT License)
+ *  For visualizer code see: https://github.com/StylingAndroid/
  */
 
 package chuckcoughlin.bert.tab;
@@ -9,6 +10,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -28,17 +31,22 @@ import chuckcoughlin.bert.service.DispatchServiceBinder;
 import chuckcoughlin.bert.service.FacilityState;
 import chuckcoughlin.bert.service.TieredFacility;
 import chuckcoughlin.bert.service.VoiceConstants;
+import chuckcoughlin.bert.waveform.RendererFactory;
+import chuckcoughlin.bert.waveform.WaveformView;
 
 /**
  * This fragment presents a static "cover" with no dynamic content.
  */
 
-public class CoverFragment extends BasicAssistantFragment implements IntentObserver, ServiceConnection {
+public class CoverFragment extends BasicAssistantFragment implements IntentObserver, Visualizer.OnDataCaptureListener,ServiceConnection {
     private final static String CLSS = "CoverFragment";
+    private final static int CAPTURE_SIZE = 256;
     private ToggleButton bluetoothStatus = null;
     private ToggleButton socketStatus = null;
     private ToggleButton voiceStatus = null;
     private DispatchService service = null;
+    private Visualizer visualizer;
+    private WaveformView waveformView;
 
     // Inflate the view. It holds a fixed image of the robot
     @Override
@@ -63,6 +71,10 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
         updateToggleButton(bluetoothStatus, FacilityState.IDLE);
         updateToggleButton(socketStatus, FacilityState.IDLE);
         updateToggleButton(voiceStatus, FacilityState.IDLE);
+
+        waveformView = (WaveformView) view.findViewById(R.id.waveform_view);
+        RendererFactory rendererFactory = new RendererFactory();
+        waveformView.setRenderer(rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY));
         return view;
     }
 
@@ -82,6 +94,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
             Log.i(CLSS,"onResume: registering as observer");
             service.registerIntentObserver(this);
         }
+        startVisualizer();
     }
     @Override
     public void onPause() {
@@ -90,6 +103,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
             Log.i(CLSS,"onPause: unregistering as observer");
             service.unregisterIntentObserver(this);
         }
+        stopVisualizer();
     }
     @Override
     public void onStop() {
@@ -102,6 +116,20 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
         super.onDestroyView();
     }
 
+    private void startVisualizer() {
+        visualizer = new Visualizer(0);
+        visualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate(), true, false);
+        visualizer.setCaptureSize(CAPTURE_SIZE);
+        visualizer.setEnabled(true);
+    }
+    private void stopVisualizer() {
+        if (visualizer != null) {
+            visualizer.setEnabled(false);
+            visualizer.release();
+            visualizer.setDataCaptureListener(null, 0, false, false);
+            visualizer = null;
+        }
+    }
     /**
      * Map current bluetooth action state to ToggleButton icon. Checked in this order ...
      *    gray - active = false
@@ -169,6 +197,18 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
                 updateToggleButton(voiceStatus,actionState);
             }
         }
+    }
+    // =================================== OnDataCaptureListener ===============================
+    @Override
+    public void onWaveFormDataCapture(Visualizer thisVisualiser, byte[] waveform, int samplingRate) {
+        if (waveformView != null) {
+            waveformView.setWaveform(waveform);
+        }
+    }
+
+    @Override
+    public void onFftDataCapture(Visualizer thisVisualiser, byte[] fft, int samplingRate) {
+        // NO-OP
     }
     // =================================== ServiceConnection ===============================
     @Override
