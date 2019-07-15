@@ -29,15 +29,14 @@ import bert.share.xml.XMLUtility;
  */
 public class URDFModel  {
 	private static final String CLSS = "URDFModel";
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	protected Document document;
 	private final Chain chain;
-	private final List<Limb> limbList;
 	private final Map<Limb,LinkPoint> revolutesByChild;
-	private static final Logger LOGGER = Logger.getLogger(CLSS);
+	
 
 	public URDFModel() {
 		this.chain = new Chain();
-		this.limbList = new ArrayList<>();
 		this.revolutesByChild = new HashMap<>();
 		this.document = null;
 	}
@@ -109,7 +108,7 @@ public class URDFModel  {
 				String name = XMLUtility.attributeValue(linkNode, "name");
 				LOGGER.info(String.format("%s.analyzeChain: Link %s ...",CLSS,name));
 				try {
-					Limb limb = Limb.valueOf(name.toUpperCase());
+					chain.createLink(name.toUpperCase());
 
 					NodeList appendages = linkNode.getChildNodes();
 					int acount = appendages.getLength();
@@ -132,10 +131,9 @@ public class URDFModel  {
 							}
 							
 							Appendage a = Appendage.valueOf(aname.toUpperCase());
-							Link link = new Link(a.name());
+							chain.createLink(a.name());
 							LinkPoint end = new LinkPoint(a,ijk,xyz);
-							link.setEndPoint(end);
-							chain.addElement(link);
+							chain.setEndPoint(a.name(),end);
 						}
 						aindex++;
 					}
@@ -199,12 +197,15 @@ public class URDFModel  {
 						childIndex++;
 					}
 
-					Link link = new Link(child.name());
 					LinkPoint rev = new LinkPoint(joint,ijk,xyz);
-					link.setEndPoint(rev);
 					if(parent!=null) {
 						Link parentLink = chain.getLinkForLimb(parent);
-						link.setParent(parentLink);
+						parentLink.setEndPoint(rev);
+						
+						if(child!=null ) {
+							Link childLink = chain.getLinkForLimb(child);
+							chain.setOriginPoint(childLink,rev);
+						}
 					}
 					revolutesByChild.put(child, rev);
 					LOGGER.fine(String.format("%s.analyzeChains: Found revolute %s",CLSS,rev.getName()));
@@ -217,13 +218,11 @@ public class URDFModel  {
 
 			// Search for origin aka root. Origin is link where no joint has it as a child.
 			for(Link link:chain.getLinks() ) {
-				Link parent = link.getParent();
-				if( parent!=null ) {
-					parent.setOrigin(new LinkPoint());
-					chain.setRoot(parent);
+				LinkPoint candidate = revolutesByChild.get(link.getName());
+				if( candidate==null ) {
+					chain.setRoot(link);
 					break;
 				}
-
 			}
 		}
 	}

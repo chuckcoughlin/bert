@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import bert.control.main.Solver;
 import bert.share.common.PathConstants;
@@ -28,6 +29,7 @@ import bert.share.motor.Joint;
  */
 public class Chain {
 	private final static String CLSS = "Chain";
+	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private Link root;
 	private final Map<Appendage,Link> linkByAppendage;
 	private final Map<Joint,List<Link>> linkListByJoint;
@@ -43,27 +45,6 @@ public class Chain {
 	}
 	
 	/**
-	 * The new link gets added to the various maps that
-	 * allow us to navigate the chain.
-	 * @param link the new limb.
-	 */
-	public void addElement( Link link) {
-		linksByLimb.put(link.getName(), link);
-		LinkPoint lp = link.getEndPoint();
-		if( lp.getType().equals(LinkPointType.APPENDAGE)) {
-			linkByAppendage.put(lp.getAppendage(), link);
-		}
-		else if( lp.getType().equals(LinkPointType.REVOLUTE)) {
-			Joint j = lp.getJoint();
-			List list = linkListByJoint.get(j);
-			if(list==null ) {
-				list = new ArrayList<>();
-				linkListByJoint.put(j,list);
-			}
-			list.add(link);
-		}
-	}
-	/**
 	 * As we add origin and endpoints, the new link gets added to the various
 	 * maps that allow us to navigate the chain.
 	 * @param name the new link or limb name.
@@ -72,12 +53,35 @@ public class Chain {
 		Link link = new Link(name.toUpperCase());
 		linksByLimb.put(link.getName(), link);
 	}
-	public void setOriginLinkPoint(Limb link,LinkPoint lp) {
-		
+	public void setOriginPoint(Link link,LinkPoint lp) {
+		if( link!=null ) {
+			link.setOrigin(lp);
+		}
+		else {
+			LOGGER.warning(String.format("%s.setOriginPoint: Null link", CLSS));
+		}
 	}
 
-	public void setEndLinkPoint(Limb link,LinkPoint lp) {
-		
+	public void setEndPoint(String name,LinkPoint lp) {
+		Link link = linksByLimb.get(name);
+		if( link!=null ) {
+			if( lp.getType().equals(LinkPointType.APPENDAGE)) {
+				linkByAppendage.put(lp.getAppendage(), link);
+			}
+			else if( lp.getType().equals(LinkPointType.REVOLUTE)) {
+				Joint j = lp.getJoint();
+				List<Link> list = linkListByJoint.get(j);
+				if(list==null ) {
+					list = new ArrayList<>();
+					linkListByJoint.put(j,list);
+				}
+				list.add(link);
+			}
+			link.setEndPoint(lp);
+		}
+		else {
+			LOGGER.warning(String.format("%s.setEndPoint: No link %s found", CLSS,name));
+		}
 	}
 
 	public Collection<Link> getLinks() { return linksByLimb.values(); }
