@@ -14,7 +14,7 @@ Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/
 *********************************************************
 ### Speech <a id="speech"></a>
   The primary method of command and control is via spoken English commands. If a command, statement or question is not recognized, Bert will respond with an appropriate request for clarification. A typical interaction
-  may be found [here](https://github.com/chuckcoughlin/bert/tree/master/images/voice_commands.mov)
+  may be found [here](https://www.youtube.com/watch?v=hqrXriI27V0)
 *********************************************************
 #### a - Startup <a id="startup"></a>
 Once the robot is powered on, a boot sequence commences. On completion, Bert will announce a randomized "Ready" statement.
