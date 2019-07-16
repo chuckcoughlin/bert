@@ -200,7 +200,7 @@ public class URDFModel  {
 					LinkPoint rev = new LinkPoint(joint,ijk,xyz);
 					if(parent!=null) {
 						Link parentLink = chain.getLinkForLimb(parent);
-						parentLink.setEndPoint(rev);
+						if( parentLink!=null ) parentLink.setEndPoint(rev);
 						
 						if(child!=null ) {
 							Link childLink = chain.getLinkForLimb(child);

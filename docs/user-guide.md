@@ -13,8 +13,8 @@ Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/
 
 *********************************************************
 ### Speech <a id="speech"></a>
-  The primary method of command and control is via spoken English commands. If a command, statement or question is not recognized,
-  Bert will respond with an appropriate request for clarification.
+  The primary method of command and control is via spoken English commands. If a command, statement or question is not recognized, Bert will respond with an appropriate request for clarification. A typical interaction
+  may be found [here](https://github.com/chuckcoughlin/bert/tree/master/images/voice_commands.mov)
 *********************************************************
 #### a - Startup <a id="startup"></a>
 Once the robot is powered on, a boot sequence commences. On completion, Bert will announce a randomized "Ready" statement.
@@ -28,10 +28,21 @@ options from the vocabulary list in the next section.
   describe your configuration
   halt
   list the speeds of your motors
-  move your left knee to 90 degrees
-  set the head horizontal position to 0
-  "sit"
+  move your left knee to 135 degrees
+  move it to 120 degrees
+  move the other knee to 120 degrees
+  move slowly
+  straighten it
 ```
+Commands also include directives to set poses. The command is simply the pose name.
+```
+   attention
+   relax
+```
+Pose names are not fixed parts of the syntax, but rather names of stored entries in
+the robot database.
+
+For additional examples see [testplan](https://github.com/chuckcoughlin/bert/tree/master/docs/testplan.md).
 
 ##### Queries
 ```
@@ -42,10 +53,12 @@ options from the vocabulary list in the next section.
     What is the id of your left shoulder vertical
     What is the vertical position of your neck
     what is your left ankle temperature
+    why do you wear mittens
 ```
 ##### Settings
 Infrequently it may be necessary to inform the robot of some fact.
 ```
+  you are "sitting"
   "sit" means to become "sitting"
   your pose is "saluting"
   when I say "sit" take the pose "sitting"
@@ -62,7 +75,7 @@ various categories.
   * Core property: age, cadence, cycle time, duty cycle, height, name
   * Joint Properties: id, maximum angle, minimum angle, motor type, offset,
      orientation, position, speed, temperature, torque, voltage
-  * Sides: left, right
+  * Sides: left, right, other
 
 *********************************************************
   ### Android Application <a id="android"></a>

@@ -123,7 +123,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 
 		// If side or axis were set previously, use those jointValues as defaults
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -154,7 +154,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 
 		// If side or axis were set previously, use those jointValues as defaults
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -267,7 +267,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE).toString();
-			if( ctx.Side()!=null ) side = ctx.Side().getText();
+			if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 			sharedDictionary.put(SharedKey.SIDE, side);
 			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -297,7 +297,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE).toString();
-			if( ctx.Side()!=null ) side = ctx.Side().getText();
+			if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 			sharedDictionary.put(SharedKey.SIDE, side);
 			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -326,7 +326,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		sharedDictionary.put(SharedKey.AXIS, axis);
 		// If side was set previously, use it as default
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		if( ctx.Appendage()==null) {
 			bottle.assignRequestType(RequestType.GET_JOINT_LOCATION);
@@ -390,7 +390,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
 			// If side or axis were set previously, use those jointValues as defaults
 			String side = sharedDictionary.get(SharedKey.SIDE).toString();
-			if( ctx.Side()!=null ) side = ctx.Side().getText();
+			if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 			sharedDictionary.put(SharedKey.SIDE, side);
 			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -420,7 +420,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 
 		// If side or axis were set previously, use those jointValues as defaults
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -475,7 +475,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 
 		// If side or axis were set previously, use those jointValues as defaults
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -507,7 +507,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		
 		// If side or axis were set previously, use those jointValues as defaults
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -541,7 +541,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 
 		// If side or axis were set previously, use those jointValues as defaults
 		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = ctx.Side().getText();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
@@ -741,6 +741,20 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		result = JointProperty.valueOf(pname.toUpperCase());
 		return result;
 	}
+
+	// Determine side from the supplied string. If the string is "other", return
+	// the side different from the last used.
+	private String determineSide(String text,HashMap<SharedKey,Object> dict) throws IllegalArgumentException  {
+		String side = "right";
+		if( text.equalsIgnoreCase("left")) side = "left";
+		else if(text.equalsIgnoreCase("other")) {
+			String former = dict.get(SharedKey.SIDE).toString();
+			if( former.equalsIgnoreCase("left")) side = "right";
+			else side="left";
+		}
+		return side;
+	}
+
 
 	// Concatenate the elements of NAMES().
 	private String namesForNodeList(List<TerminalNode> names) {

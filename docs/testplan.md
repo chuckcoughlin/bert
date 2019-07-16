@@ -99,13 +99,18 @@ move a joint to a specified position. Make sure that any attempts to drive it
 out-of-range are clipped . Sample command syntax:
 ```
     move your left knee to 90 degree
-    move it to 20
     turn your right thigh x to 180
-    bend it 30
     set the left elbow position to 90 degrees
     set the position of your left ankle to 60
     set the left elbow to 90
     straighten your left knee
+```
+* ![green](/images/ball_green.png) ``Pronouns`` - show the use of 'it' and 'other' as substitutions for
+the last referenced joint or side. Sample command syntax:
+```
+    move it to 20
+    set your other elbow to 90
+    straighten it
 ```
 * ![green](/images/ball_green.png) ``Change speed`` - using the terminal application,
 change the speed (~degrees/sec) of a joint or all joints.
@@ -168,7 +173,7 @@ In addition to validating that the syntax works, check numeric results for the f
 ### e - Tablet Interaction <a id="tablet"></a>
 Test the integration of the android tablet with the robot, especially as it involves
 spoken text.
-* ![red](/images/ball_red.png) ``Speech`` - validate that all commands and queries
+* ![green](/images/ball_red.png) ``Speech`` - validate that all commands and queries
 used in the previous section can be executed via speech and that responses are
 likewise formulated into audible sentences.
 

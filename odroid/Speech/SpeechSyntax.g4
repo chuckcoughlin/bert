@@ -86,7 +86,7 @@ Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maxi
 Salutation:'bert'|'burt';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';
-Side: 'left'|'right';
+Side: 'left'|'right'|'other';
 Straighten: 'straighten';
 Take: 'assume' | 'take';
 To: 'to become'|'to';
