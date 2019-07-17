@@ -9,11 +9,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -43,12 +42,14 @@ import chuckcoughlin.bert.speech.TextMessageObserver;
  * (and not in the service).
  */
 public class MainActivity extends AppCompatActivity
-                          implements IntentObserver, TextMessageObserver,TextToSpeech.OnInitListener, ServiceConnection {
+                          implements IntentObserver, TextMessageObserver,TextToSpeech.OnInitListener,
+                                        ServiceConnection {
     private static final String CLSS = "MainActivity";
     private final static String UTTERANCE_ID = CLSS;
     private SpeechAnalyzer analyzer = null;
     private Annunciator annunciator = null;
     private DispatchService service = null;
+    private UtteranceListener ul = new UtteranceListener();
     // Start phrases to choose from ...
     private static final String[] phrases = {
             "My speech module is ready",
@@ -70,11 +71,12 @@ public class MainActivity extends AppCompatActivity
     private ViewPager viewPager;
 
     public MainActivity() {
-        Log.d(CLSS,"Main Activity startup ...");
+        Log.d(CLSS, "Main Activity startup ...");
     }
 
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
+     *
      * @param savedInstanceState
      */
     @Override
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity
         getApplicationContext().startForegroundService(intent);
         bindService(intent, this, Context.BIND_AUTO_CREATE);
 
-        Log.i(CLSS,"onCreate ...");
+        Log.i(CLSS, "onCreate ...");
         // If I absolutely have to start over again with the database ...
         //this.deleteDatabase(BertConstants.DB_NAME);
 
@@ -94,7 +96,7 @@ public class MainActivity extends AppCompatActivity
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         ViewPager viewPager = findViewById(R.id.viewpager);
-        pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(),getApplicationContext());
+        pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(), getApplicationContext());
         viewPager.setAdapter(pagerAdapter);
     }
 
@@ -105,13 +107,14 @@ public class MainActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         activateSpeechAnalyzer();
-        annunciator = new Annunciator(getApplicationContext(),this);
+        annunciator = new Annunciator(getApplicationContext(), this);
+        annunciator.setOnUtteranceProgressListener(ul);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if(service!=null) {
+        if (service != null) {
             unbindService(this);
             service = null;
         }
@@ -131,66 +134,69 @@ public class MainActivity extends AppCompatActivity
         annunciator.shutdown();
         annunciator = null;
     }
+
     /**
      * Select a random startup phrase from the list.
+     *
      * @return the selected phrase.
      */
     private String selectRandomText() {
         double rand = Math.random();
-        int index = (int)(rand*phrases.length);
+        int index = (int) (rand * phrases.length);
         return phrases[index];
     }
+
     // =================================== OnInitListener ===============================
     @Override
     public void onInit(int status) {
-        if( status==TextToSpeech.SUCCESS )  {
+        if (status == TextToSpeech.SUCCESS) {
             Set<Voice> voices = annunciator.getVoices();
-            for( Voice v:voices) {
-                if( v.getName().equalsIgnoreCase("en-GB-SMTm00") ) {
-                    Log.i(CLSS,String.format("onInit: voice = %s %d",v.getName(),v.describeContents()));
+            for (Voice v : voices) {
+                if (v.getName().equalsIgnoreCase("en-GB-SMTm00")) {
+                    Log.i(CLSS, String.format("onInit: voice = %s %d", v.getName(), v.describeContents()));
                     annunciator.setVoice(v);
                 }
             }
 
-            annunciator.setLanguage (Locale.UK);
+            annunciator.setLanguage(Locale.UK);
             //annunciator.setPitch(0.6f);
             //annunciator.setSpeechRate(1.2f);
-            Log.i(CLSS,String.format("onInit: TextToSpeech initialized ..."));
-            annunciator.speak (selectRandomText(), TextToSpeech.QUEUE_FLUSH, null,UTTERANCE_ID);
-        }
-        else {
-            Log.e(CLSS,String.format("onInit: TextToSpeech ERROR - %d",status));
+            Log.i(CLSS, String.format("onInit: TextToSpeech initialized ..."));
+            annunciator.speak(selectRandomText(), TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID);
+        } else {
+            Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status));
             annunciator = null;  // don't use
         }
 
 
     }
+
     // ===================== IntentObserver =====================
     // Only turn on the speech recognizer if the action state is voice.
     @Override
     public void initialize(List<Intent> list) {
-        for(Intent intent:list) {
+        for (Intent intent : list) {
             if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
                 update(intent);
             }
         }
     }
+
     // For the speech analyzer to be active, the bluetooth socket should be live.
     // The speed analyzer must run on the "main thread"
     @Override
     public void update(Intent intent) {
-        if( intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
+        if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
             FacilityState actionState = FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE));
             TieredFacility tf = TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY));
-            if(tf.equals(TieredFacility.SOCKET) && actionState.equals(FacilityState.ACTIVE)) {
+            if (tf.equals(TieredFacility.SOCKET) && actionState.equals(FacilityState.ACTIVE)) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         activateSpeechAnalyzer();
                     }
                 });
-            }
-            else if(tf.equals(TieredFacility.SOCKET) && !actionState.equals(FacilityState.ACTIVE)) {
+            } else if (tf.equals(TieredFacility.SOCKET) && !actionState.equals(FacilityState.ACTIVE)) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -200,10 +206,11 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
+
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) {
+        if (service != null) {
             service.unregisterIntentObserver(this);
             service.unregisterTranscriptViewer(this);
         }
@@ -224,15 +231,15 @@ public class MainActivity extends AppCompatActivity
 
     // Turn off the audio to mute the annoying beeping
     private void activateSpeechAnalyzer() {
-        if( service!=null && analyzer==null ) {
+        if (service != null && analyzer == null) {
             suppressAudio();
-            analyzer = new SpeechAnalyzer(service,getApplicationContext());
+            analyzer = new SpeechAnalyzer(service, getApplicationContext());
             analyzer.start();
         }
     }
 
     private void deactivateSpeechAnalyzer() {
-        if( analyzer!=null ) {
+        if (analyzer != null) {
             restoreAudio();
             analyzer.shutdown();
         }
@@ -243,6 +250,7 @@ public class MainActivity extends AppCompatActivity
         //AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
     }
+
     // Mute the beeps waiting for spoken input. At one point these methods were used to silence
     // annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
     private void suppressAudio() {
@@ -253,16 +261,37 @@ public class MainActivity extends AppCompatActivity
     // =================================== TextMessageObserver ===============================
     @Override
     public void initialize(TextManager mgr) {}
+
     /**
      * If the message is a response from the robot, announce it.
+     *
      * @param msg the new message
      */
     @Override
     public void update(TextMessage msg) {
-        if( msg.getMessageType().equals(MessageType.ANS)) {
+        if (msg.getMessageType().equals(MessageType.ANS)) {
             restoreAudio();
             annunciator.speak(msg.getMessage());
             suppressAudio();
         }
+    }
+
+    // =================================== UtteranceProgressListener ===============================
+    public class UtteranceListener extends UtteranceProgressListener {
+
+        // Short circuit the hard-coded wait interval.
+        @Override
+        public synchronized void onDone(String utteranceId) {
+            if( analyzer!=null ) {
+                Thread t = analyzer.getSrThread();
+                if( t!=null ) t.interrupt();
+            }
+        }
+        @Override
+        public void onError(String utteranceId) {}
+        @Override
+        public void onError(String utteranceId,int code) {}
+        @Override
+        public void onStart(String utteranceId) {}
     }
 }

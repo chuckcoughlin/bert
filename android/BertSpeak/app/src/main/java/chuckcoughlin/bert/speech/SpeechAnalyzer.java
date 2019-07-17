@@ -27,9 +27,10 @@ import chuckcoughlin.bert.service.TieredFacility;
 public class SpeechAnalyzer implements  RecognitionListener  {
     private static final String CLSS = "SpeechAnalyzer";
     private static final int END_OF_PHRASE_TIME = 2000; // Silence to indicate end-of-input
-    private static final long INTER_PHRASE_TIME = 2000;  // Time to wait before considering next input
+    private static final long INTER_PHRASE_TIME = 3000;  // Time to wait before considering next input
     private final Context context;
     private SpeechRecognizer sr = null;
+    private Thread srThread = null;  // Probably a UI thread
     private final BluetoothHandler handler;
     private Intent recognizerIntent = null;
 
@@ -52,11 +53,14 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         }
         sr = null;
     }
+    public Thread getSrThread() { return this.srThread; }
 
     // Delay before we start listening to avoid feedback loop
-    // with spoken response.
+    // with spoken response. Note this will be cut short by
+    // a listener on the text-to-speech component.
     private void startListening() {
         if(sr!=null) {
+            srThread = Thread.currentThread();
             try {
                 Thread.sleep(INTER_PHRASE_TIME);
             }
