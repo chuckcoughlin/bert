@@ -26,49 +26,56 @@ command:
 	| Salutation? Move Adverb                                                   # moveSpeed
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
+    | Salutation? Straighten Yourself? Up   					# straightenUp
 	| Salutation? Straighten (It|Article? Side? Joint Axis? )   # straightenJoint
 	| Salutation? (Command|Halt|Shutdown)                       # handleSingleWordCommand
+    | Salutation? (Move|Take|Set) To Article NAME+ Property		# moveToPose
 	| Salutation? (Move|Take|Set) NAME+                         # handleCompoundCommand
 	| Salutation? NAME+                                         # handleArbitraryCommand
 	;
 
 // Request for information
 question:
-    How Attribute 'are' You                                     # attributeQuestion
-	| What 'is' Article? Configuration                          # configurationQuestion
-	| What 'are' Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
-    | What 'is' Article? Property Of Article? Side? Joint Axis? # jointPropertyQuestion1
-    | What 'is' Article? Side? Joint Axis? Property                 # jointPropertyQuestion2
-    | What 'is' Article? Metric   				    # metricsQuestion
-    | What 'is' Article? Adjective?  Pose                           # poseQuestion
-	| What 'is' Article? Axis? Property Of Article? Side? Joint # motorPropertyQuestion
-    | Where 'is' Article? Side? (Appendage|Joint)	Axis?       # limbLocationQuestion
-        | 'why' 'do' You Have Mittens									# whyMittens
+        How Attribute Are You 										# attributeQuestion
+    | What Is Article? Configuration								# configurationQuestion
+    | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
+    | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
+    | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion
+    | What Is Article? Metric   				    # metricsQuestion
+    | What Is Article? Adjective? Pose                          # poseQuestion
+    | Where Is Article? Side? (Appendage|Joint)	Axis?       	# limbLocationQuestion
+    | Why Do You Have Mittens									# whyMittens
 	;
 
 // Convey information to the robot.
 declaration:
-    'you' 'are' NAME					# declarePose1
-	| Article Pose 'is' NAME                                # declarePose2
-	| When 'i' 'say' NAME Take Article? Pose NAME		# mapPoseToCommand1
-	| NAME Means To NAME					# mapPoseToCommand2
+    You Are NAME						# declarePose1
+	| Article Pose Is NAME 				# declarePose2
+	| When Isay NAME Take Article? Pose NAME		# mapPoseToCommand1
+	| NAME Means To NAME							# mapPoseToCommand2
 	;
 
 
+// First is a list of words that appear in lists
+Why: 'why';
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
 Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
+Are: 'are';
 Attribute: 'old'|'tall';
-Axis: 'x'|'y'|'z'|'horizontal'|'vertical'|'why';
+Axis: 'x'|'y'|'z'|'horizontal'|'vertical'|Why;
 Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');
 Configuration: 'configuration';
+Do: 'do';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 Have: 'have'|'wear';
 How: 'how';
 Initialize: 'initialize';
+Isay: 'i say';
+Is: 'is';
 It: 'it';
 List: ('tell me'|'describe'|'list');
 Limits: 'limits';
@@ -91,12 +98,15 @@ Straighten: 'straighten';
 Take: 'assume' | 'take';
 To: 'to become'|'to';
 Unit: 'degrees';
+Up: 'up';
 Value: NUMBER;
 You: 'you';
+Yourself: 'yourself';
 
 What: 'what';
 When: 'when';
 Where: 'where';
+
 
 COMMA: ',';
 COLON: ':';

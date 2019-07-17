@@ -20,7 +20,7 @@ public enum JointProperty
 	TEMPERATURE,
 	TORQUE,
 	VOLTAGE,
-	UNRECONIZED
+	UNRECOGNIZED
 	;
           
  /**

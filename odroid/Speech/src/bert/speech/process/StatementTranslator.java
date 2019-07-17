@@ -95,11 +95,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
 		return null;
 	}
+	@Override
 	// Handle a (possible) multi-word command
 	// attention
-	@Override 
 	public Object visitHandleArbitraryCommand(SpeechSyntaxParser.HandleArbitraryCommandContext ctx) {
-
 		if(ctx.NAME()!=null) {
 			String cmd = namesForNodeList(ctx.NAME());
 			String pose = Database.getInstance().getPoseForCommand(cmd);
@@ -111,7 +110,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				String msg = String.format("I do not know how to respond to \"%s\"",cmd);
 				bottle.assignError(msg);
 			}
-
 		}
 		return null;
 	}
@@ -170,9 +168,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
+	@Override
 	// Handle a multi-word command that includes a word that is already another token type.
 	// Go limp
-	@Override 
 	public Object visitHandleCompoundCommand(SpeechSyntaxParser.HandleCompoundCommandContext ctx) {
 		// We simply want the text from the first token
 		String cmd = "";
@@ -258,7 +256,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	}
 	@Override 
 	// what is the id of your left hip y?
-	public Object visitJointPropertyQuestion1(SpeechSyntaxParser.JointPropertyQuestion1Context ctx) {
+	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
 		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
 		
@@ -288,36 +286,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	// what is your left ankle position?  (exactly same logic as previous).
-	public Object visitJointPropertyQuestion2(SpeechSyntaxParser.JointPropertyQuestion2Context ctx) {
-		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
-		String property = ctx.Property().getText().toUpperCase();
-		try {
-			JointProperty jp =  determineJointProperty(property);
-			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
-			// If side or axis were set previously, use those jointValues as defaults
-			String side = sharedDictionary.get(SharedKey.SIDE).toString();
-			if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
-			sharedDictionary.put(SharedKey.SIDE, side);
-			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
-			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-			sharedDictionary.put(SharedKey.AXIS, axis);
-			Joint joint = determineJoint(ctx.Joint().getText(),axis,side);
-			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
-			if( joint.equals(Joint.UNKNOWN) ) {
-				String msg = String.format("I don't have a %s joint, that I know of",ctx.Joint().getText());
-				bottle.assignError(msg);
-			}
-			else {
-				sharedDictionary.put(SharedKey.JOINT, joint);
-			}
-		}
-		catch(IllegalArgumentException iae) {
-			String msg = String.format("I don't have a property %s, that I know of",property);
-			bottle.assignError(msg);
-		}
-		return null;
-	}
+	@Override
 	// where is your left ear
 	public Object visitLimbLocationQuestion(SpeechSyntaxParser.LimbLocationQuestionContext ctx) {
 		// If axis was set previously, use it as default
@@ -375,6 +344,34 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				String msg = String.format("I did't know that I had a %s",metric);
 				bottle.assignError(msg);
 			}
+		}
+		return null;
+	}
+	@Override 
+	// when i say stand take the pose standing
+	public Object visitMapPoseToCommand1(SpeechSyntaxParser.MapPoseToCommand1Context ctx) {
+		bottle.assignRequestType(RequestType.MAP_COMMAND_TO_POSE);
+		if( ctx.NAME().size()>1 ) {
+			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(0).getText());
+			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(1).getText());
+		}
+		else {
+			String msg = String.format("I need both a pose name and associated command");
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
+	// standing means to stand
+	public Object visitMapPoseToCommand2(SpeechSyntaxParser.MapPoseToCommand2Context ctx) {
+		bottle.assignRequestType(RequestType.MAP_COMMAND_TO_POSE);
+		if( ctx.NAME().size()>1 ) {
+			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(1).getText());
+			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(0).getText());
+		}
+		else {
+			String msg = String.format("I need both a pose name and associated command");
+			bottle.assignError(msg);
 		}
 		return null;
 	}
@@ -457,6 +454,17 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
+	// move to your home position
+	public Object visitMoveToPose(SpeechSyntaxParser.MoveToPoseContext ctx) {
+		bottle.assignRequestType(RequestType.SET_POSE);
+
+		if(ctx.NAME()!=null) {
+			String pose = namesForNodeList(ctx.NAME());
+			bottle.setProperty(BottleConstants.POSE_NAME,pose );
+		}
+		return null;
+	}
+	@Override 
 	// What is your current pose?
 	public Object visitPoseQuestion(SpeechSyntaxParser.PoseQuestionContext ctx) {
 		String pose = sharedDictionary.get(SharedKey.POSE).toString();
@@ -533,6 +541,15 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
+	@Override
+	// straighten up (assume "home" pose)
+	public Object visitStraightenUp(SpeechSyntaxParser.StraightenUpContext ctx) {
+		bottle.assignRequestType(RequestType.SET_POSE);
+		bottle.setProperty(BottleConstants.POSE_NAME,"home");
+
+		return null;
+	}
+	@Override
 	// straighten your left elbow.
 	public Object visitStraightenJoint(SpeechSyntaxParser.StraightenJointContext ctx) {
 		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
@@ -588,6 +605,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
+	@Override
 	// why do you wear mittens
 	public Object visitWhyMittens(SpeechSyntaxParser.WhyMittensContext ctx) {
 		bottle.assignRequestType(RequestType.GET_METRIC);
@@ -723,7 +741,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// Determine a joint property from the supplied string. Take care of recognized
 	// aliases in one place. The name may be plural in some settings.
 	private JointProperty determineJointProperty(String pname) throws IllegalArgumentException  {
-		JointProperty result = JointProperty.UNRECONIZED;
+		JointProperty result = JointProperty.UNRECOGNIZED;
 		if( pname.endsWith("s") || pname.endsWith("S")) {
 			pname = pname.substring(0, pname.length()-1).toUpperCase();
 		}
