@@ -33,7 +33,7 @@ public class Chain {
 	private Link root;
 	private final Map<Appendage,Link> linkByAppendage;
 	private final Map<Joint,List<Link>> linkListByJoint;
-	private final Map<String,Link> linksByLimb;
+	private final Map<String,Link> linksByLimbName;
 	private double[] origin = new double[] { 0., 0., 0.};
 	private double [] axis  = new double[] { 0., 0., 0.};
 	
@@ -41,7 +41,7 @@ public class Chain {
 		this.root = null;
 		this.linkByAppendage = new HashMap<>();
 		this.linkListByJoint = new HashMap<>();
-		this.linksByLimb = new HashMap<>();
+		this.linksByLimbName = new HashMap<>();
 	}
 	
 	/**
@@ -51,7 +51,7 @@ public class Chain {
 	 */
 	public void createLink(String name) {
 		Link link = new Link(name.toUpperCase());
-		linksByLimb.put(link.getName(), link);
+		linksByLimbName.put(link.getName(), link);
 	}
 	public void setOriginPoint(Link link,LinkPoint lp) {
 		if( link!=null ) {
@@ -63,7 +63,7 @@ public class Chain {
 	}
 
 	public void setEndPoint(String name,LinkPoint lp) {
-		Link link = linksByLimb.get(name);
+		Link link = linksByLimbName.get(name);
 		if( link!=null ) {
 			if( lp.getType().equals(LinkPointType.APPENDAGE)) {
 				linkByAppendage.put(lp.getAppendage(), link);
@@ -84,26 +84,40 @@ public class Chain {
 		}
 	}
 
-	public Collection<Link> getLinks() { return linksByLimb.values(); }
-	public Link getLinkForLimb(Limb limb) { return linksByLimb.get(limb); }
+	public Collection<Link> getLinks() { return linksByLimbName.values(); }
+	public Link getLinkForLimbName(String name) { return linksByLimbName.get(name.toUpperCase()); }
 
 	/**
 	 * Traverse the entire chain, clearing temporary calculations in each link.
 	 * @return
 	 */
 	public void invalidate() {
-		for(Link link:linksByLimb.values()) {
+		for(Link link:linksByLimbName.values()) {
 			link.invalidate();
 		}
 	}
 	/**
-	 * Work back toward the source until we find a valid/up-to-date link.
+	 * Work back toward the root until we find a valid/up-to-date link.
 	 * @param appendage
 	 * @return
 	 */
 	public List<Link> partialChainToAppendage(Appendage appendage) {
 		LinkedList<Link> partial = new LinkedList<>();
 		Link link = linkByAppendage.get(appendage);
+		while(link!=null) {
+			partial.addFirst(link);
+			link = link.getParent();
+		}
+		return partial;
+	}
+	/**
+	 * Work back toward the source until we find a valid/up-to-date link.
+	 * @param link, the source
+	 * @return
+	 */
+	public List<Link> partialChainToLimb(Limb limb) {
+		LinkedList<Link> partial = new LinkedList<>();
+		Link link = linksByLimbName.get(limb.name());
 		while(link!=null) {
 			partial.addFirst(link);
 			link = link.getParent();
@@ -122,6 +136,16 @@ public class Chain {
 	 * @param o three dimensional array of offsets to the origin of the chain
 	 */
 	public void setOrigin( double[] o) { this.origin = o; }
+	/**
+	 * Connect the child link to its parent.
+	 * @param childName
+	 * @param parentName
+	 */
+	public void setParent(String childName,String parentName) { 
+		Link parent = linksByLimbName.get(parentName);
+		Link child = linksByLimbName.get(childName);
+		if( parent!=null && child!=null ) child.setParent(parent);
+	}
 	
 	/**
 	 * Test construction of the chain of robot "limbs" based on the URDF file in 
@@ -144,6 +168,22 @@ public class Chain {
 		
 		Link root = chain.getRoot();
         System.out.println(String.format("%s: root = %s ",CLSS,root.getName()));
+        // Test the links to some appendages
+        System.out.println("=========================================================================");
+        List<Link> subchain = chain.partialChainToAppendage(Appendage.LEFT_EAR);
+        for(Link link:subchain) {
+        	 System.out.println(String.format("\t%s ",link.getName()));
+        }
+        System.out.println("=========================================================================");
+        subchain = chain.partialChainToAppendage(Appendage.RIGHT_FINGER);
+        for(Link link:subchain) {
+        	 System.out.println(String.format("\t%s ",link.getName()));
+        }
+        System.out.println("=========================================================================");
+        subchain = chain.partialChainToAppendage(Appendage.RIGHT_TOE);
+        for(Link link:subchain) {
+        	 System.out.println(String.format("\t%s ",link.getName()));
+        }
     }
 }
 

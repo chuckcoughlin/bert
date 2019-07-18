@@ -46,11 +46,15 @@
 	<link name="LEFT_CLAVICLE"/>
 	<link name="LEFT_SHOULDER_LINK"/>
 	<link name="LEFT_UPPER_ARM"/>
-	<link name="LEFT_FOREARM"/>
+	<link name="LEFT_FOREARM">
+		<appendage name="LEFT_FINGER"/>
+	</link>
 	<link name="RIGHT_CLAVICLE"/>
 	<link name="RIGHT_SHOULDER_LINK"/>
 	<link name="RIGHT_UPPER_ARM"/>
-	<link name="RIGHT_FOREARM"/>>
+	<link name="RIGHT_FOREARM">
+		<appendage name="RIGHT_FINGER"/>
+	</link>
 	<!-- Joint names must match the names in bert.xml 
 		origin is position of joint in parent frame
 		axis is orientation of joint in joint frame

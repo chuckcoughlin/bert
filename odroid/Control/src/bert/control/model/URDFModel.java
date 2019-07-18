@@ -7,19 +7,14 @@ package bert.control.model;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.hipparchus.complex.Quaternion;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import bert.share.control.Appendage;
-import bert.share.control.Limb;
 import bert.share.motor.Joint;
 import bert.share.xml.XMLUtility;
 
@@ -32,12 +27,9 @@ public class URDFModel  {
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	protected Document document;
 	private final Chain chain;
-	private final Map<Limb,LinkPoint> revolutesByChild;
 	
-
 	public URDFModel() {
 		this.chain = new Chain();
-		this.revolutesByChild = new HashMap<>();
 		this.document = null;
 	}
     
@@ -134,6 +126,7 @@ public class URDFModel  {
 							chain.createLink(a.name());
 							LinkPoint end = new LinkPoint(a,ijk,xyz);
 							chain.setEndPoint(a.name(),end);
+							chain.setParent(a.name(),name.toUpperCase());
 						}
 						aindex++;
 					}
@@ -157,39 +150,23 @@ public class URDFModel  {
 					NodeList childNodes = jointNode.getChildNodes();
 					int childCount = childNodes.getLength();
 					int childIndex = 0;
-					Limb parent = null;
-					Limb child = null;
+					String parent = null;
+					String child = null;
 					double[] xyz = null;
 					double[] ijk = null;
 					// It is required that the LinkPoint have a parent and a child
 					while( childIndex<childCount ) {
 						Node childNode = childNodes.item(childIndex);
 						if( "parent".equals(childNode.getLocalName()) ) {
-							String p = XMLUtility.attributeValue(childNode, "link");
-							if( p!=null ) {
-								try {
-									parent = Limb.valueOf(p);
-								}
-								catch(IllegalArgumentException iae) {
-									LOGGER.warning(String.format("%s.analyzeChain: parent of %s has unknown name (%s), ignored",CLSS,joint.name(),p));
-								}
-							}
-							else {
+							parent = XMLUtility.attributeValue(childNode, "link");
+							if( parent==null ) {
 								LOGGER.warning(String.format("%s.analyzeChain: joint %s has no parent, ignored",CLSS,joint.name()));
 							}
 						}
 						else if( "child".equals(childNode.getLocalName()) ) {
-							String c = XMLUtility.attributeValue(childNode, "link");
-							if( c!=null ) {
-								try {
-									child = Limb.valueOf(c);
-								}
-								catch(IllegalArgumentException iae) {
-									LOGGER.warning(String.format("%s.analyzeChain: child of %s has unknown name (%s), ignored",CLSS,joint.name(),c));
-								}
-							}
-							else {
-								LOGGER.warning(String.format("%s.analyzeChain: joint %s has no child, ignored",CLSS,joint.name()));
+							child = XMLUtility.attributeValue(childNode, "link");
+							if( child==null ) {
+								
 							}
 						}
 						else if( "origin".equalsIgnoreCase(childNode.getLocalName())) xyz  = doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz"));
@@ -199,16 +176,21 @@ public class URDFModel  {
 
 					LinkPoint rev = new LinkPoint(joint,ijk,xyz);
 					if(parent!=null) {
-						Link parentLink = chain.getLinkForLimb(parent);
-						if( parentLink!=null ) parentLink.setEndPoint(rev);
-						
+						Link parentLink = chain.getLinkForLimbName(parent);
+						parentLink.setEndPoint(rev);
 						if(child!=null ) {
-							Link childLink = chain.getLinkForLimb(child);
+							Link childLink = chain.getLinkForLimbName(child);
 							chain.setOriginPoint(childLink,rev);
+							childLink.setParent(parentLink);
+						}
+						else {
+							LOGGER.warning(String.format("%s.analyzeChain: joint %s has no child",CLSS,joint.name()));
 						}
 					}
-					revolutesByChild.put(child, rev);
-					LOGGER.fine(String.format("%s.analyzeChains: Found revolute %s",CLSS,rev.getName()));
+					else {
+						LOGGER.warning(String.format("%s.analyzeChain: joint %s has no parent",CLSS,joint.name()));
+					}
+					
 				}
 				catch(IllegalArgumentException iae) {
 					LOGGER.warning(String.format("%s.analyzeChains: link element has unknown name (%s), ignored",CLSS,name));
@@ -216,12 +198,17 @@ public class URDFModel  {
 				index++;
 			}
 
-			// Search for origin aka root. Origin is link where no joint has it as a child.
-			for(Link link:chain.getLinks() ) {
-				LinkPoint candidate = revolutesByChild.get(link.getName());
-				if( candidate==null ) {
-					chain.setRoot(link);
-					break;
+			// Search for origin aka root. Choose any random link and follow to root.
+			Iterator<Link> linkWalker = chain.getLinks().iterator();
+			if( linkWalker.hasNext()) {
+				Link link = linkWalker.next();
+				while( link!=null ) {
+					Link parent = link.getParent();
+					if(parent==null) {
+						chain.setRoot(link);
+						break;
+					}
+					link = parent;
 				}
 			}
 		}
