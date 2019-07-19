@@ -39,7 +39,7 @@ public class DispatchService extends Service implements BluetoothHandler {
     private static final String CLSS = "DispatchService";
     private static final long ERROR_CYCLE_DELAY = 15000;   // Wait interval for retry after error
     private volatile NotificationManager notificationManager;
-    private BluetoothConnection bluetoothConnection = null;
+    private BluetoothConnection bluetoothConnection = null; // Stays null when simulated
     private BluetoothDevice bluetoothDevice = null;
     private final DispatchServiceBinder binder;
     private DatabaseManager dbManager = null;
@@ -88,7 +88,7 @@ public class DispatchService extends Service implements BluetoothHandler {
         String action = null;
         if( intent!=null) action = intent.getAction();
         Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",action,flags,startId));
-        bluetoothConnection = new BluetoothConnection(this);
+        if( !simulatedConnectionMode ) bluetoothConnection = new BluetoothConnection(this);
 
         if( action==null) {
             if( simulatedConnectionMode ) {
@@ -148,7 +148,7 @@ public class DispatchService extends Service implements BluetoothHandler {
 
 
 
-
+    public boolean isSimulatedConnectionMode() { return this.simulatedConnectionMode; }
     public void setBluetoothDevice(BluetoothDevice device) { this.bluetoothDevice = device; }
     /**
      * Build a notification with
@@ -225,13 +225,13 @@ public class DispatchService extends Service implements BluetoothHandler {
             // Start socket
             else {
                 reportConnectionState(TieredFacility.SOCKET,FacilityState.WAITING);
-                bluetoothConnection.openConnections(bluetoothDevice);
+                if( bluetoothConnection!=null ) bluetoothConnection.openConnections(bluetoothDevice);
             }
         }
         else if( currentFacility.equals(TieredFacility.SOCKET)) {
             if (!currentState.equals(FacilityState.ACTIVE)) {
                 reportConnectionState(currentFacility, FacilityState.WAITING);
-                bluetoothConnection.openConnections(bluetoothDevice);
+                if( bluetoothConnection!=null )bluetoothConnection.openConnections(bluetoothDevice);
                 Log.i(CLSS, String.format("%s: Set connection to %s (%s %s)",CLSS, bluetoothDevice.getName(), bluetoothDevice.getType(), bluetoothDevice.getAddress()));
             }
             // Start socket
@@ -240,7 +240,15 @@ public class DispatchService extends Service implements BluetoothHandler {
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        bluetoothConnection.readInThread();
+                        if( bluetoothConnection!=null ) {
+                            bluetoothConnection.readInThread();
+                        }
+                        else {
+                            try {
+                                Thread.sleep(ERROR_CYCLE_DELAY);
+                            }
+                            catch(InterruptedException ignore) {}
+                        }
                     }
                 });
                 reportConnectionState(TieredFacility.VOICE,FacilityState.WAITING);
@@ -255,10 +263,6 @@ public class DispatchService extends Service implements BluetoothHandler {
             }
         }
     }
-
-
-
-
 
     private void stopForegroundService() {
         Log.i(CLSS, "Stop foreground service.");
@@ -299,11 +303,13 @@ public class DispatchService extends Service implements BluetoothHandler {
         determineNextAction(TieredFacility.BLUETOOTH);
     }
     /*
-     * Update any observers with the current state
+     * Update any observers with the current state. Additionally create a log entry.
      */
     public void reportConnectionState(TieredFacility fac, FacilityState state) {
         Log.i(CLSS,String.format("reportConnectionState: %s %s",fac.name(),state.name()));
+        String msg = String.format("Connection state: %s %s",fac.name(),state.name());
         statusManager.reportState(fac,state);
+        //textManager.processText(MessageType.LOG,msg);
     }
     /**
      * There was an error in the attempt to create/open sockets.
@@ -360,7 +366,9 @@ public class DispatchService extends Service implements BluetoothHandler {
     public void receiveSpokenText(String text) {
         Log.i(CLSS,String.format("reportSpokenText: %s",text));
         textManager.processText(MessageType.MSG,text);
-        bluetoothConnection.write(String.format("%s:%s", MessageType.MSG.name(),text));
+        if( bluetoothConnection!=null) {
+            bluetoothConnection.write(String.format("%s:%s", MessageType.MSG.name(), text));
+        }
     }
     //=================================== ProcessDelay ==============================================
     /**

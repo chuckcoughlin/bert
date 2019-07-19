@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.Period;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -21,6 +22,7 @@ import bert.control.controller.InternalController;
 import bert.control.controller.QueueName;
 import bert.control.main.Solver;
 import bert.control.message.InternalMessage;
+import bert.control.model.Link;
 import bert.motor.main.MotorGroupController;
 import bert.motor.model.RobotMotorModel;
 import bert.server.model.RobotDispatcherModel;
@@ -277,7 +279,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
 		// The following two requests simply use the current positions of the motors, whatever they are
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
-			solver.invalidateTree();
+			solver.invalidateTree(); // Forces new calculations
 			String appendageName = request.getProperty(BottleConstants.APPENDAGE_NAME, Appendage.UNKNOWN.name());
 			double[] xyz = solver.getLocation(Appendage.valueOf(appendageName));
 			String text = String.format("%s is located at %0.2f %0.2f %0.2f meters",appendageName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
@@ -286,7 +288,10 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		else if(request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION) ) {
 			solver.invalidateTree();
 			String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
-			double[] xyz = solver.getLocation(Joint.valueOf(jointName));
+			// Choose any one of the links attached to the joint, get its parent.
+			List<Link> links = solver.getModel().getChain().getLinksForJoint(jointName);
+			//double[] xyz = solver.getLocation(Joint.valueOf(jointName));
+			double[] xyz = new double[3];
 			String text = String.format("The center of joint %s is located at %0.2f %0.2f %0.2f meters",jointName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
 			request.setProperty(BottleConstants.TEXT, text);
 		}

@@ -117,10 +117,15 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     }
 
     private void startVisualizer() {
-        visualizer = new Visualizer(0);
-        visualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate(), true, false);
-        visualizer.setCaptureSize(CAPTURE_SIZE);
-        visualizer.setEnabled(true);
+        try {
+            visualizer = new Visualizer(0);
+            visualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate(), true, false);
+            visualizer.setCaptureSize(CAPTURE_SIZE);
+            visualizer.setEnabled(true);
+        }
+        catch (Exception ex){  // This will fail in the emulator
+            Log.i(CLSS,String.format("startVisualizer: FAILED to start (%s).",CLSS,ex.getLocalizedMessage()));
+        }
     }
     private void stopVisualizer() {
         if (visualizer != null) {

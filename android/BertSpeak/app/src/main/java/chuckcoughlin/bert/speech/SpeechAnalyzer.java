@@ -49,7 +49,12 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     public void shutdown() {
         if (sr != null) {
             sr.stopListening();
-            sr.destroy();
+            try {
+                sr.destroy();
+            }
+            catch(IllegalArgumentException iae) {
+                Log.i(CLSS,String.format("%s:shutdown: (%s)",CLSS,iae.getLocalizedMessage()));
+            } // Happens in emulator
         }
         sr = null;
     }

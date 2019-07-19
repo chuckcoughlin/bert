@@ -9,4 +9,5 @@ module bert.control {
 	exports bert.control.main;
 	exports bert.control.controller;
 	exports bert.control.message;
+	exports bert.control.model;
 }

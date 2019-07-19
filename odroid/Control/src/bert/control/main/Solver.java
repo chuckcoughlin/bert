@@ -6,14 +6,16 @@ package bert.control.main;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import bert.control.model.Chain;
+import bert.control.model.Link;
 import bert.control.model.TestRobotModel;
 import bert.control.model.URDFModel;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
+import bert.share.control.Limb;
 import bert.share.logging.LoggerUtility;
 import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
@@ -67,10 +69,12 @@ public class Solver {
 		return xyz;
 	}
 	/**
-	 * Return the position of a specified joint in x,y,z coordinates in meters from the
+	 * Return the position of a specified limb in x,y,z coordinates in meters from the
 	 * robot origin in the pelvis.
 	 */
-	public double[] getLocation(Joint joint) {
+	public double[] getLocation(Limb limb) {
+		List<Link> subchain = model.getChain().partialChainToLimb(limb);
+		
 		double[] xyz = new double[3];
 		return xyz;
 	}
@@ -93,7 +97,7 @@ public class Solver {
 		Solver solver = new Solver();
 		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
 		
-		double[] xyz = solver.getLocation(Joint.ABS_Y);   // Just to top of pelvis
+		double[] xyz = solver.getLocation(Limb.LUMBAR);   // Just to top of pelvis
         System.out.println(String.format("%s: xyz = %.2f,%.2f,%.2f ",Joint.ABS_Y.name(),xyz[0],xyz[1],xyz[2]));
     }
 

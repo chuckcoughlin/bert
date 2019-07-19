@@ -86,7 +86,14 @@ public class Chain {
 
 	public Collection<Link> getLinks() { return linksByLimbName.values(); }
 	public Link getLinkForLimbName(String name) { return linksByLimbName.get(name.toUpperCase()); }
-
+	/**
+	 * @param jointName
+	 * @return a list of links connected to the named joint.
+	 */
+	public List<Link> getLinksForJoint(String jointName) {
+		Joint joint = Joint.valueOf(jointName.toUpperCase());
+		return linkListByJoint.get(joint); 
+	}
 	/**
 	 * Traverse the entire chain, clearing temporary calculations in each link.
 	 * @return

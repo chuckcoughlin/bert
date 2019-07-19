@@ -48,8 +48,6 @@ public class RobotLogsFragment extends BasicAssistantFragment implements LogView
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_robot_logs, container, false);
-        TextView textView = rootView.findViewById(R.id.fragmentRobotLogsText);
-        textView.setText(R.string.fragmentLogsLabel);
         logMessageView = rootView.findViewById(R.id.logs_recycler_view);
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
         LinearLayoutManager layoutManager = new LinearLayoutManager(logMessageView.getContext());
@@ -171,5 +169,6 @@ public class RobotLogsFragment extends BasicAssistantFragment implements LogView
     @Override
     public void update(TextMessage msg) {
         String text = msg.getMessage();
+        adapter.update(msg);
     }
 }
