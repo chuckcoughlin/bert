@@ -218,6 +218,7 @@ public class DispatchService extends Service implements BluetoothHandler {
         if( currentFacility.equals(TieredFacility.BLUETOOTH)) {
             if( !currentState.equals(FacilityState.ACTIVE)) {
                 String name = dbManager.getSetting(BertConstants.BERT_PAIRED_DEVICE);
+                if(name==null ) name = "UNKNOWN";
                 BluetoothChecker checker = new BluetoothChecker(this,name);
                 reportConnectionState(currentFacility,FacilityState.WAITING);
                 checker.beginChecking((BluetoothManager)getSystemService(BLUETOOTH_SERVICE));
@@ -309,7 +310,7 @@ public class DispatchService extends Service implements BluetoothHandler {
         Log.i(CLSS,String.format("reportConnectionState: %s %s",fac.name(),state.name()));
         String msg = String.format("Connection state: %s %s",fac.name(),state.name());
         statusManager.reportState(fac,state);
-        //textManager.processText(MessageType.LOG,msg);
+        textManager.processText(MessageType.LOG,msg);
     }
     /**
      * There was an error in the attempt to create/open sockets.
@@ -333,6 +334,7 @@ public class DispatchService extends Service implements BluetoothHandler {
      */
     public void receiveText(String text) {
         if( text.length() > 4) {
+            Log.i(CLSS,String.format("receiveText: (%s)",text));
             try {
                 String hdr = text.substring(0,BertConstants.HEADER_LENGTH);
                 MessageType type = MessageType.valueOf(hdr.toUpperCase());
@@ -364,8 +366,8 @@ public class DispatchService extends Service implements BluetoothHandler {
      * The text originates from the speech recognizer on the tablet (or an error).
      */
     public void receiveSpokenText(String text) {
-        Log.i(CLSS,String.format("reportSpokenText: %s",text));
-        textManager.processText(MessageType.MSG,text);
+        Log.i(CLSS,String.format("receiveSpokenText: %s",text));
+        //textManager.processText(MessageType.MSG,text);
         if( bluetoothConnection!=null) {
             bluetoothConnection.write(String.format("%s:%s", MessageType.MSG.name(), text));
         }

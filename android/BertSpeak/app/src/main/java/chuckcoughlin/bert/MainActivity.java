@@ -60,13 +60,6 @@ public class MainActivity extends AppCompatActivity
     };
 
     /**
-     * A specialized {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the application pages. We use a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter} so as to conserve
-     * memory if the list of pages is great.
-     */
-    private MainActivityPagerAdapter pagerAdapter;
-    /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager viewPager;
@@ -78,7 +71,7 @@ public class MainActivity extends AppCompatActivity
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
      *
-     * @param savedInstanceState
+     * @param savedInstanceState the saved instance state
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +90,7 @@ public class MainActivity extends AppCompatActivity
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         ViewPager viewPager = findViewById(R.id.viewpager);
-        pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(), getApplicationContext());
+        MainActivityPagerAdapter pagerAdapter = new MainActivityPagerAdapter(getSupportFragmentManager(), getApplicationContext());
         viewPager.setAdapter(pagerAdapter);
     }
 
@@ -152,17 +145,18 @@ public class MainActivity extends AppCompatActivity
     public void onInit(int status) {
         if (status == TextToSpeech.SUCCESS) {
             Set<Voice> voices = annunciator.getVoices();
-            for (Voice v : voices) {
-                if (v.getName().equalsIgnoreCase("en-GB-SMTm00")) {
-                    Log.i(CLSS, String.format("onInit: voice = %s %d", v.getName(), v.describeContents()));
-                    annunciator.setVoice(v);
+            if(voices!=null ) {
+                for (Voice v : voices) {
+                    if (v.getName().equalsIgnoreCase("en-GB-SMTm00")) {
+                        Log.i(CLSS, String.format("onInit: voice = %s %d", v.getName(), v.describeContents()));
+                        annunciator.setVoice(v);
+                    }
                 }
             }
-
             annunciator.setLanguage(Locale.UK);
-            //annunciator.setPitch(0.6f);
-            //annunciator.setSpeechRate(1.2f);
-            Log.i(CLSS, String.format("onInit: TextToSpeech initialized ..."));
+            annunciator.setPitch(0.6f);
+            annunciator.setSpeechRate(1.2f);
+            Log.i(CLSS, "onInit: TextToSpeech initialized ...");
             annunciator.speak(selectRandomText(), TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID);
         } else {
             Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status));
@@ -197,7 +191,8 @@ public class MainActivity extends AppCompatActivity
                         activateSpeechAnalyzer();
                     }
                 });
-            } else if (tf.equals(TieredFacility.SOCKET) && !actionState.equals(FacilityState.ACTIVE)) {
+            }
+            else if (tf.equals(TieredFacility.SOCKET) ) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -278,6 +273,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     // =================================== UtteranceProgressListener ===============================
+    @SuppressWarnings("deprecation")
     public class UtteranceListener extends UtteranceProgressListener {
 
         // Short circuit the hard-coded wait interval.

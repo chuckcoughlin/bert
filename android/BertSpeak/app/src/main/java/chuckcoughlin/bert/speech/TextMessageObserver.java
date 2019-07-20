@@ -5,8 +5,6 @@
 
 package chuckcoughlin.bert.speech;
 
-import java.util.List;
-
 import chuckcoughlin.bert.service.TextManager;
 
 /**
@@ -21,12 +19,12 @@ public interface TextMessageObserver {
    * retained and used to refresh the displayed list at will.
    * @param mgr the text manager
    */
-  public void initialize(TextManager mgr);
+  void initialize(TextManager mgr);
   /**
    * Notify the observer that a new text message has been added
    * to the manager's list. Only appropriate client types are
    * included.
    * @param msg the new message
    */
-  public void update(TextMessage msg);
+  void update(TextMessage msg);
 }

@@ -18,14 +18,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import chuckcoughlin.bert.R;
-import chuckcoughlin.bert.logs.LogRecyclerAdapter;
-import chuckcoughlin.bert.logs.LogViewer;
+import chuckcoughlin.bert.common.BertConstants;
+import chuckcoughlin.bert.common.FixedSizeList;
+import chuckcoughlin.bert.logs.TextMessageAdapter;
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
 import chuckcoughlin.bert.service.TextManager;
@@ -37,39 +34,39 @@ import chuckcoughlin.bert.speech.TextMessageObserver;
  * This fragment allows perusal of the robot's spoken interactions..
  */
 
-public class TranscriptFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection, TextMessageObserver {
+public class TranscriptFragment extends BasicAssistantFragment implements ServiceConnection, TextMessageObserver {
     private final static String CLSS = "TranscriptFragment";
     private RecyclerView.LayoutManager layoutManager;
-    private LogRecyclerAdapter adapter;
+    private TextMessageAdapter adapter;
     private View rootView = null;
-    private RecyclerView logMessageView;
-    private TextView logView;
+    private RecyclerView transcriptView;
     private DispatchService service = null;
     private TextManager textManager = null;
+    private boolean frozen = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if( savedInstanceState!=null ) frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN,false);
         rootView = inflater.inflate(R.layout.fragment_transcript, container, false);
-        TextView textView = rootView.findViewById(R.id.fragmentTranscriptText);
-        textView.setText(R.string.fragmentTranscriptLabel);
 
-        logMessageView = rootView.findViewById(R.id.logs_recycler_view);
-        logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
-        LinearLayoutManager layoutManager = new LinearLayoutManager(logMessageView.getContext());
-        logMessageView.setLayoutManager(layoutManager);
-        adapter = new LogRecyclerAdapter(this);
-        logMessageView.setAdapter(adapter);
+        transcriptView = rootView.findViewById(R.id.transcript_recycler_view);
+        transcriptView.setHasFixedSize(true);   // Refers to the size of the layout.
+        LinearLayoutManager layoutManager = new LinearLayoutManager(transcriptView.getContext());
+        transcriptView.setLayoutManager(layoutManager);
+        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
+        transcriptView.setAdapter(adapter);
         int scrollPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
-        logMessageView.scrollToPosition(scrollPosition);
+        transcriptView.scrollToPosition(scrollPosition);
 
-        Button button = rootView.findViewById(R.id.clearButton);
+        Button button = rootView.findViewById(R.id.transcriptClearButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clearButtonClicked();
             }
         });
-        button = rootView.findViewById(R.id.freezeButton);
+        button = rootView.findViewById(R.id.transcriptFreezeButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -90,21 +87,25 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
     @Override
     public void onResume() {
         super.onResume();
-        Log.i(CLSS,"onResume: registering adapter as observer");
-        if( service!=null ) service.registerTranscriptViewer(this);
+        if( service!=null ) {
+            Log.i(CLSS,"onResume: registering as observer");
+            service.registerTranscriptViewer(this);
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.i(CLSS,"onPause: unregistering adapter as observer");
-        if( service!=null ) service.unregisterTranscriptViewer(this);
-        textManager = null;
+        if( service!=null ) {
+            Log.i(CLSS,"onPause: unregistering as observer");
+            service.unregisterTranscriptViewer(this);
+            textManager = null;
+        }
     }
     @Override
     public void onStop() {
         super.onStop();
-        getContext().getApplicationContext().unbindService(this);
+        if( getContext()!=null ) getContext().getApplicationContext().unbindService(this);
     }
     @Override
     public void onDestroyView() {
@@ -112,40 +113,44 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
         super.onDestroyView();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(BertConstants.BUNDLE_FROZEN,frozen);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if( savedInstanceState!=null) this.frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN);
+    }
     //======================================== Button Callbacks ======================================
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
+        textManager.getLogs().clear();
+        adapter.notifyDataSetChanged();
     }
 
     /**
      * The Freeze button has purely local control.
      */
     public void freezeButtonClicked() {
-        boolean frozen = adapter.isFrozen();
-        adapter.setFrozen(!frozen);
+        frozen = !frozen;
+        if( !frozen ) {
+            initialize(textManager);
+        }
         updateUI();
     }
 
     private void updateUI() {
-        Button button = rootView.findViewById(R.id.freezeButton);
-        if( adapter.isFrozen() ) {
-            button.setText(R.string.logButtonThaw);
+        Button button = rootView.findViewById(R.id.transcriptFreezeButton);
+        if( frozen ) {
+            button.setText(R.string.buttonThaw);
         }
         else {
-            button.setText(R.string.logButtonFreeze);
+            button.setText(R.string.buttonFreeze);
         }
-    }
-    //======================================== LogViewer ======================================
-    public TextMessage getLogAtPosition(int position) {
-        TextMessage msg = null;
-        if( textManager!=null ) msg = textManager.getTranscriptAtPosition(position);
-        return msg;
-    }
-    public List<TextMessage> getLogs() {
-        List<TextMessage> logs = new ArrayList<>();
-        if( textManager!=null ) logs = textManager.getTranscript();
-        return logs;
     }
     // =================================== ServiceConnection ===============================
     @Override
@@ -166,9 +171,26 @@ public class TranscriptFragment extends BasicAssistantFragment implements LogVie
     @Override
     public void initialize(TextManager mgr) {
         textManager = mgr;
+        adapter.initialize(textManager.getTranscript());
+        Log.i(CLSS,"initialize: message list is now ...");
+        for(TextMessage m:mgr.getTranscript()) {
+            Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
+        }
+        adapter.notifyDataSetChanged();
     }
     @Override
     public void update(TextMessage msg) {
-        String text = msg.getMessage();
+        Log.i(CLSS,String.format("update: message = %s",msg.getMessage()));
+        if( !frozen || frozen ) {
+            try {
+                adapter.notifyItemInserted(0);
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //transcriptView.scrollToPosition(0);
+                    }
+                });
+            } catch (IllegalStateException ignore) {}
+        }
     }
 }

@@ -6,6 +6,7 @@ package chuckcoughlin.bert.logs;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.support.transition.TransitionManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,8 +21,8 @@ import java.util.Date;
 import java.util.List;
 
 import chuckcoughlin.bert.R;
+import chuckcoughlin.bert.common.MessageType;
 import chuckcoughlin.bert.speech.TextMessage;
-import chuckcoughlin.bert.speech.TextMessageObserver;
 
 
 /**
@@ -29,41 +30,39 @@ import chuckcoughlin.bert.speech.TextMessageObserver;
  * Each element in the list is a string, a text message.
  */
 
-public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> {
-    private static final String CLSS = LogRecyclerAdapter.class.getSimpleName();
+public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
+    private static final String CLSS = TextMessageAdapter.class.getSimpleName();
     private static final int MESSAGE_LEN = 45;
     private static final int SOURCE_LEN = 15;
     private static final int LOG_MSG_HEIGHT = 75;
     private static final int LOG_MSG_HEIGHT_EXPANDED = 225;
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss.SSS");
     private int expandedPosition = -1;
-    private final LogViewer viewer;
     private RecyclerView recyclerView = null;
+    private final List<TextMessage> messages;
     private Context context = null;
-    private boolean frozen;
 
     /**
      * Adapter between the recycler and data source for log messages
      */
-    public LogRecyclerAdapter(LogViewer v) {
-        this.viewer = v;
-        this.frozen = false;
+    public TextMessageAdapter(List<TextMessage> msgs) {
+        this.messages = msgs;
     }
-
-    public boolean isFrozen() { return this.frozen; }
-    public void setFrozen(boolean flag) { this.frozen = flag; }
 
     @Override
     public void onAttachedToRecyclerView(RecyclerView view) {
         this.recyclerView = view;
     }
+
+    /**
+     * Create a new view holder. Inflate the row layout, set the item height.
+     */
     @Override
     public LogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        context = parent.getContext();
+        this.context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         boolean shouldAttachToParent = false;
 
-        // create a new view - set the item height.
         LinearLayout layout = (LinearLayout)inflater.inflate(R.layout.log_item,parent,shouldAttachToParent);
         LogViewHolder holder = new LogViewHolder(layout);
         return holder;
@@ -72,29 +71,34 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> {
     /**
      * Change the views depending on whether or not the item is selected.
      * In an expanded view the message text is on its own line. We add date and source.
-     * @param holder the viewholder that should be updated at the given position
+     * @param holder the viewholder that should be populated at the given position
      * @param position row that should be updated
      */
     @Override
     public void onBindViewHolder(LogViewHolder holder, int position) {
-        Log.i(CLSS,String.format("onBindViewHolder at %d",position));
+        Log.i(CLSS,String.format("onBindViewHolder at %d of %d",position,messages.size()));
         boolean expand = (position==expandedPosition);
-        TextMessage msg = viewer.getLogAtPosition(position);  // Checks index bounds
+        TextMessage msg = messages.get(position);
         if( msg==null ) {
             Log.w(CLSS,String.format("Null log holder at %d",position));
             return;
         }
+
+        MessageType type = msg.getMessageType();
         // The timestamp is always the same
         TextView timestampView  = holder.getTimestampView();
         Date tstamp = msg.getTimestamp();
         String dt = dateFormatter.format(tstamp);
         timestampView.setText(dt);
 
-        // In expanded mode the source is the level
+        // In expanded mode the source is the type
         TextView sourceView  = holder.getSourceView();
         String source = msg.getMessageType().name();
         if( expand ) {
             sourceView.setText(source);
+            if( type.equals(MessageType.ANS)) {
+                sourceView.setTextColor(Color.BLUE);
+            }
         }
         else {
             // Truncate source to 16 char
@@ -111,6 +115,9 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> {
         else {
             if( msgText.length()>MESSAGE_LEN) msgText = msgText.substring(0,MESSAGE_LEN);
             messageView.setText(msgText);
+            if( type.equals(MessageType.ANS)) {
+                messageView.setTextColor(Color.BLUE);
+            }
         }
 
 
@@ -142,7 +149,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> {
     // It is important that the widget and backing manager be in synch
     // with respect to item count.
     @Override
-    public int getItemCount() {return viewer.getLogs().size(); }
+    public int getItemCount() {return messages.size(); }
 
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
@@ -150,14 +157,14 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> {
         this.context = null;
     }
 
-
     // ===================== Called from fragment to update display =====================
     /**
      * We have just registered as an observer. Now catch up.
-     * @param list of messages being the most recent retained by the manager.
+     * @param list of messages being the most recent retained by the manager
      */
     public void initialize(final List<TextMessage> list) {
-        Log.i(CLSS,"initialze with message list");
+        messages.clear();
+        messages.addAll(list);
         notifyDataSetChanged();
     }
 
@@ -171,7 +178,7 @@ public class LogRecyclerAdapter extends RecyclerView.Adapter<LogViewHolder> {
             Activity activity = (Activity)context;
             activity.runOnUiThread(new Runnable() {
                 public void run() {
-                    synchronized(LogRecyclerAdapter.this) {
+                    synchronized(TextMessageAdapter.this) {
                         try {
                             final int size = getItemCount();
                             notifyItemRangeInserted(size - 1, 1);

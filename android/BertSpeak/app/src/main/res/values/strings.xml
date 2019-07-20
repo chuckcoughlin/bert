@@ -20,10 +20,10 @@
     <string name="coverParameterSocket">Socket</string>
     <string name="coverParameterVoice">Voice</string>
 
-    <!-- Strings for BluetoothHandler Log tab-->
-    <string name="logButtonClear">Clear</string>
-    <string name="logButtonFreeze">Freeze</string>
-    <string name="logButtonThaw">Unfreeze</string>
+    <!-- Strings for Button Labels-->
+    <string name="buttonClear">Clear</string>
+    <string name="buttonFreeze">Freeze</string>
+    <string name="buttonThaw">Unfreeze</string>
     <!-- Notification Button Labels -->
     <string name="notificationLabel">Speech Processing via Bluetooth connection to main robot.</string>
     <string name="notificationDescription">Generally spoken text processing is automatic and runs continuously. It can, however, be turned on and off via the buttons below </string>

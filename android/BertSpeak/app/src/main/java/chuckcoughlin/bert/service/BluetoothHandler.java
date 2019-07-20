@@ -14,40 +14,40 @@ public interface BluetoothHandler {
      * There was an error in the Bluetooth connection attempt.
      * @param reason error description
      */
-    public void handleBluetoothError(String reason);
+    void handleBluetoothError(String reason);
     /**
      * The bluetooth connection request succeeded.
      */
-    public void receiveBluetoothConnection();
+    void receiveBluetoothConnection();
     /**
      * There was an error in the connection attempt.
      * @param reason error description
      */
-    public void handleSocketError(String reason);
+    void handleSocketError(String reason);
     /**
      * The socket connection request succeeded.
      */
-    public void receiveSocketConnection();
+    void receiveSocketConnection();
     /**
      * Yhre speech recognizer reported an error.
      * @param reason error description
      */
-    public void handleVoiceError(String reason);
+    void handleVoiceError(String reason);
     /**
      * The bluetooth connection received a message
      */
-    public void receiveText(String text);
+    void receiveText(String text);
     /**
      * Modify status screen
      */
-    public void reportConnectionState(TieredFacility fac, FacilityState state);
+    void reportConnectionState(TieredFacility fac, FacilityState state);
     /**
      * The speech recognizer recorded a result.
      */
-    public void receiveSpokenText(String text);
+    void receiveSpokenText(String text);
     /**
      * Save the structure of the discovered device.
      * @param device the Bluetooth device representing the robot.
      */
-    public void setBluetoothDevice(BluetoothDevice device) ;
+    void setBluetoothDevice(BluetoothDevice device) ;
 }

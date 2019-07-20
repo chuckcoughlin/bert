@@ -72,7 +72,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
         updateToggleButton(socketStatus, FacilityState.IDLE);
         updateToggleButton(voiceStatus, FacilityState.IDLE);
 
-        waveformView = (WaveformView) view.findViewById(R.id.waveform_view);
+        waveformView = view.findViewById(R.id.waveform_view);
         RendererFactory rendererFactory = new RendererFactory();
         waveformView.setRenderer(rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY));
         return view;

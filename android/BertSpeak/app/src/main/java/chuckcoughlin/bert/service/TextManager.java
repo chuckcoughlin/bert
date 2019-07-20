@@ -63,25 +63,7 @@ public class TextManager {
     public List<String> getTableColumns() { return columnList; }
     public List<TextMessage> getTableRows() { return rowList; }
     public FixedSizeList<TextMessage> getTranscript() { return transcriptList; }
-    /**
-     * Since there are different lists for difference client types, we
-     * need different methods for each type.
-     */
-    public TextMessage getLogAtPosition(int pos) {
-        TextMessage result = null;
-        if(pos>=0 && pos<logList.size()) { result = logList.get(pos); }
-        return result;
-    }
-    public String getTableRowAtPosition(int row) {
-        String result = null;
-        if(row>=0 && row<rowList.size()) { result = rowList.get(row).getMessage(); }
-        return result;
-    }
-    public TextMessage getTranscriptAtPosition(int pos) {
-        TextMessage result = null;
-        if(pos>=0 && pos<transcriptList.size()) { result = transcriptList.get(pos); }
-        return result;
-    }
+
     /*
      * The text has any header needed for tablet-robot communication
      * already stripped off. Place into the proper queue.
@@ -90,22 +72,28 @@ public class TextManager {
         switch(type) {
             case ANS:
                 TextMessage msg = new TextMessage(type,text);
+                transcriptList.addFirst(msg);
+                transcriptList.addFirst(msg);
                 notifyTranscriptObservers(msg);
                 break;
             case LOG:
                 msg = new TextMessage(type,text);
+                logList.addFirst(msg);
                 notifyLogObservers(msg);
                 break;
             case MSG:
                 msg = new TextMessage(type,text);
+                transcriptList.addFirst(msg);
+                transcriptList.addFirst(msg);
                 notifyTranscriptObservers(msg);
                 break;
             case ROW:
                 msg = new TextMessage(type,text);
+                rowList.add(msg);
                 notifyTableObservers(msg);
                 break;
             case TBL:
-                msg = new TextMessage(type,text);
+                columnList.add(text);
                 initializeTableObservers(this);
                 break;
         }

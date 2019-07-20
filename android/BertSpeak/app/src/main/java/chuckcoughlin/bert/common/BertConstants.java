@@ -32,7 +32,8 @@ public class BertConstants {
 
     // Intent observer recognizer
     public static final String ACTION_FACILITY_STATE = "FacilityState";
-
+    // For saved UI state in a bundle
+    public static final String BUNDLE_FROZEN = "Frozen";
     // Notifications
     public static final String NOTIFICATION_CHANNEL_ID   = "speechServiceChannel";
     public static final String NOTIFICATION_CHANNEL_NAME = "Spoken Text Channel";
@@ -41,7 +42,7 @@ public class BertConstants {
     public static final String MAIN_NODE_NAME = "tablet_node_main";
 
     // Number of log messages to store/display
-    public static final int NUM_LOG_MESSAGES = 100;
+    public static final int NUM_LOG_MESSAGES = 40;
 
 
     // Dialog transaction key

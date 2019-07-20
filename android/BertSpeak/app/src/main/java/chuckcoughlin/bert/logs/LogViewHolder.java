@@ -19,8 +19,8 @@ import chuckcoughlin.bert.R;
 public class LogViewHolder extends RecyclerView.ViewHolder {
     private final ViewGroup rowParent;
     /**
-     * The ViewGroup is actually a nested LinearLayout holding text
-     * views. See log_item.xml
+     * The ViewGroup is actually a nested LinearLayout holding text views
+     * See log_item.xml
      *    - timestamp
      *    - source
      *    - message

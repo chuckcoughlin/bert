@@ -11,21 +11,19 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import chuckcoughlin.bert.R;
-import chuckcoughlin.bert.logs.LogRecyclerAdapter;
-import chuckcoughlin.bert.logs.LogViewer;
+import chuckcoughlin.bert.common.BertConstants;
+import chuckcoughlin.bert.common.FixedSizeList;
+import chuckcoughlin.bert.logs.TextMessageAdapter;
 import chuckcoughlin.bert.service.DispatchService;
 import chuckcoughlin.bert.service.DispatchServiceBinder;
 import chuckcoughlin.bert.service.TextManager;
@@ -39,10 +37,10 @@ import chuckcoughlin.bert.speech.TextMessageObserver;
  * next table is read. The table is dynamically sized to fit the data.
  */
 
-public class TablesTabFragment extends BasicAssistantFragment implements LogViewer, ServiceConnection, TextMessageObserver {
+public class TablesTabFragment extends BasicAssistantFragment implements ServiceConnection, TextMessageObserver {
     private final static String CLSS = "TablesTabFragment";
     private RecyclerView.LayoutManager layoutManager;
-    private LogRecyclerAdapter adapter;
+    private TextMessageAdapter adapter;
     private View rootView = null;
     private RecyclerView logMessageView;
     private TextView logView;
@@ -50,7 +48,8 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     private TextManager textManager = null;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         rootView = inflater.inflate(R.layout.fragment_tables_tab, container, false);
         TextView textView = rootView.findViewById(R.id.fragmentTablesText);
         textView.setText(R.string.fragmentTableTabLabel);
@@ -59,7 +58,7 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
         LinearLayoutManager layoutManager = new LinearLayoutManager(logMessageView.getContext());
         logMessageView.setLayoutManager(layoutManager);
-        adapter = new LogRecyclerAdapter(this);
+        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
         logMessageView.setAdapter(adapter);
         int scrollPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
         logMessageView.scrollToPosition(scrollPosition);
@@ -70,8 +69,10 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     @Override
     public void onStart() {
         super.onStart();
-        Intent intent = new Intent(getContext().getApplicationContext(), DispatchService.class);
-        getContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE);
+        if( getContext()!=null ) {
+            Intent intent = new Intent(getContext().getApplicationContext(), DispatchService.class);
+            getContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE);
+        }
     }
 
     @Override
@@ -92,7 +93,7 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
     @Override
     public void onStop() {
         super.onStop();
-        getContext().getApplicationContext().unbindService(this);
+        if( getContext()!=null ) getContext().getApplicationContext().unbindService(this);
     }
     @Override
     public void onDestroyView() {
@@ -100,17 +101,6 @@ public class TablesTabFragment extends BasicAssistantFragment implements LogView
         super.onDestroyView();
     }
 
-    //======================================== LogViewer ======================================
-    public TextMessage getLogAtPosition(int position) {
-        TextMessage msg = null;
-        if( textManager!=null ) msg = textManager.getLogAtPosition(position);
-        return msg;
-    }
-    public List<TextMessage> getLogs() {
-        List<TextMessage> logs = new ArrayList<>();
-        if( textManager!=null ) logs = textManager.getTableRows();
-        return logs;
-    }
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
