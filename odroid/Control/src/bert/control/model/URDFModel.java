@@ -84,7 +84,7 @@ public class URDFModel  {
 					}
 					else if( "axis".equalsIgnoreCase(cNode.getLocalName())) {
 						text = XMLUtility.attributeValue(cNode, "xyz");
-						double[] xyz = doubleArrayFromString(text);
+						double[] xyz = doubleArrayFromDirectionString(text);
 						chain.setAxes(xyz);
 					}
 					childIndex++;
@@ -98,7 +98,7 @@ public class URDFModel  {
 			while(index<count) {
 				Node linkNode = links.item(index);
 				String name = XMLUtility.attributeValue(linkNode, "name");
-				LOGGER.info(String.format("%s.analyzeChain: Link %s ...",CLSS,name));
+				//LOGGER.info(String.format("%s.analyzeChain: Link %s ...",CLSS,name));
 				try {
 					chain.createLink(name.toUpperCase());
 
@@ -118,7 +118,10 @@ public class URDFModel  {
 							while(childIndex<childCount) {
 								Node cNode = childNodes.item(childIndex);
 								if( "origin".equalsIgnoreCase(cNode.getLocalName()))   xyz  = doubleArrayFromString(XMLUtility.attributeValue(cNode, "xyz"));
-								else if("axis".equalsIgnoreCase(cNode.getLocalName())) ijk  = doubleArrayFromString(XMLUtility.attributeValue(cNode, "xyz"));
+								// "axis" is a unit vector direction
+								else if("axis".equalsIgnoreCase(cNode.getLocalName())) {
+									ijk  = doubleArrayFromDirectionString(XMLUtility.attributeValue(cNode, "xyz"));
+								}
 								childIndex++;
 							}
 							
@@ -144,7 +147,7 @@ public class URDFModel  {
 			while(index<count) {
 				Node jointNode = joints.item(index);
 				String name = XMLUtility.attributeValue(jointNode, "name");
-				LOGGER.info(String.format("%s.analyzeChain: Joint %s ...",CLSS,name));
+				//LOGGER.info(String.format("%s.analyzeChain: Joint %s ...",CLSS,name));
 				try {
 					Joint joint = Joint.valueOf(name);
 					NodeList childNodes = jointNode.getChildNodes();
@@ -170,17 +173,16 @@ public class URDFModel  {
 							}
 						}
 						else if( "origin".equalsIgnoreCase(childNode.getLocalName())) xyz  = doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz"));
-						else if("axis".equalsIgnoreCase(childNode.getLocalName()))    ijk  = doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz"));
+						else if("axis".equalsIgnoreCase(childNode.getLocalName()))    ijk  = doubleArrayFromDirectionString(XMLUtility.attributeValue(childNode, "xyz"));
 						childIndex++;
 					}
 
 					LinkPoint rev = new LinkPoint(joint,ijk,xyz);
 					if(parent!=null) {
 						Link parentLink = chain.getLinkForLimbName(parent);
-						parentLink.setEndPoint(rev);
+						chain.setEndPoint(parentLink.getName(),rev);
 						if(child!=null ) {
 							Link childLink = chain.getLinkForLimbName(child);
-							chain.setOriginPoint(childLink,rev);
 							childLink.setParent(parentLink);
 						}
 						else {
@@ -222,6 +224,25 @@ public class URDFModel  {
 		for(int i=0;i<raw.length;i++) {
 			try {
 				result[i] = Double.parseDouble(raw[1]);
+			}
+			catch(NumberFormatException nfe) {
+				LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",CLSS,text,nfe.getLocalizedMessage()));
+			}
+		}
+		return result;
+	}
+	/**
+	 * The input array is a unit vector indicating direction.
+	 * @param text
+	 * @return
+	 */
+	private double[] doubleArrayFromDirectionString(String text) {
+		if( text==null ) return null; 
+		double [] result = new double[3];
+		String[] raw = text.split(" ");
+		for(int i=0;i<raw.length;i++) {
+			try {
+				result[i] = 180.*Double.parseDouble(raw[1]);
 			}
 			catch(NumberFormatException nfe) {
 				LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",CLSS,text,nfe.getLocalizedMessage()));

@@ -6,16 +6,18 @@ package bert.control.main;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import org.hipparchus.complex.Quaternion;
 
 import bert.control.model.Link;
 import bert.control.model.TestRobotModel;
 import bert.control.model.URDFModel;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
-import bert.share.control.Limb;
 import bert.share.logging.LoggerUtility;
 import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
@@ -28,6 +30,7 @@ import bert.share.motor.MotorConfiguration;
 public class Solver {
 	private final static String CLSS = "Solver";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
+	private final static double[] ERROR_POSITION = {0.,0.,0.};
 	private final URDFModel model;
 	private Map<Joint,MotorConfiguration> motorConfigurations;
 
@@ -43,14 +46,21 @@ public class Solver {
 	 */
 	public URDFModel getModel() { return this.model; }
 	/**
-	 * Traverse the tree, clearing all the intermediate calculations (Quaternions).
-	 * This forces them to be re-calculated.
+	 * Traverse the tree, setting the current angles from the
+	 * motor configurations. Mark the links as "dirty".
 	 */
-	public void invalidateTree() {
-		model.getChain().invalidate();
+	public void setTreeState() {
+		Collection<Link> links = model.getChain().getLinks();
+		for(Link link:links) {
+			link.setDirty();
+			Joint joint = link.getLinkPoint().getJoint();
+			MotorConfiguration mc = motorConfigurations.get(joint);
+			link.setJointAngle(mc.getPosition());
+		}
 	}
 	/**
-	 * Analyze the URDF file for robot geometry.
+	 * Analyze the URDF file for robot geometry. This must be called before
+	 * we set a tree state.
 	 * @param mc a map of MotorConfigurations
 	 * @param urdfPath
 	 */
@@ -64,19 +74,19 @@ public class Solver {
 	 * Return the position of a specified appendage in x,y,z coordinates in meters from the
 	 * robot origin in the pelvis.
 	 */
-	public double[] getLocation(Appendage appendage) {
-		double[] xyz = new double[3];
-		return xyz;
+	public double[] getPosition(Appendage appendage) {
+		List<Link> subchain = model.getChain().partialChainToAppendage(appendage);
+		if( subchain.size()>0 ) return subchain.get(0).getCoordinates();
+		else return ERROR_POSITION;
 	}
 	/**
-	 * Return the position of a specified limb in x,y,z coordinates in meters from the
+	 * Return the position of a specified joint in x,y,z coordinates in meters from the
 	 * robot origin in the pelvis.
 	 */
-	public double[] getLocation(Limb limb) {
-		List<Link> subchain = model.getChain().partialChainToLimb(limb);
-		
-		double[] xyz = new double[3];
-		return xyz;
+	public double[] getPosition(Joint joint) {
+		List<Link> subchain = model.getChain().partialChainToJoint(joint);
+		if( subchain.size()>0 ) return subchain.get(0).getCoordinates();
+		else return ERROR_POSITION;
 	}
 	
 	/**
@@ -97,7 +107,7 @@ public class Solver {
 		Solver solver = new Solver();
 		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
 		
-		double[] xyz = solver.getLocation(Limb.LUMBAR);   // Just to top of pelvis
+		double[] xyz = solver.getPosition(Joint.ABS_Y);   // Just to top of pelvis
         System.out.println(String.format("%s: xyz = %.2f,%.2f,%.2f ",Joint.ABS_Y.name(),xyz[0],xyz[1],xyz[2]));
     }
 

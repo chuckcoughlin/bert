@@ -154,8 +154,8 @@ public class MainActivity extends AppCompatActivity
                 }
             }
             annunciator.setLanguage(Locale.UK);
-            annunciator.setPitch(0.6f);
-            annunciator.setSpeechRate(1.2f);
+            annunciator.setPitch(1.6f);       //Default＝1.0
+            annunciator.setSpeechRate(1.0f);  // Default=1.0
             Log.i(CLSS, "onInit: TextToSpeech initialized ...");
             annunciator.speak(selectRandomText(), TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID);
         } else {

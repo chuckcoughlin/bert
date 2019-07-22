@@ -279,19 +279,19 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
 		// The following two requests simply use the current positions of the motors, whatever they are
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
-			solver.invalidateTree(); // Forces new calculations
+			solver.setTreeState(); // Forces new calculations
 			String appendageName = request.getProperty(BottleConstants.APPENDAGE_NAME, Appendage.UNKNOWN.name());
-			double[] xyz = solver.getLocation(Appendage.valueOf(appendageName));
+			double[] xyz = solver.getPosition(Appendage.valueOf(appendageName));
 			String text = String.format("%s is located at %0.2f %0.2f %0.2f meters",appendageName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
 			request.setProperty(BottleConstants.TEXT, text);
 		}
 		else if(request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION) ) {
-			solver.invalidateTree();
+			solver.setTreeState();
 			String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
-			// Choose any one of the links attached to the joint, get its parent.
-			List<Link> links = solver.getModel().getChain().getLinksForJoint(jointName);
-			//double[] xyz = solver.getLocation(Joint.valueOf(jointName));
-			double[] xyz = new double[3];
+			// Choose any one of the links attached to the joint, get its parent
+			Joint joint = Joint.valueOf(jointName.toUpperCase());
+			List<Link> links = solver.getModel().getChain().partialChainToJoint(joint);
+			double[] xyz = solver.getPosition(joint);
 			String text = String.format("The center of joint %s is located at %0.2f %0.2f %0.2f meters",jointName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
 			request.setProperty(BottleConstants.TEXT, text);
 		}

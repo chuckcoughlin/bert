@@ -73,7 +73,6 @@ public class TextManager {
             case ANS:
                 TextMessage msg = new TextMessage(type,text);
                 transcriptList.addFirst(msg);
-                transcriptList.addFirst(msg);
                 notifyTranscriptObservers(msg);
                 break;
             case LOG:
@@ -83,7 +82,6 @@ public class TextManager {
                 break;
             case MSG:
                 msg = new TextMessage(type,text);
-                transcriptList.addFirst(msg);
                 transcriptList.addFirst(msg);
                 notifyTranscriptObservers(msg);
                 break;

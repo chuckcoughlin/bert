@@ -2,7 +2,6 @@ package bert.control.model;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,7 +12,6 @@ import java.util.logging.Logger;
 import bert.control.main.Solver;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
-import bert.share.control.Limb;
 import bert.share.logging.LoggerUtility;
 import bert.share.motor.Joint;
 
@@ -32,15 +30,15 @@ public class Chain {
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private Link root;
 	private final Map<Appendage,Link> linkByAppendage;
-	private final Map<Joint,List<Link>> linkListByJoint;
+	private final Map<Joint,Link> jointParent;
 	private final Map<String,Link> linksByLimbName;
 	private double[] origin = new double[] { 0., 0., 0.};
 	private double [] axis  = new double[] { 0., 0., 0.};
 	
 	public Chain() {
 		this.root = null;
+		this.jointParent = new HashMap<>();
 		this.linkByAppendage = new HashMap<>();
-		this.linkListByJoint = new HashMap<>();
 		this.linksByLimbName = new HashMap<>();
 	}
 	
@@ -53,14 +51,6 @@ public class Chain {
 		Link link = new Link(name.toUpperCase());
 		linksByLimbName.put(link.getName(), link);
 	}
-	public void setOriginPoint(Link link,LinkPoint lp) {
-		if( link!=null ) {
-			link.setOrigin(lp);
-		}
-		else {
-			LOGGER.warning(String.format("%s.setOriginPoint: Null link", CLSS));
-		}
-	}
 
 	public void setEndPoint(String name,LinkPoint lp) {
 		Link link = linksByLimbName.get(name);
@@ -70,12 +60,8 @@ public class Chain {
 			}
 			else if( lp.getType().equals(LinkPointType.REVOLUTE)) {
 				Joint j = lp.getJoint();
-				List<Link> list = linkListByJoint.get(j);
-				if(list==null ) {
-					list = new ArrayList<>();
-					linkListByJoint.put(j,list);
-				}
-				list.add(link);
+				LOGGER.info(String.format("Chain.setEndPoint: add joint %s", j.name()));
+				jointParent.put(j,link);
 			}
 			link.setEndPoint(lp);
 		}
@@ -87,24 +73,18 @@ public class Chain {
 	public Collection<Link> getLinks() { return linksByLimbName.values(); }
 	public Link getLinkForLimbName(String name) { return linksByLimbName.get(name.toUpperCase()); }
 	/**
+	 * There may be multiple joints with the same parent, but only one parent per joint.
 	 * @param jointName
-	 * @return a list of links connected to the named joint.
+	 * @return the parent link of the named joint. If not found, return null.
 	 */
-	public List<Link> getLinksForJoint(String jointName) {
+	public Link getParentLinkForJoint(String jointName) {
 		Joint joint = Joint.valueOf(jointName.toUpperCase());
-		return linkListByJoint.get(joint); 
+		return jointParent.get(joint); 
 	}
+	
 	/**
-	 * Traverse the entire chain, clearing temporary calculations in each link.
-	 * @return
-	 */
-	public void invalidate() {
-		for(Link link:linksByLimbName.values()) {
-			link.invalidate();
-		}
-	}
-	/**
-	 * Work back toward the root until we find a valid/up-to-date link.
+	 * Work back toward the root from the specified appendage. The chain
+	 * is ordered to start from the root.
 	 * @param appendage
 	 * @return
 	 */
@@ -117,14 +97,16 @@ public class Chain {
 		}
 		return partial;
 	}
+	
 	/**
-	 * Work back toward the source until we find a valid/up-to-date link.
-	 * @param link, the source
+	 * Work back toward the root link beginning with the indicated joint.
+	 * The chain starts with the root.
+	 * @param joint, the source
 	 * @return
 	 */
-	public List<Link> partialChainToLimb(Limb limb) {
+	public List<Link> partialChainToJoint(Joint joint) {
 		LinkedList<Link> partial = new LinkedList<>();
-		Link link = linksByLimbName.get(limb.name());
+		Link link = jointParent.get(joint);
 		while(link!=null) {
 			partial.addFirst(link);
 			link = link.getParent();
@@ -188,6 +170,11 @@ public class Chain {
         }
         System.out.println("=========================================================================");
         subchain = chain.partialChainToAppendage(Appendage.RIGHT_TOE);
+        for(Link link:subchain) {
+        	 System.out.println(String.format("\t%s ",link.getName()));
+        }
+        System.out.println("=========================================================================");
+        subchain = chain.partialChainToJoint(Joint.ABS_Y);
         for(Link link:subchain) {
         	 System.out.println(String.format("\t%s ",link.getName()));
         }

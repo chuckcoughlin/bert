@@ -367,7 +367,7 @@ public class DispatchService extends Service implements BluetoothHandler {
      */
     public void receiveSpokenText(String text) {
         Log.i(CLSS,String.format("receiveSpokenText: %s",text));
-        //textManager.processText(MessageType.MSG,text);
+        textManager.processText(MessageType.MSG,text);
         if( bluetoothConnection!=null) {
             bluetoothConnection.write(String.format("%s:%s", MessageType.MSG.name(), text));
         }

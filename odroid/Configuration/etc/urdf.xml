@@ -120,10 +120,10 @@
 		<axis xyz="1 0 0"></axis>
 	</joint>
 	<joint name="ABS_Y" type="revolute">
-		<origin xyz="0 -0.017 0.061" rpy="1.5707963267949 0 0"></origin>
+		<origin xyz="0.017 0.0 0.114" rpy="1.5707963267949 0 0"></origin>
 		<parent link="PELVIS"></parent>
 		<child link="LUMBAR"></child>
-		<axis xyz="-1 0 0"></axis>
+		<axis xyz="0 -1 0"></axis>
 	</joint>
 	<joint name="ABS_X" type="revolute">
 		<origin xyz="0 0 0" rpy="0 0 0"></origin>

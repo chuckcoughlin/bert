@@ -102,10 +102,12 @@ Additionally, under Settings->General Management, choose the preferred text-spee
   *********************************************************
    ![BertSpeak](/images/bertspeak_settings.png)
  ```                        BertSpeak - Settings Page ```</br>
-    The **settings** page should have the following values:
+    It is important that the settings be filled in before attempting to use the tablet
+    for robot control. The **Settings** page should show the following values:
 
   ```
-    Server           192.168.1.20
-    Port             11046
-    Paired Device    bert_humanoid
+    Server                192.168.1.20
+    Port                  11046
+    Paired Device         bert_humanoid
+    Simulated Connection  false  (true is used with the Android simulator during development)
   ```

@@ -4,50 +4,76 @@ import bert.share.control.Appendage;
 import bert.share.motor.Joint;
 /**
  * A LinkPoint is a hinged joint (as they all are).
- * The position is a 3D location of the joint 
- * with respect to the source joint of the link.
+ * The coordinates are a 3D location of the joint 
+ * with respect to the origin of the link.
  * 
- * The rotation array show the direction of the
- * joint along one of the major axes with respect
- * to the link.
+ * The orientation array shows the direction of the
+ * axis of the joint with respect a line from the joint 
+ * to the link origin. The offset coordinates are with respect
+ * to the link origin. In most cases, the linkPoint
+ * is along the z axis.
  */
 public class LinkPoint {
 	private final static String CLSS = "LinkPoint";
-	private final double[] axis;
-	private final double[] position;
+	private static LinkPoint origin = null;
+	private double[] orientation;
+	private double[] offset;  // Joint offset
 	private final LinkPointType type;
 	private final Appendage appendage;
 	private final Joint joint;
 
-	public LinkPoint(Appendage app,double[] ax,double[] pos ) {
+	public LinkPoint(Appendage app,double[] rot,double[] pos ) {
 		this.type = LinkPointType.APPENDAGE;
 		this.appendage = app;
 		this.joint = null;
-		this.position = pos;
-		this.axis = ax;
+		this.offset = pos;
+		this.orientation = degreesToRadians(rot);
 	}
 	
-	public LinkPoint(Joint j,double[] ax,double[] pos ) {
+	public LinkPoint(Joint j,double[] rot,double[] pos ) {
 		this.type = LinkPointType.REVOLUTE;
 		this.appendage = null;
 		this.joint = j;
-		this.position = pos;
-		this.axis = ax;
+		this.offset = pos;
+		this.orientation = degreesToRadians(rot);
 	}
 	
+	/**
+	 * Special constructor for the origin.
+	 */
 	public LinkPoint() {
 		this.type = LinkPointType.ORIGIN;
 		this.appendage = null;
-		this.joint = null;
-		this.position = new double[] {0.,0.,0.};
-		this.axis     = new double[] {0.,0.,0.};
+		this.joint = Joint.UNKNOWN;
+		this.offset = new double[] {0.,0.,0.};
+		this.orientation   = new double[] {0.,0.,Math.PI};
 	}
 		
 	
 	public String getName() { return joint.name(); }
 	public LinkPointType getType() { return this.type; }
 	public Appendage getAppendage() { return this.appendage; }
-	public double[] getAxis() { return this.axis; }
+	public double[] getOrientation() { return this.orientation; }
+	public void setOrientation(double[] ax ) { this.orientation = ax; }
 	public Joint getJoint() { return this.joint; }
-	public double[] getPosition() { return this.position; }
+	public double[] getOffset() { return this.offset; }
+	
+	private double[] degreesToRadians(double[] array) {
+		if( array!=null ) {
+			int i = 0;
+			while( i<array.length ) {
+				array[i] = array[i]*Math.PI/180.;
+				i++;
+			}
+		}
+		return array;
+	}
+	/**
+	 * Create a LinkPoint representing the origin of the link chain.
+	 * @return the origin
+	 */
+	public static LinkPoint getOrigin() {
+		if( origin==null ) origin = new LinkPoint();
+		return origin;
+	}
 }
