@@ -81,12 +81,23 @@ public class Solver {
 	}
 	/**
 	 * Return the position of a specified joint in x,y,z coordinates in meters from the
-	 * robot origin in the pelvis.
+	 * robot origin in the pelvis in the inertial reference frame.
 	 */
 	public double[] getPosition(Joint joint) {
 		List<Link> subchain = model.getChain().partialChainToJoint(joint);
 		if( subchain.size()>0 ) return subchain.get(0).getCoordinates();
 		else return ERROR_POSITION;
+	}
+	
+	/**
+	 * Set the position of a joint. This is primarily for testing. It does not 
+	 * cause a serial write to the motor.
+	 * @param joint
+	 * @param pos
+	 */
+	public void setJointPosition(Joint joint,double pos) {
+		MotorConfiguration mc = motorConfigurations.get(joint);
+		mc.setPosition(pos);
 	}
 	
 	/**
@@ -107,8 +118,9 @@ public class Solver {
 		Solver solver = new Solver();
 		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
 		
+		//solver.setJointPosition(Joint.ABS_Y,90.);
 		double[] xyz = solver.getPosition(Joint.ABS_Y);   // Just to top of pelvis
-        System.out.println(String.format("%s: xyz = %.2f,%.2f,%.2f ",Joint.ABS_Y.name(),xyz[0],xyz[1],xyz[2]));
+        System.out.println(String.format("%s (0.2,0,.114): xyz = %.2f,%.2f,%.2f ",Joint.ABS_Y.name(),xyz[0],xyz[1],xyz[2]));
     }
 
 }

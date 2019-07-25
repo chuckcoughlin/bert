@@ -46,7 +46,7 @@ public class LinkPoint {
 		this.appendage = null;
 		this.joint = Joint.UNKNOWN;
 		this.offset = new double[] {0.,0.,0.};
-		this.orientation   = new double[] {0.,0.,Math.PI};
+		this.orientation   = new double[] {0.,0.,0.};
 	}
 		
 	

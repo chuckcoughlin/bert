@@ -178,6 +178,7 @@ public class URDFModel  {
 					}
 
 					LinkPoint rev = new LinkPoint(joint,ijk,xyz);
+					LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",joint.name(),xyz[0],xyz[1],xyz[2]));
 					if(parent!=null) {
 						Link parentLink = chain.getLinkForLimbName(parent);
 						chain.setEndPoint(parentLink.getName(),rev);
@@ -223,12 +224,14 @@ public class URDFModel  {
 		String[] raw = text.split(" ");
 		for(int i=0;i<raw.length;i++) {
 			try {
-				result[i] = Double.parseDouble(raw[1]);
+				result[i] = Double.parseDouble(raw[i]);
 			}
 			catch(NumberFormatException nfe) {
 				LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",CLSS,text,nfe.getLocalizedMessage()));
 			}
 		}
+		//LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]));
+		//LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]));
 		return result;
 	}
 	/**

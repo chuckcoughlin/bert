@@ -141,18 +141,21 @@ Idiosyncrasies:<br/>
   buffer can hold partial replies or several replies combined.
 
 #### Geometry <a id="geometry"></a>
-The geometry of the robot is used for trajectory planning, balance and other purposes. It is described in a
+The geometry of the robot is used for trajectory planning, balance and other purposes. It is inspired by the
 Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample, specific to _Poppy_, may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDFA).
 
 We have added the IMU location and taken other liberties with the standard (e.g. angles in degrees to match
-the Dynamixel output). Axis definitions are as follows:
+the Dynamixel output). Joint orientations are defined via a unit vector showing the alignment. The axes
+form a right-handed coordinate system as follows:
 
 | Axis | <center>Description</center> |<center>Positive</center>
 | :--: | :---------------------- | :-------------: |
-| x | Front-to-back | Robot's Left |
-| y | Side-to-side | Back |
+| x | Front-to-back | Front |
+| y | Side-to-side | Robot's Right |
 | z | Vertical | Up |
 
+Note that in order to be symmetric with respect to the vertical centerline, some
+joints are defined in an inverse direction.
 ```
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SEE: http://wiki.ros.org/urdf/XML for a description of the format

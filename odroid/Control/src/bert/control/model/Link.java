@@ -40,7 +40,7 @@ public class Link {
 		this.name = nam;
 		this.parent=null;
 		this.linkpoint = null;
-		this.angle = 0.;
+		this.angle = Math.PI;
 	}
 	
 	public String getName() { return this.name; }
@@ -59,10 +59,6 @@ public class Link {
 	public void setJointAngle(double a) { this.angle=a*Math.PI/180.; }    // Convert to radians
 	public LinkPoint getLinkPoint() { return this.linkpoint; }
 	public void setEndPoint(LinkPoint end) { this.linkpoint = end; }
-	public LinkPoint getOrigin() { 
-		if( parent==null) return LinkPoint.getOrigin();
-		else return parent.getLinkPoint();
-	}
 	public Link getParent() { return this.parent; }
 	public void setParent(Link p) { this.parent = p; }
 	
@@ -84,25 +80,25 @@ public class Link {
 	 *         with respect to the inertial frame of reference. 
 	 */
 	public double[] getCoordinates() {
-		double[] pos = null;   // Coordinates in progress
+		double[] coords = null;   // Coordinates in progress
 		double[] rotation = null;
 		double alpha = 0.;
 		if( dirty ) {
 			if( parent!=null) {
-				pos    = parent.getCoordinates();
+				coords = parent.getCoordinates();
 				alpha  = parent.getJointAngle();
 				double[] orient = parent.getLinkPoint().getOrientation();
-				rotation = rotationFromCoordinates(pos);
+				rotation = rotationFromCoordinates(coords);
 				rotation[0] = rotation[0]+orient[0];
 				rotation[1] = rotation[1]+orient[1];
 				rotation[2] = rotation[2]+orient[2];
 			}
 			else {
-				pos = LinkPoint.getOrigin().getOffset();
+				coords = LinkPoint.getOrigin().getOffset();
 				rotation = LinkPoint.getOrigin().getOrientation();
+				alpha = Math.PI;
 			}
 			LOGGER.info(String.format("%s.getCoordinates: %s (%s) ---------------",CLSS,name,linkpoint.getJoint().name()));
-			LOGGER.info(String.format("           position = %.2f,%.2f,%.2f",pos[0],pos[1],pos[2]));
 			LOGGER.info(String.format("           rotation = %.2f,%.2f,%.2f",rotation[0],rotation[1],rotation[2]));
 			double[] offset = linkpoint.getOffset();
 			LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f",offset[0],offset[1],offset[2]));
@@ -115,9 +111,9 @@ public class Link {
 			Quaternion result = q0.multiply(v).multiply(inverse);
 			LOGGER.info(String.format("           result   = %.2f,%.2f,%.2f,%.2f",result.getQ0(),result.getQ1(),result.getQ2(),result.getQ3()));
 			
-			coordinates[0] = pos[0] + result.getScalarPart()*result.getQ1();
-			coordinates[1] = pos[1] + result.getScalarPart()*result.getQ2();
-			coordinates[2] = pos[2] + result.getScalarPart()*result.getQ3();
+			coordinates[0] = coords[0] + result.getQ1();
+			coordinates[1] = coords[1] + result.getQ2();
+			coordinates[2] = coords[2] + result.getQ3();
 			LOGGER.info(String.format("      coordinates   = %.2f,%.2f,%.2f",coordinates[0],coordinates[1],coordinates[2]));
 			dirty = false;
 		}

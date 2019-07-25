@@ -60,7 +60,7 @@ public class Chain {
 			}
 			else if( lp.getType().equals(LinkPointType.REVOLUTE)) {
 				Joint j = lp.getJoint();
-				LOGGER.info(String.format("Chain.setEndPoint: add joint %s", j.name()));
+				//LOGGER.info(String.format("Chain.setEndPoint: add joint %s", j.name()));
 				jointParent.put(j,link);
 			}
 			link.setEndPoint(lp);
