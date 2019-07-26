@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.hipparchus.complex.Quaternion;
-
 import bert.control.model.Link;
 import bert.control.model.TestRobotModel;
 import bert.control.model.URDFModel;

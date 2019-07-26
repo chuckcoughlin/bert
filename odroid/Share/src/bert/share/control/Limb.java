@@ -5,8 +5,12 @@
 package bert.share.control;
 
 /**
- * These are the canonical names for the links of the humanoid.
+ * These are the canonical names for the limbs of the humanoid.
  * We try to be anatomically correct, but don't always succeed.
+ * 
+ * A second meaning is given to: left/right arms and legs and torso.
+ * These represent a multi-jointed collection. (Pardon the double meaning,
+ * I just ran out of names for things).
  */
 public enum Limb
 {
@@ -38,6 +42,12 @@ public enum Limb
 	RIGHT_UPPER_ARM,
 	SPINE,
 	THORACIC,
+	// These represent groups of joints ...
+	LEFT_ARM,
+	RIGHT_ARM,
+	LEFT_LEG,
+	RIGHT_LEG,
+	TORSO,
 	UNKNOWN
 	;
 

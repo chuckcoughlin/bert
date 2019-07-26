@@ -67,11 +67,11 @@ public class DxlConversions  {
 
 	public int degreeToDxl(MotorConfiguration mc,double value) {
 		if( value>mc.getMaxAngle()) {
-			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (max = %.0f)",CLSS,mc.getName().name(),value,mc.getMaxAngle()));
+			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (max = %.0f)",CLSS,mc.getJoint().name(),value,mc.getMaxAngle()));
 			value = mc.getMaxAngle();
 		}
 		if( value<mc.getMinAngle()) {
-			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (min = %.0f)",CLSS,mc.getName().name(),value,mc.getMinAngle()));
+			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (min = %.0f)",CLSS,mc.getJoint().name(),value,mc.getMinAngle()));
 			value = mc.getMinAngle();
 		}
 		value = value - mc.getOffset();
@@ -80,7 +80,7 @@ public class DxlConversions  {
 		int res = resolution.get(mc.getType());
 		int val = (int)(value*res/r);
 		val = val&res;
-		LOGGER.info(String.format("%s.degreeToDxl: %s b1,b2: %02X,%02X, offset %.0f %s",CLSS,mc.getName().name(),
+		LOGGER.info(String.format("%s.degreeToDxl: %s b1,b2: %02X,%02X, offset %.0f %s",CLSS,mc.getJoint().name(),
 				(byte)(val >>8),val&0xFF,mc.getOffset(),(mc.isDirect()?"DIRECT":"INDIRECT")));
 		return val;
 	}
@@ -198,13 +198,19 @@ public class DxlConversions  {
 		}
 		return length;
 	}
-	// Convert the value (in engineering units) into a raw setting for the motor
+	// Convert the value into a raw setting for the motor. Position is in degrees, speed and torque are percent.
 	// Valid for Protocol 1 only.
 	public int dxlValueForProperty(String name,MotorConfiguration mc,double value) {
 		int dxlValue = 0;
 		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) dxlValue = degreeToDxl(mc,value);
-		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) dxlValue =speedToDxl(mc,value);
-		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) dxlValue = torqueToDxl(mc,value);
+		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) {
+			value = value*mc.getMaxSpeed()/100.;
+			dxlValue =speedToDxl(mc,value);
+		}
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) {
+			value = value*mc.getMaxTorque()/100.;
+			dxlValue = torqueToDxl(mc,value);
+		}
 		else {
 			LOGGER.warning(String.format("%s.dxlValueForProperty: Unrecognized property name (%s)",CLSS,name));
 		}
@@ -229,6 +235,7 @@ public class DxlConversions  {
 		return text;
 	}
 	// Convert the raw data bytes into a double value. It may or may not use the second byte.
+	// Value is engineering units.
 	// Valid for Protocol 1 only.
 	public double valueForProperty(String name,MotorConfiguration mc,byte b1,byte b2) {
 		double value = 0.;

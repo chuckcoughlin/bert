@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import bert.share.control.Appendage;
+import bert.share.control.Limb;
 import bert.share.message.MessageBottle;
 import bert.share.message.RequestType;
 import bert.share.motor.Joint;
@@ -44,7 +45,9 @@ public class StatementParser  {
 		context.put(SharedKey.APPENDAGE,Appendage.UNKNOWN);
 		context.put(SharedKey.AXIS,"x");
 		context.put(SharedKey.JOINT,Joint.UNKNOWN);
+		context.put(SharedKey.LIMB,Limb.UNKNOWN);
 		context.put(SharedKey.SIDE,"right");
+		context.put(SharedKey.IT, SharedKey.JOINT);
 	}
 	
 	public void setSharedProperty(SharedKey key,Object value) { context.put(key, value); }

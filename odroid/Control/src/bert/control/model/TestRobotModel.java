@@ -44,7 +44,7 @@ public class TestRobotModel extends AbstractRobotModel  {
 	private void initializeMotorConfigurations() {
 		for( MotorConfiguration mc:getMotors().values()) {
 			// Set some reasonable values from the "home" pose.
-			switch(mc.getName()) {
+			switch(mc.getJoint()) {
 				case ABS_X:				mc.setPosition(180.); break;
 				case ABS_Y:				mc.setPosition(180.); break;
 				case ABS_Z:				mc.setPosition(0.); break;

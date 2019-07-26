@@ -55,7 +55,7 @@ public class MotorStateTable {
 			ps = cxn.prepareStatement(sql);
 			for(MotorConfiguration mc:motors) {
 				ps.setInt(1,mc.getId());
-				ps.setString(2,mc.getName().name());
+				ps.setString(2,mc.getJoint().name());
 				ps.setString(3,mc.getController());
 				ps.setString(4,mc.getType().name());
 				ps.setDouble(5,mc.getOffset());

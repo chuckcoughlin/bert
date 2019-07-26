@@ -72,18 +72,18 @@ public class DxlMessage  {
 		for(MotorConfiguration mc:configurations) {
 			double pos = mc.getPosition();
 			if( pos==0. ) {
-				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s never evaluated, ignored",CLSS,mc.getName().name()));
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s never evaluated, ignored",CLSS,mc.getJoint().name()));
 			}
 			else if( pos>mc.getMaxAngle() ) {
 				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
-											CLSS,mc.getName().name(),pos,mc.getMaxAngle()));
+											CLSS,mc.getJoint().name(),pos,mc.getMaxAngle()));
 				mc.setPosition(mc.getMaxAngle());
 				outliers.add(mc);
 				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
 			}
 			else if(pos<mc.getMinAngle()) {
 				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (min=%.0f)",
-											CLSS,mc.getName().name(),pos,mc.getMinAngle()));
+											CLSS,mc.getJoint().name(),pos,mc.getMinAngle()));
 				mc.setPosition(mc.getMinAngle());
 				outliers.add(mc);
 				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
@@ -103,7 +103,7 @@ public class DxlMessage  {
 			bytes[6] = 0x2;  // 2 bytes
 			int index = 7;
 			for( MotorConfiguration mc:outliers) {
-				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",CLSS,mc.getName().name(),mc.getPosition()));
+				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",CLSS,mc.getJoint().name(),mc.getPosition()));
 				int dxlValue = converter.dxlValueForProperty(JointProperty.POSITION.name(),mc,mc.getPosition());
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
@@ -159,6 +159,55 @@ public class DxlMessage  {
 		setChecksum(bytes);
 		messages.add(bytes);
 		return messages;
+	}
+	/**
+	 * Set either the speeds or torque for motors in the specified limb. The motor configurations have all the
+	 * information.
+	 * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
+	 * @param map of the motor configurations keyed by joint name
+	 * @param limb name of the limb to be set
+	 * @param property, either speed or torque
+	 * @return a byte array with entries corresponding to joints of the limb, if any. 
+	 */
+	public byte[] byteArrayToSetLimbProperty(Map<String,MotorConfiguration> map,String limb,String property) {
+		boolean isTorque = true;
+		if( property.equalsIgnoreCase("speed")) isTorque = false;
+		
+		// First count all the joints in the limb
+		int count = 0;
+		for( MotorConfiguration mc:map.values()) {
+			if( mc.getLimb().name().equalsIgnoreCase(limb)) count++;
+		}
+		
+		byte[] bytes = new byte[0];
+		int dxlValue = 0;
+		if( count>0 ) {
+			int len = (3 * count) + 8;  //  3 bytes per motor + address + byte count + header + checksum
+			bytes = new byte[len];
+			setSyncWriteHeader(bytes);
+			bytes[3] = (byte)(len-4);
+			bytes[4] = SYNC_WRITE;
+			bytes[5] = converter.addressForGoalProperty(JointProperty.TORQUE.name());
+			bytes[6] = 0x2;  // 2 bytes
+			int index = 7;
+			for( MotorConfiguration mc:map.values()) {
+				if( mc.getLimb().name().equalsIgnoreCase(limb)) {
+					if( isTorque ) {
+						dxlValue = converter.dxlValueForProperty(JointProperty.TORQUE.name(),mc,mc.getTorque());
+					}
+					else {
+						dxlValue = converter.dxlValueForProperty(JointProperty.SPEED.name(),mc,mc.getSpeed());
+					}
+					bytes[index]= (byte) mc.getId();
+					bytes[index+1] = (byte)(dxlValue & 0xFF);
+					bytes[index+2] = (byte)(dxlValue >>8);
+					index = index+3;
+				}
+			}
+			setChecksum(bytes);
+		}
+
+		return bytes;
 	}
 	/**
 	 * A pose may consist of any or all of position, speed and torque for the motors it refrerences. Query the database
@@ -276,8 +325,8 @@ public class DxlMessage  {
 		setHeader(bytes,id);
 		bytes[3] = (byte)length; 
 		bytes[4] = READ;
-		bytes[5] = converter.GOAL_BLOCK_ADDRESS;
-		bytes[6] = converter.GOAL_BLOCK_BYTES;
+		bytes[5] = DxlConversions.GOAL_BLOCK_ADDRESS;
+		bytes[6] = DxlConversions.GOAL_BLOCK_BYTES;
 		setChecksum(bytes);
 		return bytes;
 	}
@@ -293,8 +342,8 @@ public class DxlMessage  {
 		setHeader(bytes,id);
 		bytes[3] = (byte)length; 
 		bytes[4] = READ;
-		bytes[5] = converter.LIMIT_BLOCK_ADDRESS;
-		bytes[6] = converter.LIMIT_BLOCK_BYTES;
+		bytes[5] = DxlConversions.LIMIT_BLOCK_ADDRESS;
+		bytes[6] = DxlConversions.LIMIT_BLOCK_BYTES;
 		setChecksum(bytes);
 		return bytes;
 	}
@@ -491,12 +540,12 @@ public class DxlMessage  {
 			int id = bytes[2];
 			byte err= bytes[4];
 			
-			String parameterName = JointProperty.MINIMUMANGLE.name(); // CW
+			String parameterName = JointProperty.MAXIMUMANGLE.name(); // CW
 			double v1 = converter.valueForProperty(parameterName,mc,bytes[5],bytes[6]);
 			String t1  = converter.textForProperty(parameterName,mc,bytes[5],bytes[6]);
 			props.put(parameterName,String.valueOf(v1));
 			
-			parameterName = JointProperty.MAXIMUMANGLE.name();   // CCW
+			parameterName = JointProperty.MINIMUMANGLE.name();   // CCW
 			double v2 = converter.valueForProperty(parameterName,mc,bytes[7],bytes[8]);
 			String t2  = converter.textForProperty(parameterName,mc,bytes[7],bytes[8]);
 			props.put(parameterName,String.valueOf(v2));
@@ -506,7 +555,7 @@ public class DxlMessage  {
 			String t3  = converter.textForProperty(parameterName,mc,bytes[12],bytes[13]);
 			props.put(parameterName,String.valueOf(v3));
 			
-			String text = String.format("Max, min angle and torque limits are : %s, %s, %s", t1,t2,t3);
+			String text = String.format("min, max angle and torque limits are : %s, %s, %s", t2,t1,t3);
 			if( err==0 ) {
 				props.put(BottleConstants.TEXT,text);	
 			}
@@ -546,7 +595,7 @@ public class DxlMessage  {
 				props.put(BottleConstants.TEXT,text);
 				props.put(parameterName,String.valueOf(value));
 				mc.setProperty(parameterName, value);
-				LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.0f",CLSS,mc.getName(),parameterName,value));
+				LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.0f",CLSS,mc.getJoint(),parameterName,value));
 			}
 			else {
 				msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",CLSS,err,descriptionForError(err));
@@ -585,7 +634,7 @@ public class DxlMessage  {
 					double param= converter.valueForProperty(parameterName,mc,bytes[index+5],bytes[index+6]);
 					parameters.put(id, String.valueOf(param));
 					mc.setProperty(parameterName, param);
-					LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%.0f",CLSS,mc.getName(),parameterName,param));
+					LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%.0f",CLSS,mc.getJoint(),parameterName,param));
 				}
 				else if(err!=0){
 					msg = String.format("%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",CLSS,id,err,

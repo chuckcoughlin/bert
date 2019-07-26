@@ -136,6 +136,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			}
 			else {
 				sharedDictionary.put(SharedKey.JOINT, joint);
+				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 			}
 		}
 		else {
@@ -165,6 +166,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		else {
 			sharedDictionary.put(SharedKey.JOINT, joint);
+			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		}
 		return null;
 	}
@@ -194,6 +196,13 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
+	public Object visitHandleGreeting(SpeechSyntaxParser.HandleGreetingContext ctx) {
+		bottle.assignRequestType(RequestType.NOTIFICATION);
+		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomGreetingResponse());
+		return null;
+	}
+	// List the joint properties
+	@Override 
 	public Object visitHandleListCommand1(SpeechSyntaxParser.HandleListCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
 		String pname = ctx.Properties().getText();  // plural
@@ -207,7 +216,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-
+	// Tell me your joint positions
 	@Override 
 	public Object visitHandleListCommand2(SpeechSyntaxParser.HandleListCommand2Context ctx) {
 		bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY);
@@ -222,8 +231,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	
+		
 	@Override 
+	// These commands are "hard-coded"
 	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
 		if( ctx.Command()!=null) {
 			String cmd = ctx.Command().getText();
@@ -248,6 +258,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
+	
 	@Override 
 	// initialize your joints
 	public Object visitInitializeJoints(SpeechSyntaxParser.InitializeJointsContext ctx) {
@@ -278,6 +289,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			}
 			else {
 				sharedDictionary.put(SharedKey.JOINT, joint);
+				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 			}
 		}
 		catch(IllegalArgumentException iae) {
@@ -308,6 +320,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			}
 			else {
 				sharedDictionary.put(SharedKey.JOINT, joint);
+				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 			}
 		}
 		else {
@@ -378,7 +391,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// what is the z position of your left hip?
 	// Identical to JointPropertyQuestion, but different word order
-	public Object visitMotorPropertyQuestion(SpeechSyntaxParser.MotorPropertyQuestionContext ctx) {
+	public Object visitMotorPropertyQuestion1(SpeechSyntaxParser.MotorPropertyQuestion1Context ctx) {
 		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
 		String property = ctx.Property().getText().toUpperCase();
 		
@@ -402,6 +415,43 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			}
 			else {
 				sharedDictionary.put(SharedKey.JOINT, joint);
+				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
+			}
+		}
+		catch(IllegalArgumentException iae) {
+			String msg = String.format("I don't have a property %s, that I know of",property);
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
+	// what is the speed of your left hip x?
+	// Identical to MotorPropertyQuestion1, but different word order
+	public Object visitMotorPropertyQuestion2(SpeechSyntaxParser.MotorPropertyQuestion2Context ctx) {
+		bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY);
+		String property = ctx.Property().getText().toUpperCase();
+		
+		try {
+			JointProperty jp = determineJointProperty(property);
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
+			// If side or axis were set previously, use those jointValues as defaults
+			String side = sharedDictionary.get(SharedKey.SIDE).toString();
+			if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
+			sharedDictionary.put(SharedKey.SIDE, side);
+			String axis = sharedDictionary.get(SharedKey.AXIS).toString();
+			if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+			sharedDictionary.put(SharedKey.AXIS, axis);
+			Joint joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
+			if( ctx.Joint()!=null ) joint = determineJoint(ctx.Joint().getText(),axis,side);
+			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+			if( joint.equals(Joint.UNKNOWN) ) {
+				String msg = "You must specify a legal joint";
+				if( ctx.Joint()!=null )  msg = String.format("I don't have a joint %s, that I know of",ctx.Joint().getText());
+				bottle.assignError(msg);
+			}
+			else {
+				sharedDictionary.put(SharedKey.JOINT, joint);
+				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 			}
 		}
 		catch(IllegalArgumentException iae) {
@@ -436,6 +486,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		else {
 			sharedDictionary.put(SharedKey.JOINT, joint);
+			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
@@ -450,6 +501,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String pose = poseForAdverb(ctx.Adverb().getText());
 		if( pose!=null ) {
 			bottle.setProperty(BottleConstants.POSE_NAME,pose );
+			bottle.setProperty(BottleConstants.TEXT,String.format("I am moving %s", ctx.Adverb().getText()) );
 		}
 		return null;
 	}
@@ -505,6 +557,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				bottle.assignError("Only position, speed and torque are settable for a joint");
 		}
 		sharedDictionary.put(SharedKey.JOINT, joint);
+		sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		return null;
 	}
 	// set the position of your left hip y to 45 degrees
@@ -531,6 +584,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		else {
 			sharedDictionary.put(SharedKey.JOINT, joint);
+			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
 		bottle.setProperty(property.name(),ctx.Value().getText());
@@ -550,6 +604,71 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override
+	// relax your left arm
+	public Object visitSetTorque(SpeechSyntaxParser.SetTorqueContext ctx) {
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS, axis);
+		// If side was set previously, use it as default
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
+		sharedDictionary.put(SharedKey.SIDE, side);
+		// If both Limb() and Joint() are null, then we possibly have an "arbitrary" command
+		if( ctx.Freeze()!=null || ctx.Relax()!=null ) {
+			String cmd = "";
+			if( ctx.Freeze()!=null )     {
+				cmd = ctx.Freeze().getText().toLowerCase();
+			}
+			else if( ctx.Relax()!=null ) {
+				cmd = ctx.Relax().getText().toLowerCase();
+			}
+			Joint joint = Joint.UNKNOWN;
+			if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.JOINT) ) {
+				joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
+			}
+			if(ctx.Joint()!=null ) {
+				joint = determineJoint(ctx.Joint().getText(),axis,side);
+			}
+			if( !joint.equals(Joint.UNKNOWN)) {
+				bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
+				bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+				bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE.name());
+				sharedDictionary.put(SharedKey.JOINT,joint);
+				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
+			}
+			else {
+				Limb limb = Limb.UNKNOWN;
+				if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.LIMB) ) {
+					limb = (Limb)sharedDictionary.get(SharedKey.LIMB);
+				}
+				if(ctx.Limb()!=null) {
+					limb = determineLimb(ctx.Limb().getText(),side);
+				}
+				if( !limb.equals(Limb.UNKNOWN)) {
+					bottle.assignRequestType(RequestType.SET_LIMB_PROPERTY);
+					bottle.setProperty(BottleConstants.LIMB_NAME,limb.name());
+					bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE.name());
+					sharedDictionary.put(SharedKey.LIMB,limb);
+					sharedDictionary.put(SharedKey.IT,SharedKey.LIMB);
+				}
+				// Before giving up, see if this is a one-word pose command.
+				// Same logic as visitHandleArbitraryCommand()
+				else {
+					String pose = Database.getInstance().getPoseForCommand(cmd);
+					if( pose!=null ) {
+						bottle.assignRequestType(RequestType.SET_POSE);
+						bottle.setProperty(BottleConstants.POSE_NAME,pose );
+					}
+					else {
+						String msg = String.format("The pose %s was not found",cmd);
+						bottle.assignError(msg);
+					}
+				}
+			}
+		}
+		return null;
+	}
+	@Override
 	// straighten your left elbow.
 	public Object visitStraightenJoint(SpeechSyntaxParser.StraightenJointContext ctx) {
 		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
@@ -564,7 +683,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
 		sharedDictionary.put(SharedKey.AXIS, axis);
 		Joint joint = Joint.UNKNOWN;
-		if(ctx.It()!=null ) {
+		if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.JOINT) ) {
 			joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
 		}
 		if( ctx.Joint() != null ) {
@@ -587,6 +706,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
 			bottle.setProperty(JointProperty.POSITION.name(),String.valueOf(value));
 			sharedDictionary.put(SharedKey.JOINT, joint);
+			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		}
 		else if(joint.equals(Joint.HEAD_Y)  ||
 				joint.equals(Joint.HEAD_Z) ||
@@ -598,6 +718,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
 			bottle.setProperty(JointProperty.POSITION.name(),String.valueOf(value));
 			sharedDictionary.put(SharedKey.JOINT, joint);
+			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		}
 		else {
 			String msg = String.format("It doesn't make sense to straighten a %s",joint.toString());
@@ -757,6 +878,32 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( pname.equalsIgnoreCase("velocity"))  pname = "SPEED";
 		else if( pname.equalsIgnoreCase("velocitie")) pname = "SPEED";
 		result = JointProperty.valueOf(pname.toUpperCase());
+		return result;
+	}
+	// Determine the specific limb from the body part and side. (Side is not always needed).
+	// A limb is a grouping of joints, e.g. "arm" includes elbow and shoulder.
+	private Limb determineLimb(String bodyPart,String side) {
+		Limb result = Limb.UNKNOWN;
+
+		if( bodyPart.equalsIgnoreCase("arm")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Limb.LEFT_ARM;
+				else                                   result = Limb.RIGHT_ARM;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("leg")) {
+			if(side!=null) {
+				if( side.equalsIgnoreCase("left"))     result = Limb.LEFT_LEG;
+				else                                   result = Limb.RIGHT_LEG;
+			}
+		}
+		else if( bodyPart.equalsIgnoreCase("back") || bodyPart.equalsIgnoreCase("torso")) {
+			result = Limb.TORSO;
+		}
+
+		if( result.equals(Limb.UNKNOWN)) {
+			LOGGER.info(String.format("WARNING: StatementTranslator.determineLimb did not find a match for %s",bodyPart));
+		}
 		return result;
 	}
 

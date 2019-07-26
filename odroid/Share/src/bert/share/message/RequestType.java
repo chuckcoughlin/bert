@@ -26,7 +26,8 @@ public enum RequestType
 	PARTIAL,                 // Remainder of text has yet to arrive
     PLAY_STEP,
 	RECORD_STEP,
-	SET_MOTOR_PROPERTY,       // For a particular motor
+	SET_LIMB_PROPERTY,       // Torque or speed for motors in a limb
+	SET_MOTOR_PROPERTY,      // For a particular motor
 	SET_POSE,
 	SET_STATE,               // A global configuration, like ignoring
 	NONE

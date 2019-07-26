@@ -64,18 +64,18 @@ public class MotorGroupController implements MotorManager {
 	 */
 	public void initialize() {
 		if( !development ) {
-			Set<String> groupNames = model.getHandlerTypes().keySet();
+			Set<String> controllerNames = model.getHandlerTypes().keySet();
 			Map<Joint,MotorConfiguration> motors = model.getMotors(); 
-			for( String group:groupNames ) {
-				SerialPort port = model.getPortForGroup(group);
-				MotorController controller = new MotorController(group,port,this);
+			for( String cname:controllerNames ) {
+				SerialPort port = model.getPortForController(cname);
+				MotorController controller = new MotorController(cname,port,this);
 				Thread t = new Thread(controller);
-				motorControllers.put(group, controller);
-				motorControllerThreads.put(group, t);
+				motorControllers.put(cname, controller);
+				motorControllerThreads.put(cname, t);
 				
 
 				// Add configurations to the controller for each motor in the group
-				List<Joint> joints = model.getJointsForGroup(group);
+				List<Joint> joints = model.getJointsForController(cname);
 				for( Joint joint:joints ) {
 					MotorConfiguration motor = motors.get(joint);
 					if( motor!=null ) {
@@ -84,7 +84,7 @@ public class MotorGroupController implements MotorManager {
 						motorNameById.put(motor.getId(), joint.name());
 					}
 					else {
-						LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",CLSS,joint.name(),group));
+						LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",CLSS,joint.name(),cname));
 					}
 				}
 				controllerCount += 1;
@@ -242,7 +242,7 @@ public class MotorGroupController implements MotorManager {
 			LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",CLSS,request.fetchRequestType().name(),property.name(),joint.name()));
 			String text = "";
 			String jointName = Joint.toText(joint);
-			MotorConfiguration mc = model.getMotors().get(joint.name());
+			MotorConfiguration mc = model.getMotors().get(joint);
 			if( mc!=null ) {
 				switch(property) {
 				case ID:

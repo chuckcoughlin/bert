@@ -20,14 +20,20 @@ import bert.share.motor.Joint;
 public class MessageTranslator  {
 	private static final String CLSS = "MessageTranslator";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
+	// Acknowledgements to a greeting
+	private String[] greets = {
+			"hi",
+			"yes?",
+			"hello"
+	};
 	// Acknowledgements to a statement
 	private String[] acks = {
-       "O K",
-       "okay",
-       "acknowledged",
-       "so noted"
-    };
-	
+			"O K",
+			"okay",
+			"acknowledged",
+			"so noted"
+	};
+
 	/**
 	 * Constructor.
 	 */
@@ -78,6 +84,10 @@ public class MessageTranslator  {
 					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
 					text = String.format("Motor %s have been written to log files", propertyName.toLowerCase());
 				}
+				else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
+					String limbName = msg.getProperty(BottleConstants.LIMB_NAME, "");
+					text = String.format("My %s is set ", limbName.toLowerCase());
+				}
 				else if(type.equals(RequestType.SET_POSE)) {
 					String propertyName = msg.getProperty(BottleConstants.POSE_NAME, "");
 					text = String.format("I am %s", propertyName.toLowerCase());
@@ -104,5 +114,10 @@ public class MessageTranslator  {
 		double rand = Math.random();
         int index = (int)(rand*acks.length);
         return acks[index];
+	}
+	public String randomGreetingResponse() {
+		double rand = Math.random();
+        int index = (int)(rand*greets.length);
+        return greets[index];
 	}
 }

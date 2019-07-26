@@ -40,11 +40,13 @@ from the motors, scaled and logged.
 read the current values of joint properties. A complete list of joint names and properties may be found
 in the *Vocabulary* section of the user guide. In addition to properties configured in the configuration
 file (like: id, motor type, orientation, minimum angle and maximum angle), properties include current
-values read directly from the motor (like: position, speed, load, temperature,
-and voltage). A typical query:
+values read directly from the motor (like: position (degrees), speed (degrees/sec), load (N-m),
+temperature (deg C), and voltage (volts). A typical query:
 ```
     what is the position of your left elbow
     what is your right ankle position
+    what is the speed of your right knee
+    what is the torque of your left hip x
 ```
 
 ### b - Calibration <a id="calibration"></a>
@@ -66,7 +68,8 @@ Typical syntax:
 ```
 * ![green](/images/ball_green.png) ``Goals`` - use the terminal application to list
 the current goals for a joint. Goal parameters
-include angle, speed and and torque limits. Results are logged.
+include angle, speed and and torque limits. Results are logged. Speeds are degrees/sec and
+torques are newton-meters.
 Typical syntax:
 ```
     what are the targets for your left shoulder x
@@ -113,15 +116,31 @@ the last referenced joint or side. Sample command syntax:
     straighten it
 ```
 * ![green](/images/ball_green.png) ``Change speed`` - using the terminal application,
-change the speed (~degrees/sec) of a joint or all joints.
+change the speed of a joint or all joints. Speed is expressed as a percentage of the
+maximum as defined in the XML configuration file.
 Sample command syntax:
 ```
-    set the speed of your left ankle to 10
+    set the speed of your left ankle to 50
     move normally
     move quickly
     move very slowly
 ```
 The "move" commands set speeds for all joint movements at once.
+
+* ![gray](/images/ball_green.png) ``Change torque`` - using the terminal application,
+change the torque of a joint or of a limb. Torque is expressed as percent of maximum.
+Maximum values are defined in the XML configuration file.
+Sample command syntax:
+```
+    set the torque of your left ankle to 50
+    relax your left arm
+    freeze your right elbow
+    relax
+    freeze
+    go rigid
+    go limp
+    straighten up
+```
 
 * ![gray](/images/ball_gray.png) ``Record Pose`` - assign a name to the current position
 of the robot. This is called a *Pose*. The name must be a single word. NOTE: In the

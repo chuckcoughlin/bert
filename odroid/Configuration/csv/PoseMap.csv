@@ -1,5 +1,7 @@
 Command	Pose
 straighten up	home
+freeze	frozen
+go rigid	frozen
 go limp	relaxing
 salute	saluting
 sit	sitting

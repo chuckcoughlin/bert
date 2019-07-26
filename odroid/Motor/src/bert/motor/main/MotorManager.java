@@ -6,8 +6,8 @@ package bert.motor.main;
 
 import bert.share.message.MessageBottle;
 /**
- *  This interface is satisfied by the MotorManager and describes
- *  the callback utilized by MotorContrtollers
+ *  This interface is satisfied by the MotorGroupController and describes
+ *  the callbacks utilized by individual MotorContrtollers
  */
 public interface MotorManager  {
 	public void handleAggregatedResponse(MessageBottle response);

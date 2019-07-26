@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 
-	Right-handed coordinate system: x positive to right, y positive to back, z positive up
-	- rpy means roll, pitch, yaw 
+	Right-handed coordinate system: x positive to frony, y positive to right, z positive up
+	- axis is unit vector around which joint rotates clockwise
    	- lengths ~ m, angles ~ degrees -->
 <robot name="bert">
 	<!-- The IMU position plsces it relative to the root link's origin. It represents the world-frame. 

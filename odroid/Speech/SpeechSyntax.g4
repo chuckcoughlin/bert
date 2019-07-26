@@ -17,13 +17,15 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-		Salutation? Initialize Article? Motors   				# initializeJoints
+	Greeting													# handleGreeting
+	| Salutation? Initialize Article? Motors   					# initializeJoints
     | Salutation? List Article? Configuration                   # configurationRequest
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors                   # handleListCommand1
 	| Salutation? List Article? Motor? Properties                               # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
 	| Salutation? Move Adverb                                                   # moveSpeed
+	| Salutation? (Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?			# setTorque
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
     | Salutation? Straighten Yourself? Up   					# straightenUp
@@ -36,11 +38,12 @@ command:
 
 // Request for information
 question:
-        How Attribute Are You 										# attributeQuestion
+        Salutation?  How Attribute Are You 							# attributeQuestion
     | What Is Article? Configuration								# configurationQuestion
     | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
-    | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion
+    | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
+    | What Is Article? Property Of Article? Side? Joint Axis?   # motorPropertyQuestion2
     | What Is Article? Metric   				    # metricsQuestion
     | What Is Article? Adjective? Pose                          # poseQuestion
     | Where Is Article? Side? (Appendage|Joint)	Axis?       	# limbLocationQuestion
@@ -71,6 +74,8 @@ Configuration: 'configuration';
 Do: 'do';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
+Freeze: 'freeze'|'stiffen'|'tighten';
+Greeting: 'hello bert'|'hi bert';
 Have: 'have'|'wear';
 How: 'how';
 Initialize: 'initialize';
@@ -78,6 +83,7 @@ Isay: 'i say';
 Is: 'is';
 It: 'it';
 List: ('tell me'|'describe'|'list');
+Limb: 'arm'|'back'|'leg'|'torso';
 Limits: 'limits';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
@@ -90,6 +96,7 @@ Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'ches
 Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
+Relax:'loosen'|'relax';
 Salutation:'bert'|'burt';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';

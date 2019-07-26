@@ -17,6 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import bert.share.control.Limb;
 import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
 import bert.share.xml.XMLUtility;
@@ -149,7 +150,7 @@ public abstract class AbstractRobotModel  {
 									String value = XMLUtility.attributeValue(joint, "name");
 									if( value!=null) {
 										Joint name = Joint.valueOf(value.toUpperCase());
-										motor.setName(name);
+										motor.setJoint(name);
 									}
 									value = XMLUtility.attributeValue(joint, "type");
 									if( value!=null) motor.setType(value);
@@ -162,15 +163,26 @@ public abstract class AbstractRobotModel  {
 									value = XMLUtility.attributeValue(joint, "max");
 									if( value!=null && !value.isEmpty()) motor.setMaxAngle(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "speed");
-									if( value!=null && !value.isEmpty()) motor.setSpeed(Double.parseDouble(value));
+									if( value!=null && !value.isEmpty()) motor.setMaxSpeed(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "torque");
-									if( value!=null && !value.isEmpty()) motor.setTorque(Double.parseDouble(value));
+									if( value!=null && !value.isEmpty()) motor.setMaxTorque(Double.parseDouble(value));
 									value = XMLUtility.attributeValue(joint, "orientation");
 									if( value!=null && !value.isEmpty()) {
 										motor.setIsDirect(value.equalsIgnoreCase("direct"));
 									}
-									motors.put(motor.getName(),motor);
-									LOGGER.fine(String.format("%s.analyzeMotors: Found %s",CLSS,motor.getName().name()));
+									value = XMLUtility.attributeValue(joint, "limb");
+									if( value!=null && !value.isEmpty()) {
+										try {
+											Limb limb = Limb.valueOf(value.toUpperCase());
+											motor.setLimb(limb);
+										}
+										catch(IllegalArgumentException iae) {
+											LOGGER.warning(String.format("%s.analyzeMotors: %s has unknown limb %s",CLSS,motor.getJoint().name(),value));
+										}
+										
+									}
+									motors.put(motor.getJoint(),motor);
+									LOGGER.fine(String.format("%s.analyzeMotors: Found %s",CLSS,motor.getJoint().name()));
 								}
 							}
 							

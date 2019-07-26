@@ -17,6 +17,7 @@ public interface BottleConstants   {
 	public final static String COMMAND_NAME        = "command";    // Value is a well-known command name, see below
 	public final static String ERROR               = "error";      // Request resulted in an error, value is error text
 	public final static String JOINT_NAME          = "joint";      // Request applies to this joint, value is a Joint
+	public final static String LIMB_NAME           = "limb";       // Request applies to this limb, value is a Limb
 	public final static String METRIC_NAME         = "metric";     // Value is a MetricType
 	public final static String POSE_NAME           = "pose";       // Name of a pose, must exist in database
 	public final static String PROPERTY_NAME       = "property";   // Value is a JointProperty. Subject of original request.
@@ -33,4 +34,8 @@ public interface BottleConstants   {
 	
 	// Message from tablet
 	public final static int HEADER_LENGTH = 4;     // Includes semi-colon
+	
+	// Nominal values for torque and speed in percent
+	public final static int SPEED_NORMAL         = 20;
+	public final static int TORQUE_NORMAL        = 20;
 }

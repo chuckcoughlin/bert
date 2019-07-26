@@ -282,6 +282,14 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				bytes = dxl.bytesToGetProperty(mc.getId(),propertyName);
 				wrapper.setResponseCount(1);   // Status message
 			}
+			else if( type.equals(RequestType.SET_LIMB_PROPERTY)) {
+				String limbName = request.getProperty(BottleConstants.LIMB_NAME, "");
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
+				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
+				// Loop over motor config map, set the property
+				bytes = dxl.byteArrayToSetLimbProperty(configurationsByName,limbName,propertyName);
+				wrapper.setResponseCount(0);  // AYNC WRITE, no responses
+			}
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
 				MotorConfiguration mc = configurationsByName.get(jointName);
@@ -490,7 +498,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
                     	Map<Integer,String> map = createPropertyMapFromBytes(propertyName,bytes);
                     	for( Integer key:map.keySet() ) {
             				String param = map.get(key);
-            				String name = configurationsById.get(key).getName().name();
+            				String name = configurationsById.get(key).getJoint().name();
             				req.setJointValue(name, param);
             				wrapper.decrementResponseCount();
             				LOGGER.info(String.format("%s.serialEvent: received %s (%d remaining) = %s",

@@ -23,23 +23,24 @@ import jssc.SerialPort;
 
 /**
  *  The server-side model retains the configuration of all the request handlers
- *  plus a hand-full of properties. 
+ *  plus a hand-full of properties. It is used to populate the database Motor
+ *  State Table on startup. 
  */
 public class RobotMotorModel extends AbstractRobotModel  {
 	private static final String CLSS = "MotorManager";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
-	private final Map<String,List<Joint>> jointsByGroup;   // List of joints by group
+	private final Map<String,List<Joint>> jointsByController;   // List of joints by controller name
 	
-	private final Map<String,SerialPort> ports;                  // Port objects by group
+	private final Map<String,SerialPort> ports;                 // Port objects by controller
 	
 	public RobotMotorModel(Path configPath) {
 		super(configPath);
-		this.jointsByGroup = new HashMap<>();
+		this.jointsByController = new HashMap<>();
 		this.ports  = new HashMap<>();
 	}
    
-	public List<Joint> getJointsForGroup(String group) { return this.jointsByGroup.get(group); }
-	public SerialPort getPortForGroup(String group) { return this.ports.get(group); }
+	public List<Joint> getJointsForController(String controller) { return this.jointsByController.get(controller); }
+	public SerialPort getPortForController(String controller) { return this.ports.get(controller); }
 	
 	// Analyze the document
 	public void populate() {
@@ -50,7 +51,7 @@ public class RobotMotorModel extends AbstractRobotModel  {
 
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the XML for the SERIAL controllers. Create a map of joints by controller (group). 
+	 * Search the XML for the SERIAL controllers. Create a map of joints by controller. 
 	 */
 	@Override
 	public void analyzeControllers() {
@@ -60,21 +61,21 @@ public class RobotMotorModel extends AbstractRobotModel  {
 			int index = 0;
 			while(index<count) {
 				Element controllerElement= (Element)(elements.item(index));
-				String group = XMLUtility.attributeValue(controllerElement, "name");
+				String controller = XMLUtility.attributeValue(controllerElement, "name");
 				String type = XMLUtility.attributeValue(controllerElement, "type");
 				if( type!=null && !type.isEmpty() &&
 						type.equalsIgnoreCase(HandlerType.SERIAL.name()) ) {
-					// Configure the port - there should only be one per motor group.
+					// Configure the port - there should only be one per motor controller.
 					NodeList portElements = controllerElement.getElementsByTagName("port");
 					if( portElements.getLength()>0) {
-						handlerTypes.put(group,type.toUpperCase());
+						handlerTypes.put(controller,type.toUpperCase());
 						Element portElement= (Element)(portElements.item(0));
 						String pname = XMLUtility.attributeValue(portElement, "name");
 						String device = XMLUtility.attributeValue(portElement, "device");
 						SerialPort port = new SerialPort(device);
-						ports.put(group,port);
+						ports.put(controller,port);
 					}
-					// Create a map of joints for the group
+					// Create a map of joints for the controller
 					NodeList jointElements = controllerElement.getElementsByTagName("joint");
 					int jcount = jointElements.getLength();
 					int jindex = 0;
@@ -92,7 +93,7 @@ public class RobotMotorModel extends AbstractRobotModel  {
 						}
 						jindex++;
 					}
-					jointsByGroup.put(group, joints);
+					jointsByController.put(controller, joints);
 				}			
 				index++;
 			}
