@@ -15,6 +15,11 @@ import java.util.List;
  */
 public interface IntentObserver {
     /**
+     * Allow only one observer of a given name
+     * @return the name of the observer
+     */
+    public String getName();
+    /**
      * Call this method after an observer newly registers. The
      * intention is to allow the observer to "catch-up" with the
      * state of the manager.

@@ -242,7 +242,7 @@ public class DxlMessage  {
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
-				mc.setTorque(torques.get(key));
+				mc.setTorque(torques.get(key));   // percent of max
 				index = index+3;
 			}
 			setChecksum(bytes);
@@ -266,7 +266,7 @@ public class DxlMessage  {
 				bytes[index]= (byte) mc.getId();
 				bytes[index+1] = (byte)(dxlValue & 0xFF);
 				bytes[index+2] = (byte)(dxlValue >>8);
-				mc.setSpeed(speeds.get(key));
+				mc.setSpeed(speeds.get(key));   // percent of max
 				index = index+3;
 			}
 			setChecksum(bytes);
@@ -473,7 +473,7 @@ public class DxlMessage  {
 	/**
 	 * Analyze a response buffer returned from a request for goal values for a motor. Goals
 	 * parameters are: position, speed, torque. Results will be entered in the properties map.
-	 * Use the absolute value for speeds and torques.
+	 * Convert speeds and torques to percent of max disregarding direction.
 	 * @param type the model of the motor
 	 * @param isDirect the orientation of the motor
 	 * @param props properties from a MessageBottle
@@ -497,12 +497,14 @@ public class DxlMessage  {
 			double v2 = converter.valueForProperty(parameterName,mc,bytes[7],bytes[8]);
 			String t2  = converter.textForProperty(parameterName,mc,bytes[7],bytes[8]);
 			props.put(parameterName,String.valueOf(v2));
-			mc.setSpeed(v2);
+			v2 = v2*100./DxlConversions.velocity.get(mc.getType());// Convert to percent
+			mc.setSpeed(v2);  
 			
 			parameterName = JointProperty.TORQUE.name();   // Non-directional
 			double v3 = converter.valueForProperty(parameterName,mc,bytes[9],bytes[10]);
 			String t3  = converter.textForProperty(parameterName,mc,bytes[9],bytes[10]);
 			props.put(parameterName,String.valueOf(v3));
+			v3 = v2*100./DxlConversions.torque.get(mc.getType());// Convert to percent
 			mc.setTorque(v3);
 			
 			String text = String.format("Goal position, speed and torque are : %s, %s, %s", t1,t2,t3);

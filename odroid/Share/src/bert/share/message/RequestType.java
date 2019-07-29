@@ -17,6 +17,7 @@ public enum RequestType
 	GET_LIMITS,              // The EEPROM-resident limits
 	GET_METRIC,              // A local property of the robot
 	GET_MOTOR_PROPERTY,      // Current value of a motor property
+	HOLD,					 // Record current positions, then go rigid
 	GET_POSE,				 // 
 	IDLE,					 // Internal message used to keep the timer queue "alive"
 	INITIALIZE_JOINTS,		 // Make sure that all joints are in "sane" positions

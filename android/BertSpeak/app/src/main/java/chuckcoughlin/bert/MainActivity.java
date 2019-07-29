@@ -256,6 +256,8 @@ public class MainActivity extends AppCompatActivity
 
     // =================================== TextMessageObserver ===============================
     @Override
+    public String getName() { return CLSS; }
+    @Override
     public void initialize(TextManager mgr) {}
 
     /**
@@ -273,15 +275,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     // =================================== UtteranceProgressListener ===============================
+    // Use this to suppress feedback with analyzer while we're speaking
     @SuppressWarnings("deprecation")
     public class UtteranceListener extends UtteranceProgressListener {
 
-        // Short circuit the hard-coded wait interval.
         @Override
         public synchronized void onDone(String utteranceId) {
             if( analyzer!=null ) {
-                Thread t = analyzer.getSrThread();
-                if( t!=null ) t.interrupt();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        analyzer.listen();
+                    }
+                });
             }
         }
         @Override
@@ -289,6 +295,15 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onError(String utteranceId,int code) {}
         @Override
-        public void onStart(String utteranceId) {}
+        public void onStart(String utteranceId) {
+            if( analyzer!=null ) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        analyzer.cancel();
+                    }
+                });
+            }
+        }
     }
 }

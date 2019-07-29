@@ -49,7 +49,6 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
         super.onCreate(savedInstanceState);
         if( savedInstanceState!=null ) frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN,false);
         rootView = inflater.inflate(R.layout.fragment_transcript, container, false);
-
         transcriptView = rootView.findViewById(R.id.transcript_recycler_view);
         transcriptView.setHasFixedSize(true);   // Refers to the size of the layout.
         LinearLayoutManager layoutManager = new LinearLayoutManager(transcriptView.getContext());
@@ -128,7 +127,7 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        textManager.getLogs().clear();
+        textManager.getTranscript().clear();
         adapter.notifyDataSetChanged();
     }
 
@@ -165,9 +164,10 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerTranscriptViewer(this);
     }
     // =================================== TextMessageObserver ===============================
+    @Override
+    public String getName() { return CLSS; }
     @Override
     public void initialize(TextManager mgr) {
         textManager = mgr;
@@ -187,7 +187,8 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //transcriptView.scrollToPosition(0);
+                        adapter.notifyItemInserted(0);
+                        transcriptView.scrollToPosition(0);
                     }
                 });
             } catch (IllegalStateException ignore) {}

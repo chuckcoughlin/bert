@@ -17,7 +17,8 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-	Greeting													# handleGreeting
+	Greeting Salutation?                                        # handleGreeting
+	| Salutation? Hold (It | Article? Pose)         			# holdIt
 	| Salutation? Initialize Article? Motors   					# initializeJoints
     | Salutation? List Article? Configuration                   # configurationRequest
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
@@ -75,8 +76,9 @@ Do: 'do';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 Freeze: 'freeze'|'stiffen'|'tighten';
-Greeting: 'hello bert'|'hi bert';
+Greeting: 'hello'|'high'|'hi';
 Have: 'have'|'wear';
+Hold: 'hold';
 How: 'how';
 Initialize: 'initialize';
 Isay: 'i say';
@@ -97,7 +99,7 @@ Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Relax:'loosen'|'relax';
-Salutation:'bert'|'burt';
+Salutation:'bert'|'burt'|'now'|'please';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';
 Side: 'left'|'right'|'other';

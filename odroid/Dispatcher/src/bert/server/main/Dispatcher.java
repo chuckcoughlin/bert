@@ -156,7 +156,11 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 					if( currentRequest!=null ) {
 						if( isLocalRequest(currentRequest) ) {
 							// Handle local request -create response
-							MessageBottle response = createResponseForLocalRequest(currentRequest);
+							MessageBottle response = handleLocalRequest(currentRequest);
+							handleResponse(response);
+						}
+						else if( isInternalRequest(currentRequest) ) {
+							MessageBottle response = handleInternalRequest(currentRequest);
 							handleResponse(response);
 						}
 						else {
@@ -272,11 +276,27 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			LOGGER.warning(String.format("%s.handleResponse: Unknown destination - %s, ignored",CLSS,source));
 		}
 	}
-	
+	// The response is simply the request. A generic acknowledgement will be relayed to the user.
+	// This method composes requests for the internal controller based on the original.
+	private MessageBottle handleInternalRequest(MessageBottle request) {
+		// Read the current motor positions, then freeze.
+		if( request.fetchRequestType().equals(RequestType.HOLD)) {
+			// Read all the joint positions
+			InternalMessage msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
+			internalController.receiveRequest(msg);
+			msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.POSE_NAME,"frozen");
+			msg.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(msg);
+		}
+		return request;
+	}
 
-	// The "local" response is simply the original request with some text
-	// to send directly to the user.
-	private MessageBottle createResponseForLocalRequest(MessageBottle request) {
+
+	// Create a response for a request that can be handled immediately. The response is simply the original request
+	// with some text to send directly to the user. 
+	private MessageBottle handleLocalRequest(MessageBottle request) {
 		// The following two requests simply use the current positions of the motors, whatever they are
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
 			solver.setTreeState(); // Forces new calculations
@@ -359,6 +379,15 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private double exponentiallyWeightedMovingAverage(double currentValue,double previousValue) {
 		double result = (1.-WEIGHT)*currentValue + WEIGHT*previousValue;
 		return result;
+	}
+	
+	// These are complex requests that require several messages to the internal
+	// controller
+	private boolean isInternalRequest(MessageBottle request) {
+		if( request.fetchRequestType().equals(RequestType.HOLD) ) {
+			return true;
+		}
+		return false;
 	}
 	
 	private boolean isLocalRequest(MessageBottle request) {

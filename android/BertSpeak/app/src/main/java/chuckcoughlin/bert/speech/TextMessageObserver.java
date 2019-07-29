@@ -13,6 +13,11 @@ import chuckcoughlin.bert.service.TextManager;
  */
 public interface TextMessageObserver {
   /**
+   * Allow only one observer of a given name.
+   * @return the name of the observer
+   */
+  String getName();
+  /**
    * Call this method after an observer newly registers. The
    * manager allows the observer to "catch-up" with the
    * current state of the message list. The manager should be

@@ -2,7 +2,9 @@ package chuckcoughlin.bert.service;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import chuckcoughlin.bert.common.BertConstants;
 import chuckcoughlin.bert.common.FixedSizeList;
@@ -25,9 +27,9 @@ public class TextManager {
     private final List<String> columnList;   // Columns in the most recent table
     private final List<TextMessage> rowList; // Text is tab-delimited
     private final FixedSizeList<TextMessage> transcriptList;
-    private final List<TextMessageObserver> logObservers;
-    private final List<TextMessageObserver> tableObservers;
-    private final List<TextMessageObserver> transcriptObservers;
+    private final Map<String,TextMessageObserver> logObservers;
+    private final Map<String,TextMessageObserver> tableObservers;
+    private final Map<String,TextMessageObserver> transcriptObservers;
 
     /**
      * There should only be one text manager. owned by the dispatch service.
@@ -43,9 +45,9 @@ public class TextManager {
         columnList = new ArrayList<String>();
         rowList = new ArrayList<TextMessage>();
         transcriptList = new FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES);
-        logObservers = new ArrayList<>();
-        tableObservers = new ArrayList<>();
-        transcriptObservers = new ArrayList<>();
+        logObservers = new HashMap<>();
+        tableObservers = new HashMap<>();
+        transcriptObservers = new HashMap<>();
     }
 
     /**
@@ -68,7 +70,7 @@ public class TextManager {
      * The text has any header needed for tablet-robot communication
      * already stripped off. Place into the proper queue.
      */
-    public void processText(MessageType type, String text) {
+    public synchronized void processText(MessageType type, String text) {
         switch(type) {
             case ANS:
                 TextMessage msg = new TextMessage(type,text);
@@ -104,15 +106,15 @@ public class TextManager {
      * @param observer
      */
     public void registerLogViewer(TextMessageObserver observer) {
-        logObservers.add(observer);
+        logObservers.put(observer.getName(),observer);
         observer.initialize(this);
     }
     public void registerTableViewer(TextMessageObserver observer) {
-        tableObservers.add(observer);
+        tableObservers.put(observer.getName(),observer);
         observer.initialize(this);
     }
     public void registerTranscriptViewer(TextMessageObserver observer) {
-        transcriptObservers.add(observer);
+        transcriptObservers.put(observer.getName(),observer);
         observer.initialize(this);
     }
     public void unregisterLogViewer(TextMessageObserver observer) {
@@ -128,19 +130,20 @@ public class TextManager {
     public void clear() {
         logList.clear();
         transcriptList.clear();
-        for(TextMessageObserver observer:logObservers) {
+        for(TextMessageObserver observer:logObservers.values()) {
             if (observer != null) {
                 observer.initialize(this);
             }
         }
-        for(TextMessageObserver observer:transcriptObservers) {
+        transcriptList.clear();
+        for(TextMessageObserver observer:transcriptObservers.values()) {
             if (observer != null) {
                 observer.initialize(this);
             }
         }
     }
     private void initializeTableObservers(TextManager mgr) {
-        for(TextMessageObserver observer:tableObservers) {
+        for(TextMessageObserver observer:tableObservers.values()) {
             if( observer!=null ) {
                 observer.initialize(mgr);
             }
@@ -150,21 +153,21 @@ public class TextManager {
      * Notify log observers regarding receipt of a new message.
      */
     private void notifyLogObservers(TextMessage msg) {
-        for(TextMessageObserver observer:logObservers) {
+        for(TextMessageObserver observer:logObservers.values()) {
             if( observer!=null ) {
                 observer.update(msg);
             }
         }
     }
     private void notifyTableObservers(TextMessage msg) {
-        for(TextMessageObserver observer:tableObservers) {
+        for(TextMessageObserver observer:tableObservers.values()) {
             if( observer!=null ) {
                 observer.update(msg);
             }
         }
     }
     private void notifyTranscriptObservers(TextMessage msg) {
-        for(TextMessageObserver observer:transcriptObservers) {
+        for(TextMessageObserver observer:transcriptObservers.values()) {
             if( observer!=null ) {
                 observer.update(msg);
             }

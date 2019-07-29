@@ -258,7 +258,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	
+	@Override
+	// Hold it
+	public Object visitHoldIt(SpeechSyntaxParser.HoldItContext ctx) {
+		bottle.assignRequestType(RequestType.HOLD);
+		return null;
+	}
 	@Override 
 	// initialize your joints
 	public Object visitInitializeJoints(SpeechSyntaxParser.InitializeJointsContext ctx) {

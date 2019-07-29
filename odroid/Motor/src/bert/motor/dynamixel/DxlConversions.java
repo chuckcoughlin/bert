@@ -23,8 +23,8 @@ public class DxlConversions  {
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static Map<DynamixelType,Integer> range;         // Range of motion in degrees
 	private static Map<DynamixelType,Integer> resolution;    // Increments for 360 deg by type
-	private static Map<DynamixelType,Double> torque;         // Max torque ~ Nm
-	private static Map<DynamixelType,Double> velocity;       // Angular velocity ~ deg/s
+	public static final Map<DynamixelType,Double> torque;         // Max torque ~ Nm
+	public static final Map<DynamixelType,Double> velocity;       // Angular velocity ~ deg/s
 	// Constants for control table addressses. These must be the same for MX28,MX64,AX12
 	public static final byte LIMIT_BLOCK_ADDRESS = (byte)6;
 	public static final byte LIMIT_BLOCK_BYTES   = (byte)9;

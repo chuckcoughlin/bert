@@ -310,8 +310,8 @@ public class BluetoothConnection {
 		public void run() {
 			for (; ; ) {
 				try {
-
 					String text = read();
+					if( text==null ) break;
 					handler.receiveText(text);
 					Thread.sleep(100);
 				}

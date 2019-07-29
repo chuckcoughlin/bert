@@ -21,25 +21,44 @@ import chuckcoughlin.bert.service.TieredFacility;
 
 /**
  * This class analyzes speech, converting it into text (lists of words).
- * These methods must be executed on the main application thread (UI thread).
+ * The SpeechRecognizer methods must be executed on the main application thread (UI thread).
  */
-
 public class SpeechAnalyzer implements  RecognitionListener  {
     private static final String CLSS = "SpeechAnalyzer";
-    private static final int END_OF_PHRASE_TIME = 2000; // Silence to indicate end-of-input
-    private static final long INTER_PHRASE_TIME = 3000;  // Time to wait before considering next input
+    private static final int END_OF_PHRASE_TIME = 2000;  // Silence to indicate end-of-input
     private final Context context;
+    private boolean listening = false;
     private SpeechRecognizer sr = null;
-    private Thread srThread = null;  // Probably a UI thread
     private final BluetoothHandler handler;
     private Intent recognizerIntent = null;
 
     public SpeechAnalyzer(BluetoothHandler h, Context c ) {
+        this.listening = false;
         this.context = c;
         this.handler  = h;
         if( handler==null ) Log.e(CLSS,"SpeechAnalyzer: ERROR: BluetoothHandler is null.");
     }
 
+    /**
+     * Stop any recognition in progress.
+     * Must be called from UI thread
+     */
+    public void cancel() {
+        if( sr!=null ) {
+            sr.cancel();
+        }
+        listening = false;
+    }
+
+    /**
+     * If we are not currently listening, then start.
+     * Must be called from UI thread.
+     */
+    public void listen() {
+        if( !listening ) {
+            startListening();
+        }
+    }
     public void start() {
         recognizerIntent = createRecognizerIntent();
         resetSpeechRecognizer();
@@ -58,28 +77,24 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         }
         sr = null;
     }
-    public Thread getSrThread() { return this.srThread; }
 
     // Delay before we start listening to avoid feedback loop
     // with spoken response. Note this will be cut short by
     // a listener on the text-to-speech component.
     private void startListening() {
         if(sr!=null) {
-            srThread = Thread.currentThread();
-            try {
-                Thread.sleep(INTER_PHRASE_TIME);
-            }
-            catch(InterruptedException ignore) {}
+            Log.i(CLSS, "START LISTENING");
+            listening = true;
             sr.startListening(recognizerIntent);
         }
     }
     private void resetSpeechRecognizer() {
-
         if(sr != null) {
             sr.destroy();
         }
         sr = SpeechRecognizer.createSpeechRecognizer(context);
         sr.setRecognitionListener(this);
+        listening = false;
     }
     // ========================================= RecognitionListener ============================
     public void onReadyForSpeech(Bundle params)  {
@@ -181,7 +196,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
      * @return spiffy-clean text
      */
     private String scrubText(String text) {
-        text = text.replace("°"," degrees");
+        text = text.replace("°"," degrees").toLowerCase();
         return text;
     }
 }

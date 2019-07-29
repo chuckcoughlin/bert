@@ -119,6 +119,8 @@ public class TablesTabFragment extends BasicAssistantFragment implements Service
 
     // =================================== TextMessageObserver ===============================
     @Override
+    public String getName() { return CLSS; }
+    @Override
     public void initialize(TextManager mgr) {
         textManager = mgr;
     }

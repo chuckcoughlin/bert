@@ -31,7 +31,10 @@ public class MessageTranslator  {
 			"O K",
 			"okay",
 			"acknowledged",
-			"so noted"
+			"so noted",
+			"done",
+			"complete",
+			"yup"
 	};
 
 	/**
@@ -79,6 +82,9 @@ public class MessageTranslator  {
 					Joint joint   = Joint.valueOf(msg.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN").toUpperCase());
 					String value       = msg.getProperty(propertyName, "");
 					text = String.format("The %s of my %s is %s", propertyName,Joint.toText(joint),value);
+				}
+				else if(type.equals(RequestType.HOLD)) {
+					text = randomAcknowledgement();
 				}
 				else if(type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");

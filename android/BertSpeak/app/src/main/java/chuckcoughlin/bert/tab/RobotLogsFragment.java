@@ -108,7 +108,7 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     @Override
     public void onStop() {
         super.onStop();
-        getContext().getApplicationContext().unbindService(this);
+        if( getContext()!=null ) getContext().getApplicationContext().unbindService(this);
     }
     @Override
     public void onDestroyView() {
@@ -169,16 +169,18 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerLogViewer(this);
+        //service.registerLogViewer(this);
     }
     // =================================== TextMessageObserver ===============================
+    @Override
+    public String getName() { return CLSS; }
     @Override
     public void initialize(TextManager mgr) {
         textManager = mgr;
         adapter.initialize(textManager.getLogs());
         Log.i(CLSS,String.format("initialize: message list is now ..."));
         for(TextMessage m:mgr.getLogs()) {
-                    Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
+            Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
         }
         adapter.notifyDataSetChanged();
     }

@@ -13,7 +13,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="5dp"
         android:animateLayoutChanges="false"
-        android:focusableInTouchMode="true"
+        android:focusableInTouchMode="false"
         android:scrollbars="vertical"
         android:isScrollContainer="true"/>
 

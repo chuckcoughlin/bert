@@ -170,6 +170,8 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     }
     // ===================== IntentObserver =====================
     @Override
+    public String getName() { return CLSS; }
+    @Override
     public void initialize(List<Intent> list) {
         for(Intent intent:list) {
             if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {

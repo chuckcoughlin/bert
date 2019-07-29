@@ -19,7 +19,7 @@ import chuckcoughlin.bert.common.IntentObserver;
 public class StatusManager {
     private final static String CLSS = "StatusManager";
     private final Map<TieredFacility,FacilityState> map;
-    private final List<IntentObserver> observers;
+    private final Map<String,IntentObserver> observers;
 
     /**
      * Constructor :  On start, initialize the state map.
@@ -29,7 +29,7 @@ public class StatusManager {
         map.put(TieredFacility.BLUETOOTH,FacilityState.IDLE);
         map.put(TieredFacility.SOCKET,FacilityState.IDLE);
         map.put(TieredFacility.VOICE,FacilityState.IDLE);
-        this.observers = new ArrayList<>();
+        this.observers = new HashMap<>();
     }
 
 
@@ -47,7 +47,7 @@ public class StatusManager {
      * @param observer
      */
     public void register(IntentObserver observer) {
-        observers.add(observer);
+        observers.put(observer.getName(),observer);
         List<Intent> list = new ArrayList<>();
         for(TieredFacility fac:map.keySet()) {
             list.add(makeIntent(fac,map.get(fac)));
@@ -55,7 +55,7 @@ public class StatusManager {
         observer.initialize(list);
     }
     public void unregister(IntentObserver observer) {
-        observers.remove(observer);
+        observers.remove(observer.getName());
     }
 
     public void stop() {
@@ -83,7 +83,7 @@ public class StatusManager {
      * Notify observers of the facility-state change.
      */
     private void notifyObservers( Intent intent) {
-        for(IntentObserver observer:observers) {
+        for(IntentObserver observer:observers.values()) {
             if( observer!=null ) {
                 observer.update(intent);
             }
