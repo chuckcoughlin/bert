@@ -45,6 +45,14 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     private boolean frozen = false;
 
     @Override
+    public void onActivityCreated (Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if( savedInstanceState!=null) this.frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN);
+        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
+    }
+
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if( savedInstanceState!=null ) frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN,false);
@@ -53,7 +61,6 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
         transcriptView.setHasFixedSize(true);   // Refers to the size of the layout.
         LinearLayoutManager layoutManager = new LinearLayoutManager(transcriptView.getContext());
         transcriptView.setLayoutManager(layoutManager);
-        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
         transcriptView.setAdapter(adapter);
         int scrollPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
         transcriptView.scrollToPosition(scrollPosition);
@@ -117,18 +124,14 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
         super.onSaveInstanceState(outState);
         outState.putBoolean(BertConstants.BUNDLE_FROZEN,frozen);
     }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if( savedInstanceState!=null) this.frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN);
-    }
     //======================================== Button Callbacks ======================================
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        textManager.getTranscript().clear();
-        adapter.notifyDataSetChanged();
+        if( textManager!=null ) {
+            textManager.getTranscript().clear();
+            adapter.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -136,8 +139,10 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
      */
     public void freezeButtonClicked() {
         frozen = !frozen;
-        if( !frozen ) {
-            initialize(textManager);
+        if( textManager!=null ) {
+            if( !frozen ) {
+                initialize(textManager);
+            }
         }
         updateUI();
     }
@@ -164,6 +169,7 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
+        service.registerTranscriptViewer(this);
     }
     // =================================== TextMessageObserver ===============================
     @Override
@@ -171,27 +177,37 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     @Override
     public void initialize(TextManager mgr) {
         textManager = mgr;
-        adapter.initialize(textManager.getTranscript());
         Log.i(CLSS,"initialize: message list is now ...");
         for(TextMessage m:mgr.getTranscript()) {
             Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
         }
-        adapter.notifyDataSetChanged();
+        if( getActivity()!=null ) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.initialize(textManager.getTranscript());
+                }
+            });
+        }
     }
     @Override
     public void update(TextMessage msg) {
         Log.i(CLSS,String.format("update: message = %s",msg.getMessage()));
         if( !frozen || frozen ) {
             try {
-                adapter.notifyItemInserted(0);
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyItemInserted(0);
-                        transcriptView.scrollToPosition(0);
-                    }
-                });
-            } catch (IllegalStateException ignore) {}
+                if( getActivity()!=null ) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyItemInserted(0);
+                            transcriptView.scrollToPosition(0);
+                        }
+                    });
+                }
+            }
+            catch (Exception ignore) {
+                    Log.i(CLSS,String.format("update: EXCEPTION = %s",ignore.getLocalizedMessage()));
+            }
         }
     }
 }

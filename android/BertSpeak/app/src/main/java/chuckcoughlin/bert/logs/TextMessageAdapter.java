@@ -40,7 +40,6 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
     private int expandedPosition = -1;
     private RecyclerView recyclerView = null;
     private final List<TextMessage> messages;
-    private Context context = null;
 
     /**
      * Adapter between the recycler and data source for log messages
@@ -59,8 +58,7 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
      */
     @Override
     public LogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        this.context = parent.getContext();
-        LayoutInflater inflater = LayoutInflater.from(context);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         boolean shouldAttachToParent = false;
 
         LinearLayout layout = (LinearLayout)inflater.inflate(R.layout.log_item,parent,shouldAttachToParent);
@@ -154,10 +152,10 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
         this.recyclerView = null;
-        this.context = null;
     }
 
     // ===================== Called from fragment to update display =====================
+    // These must be run on UI thread,
     /**
      * We have just registered as an observer. Now catch up.
      * @param list of messages being the most recent retained by the manager
@@ -172,23 +170,14 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
      * A new message has arrived
      * @param msg the new message
      */
-    public void update(final TextMessage msg) {
+    public synchronized void update(final TextMessage msg) {
         Log.i(CLSS,String.format("new message: %s",msg.getMessage()));
-        if( context!=null ) {
-            Activity activity = (Activity)context;
-            activity.runOnUiThread(new Runnable() {
-                public void run() {
-                    synchronized(TextMessageAdapter.this) {
-                        try {
-                            final int size = getItemCount();
-                            notifyItemRangeInserted(size - 1, 1);
-                        }
-                        catch(Exception ex) {
-                            Log.w(CLSS,String.format("Exception adding to log (%s)",ex.getLocalizedMessage()));
-                        }
-                    }
-                }
-            });
+        try {
+            final int size = getItemCount();
+            notifyItemInserted(0);
+        }
+        catch(Exception ex) {
+            Log.w(CLSS,String.format("Exception adding to adapter (%s)",ex.getLocalizedMessage()));
         }
     }
 }

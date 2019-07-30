@@ -48,6 +48,13 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     private boolean frozen = false;
 
     @Override
+    public void onActivityCreated (Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if( savedInstanceState!=null) this.frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN);
+        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if( savedInstanceState!=null ) frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN,false);
@@ -56,7 +63,6 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
         LinearLayoutManager layoutManager = new LinearLayoutManager(logMessageView.getContext());
         logMessageView.setLayoutManager(layoutManager);
-        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
         logMessageView.setAdapter(adapter);
         int scrollPosition = layoutManager.findFirstCompletelyVisibleItemPosition();
         logMessageView.scrollToPosition(scrollPosition);
@@ -122,18 +128,14 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
         outState.putBoolean(BertConstants.BUNDLE_FROZEN,frozen);
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if( savedInstanceState!=null) this.frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN);
-    }
-
     //======================================== Button Callbacks ======================================
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        textManager.getLogs().clear();
-        adapter.notifyDataSetChanged();
+        if( textManager!=null ) {
+            textManager.getLogs().clear();
+            adapter.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -141,8 +143,10 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
      */
     public void freezeButtonClicked() {
         frozen = !frozen;
-        if( !frozen ) {
-            initialize(textManager);
+        if( textManager!=null ){
+            if (!frozen) {
+                initialize(textManager);
+            }
         }
         updateUI();
     }
@@ -169,7 +173,7 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        //service.registerLogViewer(this);
+        service.registerLogViewer(this);
     }
     // =================================== TextMessageObserver ===============================
     @Override
@@ -182,21 +186,33 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
         for(TextMessage m:mgr.getLogs()) {
             Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
         }
-        adapter.notifyDataSetChanged();
+        if( getActivity()!=null ) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
     @Override
     public void update(TextMessage msg) {
         Log.i(CLSS,String.format("update: message = %s",msg.getMessage()));
         if( !frozen ) {
             try {
-                adapter.notifyItemInserted(0);
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        logMessageView.scrollToPosition(0);
-                    }
-                });
-            } catch (IllegalStateException ignore) {}
+                if( getActivity()!=null ) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyItemInserted(0);
+                            logMessageView.scrollToPosition(0);
+                        }
+                    });
+                }
+            }
+            catch (Exception ignore) {
+                Log.i(CLSS,String.format("update: EXCEPTION = %s",ignore.getLocalizedMessage()));
+            }
         }
     }
 }

@@ -127,13 +127,12 @@ Sample command syntax:
 ```
 The "move" commands set speeds for all joint movements at once.
 
-* ![gray](/images/ball_green.png) ``Change torque`` - using the terminal application,
+* ![green](/images/ball_green.png) ``Change torque`` - using the terminal application,
 change the torque of a joint or of a limb. Torque is expressed as percent of maximum.
 Maximum values are defined in the XML configuration file.
 Sample command syntax:
 ```
     set the torque of your left ankle to 50
-    relax your left arm
     freeze your right elbow
     relax
     freeze
@@ -141,6 +140,31 @@ Sample command syntax:
     go limp
     straighten up
 ```
+
+* ![gray](/images/ball_gray.png) ``Make a Pose`` - actions are a series of commands (usually poses)
+executed with intervening time intervals. This sequence of steps shows how to save an arbitrary pose
+whose positions are created by manual intervention.
+
+ After startup joints are set to support maximum load and can't be bent by hand.
+```
+    relax your right arm
+```
+At this point the right arm and associated shoulder joints are configured for minimum resistance
+and can be moved manually to any desired position. Note that the leg "limb" includes hips.
+```
+  hold that pose
+  hold it
+```
+This command freezes the pose as the robot is currently positioned. This differs from the "freeze"
+command in that the latter will return the arm to its state before any manual positioning.
+```
+  save that pose
+  save that pose as saluting 1
+```
+With this command the pose positions are stored in the robot's internal database. If no name
+is given a number will be assigned. Note that the pose is now stored on the robot. If the
+development machine holds the canonical for of the database, then the rows added to the "pose"
+table will need to be exported and imported onto the development machine
 
 * ![gray](/images/ball_gray.png) ``Record Pose`` - assign a name to the current position
 of the robot. This is called a *Pose*. The name must be a single word. NOTE: In the
