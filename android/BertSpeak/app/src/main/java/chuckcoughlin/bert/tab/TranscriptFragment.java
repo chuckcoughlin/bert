@@ -43,18 +43,11 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     private DispatchService service = null;
     private boolean frozen = false;
 
-    @Override
-    public void onActivityCreated (Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if( savedInstanceState!=null) this.frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN);
-        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
-    }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         if( savedInstanceState!=null ) frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN,false);
+        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
         rootView = inflater.inflate(R.layout.fragment_transcript, container, false);
         transcriptView = rootView.findViewById(R.id.transcript_recycler_view);
         transcriptView.setHasFixedSize(true);   // Refers to the size of the layout.
@@ -166,6 +159,7 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
+        adapter.resetList(service.getTextManager().getTranscript());
         service.getTextManager().registerTranscriptViewer(this);
     }
     // =================================== TextMessageObserver ===============================
@@ -177,32 +171,19 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
         for(TextMessage m:service.getTextManager().getTranscript()) {
             Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
         }
-        if( getActivity()!=null ) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    adapter.notifyDataSetChanged();
-                }
-            });
-        }
+        adapter.notifyDataSetChanged();
     }
     @Override
-    public void update(TextMessage msg) {
+    public synchronized void update(TextMessage msg) {
         Log.i(CLSS,String.format("update: message = %s",msg.getMessage()));
         if( !frozen || frozen ) {
-            try {
-                if( getActivity()!=null ) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyItemInserted(0);
-                            transcriptView.scrollToPosition(0);
-                        }
-                    });
-                }
-            }
-            catch (Exception ignore) {
-                    Log.i(CLSS,String.format("update: EXCEPTION = %s",ignore.getLocalizedMessage()));
+            adapter.notifyItemInserted(0);
+            if( getActivity()!=null ) {
+                getActivity().runOnUiThread(new Runnable() {
+                    public void run() {
+                        transcriptView.scrollToPosition(0);
+                    }
+                });
             }
         }
     }

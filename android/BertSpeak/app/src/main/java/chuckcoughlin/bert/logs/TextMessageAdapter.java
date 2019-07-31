@@ -39,7 +39,7 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
     private SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss.SSS");
     private int expandedPosition = -1;
     private RecyclerView recyclerView = null;
-    private final List<TextMessage> messages;
+    private List<TextMessage> messages;
 
     /**
      * Adapter between the recycler and data source for log messages.
@@ -152,5 +152,14 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
         this.recyclerView = null;
+    }
+
+    /**
+     * Replace the source of messages for this adapter.
+     * @param msgs message list, managed externally
+     */
+    public void resetList(List<TextMessage> msgs) {
+        this.messages = msgs;
+        notifyDataSetChanged();
     }
 }

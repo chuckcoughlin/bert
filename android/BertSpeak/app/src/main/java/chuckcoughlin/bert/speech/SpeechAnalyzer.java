@@ -83,7 +83,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     // a listener on the text-to-speech component.
     private void startListening() {
         if(sr!=null) {
-            Log.i(CLSS, "START LISTENING");
+            Log.i(CLSS, "Start listening ...");
             listening = true;
             sr.startListening(recognizerIntent);
         }
@@ -98,10 +98,10 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     }
     // ========================================= RecognitionListener ============================
     public void onReadyForSpeech(Bundle params)  {
-        Log.i(CLSS, "onReadyForSpeech");
+        //Log.i(CLSS, "onReadyForSpeech");
     }
     public void onBeginningOfSpeech(){
-        Log.i(CLSS, "onBeginningOfSpeech");
+        //Log.i(CLSS, "onBeginningOfSpeech");
         handler.reportConnectionState(TieredFacility.VOICE, FacilityState.ACTIVE);
     }
     // Background level changed ...
@@ -111,7 +111,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
         Log.i(CLSS, "onBufferReceived");
     }
     public void onEndOfSpeech()  {
-        Log.i(CLSS, "onEndofSpeech");
+        //Log.i(CLSS, "onEndofSpeech");
     }
     public void onError(int error)  {
         String reason = null;
@@ -197,6 +197,7 @@ public class SpeechAnalyzer implements  RecognitionListener  {
      */
     private String scrubText(String text) {
         text = text.replace("°"," degrees").toLowerCase();
+        text = text.replace("zero","0");
         return text;
     }
 }

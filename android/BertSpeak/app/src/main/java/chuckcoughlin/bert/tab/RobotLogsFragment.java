@@ -42,21 +42,14 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     private TextMessageAdapter adapter;
     private View rootView = null;
     private RecyclerView logMessageView;
-    private TextView logView;
     private DispatchService service = null;
     private boolean frozen = false;
 
-    @Override
-    public void onActivityCreated (Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if( savedInstanceState!=null) this.frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN);
-        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         if( savedInstanceState!=null ) frozen = savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN,false);
+        adapter = new TextMessageAdapter(new FixedSizeList<>(BertConstants.NUM_LOG_MESSAGES));
         rootView = inflater.inflate(R.layout.fragment_robot_logs, container, false);
         logMessageView = rootView.findViewById(R.id.logs_recycler_view);
         logMessageView.setHasFixedSize(true);   // Refers to the size of the layout.
@@ -166,6 +159,7 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
+        adapter.resetList(service.getTextManager().getLogs());
         service.getTextManager().registerLogViewer(this);
     }
     // =================================== TextMessageObserver ===============================
@@ -174,36 +168,17 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     @Override
     public void initialize() {
         Log.i(CLSS,"initialize: message list is now ...");
-        for(TextMessage m:service.getTextManager().getTranscript()) {
+        for(TextMessage m:service.getTextManager().getLogs()) {
             Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
         }
-        if( getActivity()!=null ) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    adapter.notifyDataSetChanged();
-                }
-            });
-        }
+        adapter.notifyDataSetChanged();
     }
     @Override
     public void update(TextMessage msg) {
         Log.i(CLSS,String.format("update: message = %s",msg.getMessage()));
         if( !frozen ) {
-            try {
-                if( getActivity()!=null ) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyItemInserted(0);
-                            logMessageView.scrollToPosition(0);
-                        }
-                    });
-                }
-            }
-            catch (Exception ignore) {
-                Log.i(CLSS,String.format("update: EXCEPTION = %s",ignore.getLocalizedMessage()));
-            }
+            adapter.notifyItemInserted(0);
+            logMessageView.scrollToPosition(0);
         }
     }
 }

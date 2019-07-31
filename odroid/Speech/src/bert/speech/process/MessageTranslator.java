@@ -20,7 +20,7 @@ import bert.share.motor.Joint;
 public class MessageTranslator  {
 	private static final String CLSS = "MessageTranslator";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
-	// Acknowledgements to a greeting
+	// Acknowledgments to a greeting
 	private String[] greets = {
 			"hi",
 			"yes?",
@@ -67,6 +67,9 @@ public class MessageTranslator  {
 				}
 				else if(type.equals(RequestType.NONE)) {
 					text = "Received empty message.";
+				}
+				else if(type.equals(RequestType.COMMAND)) {
+					text = randomAcknowledgement();
 				}
 				// We expect the Dispatcher to fill these in ...
 				else if(type.equals(RequestType.GET_METRIC)) {

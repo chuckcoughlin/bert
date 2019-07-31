@@ -5,6 +5,10 @@
  */
 package bert.motor.main;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,10 +19,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
+import bert.control.model.Link;
 import bert.motor.dynamixel.DxlMessage;
 import bert.motor.model.MessageWrapper;
+import bert.share.control.Appendage;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
+import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
@@ -132,7 +139,11 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	public void receiveRequest(MessageBottle request) {
 		lock.lock();
 		try {
-			if( isSingleGroupRequest(request)) {
+			if( isLocalRequest(request) ) {
+				handleLocalRequest(request);
+				return;
+			}
+			else if( isSingleGroupRequest(request)) {
 				// Do nothing if the joint isn't in our group.
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME,"UNKNOWN");
@@ -213,6 +224,36 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 		dxl.updateParameterArrayFromBytes(propertyName,configurationsById,bytes,props);
 		return props;
 	}
+	// Create a response for a request that can be handled immediately. There aren't many of them. The response is simply the original request
+	// with some text to send directly to the user. 
+	private MessageBottle handleLocalRequest(MessageBottle request) {
+		// The following two requests simply use the current positions of the motors, whatever they are
+		if(request.fetchRequestType().equals(RequestType.COMMAND)) {
+			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
+			LOGGER.warning(String.format("%s.createResponseForLocalRequest: command=%s",CLSS,command));
+			if( command.equalsIgnoreCase(BottleConstants.COMMAND_RESET)) {
+				remainder = null;   // Resync after dropped messages.
+				responseQueue.clear();
+        		motorManager.handleAggregatedResponse(request);
+			}
+			else {
+				String msg = String.format("Unrecognized command: %s",command);
+				request.assignError(msg);
+			}
+		}
+		return request;
+	}
+	/**
+	 * @param msg the request
+	 * @return true if this is the type of request that can be satisfied locally.
+	 */
+	private boolean isLocalRequest(MessageBottle msg) {
+		if( msg.fetchRequestType().equals(RequestType.COMMAND) &&
+			msg.getProperty(BottleConstants.COMMAND_NAME, "NONE").equalsIgnoreCase(BottleConstants.COMMAND_RESET) ) {
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * @param msg the request
 	 * @return true if this is the type of request satisfied by a single controller.
@@ -289,6 +330,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				// Loop over motor config map, set the property
 				bytes = dxl.byteArrayToSetLimbProperty(configurationsByName,limbName,propertyName);
 				wrapper.setResponseCount(0);  // AYNC WRITE, no responses
+				request.setProperty(BottleConstants.TEXT,String.format("my %s %s is %s",limbName,propertyName,value));
 			}
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
@@ -300,7 +342,10 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					if(propertyName.equalsIgnoreCase("POSITION")) {
 						long duration = mc.getTravelTime();
 						if(request.getDuration()<duration) request.setDuration(duration);
-						request.setProperty(propertyName,String.format("%.0f", mc.getPosition()));
+						request.setProperty(BottleConstants.TEXT,String.format("My position is %.0f", mc.getPosition()));
+					}
+					else {
+						request.setProperty(BottleConstants.TEXT,String.format("my %s %s is %.0f",jointName,propertyName,value));
 					}
 					wrapper.setResponseCount(1);   // Status message
 				}

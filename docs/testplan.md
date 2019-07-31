@@ -17,9 +17,10 @@ a feature that is actively being debugged. Gray (![gray](/images/ball_gray.png))
 *********************************************************
 ### a - Connectivity <a id="connectivity"></a>
 [toc](#table-of-contents)<br/>
-The purpose of this section is to validate wiring and addressing of the stepper motors.
-It also validates the conversion of raw readings from the motors into proper engineering
-units.
+This section contains tests that validate the wiring and addressing of stepper motors,
+the conversion of raw readings from the motors into proper engineering
+units, and the listing of various parameters in the motor control tables. Finally, there
+is a section listing maintenance commands.
 * ![green](/images/ball_green.png) ``Validate Connections``  - use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
 * ![green](/images/ball_green.png) ``Joint IDs`` - verify that the pairing of name to ID
 is correct for every joint.  Syntax of the query:
@@ -48,6 +49,14 @@ temperature (deg C), and voltage (volts). A typical query:
     what is the speed of your right knee
     what is the torque of your left hip x
 ```
+
+* ![gray](/images/ball_gray.png) ``Maintenance Commands`` - these are no-argument commands that
+perform various control operations. (The check mark indicate completion).
+  - [x] halt: stop the control processes on the robot. Leave the operating system running.
+  - [ ] reset: clear any unprocessed results from the serial ports. This is an internal recovery
+  operation in the event of I/O errors.
+  - [ ] shutdown: power off the robot after a clean shutdown.
+
 
 ### b - Calibration <a id="calibration"></a>
 The purpose of this section is to validate stepper motor configuration parameters
@@ -237,11 +246,13 @@ should be formatted into proper english sentences. Typical syntax:
 ```
 
 ### g - Grammar <a id="grammar"></a>
-This section includes tests of more complex speech patterns.
+This section includes tests of irregular or one-off speech patterns.
 * ![green](/images/ball_green.png) ``Completed``  - these are statements outside the regular
 syntax shown above that are processed in a reasonable manner.
 ```
+    hi bert
     move in slow motion
+    why do you wear mittens
 ```
 
 * ![yellow](/images/ball_yellow.png) ``Desired``  - the list below consists of statements or queries

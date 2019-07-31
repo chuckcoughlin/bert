@@ -31,7 +31,7 @@ command:
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
     | Salutation? Straighten Yourself? Up   					# straightenUp
 	| Salutation? Straighten (It|Article? Side? Joint Axis? )   # straightenJoint
-	| Salutation? (Command|Halt|Shutdown)                       # handleSingleWordCommand
+	| Salutation? (Command|Halt|Reset|Shutdown)                 # handleSingleWordCommand
     | Salutation? (Move|Take|Set) To Article NAME+ Property		# moveToPose
 	| Salutation? (Move|Take|Set) NAME+                         # handleCompoundCommand
 	| Salutation? NAME+                                         # handleArbitraryCommand
@@ -99,6 +99,7 @@ Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Relax:'loosen'|'relax';
+Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';

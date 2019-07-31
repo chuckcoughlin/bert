@@ -1,6 +1,8 @@
 package chuckcoughlin.bert.service;
 
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,9 +73,11 @@ public class TextManager {
      * already stripped off. Place into the proper queue.
      */
     public synchronized void processText(MessageType type, String text) {
+        TextMessage msg = null;
+        Log.i(CLSS,String.format("processText: %s: %s",type.name(),text));
         switch(type) {
             case ANS:
-                TextMessage msg = new TextMessage(type,text);
+                msg = new TextMessage(type,text);
                 transcriptList.addFirst(msg);
                 notifyTranscriptObservers(msg);
                 break;
@@ -168,7 +172,9 @@ public class TextManager {
     }
     private void notifyTranscriptObservers(TextMessage msg) {
         for(TextMessageObserver observer:transcriptObservers.values()) {
+            Log.i(CLSS,String.format("notifyTranscript: %s",msg.getMessage()));
             if( observer!=null ) {
+                Log.i(CLSS,String.format("notifyTranscript: updating for %s",msg.getMessage()));
                 observer.update(msg);
             }
         }

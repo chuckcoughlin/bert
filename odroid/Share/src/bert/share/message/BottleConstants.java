@@ -28,7 +28,7 @@ public interface BottleConstants   {
 	// Command names
 	public final static String COMMAND_FREEZE      = "freeze";
 	public final static String COMMAND_HALT        = "halt";
-	public final static String COMMAND_RELAX       = "relax";
+	public final static String COMMAND_RESET       = "reset";
 	public final static String COMMAND_SHUTDOWN    = "shutdown";
 	public final static String COMMAND_WAKE        = "wake";
 	

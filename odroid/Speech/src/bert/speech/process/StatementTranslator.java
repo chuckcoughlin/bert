@@ -252,6 +252,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.assignRequestType(RequestType.COMMAND);
 			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_HALT);
 		}
+		else if(ctx.Reset()!=null) {
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_RESET);
+		}
 		else if(ctx.Shutdown()!=null) {
 			bottle.assignRequestType(RequestType.COMMAND);
 			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SHUTDOWN);
@@ -621,12 +625,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		// If both Limb() and Joint() are null, then we possibly have an "arbitrary" command
 		if( ctx.Freeze()!=null || ctx.Relax()!=null ) {
 			String cmd = "";
-			if( ctx.Freeze()!=null )     {
-				cmd = ctx.Freeze().getText().toLowerCase();
-			}
-			else if( ctx.Relax()!=null ) {
-				cmd = ctx.Relax().getText().toLowerCase();
-			}
+			if( ctx.Freeze()!=null ) cmd = ctx.Freeze().getText().toLowerCase();
+			if( ctx.Relax()!=null )  cmd = ctx.Relax().getText().toLowerCase();
 			Joint joint = Joint.UNKNOWN;
 			if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.JOINT) ) {
 				joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
@@ -638,6 +638,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
 				bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 				bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE.name());
+				if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.TORQUE.name(),"0.9");
+				else bottle.setProperty(JointProperty.TORQUE.name(),"0.1");
 				sharedDictionary.put(SharedKey.JOINT,joint);
 				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 			}
