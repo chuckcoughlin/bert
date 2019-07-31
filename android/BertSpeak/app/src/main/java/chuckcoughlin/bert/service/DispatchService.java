@@ -271,9 +271,9 @@ public class DispatchService extends Service implements BluetoothHandler {
         // Stop foreground service and remove the notification.
         stopForeground(true);
         BluetoothManager bmgr = (BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
-        assert bmgr != null;
-        bmgr.getAdapter().cancelDiscovery();
-
+        if (bmgr != null) {
+            bmgr.getAdapter().cancelDiscovery();
+        }
         // Stop the foreground service.
         stopSelf();
     }
@@ -400,13 +400,6 @@ public class DispatchService extends Service implements BluetoothHandler {
     }
 
     // ===================================== Methods Exposed thru Service Binder ====================================
-    public void registerIntentObserver(IntentObserver observer)   { statusManager.register(observer); }
-    public void unregisterIntentObserver(IntentObserver observer) { statusManager.unregister(observer);}
-
-    public void registerLogViewer(TextMessageObserver observer) { textManager.registerLogViewer(observer);}
-    public void registerTableViewer(TextMessageObserver observer) { textManager.registerTableViewer(observer);}
-    public void registerTranscriptViewer(TextMessageObserver observer) {textManager.registerTranscriptViewer(observer);}
-    public void unregisterLogViewer(TextMessageObserver observer) { textManager.unregisterLogViewer(observer);}
-    public void unregisterTableViewer(TextMessageObserver observer) { textManager.unregisterTableViewer(observer);}
-    public void unregisterTranscriptViewer(TextMessageObserver observer) {textManager.unregisterTranscriptViewer(observer);}
+    public StatusManager getStatusManager() { return this.statusManager; }
+    public TextManager   getTextManager()   { return this.textManager; }
 }

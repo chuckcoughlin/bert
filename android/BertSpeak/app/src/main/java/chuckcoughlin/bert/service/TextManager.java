@@ -107,15 +107,15 @@ public class TextManager {
      */
     public void registerLogViewer(TextMessageObserver observer) {
         logObservers.put(observer.getName(),observer);
-        observer.initialize(this);
+        observer.initialize();
     }
     public void registerTableViewer(TextMessageObserver observer) {
         tableObservers.put(observer.getName(),observer);
-        observer.initialize(this);
+        observer.initialize();
     }
     public void registerTranscriptViewer(TextMessageObserver observer) {
         transcriptObservers.put(observer.getName(),observer);
-        observer.initialize(this);
+        observer.initialize();
     }
     public void unregisterLogViewer(TextMessageObserver observer) {
         logObservers.remove(observer);
@@ -132,20 +132,20 @@ public class TextManager {
         transcriptList.clear();
         for(TextMessageObserver observer:logObservers.values()) {
             if (observer != null) {
-                observer.initialize(this);
+                observer.initialize();
             }
         }
         transcriptList.clear();
         for(TextMessageObserver observer:transcriptObservers.values()) {
             if (observer != null) {
-                observer.initialize(this);
+                observer.initialize();
             }
         }
     }
     private void initializeTableObservers(TextManager mgr) {
         for(TextMessageObserver observer:tableObservers.values()) {
             if( observer!=null ) {
-                observer.initialize(mgr);
+                observer.initialize();
             }
         }
     }

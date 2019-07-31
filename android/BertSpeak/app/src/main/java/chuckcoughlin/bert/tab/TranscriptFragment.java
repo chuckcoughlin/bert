@@ -41,7 +41,6 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     private View rootView = null;
     private RecyclerView transcriptView;
     private DispatchService service = null;
-    private TextManager textManager = null;
     private boolean frozen = false;
 
     @Override
@@ -95,7 +94,7 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
         super.onResume();
         if( service!=null ) {
             Log.i(CLSS,"onResume: registering as observer");
-            service.registerTranscriptViewer(this);
+            service.getTextManager().registerTranscriptViewer(this);
         }
     }
 
@@ -104,8 +103,7 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
         super.onPause();
         if( service!=null ) {
             Log.i(CLSS,"onPause: unregistering as observer");
-            service.unregisterTranscriptViewer(this);
-            textManager = null;
+            service.getTextManager().unregisterTranscriptViewer(this);
         }
     }
     @Override
@@ -128,8 +126,8 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        if( textManager!=null ) {
-            textManager.getTranscript().clear();
+        if( service!=null ) {
+            service.getTextManager().getTranscript().clear();
             adapter.notifyDataSetChanged();
         }
     }
@@ -139,9 +137,9 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
      */
     public void freezeButtonClicked() {
         frozen = !frozen;
-        if( textManager!=null ) {
+        if( service!=null ) {
             if( !frozen ) {
-                initialize(textManager);
+                adapter.notifyDataSetChanged();
             }
         }
         updateUI();
@@ -159,9 +157,8 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterTranscriptViewer(this);
+        if( service!=null ) service.getTextManager().unregisterTranscriptViewer(this);
         service = null;
-        textManager = null;
     }
 
     // name.getClassName() contains the class of the service.
@@ -169,23 +166,22 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerTranscriptViewer(this);
+        service.getTextManager().registerTranscriptViewer(this);
     }
     // =================================== TextMessageObserver ===============================
     @Override
     public String getName() { return CLSS; }
     @Override
-    public void initialize(TextManager mgr) {
-        textManager = mgr;
+    public void initialize() {
         Log.i(CLSS,"initialize: message list is now ...");
-        for(TextMessage m:mgr.getTranscript()) {
+        for(TextMessage m:service.getTextManager().getTranscript()) {
             Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
         }
         if( getActivity()!=null ) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    adapter.initialize(textManager.getTranscript());
+                    adapter.notifyDataSetChanged();
                 }
             });
         }

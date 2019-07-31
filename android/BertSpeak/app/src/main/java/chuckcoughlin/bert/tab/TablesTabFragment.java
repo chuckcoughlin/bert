@@ -45,7 +45,6 @@ public class TablesTabFragment extends BasicAssistantFragment implements Service
     private RecyclerView logMessageView;
     private TextView logView;
     private DispatchService service = null;
-    private TextManager textManager = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -79,15 +78,14 @@ public class TablesTabFragment extends BasicAssistantFragment implements Service
     public void onResume() {
         super.onResume();
         Log.i(CLSS,"onResume: registering adapter as observer");
-        if( service!=null ) service.registerTableViewer(this);
+        if( service!=null ) service.getTextManager().registerTableViewer(this);
     }
     @Override
     public void onPause() {
         super.onPause();
         Log.i(CLSS, "onPause: unregistering adapter as observer");
         if (service != null) {
-            service.unregisterTableViewer(this);
-            textManager = null;
+            service.getTextManager().unregisterTableViewer(this);
         }
     }
     @Override
@@ -104,9 +102,8 @@ public class TablesTabFragment extends BasicAssistantFragment implements Service
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterTableViewer(this);
+        if( service!=null ) service.getTextManager().unregisterTableViewer(this);
         service = null;
-        textManager = null;
     }
 
     // name.getClassName() contains the class of the service.
@@ -114,15 +111,14 @@ public class TablesTabFragment extends BasicAssistantFragment implements Service
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerTableViewer(this);
+        service.getTextManager().registerTableViewer(this);
     }
 
     // =================================== TextMessageObserver ===============================
     @Override
     public String getName() { return CLSS; }
     @Override
-    public void initialize(TextManager mgr) {
-        textManager = mgr;
+    public void initialize() {
     }
     @Override
     public void update(TextMessage msg) {

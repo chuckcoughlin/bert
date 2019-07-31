@@ -74,6 +74,7 @@ public class DxlConversions  {
 			LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (min = %.0f)",CLSS,mc.getJoint().name(),value,mc.getMinAngle()));
 			value = mc.getMinAngle();
 		}
+		mc.setPosition(value);
 		value = value - mc.getOffset();
 		int r = range.get(mc.getType());
 		if( !mc.isDirect() ) value = r - value;

@@ -26,7 +26,7 @@ import chuckcoughlin.bert.speech.TextMessage;
 
 
 /**
- * This a link between a RecyclerView and the data backstop.
+ * This class is a link between a RecyclerView and the data backstop.
  * Each element in the list is a string, a text message.
  */
 
@@ -42,7 +42,7 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
     private final List<TextMessage> messages;
 
     /**
-     * Adapter between the recycler and data source for log messages
+     * Adapter between the recycler and data source for log messages.
      */
     public TextMessageAdapter(List<TextMessage> msgs) {
         this.messages = msgs;
@@ -67,6 +67,7 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
     }
 
     /**
+     * Set the contents of the holder appropriate to the position visible.
      * Change the views depending on whether or not the item is selected.
      * In an expanded view the message text is on its own line. We add date and source.
      * @param holder the viewholder that should be populated at the given position
@@ -118,7 +119,6 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
             }
         }
 
-
         TextView detailView = holder.getDetailView();
         ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
         if( expand ) {
@@ -152,32 +152,5 @@ public class TextMessageAdapter extends RecyclerView.Adapter<LogViewHolder> {
     @Override
     public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
         this.recyclerView = null;
-    }
-
-    // ===================== Called from fragment to update display =====================
-    // These must be run on UI thread,
-    /**
-     * We have just registered as an observer. Now catch up.
-     * @param list of messages being the most recent retained by the manager
-     */
-    public void initialize(final List<TextMessage> list) {
-        messages.clear();
-        messages.addAll(list);
-        notifyDataSetChanged();
-    }
-
-    /**
-     * A new message has arrived
-     * @param msg the new message
-     */
-    public synchronized void update(final TextMessage msg) {
-        Log.i(CLSS,String.format("new message: %s",msg.getMessage()));
-        try {
-            final int size = getItemCount();
-            notifyItemInserted(0);
-        }
-        catch(Exception ex) {
-            Log.w(CLSS,String.format("Exception adding to adapter (%s)",ex.getLocalizedMessage()));
-        }
     }
 }

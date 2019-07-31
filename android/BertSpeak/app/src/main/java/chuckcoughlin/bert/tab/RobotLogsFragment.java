@@ -44,7 +44,6 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     private RecyclerView logMessageView;
     private TextView logView;
     private DispatchService service = null;
-    private TextManager textManager = null;
     private boolean frozen = false;
 
     @Override
@@ -98,7 +97,7 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
         super.onResume();
         if( service!=null ) {
             Log.i(CLSS,"onResume: registering as observer");
-            service.registerLogViewer(this);
+            service.getTextManager().registerLogViewer(this);
         }
     }
 
@@ -107,8 +106,7 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
         super.onPause();
         if( service!=null ) {
             Log.i(CLSS,"onPause: unregistering as observer");
-            service.unregisterLogViewer(this);
-            textManager = null;
+            service.getTextManager().unregisterLogViewer(this);
         }
     }
     @Override
@@ -132,20 +130,17 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     //
     public void clearButtonClicked() {
         Log.i(CLSS, "Clear button clicked");
-        if( textManager!=null ) {
-            textManager.getLogs().clear();
+        if( service!=null ) {
+            service.getTextManager().getLogs().clear();
             adapter.notifyDataSetChanged();
         }
     }
 
-    /**
-     * The Freeze button has purely local control.
-     */
     public void freezeButtonClicked() {
         frozen = !frozen;
-        if( textManager!=null ){
-            if (!frozen) {
-                initialize(textManager);
+        if( service!=null ) {
+            if( !frozen ) {
+                adapter.notifyDataSetChanged();
             }
         }
         updateUI();
@@ -163,27 +158,23 @@ public class RobotLogsFragment extends BasicAssistantFragment implements Service
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterLogViewer(this);
+        if( service!=null ) service.getTextManager().unregisterLogViewer(this);
         service = null;
-        textManager = null;
     }
 
-    // name.getClassName() contains the class of the service.
     @Override
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerLogViewer(this);
+        service.getTextManager().registerLogViewer(this);
     }
     // =================================== TextMessageObserver ===============================
     @Override
     public String getName() { return CLSS; }
     @Override
-    public void initialize(TextManager mgr) {
-        textManager = mgr;
-        adapter.initialize(textManager.getLogs());
-        Log.i(CLSS,String.format("initialize: message list is now ..."));
-        for(TextMessage m:mgr.getLogs()) {
+    public void initialize() {
+        Log.i(CLSS,"initialize: message list is now ...");
+        for(TextMessage m:service.getTextManager().getTranscript()) {
             Log.i(CLSS,String.format("initialize: \t%s",m.getMessage()));
         }
         if( getActivity()!=null ) {

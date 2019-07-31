@@ -22,9 +22,8 @@ public interface TextMessageObserver {
    * manager allows the observer to "catch-up" with the
    * current state of the message list. The manager should be
    * retained and used to refresh the displayed list at will.
-   * @param mgr the text manager
    */
-  void initialize(TextManager mgr);
+  void initialize();
   /**
    * Notify the observer that a new text message has been added
    * to the manager's list. Only appropriate client types are

@@ -92,7 +92,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
         super.onResume();
         if( service!=null ) {
             Log.i(CLSS,"onResume: registering as observer");
-            service.registerIntentObserver(this);
+            service.getStatusManager().register(this);
         }
         startVisualizer();
     }
@@ -101,7 +101,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
         super.onPause();
         if( service!=null ) {
             Log.i(CLSS,"onPause: unregistering as observer");
-            service.unregisterIntentObserver(this);
+            service.getStatusManager().unregister(this);
         }
         stopVisualizer();
     }
@@ -220,7 +220,7 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     // =================================== ServiceConnection ===============================
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if( service!=null ) service.unregisterIntentObserver(this);
+        if( service!=null ) service.getStatusManager().unregister(this);
         service = null;
     }
 
@@ -229,6 +229,6 @@ public class CoverFragment extends BasicAssistantFragment implements IntentObser
     public void onServiceConnected(ComponentName name, IBinder bndr) {
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
-        service.registerIntentObserver(this);
+        service.getStatusManager().register(this);
     }
 }

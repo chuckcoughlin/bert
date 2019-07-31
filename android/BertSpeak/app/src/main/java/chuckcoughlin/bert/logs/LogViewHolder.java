@@ -15,7 +15,6 @@ import chuckcoughlin.bert.R;
 /**
  * Facilitates data transfer by the Recycler view.
  */
-
 public class LogViewHolder extends RecyclerView.ViewHolder {
     private final ViewGroup rowParent;
     /**

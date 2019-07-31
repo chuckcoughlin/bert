@@ -300,6 +300,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					if(propertyName.equalsIgnoreCase("POSITION")) {
 						long duration = mc.getTravelTime();
 						if(request.getDuration()<duration) request.setDuration(duration);
+						request.setProperty(propertyName,String.format("%.0f", mc.getPosition()));
 					}
 					wrapper.setResponseCount(1);   // Status message
 				}

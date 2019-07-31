@@ -207,8 +207,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onServiceDisconnected(ComponentName name) {
         if (service != null) {
-            service.unregisterIntentObserver(this);
-            service.unregisterTranscriptViewer(this);
+            service.getStatusManager().unregister(this);
+            service.getTextManager().unregisterTranscriptViewer(this);
         }
         service = null;
         analyzer.shutdown();
@@ -221,8 +221,8 @@ public class MainActivity extends AppCompatActivity
         DispatchServiceBinder binder = (DispatchServiceBinder) bndr;
         service = binder.getService();
         activateSpeechAnalyzer();
-        service.registerIntentObserver(this);
-        service.registerTranscriptViewer(this);
+        service.getStatusManager().register(this);
+        service.getTextManager().registerTranscriptViewer(this);
     }
 
     // Turn off the audio to mute the annoying beeping
@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public String getName() { return CLSS; }
     @Override
-    public void initialize(TextManager mgr) {}
+    public void initialize() {}
 
     /**
      * If the message is a response from the robot, announce it.
