@@ -18,7 +18,6 @@ statement:
 // Imperatives directing the robot to take an action
 command:
 	Greeting Salutation?                                        # handleGreeting
-	| Salutation? Hold (It | Article? Pose)         			# holdIt
 	| Salutation? Initialize Article? Motors   					# initializeJoints
     | Salutation? List Article? Configuration                   # configurationRequest
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
@@ -26,7 +25,7 @@ command:
 	| Salutation? List Article? Motor? Properties                               # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
 	| Salutation? Move Adverb                                                   # moveSpeed
-	| Salutation? (Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?			# setTorque
+	| Salutation? (Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?			# enableTorque
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
     | Salutation? Straighten Yourself? Up   					# straightenUp
@@ -60,7 +59,9 @@ declaration:
 	;
 
 
-// First is a list of words that appear in lists
+// First is a list of terms that are used below or use word that appear elsewhere
+Freeze: 'freeze'|'hold'|'stiffen'|'tighten'|'go rigid';
+Relax:'loosen'|'relax'|'go limp';
 Why: 'why';
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
@@ -75,7 +76,6 @@ Configuration: 'configuration';
 Do: 'do';
 Goals: 'goals'|'targets';
 Halt: 'die'|'exit'|'halt'|'quit'|'stop';
-Freeze: 'freeze'|'stiffen'|'tighten';
 Greeting: 'hello'|'high'|'hi';
 Have: 'have'|'wear';
 Hold: 'hold';
@@ -97,8 +97,7 @@ Of: 'of'|'on'|'for';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
-Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque'|'load'|'temperature'|'voltage'|'velocity';
-Relax:'loosen'|'relax';
+Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque enable'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please';
 Shutdown: 'power off'|'shut down'|'shutdown';

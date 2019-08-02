@@ -269,9 +269,10 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	}
 	
 	/**
+	 * The list here should match the request types in messageToByteList().
 	 * @param msg the request
-	 * @return true if this is the type of message that translates into 
-	 *         multiple writes to the serial port.
+	 * @return true if this request translates into a single serial message.
+	 *         false implies that an array of serial messages are required.
 	 */
 	private boolean isSingleWriteRequest(MessageBottle msg) {
 		if( msg.fetchRequestType().equals(RequestType.INITIALIZE_JOINTS)   ||

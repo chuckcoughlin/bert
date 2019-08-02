@@ -67,6 +67,19 @@ public class InternalMessage extends MessageBottle {
 	public boolean shouldRepeat()             { return this.repeat; }
 	public void setShouldRepeat(boolean flag) { this.repeat = flag; }
 	
+
+	/**
+	 * CAUTION: We only do a shallow copy of the members.
+	 * @param bottle the original message
+	 * @param q queue on which to place this request for sequential execution
+	 * @return
+	 */
+	public static InternalMessage clone(MessageBottle bottle,QueueName q) {
+		InternalMessage msg = new InternalMessage(bottle.fetchRequestType(),q);
+		msg.jointValues = bottle.getJointValues();  // Joint values are positions in a pose.
+		msg.properties  = bottle.getProperties();
+		return msg;
+	}
 	@Override
 	public String toString() {
 		return String.format("%s: expires in %d ms",CLSS,getExecutionTime()-System.nanoTime()/1000000);

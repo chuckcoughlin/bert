@@ -29,6 +29,7 @@ public class MotorConfiguration implements Serializable  {
 	private DynamixelType type = DynamixelType.MX28;
 	private int id;
 	private String controller;
+	private boolean torqueEnable;
 	private double offset;    // Configured position correction
 	private double minAngle;
 	private double maxAngle;
@@ -60,6 +61,7 @@ public class MotorConfiguration implements Serializable  {
 		this.position = 0.;     // Pure guess
 		this.speed  = 684.;     // Power-off AX-12
 		this.torque = 0.;       // Power-off value
+		this.torqueEnable = true;
 	} 
 	
 	/** 
@@ -77,6 +79,7 @@ public class MotorConfiguration implements Serializable  {
 		this.direct = isDirect;
 		
 	}
+	public boolean isTorqueEnabled() { return this.torqueEnable; }
 	public Joint getJoint()        { return this.joint; }
 	public Limb getLimb()          { return this.limb; }
 	public DynamixelType getType() { return this.type; }
@@ -104,6 +107,7 @@ public class MotorConfiguration implements Serializable  {
 	public void setJoint(Joint jnt)          { this.joint = jnt; }
 	public void setLimb(Limb lmb)        	 { this.limb = lmb; }
 	public void	setOffset(double off)        { this.offset = off; }
+	public void setTorqueEnable(boolean flag){ this.torqueEnable = flag; }
 	public void setType(String typ)          { this.type = DynamixelType.valueOf(typ.toUpperCase()); }
 	
 	public void setProperty(String propertyName, double value) {

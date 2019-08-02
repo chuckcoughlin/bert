@@ -19,6 +19,7 @@ public enum JointProperty
 	SPEED,
 	TEMPERATURE,
 	TORQUE,
+	TORQUE_ENABLE,
 	VOLTAGE,
 	UNRECOGNIZED
 	;

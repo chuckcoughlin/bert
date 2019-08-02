@@ -9,7 +9,7 @@ package bert.share.message;
  */
 public enum RequestType
 {
-	COMMAND,                 // Execute a non-motor-related command
+	COMMAND,                 // Execute a no-arg command, usually non-motor-related
 	GET_APPENDAGE_LOCATION,  // x,y,z location of the named appendage
 	GET_CONFIGURATION,       // A list of robot properties from the configuration file
 	GET_GOALS,               // The current target settings
@@ -17,7 +17,6 @@ public enum RequestType
 	GET_LIMITS,              // The EEPROM-resident limits
 	GET_METRIC,              // A local property of the robot
 	GET_MOTOR_PROPERTY,      // Current value of a motor property
-	HOLD,					 // Record current positions, then go rigid
 	GET_POSE,				 // 
 	IDLE,					 // Internal message used to keep the timer queue "alive"
 	INITIALIZE_JOINTS,		 // Make sure that all joints are in "sane" positions

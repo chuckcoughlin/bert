@@ -28,6 +28,7 @@ import bert.motor.model.RobotMotorModel;
 import bert.server.model.RobotDispatcherModel;
 import bert.share.common.PathConstants;
 import bert.share.control.Appendage;
+import bert.share.control.Limb;
 import bert.share.controller.SocketController;
 import bert.share.controller.SocketStateChangeEvent;
 import bert.share.controller.SocketStateChangeListener;
@@ -277,17 +278,42 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 	}
 	// The response is simply the request. A generic acknowledgement will be relayed to the user.
-	// This method composes requests for the internal controller based on the original.
+	// This method inserts a request to get motor position before freezing the joint(s).
 	private MessageBottle handleInternalRequest(MessageBottle request) {
 		// Read the current motor positions, then freeze.
-		if( request.fetchRequestType().equals(RequestType.HOLD)) {
-			// Read all the joint positions
+		Map<String,String> properties = request.getProperties();
+		// Entire robot
+		if( request.fetchRequestType().equals(RequestType.COMMAND) && 
+				properties.get(BottleConstants.COMMAND_NAME).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
 			InternalMessage msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
 			internalController.receiveRequest(msg);
-			msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
-			msg.setProperty(BottleConstants.POSE_NAME,"frozen");
+			msg = InternalMessage.clone(request,QueueName.GLOBAL);
 			msg.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(msg);
+		}
+		// A limb
+		if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) && 
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
+				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+			InternalMessage msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
+			msg.setProperty(BottleConstants.LIMB_NAME,request.getProperty(BottleConstants.LIMB_NAME,Limb.UNKNOWN.name()));
+			internalController.receiveRequest(msg);
+			msg = InternalMessage.clone(request,QueueName.GLOBAL);
+			msg.setDelay(500);   // 1/2 sec delay
+			internalController.receiveRequest(msg);
+		}
+		// Single joint
+		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY) && 
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
+				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+			InternalMessage msg = new InternalMessage(RequestType.GET_MOTOR_PROPERTY,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
+			msg.setProperty(BottleConstants.JOINT_NAME,request.getProperty(BottleConstants.JOINT_NAME,Joint.UNKNOWN.name()));
+			internalController.receiveRequest(msg);
+			msg = InternalMessage.clone(request,QueueName.GLOBAL);
+			msg.setDelay(250);   // 1/4 sec delay
 			internalController.receiveRequest(msg);
 		}
 		return request;
@@ -381,10 +407,26 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		return result;
 	}
 	
-	// These are complex requests that require several messages to the internal
-	// controller
+	// These are complex requests that require that several messages be sent to the internal
+	// controller. Currently these are messages to set "torque enable" to true.
+	// They require a reading/saving of the current motor positions.
 	private boolean isInternalRequest(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.HOLD) ) {
+		// Never send a request from the internal controller back to it. That would be an infinite loop
+		if( request.fetchSource().equalsIgnoreCase(HandlerType.INTERNAL.name())) return false;
+		
+		Map<String,String> properties = request.getProperties();
+		if( request.fetchRequestType().equals(RequestType.COMMAND) && 
+				properties.get(BottleConstants.COMMAND_NAME).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+			return true;
+		}
+		else if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) && 
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
+				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+			return true;
+		}
+		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY) && 
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
+				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
 			return true;
 		}
 		return false;

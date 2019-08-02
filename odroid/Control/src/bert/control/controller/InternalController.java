@@ -77,7 +77,10 @@ public class InternalController implements Controller  {
 	}
 	/**
 	 * The dispatcher has received a response to one of our requests and has
-	 * forwarded it here.
+	 * forwarded it here. Possible dispositions:
+	 *     1) If message was from a queue, then we trigger processing of the next message on the queue, if any
+	 *     2) If the message was marked for repeating, then place it on the timer queue
+	 *     3) Discard the message,
 	 */
 	@Override
 	public synchronized void receiveResponse(MessageBottle response) {

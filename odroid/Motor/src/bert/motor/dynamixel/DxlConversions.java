@@ -33,6 +33,7 @@ public class DxlConversions  {
 	public static final byte GOAL_POSITION       = (byte)0x1E;
 	public static final byte GOAL_SPEED          = (byte)0x20;
 	public static final byte GOAL_TORQUE         = (byte)0x22;
+	public static final byte GOAL_TORQUE_ENABLE = (byte)0x18;
 	private static final byte MINIMUM_ANGLE     = (byte)0x06;  // CCW
 	private static final byte MAXIMUM_ANGLE     = (byte)0x08;  // CW
 	private static final byte PRESENT_LOAD      = (byte)0x28;  // low, high bytes
@@ -149,6 +150,12 @@ public class DxlConversions  {
 		}
 		return result;
 	}
+	// This is really a boolean. Take 0.0 to be false, 1.0 to be true
+	public double dxlToTorqueEnable(MotorConfiguration mc,byte b1) {
+		double result = 1.0;
+		if( b1==0x0 ) result = 1.0;
+		return result;
+	}
 	// deg C
 	public double dxlToTemperature(byte value) { return (double)value; }
 	// volts
@@ -161,6 +168,7 @@ public class DxlConversions  {
 		if( name.equalsIgnoreCase(JointProperty.POSITION.name())) address = GOAL_POSITION;
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) address = GOAL_SPEED;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) address = GOAL_TORQUE;
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name())) address = GOAL_TORQUE_ENABLE;
 		else {
 			LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)",CLSS,name));
 		}
@@ -176,6 +184,7 @@ public class DxlConversions  {
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) address = PRESENT_SPEED;
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) address = PRESENT_TEMPERATURE;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) address = PRESENT_LOAD;
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name())) address = GOAL_TORQUE_ENABLE;
 		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) address = PRESENT_VOLTAGE;
 		else {
 			LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)",CLSS,name));
@@ -193,6 +202,7 @@ public class DxlConversions  {
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) length = 2;
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) length = 1;
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) length = 2;
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name())) length = 1;
 		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) length = 1;
 		else {
 			LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)",CLSS,name));
@@ -212,8 +222,9 @@ public class DxlConversions  {
 			value = value*mc.getMaxTorque()/100.;
 			dxlValue = torqueToDxl(mc,value);
 		}
-		else {
-			LOGGER.warning(String.format("%s.dxlValueForProperty: Unrecognized property name (%s)",CLSS,name));
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name())) {
+			dxlValue = 1;
+			if(value==0.0) dxlValue = 0; 
 		}
 		return dxlValue;
 	}
@@ -229,6 +240,7 @@ public class DxlConversions  {
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) text = String.format("%.0f degrees per second",value);
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) text = String.format("%.0f degrees centigrade",value);
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) text = String.format("%.1f newton-meters",value);
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name())) text = String.format("torque is %s",(value==0.?"disabled":"enabled"));
 		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name()))text = String.format("%.1f volts",value);
 		else {
 			LOGGER.warning(String.format("%s.textForProperty: Unrecognized property name (%s)",CLSS,name));
@@ -246,6 +258,7 @@ public class DxlConversions  {
 		else if( name.equalsIgnoreCase(JointProperty.SPEED.name())) value = dxlToSpeed(mc,b1,b2);
 		else if( name.equalsIgnoreCase(JointProperty.TEMPERATURE.name())) value = dxlToTemperature(b1);
 		else if( name.equalsIgnoreCase(JointProperty.TORQUE.name())) value = dxlToTorque(mc,b1,b2);
+		else if( name.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name())) value = dxlToTorqueEnable(mc,b1);
 		else if( name.equalsIgnoreCase(JointProperty.VOLTAGE.name())) value = dxlToVoltage(b1);
 		else {
 			LOGGER.warning(String.format("%s.valueForProperty: Unrecognized property name (%s)",CLSS,name));

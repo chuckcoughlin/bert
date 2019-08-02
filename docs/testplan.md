@@ -124,24 +124,26 @@ the last referenced joint or side. Sample command syntax:
     set your other elbow to 90
     straighten it
 ```
-* ![green](/images/ball_green.png) ``Change speed`` - using the terminal application,
-change the speed of a joint or all joints. Speed is expressed as a percentage of the
-maximum as defined in the XML configuration file.
+* ![green](/images/ball_green.png) ``Change speed or torque`` - using the terminal application,
+change the speed or torque of a joint or all joints. Both speed and torque are expressed as a percentage
+of the maximum as defined in the XML configuration file.
 Sample command syntax:
 ```
-    set the speed of your left ankle to 50
+    set the speed of your right elbow to 50
+    set the torque of your other elbow to 50
     move normally
     move quickly
     move very slowly
 ```
 The "move" commands set speeds for all joint movements at once.
 
-* ![green](/images/ball_green.png) ``Change torque`` - using the terminal application,
-change the torque of a joint or of a limb. Torque is expressed as percent of maximum.
-Maximum values are defined in the XML configuration file.
+* ![green](/images/ball_green.png) ``Enable torque`` - the Dynamixel motors may be
+configured to be freewheeling and compliant or stiff. Our terms for the torque enable
+function are "relax" and "freeze". These properties may be applied to individual
+joints, limbs or the entire robot.
 Sample command syntax:
 ```
-    set the torque of your left ankle to 50
+    relax your right arm
     freeze your right elbow
     relax
     freeze
@@ -149,23 +151,24 @@ Sample command syntax:
     go limp
     straighten up
 ```
+Note that joints are stiffened before any positioning commands are executed (otherwise there
+would be no point).
 
 * ![gray](/images/ball_gray.png) ``Make a Pose`` - actions are a series of commands (usually poses)
 executed with intervening time intervals. This sequence of steps shows how to save an arbitrary pose
-whose positions are created by manual intervention.
+whose positions are created by manual intervention. A subsequent section will demonstrate combining
+poses to create an action.
 
  After startup joints are set to support maximum load and can't be bent by hand.
 ```
     relax your right arm
 ```
-At this point the right arm and associated shoulder joints are configured for minimum resistance
-and can be moved manually to any desired position. Note that the leg "limb" includes hips.
+At this point the torque for the right elbow and associated shoulder joints is disabled.
+They can be moved manually to any desired position. Note that the leg "limb" includes hips.
 ```
-  hold that pose
-  hold it
+  freeze
 ```
-This command freezes the pose as the robot is currently positioned. This differs from the "freeze"
-command in that the latter will return the arm to its state before any manual positioning.
+This command freezes the pose as the robot is currently positioned.
 ```
   save that pose
   save that pose as saluting 1

@@ -161,18 +161,15 @@ public class DxlMessage  {
 		return messages;
 	}
 	/**
-	 * Set either the speeds or torque for motors in the specified limb. The motor configurations have all the
+	 * Set either the speed,torque or torque_enable for motors in the specified limb. The motor configurations have all the
 	 * information.
 	 * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
 	 * @param map of the motor configurations keyed by joint name
 	 * @param limb name of the limb to be set
-	 * @param property, either speed or torque
+	 * @param property, either speed,torque or torque_enable
 	 * @return a byte array with entries corresponding to joints of the limb, if any. 
 	 */
 	public byte[] byteArrayToSetLimbProperty(Map<String,MotorConfiguration> map,String limb,String property) {
-		boolean isTorque = true;
-		if( property.equalsIgnoreCase("speed")) isTorque = false;
-		
 		// First count all the joints in the limb
 		int count = 0;
 		for( MotorConfiguration mc:map.values()) {
@@ -182,26 +179,33 @@ public class DxlMessage  {
 		byte[] bytes = new byte[0];
 		int dxlValue = 0;
 		if( count>0 ) {
-			int len = (3 * count) + 8;  //  3 bytes per motor + address + byte count + header + checksum
+			int len = ((converter.dataBytesForProperty(property)+1) * count) + 8;  //  2 or 3 bytes per motor + address + byte count + header + checksum
+			
 			bytes = new byte[len];
 			setSyncWriteHeader(bytes);
 			bytes[3] = (byte)(len-4);
 			bytes[4] = SYNC_WRITE;
-			bytes[5] = converter.addressForGoalProperty(JointProperty.TORQUE.name());
-			bytes[6] = 0x2;  // 2 bytes
+			bytes[5] = converter.addressForGoalProperty(property);
+			bytes[6] = converter.dataBytesForProperty(property);
 			int index = 7;
 			for( MotorConfiguration mc:map.values()) {
+				bytes[index]= (byte) mc.getId();
 				if( mc.getLimb().name().equalsIgnoreCase(limb)) {
-					if( isTorque ) {
+					if( property.equalsIgnoreCase(JointProperty.TORQUE.name()) ) {
 						dxlValue = converter.dxlValueForProperty(JointProperty.TORQUE.name(),mc,mc.getTorque());
+						bytes[index+1] = (byte)(dxlValue & 0xFF);
+						bytes[index+2] = (byte)(dxlValue >>8);
 					}
-					else {
+					else if( property.equalsIgnoreCase(JointProperty.SPEED.name()) ) {
 						dxlValue = converter.dxlValueForProperty(JointProperty.SPEED.name(),mc,mc.getSpeed());
+						bytes[index+1] = (byte)(dxlValue & 0xFF);
+						bytes[index+2] = (byte)(dxlValue >>8);
 					}
-					bytes[index]= (byte) mc.getId();
-					bytes[index+1] = (byte)(dxlValue & 0xFF);
-					bytes[index+2] = (byte)(dxlValue >>8);
-					index = index+3;
+					else if( property.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) ) {
+						dxlValue = converter.dxlValueForProperty(JointProperty.TORQUE_ENABLE.name(),mc,(mc.isTorqueEnabled()?1.0:0.0));
+						bytes[index+1] = (byte)(dxlValue);
+					}
+					index = index+1+converter.dataBytesForProperty(property);
 				}
 			}
 			setChecksum(bytes);
@@ -367,21 +371,26 @@ public class DxlMessage  {
 
 	/**
 	 * Create a serial message to write a goal for the motor. Recognized properties are:
-	 * position, speed and torque. All are two byte parameters.
+	 * position, speed, torque and torque_enable. All except torque enable are two byte parameters.
 	 * @param id of the motor
 	 * @param propertyName the name of the desired property (must be a joint property)
 	 * @return byte array with command to read the property
 	 */
 	public byte[] bytesToSetProperty(MotorConfiguration mc,String propertyName,double value) {
 		int dxlValue = converter.dxlValueForProperty(propertyName,mc,value);
-		int length = 5;  // Remaining bytes past length including checksum
+		int length = 4+converter.dataBytesForProperty(propertyName);  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,mc.getId());
 		bytes[3] = (byte)length; 
 		bytes[4] = WRITE;
 		bytes[5] = converter.addressForGoalProperty(propertyName);
-		bytes[6] = (byte)(dxlValue & 0xFF);
-		bytes[7] = (byte)(dxlValue >>8);
+		if( converter.dataBytesForProperty(propertyName)==2) {
+			bytes[6] = (byte)(dxlValue & 0xFF);
+			bytes[7] = (byte)(dxlValue >>8);
+		}
+		else {
+			bytes[6] = (byte)(dxlValue);
+		}
 		setChecksum(bytes);
 		if( propertyName.equalsIgnoreCase(JointProperty.POSITION.name())) {
 			mc.setPosition(value);
@@ -389,6 +398,7 @@ public class DxlMessage  {
 		}
 		else if( propertyName.equalsIgnoreCase(JointProperty.SPEED.name())) mc.setSpeed(value);
 		else if( propertyName.equalsIgnoreCase(JointProperty.TORQUE.name()))mc.setTorque(value);
+		else if( propertyName.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()))mc.setTorqueEnable((value==0?false:true));
 		return bytes;
 	}
 	/**

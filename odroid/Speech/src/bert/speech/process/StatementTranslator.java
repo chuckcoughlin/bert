@@ -96,6 +96,66 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override
+	// Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot.
+	// relax your left arm
+	public Object visitEnableTorque(SpeechSyntaxParser.EnableTorqueContext ctx) {
+		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
+		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
+		sharedDictionary.put(SharedKey.AXIS, axis);
+		// If side was set previously, use it as default
+		String side = sharedDictionary.get(SharedKey.SIDE).toString();
+		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
+		sharedDictionary.put(SharedKey.SIDE, side);
+		// If both Limb() and Joint() are null, then we apply to the entire robot
+		if( ctx.Freeze()!=null || ctx.Relax()!=null ) {
+			String cmd = "";
+			if( ctx.Freeze()!=null ) cmd = ctx.Freeze().getText().toLowerCase();
+			if( ctx.Relax()!=null )  cmd = ctx.Relax().getText().toLowerCase();
+			Joint joint = Joint.UNKNOWN;
+			if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.JOINT) ) {
+				joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
+			}
+			if(ctx.Joint()!=null ) {
+				joint = determineJoint(ctx.Joint().getText(),axis,side);
+			}
+			if( !joint.equals(Joint.UNKNOWN)) {
+				bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
+				bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
+				bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE_ENABLE.name());
+				if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_FREEZE);
+				else bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_RELAX);
+				sharedDictionary.put(SharedKey.JOINT,joint);
+				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
+			}
+			// Joint is not specified, try a limb
+			else {
+				Limb limb = Limb.UNKNOWN;
+				if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.LIMB) ) {
+					limb = (Limb)sharedDictionary.get(SharedKey.LIMB);
+				}
+				if(ctx.Limb()!=null) {
+					limb = determineLimb(ctx.Limb().getText(),side);
+				}
+				if( !limb.equals(Limb.UNKNOWN)) {
+					bottle.assignRequestType(RequestType.SET_LIMB_PROPERTY);
+					bottle.setProperty(BottleConstants.LIMB_NAME,limb.name());
+					bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE_ENABLE.name());
+					if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_FREEZE);
+					else bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_RELAX);
+					sharedDictionary.put(SharedKey.LIMB,limb);
+					sharedDictionary.put(SharedKey.IT,SharedKey.LIMB);
+				}
+				// Limb and Joint are UNKNOWN. Apply to the entire body
+				else {
+					bottle.assignRequestType(RequestType.COMMAND);
+					if( ctx.Freeze()!=null ) bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_FREEZE);
+					else bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_RELAX);
+				}
+			}
+		}
+		return null;
+	}
+	@Override
 	// Handle a (possible) multi-word command
 	// attention
 	public Object visitHandleArbitraryCommand(SpeechSyntaxParser.HandleArbitraryCommandContext ctx) {
@@ -262,18 +322,13 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	@Override
-	// Hold it
-	public Object visitHoldIt(SpeechSyntaxParser.HoldItContext ctx) {
-		bottle.assignRequestType(RequestType.HOLD);
-		return null;
-	}
 	@Override 
 	// initialize your joints
 	public Object visitInitializeJoints(SpeechSyntaxParser.InitializeJointsContext ctx) {
 		bottle.assignRequestType(RequestType.INITIALIZE_JOINTS);
 		return null;
 	}
+	
 	@Override 
 	// what is the id of your left hip y?
 	public Object visitJointPropertyQuestion(SpeechSyntaxParser.JointPropertyQuestionContext ctx) {
@@ -613,69 +668,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override
-	// relax your left arm
-	public Object visitSetTorque(SpeechSyntaxParser.SetTorqueContext ctx) {
-		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
-		if( ctx.Axis()!=null ) axis = ctx.Axis().getText();
-		sharedDictionary.put(SharedKey.AXIS, axis);
-		// If side was set previously, use it as default
-		String side = sharedDictionary.get(SharedKey.SIDE).toString();
-		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
-		sharedDictionary.put(SharedKey.SIDE, side);
-		// If both Limb() and Joint() are null, then we possibly have an "arbitrary" command
-		if( ctx.Freeze()!=null || ctx.Relax()!=null ) {
-			String cmd = "";
-			if( ctx.Freeze()!=null ) cmd = ctx.Freeze().getText().toLowerCase();
-			if( ctx.Relax()!=null )  cmd = ctx.Relax().getText().toLowerCase();
-			Joint joint = Joint.UNKNOWN;
-			if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.JOINT) ) {
-				joint = (Joint)sharedDictionary.get(SharedKey.JOINT);
-			}
-			if(ctx.Joint()!=null ) {
-				joint = determineJoint(ctx.Joint().getText(),axis,side);
-			}
-			if( !joint.equals(Joint.UNKNOWN)) {
-				bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
-				bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
-				bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE.name());
-				if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.TORQUE.name(),"0.9");
-				else bottle.setProperty(JointProperty.TORQUE.name(),"0.1");
-				sharedDictionary.put(SharedKey.JOINT,joint);
-				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
-			}
-			else {
-				Limb limb = Limb.UNKNOWN;
-				if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.LIMB) ) {
-					limb = (Limb)sharedDictionary.get(SharedKey.LIMB);
-				}
-				if(ctx.Limb()!=null) {
-					limb = determineLimb(ctx.Limb().getText(),side);
-				}
-				if( !limb.equals(Limb.UNKNOWN)) {
-					bottle.assignRequestType(RequestType.SET_LIMB_PROPERTY);
-					bottle.setProperty(BottleConstants.LIMB_NAME,limb.name());
-					bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE.name());
-					sharedDictionary.put(SharedKey.LIMB,limb);
-					sharedDictionary.put(SharedKey.IT,SharedKey.LIMB);
-				}
-				// Before giving up, see if this is a one-word pose command.
-				// Same logic as visitHandleArbitraryCommand()
-				else {
-					String pose = Database.getInstance().getPoseForCommand(cmd);
-					if( pose!=null ) {
-						bottle.assignRequestType(RequestType.SET_POSE);
-						bottle.setProperty(BottleConstants.POSE_NAME,pose );
-					}
-					else {
-						String msg = String.format("The pose %s was not found",cmd);
-						bottle.assignError(msg);
-					}
-				}
-			}
-		}
-		return null;
-	}
-	@Override
 	// straighten your left elbow.
 	public Object visitStraightenJoint(SpeechSyntaxParser.StraightenJointContext ctx) {
 		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
@@ -882,6 +874,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( pname.equalsIgnoreCase("motor type")) pname = "MOTORTYPE";
 		else if( pname.equalsIgnoreCase("speed"))  pname = "SPEED";
 		else if( pname.equalsIgnoreCase("torque"))  pname = "TORQUE";
+		else if( pname.equalsIgnoreCase("torque enable"))  pname = "TORQUE_ENABLE";
 		else if( pname.equalsIgnoreCase("velocity"))  pname = "SPEED";
 		else if( pname.equalsIgnoreCase("velocitie")) pname = "SPEED";
 		result = JointProperty.valueOf(pname.toUpperCase());

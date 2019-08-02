@@ -86,9 +86,6 @@ public class MessageTranslator  {
 					String value       = msg.getProperty(propertyName, "");
 					text = String.format("The %s of my %s is %s", propertyName,Joint.toText(joint),value);
 				}
-				else if(type.equals(RequestType.HOLD)) {
-					text = randomAcknowledgement();
-				}
 				else if(type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
 					text = String.format("Motor %s have been written to log files", propertyName.toLowerCase());
@@ -96,6 +93,9 @@ public class MessageTranslator  {
 				else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
 					String limbName = msg.getProperty(BottleConstants.LIMB_NAME, "");
 					text = String.format("My %s is set ", limbName.toLowerCase());
+				}
+				else if(type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+					text = randomAcknowledgement();
 				}
 				else if(type.equals(RequestType.SET_POSE)) {
 					String propertyName = msg.getProperty(BottleConstants.POSE_NAME, "");
@@ -111,7 +111,9 @@ public class MessageTranslator  {
 		else {
 			text = "I received an empty message";
 		}
-		if(text==null || text.isEmpty()) text = "I don't understand the response";
+		if(text==null || text.isEmpty()) {
+			text = String.format("I don't understand the response for %s",msg.fetchRequestType().name().toLowerCase().replaceAll("_", " "));
+		}
 		return text;
 	}
 	
