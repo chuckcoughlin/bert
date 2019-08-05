@@ -29,7 +29,7 @@ public class MotorConfiguration implements Serializable  {
 	private DynamixelType type = DynamixelType.MX28;
 	private int id;
 	private String controller;
-	private boolean torqueEnable;
+	private boolean torqueEnabled;  // Torque-enable - on/off 
 	private double offset;    // Configured position correction
 	private double minAngle;
 	private double maxAngle;
@@ -39,6 +39,7 @@ public class MotorConfiguration implements Serializable  {
 	// Save the current goal (or actual) values. All other members
 	private double position;  // ~ degrees
 	private double speed;     // ~ degrees/second
+	private double temperature; // deg C
 	private double torque;	  // ~ N-m
 	private long travelTime; // ~msecs
 	/**
@@ -60,8 +61,9 @@ public class MotorConfiguration implements Serializable  {
 		// These are current goal settings
 		this.position = 0.;     // Pure guess
 		this.speed  = 684.;     // Power-off AX-12
+		this.temperature = 20.; // Room temperature
 		this.torque = 0.;       // Power-off value
-		this.torqueEnable = true;
+		this.torqueEnabled = true;  // Initially torque is enabled 
 	} 
 	
 	/** 
@@ -77,9 +79,9 @@ public class MotorConfiguration implements Serializable  {
 		this.id = id;
 		this.controller = cntrl;
 		this.direct = isDirect;
-		
 	}
-	public boolean isTorqueEnabled() { return this.torqueEnable; }
+	// Setting torque enable is essentially powering the motor on/off
+	public boolean isTorqueEnabled() { return this.torqueEnabled; }
 	public Joint getJoint()        { return this.joint; }
 	public Limb getLimb()          { return this.limb; }
 	public DynamixelType getType() { return this.type; }
@@ -107,7 +109,8 @@ public class MotorConfiguration implements Serializable  {
 	public void setJoint(Joint jnt)          { this.joint = jnt; }
 	public void setLimb(Limb lmb)        	 { this.limb = lmb; }
 	public void	setOffset(double off)        { this.offset = off; }
-	public void setTorqueEnable(boolean flag){ this.torqueEnable = flag; }
+	public void	setTemperature(double temp)  { this.temperature = temp; }
+	public void setTorqueEnabled(boolean flag)	 { this.torqueEnabled = flag; }
 	public void setType(String typ)          { this.type = DynamixelType.valueOf(typ.toUpperCase()); }
 	
 	public void setProperty(String propertyName, double value) {
@@ -128,6 +131,8 @@ public class MotorConfiguration implements Serializable  {
 		switch(jp) {
 			case POSITION: setPosition(value); break;
 			case SPEED:	   setSpeed(value);    break;
+			case STATE:	   setState(value);    break;
+			case TEMPERATURE: setTemperature(value);   break;
 			case TORQUE:   setTorque(value);   break;
 			default: break; // Ignore
 		}
@@ -144,6 +149,7 @@ public class MotorConfiguration implements Serializable  {
 		this.position = p; 
 	}
 	public void setSpeed(double s)    	     { this.speed = s; }
+	public void setState(double s)    	     { int state = (int)s; setTorqueEnabled(( state!=0)); }
 	public void setTorque(double t)          { this.torque = t; }
 	
 }

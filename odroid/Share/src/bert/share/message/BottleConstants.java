@@ -39,4 +39,8 @@ public interface BottleConstants   {
 	// Nominal values for torque and speed in percent
 	public final static int SPEED_NORMAL         = 20;
 	public final static int TORQUE_NORMAL        = 20;
+	// For values that are boolean. Use these strings for "values"
+	public final static String ON_VALUE       = "1";
+	public final static String OFF_VALUE      = "0";
+
 }

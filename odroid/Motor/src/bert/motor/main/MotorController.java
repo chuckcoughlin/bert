@@ -5,10 +5,6 @@
  */
 package bert.motor.main;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,13 +15,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
-import bert.control.model.Link;
 import bert.motor.dynamixel.DxlMessage;
 import bert.motor.model.MessageWrapper;
-import bert.share.control.Appendage;
+import bert.share.control.Limb;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
-import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.motor.Joint;
 import bert.share.motor.MotorConfiguration;
@@ -49,7 +43,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	protected static final String CLSS = "MotorController";
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final int BAUD_RATE = 1000000;
-	private static final int MIN_WRITE_INTERVAL = 50; // msecs between writes (25 was too short)
+	private static final int MIN_WRITE_INTERVAL = 100; // msecs between writes (50 was too short)
 	private static final int STATUS_RESPONSE_LENGTH = 8; // byte count
 	private final Condition running;
 	private final DxlMessage dxl;
@@ -325,16 +319,17 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				wrapper.setResponseCount(1);   // Status message
 			}
 			else if( type.equals(RequestType.SET_LIMB_PROPERTY)) {
-				String limbName = request.getProperty(BottleConstants.LIMB_NAME, "");
+				String limbName = request.getProperty(BottleConstants.LIMB_NAME, "UNKNOWN");
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
 				// Loop over motor config map, set the property
 				bytes = dxl.byteArrayToSetLimbProperty(configurationsByName,limbName,propertyName);
-				wrapper.setResponseCount(0);  // AYNC WRITE, no responses
-				request.setProperty(BottleConstants.TEXT,String.format("my %s %s is %s",limbName,propertyName,value));
+				wrapper.setResponseCount(0);  // AYNC WRITE, no response
+				Limb limb = Limb.valueOf(limbName);
+				request.setProperty(BottleConstants.TEXT,String.format("My %s %s is %s",Limb.toText(limb),propertyName.toLowerCase(),value));
 			}
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
 				MotorConfiguration mc = configurationsByName.get(jointName);
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
@@ -345,8 +340,12 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 						if(request.getDuration()<duration) request.setDuration(duration);
 						request.setProperty(BottleConstants.TEXT,String.format("My position is %.0f", mc.getPosition()));
 					}
+					else if(propertyName.equalsIgnoreCase("STATE")) {
+						request.setProperty(BottleConstants.TEXT,String.format("My %s state is torque-%s",Joint.toText(mc.getJoint()),
+								(value.equalsIgnoreCase("0")?"disabled":"enabled")));
+					}
 					else {
-						request.setProperty(BottleConstants.TEXT,String.format("my %s %s is %.0f",jointName,propertyName,value));
+						request.setProperty(BottleConstants.TEXT,String.format("My %s %s is %s",Joint.toText(mc.getJoint()),propertyName.toLowerCase(),value));
 					}
 					wrapper.setResponseCount(1);   // Status message
 				}

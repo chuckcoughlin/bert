@@ -27,7 +27,7 @@ command:
 	| Salutation? Move Adverb                                                   # moveSpeed
 	| Salutation? (Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?			# enableTorque
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
-	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To Value Unit?  # setMotorProperty
+	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off) Unit?  # setMotorProperty
     | Salutation? Straighten Yourself? Up   					# straightenUp
 	| Salutation? Straighten (It|Article? Side? Joint Axis? )   # straightenJoint
 	| Salutation? (Command|Halt|Reset|Shutdown)                 # handleSingleWordCommand
@@ -93,11 +93,13 @@ Mittens: 'mittens';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
-Of: 'of'|'on'|'for';
+Of: 'of'|'for';
+Off: 'off';
+On: 'on';
 Joint: 'ankle'|'arm'|'elbow'|'head'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Pose: 'pose';
-Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
-Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'torque enable'|'torque'|'load'|'temperature'|'voltage'|'velocity';
+Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
+Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'state'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please';
 Shutdown: 'power off'|'shut down'|'shutdown';

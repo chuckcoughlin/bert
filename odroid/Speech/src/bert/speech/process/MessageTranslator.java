@@ -6,6 +6,7 @@ package bert.speech.process;
 
 import java.util.logging.Logger;
 
+import bert.share.control.Limb;
 import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.MetricType;
@@ -82,7 +83,7 @@ public class MessageTranslator  {
 				// We expect the MotorGroupController to fill these in ...
 				else if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
 					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
-					Joint joint   = Joint.valueOf(msg.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN").toUpperCase());
+					Joint joint   = Joint.valueOf(msg.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name()).toUpperCase());
 					String value       = msg.getProperty(propertyName, "");
 					text = String.format("The %s of my %s is %s", propertyName,Joint.toText(joint),value);
 				}
@@ -92,7 +93,8 @@ public class MessageTranslator  {
 				}
 				else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
 					String limbName = msg.getProperty(BottleConstants.LIMB_NAME, "");
-					text = String.format("My %s is set ", limbName.toLowerCase());
+					Limb limb   = Limb.valueOf(msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name()).toUpperCase());
+					text = String.format("My %s is set ", Limb.toText(limb));
 				}
 				else if(type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 					text = randomAcknowledgement();

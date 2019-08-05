@@ -5,6 +5,7 @@
 package bert.control.message;
 
 import bert.control.controller.QueueName;
+import bert.share.message.BottleConstants;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.RequestType;
@@ -69,7 +70,8 @@ public class InternalMessage extends MessageBottle {
 	
 
 	/**
-	 * CAUTION: We only do a shallow copy of the members.
+	 * CAUTION: We only do a shallow copy of the jointValues, for now. We preserve
+	 *          all the properties except SOURCE.
 	 * @param bottle the original message
 	 * @param q queue on which to place this request for sequential execution
 	 * @return
@@ -77,7 +79,12 @@ public class InternalMessage extends MessageBottle {
 	public static InternalMessage clone(MessageBottle bottle,QueueName q) {
 		InternalMessage msg = new InternalMessage(bottle.fetchRequestType(),q);
 		msg.jointValues = bottle.getJointValues();  // Joint values are positions in a pose.
-		msg.properties  = bottle.getProperties();
+		for(String key:bottle.properties.keySet()) {
+			if( !key.equalsIgnoreCase(BottleConstants.SOURCE) &&
+				!key.equalsIgnoreCase(BottleConstants.TYPE)	) {
+				msg.setProperty(key, bottle.getProperty(key, ""));
+			}
+		}
 		return msg;
 	}
 	@Override

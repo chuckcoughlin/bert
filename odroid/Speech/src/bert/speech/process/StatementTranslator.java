@@ -121,9 +121,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			if( !joint.equals(Joint.UNKNOWN)) {
 				bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
 				bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
-				bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE_ENABLE.name());
-				if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_FREEZE);
-				else bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_RELAX);
+				bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.STATE.name());
+				if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.STATE.name(),BottleConstants.ON_VALUE);
+				else bottle.setProperty(JointProperty.STATE.name(),BottleConstants.OFF_VALUE);
 				sharedDictionary.put(SharedKey.JOINT,joint);
 				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 			}
@@ -139,9 +139,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				if( !limb.equals(Limb.UNKNOWN)) {
 					bottle.assignRequestType(RequestType.SET_LIMB_PROPERTY);
 					bottle.setProperty(BottleConstants.LIMB_NAME,limb.name());
-					bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.TORQUE_ENABLE.name());
-					if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_FREEZE);
-					else bottle.setProperty(JointProperty.TORQUE_ENABLE.name(),BottleConstants.COMMAND_RELAX);
+					bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.STATE.name());
+					if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.STATE.name(),BottleConstants.ON_VALUE);
+					else bottle.setProperty(JointProperty.STATE.name(),BottleConstants.OFF_VALUE);
 					sharedDictionary.put(SharedKey.LIMB,limb);
 					sharedDictionary.put(SharedKey.IT,SharedKey.LIMB);
 				}
@@ -610,15 +610,16 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		if( joint.equals(Joint.UNKNOWN) ) {
-			String msg = String.format("I don't have a joint likre that");
+			String msg = String.format("I don't have a joint like that");
 			bottle.assignError(msg);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
 		bottle.setProperty(property.name(),ctx.Value().getText());
 		if( !property.equals(JointProperty.POSITION) &&
 			!property.equals(JointProperty.SPEED)    &&
+			!property.equals(JointProperty.STATE)    &&
 			!property.equals(JointProperty.TORQUE)  ) {
-				bottle.assignError("Only position, speed and torque are settable for a joint");
+				bottle.assignError("Only position, speed, torque and state are settable for a joint");
 		}
 		sharedDictionary.put(SharedKey.JOINT, joint);
 		sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
@@ -651,11 +652,14 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		}
 		bottle.setProperty(BottleConstants.PROPERTY_NAME,property.name());
-		bottle.setProperty(property.name(),ctx.Value().getText());
+		if(ctx.Value()!=null )   bottle.setProperty(property.name(),ctx.Value().getText());
+		else if(ctx.On()!=null ) bottle.setProperty(property.name(),BottleConstants.ON_VALUE);
+		else if(ctx.Off()!=null )bottle.setProperty(property.name(),BottleConstants.OFF_VALUE);
 		if( !property.equals(JointProperty.POSITION) &&
 			!property.equals(JointProperty.SPEED)    &&
+			!property.equals(JointProperty.STATE)    &&
 			!property.equals(JointProperty.TORQUE)  ) {
-			bottle.assignError("Only position, speed and torque are settable for a joint");
+			bottle.assignError("Only position, speed, torque and state are settable for a joint");
 		}
 		return null;
 	}
@@ -873,8 +877,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		else if( pname.equalsIgnoreCase("minimum angle")) pname = "MINIMUMANGLE";
 		else if( pname.equalsIgnoreCase("motor type")) pname = "MOTORTYPE";
 		else if( pname.equalsIgnoreCase("speed"))  pname = "SPEED";
+		else if( pname.equalsIgnoreCase("state"))  pname = "STATE";
 		else if( pname.equalsIgnoreCase("torque"))  pname = "TORQUE";
-		else if( pname.equalsIgnoreCase("torque enable"))  pname = "TORQUE_ENABLE";
 		else if( pname.equalsIgnoreCase("velocity"))  pname = "SPEED";
 		else if( pname.equalsIgnoreCase("velocitie")) pname = "SPEED";
 		result = JointProperty.valueOf(pname.toUpperCase());

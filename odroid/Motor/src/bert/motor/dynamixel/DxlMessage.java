@@ -201,8 +201,8 @@ public class DxlMessage  {
 						bytes[index+1] = (byte)(dxlValue & 0xFF);
 						bytes[index+2] = (byte)(dxlValue >>8);
 					}
-					else if( property.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) ) {
-						dxlValue = converter.dxlValueForProperty(JointProperty.TORQUE_ENABLE.name(),mc,(mc.isTorqueEnabled()?1.0:0.0));
+					else if( property.equalsIgnoreCase(JointProperty.STATE.name()) ) {
+						dxlValue = converter.dxlValueForProperty(JointProperty.STATE.name(),mc,(mc.isTorqueEnabled()?1.0:0.0));
 						bytes[index+1] = (byte)(dxlValue);
 					}
 					index = index+1+converter.dataBytesForProperty(property);
@@ -378,7 +378,7 @@ public class DxlMessage  {
 	 */
 	public byte[] bytesToSetProperty(MotorConfiguration mc,String propertyName,double value) {
 		int dxlValue = converter.dxlValueForProperty(propertyName,mc,value);
-		int length = 4+converter.dataBytesForProperty(propertyName);  // Remaining bytes past length including checksum
+		int length = 3+converter.dataBytesForProperty(propertyName);  // Remaining bytes past length including checksum
 		byte[] bytes = new byte[length+4];  // Account for header and length
 		setHeader(bytes,mc.getId());
 		bytes[3] = (byte)length; 
@@ -397,8 +397,10 @@ public class DxlMessage  {
 			travelTime = mc.getTravelTime();
 		}
 		else if( propertyName.equalsIgnoreCase(JointProperty.SPEED.name())) mc.setSpeed(value);
+		else if( propertyName.equalsIgnoreCase(JointProperty.STATE.name()))mc.setTorqueEnabled((value==0?false:true));
+		else if( propertyName.equalsIgnoreCase(JointProperty.TEMPERATURE.name()))mc.setTemperature(value);
 		else if( propertyName.equalsIgnoreCase(JointProperty.TORQUE.name()))mc.setTorque(value);
-		else if( propertyName.equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()))mc.setTorqueEnable((value==0?false:true));
+		
 		return bytes;
 	}
 	/**
@@ -755,7 +757,7 @@ public class DxlMessage  {
 	public static void main(String [] args) {
 		// Protocol 1
 		DxlMessage dxl = new DxlMessage();
-		byte[] bytes = new byte[7];
+		byte[] bytes = new byte[8];
 		dxl.setHeader(bytes,0x01);
 		bytes[3] = 4;    // Bytes past this field.
 		bytes[4] = READ;

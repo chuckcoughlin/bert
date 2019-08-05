@@ -136,7 +136,49 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	
 	@Override
 	public String getControllerName() { return model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "launcher"); }
-	
+	/**
+	 * On startup, initiate a short message sequence to bring the robot into a sane state.
+	 */
+	@Override
+	public void startup() {
+		if(commandController!=null )  commandController.start();
+		if(terminalController!=null ) terminalController.start();
+		if(internalController!=null )    internalController.start();
+		if(motorGroupController!=null ) {
+			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
+			motorGroupController.initialize();
+			motorGroupController.start();
+
+			// Set the speed to "normal" rate. Delay to all startup to complete
+			InternalMessage msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
+			msg.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(msg);
+			// Read all the joint positions
+			msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
+			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
+			msg.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(msg);
+			// Bring any joints that are outside sane limits into compliance
+			msg = new InternalMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
+			msg.setDelay(2000);   // 2 sec delay
+			internalController.receiveRequest(msg);
+		}
+		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
+	}
+	@Override
+	public void shutdown() {
+		motorGroupController.stop();
+		LOGGER.info(String.format("%s.shutdown: Shutting down 1 ...",CLSS));
+		if(commandController!=null )    commandController.stop();
+		LOGGER.info(String.format("%s.shutdown: Shutting down 2 ...",CLSS));
+		if(terminalController!=null )   terminalController.stop();
+		LOGGER.info(String.format("%s.shutdown: Shutting down 3 ...",CLSS));
+		if(internalController!=null )      internalController.stop();
+		LOGGER.info(String.format("%s.shutdown: Shutting down 4 ...",CLSS));
+		if(motorGroupController!=null ) motorGroupController.stop();
+		LOGGER.info(String.format("%s.shutdown: complete.",CLSS));
+	}
 	/**
 	 * Loop forever processing whatever arrives from the various controllers. Each request is
 	 * handled atomically. There is no interleaving. 
@@ -153,15 +195,16 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 					long startCycle = System.currentTimeMillis();
 					LOGGER.info(String.format("%s: Cycle %d ...",CLSS,cycleCount));
 					if( currentRequest==null ) break;             // Causes shutdown
-					// Take care of any local requests first.
 					if( currentRequest!=null ) {
-						if( isLocalRequest(currentRequest) ) {
-							// Handle local request -create response
-							MessageBottle response = handleLocalRequest(currentRequest);
+						// "internal" requests are those that need to be queued on the internal controller
+						if( isInternalRequest(currentRequest) ) {
+							MessageBottle response = handleInternalRequest(currentRequest);
 							handleResponse(response);
 						}
-						else if( isInternalRequest(currentRequest) ) {
-							MessageBottle response = handleInternalRequest(currentRequest);
+						// a "local" request can be handled without involving the motor controllers
+						else if( isLocalRequest(currentRequest) ) {
+							// Handle local request -create response
+							MessageBottle response = handleLocalRequest(currentRequest);
 							handleResponse(response);
 						}
 						else {
@@ -192,47 +235,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		System.exit(0);
 	}
 	
-	/**
-	 * On startup, initiate a short message sequence to bring the robot into a sane state.
-	 */
-	@Override
-	public void startup() {
-		if(commandController!=null )  commandController.start();
-		if(terminalController!=null ) terminalController.start();
-		if(internalController!=null )    internalController.start();
-		if(motorGroupController!=null ) {
-			LOGGER.info(String.format("%s.execute: starting motorGroupController",CLSS));
-			motorGroupController.initialize();
-			motorGroupController.start();
-
-			// Set the speed to "normal" rate. Delay to all startup to complete
-			InternalMessage msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
-			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
-			msg.setDelay(5000);   // 5 sec delay
-			internalController.receiveRequest(msg);
-			// Read all the joint positions
-			msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
-			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
-			internalController.receiveRequest(msg);
-			// Bring any joints that are outside sane limits into compliance
-			msg = new InternalMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
-			internalController.receiveRequest(msg);
-		}
-		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
-	}
-	@Override
-	public void shutdown() {
-		motorGroupController.stop();
-		LOGGER.info(String.format("%s.shutdown: Shutting down 1 ...",CLSS));
-		if(commandController!=null )    commandController.stop();
-		LOGGER.info(String.format("%s.shutdown: Shutting down 2 ...",CLSS));
-		if(terminalController!=null )   terminalController.stop();
-		LOGGER.info(String.format("%s.shutdown: Shutting down 3 ...",CLSS));
-		if(internalController!=null )      internalController.stop();
-		LOGGER.info(String.format("%s.shutdown: Shutting down 4 ...",CLSS));
-		if(motorGroupController!=null ) motorGroupController.stop();
-		LOGGER.info(String.format("%s.shutdown: complete.",CLSS));
-	}
+	
 	
 	/**
 	 * We've gotten a request. It may have come from either a socket
@@ -240,8 +243,8 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 */
 	@Override
 	public synchronized void handleRequest(MessageBottle request) {
-		LOGGER.info(String.format("%s.handleRequest: Received request %s",CLSS,request.fetchRequestType().name()));
 		lock.lock();
+		LOGGER.info(String.format("%s.handleRequest: Processing %s from %s",CLSS,request.fetchRequestType().name(),request.fetchSource()));
 		try {
 			currentRequest = request;
 			busy.signal();
@@ -252,14 +255,14 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	}
 	
 	/**
-	 * This is called by "sub-controllers" - Timer and MotorGroup. Forward the response on to
+	 * This is called by "sub-controllers" - Internal and MotorGroup. Forward the response on to
 	 * the appropriate socket controller for transmission to the original source of the request.
-	 * Note: Notifications are broadcast to live controllers.
+	 * Note: Notifications are broadcast to all live controllers.
 	 */
 	@Override
 	public void handleResponse(MessageBottle response) {
-		LOGGER.info(String.format("%s.handleResponse: Received response %s",CLSS,response.fetchRequestType().name()));
 		String source = response.fetchSource();
+		LOGGER.info(String.format("%s.handleResponse: Received response %s for %s",CLSS,response.fetchRequestType().name(),source));
 		if( source.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {	
 			commandController.receiveResponse(response);
 		}
@@ -294,8 +297,8 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		// A limb
 		if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) && 
-				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
-				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.STATE.name()) &&
+				properties.get(JointProperty.STATE.name()).equalsIgnoreCase(BottleConstants.ON_VALUE)) {
 			InternalMessage msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
 			msg.setProperty(BottleConstants.LIMB_NAME,request.getProperty(BottleConstants.LIMB_NAME,Limb.UNKNOWN.name()));
@@ -306,8 +309,8 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		// Single joint
 		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY) && 
-				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
-				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.STATE.name()) &&
+				properties.get(JointProperty.STATE.name()).equalsIgnoreCase(BottleConstants.ON_VALUE)) {
 			InternalMessage msg = new InternalMessage(RequestType.GET_MOTOR_PROPERTY,QueueName.GLOBAL);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
 			msg.setProperty(BottleConstants.JOINT_NAME,request.getProperty(BottleConstants.JOINT_NAME,Joint.UNKNOWN.name()));
@@ -380,7 +383,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		else if(request.fetchRequestType().equals(RequestType.COMMAND)) {
 			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
-			LOGGER.warning(String.format("%s.createResponseForLocalRequest: command=%s",CLSS,command));
+			LOGGER.warning(String.format("%s.handleLocalRequest: command=%s",CLSS,command));
 			if( command.equalsIgnoreCase(BottleConstants.COMMAND_HALT)) {
 				System.exit(0);     // Rely on ShutdownHandler cleanup connections
 			}
@@ -407,11 +410,12 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		return result;
 	}
 	
-	// These are complex requests that require that several messages be sent to the internal
-	// controller. Currently these are messages to set "torque enable" to true.
-	// They require a reading/saving of the current motor positions.
+	// These are complex requests that require that several messages be created and processed
+	// on the internal controller. Categories include:
+	//   1) Anything that sets "torque enable" to true. This action requires that we read
+	//      and save (in memory) current motor positions.
 	private boolean isInternalRequest(MessageBottle request) {
-		// Never send a request from the internal controller back to it. That would be an infinite loop
+		// Never send a request launched by the internal controller back to it. That would be an infinite loop
 		if( request.fetchSource().equalsIgnoreCase(HandlerType.INTERNAL.name())) return false;
 		
 		Map<String,String> properties = request.getProperties();
@@ -420,13 +424,13 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			return true;
 		}
 		else if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) && 
-				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
-				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.STATE.name()) &&
+				properties.get(JointProperty.STATE.name()).equalsIgnoreCase(BottleConstants.ON_VALUE)) {
 			return true;
 		}
 		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY) && 
-				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.TORQUE_ENABLE.name()) &&
-				properties.get(JointProperty.TORQUE_ENABLE.name()).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
+				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.STATE.name()) &&
+				properties.get(JointProperty.STATE.name()).equalsIgnoreCase(BottleConstants.ON_VALUE)) {
 			return true;
 		}
 		return false;
@@ -435,9 +439,19 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private boolean isLocalRequest(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION) || 
 			request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION)   ||
-			request.fetchRequestType().equals(RequestType.GET_METRIC)			||
-			request.fetchRequestType().equals(RequestType.COMMAND)) {
+			request.fetchRequestType().equals(RequestType.GET_METRIC) ) {
 			return true;
+		}
+		else if (request.fetchRequestType().equals(RequestType.COMMAND) ) {
+			Map<String,String> properties = request.getProperties();
+			String cmd = properties.get(BottleConstants.COMMAND_NAME);
+			if( cmd.equalsIgnoreCase(BottleConstants.COMMAND_FREEZE) ||
+				cmd.equalsIgnoreCase(BottleConstants.COMMAND_RELAX) ) {
+				return false;
+			}
+			else {
+				return true;
+			}
 		}
 		else if( request.fetchRequestType().equals(RequestType.NOTIFICATION)) {
 			request.assignSource(HandlerType.DISPATCHER.name());  // Setup to broadcast
