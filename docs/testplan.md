@@ -21,13 +21,13 @@ This section contains tests that validate the wiring and addressing of stepper m
 the conversion of raw readings from the motors into proper engineering
 units, and the listing of various parameters in the motor control tables. Finally, there
 is a section listing maintenance commands.
-* ![green](/images/ball_green.png) ``Validate Connections``  - use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
+* ![green](/images/ball_green.png) ``Validate Connections``  - Use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
 * ![green](/images/ball_green.png) ``Joint IDs`` - verify that the pairing of name to ID
 is correct for every joint.  Syntax of the query:
 ```
     what is the id of your left hip y
 ```
-* ![green](/images/ball_green.png) ``List attributes`` - use the terminal application to list
+* ![green](/images/ball_green.png) ``List attributes`` - Use the terminal application to list
 values of a selected attribute for all joints. Verify conversions from raw readings
 to engineering units. Available
  parameters include: position, speed, load, voltage and temperature. Values are read directly
@@ -37,7 +37,7 @@ from the motors, scaled and logged.
     tell me your joint positions
     list the speeds of your motors
 ```
-* ![green](/images/ball_green.png) ``Joint Properties`` - use the terminal application to
+* ![green](/images/ball_green.png) ``Joint Properties`` - Use the terminal application to
 read the current values of joint properties. A complete list of joint names and properties may be found
 in the *Vocabulary* section of the user guide. In addition to properties configured in the configuration
 file (like: id, motor type, orientation, minimum angle and maximum angle), properties include current
@@ -47,11 +47,12 @@ temperature (deg C), and voltage (volts). A typical query:
     what is the position of your left elbow
     what is your right ankle position
     what is the speed of your right knee
+    what is the temperature of your right shoulder x
     what is the torque of your left hip x
 ```
 
-* ![gray](/images/ball_gray.png) ``Maintenance Commands`` - these are no-argument commands that
-perform various control operations. (The check mark indicate completion).
+* ![gray](/images/ball_gray.png) ``Maintenance Commands`` - These are no-argument commands that
+perform various system operations. In the list below, the check mark indicates completion.
   - [x] halt: stop the control processes on the robot. Leave the operating system running.
   - [ ] reset: clear any unprocessed results from the serial ports. This is an internal recovery
   operation in the event of I/O errors.
@@ -68,14 +69,14 @@ The parameter list includes: id, motor type, orientation and angle limits. The r
 ```
    describe your configuration
 ```
-* ![green](/images/ball_green.png) ``Hardware Limits`` - use the terminal application to query limits
+* ![green](/images/ball_green.png) ``Hardware Limits`` - Use the terminal application to query limits
 that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
 Values include angle, speed and and torque limits. Results are logged.
 Typical syntax:
 ```
     what are the limits on your right knee
 ```
-* ![green](/images/ball_green.png) ``Goals`` - use the terminal application to list
+* ![green](/images/ball_green.png) ``Goals`` - Use the terminal application to list
 the current goals for a joint. Goal parameters
 include angle, speed and and torque limits. Results are logged. Speeds are degrees/sec and
 torques are newton-meters.
@@ -83,7 +84,7 @@ Typical syntax:
 ```
     what are the targets for your left shoulder x
 ```
-* ![green](/images/ball_green.png) ``Positions`` - use the terminal application to
+* ![green](/images/ball_green.png) ``Positions`` - Use the terminal application to
 revisit the detection of position. In particular, check that the orientation is
 proper and limits and values makes sense. E.g. a straight knee should be at 180 deg; the neck
 when facing straight ahead is 0 deg. Fix the configuration file limits to be within the actual
@@ -93,8 +94,9 @@ EEPROM limits. A typical query:
     what are the limits of your left elbow
 ```
 
-* ![green](/images/ball_green.png) ``Sane Startup`` - when the robot is first powered on,
-its limbs are in unknown positions. Read the positions of all joints and move those
+* ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
+its limbs are in unknown positions. As part of the startup seqeunce, read the positions of
+all joints and move those
 that are outside configured limits to the closest "legal" value. When this initialization
 is complete, issue a response stating that the robot is ready.
 ```
@@ -106,7 +108,7 @@ This section includes the first set of tests for driving the position of the rob
 It also introduces use of the database to store "poses". The tests here simply
 drive joints to a goal. There is not yet a concept of trajectory planning.
 
-* ![green](/images/ball_green.png) ``Move Joint`` - using the terminal application,
+* ![green](/images/ball_green.png) ``Move Joint`` - Using the terminal application,
 move a joint to a specified position. Make sure that any attempts to drive it
 out-of-range are clipped . Sample command syntax:
 ```
@@ -117,15 +119,15 @@ out-of-range are clipped . Sample command syntax:
     set the left elbow to 90
     straighten your left knee
 ```
-* ![green](/images/ball_green.png) ``Pronouns`` - show the use of 'it' and 'other' as substitutions for
+* ![green](/images/ball_green.png) ``Pronouns`` - Show the use of 'it' and 'other' as substitutions for
 the last referenced joint or side. Sample command syntax:
 ```
     move it to 20
     set your other elbow to 90
     straighten it
 ```
-* ![green](/images/ball_green.png) ``Change speed or torque`` - using the terminal application,
-change the speed or torque of a joint or all joints. Both speed and torque are expressed as a percentage
+* ![green](/images/ball_green.png) ``Change speed or torque`` - Using the terminal application,
+change the speed or torque of a joint. Both speed and torque are expressed as a percentage
 of the maximum as defined in the XML configuration file.
 Sample command syntax:
 ```
@@ -137,9 +139,9 @@ Sample command syntax:
 ```
 The "move" commands set speeds for all joint movements at once.
 
-* ![green](/images/ball_green.png) ``Enable torque`` - the Dynamixel motors may be
-configured to be freewheeling and compliant or stiff. Our terms for the torque enable
-function are "relax" and "freeze". These properties may be applied to individual
+* ![green](/images/ball_green.png) ``Enable torque`` - Dynamixel motors may be
+configured to be freewheeling and compliant or stiff. The term for this feature
+is "torque enable". Our names are "relax" and "freeze". These commands may be applied to individual
 joints, limbs or the entire robot.
 Sample command syntax:
 ```
@@ -151,61 +153,37 @@ Sample command syntax:
     go limp
     straighten up
 ```
-Note that joints are stiffened before any positioning commands are executed (otherwise there
-would be no point).
+Note that the Dynamixel motors automatically enable torque whenever a position is set (otherwise there
+would be no point). Additionally, whenever a joint is stiffened, the position is recorded as "current".
 
-* ![gray](/images/ball_gray.png) ``Make a Pose`` - actions are a series of commands (usually poses)
-executed with intervening time intervals. This sequence of steps shows how to save an arbitrary pose
-whose positions are created by manual intervention. A subsequent section will demonstrate combining
-poses to create an action.
+* ![gray](/images/ball_gray.png) ``Save a Pose`` - Associate the current joint positions with
+a named pose. The pose is saved in the robot's internal database.
+```
+    you are standing
+```
 
- After startup joints are set to support maximum load and can't be bent by hand.
-```
-    relax your right arm
-```
-At this point the torque for the right elbow and associated shoulder joints is disabled.
-They can be moved manually to any desired position. Note that the leg "limb" includes hips.
-```
-  freeze
-```
-This command freezes the pose as the robot is currently positioned.
-```
-  save that pose
-  save that pose as saluting 1
-```
-With this command the pose positions are stored in the robot's internal database. If no name
-is given a number will be assigned. Note that the pose is now stored on the robot. If the
-development machine holds the canonical for of the database, then the rows added to the "pose"
-table will need to be exported and imported onto the development machine
-
-* ![gray](/images/ball_gray.png) ``Record Pose`` - assign a name to the current position
-of the robot. This is called a *Pose*. The name must be a single word. NOTE: In the
-samples that follow, names that are substitutable parameters are shown in quotes.
-The quotes should not be used when typing commands into the terminal application
-as they will not be generated by the speech processor. Likewise the name itself must
-be chosen to match the spelling that will be used by the tablet spoken text generator.
-```
-    your pose is "saluting"
-    you are "sitting"
-```
-* ![gray](/images/ball_gray.png) ``Map Pose to Command`` - associate a pose with a command to
+* ![gray](/images/ball_gray.png) ``Map Pose to Command`` - Associate a pose with a command to
 take that pose. Again, use the terminal application. Sample syntax:
 ```
     when I say "salute" take the pose "saluting"
     "sit" means to become "sitting"
+    to "wave" means you are "waving"
 ```
-* ![green](/images/ball_green.png) ``Pose`` - command the robot to assume a previously stored
-pose. The command is a single word taken from a previous mapping. This movement does not
+* ![green](/images/ball_green.png) ``Pose`` - Command the robot to assume a previously stored
+pose. The command is a word or phrase taken from a previous mapping. As of yet, this movement does not
 account for positional conflicts.
 ```
     "salute"
 ```
 
+* ![gray](/images/ball_gray.png) ``Define an Action`` - Actions are a series of commands (usually poses)
+executed with intervening time intervals.
+
 ### d - Motion Planning <a id="planning"></a>
 Plan motions so as to bring end effectors to a certain position and avoid collisions
 between different parts of the robot.
 
-* ![gray](/images/ball_gray.png) ``Forward Kinematics`` - query the robot to determine its understanding
+* ![gray](/images/ball_gray.png) ``Forward Kinematics`` - Query the robot to determine its understanding
 of the location of its joints or appendages. The result contains distances (~m) in three dimensions
 of target to the origin which is the center of the pelvis.
 ```
@@ -228,11 +206,11 @@ In addition to validating that the syntax works, check numeric results for the f
 ### e - Tablet Interaction <a id="tablet"></a>
 Test the integration of the android tablet with the robot, especially as it involves
 spoken text.
-* ![green](/images/ball_red.png) ``Speech`` - validate that all commands and queries
+* ![green](/images/ball_red.png) ``Speech`` - Validate that all commands and queries
 used in the previous section can be executed via speech and that responses are
 likewise formulated into audible sentences.
 
-* ![gray](/images/ball_gray.png) ``Transcript`` - validate the tablet keeps a record of spoken
+* ![green](/images/ball_green.png) ``Transcript`` - Validate that the tablet keeps a record of spoken
 commands and corresponding responses from the robot.
 
 * ![gray](/images/ball_gray.png) ``Logging`` - validate that notifications (errors and results

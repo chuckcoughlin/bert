@@ -22,6 +22,7 @@ import bert.share.message.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.RequestType;
 import bert.share.motor.Joint;
+import bert.share.motor.JointProperty;
 import bert.share.motor.MotorConfiguration;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
@@ -126,26 +127,37 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	
 
 	/**
-	 * This method blocks until the prior request completes. 
-	 * 
+	 * This method blocks until the prior request completes. Ignore requests that apply to a single controller
+	 * and that controller is not this one, otherwise add the request to the request queue. 
 	 * @param request
 	 */
 	public void receiveRequest(MessageBottle request) {
 		lock.lock();
+		LOGGER.info(String.format("%s(%s).processRequest: processing %s",CLSS,group,request.fetchRequestType().name()));
 		try {
 			if( isLocalRequest(request) ) {
 				handleLocalRequest(request);
 				return;
 			}
 			else if( isSingleGroupRequest(request)) {
-				// Do nothing if the joint isn't in our group.
-				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
-				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME,"UNKNOWN");
-				MotorConfiguration mc = configurationsByName.get(jointName);
-				if( mc==null ) { 
-					return; 
+				// Do nothing if the joint or limb isn't in our group.
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME,Joint.UNKNOWN.name());
+				String limbName = request.getProperty(BottleConstants.LIMB_NAME,Limb.UNKNOWN.name());
+				if( !jointName.equalsIgnoreCase(Joint.UNKNOWN.name())) {
+					MotorConfiguration mc = configurationsByName.get(jointName);
+					if( mc==null ) { 
+						return; 
+					}
+				}
+				else if(!limbName.equalsIgnoreCase(Limb.UNKNOWN.name())) {
+					Limb limb = Limb.valueOf(limbName);
+					int count = configurationsForLimb(limb).size();
+					if( count==0 ) {
+						return;
+					}
 				}
 				else {
+					String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME,JointProperty.UNRECOGNIZED.name());
 					LOGGER.info(String.format("%s.receiveRequest %s (%s): for %s (%s)",CLSS,group,request.fetchRequestType().name(),
 							jointName,propertyName));
 				}
@@ -154,6 +166,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				LOGGER.info(String.format("%s.receiveRequest: %s non-single group request (%s)",CLSS,group,request.fetchRequestType().name()));
 			}
 			requestQueue.addLast(request);
+			LOGGER.info(String.format("%s(%s).processRequest: added to request queue %s",CLSS,group,request.fetchRequestType().name()));
 			running.signal();
 		}
 		finally {
@@ -259,6 +272,10 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			msg.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)  ){
 			return true;
 		}
+		else if( msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) &&
+				!msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name()).equalsIgnoreCase( Limb.UNKNOWN.name())) {
+			return true;
+		}
 		return false;
 	}
 	
@@ -287,7 +304,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Convert the request message into a command for the serial port. As a side
 	 * effect set the number of expected responses. This can vary by request type.
@@ -299,7 +316,25 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 		byte[] bytes = null;
 		if( request!=null) {
 			RequestType type = request.fetchRequestType();
-			if( type.equals(RequestType.GET_GOALS)) {
+			if( type.equals(RequestType.COMMAND) && 
+					request.getProperty(BottleConstants.COMMAND_NAME, "").equalsIgnoreCase(BottleConstants.COMMAND_FREEZE) ) {
+					String propertyName = JointProperty.STATE.name();
+					for(MotorConfiguration mc:configurationsByName.values()) {
+						mc.setTorqueEnabled(true);
+					}
+					bytes = dxl.byteArrayToSetProperty(configurationsByName,propertyName);
+					wrapper.setResponseCount(0);  // No response
+				}
+				else if( type.equals(RequestType.COMMAND) && 
+						 request.getProperty(BottleConstants.COMMAND_NAME, "").equalsIgnoreCase(BottleConstants.COMMAND_RELAX) ) {
+					for(MotorConfiguration mc:configurationsByName.values()) {
+						mc.setTorqueEnabled(false);
+					}
+					String propertyName = JointProperty.STATE.name();
+					bytes = dxl.byteArrayToSetProperty(configurationsByName,propertyName);
+					wrapper.setResponseCount(0);  // No response
+				}
+				else if( type.equals(RequestType.GET_GOALS)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "");
 				MotorConfiguration mc = configurationsByName.get(jointName);
 				bytes = dxl.bytesToGetGoals(mc.getId());
@@ -319,17 +354,22 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				wrapper.setResponseCount(1);   // Status message
 			}
 			else if( type.equals(RequestType.SET_LIMB_PROPERTY)) {
-				String limbName = request.getProperty(BottleConstants.LIMB_NAME, "UNKNOWN");
-				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
-				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
+				String limbName = request.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name());
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name());
+				JointProperty jp = JointProperty.valueOf(propertyName);
+				double value = Double.parseDouble(request.getProperty(propertyName.toUpperCase(),"0.0"));
 				// Loop over motor config map, set the property
-				bytes = dxl.byteArrayToSetLimbProperty(configurationsByName,limbName,propertyName);
-				wrapper.setResponseCount(0);  // AYNC WRITE, no response
 				Limb limb = Limb.valueOf(limbName);
+				Map<String,MotorConfiguration> configs = configurationsForLimb(limb);
+				bytes = dxl.byteArrayToSetProperty(configs,propertyName);
+				for(MotorConfiguration mc:configs.values()) {
+					mc.setProperty(jp, value);
+				}
+				wrapper.setResponseCount(0);  // AYNC WRITE, no response
 				request.setProperty(BottleConstants.TEXT,String.format("My %s %s is %s",Limb.toText(limb),propertyName.toLowerCase(),value));
 			}
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
 				MotorConfiguration mc = configurationsByName.get(jointName);
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
 				String value = request.getProperty(propertyName.toUpperCase(),"0.0");
@@ -388,9 +428,19 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				wrapper.setResponseCount(0);  // No response
 			}
 			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+				String limbName = request.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name());
 				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "");
-				list = dxl.byteArrayListToListProperty(propertyName,configurationsByName.values());
-				wrapper.setResponseCount(configurationsByName.size());  // Status packet for each motor
+				if( limbName.equalsIgnoreCase(Limb.UNKNOWN.name())) {
+					list = dxl.byteArrayListToListProperty(propertyName,configurationsByName.values());
+					wrapper.setResponseCount(configurationsByName.size());  // Status packet for each motor
+				}
+				// A specific limb. Configuration array contains only those limbs. (May be empty)
+				else {
+					Limb limb = Limb.valueOf(limbName);
+					Map<String,MotorConfiguration> configs = configurationsForLimb(limb);
+					list = dxl.byteArrayListToListProperty(propertyName,configs.values());
+					wrapper.setResponseCount(configs.size());  // Status packet for each motor in limb
+				}
 			}
 			else if( type.equals(RequestType.SET_POSE)) {
 				String poseName = request.getProperty(BottleConstants.POSE_NAME, "");
@@ -410,19 +460,29 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	}
 	
 	/**
-	 * We have just written a message to the serial port for which we will get no
-	 * response. Make one up and send it off to the "MotorManager".  Currently there 
-	 * are two request types in this category.
+	 * We have just written a message to the serial port that generates no
+	 * response. Make one up and send it off to the "MotorManager". It expects
+	 * a response from each controller.
 	 * @param msg the request
-	 * @return true if this is the type of message that translates into 
-	 *         multiple writes to the serial port.
 	 */
 	private void synthesizeResponse(MessageBottle msg) {
 
 		if( msg.fetchRequestType().equals(RequestType.INITIALIZE_JOINTS) ||
+			msg.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) ||
 			msg.fetchRequestType().equals(RequestType.SET_POSE)	) {
         	motorManager.handleSynthesizedResponse(msg);
-        } 
+        } 	
+		else if( msg.fetchRequestType().equals(RequestType.COMMAND) ) {
+			String cmd = msg.getProperty(BottleConstants.COMMAND_NAME, "");
+			if( cmd.equalsIgnoreCase(BottleConstants.COMMAND_FREEZE) ||
+				cmd.equalsIgnoreCase(BottleConstants.COMMAND_RELAX) ) {
+				motorManager.handleSynthesizedResponse(msg);
+			}
+			else {
+				LOGGER.severe( String.format("%s.synthesizeResponse: Unhandled response for command %s",CLSS,cmd));
+				motorManager.handleSingleMotorResponse(msg);  // Probably an error
+			}
+		}	
 		else  {
 			LOGGER.severe( String.format("%s.synthesizeResponse: Unhandled response for %s",CLSS,msg.fetchRequestType().name()));
 			motorManager.handleSingleMotorResponse(msg);  // Probably an error
@@ -442,35 +502,43 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			RequestType type = request.fetchRequestType();
 			Map<String,String> properties = request.getProperties();
 			if( type.equals(RequestType.GET_GOALS)) {
-				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
 				MotorConfiguration mc = getMotorConfiguration(jointName);
 				dxl.updateGoalsFromBytes(mc,properties,bytes);
 			} 
 			else if( type.equals(RequestType.GET_LIMITS)) {
-				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
 				MotorConfiguration mc = getMotorConfiguration(jointName);
 				dxl.updateLimitsFromBytes(mc,properties,bytes);
 			} 
 			else if( type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-				String jointName = request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN");
+				String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
 				MotorConfiguration mc = getMotorConfiguration(jointName);
-				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, "UNKNOWN");
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name());
 				dxl.updateParameterFromBytes(propertyName,mc,properties,bytes);
 				String partial = properties.get(BottleConstants.TEXT);
 				if( partial!=null && !partial.isEmpty()) {
 					Joint joint = Joint.valueOf(jointName);
 					properties.put(BottleConstants.TEXT,String.format("My %s %s is %s", Joint.toText(joint),propertyName.toLowerCase(),partial));
 				}	
+			}
+			// The update applies to only one of several motors affected by this request
+			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+				int id = bytes[2];
+				MotorConfiguration mc = configurationsById.get(id);
+				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name());
+				dxl.updateParameterFromBytes(propertyName,mc,properties,bytes);	
 			} 
 			// The only interesting response is the error code.
-			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+			else if( type.equals(RequestType.SET_LIMB_PROPERTY) ||
+					 type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 				String err =  dxl.errorMessageFromStatus(bytes);
 				if( err!=null && !err.isEmpty() ) {
 					request.assignError(err);
 				}
 			} 
 			else {
-				LOGGER.severe( String.format("%s.updateCurrentRequestFromBytes: Unhandled response for %s",CLSS,type.name()));
+				LOGGER.severe( String.format("%s.updateRequestFromBytes: Unhandled response for %s",CLSS,type.name()));
 			}
 		}
 	}
@@ -563,6 +631,15 @@ public class MotorController implements  Runnable, SerialPortEventListener {
         }
     }
 	
+	private Map<String,MotorConfiguration> configurationsForLimb(Limb limb) {
+		Map<String,MotorConfiguration> result = new HashMap<>();
+		for(MotorConfiguration mc:configurationsByName.values()) {
+			if( mc.getLimb().equals(limb)) {
+				result.put(mc.getJoint().name(), mc);
+			}
+		}
+		return result;
+	}
 	/**
 	 * Combine the remainder from the previous serial read. Set the remainder null.
 	 * @param bytes

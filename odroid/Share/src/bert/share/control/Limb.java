@@ -87,6 +87,12 @@ public enum Limb
 			case RIGHT_UPPER_ARM: text = "right upper arm"; break;
 			case SPINE: text = "spine"; break;
 			case THORACIC: text = "thoracic vertibrae"; break;
+			// Aggregates
+			case LEFT_ARM:  text = "left arm"; break;
+			case RIGHT_ARM: text = "right arm"; break;
+			case LEFT_LEG:  text = "left leg"; break;
+			case RIGHT_LEG: text = "right leg"; break;
+			case TORSO:     text = "torso"; break;
 			case UNKNOWN: text = "unknown"; break;
 		}
 		return text;

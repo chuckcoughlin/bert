@@ -161,21 +161,16 @@ public class DxlMessage  {
 		return messages;
 	}
 	/**
-	 * Set either the speed,torque or torque_enable for motors in the specified limb. The motor configurations have all the
-	 * information.
-	 * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
+	 * Set either the speed, torque or torque_enable for all motors in the configuration map.
+	 * WARNING: SYNC_WRITE requests do not generate responses.
 	 * @param map of the motor configurations keyed by joint name
-	 * @param limb name of the limb to be set
 	 * @param property, either speed,torque or torque_enable
-	 * @return a byte array with entries corresponding to joints of the limb, if any. 
+	 * @return a byte array with entries corresponding to joints, if any. 
 	 */
-	public byte[] byteArrayToSetLimbProperty(Map<String,MotorConfiguration> map,String limb,String property) {
+	public byte[] byteArrayToSetProperty(Map<String,MotorConfiguration> map,String property) {
 		// First count all the joints in the limb
-		int count = 0;
-		for( MotorConfiguration mc:map.values()) {
-			if( mc.getLimb().name().equalsIgnoreCase(limb)) count++;
-		}
-		
+		int count = map.size();
+
 		byte[] bytes = new byte[0];
 		int dxlValue = 0;
 		if( count>0 ) {
@@ -190,27 +185,26 @@ public class DxlMessage  {
 			int index = 7;
 			for( MotorConfiguration mc:map.values()) {
 				bytes[index]= (byte) mc.getId();
-				if( mc.getLimb().name().equalsIgnoreCase(limb)) {
-					if( property.equalsIgnoreCase(JointProperty.TORQUE.name()) ) {
-						dxlValue = converter.dxlValueForProperty(JointProperty.TORQUE.name(),mc,mc.getTorque());
-						bytes[index+1] = (byte)(dxlValue & 0xFF);
-						bytes[index+2] = (byte)(dxlValue >>8);
-					}
-					else if( property.equalsIgnoreCase(JointProperty.SPEED.name()) ) {
-						dxlValue = converter.dxlValueForProperty(JointProperty.SPEED.name(),mc,mc.getSpeed());
-						bytes[index+1] = (byte)(dxlValue & 0xFF);
-						bytes[index+2] = (byte)(dxlValue >>8);
-					}
-					else if( property.equalsIgnoreCase(JointProperty.STATE.name()) ) {
-						dxlValue = converter.dxlValueForProperty(JointProperty.STATE.name(),mc,(mc.isTorqueEnabled()?1.0:0.0));
-						bytes[index+1] = (byte)(dxlValue);
-					}
-					index = index+1+converter.dataBytesForProperty(property);
+
+				if( property.equalsIgnoreCase(JointProperty.TORQUE.name()) ) {
+					dxlValue = converter.dxlValueForProperty(JointProperty.TORQUE.name(),mc,mc.getTorque());
+					bytes[index+1] = (byte)(dxlValue & 0xFF);
+					bytes[index+2] = (byte)(dxlValue >>8);
 				}
+				else if( property.equalsIgnoreCase(JointProperty.SPEED.name()) ) {
+					dxlValue = converter.dxlValueForProperty(JointProperty.SPEED.name(),mc,mc.getSpeed());
+					bytes[index+1] = (byte)(dxlValue & 0xFF);
+					bytes[index+2] = (byte)(dxlValue >>8);
+				}
+				else if( property.equalsIgnoreCase(JointProperty.STATE.name()) ) {
+					dxlValue = converter.dxlValueForProperty(JointProperty.STATE.name(),mc,(mc.isTorqueEnabled()?1.0:0.0));
+					bytes[index+1] = (byte)(dxlValue);
+				}
+				index = index+1+converter.dataBytesForProperty(property);
+
 			}
 			setChecksum(bytes);
 		}
-
 		return bytes;
 	}
 	/**

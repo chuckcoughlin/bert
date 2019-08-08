@@ -12,6 +12,7 @@ import bert.share.message.MessageBottle;
 import bert.share.message.MetricType;
 import bert.share.message.RequestType;
 import bert.share.motor.Joint;
+import bert.share.motor.JointProperty;
 
 
 /**
@@ -92,9 +93,20 @@ public class MessageTranslator  {
 					text = String.format("Motor %s have been written to log files", propertyName.toLowerCase());
 				}
 				else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
-					String limbName = msg.getProperty(BottleConstants.LIMB_NAME, "");
 					Limb limb   = Limb.valueOf(msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name()).toUpperCase());
-					text = String.format("My %s is set ", Limb.toText(limb));
+					String propertyName   = msg.getProperty(BottleConstants.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name());
+					if( propertyName.equalsIgnoreCase(JointProperty.STATE.name())) {
+						String value = msg.getProperty(propertyName, "");
+						if( value.equals("0")) {
+							text = String.format("My %s is compliant ", Limb.toText(limb));
+						}
+						else {
+							text = String.format("My %s is rigid ", Limb.toText(limb));
+						}
+					}
+					else {
+						text = String.format("My %s is set ", Limb.toText(limb));
+					}
 				}
 				else if(type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 					text = randomAcknowledgement();

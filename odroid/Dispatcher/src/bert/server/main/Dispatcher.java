@@ -281,7 +281,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 	}
 	// The response is simply the request. A generic acknowledgement will be relayed to the user.
-	// This method inserts a request to get motor position before freezing the joint(s).
+	// 1) Freezing a joint requires getting the motor position first to update the internal status dictionary
 	private MessageBottle handleInternalRequest(MessageBottle request) {
 		// Read the current motor positions, then freeze.
 		Map<String,String> properties = request.getProperties();

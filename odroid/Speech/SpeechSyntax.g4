@@ -25,7 +25,7 @@ command:
 	| Salutation? List Article? Motor? Properties                               # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
 	| Salutation? Move Adverb                                                   # moveSpeed
-	| Salutation? (Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?			# enableTorque
+	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?		# enableTorque
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off) Unit?  # setMotorProperty
     | Salutation? Straighten Yourself? Up   					# straightenUp

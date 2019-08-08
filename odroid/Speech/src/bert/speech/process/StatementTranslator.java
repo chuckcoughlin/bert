@@ -96,7 +96,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override
-	// Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot.
+	// Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot. "hold" is the same as "freeze".
 	// relax your left arm
 	public Object visitEnableTorque(SpeechSyntaxParser.EnableTorqueContext ctx) {
 		String axis = sharedDictionary.get(SharedKey.AXIS).toString();
@@ -107,9 +107,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		if( ctx.Side()!=null ) side = determineSide(ctx.Side().getText(),sharedDictionary);
 		sharedDictionary.put(SharedKey.SIDE, side);
 		// If both Limb() and Joint() are null, then we apply to the entire robot
-		if( ctx.Freeze()!=null || ctx.Relax()!=null ) {
+		if( ctx.Freeze()!=null || ctx.Relax()!=null || ctx.Hold()!=null ) {
 			String cmd = "";
-			if( ctx.Freeze()!=null ) cmd = ctx.Freeze().getText().toLowerCase();
+			if( ctx.Freeze()!=null || ctx.Hold()!=null ) cmd = ctx.Freeze().getText().toLowerCase();
 			if( ctx.Relax()!=null )  cmd = ctx.Relax().getText().toLowerCase();
 			Joint joint = Joint.UNKNOWN;
 			if(ctx.It()!=null && sharedDictionary.get(SharedKey.IT).equals(SharedKey.JOINT) ) {
@@ -122,7 +122,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
 				bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 				bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.STATE.name());
-				if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.STATE.name(),BottleConstants.ON_VALUE);
+				if( ctx.Freeze()!=null || ctx.Hold()!=null ) bottle.setProperty(JointProperty.STATE.name(),BottleConstants.ON_VALUE);
 				else bottle.setProperty(JointProperty.STATE.name(),BottleConstants.OFF_VALUE);
 				sharedDictionary.put(SharedKey.JOINT,joint);
 				sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
@@ -140,7 +140,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 					bottle.assignRequestType(RequestType.SET_LIMB_PROPERTY);
 					bottle.setProperty(BottleConstants.LIMB_NAME,limb.name());
 					bottle.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.STATE.name());
-					if( ctx.Freeze()!=null ) bottle.setProperty(JointProperty.STATE.name(),BottleConstants.ON_VALUE);
+					if( ctx.Freeze()!=null || ctx.Hold()!=null) bottle.setProperty(JointProperty.STATE.name(),BottleConstants.ON_VALUE);
 					else bottle.setProperty(JointProperty.STATE.name(),BottleConstants.OFF_VALUE);
 					sharedDictionary.put(SharedKey.LIMB,limb);
 					sharedDictionary.put(SharedKey.IT,SharedKey.LIMB);
@@ -148,7 +148,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				// Limb and Joint are UNKNOWN. Apply to the entire body
 				else {
 					bottle.assignRequestType(RequestType.COMMAND);
-					if( ctx.Freeze()!=null ) bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_FREEZE);
+					if( ctx.Freeze()!=null || ctx.Hold()!=null ) bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_FREEZE);
 					else bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_RELAX);
 				}
 			}

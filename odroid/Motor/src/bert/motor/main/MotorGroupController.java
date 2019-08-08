@@ -150,8 +150,8 @@ public class MotorGroupController implements MotorManager {
 		}
 		else {
 			LOGGER.info(String.format("%s.processRequest: processing %s",CLSS,request.fetchRequestType().name()));
-			for( String key:motorControllers.keySet()) {
-				motorControllers.get(key).receiveRequest(request);
+			for( MotorController controller:motorControllers.values()) {
+				controller.receiveRequest(request);
 			}	
 		}
 	}
@@ -214,6 +214,17 @@ public class MotorGroupController implements MotorManager {
 				property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
 				property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
 				property.equalsIgnoreCase(JointProperty.ORIENTATION.name()) ) {
+				return true;
+			}
+		}
+		else if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
+			// Some properties cannot be set. Catch them here in order to formulate an error response.
+			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");
+			if( property.equalsIgnoreCase(JointProperty.ID.name()) ||
+				property.equalsIgnoreCase(JointProperty.MOTORTYPE.name()) ||
+				property.equalsIgnoreCase(JointProperty.OFFSET.name()) ||
+				property.equalsIgnoreCase(JointProperty.ORIENTATION.name()) ||
+				property.equalsIgnoreCase(JointProperty.POSITION.name())) {
 				return true;
 			}
 		}
@@ -339,6 +350,10 @@ public class MotorGroupController implements MotorManager {
 			}
 			text = String.format("The %ss of all motors have been logged",property.name().toLowerCase());
 			request.setProperty(BottleConstants.TEXT, text);
+		}
+		else if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
+			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");
+			request.assignError("I cannot change "+property.toLowerCase()+" for all joints in the limb");
 		}
 		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
 			String property = request.getProperty(BottleConstants.PROPERTY_NAME,"");
