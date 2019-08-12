@@ -21,14 +21,15 @@ public enum RequestType
 	IDLE,					 // Internal message used to keep the timer queue "alive"
 	INITIALIZE_JOINTS,		 // Make sure that all joints are in "sane" positions
 	LIST_MOTOR_PROPERTY,     // List a property for all motors
-	MAP_COMMAND_TO_POSE,     // Associate a command to a pose
+	MAP_POSE,     			 // Associate a command to a pose
 	NOTIFICATION,            // Unsolicited message from server or parser
 	PARTIAL,                 // Remainder of text has yet to arrive
     PLAY_STEP,
 	RECORD_STEP,
+	SAVE_POSE,               // Save the current pose to the database
 	SET_LIMB_PROPERTY,       // Torque or speed for motors in a limb
 	SET_MOTOR_PROPERTY,      // For a particular motor
-	SET_POSE,
+	SET_POSE,                // Position robot in the named pose
 	SET_STATE,               // A global configuration, like ignoring
 	NONE
     ;

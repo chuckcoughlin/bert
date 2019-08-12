@@ -79,19 +79,27 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
-	// Set the current pose
+	// you are singing
 	public Object visitDeclarePose1(SpeechSyntaxParser.DeclarePose1Context ctx) {
-		String pose = ctx.NAME().getText();
+		String pose = namesForNodeList(ctx.NAME());
 		sharedDictionary.put(SharedKey.POSE, pose);
-		bottle.assignRequestType(RequestType.NOTIFICATION);
+		bottle.assignRequestType(RequestType.SAVE_POSE);
 		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
 		return null;
 	}
 	@Override
+	// ypur pose is sitting
 	public Object visitDeclarePose2(SpeechSyntaxParser.DeclarePose2Context ctx) {
-		String pose = ctx.NAME().getText();
+		String pose = namesForNodeList(ctx.NAME());
 		sharedDictionary.put(SharedKey.POSE, pose);
-		bottle.assignRequestType(RequestType.NOTIFICATION);
+		bottle.assignRequestType(RequestType.SAVE_POSE);
+		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
+		return null;
+	}
+	@Override
+	// save your pose
+	public Object visitDeclareNoNamePose(SpeechSyntaxParser.DeclareNoNamePoseContext ctx) {
+		bottle.assignRequestType(RequestType.SAVE_POSE);
 		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
 		return null;
 	}
@@ -425,9 +433,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
+	// Map a command to holding a pose
 	// when i say stand take the pose standing
 	public Object visitMapPoseToCommand1(SpeechSyntaxParser.MapPoseToCommand1Context ctx) {
-		bottle.assignRequestType(RequestType.MAP_COMMAND_TO_POSE);
+		bottle.assignRequestType(RequestType.MAP_POSE);
 		if( ctx.NAME().size()>1 ) {
 			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(0).getText());
 			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(1).getText());
@@ -441,7 +450,26 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// standing means to stand
 	public Object visitMapPoseToCommand2(SpeechSyntaxParser.MapPoseToCommand2Context ctx) {
-		bottle.assignRequestType(RequestType.MAP_COMMAND_TO_POSE);
+		bottle.assignRequestType(RequestType.MAP_POSE);
+		if( ctx.NAME().size()>1 ) {
+			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(1).getText());
+			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(0).getText());
+		}
+		else {
+			String msg = String.format("I need both a pose name and associated command");
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
+	// to climb means you are climbing
+	public Object visitMapPoseToCommand3(SpeechSyntaxParser.MapPoseToCommand3Context ctx) {
+		int count = ctx.NAME().size();
+		for(int index=0;index<count;index++) {
+			LOGGER.info(String.format("StatementTranslator.visitMapPoseToCommand3 %s %d %d",ctx.NAME(index).getText(),
+					ctx.NAME(index).getSourceInterval().a,ctx.NAME(index).getSourceInterval().b));
+		}
+		bottle.assignRequestType(RequestType.MAP_POSE);
 		if( ctx.NAME().size()>1 ) {
 			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(1).getText());
 			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(0).getText());

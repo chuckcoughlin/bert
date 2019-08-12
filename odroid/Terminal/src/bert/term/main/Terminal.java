@@ -23,6 +23,7 @@ import bert.share.message.MessageHandler;
 import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
+import bert.speech.process.MessageTranslator;
 import bert.sql.db.Database;
 import bert.term.model.RobotTerminalModel;
 
@@ -44,14 +45,16 @@ public class Terminal extends Thread implements MessageHandler {
 	private final RobotTerminalModel model;
 	private SocketController socketController = null;
 	private final Condition busy;
-	private StdioController stdioController = null;
+	private final MessageTranslator messageTranslator;
 	private MessageBottle currentRequest = null;
 	private final Lock lock;
+	private StdioController stdioController = null;
 	
 	public Terminal(RobotTerminalModel m) {
 		this.model = m;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
+		this.messageTranslator = new MessageTranslator();
 	}
 
 	/**
@@ -148,6 +151,24 @@ public class Terminal extends Thread implements MessageHandler {
 		stdioController.receiveResponse(response);
 	}
 	
+	// Create a response for a request that can be handled immediately. These tend to be database requests,
+	// The response is simply the original request with some text to send directly to the user. 
+	private MessageBottle handleLocalRequest(MessageBottle request) {
+		// The following two requests simply use the current positions of the motors, whatever they are
+		if( request.fetchRequestType().equals(RequestType.MAP_POSE)) {
+			String text = messageTranslator.randomAcknowledgement();
+			request.setProperty(BottleConstants.TEXT, text);
+		}
+		return request;
+	}
+
+	// Some database requests can be handled immediately
+	private boolean isLocalRequest(MessageBottle request) {
+		if( request.fetchRequestType().equals(RequestType.MAP_POSE) ) {
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * Entry point for the application that allows direct user input through
 	 * stdio. The argument specifies a directory that is the root of the various

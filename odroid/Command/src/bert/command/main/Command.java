@@ -25,6 +25,7 @@ import bert.share.message.MessageHandler;
 import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
 import bert.share.util.ShutdownHook;
+import bert.speech.process.MessageTranslator;
 import bert.sql.db.Database;
 
 /**
@@ -40,6 +41,7 @@ public class Command extends Thread implements MessageHandler {
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private final RobotCommandModel model;
 	private BluetoothController tabletController = null;
+	private final MessageTranslator messageTranslator;
 	private SocketController dispatchController = null;
 	private final Condition busy;
 	private MessageBottle currentRequest;
@@ -50,6 +52,7 @@ public class Command extends Thread implements MessageHandler {
 		this.model = m;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
+		this.messageTranslator = new MessageTranslator();
 	}
 
 	/**
@@ -141,6 +144,32 @@ public class Command extends Thread implements MessageHandler {
 		tabletController.receiveResponse(response);
 	}
 	
+	// Create a response for a request that can be handled immediately. These tend to be database requests,
+	// The response is simply the original request with some text to send directly to the user. 
+	private MessageBottle handleLocalRequest(MessageBottle request) {
+		// The following two requests simply use the current positions of the motors, whatever they are
+		if( request.fetchRequestType().equals(RequestType.MAP_POSE)) {
+			String cmd = request.getProperty(BottleConstants.COMMAND_NAME, "");
+			String pose = request.getProperty(BottleConstants.POSE_NAME, "");
+			if(!cmd.isEmpty() && !pose.isEmpty()) {
+				Database database = Database.getInstance();
+				database.mapCommandToPose(cmd,pose);
+				String text = messageTranslator.randomAcknowledgement();
+				request.setProperty(BottleConstants.TEXT, text);
+			}
+			else {
+				request.assignError("please specify both a command and related pose");
+			}
+		}
+		return request;
+	}
+	// Some database requests can be handled immediately
+	private boolean isLocalRequest(MessageBottle request) {
+		if( request.fetchRequestType().equals(RequestType.MAP_POSE) ) {
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * Entry point for the application that contains the robot Java
 	 * code for control of the appendages, among other things. 

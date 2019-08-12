@@ -95,7 +95,7 @@ EEPROM limits. A typical query:
 ```
 
 * ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
-its limbs are in unknown positions. As part of the startup seqeunce, read the positions of
+its limbs are in unknown positions. As part of the startup sequence, read the positions of
 all joints and move those
 that are outside configured limits to the closest "legal" value. When this initialization
 is complete, issue a response stating that the robot is ready.
@@ -154,26 +154,33 @@ Sample command syntax:
     straighten up
 ```
 Note that the Dynamixel motors automatically enable torque whenever a position is set (otherwise there
-would be no point). Additionally, whenever a joint is stiffened, the position is recorded as "current".
+would be no point). Additionally, whenever a joint is stiffened, the position is read and recorded as "current".
 
 * ![gray](/images/ball_gray.png) ``Save a Pose`` - Associate the current joint positions with
 a named pose. The pose is saved in the robot's internal database.
 ```
+    your pose is saluting
     you are standing
+    save your pose
 ```
+In the case where a name is not assigned,
+the robot will assign (and report) a name,
+a simple number.
 
 * ![gray](/images/ball_gray.png) ``Map Pose to Command`` - Associate a pose with a command to
-take that pose. Again, use the terminal application. Sample syntax:
+take that pose. Pose and command names are
+arbitrary, but must be spelled in the same
+way as the Android text-to-speech processor. Sample syntax:
 ```
-    when I say "salute" take the pose "saluting"
-    "sit" means to become "sitting"
-    to "wave" means you are "waving"
+  to salute means to take the pose saluting
+  when you sit you are sitting
+  to wave at me means you are waving at me
 ```
 * ![green](/images/ball_green.png) ``Pose`` - Command the robot to assume a previously stored
 pose. The command is a word or phrase taken from a previous mapping. As of yet, this movement does not
 account for positional conflicts.
 ```
-    "salute"
+    salute
 ```
 
 * ![gray](/images/ball_gray.png) ``Define an Action`` - Actions are a series of commands (usually poses)
@@ -184,7 +191,7 @@ Plan motions so as to bring end effectors to a certain position and avoid collis
 between different parts of the robot.
 
 * ![gray](/images/ball_gray.png) ``Forward Kinematics`` - Query the robot to determine its understanding
-of the location of its joints or appendages. The result contains distances (~m) in three dimensions
+of the location of its joints or appendages. The result consists of distances (~m) in three dimensions
 of target to the origin which is the center of the pelvis.
 ```
     where is your left hand

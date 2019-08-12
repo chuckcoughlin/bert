@@ -58,13 +58,13 @@ public class Database {
 		return instance;
 	}
 	/**
-	 * 
 	 * @param command user entered string
 	 * @return the corresponding pose name if it exists, otherwise NULL
 	 */
 	public String getPoseForCommand(String command) {
 		return pose.getPoseForCommand(connection,command);
 	}
+
 	
 	/** Return a list of column names with non-null values for the indicated pose
 	 * property.
@@ -77,6 +77,14 @@ public class Database {
 		return pose.getPoseJointValuesForParameter(connection,mcmap,poseName,parameter);
 	}
 	/**
+	 * @param user-entered command user 
+	 * @param the corresponding pose name
+	 */
+	public void mapCommandToPose(String cmd, String poseName) {
+		 pose.mapCommandToPose(connection,cmd,poseName);
+		 return;
+	}
+	/**
 	 * Populate the Motor table with information from the configuration file.
 	 * This table is useful in joins, thus the apparent duplication.
 	 * 
@@ -85,6 +93,24 @@ public class Database {
 	public void populateMotors(Map<Joint,MotorConfiguration> motors) {
 		Collection<MotorConfiguration> motorList = motors.values();
 		motor.defineMotors(connection, motorList);
+	}
+	/** 
+	 * Save a list of motor position values as a pose.
+	 * @param mcmap contains a map of motor configurations with positions that define the pose.
+	 * @param poseName
+	 */
+	public void saveJointPositionsForPose(Map<String,MotorConfiguration>mcmap,String poseName) {
+		 pose.saveJointPositionsForPose(connection,mcmap,poseName);
+		 return;
+	}
+	/** 
+	 * Save a list of motor position values as a pose. Assign the pose a name equal to the
+	 * id of the new database record.
+	 * @param mcmap contains a map of motor configurations with positions that define the pose.
+	 * @return the new record id as a string.
+	 */
+	public String saveJointPositionsAsNewPose(Map<String,MotorConfiguration>mcmap) {
+		 return pose.saveJointPositionsAsNewPose(connection,mcmap);
 	}
 	/**
 	 * Create a database connection. Use this for all subsequent queries. 

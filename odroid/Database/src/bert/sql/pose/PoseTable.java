@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -73,6 +74,7 @@ public class PoseTable {
 		return pose;
 	}
 	
+	
 	/** Return a list of column names with non-null values for the indicated pose
 	 * property. There should only be one (or none) row returned.
 	 * @param pose
@@ -132,5 +134,82 @@ public class PoseTable {
 		}
 		return map;
 	}
-	
+	/**
+	 * Associate a pose with the specified command.
+	 * @cxn an open database connection
+	 * @param command user entered string
+	 * @param the name of the pose to assume
+	 */
+	public void mapCommandToPose(Connection cxn,String command,String pose) {
+		Statement statement = null;
+		command = command.toLowerCase();
+		pose = pose.toLowerCase();
+
+		StringBuffer buf = new StringBuffer("INSERT INTO PoseMap (command,pose)");
+			buf.append("VALUES('%s','%s')");
+			buf.append("ON CONFLICT(command)"); 
+			buf.append("DO UPDATE SET pose=excluded.pose");
+		String SQL = String.format(buf.toString(), command,pose);
+		try {
+			statement = cxn.createStatement();
+			statement.execute(SQL);
+		}
+		catch(SQLException e) {
+			LOGGER.severe(String.format("%s.mapCommandToPose: Database error (%s)",CLSS,e.getMessage()));
+		}
+		finally {
+			if( statement!=null) {
+				try { statement.close(); } catch(SQLException ignore) {}
+			}
+		}
+	}
+	/** 
+	 * Save a list of motor position values as a pose. Assign the pose a name equal to the
+	 * id of the new database record.
+	 * @param mcmap contains a map of motor configurations with positions that define the pose.
+	 * @return the new record id as a string.
+	 */
+	public String saveJointPositionsAsNewPose(Connection cxn,Map<String,MotorConfiguration>mcmap) {
+		 return "";
+	}
+	/** 
+	 * Save a list of motor position values as a pose. Try an update first. If no rows are affected
+	 * then do an insert.
+	 * @param mcmap contains a map of motor configurations. Joints not in the list are ignored.
+	 * @param pose name
+	 */
+	public void saveJointPositionsForPose(Connection cxn,Map<String,MotorConfiguration>mcmap,String pose) {
+		Map<String,Double> map = new HashMap<>();
+		Statement statement = null;
+		StringBuffer updateBuffer = new StringBuffer("UPDATE Pose SET ");
+		
+		pose = pose.toLowerCase();
+		String where = String.format("\nWHERE name='%s' AND parameter='position' ", pose);
+		
+		
+		String SQL = "select * from pose where name = ? and parameter = ? ";
+		try {
+			statement = cxn.createStatement();
+			statement.execute(SQL);
+			if( statement.getUpdateCount()==0) {
+				// There was nothing to update. Do an insert.
+				statement.close();
+				StringBuffer insertBuffer = new StringBuffer("INSERT INTO Pose ('name','parameter',");
+				StringBuffer valuesBuffer = new StringBuffer("VALUES (");
+				statement = cxn.createStatement();
+				statement.execute(SQL);
+			}
+
+
+		}
+		catch(SQLException e) {
+			LOGGER.severe(String.format("%s.saveJointPositionsForPose: Database error (%s)",CLSS,e.getMessage()));
+		}
+		finally {
+			if( statement!=null) {
+				try { statement.close(); } catch(SQLException ignore) {}
+			}
+		}
+	}
+
 }

@@ -17,7 +17,7 @@ Refer to [implementation](http://github.com/chuckcoughlin/bert/tree/master/docs/
   may be found [here](https://www.youtube.com/watch?v=hqrXriI27V0)
 *********************************************************
 #### a - Startup <a id="startup"></a>
-Once the robot is powered on, a boot sequence commences. On completion, Bert will announce a randomized "Ready" statement.
+Once the robot is powered on, a boot sequence commences. On completion, Bert announces a randomized "Ready" statement.
 *********************************************************
 #### b - Example Statements <a id="example"></a>
 The lists below show typical statements that Bert will recognize.
@@ -94,6 +94,7 @@ be chosen to match the spelling that will be used by the tablet spoken text gene
 ```
     your pose is "saluting"
     you are "sitting"
+    save that pose
 ```
 Any of these commands record the pose positions in the robot's internal database. If no name
 is given a number will be assigned. Note that the pose is now stored on the robot. If the

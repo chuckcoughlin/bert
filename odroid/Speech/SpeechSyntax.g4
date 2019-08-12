@@ -52,10 +52,12 @@ question:
 
 // Convey information to the robot.
 declaration:
-    You Are NAME						# declarePose1
-	| Article Pose Is NAME 				# declarePose2
-	| When Isay NAME Take Article? Pose NAME		# mapPoseToCommand1
-	| NAME Means To NAME							# mapPoseToCommand2
+    You Are NAME+									# declarePose1
+	| Article Pose Is (NAME+|NUMBER) 				# declarePose2
+	| Save Article? Pose (As NAME+)                 # declareNoNamePose
+	| To NAME+ Means To Take Article? Pose NAME+	# mapPoseToCommand1
+	| When You NAME+ You Are NAME+					# mapPoseToCommand2
+	| To NAME+ Means You Are NAME+                  # mapPoseToCommand3
 	;
 
 
@@ -69,8 +71,10 @@ Adjective: 'current';
 Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Are: 'are';
+As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'x'|'y'|'z'|'horizontal'|'vertical'|Why;
+Cmd: 'command';
 Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');
 Configuration: 'configuration';
 Do: 'do';
@@ -102,6 +106,7 @@ Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angle
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'state'|'torque'|'load'|'temperature'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please';
+Save: 'save';
 Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';
 Side: 'left'|'right'|'other';

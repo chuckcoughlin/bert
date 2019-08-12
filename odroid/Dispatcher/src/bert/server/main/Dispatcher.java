@@ -402,6 +402,11 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 				request.assignError(msg);
 			}
 		}
+		else if(request.fetchRequestType().equals(RequestType.SAVE_POSE) ) {
+			solver.setTreeState();
+			String poseName = request.getProperty(BottleConstants.POSE_NAME,"");
+			//Database.getInstance().saveJointPositionsForPose(poseName);	
+		}
 		return request;
 	}
 
@@ -439,7 +444,8 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private boolean isLocalRequest(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION) || 
 			request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION)   ||
-			request.fetchRequestType().equals(RequestType.GET_METRIC) ) {
+			request.fetchRequestType().equals(RequestType.GET_METRIC) ||
+			request.fetchRequestType().equals(RequestType.SAVE_POSE)) {
 			return true;
 		}
 		else if (request.fetchRequestType().equals(RequestType.COMMAND) ) {
