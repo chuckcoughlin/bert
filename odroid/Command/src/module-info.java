@@ -6,5 +6,5 @@ module bert.command {
 	requires bert.speech;
 	requires bert.sql;
 	exports bert.command.model;
-	exports bert.command.main;
+	exports bert.command.controller;
 }

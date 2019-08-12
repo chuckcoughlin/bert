@@ -10,14 +10,14 @@ import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import bert.share.control.Appendage;
-import bert.share.control.Limb;
-import bert.share.message.BottleConstants;
+import bert.share.common.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.MetricType;
 import bert.share.message.RequestType;
-import bert.share.motor.Joint;
-import bert.share.motor.JointProperty;
+import bert.share.model.Appendage;
+import bert.share.model.Joint;
+import bert.share.model.JointProperty;
+import bert.share.model.Limb;
 import bert.speech.antlr.SpeechSyntaxBaseVisitor;
 import bert.speech.antlr.SpeechSyntaxParser;
 import bert.sql.db.Database;
@@ -84,7 +84,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String pose = namesForNodeList(ctx.NAME());
 		sharedDictionary.put(SharedKey.POSE, pose);
 		bottle.assignRequestType(RequestType.SAVE_POSE);
-		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
+		bottle.assignText(messageTranslator.randomAcknowledgement());
 		return null;
 	}
 	@Override
@@ -93,14 +93,14 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String pose = namesForNodeList(ctx.NAME());
 		sharedDictionary.put(SharedKey.POSE, pose);
 		bottle.assignRequestType(RequestType.SAVE_POSE);
-		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
+		bottle.assignText(messageTranslator.randomAcknowledgement());
 		return null;
 	}
 	@Override
 	// save your pose
 	public Object visitDeclareNoNamePose(SpeechSyntaxParser.DeclareNoNamePoseContext ctx) {
 		bottle.assignRequestType(RequestType.SAVE_POSE);
-		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
+		bottle.assignText(messageTranslator.randomAcknowledgement());
 		return null;
 	}
 	@Override
@@ -593,7 +593,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String pose = poseForAdverb(ctx.Adverb().getText());
 		if( pose!=null ) {
 			bottle.setProperty(BottleConstants.POSE_NAME,pose );
-			bottle.setProperty(BottleConstants.TEXT,String.format("I am moving %s", ctx.Adverb().getText()) );
+			bottle.assignText(String.format("I am moving %s", ctx.Adverb().getText()) );
 		}
 		return null;
 	}
@@ -613,7 +613,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitPoseQuestion(SpeechSyntaxParser.PoseQuestionContext ctx) {
 		String pose = sharedDictionary.get(SharedKey.POSE).toString();
 		bottle.assignRequestType(RequestType.NOTIFICATION);
-		bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomAcknowledgement());
+		bottle.assignText(messageTranslator.randomAcknowledgement());
 		return null;
 	}
 	// set your left hip y to 45 degrees

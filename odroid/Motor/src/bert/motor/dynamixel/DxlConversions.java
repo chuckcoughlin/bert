@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import bert.share.common.DynamixelType;
-import bert.share.motor.JointProperty;
-import bert.share.motor.MotorConfiguration;
+import bert.share.model.DynamixelType;
+import bert.share.model.JointProperty;
+import bert.share.model.MotorConfiguration;
 
 /**
  * This class contains methods used to convert between Dynamixel jointValues and engineering units.

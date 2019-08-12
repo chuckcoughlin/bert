@@ -9,16 +9,14 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.sqlite.JDBC;
 
-import bert.share.motor.Joint;
-import bert.share.motor.MotorConfiguration;
-import bert.sql.motor.MotorStateTable;
+import bert.share.model.Joint;
+import bert.share.model.MotorConfiguration;
 import bert.sql.pose.PoseTable;
 /**
  * This class is a wrapper for the entire robot database. It is implemented
@@ -35,7 +33,6 @@ public class Database {
 	
 	private Connection connection = null;
 	private static Database instance = null;
-	private final MotorStateTable motor;
 	private final PoseTable pose;
  
 
@@ -43,7 +40,6 @@ public class Database {
 	 * Constructor is private per Singleton pattern.
 	 */
 	private Database() {
-		this.motor = new MotorStateTable();
 		this.pose = new PoseTable();
 	}
 	/**
@@ -84,22 +80,13 @@ public class Database {
 		 pose.mapCommandToPose(connection,cmd,poseName);
 		 return;
 	}
-	/**
-	 * Populate the Motor table with information from the configuration file.
-	 * This table is useful in joins, thus the apparent duplication.
-	 * 
-	 * @param motors map of motor configurations by uppercase name
-	 */
-	public void populateMotors(Map<Joint,MotorConfiguration> motors) {
-		Collection<MotorConfiguration> motorList = motors.values();
-		motor.defineMotors(connection, motorList);
-	}
+
 	/** 
 	 * Save a list of motor position values as a pose.
 	 * @param mcmap contains a map of motor configurations with positions that define the pose.
 	 * @param poseName
 	 */
-	public void saveJointPositionsForPose(Map<String,MotorConfiguration>mcmap,String poseName) {
+	public void saveJointPositionsForPose(Map<Joint,MotorConfiguration>mcmap,String poseName) {
 		 pose.saveJointPositionsForPose(connection,mcmap,poseName);
 		 return;
 	}
@@ -109,7 +96,7 @@ public class Database {
 	 * @param mcmap contains a map of motor configurations with positions that define the pose.
 	 * @return the new record id as a string.
 	 */
-	public String saveJointPositionsAsNewPose(Map<String,MotorConfiguration>mcmap) {
+	public String saveJointPositionsAsNewPose(Map<Joint,MotorConfiguration>mcmap) {
 		 return pose.saveJointPositionsAsNewPose(connection,mcmap);
 	}
 	/**

@@ -8,10 +8,10 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import bert.share.model.AbstractRobotModel;
-import bert.share.motor.MotorConfiguration;
+import bert.share.model.MotorConfiguration;
 
 /**
- *  This model is used exclusively for testing.
+ *  This class is used exclusively for testing.
  */
 public class TestRobotModel extends AbstractRobotModel  {
 	private static final String CLSS = "TestRobotModel";

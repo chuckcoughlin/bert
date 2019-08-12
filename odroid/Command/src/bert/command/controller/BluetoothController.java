@@ -6,11 +6,11 @@ package bert.command.controller;
 
 import java.util.logging.Logger;
 
+import bert.share.common.BottleConstants;
 import bert.share.controller.Controller;
 import bert.share.controller.NamedSocket;
 import bert.share.controller.SocketController;
 import bert.share.controller.SocketStateChangeEvent;
-import bert.share.message.BottleConstants;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;

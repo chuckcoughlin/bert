@@ -16,14 +16,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import bert.motor.dynamixel.DxlMessage;
-import bert.motor.model.MessageWrapper;
-import bert.share.control.Limb;
-import bert.share.message.BottleConstants;
+import bert.share.common.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.RequestType;
-import bert.share.motor.Joint;
-import bert.share.motor.JointProperty;
-import bert.share.motor.MotorConfiguration;
+import bert.share.model.Joint;
+import bert.share.model.JointProperty;
+import bert.share.model.Limb;
+import bert.share.model.MotorConfiguration;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -366,7 +365,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					mc.setProperty(jp, value);
 				}
 				wrapper.setResponseCount(0);  // AYNC WRITE, no response
-				request.setProperty(BottleConstants.TEXT,String.format("My %s %s is %s",Limb.toText(limb),propertyName.toLowerCase(),value));
+				request.assignText(String.format("My %s %s is %s",Limb.toText(limb),propertyName.toLowerCase(),value));
 			}
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
@@ -378,14 +377,14 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					if(propertyName.equalsIgnoreCase("POSITION")) {
 						long duration = mc.getTravelTime();
 						if(request.getDuration()<duration) request.setDuration(duration);
-						request.setProperty(BottleConstants.TEXT,String.format("My position is %.0f", mc.getPosition()));
+						request.assignText(String.format("My position is %.0f", mc.getPosition()));
 					}
 					else if(propertyName.equalsIgnoreCase("STATE")) {
-						request.setProperty(BottleConstants.TEXT,String.format("My %s state is torque-%s",Joint.toText(mc.getJoint()),
+						request.assignText(String.format("My %s state is torque-%s",Joint.toText(mc.getJoint()),
 								(value.equalsIgnoreCase("0")?"disabled":"enabled")));
 					}
 					else {
-						request.setProperty(BottleConstants.TEXT,String.format("My %s %s is %s",Joint.toText(mc.getJoint()),propertyName.toLowerCase(),value));
+						request.assignText(String.format("My %s %s is %s",Joint.toText(mc.getJoint()),propertyName.toLowerCase(),value));
 					}
 					wrapper.setResponseCount(1);   // Status message
 				}

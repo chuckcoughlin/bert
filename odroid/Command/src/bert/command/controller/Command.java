@@ -2,7 +2,7 @@
  * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.command.main;
+package bert.command.controller;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,17 +13,16 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
-import bert.command.controller.BluetoothController;
 import bert.command.model.RobotCommandModel;
+import bert.share.common.BottleConstants;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
-import bert.share.logging.LoggerUtility;
-import bert.share.message.BottleConstants;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
 import bert.share.message.RequestType;
 import bert.share.model.ConfigurationConstants;
+import bert.share.util.LoggerUtility;
 import bert.share.util.ShutdownHook;
 import bert.speech.process.MessageTranslator;
 import bert.sql.db.Database;
@@ -196,7 +195,6 @@ public class Command extends Thread implements MessageHandler {
 		RobotCommandModel model = new RobotCommandModel(PathConstants.CONFIG_PATH);
 		model.populate();
 		Database.getInstance().startup(PathConstants.DB_PATH);
-		Database.getInstance().populateMotors(model.getMotors());
 		
         Command runner = new Command(model);
         runner.createControllers();

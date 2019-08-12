@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import bert.share.motor.MotorConfiguration;
+import bert.share.model.Joint;
+import bert.share.model.MotorConfiguration;
 
 /**
  * A pose is a list of positions for each motor. There are up to
@@ -169,7 +170,7 @@ public class PoseTable {
 	 * @param mcmap contains a map of motor configurations with positions that define the pose.
 	 * @return the new record id as a string.
 	 */
-	public String saveJointPositionsAsNewPose(Connection cxn,Map<String,MotorConfiguration>mcmap) {
+	public String saveJointPositionsAsNewPose(Connection cxn,Map<Joint,MotorConfiguration>mcmap) {
 		 return "";
 	}
 	/** 
@@ -178,7 +179,7 @@ public class PoseTable {
 	 * @param mcmap contains a map of motor configurations. Joints not in the list are ignored.
 	 * @param pose name
 	 */
-	public void saveJointPositionsForPose(Connection cxn,Map<String,MotorConfiguration>mcmap,String pose) {
+	public void saveJointPositionsForPose(Connection cxn,Map<Joint,MotorConfiguration>mcmap,String pose) {
 		Map<String,Double> map = new HashMap<>();
 		Statement statement = null;
 		StringBuffer updateBuffer = new StringBuffer("UPDATE Pose SET ");

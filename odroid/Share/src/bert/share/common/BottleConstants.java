@@ -3,7 +3,7 @@
  *                 MIT License.
  */
 
-package bert.share.message;
+package bert.share.common;
 
 
 /**

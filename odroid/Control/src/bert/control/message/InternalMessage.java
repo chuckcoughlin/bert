@@ -5,7 +5,7 @@
 package bert.control.message;
 
 import bert.control.controller.QueueName;
-import bert.share.message.BottleConstants;
+import bert.share.common.BottleConstants;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.RequestType;

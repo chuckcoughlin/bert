@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.server.main;
+package bert.dispatch.controller;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.Period;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -20,28 +19,26 @@ import java.util.logging.Logger;
 
 import bert.control.controller.InternalController;
 import bert.control.controller.QueueName;
-import bert.control.main.Solver;
 import bert.control.message.InternalMessage;
-import bert.control.model.Link;
+import bert.control.solver.Solver;
 import bert.motor.main.MotorGroupController;
-import bert.motor.model.RobotMotorModel;
-import bert.server.model.RobotDispatcherModel;
+import bert.share.common.BottleConstants;
 import bert.share.common.PathConstants;
-import bert.share.control.Appendage;
-import bert.share.control.Limb;
 import bert.share.controller.SocketController;
 import bert.share.controller.SocketStateChangeEvent;
 import bert.share.controller.SocketStateChangeListener;
-import bert.share.logging.LoggerUtility;
-import bert.share.message.BottleConstants;
 import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
 import bert.share.message.MetricType;
 import bert.share.message.RequestType;
+import bert.share.model.Appendage;
 import bert.share.model.ConfigurationConstants;
-import bert.share.motor.Joint;
-import bert.share.motor.JointProperty;
+import bert.share.model.Joint;
+import bert.share.model.JointProperty;
+import bert.share.model.Limb;
+import bert.share.model.RobotMotorModel;
+import bert.share.util.LoggerUtility;
 import bert.share.util.ShutdownHook;
 import bert.sql.db.Database;
 
@@ -69,7 +66,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private static Logger LOGGER = Logger.getLogger(CLSS);
 	private static final String LOG_ROOT = CLSS.toLowerCase();
 	private double WEIGHT = 0.5;  // weighting to give previous in EWMA
-	private final RobotDispatcherModel model;
+	private final RobotMotorModel model;
 	private SocketController commandController = null;
 	private SocketController terminalController= null;
 	private InternalController internalController     = null;
@@ -88,7 +85,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	 * Constructor:
 	 * @param m the server model
 	 */
-	public Dispatcher(RobotDispatcherModel m,Solver s,MotorGroupController mgc) {
+	public Dispatcher(RobotMotorModel m,Solver s,MotorGroupController mgc) {
 		this.model = m;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
@@ -332,17 +329,16 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			String appendageName = request.getProperty(BottleConstants.APPENDAGE_NAME, Appendage.UNKNOWN.name());
 			double[] xyz = solver.getPosition(Appendage.valueOf(appendageName));
 			String text = String.format("%s is located at %0.2f %0.2f %0.2f meters",appendageName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
-			request.setProperty(BottleConstants.TEXT, text);
+			request.assignText(text);
 		}
 		else if(request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION) ) {
 			solver.setTreeState();
 			String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());
 			// Choose any one of the links attached to the joint, get its parent
 			Joint joint = Joint.valueOf(jointName.toUpperCase());
-			List<Link> links = solver.getModel().getChain().partialChainToJoint(joint);
 			double[] xyz = solver.getPosition(joint);
 			String text = String.format("The center of joint %s is located at %0.2f %0.2f %0.2f meters",jointName.toLowerCase(), xyz[0],xyz[1],xyz[2]);
-			request.setProperty(BottleConstants.TEXT, text);
+			request.assignText(text);
 		}
 		else if( request.fetchRequestType().equals(RequestType.GET_METRIC)) {
 			MetricType metric = MetricType.valueOf(request.getProperty(BottleConstants.METRIC_NAME, "NAME"));
@@ -379,7 +375,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 					text = "My name is "+getName();
 					break;
 			}
-			request.setProperty(BottleConstants.TEXT, text);
+			request.assignText(text);
 		}
 		else if(request.fetchRequestType().equals(RequestType.COMMAND)) {
 			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
@@ -405,7 +401,13 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		else if(request.fetchRequestType().equals(RequestType.SAVE_POSE) ) {
 			solver.setTreeState();
 			String poseName = request.getProperty(BottleConstants.POSE_NAME,"");
-			//Database.getInstance().saveJointPositionsForPose(poseName);	
+			if( !poseName.isEmpty()) {
+				Database.getInstance().saveJointPositionsForPose(model.getMotors(),poseName);	
+			}
+			else {
+				poseName = Database.getInstance().saveJointPositionsAsNewPose(model.getMotors());
+				request.assignText("I saved the pose as "+poseName);
+			}
 		}
 		return request;
 	}
@@ -470,7 +472,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private void reportStartup(String sourceName) {
 		MessageBottle startMessage = new MessageBottle();
 		startMessage.assignRequestType(RequestType.NOTIFICATION);
-		startMessage.setProperty(BottleConstants.TEXT, selectRandomText(startPhrases));
+		startMessage.assignText(selectRandomText(startPhrases));
 		LOGGER.info(String.format("%s: Bert is ready ... (to %s)",CLSS,sourceName));
 		startMessage.assignSource(sourceName);
 		handleResponse(startMessage);
@@ -521,14 +523,10 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		// Setup logging to use only a file appender to our logging directory
 		LoggerUtility.getInstance().configureRootLogger(LOG_ROOT);
 		
-		RobotMotorModel mmodel = new RobotMotorModel(PathConstants.CONFIG_PATH);
-		mmodel.populate();    // Analyze the xml for motor groups
+		RobotMotorModel model = new RobotMotorModel(PathConstants.CONFIG_PATH);
+		model.populate();    // Analyze the xml for motors and motor groups
 		Database.getInstance().startup(PathConstants.DB_PATH);
-		Database.getInstance().populateMotors(mmodel.getMotors());
-		MotorGroupController mgc = new MotorGroupController(mmodel);
-		
-		RobotDispatcherModel model = new RobotDispatcherModel(PathConstants.CONFIG_PATH);
-		model.populate();    // Analyze the xml
+		MotorGroupController mgc = new MotorGroupController(model);
 		Solver solver = new Solver();
 		solver.configure(model.getMotors(),PathConstants.URDF_PATH);
 		Dispatcher runner = new Dispatcher(model,solver,mgc);

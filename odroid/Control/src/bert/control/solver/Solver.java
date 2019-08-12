@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.control.main;
+package bert.control.solver;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,10 +15,10 @@ import bert.control.model.Link;
 import bert.control.model.TestRobotModel;
 import bert.control.model.URDFModel;
 import bert.share.common.PathConstants;
-import bert.share.control.Appendage;
-import bert.share.logging.LoggerUtility;
-import bert.share.motor.Joint;
-import bert.share.motor.MotorConfiguration;
+import bert.share.model.Appendage;
+import bert.share.model.Joint;
+import bert.share.model.MotorConfiguration;
+import bert.share.util.LoggerUtility;
 
 /**
  *  This class handles various computations pertaining to the robot,
@@ -87,6 +87,9 @@ public class Solver {
 		else return ERROR_POSITION;
 	}
 	
+	public Map<Joint,MotorConfiguration> getMotorConfigurations() {
+		return motorConfigurations;
+	}
 	/**
 	 * Set the position of a joint. This is primarily for testing. It does not 
 	 * cause a serial write to the motor.

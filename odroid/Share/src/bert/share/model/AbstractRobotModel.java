@@ -17,9 +17,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import bert.share.control.Limb;
-import bert.share.motor.Joint;
-import bert.share.motor.MotorConfiguration;
 import bert.share.xml.XMLUtility;
 
 /**

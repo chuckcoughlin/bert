@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import bert.share.common.DynamixelType;
-import bert.share.message.BottleConstants;
-import bert.share.motor.Joint;
-import bert.share.motor.JointProperty;
-import bert.share.motor.MotorConfiguration;
+import bert.share.common.BottleConstants;
+import bert.share.model.DynamixelType;
+import bert.share.model.Joint;
+import bert.share.model.JointProperty;
+import bert.share.model.MotorConfiguration;
 import bert.sql.db.Database;
 
 /**

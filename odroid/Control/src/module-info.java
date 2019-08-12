@@ -6,7 +6,7 @@ module bert.control {
 	requires transitive java.xml;
 	requires transitive bert.share;
 	requires hipparchus.core;
-	exports bert.control.main;
+	exports bert.control.solver;
 	exports bert.control.controller;
 	exports bert.control.message;
 	exports bert.control.model;

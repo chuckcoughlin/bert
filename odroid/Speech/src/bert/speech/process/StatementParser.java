@@ -12,11 +12,11 @@ import org.antlr.v4.runtime.CodePointCharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import bert.share.control.Appendage;
-import bert.share.control.Limb;
+import bert.share.model.Appendage;
 import bert.share.message.MessageBottle;
 import bert.share.message.RequestType;
-import bert.share.motor.Joint;
+import bert.share.model.Joint;
+import bert.share.model.Limb;
 import bert.speech.antlr.SpeechSyntaxLexer;
 import bert.speech.antlr.SpeechSyntaxParser;
 

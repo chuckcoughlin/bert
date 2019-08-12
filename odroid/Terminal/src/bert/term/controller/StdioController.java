@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.term.main;
+package bert.term.controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;

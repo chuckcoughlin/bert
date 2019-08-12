@@ -14,8 +14,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import bert.share.control.Appendage;
-import bert.share.motor.Joint;
+import bert.share.model.Appendage;
+import bert.share.model.Joint;
 import bert.share.xml.XMLUtility;
 
 /**

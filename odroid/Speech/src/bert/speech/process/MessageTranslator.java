@@ -6,13 +6,13 @@ package bert.speech.process;
 
 import java.util.logging.Logger;
 
-import bert.share.control.Limb;
-import bert.share.message.BottleConstants;
+import bert.share.common.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.MetricType;
 import bert.share.message.RequestType;
-import bert.share.motor.Joint;
-import bert.share.motor.JointProperty;
+import bert.share.model.Joint;
+import bert.share.model.JointProperty;
+import bert.share.model.Limb;
 
 
 /**

@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import bert.share.common.BottleConstants;
+
 /**
  * This class represents the contents of requests and responses that are sent
  * across sockets between parts of the robot. it becomes serialized into JSON.
@@ -147,6 +149,14 @@ public class MessageBottle implements Serializable {
 	 */
 	public void assignSecondsDuration(double period) {
 		setDuration((long)(period*1000)); 
+ 
+	}
+	/**
+	 * Set the pronounceable text for a response
+	 * @param text a speech-compatible response
+	 */
+	public void assignText(String text) {
+		setProperty(BottleConstants.TEXT, text); 
  
 	}
 	/**

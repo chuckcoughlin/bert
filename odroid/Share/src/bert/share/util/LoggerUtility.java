@@ -3,7 +3,7 @@
  * MIT License.
  * Configures a java.util.logging Logger to use our log directory.
  */
-package bert.share.logging;
+package bert.share.util;
 
 import java.io.IOException;
 import java.io.PrintWriter;

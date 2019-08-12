@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.control;
+package bert.share.model;
 
 /**
  * These are the canonical names for the limbs of the humanoid.

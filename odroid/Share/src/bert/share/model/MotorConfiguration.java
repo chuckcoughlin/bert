@@ -3,13 +3,10 @@
  *                 MIT License.
  */
 
-package bert.share.motor;
+package bert.share.model;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
-
-import bert.share.common.DynamixelType;
-import bert.share.control.Limb;
 
 /**
  * A motor refers to a Dynamixel stepper motor at one of the joints

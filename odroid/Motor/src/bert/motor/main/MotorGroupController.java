@@ -10,15 +10,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import bert.motor.model.RobotMotorModel;
-import bert.share.common.DynamixelType;
-import bert.share.message.BottleConstants;
+import bert.share.common.BottleConstants;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
 import bert.share.message.RequestType;
-import bert.share.motor.Joint;
-import bert.share.motor.JointProperty;
-import bert.share.motor.MotorConfiguration;
+import bert.share.model.DynamixelType;
+import bert.share.model.Joint;
+import bert.share.model.JointProperty;
+import bert.share.model.MotorConfiguration;
+import bert.share.model.RobotMotorModel;
 import jssc.SerialPort;
 
 /**
@@ -290,12 +290,12 @@ public class MotorGroupController implements MotorManager {
 			else {
 				request.assignError(String.format("The configuration file does not include joint %s", joint.name()));
 			}
-			request.setProperty(BottleConstants.TEXT, text);
+			request.assignText(text);
 		}
 		// Log configuration metrics. The response will contain a map of motor types by ID 
 		else if( request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
 			String text = "Motor configuration parameters have been logged";
-			request.setProperty(BottleConstants.TEXT, text);
+			request.assignText(text);
 			for( String group:motorControllers.keySet() ) {
 				MotorController controller = motorControllers.get(group);
 				Map<String,MotorConfiguration> map = controller.getConfigurations();
@@ -381,7 +381,7 @@ public class MotorGroupController implements MotorManager {
 				request.assignError(property.name()+" is not a property that I can read");
 				break;
 			}
-			request.setProperty(BottleConstants.TEXT, text);
+			request.assignText(text);
 		}
 		else {
 			LOGGER.warning(String.format("%s.simulateResponseForRequest: Request type %s not handled",CLSS,requestType));

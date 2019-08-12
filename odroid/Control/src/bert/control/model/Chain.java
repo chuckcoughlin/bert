@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import bert.control.main.Solver;
+import bert.control.solver.Solver;
 import bert.share.common.PathConstants;
-import bert.share.control.Appendage;
-import bert.share.logging.LoggerUtility;
-import bert.share.motor.Joint;
+import bert.share.model.Appendage;
+import bert.share.model.Joint;
+import bert.share.util.LoggerUtility;
 
 /**
  * A Chain represents a tree of Links starting with the 

@@ -2,8 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.motor.model;
-
+package bert.share.model;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,23 +15,21 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import bert.share.message.HandlerType;
-import bert.share.model.AbstractRobotModel;
-import bert.share.motor.Joint;
 import bert.share.xml.XMLUtility;
 import jssc.SerialPort;
 
 /**
  *  The server-side model retains the configuration of all the request handlers
- *  plus a hand-full of properties. It is used to populate the database Motor
- *  State Table on startup. 
+ *  plus a hand-full of properties. It also reads the configuration file creating
+ *  for motor configuration objects which are the single place to obtain joint state.
  */
 public class RobotMotorModel extends AbstractRobotModel  {
-	private static final String CLSS = "MotorManager";
+	private static final String CLSS = "RobotMotorModel";
+	private static final String CONTROLLER_NAME = "Dispatcher";
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	private final Map<String,List<Joint>> jointsByController;   // List of joints by controller name
-	
 	private final Map<String,SerialPort> ports;                 // Port objects by controller
-	
+			
 	public RobotMotorModel(Path configPath) {
 		super(configPath);
 		this.jointsByController = new HashMap<>();
@@ -46,15 +43,57 @@ public class RobotMotorModel extends AbstractRobotModel  {
 	public void populate() {
 		analyzeProperties();
 		analyzeControllers();
+		analyzeSerialControllers();
 		analyzeMotors();
 	}
 
+
     // ================================ Auxiliary Methods  ===============================
 	/**
-	 * Search the XML for the SERIAL controllers. Create a map of joints by controller. 
+	 * Search the XML for the two command controllers (COMMAND and TERMINAL). Configure
+	 * messaging between them and this. This controller is "Dispatcher"
 	 */
 	@Override
 	public void analyzeControllers() {
+		if( this.document!=null ) {
+			NodeList elements = document.getElementsByTagName("controller");
+			int count = elements.getLength();
+			int index = 0;
+			while(index<count) {
+				Element controllerElement= (Element)(elements.item(index));
+				String name = XMLUtility.attributeValue(controllerElement, "name");
+				String type = XMLUtility.attributeValue(controllerElement, "type");
+				if( type!=null && !type.isEmpty() &&
+					type.equalsIgnoreCase(HandlerType.COMMAND.name()) ) {
+					NodeList socketElements = controllerElement.getElementsByTagName("socket");
+					if( socketElements.getLength()>0) {
+						handlerTypes.put(name,type.toUpperCase());
+						Element socketElement= (Element)(socketElements.item(0));
+						String portName = XMLUtility.attributeValue(socketElement, "port");
+						sockets.put(name,Integer.parseInt(portName));
+					}
+				}
+				else if( type!=null && !type.isEmpty() &&
+						type.equalsIgnoreCase(HandlerType.TERMINAL.name()) ) {
+					NodeList socketElements = controllerElement.getElementsByTagName("socket");
+					if( socketElements.getLength()>0) {
+						handlerTypes.put(name,type.toUpperCase());
+						Element socketElement= (Element)(socketElements.item(0));
+						String portName = XMLUtility.attributeValue(socketElement, "port");
+						sockets.put(name,Integer.parseInt(portName));
+					}
+				}
+				
+				index++;
+			}
+			properties.put(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, CONTROLLER_NAME);   // Name not in XML configuration
+		}
+	}
+	
+	/**
+	 * Search the XML for the SERIAL controllers. Create a map of joints by controller. 
+	 */
+	public void analyzeSerialControllers() {
 		if( this.document!=null ) {
 			NodeList elements = document.getElementsByTagName("controller");
 			int count = elements.getLength();

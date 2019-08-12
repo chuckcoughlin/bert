@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.share.motor;
+package bert.share.model;
 
 /**
  * These are properties of each stepper motor.

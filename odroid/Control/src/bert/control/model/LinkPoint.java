@@ -1,7 +1,7 @@
 package bert.control.model;
 
-import bert.share.control.Appendage;
-import bert.share.motor.Joint;
+import bert.share.model.Appendage;
+import bert.share.model.Joint;
 /**
  * A LinkPoint is a hinged joint (as they all are).
  * The coordinates are a 3D location of the joint 
