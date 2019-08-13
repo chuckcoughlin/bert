@@ -62,7 +62,7 @@ public class PoseTable {
 		catch(SQLException e) {
 			// if the error message is "out of memory", 
 			// it probably means no database file is found
-			LOGGER.severe(String.format("%s.startup: Database error (%s)",CLSS,e.getMessage()));
+			LOGGER.severe(String.format("%s.getPoseForCommand: Error (%s)",CLSS,e.getMessage()));
 		}
 		finally {
 			if( rs!=null) {
@@ -136,24 +136,26 @@ public class PoseTable {
 		return map;
 	}
 	/**
-	 * Associate a pose with the specified command.
+	 * Associate a pose with the specified command. If the command already exists
+	 * it will be updated.
 	 * @cxn an open database connection
 	 * @param command user entered string
-	 * @param the name of the pose to assume
+	 * @param pose the name of the pose to assume
 	 */
 	public void mapCommandToPose(Connection cxn,String command,String pose) {
-		Statement statement = null;
+		PreparedStatement statement = null;
 		command = command.toLowerCase();
 		pose = pose.toLowerCase();
 
-		StringBuffer buf = new StringBuffer("INSERT INTO PoseMap (command,pose)");
-			buf.append("VALUES('%s','%s')");
-			buf.append("ON CONFLICT(command)"); 
-			buf.append("DO UPDATE SET pose=excluded.pose");
-		String SQL = String.format(buf.toString(), command,pose);
+		StringBuffer SQL = new StringBuffer("INSERT INTO PoseMap (command,pose)");
+			SQL.append("VALUES(?,?)");
+			SQL.append("ON CONFLICT(command)"); 
+			SQL.append("DO UPDATE SET pose=excluded.pose");
 		try {
-			statement = cxn.createStatement();
-			statement.execute(SQL);
+			statement = cxn.prepareStatement(SQL.toString());
+			statement.setString(1,command);
+			statement.setString(2,pose);
+			statement.executeUpdate();
 		}
 		catch(SQLException e) {
 			LOGGER.severe(String.format("%s.mapCommandToPose: Database error (%s)",CLSS,e.getMessage()));
@@ -170,8 +172,47 @@ public class PoseTable {
 	 * @param mcmap contains a map of motor configurations with positions that define the pose.
 	 * @return the new record id as a string.
 	 */
-	public String saveJointPositionsAsNewPose(Connection cxn,Map<Joint,MotorConfiguration>mcmap) {
-		 return "";
+	public String saveJointPositionsAsNewPose(Connection cxn,Map<Joint,MotorConfiguration>map) {
+		Statement statement = null;
+		PreparedStatement prep = null;
+		int id = 0;
+		String SQL = "SELECT MAX(id) FROM Pose";
+		try {
+			statement = cxn.createStatement();
+			statement.execute(SQL);
+			ResultSet rs = statement.getResultSet();
+			rs.first();
+			id = rs.getInt(1);
+			StringBuffer sb = new StringBuffer("INSERT INTO Pose (id,name,parameter");
+			StringBuffer valuesBuffer = new StringBuffer("VALUES (?,?,'position'");
+			for( MotorConfiguration mc:map.values()) {
+				sb.append(",");
+				sb.append(mc.getJoint().name());
+				valuesBuffer.append(",?");
+			}
+			SQL = sb.append(") ").append(valuesBuffer).append(")").toString();
+			prep = cxn.prepareStatement(SQL);
+			prep.setInt(1, id);
+			prep.setString(2,String.valueOf(id));
+			int index = 3;
+			for( MotorConfiguration mc:map.values()) {
+				prep.setInt(index,(int)mc.getPosition());
+				index++;
+			}
+			prep.executeUpdate();
+		}
+		catch(SQLException e) {
+			LOGGER.severe(String.format("%s.saveJointPositionsAsNewPose: Error (%s)",CLSS,e.getMessage()));
+		}
+		finally {
+			if( prep!=null) {
+				try { prep.close(); } catch(SQLException ignore) {}
+			}
+			if( statement!=null) {
+				try { statement.close(); } catch(SQLException ignore) {}
+			}
+		}
+		return String.valueOf(id);
 	}
 	/** 
 	 * Save a list of motor position values as a pose. Try an update first. If no rows are affected
@@ -179,29 +220,44 @@ public class PoseTable {
 	 * @param mcmap contains a map of motor configurations. Joints not in the list are ignored.
 	 * @param pose name
 	 */
-	public void saveJointPositionsForPose(Connection cxn,Map<Joint,MotorConfiguration>mcmap,String pose) {
-		Map<String,Double> map = new HashMap<>();
-		Statement statement = null;
-		StringBuffer updateBuffer = new StringBuffer("UPDATE Pose SET ");
-		
+	public void saveJointPositionsForPose(Connection cxn,Map<Joint,MotorConfiguration>map,String pose) {
+		PreparedStatement statement = null;
 		pose = pose.toLowerCase();
-		String where = String.format("\nWHERE name='%s' AND parameter='position' ", pose);
+		StringBuffer SQL = new StringBuffer("UPDATE Pose SET ");
+			boolean needComma = false;
+			for( MotorConfiguration mc:map.values()) {
+				if( needComma) {
+					SQL.append(",");
+					needComma = true;
+				}
+				SQL.append(String.format("\n'%s'=%.2f",mc.getJoint().name(),mc.getPosition()));
+			}
+			SQL.append("\nWHERE name=? AND parameter='position' ");
 		
-		
-		String SQL = "select * from pose where name = ? and parameter = ? ";
 		try {
-			statement = cxn.createStatement();
-			statement.execute(SQL);
+			statement = cxn.prepareStatement(SQL.toString());
+			statement.setString(1,pose);
+			statement.executeUpdate();
 			if( statement.getUpdateCount()==0) {
 				// There was nothing to update. Do an insert.
 				statement.close();
-				StringBuffer insertBuffer = new StringBuffer("INSERT INTO Pose ('name','parameter',");
-				StringBuffer valuesBuffer = new StringBuffer("VALUES (");
-				statement = cxn.createStatement();
-				statement.execute(SQL);
+				SQL = new StringBuffer("INSERT INTO Pose (name,parameter");
+				StringBuffer valuesBuffer = new StringBuffer("VALUES (?,'position'");
+				for( MotorConfiguration mc:map.values()) {
+					SQL.append(",");
+					SQL.append(mc.getJoint().name());
+					valuesBuffer.append(",?");
+				}
+				SQL.append(") ").append(valuesBuffer).append(")").toString();
+				statement = cxn.prepareStatement(SQL.toString());
+				statement.setString(1,pose);
+				int index = 2;
+				for( MotorConfiguration mc:map.values()) {
+					statement.setInt(index,(int)mc.getPosition());
+					index++;
+				}
+				statement.executeUpdate();
 			}
-
-
 		}
 		catch(SQLException e) {
 			LOGGER.severe(String.format("%s.saveJointPositionsForPose: Database error (%s)",CLSS,e.getMessage()));
