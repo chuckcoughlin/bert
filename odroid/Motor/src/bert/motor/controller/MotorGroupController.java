@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.motor.main;
+package bert.motor.controller;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,14 +68,16 @@ public class MotorGroupController implements MotorManager {
 			Map<Joint,MotorConfiguration> motors = model.getMotors(); 
 			for( String cname:controllerNames ) {
 				SerialPort port = model.getPortForController(cname);
+				if( port==null ) continue;  // Controller is not a motor controller
 				MotorController controller = new MotorController(cname,port,this);
 				Thread t = new Thread(controller);
 				motorControllers.put(cname, controller);
 				motorControllerThreads.put(cname, t);
 				
-
 				// Add configurations to the controller for each motor in the group
 				List<Joint> joints = model.getJointsForController(cname);
+				LOGGER.info(String.format("%s.initialize: getting joints for %s",CLSS,cname));
+				LOGGER.info(String.format("%s.initialize: %d joints for %s",CLSS,joints.size(),cname));
 				for( Joint joint:joints ) {
 					MotorConfiguration motor = motors.get(joint);
 					if( motor!=null ) {

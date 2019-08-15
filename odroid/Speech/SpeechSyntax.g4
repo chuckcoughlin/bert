@@ -28,18 +28,14 @@ command:
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?		# enableTorque
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off) Unit?  # setMotorProperty
-    | Salutation? Straighten Yourself? Up   					# straightenUp
-	| Salutation? Straighten (It|Article? Side? Joint Axis? )   # straightenJoint
-	| Salutation? (Command|Halt|Reset|Shutdown)                 # handleSingleWordCommand
-    | Salutation? (Move|Take|Set) To Article NAME+ Property		# moveToPose
-	| Salutation? (Move|Take|Set) NAME+                         # handleCompoundCommand
-	| Salutation? NAME+                                         # handleArbitraryCommand
+	| Salutation? Straighten (It|Article? Side? Joint Axis? )    	# straightenJoint
+	| Salutation? phrase                                    		# handleArbitraryCommand
 	;
 
 // Request for information
 question:
-        Salutation?  How Attribute Are You 							# attributeQuestion
-    | What Is Article? Configuration								# configurationQuestion
+      Salutation?  How Attribute Are You 						# attributeQuestion
+    | What Is Article? Configuration							# configurationQuestion
     | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
     | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
@@ -52,14 +48,17 @@ question:
 
 // Convey information to the robot.
 declaration:
-    You Are NAME+									# declarePose1
-	| Article Pose Is (NAME+|NUMBER) 				# declarePose2
-	| Save Article? Pose (As NAME+)                 # declareNoNamePose
-	| To NAME+ Means To Take Article? Pose NAME+	# mapPoseToCommand1
-	| When You NAME+ You Are NAME+					# mapPoseToCommand2
-	| To NAME+ Means You Are NAME+                  # mapPoseToCommand3
+      You Are phrase								# declarePose1
+    | Article Pose Is phrase 						# declarePose2
+	| Save Article? Pose (As phrase)           		# declareNoNamePose
+	| To phrase Means To Take Article? Pose phrase	# mapPoseToCommand1
+	| When Isay phrase Then? Take Article? Pose phrase		# mapPoseToCommand2
+	| When You phrase Then You Are phrase			# mapPoseToCommand2
+	| To phrase Means You Are phrase            	# mapPoseToCommand3
 	;
 
+phrase: (NAME|Value|Article|Hold|Freeze|Move|Of|Relax|Set|Straighten|Take|To)    # wordList
+    ;
 
 // First is a list of terms that are used below or use word that appear elsewhere
 Freeze: 'freeze'|'hold'|'stiffen'|'tighten'|'go rigid';
@@ -74,12 +73,9 @@ Are: 'are';
 As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'x'|'y'|'z'|'horizontal'|'vertical'|Why;
-Cmd: 'command';
-Command: ('go to sleep'|'ignore me'|'pay attention'|'sleep'|'wake up');
 Configuration: 'configuration';
 Do: 'do';
 Goals: 'goals'|'targets';
-Halt: 'die'|'exit'|'halt'|'quit'|'stop';
 Greeting: 'hello'|'high'|'hi';
 Have: 'have'|'wear';
 Hold: 'hold';
@@ -107,17 +103,15 @@ Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maxi
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please';
 Save: 'save';
-Shutdown: 'power off'|'shut down'|'shutdown';
 Set: 'set';
 Side: 'left'|'right'|'other';
 Straighten: 'straighten';
 Take: 'assume' | 'take';
+Then: 'then';
 To: 'to become'|'to';
 Unit: 'degrees';
-Up: 'up';
-Value: NUMBER;
+Value: (INTEGER|DECIMAL);
 You: 'you';
-Yourself: 'yourself';
 
 What: 'what';
 When: 'when';
@@ -126,8 +120,10 @@ Where: 'where';
 
 COMMA: ',';
 COLON: ':';
+DECIMAL: DASH? DIGIT* PERIOD DIGIT*;
+INTEGER: DASH?DIGIT+;
 NAME:  (ALPHA+);
-NUMBER: (DASH?DIGIT*PERIOD?DIGIT+);
+
 
 
 

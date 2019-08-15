@@ -35,7 +35,7 @@
 	<target name ="jar" description="Create a jar ">
     	<jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
     		<manifest>
-    		    <attribute name="Main-Class" value="bert.term.main.Terminal"/>
+    		    <attribute name="Main-Class" value="bert.term.controller.Terminal"/>
     		 </manifest>
     	</jar>
 	</target>

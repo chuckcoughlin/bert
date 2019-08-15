@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  *                 MIT License.
  */
-package bert.motor.main;
+package bert.motor.controller;
 
 import bert.share.message.MessageBottle;
 

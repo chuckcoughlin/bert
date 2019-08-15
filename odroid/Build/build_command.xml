@@ -34,7 +34,7 @@
 	    <jar destfile="${lib.dir}/${jar.name}" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 		    <manifest>
 		      	<attribute name="Main-Class"
-		                   value="bert.command.main.Command"/>
+		                   value="bert.command.controller.Command"/>
 		    </manifest>
 	    </jar>
 	</target>

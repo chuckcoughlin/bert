@@ -5,10 +5,9 @@
 package bert.speech.process;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Logger;
 
-import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import bert.share.common.BottleConstants;
 import bert.share.message.MessageBottle;
@@ -81,18 +80,20 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	@Override 
 	// you are singing
 	public Object visitDeclarePose1(SpeechSyntaxParser.DeclarePose1Context ctx) {
-		String pose = namesForNodeList(ctx.NAME());
+		String pose    = visit(ctx.phrase()).toString();
 		sharedDictionary.put(SharedKey.POSE, pose);
 		bottle.assignRequestType(RequestType.SAVE_POSE);
+		bottle.setProperty(BottleConstants.POSE_NAME,pose);
 		bottle.assignText(messageTranslator.randomAcknowledgement());
 		return null;
 	}
 	@Override
-	// ypur pose is sitting
+	// your pose is sitting
 	public Object visitDeclarePose2(SpeechSyntaxParser.DeclarePose2Context ctx) {
-		String pose = namesForNodeList(ctx.NAME());
+		String pose    = visit(ctx.phrase()).toString();
 		sharedDictionary.put(SharedKey.POSE, pose);
 		bottle.assignRequestType(RequestType.SAVE_POSE);
+		bottle.setProperty(BottleConstants.POSE_NAME,pose);
 		bottle.assignText(messageTranslator.randomAcknowledgement());
 		return null;
 	}
@@ -100,6 +101,11 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// save your pose
 	public Object visitDeclareNoNamePose(SpeechSyntaxParser.DeclareNoNamePoseContext ctx) {
 		bottle.assignRequestType(RequestType.SAVE_POSE);
+		if(ctx.phrase()!=null ) {
+			String pose    = visit(ctx.phrase()).toString();
+			sharedDictionary.put(SharedKey.POSE, pose);
+			bottle.setProperty(BottleConstants.POSE_NAME,pose);
+		}
 		bottle.assignText(messageTranslator.randomAcknowledgement());
 		return null;
 	}
@@ -164,19 +170,24 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override
-	// Handle a (possible) multi-word command
-	// attention
+	// Handle a (possible) multi-word command to take a pose. However we make an initiali check for "well-known"
+	// commands.
+	// carry the torch, go limp.
 	public Object visitHandleArbitraryCommand(SpeechSyntaxParser.HandleArbitraryCommandContext ctx) {
-		if(ctx.NAME()!=null) {
-			String cmd = namesForNodeList(ctx.NAME());
-			String pose = Database.getInstance().getPoseForCommand(cmd);
-			if( pose!=null ) {
-				bottle.assignRequestType(RequestType.SET_POSE);
-				bottle.setProperty(BottleConstants.POSE_NAME,pose );
-			}
-			else {
-				String msg = String.format("I do not know how to respond to \"%s\"",cmd);
-				bottle.assignError(msg);
+		if(ctx.phrase()!=null) {
+			String phrase  = visit(ctx.phrase()).toString();
+			// First handle "well-known" commands
+			if( !determineCommandFromPhrase(phrase)) {   // Configures bottle
+				// Next check to see if this is a pose
+				String pose = Database.getInstance().getPoseForCommand(phrase);
+				if( pose!=null ) {
+					bottle.assignRequestType(RequestType.SET_POSE);
+					bottle.setProperty(BottleConstants.POSE_NAME,pose );
+				}
+				else {
+					String msg = String.format("I do not know how to respond to \"%s\"",phrase);
+					bottle.assignError(msg);
+				}
 			}
 		}
 		return null;
@@ -238,31 +249,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	@Override
-	// Handle a multi-word command that includes a word that is already another token type.
-	// Go limp
-	public Object visitHandleCompoundCommand(SpeechSyntaxParser.HandleCompoundCommandContext ctx) {
-		// We simply want the text from the first token
-		String cmd = "";
-		if( ctx.Move() != null ) cmd = ctx.Move().getText();
-		else if( ctx.Take() != null ) cmd = ctx.Take().getText();
-		else if( ctx.Set() != null ) cmd = ctx.Set().getText();
 
-		if(ctx.NAME()!=null) {
-			cmd = cmd + " " + namesForNodeList(ctx.NAME());
-			String pose = Database.getInstance().getPoseForCommand(cmd);
-			if( pose!=null ) {
-				bottle.assignRequestType(RequestType.SET_POSE);
-				bottle.setProperty(BottleConstants.POSE_NAME,pose );
-			}
-			else {
-				String msg = String.format("I do not know how to respond to \"%s\"",cmd);
-				bottle.assignError(msg);
-			}
-
-		}
-		return null;
-	}
 	@Override 
 	public Object visitHandleGreeting(SpeechSyntaxParser.HandleGreetingContext ctx) {
 		bottle.assignRequestType(RequestType.NOTIFICATION);
@@ -300,36 +287,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 		
-	@Override 
-	// These commands are "hard-coded"
-	public Object visitHandleSingleWordCommand(SpeechSyntaxParser.HandleSingleWordCommandContext ctx) {
-		if( ctx.Command()!=null) {
-			String cmd = ctx.Command().getText();
-			if( cmd.startsWith("ignore")||cmd.equalsIgnoreCase("go to sleep") || cmd.startsWith("sleep")) {
-				sharedDictionary.put(SharedKey.ASLEEP,"true");
-			}
-			else if( cmd.startsWith("pay attention")||cmd.equalsIgnoreCase("wake up") ) {
-				sharedDictionary.put(SharedKey.ASLEEP,"false");
-			}
-			else {
-				String msg = String.format("I do not know how to %s",cmd);
-				bottle.assignError(msg);
-			}
-		}
-		else if(ctx.Halt()!=null) {
-			bottle.assignRequestType(RequestType.COMMAND);
-			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_HALT);
-		}
-		else if(ctx.Reset()!=null) {
-			bottle.assignRequestType(RequestType.COMMAND);
-			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_RESET);
-		}
-		else if(ctx.Shutdown()!=null) {
-			bottle.assignRequestType(RequestType.COMMAND);
-			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SHUTDOWN);
-		}
-		return null;
-	}
 	@Override 
 	// initialize your joints
 	public Object visitInitializeJoints(SpeechSyntaxParser.InitializeJointsContext ctx) {
@@ -437,9 +394,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// when i say stand take the pose standing
 	public Object visitMapPoseToCommand1(SpeechSyntaxParser.MapPoseToCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.MAP_POSE);
-		if( ctx.NAME().size()>1 ) {
-			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(0).getText());
-			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(1).getText());
+		if( ctx.phrase().size()>1 ) {
+			bottle.setProperty(BottleConstants.COMMAND_NAME,visit(ctx.phrase(0)).toString());
+			bottle.setProperty(BottleConstants.POSE_NAME,visit(ctx.phrase(1)).toString());
 		}
 		else {
 			String msg = String.format("I need both a pose name and associated command");
@@ -451,9 +408,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// standing means to stand
 	public Object visitMapPoseToCommand2(SpeechSyntaxParser.MapPoseToCommand2Context ctx) {
 		bottle.assignRequestType(RequestType.MAP_POSE);
-		if( ctx.NAME().size()>1 ) {
-			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(1).getText());
-			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(0).getText());
+		if( ctx.phrase().size()>1 ) {
+			bottle.setProperty(BottleConstants.COMMAND_NAME,visit(ctx.phrase(1)).toString());
+			bottle.setProperty(BottleConstants.POSE_NAME,visit(ctx.phrase(2)).toString());
 		}
 		else {
 			String msg = String.format("I need both a pose name and associated command");
@@ -462,17 +419,16 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
+	// a,b are the word indices (seem to be equal). We rely on a break to distinguish the two phrases.
 	// to climb means you are climbing
 	public Object visitMapPoseToCommand3(SpeechSyntaxParser.MapPoseToCommand3Context ctx) {
-		int count = ctx.NAME().size();
-		for(int index=0;index<count;index++) {
-			LOGGER.info(String.format("StatementTranslator.visitMapPoseToCommand3 %s %d %d",ctx.NAME(index).getText(),
-					ctx.NAME(index).getSourceInterval().a,ctx.NAME(index).getSourceInterval().b));
-		}
 		bottle.assignRequestType(RequestType.MAP_POSE);
-		if( ctx.NAME().size()>1 ) {
-			bottle.setProperty(BottleConstants.COMMAND_NAME,ctx.NAME(1).getText());
-			bottle.setProperty(BottleConstants.POSE_NAME,ctx.NAME(0).getText());
+		if( ctx.phrase().size()>1 ) {
+			String command = visit(ctx.phrase(0)).toString();
+			String pose    = visit(ctx.phrase(1)).toString();
+			LOGGER.info(String.format("StatementTranslator.visitMapPoseToCommand3 command='%s' pose='%s'",command,pose));
+			bottle.setProperty(BottleConstants.COMMAND_NAME,command);
+			bottle.setProperty(BottleConstants.POSE_NAME,pose);
 		}
 		else {
 			String msg = String.format("I need both a pose name and associated command");
@@ -598,17 +554,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
-	// move to your home position
-	public Object visitMoveToPose(SpeechSyntaxParser.MoveToPoseContext ctx) {
-		bottle.assignRequestType(RequestType.SET_POSE);
-
-		if(ctx.NAME()!=null) {
-			String pose = namesForNodeList(ctx.NAME());
-			bottle.setProperty(BottleConstants.POSE_NAME,pose );
-		}
-		return null;
-	}
-	@Override 
 	// What is your current pose?
 	public Object visitPoseQuestion(SpeechSyntaxParser.PoseQuestionContext ctx) {
 		String pose = sharedDictionary.get(SharedKey.POSE).toString();
@@ -691,17 +636,18 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return null;
 	}
-	@Override
-	// straighten up (assume "home" pose)
-	public Object visitStraightenUp(SpeechSyntaxParser.StraightenUpContext ctx) {
-		bottle.assignRequestType(RequestType.SET_POSE);
-		bottle.setProperty(BottleConstants.POSE_NAME,"home");
 
-		return null;
-	}
 	@Override
+	// If the joint is not specified, then straighten the entire body
 	// straighten your left elbow.
 	public Object visitStraightenJoint(SpeechSyntaxParser.StraightenJointContext ctx) {
+		// "up" means the whole body
+		if( ctx.Up()!=null ) {
+			bottle.assignRequestType(RequestType.SET_POSE);
+			bottle.setProperty(BottleConstants.POSE_NAME,BottleConstants.POSE_HOME);
+			return null;
+		}
+		// A real joint
 		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
 		// Get the property
 		JointProperty property = JointProperty.POSITION;
@@ -722,7 +668,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			bottle.setProperty(BottleConstants.JOINT_NAME,joint.name());
 		}
 		if( joint.equals(Joint.UNKNOWN) ) {
-			String msg = String.format("I don't have a joint like that");
+			String msg = String.format("Which joint am i supposed to straighten?");
 			bottle.assignError(msg);
 		}
 		else if(joint.equals(Joint.LEFT_ELBOW_Y)  ||
@@ -751,10 +697,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			sharedDictionary.put(SharedKey.JOINT, joint);
 			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		}
-		else {
-			String msg = String.format("It doesn't make sense to straighten a %s",joint.toString());
-			bottle.assignError(msg);
-		}
 		return null;
 	}
 	@Override
@@ -763,6 +705,20 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		bottle.assignRequestType(RequestType.GET_METRIC);
 		bottle.setProperty(BottleConstants.METRIC_NAME,MetricType.MITTENS.name());
 		return null;
+	}
+	@Override
+	// a phrase. Return space-separated words
+	public Object visitWordList(SpeechSyntaxParser.WordListContext ctx) {
+		StringBuffer text = new StringBuffer();
+		boolean needsSpace = false;
+		for(ParseTree token:ctx.children) {
+			if( needsSpace ) {
+				text.append(" ");
+			}
+			needsSpace = true;
+			text.append(token.getText());
+		}
+		return text.toString();
 	}
 	//===================================== Helper Methods ======================================
 	// Determine the specific appendage from the body part and side. (Side is not always needed).
@@ -806,6 +762,50 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		return result;
 	}
+	// Return TRUE if the phrase should be interpreted as one of the fixed commands. If so, update the 
+	// request bottle appropriately.
+	private boolean determineCommandFromPhrase(String phrase) {
+		boolean success = true;
+	
+		if( phrase.equals("die")  || phrase.equals("exit") || phrase.equals("halt") || 
+			phrase.equals("quit") || phrase.equals("stop") ) {
+				bottle.assignRequestType(RequestType.COMMAND);
+				bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_HALT);
+		}
+		else if( phrase.equals(BottleConstants.COMMAND_RELAX) || phrase.startsWith("go limp") ) {
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_RELAX);
+		}
+		else if(phrase.equals(BottleConstants.COMMAND_FREEZE) || phrase.startsWith("go rigid") ) {
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_FREEZE);
+		}
+		else if( phrase.startsWith("ignore")||phrase.equalsIgnoreCase("go to sleep") || phrase.startsWith("sleep")) {
+			sharedDictionary.put(SharedKey.ASLEEP,"true");
+		}
+		else if( phrase.startsWith("pay attention")||phrase.equalsIgnoreCase("wake up") ) {
+			sharedDictionary.put(SharedKey.ASLEEP,"false");
+		}
+		else if( phrase.equals("power off") || phrase.equals("shut down") || phrase.equals("shutdown") ) {
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SHUTDOWN);
+		}
+		else if( phrase.equals("reset")) {
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_RESET);
+		}
+		// straighten yourself up
+		else if( phrase.startsWith("straighten")) {
+			bottle.assignRequestType(RequestType.SET_POSE);
+			bottle.setProperty(BottleConstants.POSE_NAME,BottleConstants.POSE_HOME);
+		}
+		else {
+			success = false;
+		}
+		
+		return success;
+	}
+	
 	// Determine the specific joint from the body part, side and axis. (The latter two are
 	// not always needed).
 	private Joint determineJoint(String bodyPart,String axis,String side) {
@@ -950,17 +950,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			else side="left";
 		}
 		return side;
-	}
-
-
-	// Concatenate the elements of NAMES().
-	private String namesForNodeList(List<TerminalNode> names) {
-		StringBuffer buf = new StringBuffer();
-		for( TerminalNode node:names) {
-			if( buf.length()>0) buf.append(" ");
-			buf.append(node.getText());
-		}
-		return buf.toString();
 	}
 	// The poses returned here are expected to exist in the Pose table of the database.
 	private String poseForAdverb(String adverb)  {

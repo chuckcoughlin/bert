@@ -3,7 +3,7 @@
  *                 MIT License.
  *
  */
-package bert.motor.main;
+package bert.motor.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -53,7 +53,7 @@
 		/>
 		<jar destfile="${lib.dir}/bert-control.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 			<manifest>
-					<attribute name="Main-Class" value="bert.control.main.Solver"/>
+					<attribute name="Main-Class" value="bert.control.solver .Solver"/>
 			</manifest>
 		</jar>
 	</target>
@@ -85,7 +85,7 @@
 			/>
 			<jar destfile="${lib.dir}/bert-dispatcher.jar" includes="**/*.class,**/*.png" basedir="${temp.dir}">
 				<manifest>
-					 <attribute name="Main-Class" value="bert.dispatcher.main.Dispatcher"/>
+					 <attribute name="Main-Class" value="bert.dispatch.controller.Dispatcher"/>
 				</manifest>
 			</jar>
 	</target>

@@ -33,6 +33,9 @@ public interface BottleConstants   {
 	public final static String COMMAND_SHUTDOWN    = "shutdown";
 	public final static String COMMAND_WAKE        = "wake";
 	
+	// Pose names (these are required to exist)
+	public final static String POSE_HOME           = "home";
+	
 	// Message from tablet
 	public final static int HEADER_LENGTH = 4;     // Includes semi-colon
 	

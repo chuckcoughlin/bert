@@ -6,8 +6,8 @@ module bert.share {
 	requires transitive java.logging;
 	requires transitive java.xml;
 	requires com.fasterxml.jackson.databind;
-	requires jdk.unsupported;
 	requires transitive jssc;
+	requires jdk.unsupported;
 	exports bert.share.message;
 	exports bert.share.common;
 	exports bert.share.controller;

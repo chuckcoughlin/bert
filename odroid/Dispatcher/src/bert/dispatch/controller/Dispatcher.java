@@ -21,7 +21,7 @@ import bert.control.controller.InternalController;
 import bert.control.controller.QueueName;
 import bert.control.message.InternalMessage;
 import bert.control.solver.Solver;
-import bert.motor.main.MotorGroupController;
+import bert.motor.controller.MotorGroupController;
 import bert.share.common.BottleConstants;
 import bert.share.common.PathConstants;
 import bert.share.controller.SocketController;
@@ -399,7 +399,6 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			}
 		}
 		else if(request.fetchRequestType().equals(RequestType.SAVE_POSE) ) {
-			solver.setTreeState();
 			String poseName = request.getProperty(BottleConstants.POSE_NAME,"");
 			if( !poseName.isEmpty()) {
 				Database.getInstance().saveJointPositionsForPose(model.getMotors(),poseName);	
