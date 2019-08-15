@@ -398,6 +398,16 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 				request.assignError(msg);
 			}
 		}
+		else if(request.fetchRequestType().equals(RequestType.MAP_POSE) ) {
+			String commandName = request.getProperty(BottleConstants.COMMAND_NAME,"");
+			String poseName = request.getProperty(BottleConstants.POSE_NAME,"");
+			if( !commandName.isEmpty() && !poseName.isEmpty()) {
+				Database.getInstance().mapCommandToPose(commandName,poseName);	
+			}
+			else {
+				request.assignError("I could not map because either command or pose is empty");
+			}
+		}
 		else if(request.fetchRequestType().equals(RequestType.SAVE_POSE) ) {
 			String poseName = request.getProperty(BottleConstants.POSE_NAME,"");
 			if( !poseName.isEmpty()) {
@@ -446,6 +456,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION) || 
 			request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION)   ||
 			request.fetchRequestType().equals(RequestType.GET_METRIC) ||
+			request.fetchRequestType().equals(RequestType.MAP_POSE) ||
 			request.fetchRequestType().equals(RequestType.SAVE_POSE)) {
 			return true;
 		}
