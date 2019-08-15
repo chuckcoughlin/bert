@@ -170,7 +170,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override
-	// Handle a (possible) multi-word command to take a pose. However we make an initiali check for "well-known"
+	// Handle a (possible) multi-word command to take a pose. However we make an initial check for "well-known"
 	// commands.
 	// carry the torch, go limp.
 	public Object visitHandleArbitraryCommand(SpeechSyntaxParser.HandleArbitraryCommandContext ctx) {
@@ -391,7 +391,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	}
 	@Override 
 	// Map a command to holding a pose
-	// when i say stand take the pose standing
+	// to stand means to take the pose standing
 	public Object visitMapPoseToCommand1(SpeechSyntaxParser.MapPoseToCommand1Context ctx) {
 		bottle.assignRequestType(RequestType.MAP_POSE);
 		if( ctx.phrase().size()>1 ) {
@@ -405,12 +405,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
-	// standing means to stand
+	// to climb means you are climbing
 	public Object visitMapPoseToCommand2(SpeechSyntaxParser.MapPoseToCommand2Context ctx) {
 		bottle.assignRequestType(RequestType.MAP_POSE);
 		if( ctx.phrase().size()>1 ) {
-			bottle.setProperty(BottleConstants.COMMAND_NAME,visit(ctx.phrase(1)).toString());
-			bottle.setProperty(BottleConstants.POSE_NAME,visit(ctx.phrase(2)).toString());
+			bottle.setProperty(BottleConstants.COMMAND_NAME,visit(ctx.phrase(0)).toString());
+			bottle.setProperty(BottleConstants.POSE_NAME,visit(ctx.phrase(1)).toString());
 		}
 		else {
 			String msg = String.format("I need both a pose name and associated command");
@@ -419,14 +419,28 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
-	// a,b are the word indices (seem to be equal). We rely on a break to distinguish the two phrases.
-	// to climb means you are climbing
+	// when i say climb take the pose climbing
 	public Object visitMapPoseToCommand3(SpeechSyntaxParser.MapPoseToCommand3Context ctx) {
 		bottle.assignRequestType(RequestType.MAP_POSE);
 		if( ctx.phrase().size()>1 ) {
 			String command = visit(ctx.phrase(0)).toString();
 			String pose    = visit(ctx.phrase(1)).toString();
-			LOGGER.info(String.format("StatementTranslator.visitMapPoseToCommand3 command='%s' pose='%s'",command,pose));
+			bottle.setProperty(BottleConstants.COMMAND_NAME,command);
+			bottle.setProperty(BottleConstants.POSE_NAME,pose);
+		}
+		else {
+			String msg = String.format("I need both a pose name and associated command");
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
+	// when you climb then you are climbing
+	public Object visitMapPoseToCommand4(SpeechSyntaxParser.MapPoseToCommand4Context ctx) {
+		bottle.assignRequestType(RequestType.MAP_POSE);
+		if( ctx.phrase().size()>1 ) {
+			String command = visit(ctx.phrase(0)).toString();
+			String pose    = visit(ctx.phrase(1)).toString();
 			bottle.setProperty(BottleConstants.COMMAND_NAME,command);
 			bottle.setProperty(BottleConstants.POSE_NAME,pose);
 		}
@@ -641,12 +655,6 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	// If the joint is not specified, then straighten the entire body
 	// straighten your left elbow.
 	public Object visitStraightenJoint(SpeechSyntaxParser.StraightenJointContext ctx) {
-		// "up" means the whole body
-		if( ctx.Up()!=null ) {
-			bottle.assignRequestType(RequestType.SET_POSE);
-			bottle.setProperty(BottleConstants.POSE_NAME,BottleConstants.POSE_HOME);
-			return null;
-		}
 		// A real joint
 		bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY);
 		// Get the property
@@ -712,6 +720,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		StringBuffer text = new StringBuffer();
 		boolean needsSpace = false;
 		for(ParseTree token:ctx.children) {
+			if( token==null ) continue;
 			if( needsSpace ) {
 				text.append(" ");
 			}

@@ -50,14 +50,15 @@ question:
 declaration:
       You Are phrase								# declarePose1
     | Article Pose Is phrase 						# declarePose2
-	| Save Article? Pose (As phrase)           		# declareNoNamePose
+	| Save Article? Pose (As phrase)?           	# declareNoNamePose
 	| To phrase Means To Take Article? Pose phrase	# mapPoseToCommand1
-	| When Isay phrase Then? Take Article? Pose phrase		# mapPoseToCommand2
-	| When You phrase Then You Are phrase			# mapPoseToCommand2
-	| To phrase Means You Are phrase            	# mapPoseToCommand3
+	| To phrase Means You Are phrase            	# mapPoseToCommand2
+	| When Isay phrase Then? Take Article? Pose phrase	# mapPoseToCommand3
+	| When You phrase Then You Are phrase			# mapPoseToCommand4
 	;
 
-phrase: (NAME|Value|Article|Hold|Freeze|Move|Of|Relax|Set|Straighten|Take|To)    # wordList
+// Arbitrary string of words
+phrase: (NAME|Value|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Set|Side|Straighten|Take|To)+    # wordList
     ;
 
 // First is a list of terms that are used below or use word that appear elsewhere

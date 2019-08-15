@@ -92,6 +92,9 @@ public class MessageTranslator  {
 					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
 					text = String.format("Motor %s have been written to log files", propertyName.toLowerCase());
 				}
+				else if(type.equals(RequestType.MAP_POSE)) {
+					text = randomAcknowledgement();
+				}
 				else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
 					Limb limb   = Limb.valueOf(msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name()).toUpperCase());
 					String propertyName   = msg.getProperty(BottleConstants.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name());

@@ -570,63 +570,66 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	/**
 	 * Handle the response from the serial request. Note that all our interactions with removing from the
 	 * responseQueue and dealing with remainder are synchronized. 
+	 * 
+	 * The response queue must have at least one response for associating results.
 	 */
 	public synchronized void serialEvent(SerialPortEvent event) {
-		MessageWrapper wrapper = responseQueue.getFirst();
-	
-		if(event.isRXCHAR() && wrapper!=null ){
+		if(event.isRXCHAR() && !responseQueue.isEmpty() ){
+			MessageWrapper wrapper = responseQueue.getFirst();
 			MessageBottle req = wrapper.getMessage();
 			// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();
 			LOGGER.info(String.format("%s.serialEvent callback port %s for %s: expect %d msgs got %d bytes",
-										CLSS,event.getPortName(),req.fetchRequestType().name(),wrapper.getResponseCount(),byteCount));
-            if(byteCount>0){
-                try {
-                    byte[] bytes = port.readBytes(byteCount);
-                    bytes = prependRemainder(bytes);
-                    bytes = dxl.ensureLegalStart(bytes);
-                    int nbytes = bytes.length;
-                    LOGGER.info(String.format("%s.serialEvent: read = (%s)",CLSS,dxl.dump(bytes)));
-                    int mlen = dxl.getMessageLength(bytes);  // First message
-                    if( mlen<0 || nbytes < mlen) {
-                    	LOGGER.info(String.format("%s.serialEvent Message too short (%d), requires additional read",CLSS,nbytes));
-                    	return;
-                    }
-                    if( returnsStatusArray(req) ) {
-                    	int nmsgs = nbytes/STATUS_RESPONSE_LENGTH;
-                    	if( nmsgs>wrapper.getResponseCount() ) nmsgs = wrapper.getResponseCount();
-                    	nbytes = nmsgs*STATUS_RESPONSE_LENGTH;
-                    }
-                    if( nbytes<bytes.length ) {
-                    	bytes = truncateByteArray(bytes,nbytes);
-                    }
-                    if( isSingleGroupRequest(req)) {
-                    	updateRequestFromBytes(req,bytes);
-                    	responseQueue.removeFirst();
-                    	motorManager.handleSingleMotorResponse(req);
-                    }
-                    // Ultimately we get a callback for every individual motor. Any errors get swallowed, but logged.
-                    else {
-                    	String propertyName = req.getProperty(BottleConstants.PROPERTY_NAME, "NONE");
-                    	Map<Integer,String> map = createPropertyMapFromBytes(propertyName,bytes);
-                    	for( Integer key:map.keySet() ) {
-            				String param = map.get(key);
-            				String name = configurationsById.get(key).getJoint().name();
-            				req.setJointValue(name, param);
-            				wrapper.decrementResponseCount();
-            				LOGGER.info(String.format("%s.serialEvent: received %s (%d remaining) = %s",
-            						CLSS,name,wrapper.getResponseCount(),param));
-            			}
-                    	if( wrapper.getResponseCount()<=0 ) {
-                    		responseQueue.removeFirst();
-                    		motorManager.handleAggregatedResponse(req);
-                    	}
-                    }
-                }
-                catch (SerialPortException ex) {
-                    System.out.println(ex);
-                }
-            }
+					CLSS,event.getPortName(),req.fetchRequestType().name(),wrapper.getResponseCount(),byteCount));
+			if(byteCount>0){
+				try {
+					byte[] bytes = port.readBytes(byteCount);
+					bytes = prependRemainder(bytes);
+					bytes = dxl.ensureLegalStart(bytes);  // null if no start characters
+					if( bytes!=null ) {
+						int nbytes = bytes.length;
+						LOGGER.info(String.format("%s.serialEvent: read = (%s)",CLSS,dxl.dump(bytes)));
+						int mlen = dxl.getMessageLength(bytes);  // First message
+						if( mlen<0 || nbytes < mlen) {
+							LOGGER.info(String.format("%s.serialEvent Message too short (%d), requires additional read",CLSS,nbytes));
+							return;
+						}
+						if( returnsStatusArray(req) ) {
+							int nmsgs = nbytes/STATUS_RESPONSE_LENGTH;
+							if( nmsgs>wrapper.getResponseCount() ) nmsgs = wrapper.getResponseCount();
+							nbytes = nmsgs*STATUS_RESPONSE_LENGTH;
+						}
+						if( nbytes<bytes.length ) {
+							bytes = truncateByteArray(bytes,nbytes);
+						}
+						if( isSingleGroupRequest(req)) {
+							updateRequestFromBytes(req,bytes);
+							responseQueue.removeFirst();
+							motorManager.handleSingleMotorResponse(req);
+						}
+						// Ultimately we get a callback for every individual motor. Any errors get swallowed, but logged.
+						else {
+							String propertyName = req.getProperty(BottleConstants.PROPERTY_NAME, "NONE");
+							Map<Integer,String> map = createPropertyMapFromBytes(propertyName,bytes);
+							for( Integer key:map.keySet() ) {
+								String param = map.get(key);
+								String name = configurationsById.get(key).getJoint().name();
+								req.setJointValue(name, param);
+								wrapper.decrementResponseCount();
+								LOGGER.info(String.format("%s.serialEvent: received %s (%d remaining) = %s",
+										CLSS,name,wrapper.getResponseCount(),param));
+							}
+							if( wrapper.getResponseCount()<=0 ) {
+								responseQueue.removeFirst();
+								motorManager.handleAggregatedResponse(req);
+							}
+						}
+					}
+				}
+				catch (SerialPortException ex) {
+					System.out.println(ex);
+				}
+			}
         }
     }
 	

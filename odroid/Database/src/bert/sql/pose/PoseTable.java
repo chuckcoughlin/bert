@@ -147,15 +147,23 @@ public class PoseTable {
 		command = command.toLowerCase();
 		pose = pose.toLowerCase();
 
-		StringBuffer SQL = new StringBuffer("INSERT INTO PoseMap (command,pose)");
-			SQL.append("VALUES(?,?)");
-			SQL.append("ON CONFLICT(command)"); 
-			SQL.append("DO UPDATE SET pose=excluded.pose");
+		String SQL = "UPDATE PoseMap SET pose=? WHERE command = ?";
+		
 		try {
-			statement = cxn.prepareStatement(SQL.toString());
-			statement.setString(1,command);
-			statement.setString(2,pose);
+			LOGGER.info(String.format("%s.mapCommandToPose: \n%s",CLSS,SQL));
+			statement = cxn.prepareStatement(SQL);
+			statement.setString(1,pose);
+			statement.setString(2,command);
 			statement.executeUpdate();
+			if( statement.getUpdateCount()==0) {
+				statement.close();
+				SQL = "INSERT INTO PoseMap (command,pose) VALUES(?,?)";
+				LOGGER.info(String.format("%s.mapCommandToPose: \n%s",CLSS,SQL));
+				statement = cxn.prepareStatement(SQL);
+				statement.setString(1,command);
+				statement.setString(2,pose);
+				statement.executeUpdate();
+			}
 		}
 		catch(SQLException e) {
 			LOGGER.severe(String.format("%s.mapCommandToPose: Database error (%s)",CLSS,e.getMessage()));
@@ -173,33 +181,35 @@ public class PoseTable {
 	 * @return the new record id as a string.
 	 */
 	public String saveJointPositionsAsNewPose(Connection cxn,Map<Joint,MotorConfiguration>map) {
+		LOGGER.info(String.format("%s.saveJointPositionsAsNewPose:",CLSS));
 		Statement statement = null;
 		PreparedStatement prep = null;
-		int id = 0;
-		String SQL = "SELECT MAX(id) FROM Pose";
+		long id = 0;
 		try {
-			statement = cxn.createStatement();
-			statement.execute(SQL);
-			ResultSet rs = statement.getResultSet();
-			rs.first();
-			id = rs.getInt(1);
-			StringBuffer sb = new StringBuffer("INSERT INTO Pose (id,name,parameter");
-			StringBuffer valuesBuffer = new StringBuffer("VALUES (?,?,'position'");
+			
+			StringBuffer sb = new StringBuffer("INSERT INTO Pose (name,parameter");
+			StringBuffer valuesBuffer = new StringBuffer("VALUES ('NEWPOSE','position'");
 			for( MotorConfiguration mc:map.values()) {
 				sb.append(",");
 				sb.append(mc.getJoint().name());
 				valuesBuffer.append(",?");
 			}
-			SQL = sb.append(") ").append(valuesBuffer).append(")").toString();
-			prep = cxn.prepareStatement(SQL);
-			prep.setInt(1, id);
-			prep.setString(2,String.valueOf(id));
-			int index = 3;
+			String SQL = sb.append(") ").append(valuesBuffer).append(")").toString();
+			LOGGER.info(String.format("%s.saveJointPositionsAsNewPose:\n%s",CLSS,SQL));
+			prep = cxn.prepareStatement(SQL,Statement.RETURN_GENERATED_KEYS);
+			int index = 1;
 			for( MotorConfiguration mc:map.values()) {
 				prep.setInt(index,(int)mc.getPosition());
 				index++;
 			}
 			prep.executeUpdate();
+			ResultSet generatedKeys = prep.getGeneratedKeys();
+	        if (generatedKeys.next()) {
+	           id = generatedKeys.getLong(1);
+	        }
+			SQL = "UPDATE Pose Set name = id WHERE name='NEWPOSE'";
+			statement = cxn.createStatement();
+			statement.execute(SQL);
 		}
 		catch(SQLException e) {
 			LOGGER.severe(String.format("%s.saveJointPositionsAsNewPose: Error (%s)",CLSS,e.getMessage()));
@@ -221,25 +231,24 @@ public class PoseTable {
 	 * @param pose name
 	 */
 	public void saveJointPositionsForPose(Connection cxn,Map<Joint,MotorConfiguration>map,String pose) {
+		LOGGER.info(String.format("%s.saveJointPositionsForPose: %s)",CLSS,pose));
 		PreparedStatement statement = null;
 		pose = pose.toLowerCase();
 		StringBuffer SQL = new StringBuffer("UPDATE Pose SET ");
-			boolean needComma = false;
+			int index=0;
 			for( MotorConfiguration mc:map.values()) {
-				if( needComma) {
-					SQL.append(",");
-					needComma = true;
-				}
-				SQL.append(String.format("\n'%s'=%.2f",mc.getJoint().name(),mc.getPosition()));
+				index++;
+				SQL.append(String.format("\n'%s'=%.1f%s",mc.getJoint().name(),mc.getPosition(),(index==map.size()?"":",")));
 			}
-			SQL.append("\nWHERE name=? AND parameter='position' ");
+			SQL.append("\nWHERE name=? AND parameter='position';");
 		
 		try {
+			LOGGER.info(String.format("%s.saveJointPositionsForPose: \n%s)",CLSS,SQL.toString()));
 			statement = cxn.prepareStatement(SQL.toString());
 			statement.setString(1,pose);
 			statement.executeUpdate();
 			if( statement.getUpdateCount()==0) {
-				// There was nothing to update. Do an insert.
+				// There was nothing to update. Do an insert. This will auto-increment primary key.
 				statement.close();
 				SQL = new StringBuffer("INSERT INTO Pose (name,parameter");
 				StringBuffer valuesBuffer = new StringBuffer("VALUES (?,'position'");
@@ -249,9 +258,10 @@ public class PoseTable {
 					valuesBuffer.append(",?");
 				}
 				SQL.append(") ").append(valuesBuffer).append(")").toString();
+				LOGGER.info(String.format("%s.saveJointPositionsForPose: \n%s)",CLSS,SQL.toString()));
 				statement = cxn.prepareStatement(SQL.toString());
 				statement.setString(1,pose);
-				int index = 2;
+				index = 2;
 				for( MotorConfiguration mc:map.values()) {
 					statement.setInt(index,(int)mc.getPosition());
 					index++;

@@ -44,7 +44,7 @@ CREATE TABLE Action (
 -- If not otherwise specified, SQLite will create an id on insert
 DROP TABLE IF EXISTS Pose;
 CREATE TABLE Pose (
-	id	integer PRIMARY_KEY,
+	id	integer PRIMARY KEY,
 	name		text NOT NULL,
 	parameter   text NOT NULL,
 	ABS_X	integer NULL,
@@ -58,9 +58,9 @@ CREATE TABLE Pose (
 	LEFT_ARM_Z	integer NULL,
 	LEFT_ELBOW_Y	text NULL,
 	LEFT_HIP_X	integer NULL,
-	LEFT_HIP_Y	int NULL,
-	LEFT_HIP_Z	int NULL,
-	LEFT_KNEE_Y	int NULL,
+	LEFT_HIP_Y	integer NULL,
+	LEFT_HIP_Z	integer NULL,
+	LEFT_KNEE_Y	integer NULL,
 	LEFT_SHOULDER_X	integer NULL,
 	LEFT_SHOULDER_Y	integer NULL,
 	RIGHT_ANKLE_Y	integer NULL,
@@ -85,15 +85,15 @@ CREATE TABLE PoseMap (
 -- The intent is hold presets rather than current state.
 DROP TABLE IF EXISTS MotorState;
 CREATE TABLE MotorState (
-	id      int PRIMARY KEY,
+	id      integer PRIMARY KEY,
 	name	text NOT NULL,
 	controller text NOT NULL,
 	type    text NOT NULL,
-	offset  int NULL,
+	offset  integer NULL,
 	speed   float NULL,
 	torque  float NULL,
 	minAngle float NULL,
 	maxAngle float NULL,
-	direct int DEFAULT 1,
+	direct integer DEFAULT 1,
 	UNIQUE (name,id,controller)
 );
