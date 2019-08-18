@@ -9,10 +9,7 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import bert.control.message.InternalMessage;
-import bert.share.message.MessageBottle;
-import bert.share.message.MessageHandler;
-import bert.share.message.RequestType;
+import bert.control.message.InternalMessageHolder;
 
 /**
  *  Patterned after a watchdog timer which manages a collection of "watchdogs". The dogs
@@ -21,39 +18,39 @@ import bert.share.message.RequestType;
  *  method is invoked. There is always, at least one dog present in
  *  the list, the IDLE dog.
  */
-public class TimedQueue extends LinkedList<InternalMessage> implements Runnable   {
+public class TimedQueue extends LinkedList<InternalMessageHolder> implements Runnable   {
 	private static final long serialVersionUID = -5509446352724816963L;
 	private final static String CLSS = "TimedQueue";
 	private final static int IDLE_DELAY = 60000;    // One minute
 	private static final Logger LOGGER = Logger.getLogger(CLSS);
 	protected boolean stopped = true;
 	protected Thread timerThread = null;
-	protected final InternalMessage idleMessage;
+	protected final InternalMessageHolder idleMessage;
 	protected long currentTime = 0;
 	protected String name = CLSS;
-	private final MessageHandler dispatcher;
+	private final InternalController controller;
 
 	/**
 	 * Constructor: At the specified time, the next message is sent to the laumcher.
 	 * @param launcher parent launcher
 	 */
-	public TimedQueue(MessageHandler launcher)  {
-		this.dispatcher = launcher;
-		this.idleMessage = new InternalMessage(RequestType.IDLE);
+	public TimedQueue(InternalController ic)  {
+		this.controller = ic;
+		this.idleMessage = new InternalMessageHolder();
 		idleMessage.setShouldRepeat(true);
 		idleMessage.setRepeatInterval(IDLE_DELAY);
 	}
 
 
 	/**
-	 * Add a new message to the list ordered by its absolute execution time
-	 * which must be already set. 
+	 * Add a new message (in a holder) to the list ordered by its absolute 
+	 * execution time which must be already set.
 	 * The list is never empty, there is at least the IDLE message.
 	 * @param msg message to be added
 	 */
-	public void addMessage(final InternalMessage msg) {
-		if(msg==null)  return;   // Ignore
-		 insertMessage(msg);
+	public void addMessage(final InternalMessageHolder holder) {
+		if(holder==null)  return;   // Ignore
+		 insertMessage(holder);
 	}
 	public String getName()   { return this.name; }
 	
@@ -61,38 +58,39 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 	 * Insert a new message into the list in execution order.
 	 * This list is assumed never to be empty
 	 */
-	private void insertMessage(InternalMessage msg) {
+	private void insertMessage(InternalMessageHolder holder) {
 		int index=0;
-		Iterator<InternalMessage> iter = iterator();
+		Iterator<InternalMessageHolder> iter = iterator();
 		while(iter.hasNext() ) {
-			InternalMessage im = iter.next();
-			if(im.getExecutionTime()>msg.getExecutionTime()) {
-				add(index, msg);
+			InternalMessageHolder im = iter.next();
+			if(im.getExecutionTime()>holder.getExecutionTime()) {
+				add(index, holder);
 				long now = System.nanoTime()/1000000;
 				LOGGER.info(String.format("%s.insertMessage: %s scheduled in %d msecs position %d",
-						CLSS,((MessageBottle)msg).fetchRequestType().name(),msg.getExecutionTime()-now,index));
+						CLSS,holder.getMessage().fetchRequestType().name(),holder.getExecutionTime()-now,index));
 				if( index==0) timerThread.interrupt();   // We've replaced the head
 				return;
 			}
 			index++;
 		}
-		addLast(msg);
+		addLast(holder);
 	}
 
 	/**
-	 * If top message is the IDLE messsage, then simply "pet" it.
-	 * Otherwise pop the top msg and inform the launcher to execute.
+	 * If top holder is the IDLE holder, then simply "pet" it. The IDLE
+	 * holder is distinguished by a null message.
+	 * Otherwise pop the top holder and inform the launcher to execute.
 	 */
 	private synchronized void fireExecutor() {
-		InternalMessage msg = removeFirst();
-		if( msg.fetchRequestType().equals(RequestType.IDLE) ) {
+		InternalMessageHolder holder = removeFirst();
+		if( holder.getMessage() == null ) {
 			long now = System.nanoTime()/1000000;
-			msg.setExecutionTime(now+msg.getRepeatInterval());
-			add(msg);
+			holder.setExecutionTime(now+holder.getRepeatInterval());
+			add(holder);
 		}
 		else {
-			LOGGER.info(String.format("%s.fireExecutor: dispatching %s ...",CLSS,((MessageBottle)msg).fetchRequestType().name()));
-			dispatcher.handleRequest((MessageBottle)msg);
+			LOGGER.info(String.format("%s.fireExecutor: dispatching %s ...",CLSS,holder.getMessage().fetchRequestType().name()));
+			controller.dispatch(holder);
 		}
 		timerThread.interrupt();
 	}
@@ -130,7 +128,7 @@ public class TimedQueue extends LinkedList<InternalMessage> implements Runnable 
 	public synchronized void run() {
 		while( !stopped  ) {
 			long now = System.nanoTime()/1000000;   // Work in milliseconds
-			InternalMessage head = getFirst();
+			InternalMessageHolder head = getFirst();
 			long waitTime = (long)(head.getExecutionTime()-now);
 			try {
 				if( waitTime>0 ) {

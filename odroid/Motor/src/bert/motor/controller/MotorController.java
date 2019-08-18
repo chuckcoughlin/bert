@@ -180,6 +180,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	 *  From there a listener forwards the responses to the group controller (MotorManager).
 	 *  Do not free the request lock until we have the response in-hand.
 	 */
+	@Override
 	public void run() {
 		while( !stopped ) {
 			lock.lock();
@@ -195,7 +196,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 							responseQueue.addLast(wrapper);
 						}
 						writeBytesToSerial(bytes);
-						LOGGER.info(String.format("%s.run: %s wrote %d bytes",CLSS,group,bytes.length));
+						LOGGER.info(String.format("%s.run%s: %s wrote %d bytes",CLSS,Integer.toHexString(this.hashCode()),group,bytes.length));
 					}
 				}
 				else {
@@ -205,7 +206,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					}
 					for(byte[] bytes:byteArrayList) {
 						writeBytesToSerial(bytes);
-						LOGGER.info(String.format("%s.run: %s wrote %d bytes",CLSS,group,bytes.length));
+						LOGGER.info(String.format("%s.run%s: %s wrote %d bytes",CLSS,Integer.toHexString(this.hashCode()),group,bytes.length));
 					}
 				}
 				
@@ -548,13 +549,16 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	private void writeBytesToSerial(byte[] bytes) {
 		if( bytes!=null && bytes.length>0 ) {
 			try {
-				long now = System.nanoTime()/1000000; 
+				long now = System.nanoTime()/1000000;
 				long interval = now - timeOfLastWrite;
+				LOGGER.info(String.format("%s.writeBytesToSerial %s: Write interval %d msecs",CLSS,Integer.toHexString(this.hashCode()),interval));
 				if( interval<MIN_WRITE_INTERVAL) {
 					Thread.sleep(MIN_WRITE_INTERVAL-interval);
+					LOGGER.info(String.format("%s.writeBytesToSerial %s: Slept %d msecs",CLSS,Integer.toHexString(this.hashCode()),MIN_WRITE_INTERVAL-interval));
 				}
-				timeOfLastWrite = now;
+
 				boolean success = port.writeBytes(bytes);
+				timeOfLastWrite = now;
 				port.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);   // Force the write to complete
 				if( !success ) {
 					LOGGER.severe(String.format("%s.writeBytesToSerial: Failed write of %d bytes to %s",CLSS,bytes.length,port.getPortName()));
@@ -579,7 +583,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			MessageBottle req = wrapper.getMessage();
 			// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();
-			LOGGER.info(String.format("%s.serialEvent callback port %s for %s: expect %d msgs got %d bytes",
+			LOGGER.info(String.format("%s.serialEvent (%s) %s: expect %d msgs got %d bytes",
 					CLSS,event.getPortName(),req.fetchRequestType().name(),wrapper.getResponseCount(),byteCount));
 			if(byteCount>0){
 				try {

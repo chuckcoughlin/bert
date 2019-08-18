@@ -601,9 +601,9 @@ public class DxlMessage  {
 			if( err==0 ) {
 				props.put(BottleConstants.PROPERTY_NAME,parameterName);
 				props.put(BottleConstants.TEXT,text);
-				props.put(parameterName,String.valueOf(value));
+				props.put(parameterName,String.format("%.2f",value));
 				mc.setProperty(parameterName, value);
-				LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.0f",CLSS,mc.getJoint(),parameterName,value));
+				LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.2f",CLSS,mc.getJoint(),parameterName,value));
 			}
 			else {
 				msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",CLSS,err,descriptionForError(err));
@@ -640,7 +640,7 @@ public class DxlMessage  {
 				MotorConfiguration mc =  configurations.get(id);
 				if( err==0 && mc!=null && bytes.length>index+6 ) {
 					double param= converter.valueForProperty(parameterName,mc,bytes[index+5],bytes[index+6]);
-					parameters.put(id, String.valueOf(param));
+					parameters.put(id, String.format("%.2f",param));
 					mc.setProperty(parameterName, param);
 					LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%.0f",CLSS,mc.getJoint(),parameterName,param));
 				}

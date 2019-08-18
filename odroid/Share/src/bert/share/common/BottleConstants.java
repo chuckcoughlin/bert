@@ -35,6 +35,7 @@ public interface BottleConstants   {
 	
 	// Pose names (these are required to exist)
 	public final static String POSE_HOME           = "home";
+	public final static String POSE_NORMAL_SPEED   = "normal speed";
 	
 	// Message from tablet
 	public final static int HEADER_LENGTH = 4;     // Includes semi-colon

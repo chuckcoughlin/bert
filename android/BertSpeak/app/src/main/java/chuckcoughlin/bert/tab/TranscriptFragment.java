@@ -177,10 +177,10 @@ public class TranscriptFragment extends BasicAssistantFragment implements Servic
     public synchronized void update(TextMessage msg) {
         Log.i(CLSS,String.format("update: message = %s",msg.getMessage()));
         if( !frozen || frozen ) {
-            adapter.notifyItemInserted(0);
             if( getActivity()!=null ) {
                 getActivity().runOnUiThread(new Runnable() {
                     public void run() {
+                        adapter.notifyItemInserted(0);
                         transcriptView.scrollToPosition(0);
                     }
                 });

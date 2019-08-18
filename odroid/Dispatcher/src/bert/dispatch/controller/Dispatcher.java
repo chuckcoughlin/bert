@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 import bert.control.controller.InternalController;
 import bert.control.controller.QueueName;
-import bert.control.message.InternalMessage;
+import bert.control.message.InternalMessageHolder;
 import bert.control.solver.Solver;
 import bert.motor.controller.MotorGroupController;
 import bert.share.common.BottleConstants;
@@ -72,7 +72,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 	private InternalController internalController     = null;
 	private MotorGroupController motorGroupController = null;
 	private final Condition busy;
-	private MessageBottle currentRequest = null;
+	private MessageBottle currentRequest= null;
 	private final Lock lock;
 	private final Solver solver;
 	
@@ -147,19 +147,22 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			motorGroupController.start();
 
 			// Set the speed to "normal" rate. Delay to all startup to complete
-			InternalMessage msg = new InternalMessage(RequestType.SET_POSE,QueueName.GLOBAL);
-			msg.setProperty(BottleConstants.POSE_NAME,"normal speed");
-			msg.setDelay(1000);   // 1 sec delay
-			internalController.receiveRequest(msg);
+			MessageBottle msg = new MessageBottle(RequestType.SET_POSE);
+			msg.setProperty(BottleConstants.POSE_NAME,BottleConstants.POSE_NORMAL_SPEED);
+			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
+			holder.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(holder);
 			// Read all the joint positions
-			msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
+			msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
-			msg.setDelay(1000);   // 1 sec delay
-			internalController.receiveRequest(msg);
+			holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
+			holder.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(holder);
 			// Bring any joints that are outside sane limits into compliance
-			msg = new InternalMessage(RequestType.INITIALIZE_JOINTS,QueueName.GLOBAL);
-			msg.setDelay(2000);   // 2 sec delay
-			internalController.receiveRequest(msg);
+			msg = new MessageBottle(RequestType.INITIALIZE_JOINTS);
+			holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
+			holder.setDelay(2000);   // 2 sec delay
+			internalController.receiveRequest(holder);
 		}
 		LOGGER.info(String.format("%s.execute: startup complete.",CLSS));
 	}
@@ -285,36 +288,39 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		// Entire robot
 		if( request.fetchRequestType().equals(RequestType.COMMAND) && 
 				properties.get(BottleConstants.COMMAND_NAME).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
-			InternalMessage msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
-			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
-			internalController.receiveRequest(msg);
-			msg = InternalMessage.clone(request,QueueName.GLOBAL);
-			msg.setDelay(1000);   // 1 sec delay
-			internalController.receiveRequest(msg);
+			MessageBottle msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
+			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
+			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
+			internalController.receiveRequest(holder);
+			holder = new InternalMessageHolder(request,QueueName.GLOBAL);
+			holder.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(holder);
 		}
 		// A limb
 		if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) && 
 				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.STATE.name()) &&
 				properties.get(JointProperty.STATE.name()).equalsIgnoreCase(BottleConstants.ON_VALUE)) {
-			InternalMessage msg = new InternalMessage(RequestType.LIST_MOTOR_PROPERTY,QueueName.GLOBAL);
+			MessageBottle msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
 			msg.setProperty(BottleConstants.LIMB_NAME,request.getProperty(BottleConstants.LIMB_NAME,Limb.UNKNOWN.name()));
-			internalController.receiveRequest(msg);
-			msg = InternalMessage.clone(request,QueueName.GLOBAL);
-			msg.setDelay(500);   // 1/2 sec delay
-			internalController.receiveRequest(msg);
+			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
+			internalController.receiveRequest(holder);
+			holder = new InternalMessageHolder(request,QueueName.GLOBAL);
+			holder.setDelay(500);   // 1/2 sec delay
+			internalController.receiveRequest(holder);
 		}
 		// Single joint
 		else if( request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY) && 
 				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.STATE.name()) &&
 				properties.get(JointProperty.STATE.name()).equalsIgnoreCase(BottleConstants.ON_VALUE)) {
-			InternalMessage msg = new InternalMessage(RequestType.GET_MOTOR_PROPERTY,QueueName.GLOBAL);
+			MessageBottle msg = new MessageBottle(RequestType.GET_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
 			msg.setProperty(BottleConstants.JOINT_NAME,request.getProperty(BottleConstants.JOINT_NAME,Joint.UNKNOWN.name()));
-			internalController.receiveRequest(msg);
-			msg = InternalMessage.clone(request,QueueName.GLOBAL);
-			msg.setDelay(250);   // 1/4 sec delay
-			internalController.receiveRequest(msg);
+			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
+			internalController.receiveRequest(holder);
+			holder = new InternalMessageHolder(request,QueueName.GLOBAL);
+			holder.setDelay(250);   // 1/4 sec delay
+			internalController.receiveRequest(holder);
 		}
 		return request;
 	}

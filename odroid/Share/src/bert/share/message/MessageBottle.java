@@ -34,6 +34,7 @@ public class MessageBottle implements Serializable {
 	protected static final Logger LOGGER = Logger.getLogger(CLSS);
 	public Map<String,String> properties;  // Multiple properties for a single motor
 	public Map<String,String> jointValues; // A single property for multiple motors
+	public long id       = 0;
 	public long duration = 0;   // ~msecs
 	public int responderCount = 0;  // Number of controllers/motors that have contributed
 	
@@ -41,7 +42,13 @@ public class MessageBottle implements Serializable {
 		this.properties = new HashMap<>();
 		this.jointValues = new HashMap<>();
 	}
-	
+	public MessageBottle(RequestType type) {
+		this.properties = new HashMap<>();
+		this.jointValues = new HashMap<>();
+		assignRequestType(type);
+	}
+	public long getId()       { return this.id; }
+	public void setId(long mid) { this.id = mid; }
 	public long getDuration() { return this.duration; }
 	/**
 	 * Set the number of millisecs that the motion commanded by this
