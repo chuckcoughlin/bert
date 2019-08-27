@@ -66,8 +66,9 @@ public class TimedQueue extends LinkedList<InternalMessageHolder> implements Run
 			if(im.getExecutionTime()>holder.getExecutionTime()) {
 				add(index, holder);
 				long now = System.nanoTime()/1000000;
-				LOGGER.info(String.format("%s.insertMessage: %s scheduled in %d msecs position %d",
-						CLSS,holder.getMessage().fetchRequestType().name(),holder.getExecutionTime()-now,index));
+				LOGGER.info(String.format("%s.insertMessage(%d): %s scheduled in %d msecs position %d",
+						CLSS,holder.getMessage().getId(),holder.getMessage().fetchRequestType().name(),
+						holder.getExecutionTime()-now,index));
 				if( index==0) timerThread.interrupt();   // We've replaced the head
 				return;
 			}
@@ -89,7 +90,7 @@ public class TimedQueue extends LinkedList<InternalMessageHolder> implements Run
 			add(holder);
 		}
 		else {
-			LOGGER.info(String.format("%s.fireExecutor: dispatching %s ...",CLSS,holder.getMessage().fetchRequestType().name()));
+			LOGGER.info(String.format("%s.fireExecutor: dispatching(%d) %s ...",CLSS,holder.getMessage().id,holder.getMessage().fetchRequestType().name()));
 			controller.dispatch(holder);
 		}
 		timerThread.interrupt();

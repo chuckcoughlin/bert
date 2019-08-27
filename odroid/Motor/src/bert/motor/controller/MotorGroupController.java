@@ -90,7 +90,7 @@ public class MotorGroupController implements MotorManager {
 					}
 				}
 				controllerCount += 1;
-				LOGGER.info(String.format("%s.initialize: Created motor controller for group %s",CLSS,controller.getGroupName()));
+				LOGGER.info(String.format("%s.initialize: Created motor controller %s",CLSS,controller.getControllerName()));
 			}
 		}
 	}

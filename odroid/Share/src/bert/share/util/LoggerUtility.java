@@ -26,8 +26,8 @@ import bert.share.common.PathConstants;
  * and, presumably, all it progeny.
  */
 public class LoggerUtility {
-	static final int MAX_BYTES  = 50000; // Max bytes in a log file
-	static final int MAX_FILES  = 5;     // Max log files before overwriting
+	static final int MAX_BYTES  = 100000; // Max bytes in a log file
+	static final int MAX_FILES  = 3;     // Max log files before overwriting
 	private static LoggerUtility instance = null;
 
 

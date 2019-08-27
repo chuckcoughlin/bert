@@ -149,17 +149,20 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			// Set the speed to "normal" rate. Delay to all startup to complete
 			MessageBottle msg = new MessageBottle(RequestType.SET_POSE);
 			msg.setProperty(BottleConstants.POSE_NAME,BottleConstants.POSE_NORMAL_SPEED);
+			msg.assignSource(HandlerType.BITBUCKET.name());
 			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
 			holder.setDelay(1000);   // 1 sec delay
 			internalController.receiveRequest(holder);
 			// Read all the joint positions
 			msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
+			msg.assignSource(HandlerType.BITBUCKET.name());
 			holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
 			holder.setDelay(1000);   // 1 sec delay
 			internalController.receiveRequest(holder);
 			// Bring any joints that are outside sane limits into compliance
 			msg = new MessageBottle(RequestType.INITIALIZE_JOINTS);
+			msg.assignSource(HandlerType.BITBUCKET.name());
 			holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
 			holder.setDelay(2000);   // 2 sec delay
 			internalController.receiveRequest(holder);
@@ -276,6 +279,9 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		else if( source.equalsIgnoreCase(HandlerType.INTERNAL.name()) ) {
 			internalController.receiveResponse(response);
 		}
+		else if( source.equalsIgnoreCase(HandlerType.BITBUCKET.name()) ) {
+			; // Do nothing, end of the line
+		}
 		else {
 			LOGGER.warning(String.format("%s.handleResponse: Unknown destination - %s, ignored",CLSS,source));
 		}
@@ -290,6 +296,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 				properties.get(BottleConstants.COMMAND_NAME).equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)) {
 			MessageBottle msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
+			msg.assignSource(HandlerType.BITBUCKET.name());
 			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
 			internalController.receiveRequest(holder);
 			holder = new InternalMessageHolder(request,QueueName.GLOBAL);
@@ -303,6 +310,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			MessageBottle msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
 			msg.setProperty(BottleConstants.LIMB_NAME,request.getProperty(BottleConstants.LIMB_NAME,Limb.UNKNOWN.name()));
+			msg.assignSource(HandlerType.BITBUCKET.name());
 			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
 			internalController.receiveRequest(holder);
 			holder = new InternalMessageHolder(request,QueueName.GLOBAL);
@@ -316,6 +324,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			MessageBottle msg = new MessageBottle(RequestType.GET_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name());
 			msg.setProperty(BottleConstants.JOINT_NAME,request.getProperty(BottleConstants.JOINT_NAME,Joint.UNKNOWN.name()));
+			msg.assignSource(HandlerType.BITBUCKET.name());
 			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
 			internalController.receiveRequest(holder);
 			holder = new InternalMessageHolder(request,QueueName.GLOBAL);
@@ -327,7 +336,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 
 
 	// Create a response for a request that can be handled immediately. The response is simply the original request
-	// with some text to send directly to the user. 
+	// with some text to return back to the user. 
 	private MessageBottle handleLocalRequest(MessageBottle request) {
 		// The following two requests simply use the current positions of the motors, whatever they are
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
@@ -457,7 +466,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		return false;
 	}
-	
+	// Local requests are those that can be handled immediately without forwarding the the motor controllers.
 	private boolean isLocalRequest(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION) || 
 			request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION)   ||

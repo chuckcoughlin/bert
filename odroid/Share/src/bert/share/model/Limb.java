@@ -5,7 +5,7 @@
 package bert.share.model;
 
 /**
- * These are the canonical names for the limbs of the humanoid.
+ * These are the canonical names for the skeletal sections of the humanoid.
  * We try to be anatomically correct, but don't always succeed.
  * 
  * A second meaning is given to: left/right arms and legs and torso.

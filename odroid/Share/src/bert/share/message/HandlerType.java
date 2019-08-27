@@ -12,6 +12,7 @@ package bert.share.message;
  */
 public enum HandlerType
 {
+            BITBUCKET,
             COMMAND,
             DISPATCHER,
             INTERNAL,

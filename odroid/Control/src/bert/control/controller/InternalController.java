@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import bert.control.message.InternalMessageHolder;
+import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 import bert.share.message.MessageHandler;
 
@@ -59,17 +60,16 @@ public class InternalController {
 		if( queue!=null) {
 			LOGGER.info(String.format("%s.receiveRequest %s on %s (%s)",CLSS,holder.getMessage().fetchRequestType().name(),
 						holder.getQueue().name(),(queue.isInProgress()?"IN PROGRESS":"IDLE")));
-			
 			queue.addLast(holder);
 			if( !queue.isInProgress()) {
 				holder = queue.removeFirst();
 				queue.setInProgress(true);
-				sendToTimerQueue(holder);  // Just in case there's a required delay
+				sendToTimerQueue(queue,holder);  // Just in case there's a required delay
 			}
 		}
 		// Place directly on the timer queue
 		else {
-			sendToTimerQueue(holder);
+			sendToTimerQueue(null,holder);
 		}
 	}
 	
@@ -80,55 +80,56 @@ public class InternalController {
 	 *     2) If the message was marked for repeating, then place it on the timer queue
 	 *     3) Discard the message,
 	 */
-	public synchronized void receiveResponse(MessageBottle msg) {
+	public void receiveResponse(MessageBottle msg) {
 		InternalMessageHolder holder = pendingMessages.get(msg.getId());
-		QueueName qn = holder.getQueue();
-		SequentialQueue queue = null;
-		if( qn!=null ) queue = sequentialQueues.get(qn);
-		if( queue!=null ) {
-			if( queue.isEmpty() ) {
-				queue.setInProgress(false);
-				LOGGER.info(String.format("%s.receiveResponse %s on %s (empty)",CLSS,holder.getMessage().fetchRequestType().name()));
+		if( holder!=null ) {
+			pendingMessages.remove(msg.getId());
+			// Reinstate the original source in the message so the dispatcher can route appropriately	
+			holder.reinstateOriginalSource();
+			
+			//LOGGER.info(String.format("%s.receiveResponse(%d) %s",CLSS,holder.getMessage().getId(),
+			//		holder.getMessage().fetchRequestType().name()));
+			QueueName qn = holder.getQueue();
+			SequentialQueue queue = null;
+			if( qn!=null ) queue = sequentialQueues.get(qn);
+			if( queue!=null ) {
+				if( queue.isEmpty() ) {
+					LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (empty)",CLSS,holder.getMessage().getId(),
+							holder.getMessage().fetchRequestType().name(),qn.name()));
+					queue.setInProgress(false);
+				}
+				else {
+					queue.setInProgress(true);
+					LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (%d queued)",CLSS,holder.getMessage().getId(),
+							holder.getMessage().fetchRequestType().name(),qn.name(),queue.size()));
+					holder = queue.removeFirst(); 	
+					sendToTimerQueue(queue,holder);  // Just in case there's a required delay
+				}
 			}
-			else {
-				queue.setInProgress(true);
-				LOGGER.info(String.format("%s.receiveResponse %s on %s (%d queued)",CLSS,holder.getMessage().fetchRequestType().name(),
-						queue.size()));
-				holder = queue.removeFirst(); 
-				sendToTimerQueue(holder);  // Just in case there's a required delay
+			// The response is not associated with a queue. The only consideration
+			// now is if it is repeated. Otherwise we do nothing.
+			else  {
+				if( holder.shouldRepeat() ) {
+					long now = System.nanoTime()/1000000;   // Work in milliseconds
+					holder.setExecutionTime(now+holder.getRepeatInterval());
+					sendToTimerQueue(null,holder);
+				}
 			}
-
+			dispatcher.handleResponse(msg);  // Will reply to the original source
 		}
-		// The response is not associated with a queue. The only consideration
-		// now is if it is repeated. Otherwise we do nothing.
-		else  {
-			if( holder.shouldRepeat() ) {
-				long now = System.nanoTime()/1000000;   // Work in milliseconds
-				holder.setExecutionTime(now+holder.getRepeatInterval());
-				sendToTimerQueue(holder);
-			}
+		else {
+			LOGGER.info(String.format("%s.receiveResponse(%d) %s: not on pending queue for %s",CLSS,msg.getId(),msg.fetchRequestType().name(),msg.fetchSource()));
 		}
-		// No what we're done with the response, re-instate its original source and let the dispatcher take care of it
-		pendingMessages.remove(msg.getId());
-		holder.reinstateOriginalSource();
-		dispatcher.handleResponse(msg);  // Will reply to the original source
 	}
 
 	/**
-	 * Called by the timer queue when the message is ready to execute. If this message is from a
-	 * queue snd off the next in line.
+	 * Called by the timer queue once the message is ready to execute. Forward to the
+	 * dispatcher for actual processing. Mark the source as INTERNAL so
+	 * that the dispatcher knows to return the message here once processing is complete.
 	 * @param holder
 	 */
 	public synchronized void dispatch(InternalMessageHolder holder) {
-		
-		QueueName qn = holder.getQueue();
-		SequentialQueue queue = null;
-		if( qn!=null ) queue = sequentialQueues.get(qn);
-		if( queue!=null ) {
-			holder = queue.removeFirst();
-			if( holder!=null ) timedQueue.addMessage(holder);
-			else queue.setInProgress(false);
-		}
+		holder.getMessage().assignSource(HandlerType.INTERNAL.name());
 		dispatcher.handleRequest(holder.getMessage());
 	}
 	
@@ -140,8 +141,19 @@ public class InternalController {
 		timedQueue.stop();
 	}
 	
-	private void sendToTimerQueue(InternalMessageHolder holder) {
-		pendingMessages.put(holder.getMessage().getId(),holder);
+	/**
+	 *  As far as the sequential queue is concerned, a message is pending
+	 *  from the time it is placed on the timer queue until it returns
+	 * as a response from the Dispatcher
+	 * @param queue queue from which the message originated.
+	 * @param holder container for the message to be sent
+	 */
+	private void sendToTimerQueue(SequentialQueue queue,InternalMessageHolder holder) {
+		if( queue!=null ) {
+			pendingMessages.put(holder.getMessage().getId(),holder);
+			// LOGGER.info(String.format("%s.sendToTimerQueue: %d from %s",CLSS,holder.getMessage().getId(),holder.getQueue().name()));
+			queue.setInProgress(true);
+		}
 		timedQueue.addMessage(holder);
 	}
 }

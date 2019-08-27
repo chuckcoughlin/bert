@@ -29,13 +29,13 @@ import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
 /**
- *  Handle requests directed to a specific group of motors. All motors in the 
- *  group are connected to the same serial port. We respond to the group controller
+ *  Handle requests directed to a specific controllerName of motors. All motors under the 
+ *  same controller are connected to the same serial port. We respond to the group controller
  *  using call-backs. The responses from the serial port do not necessarily keep
  *  to request boundaries. All we are sure of is that the requests are processed
  *  in order. 
  *  
- *  The configuration array has only those joints that are part of the group.
+ *  The configuration array has only those joints that are part of the controllerName.
  *  It is important that the MotorConfiguration objects are the same objects
  *  (not clones) as those held by the MotorManager (MotorGroupController).
  */
@@ -47,7 +47,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	private static final int STATUS_RESPONSE_LENGTH = 8; // byte count
 	private final Condition running;
 	private final DxlMessage dxl;
-	private final String group;                 // Group name
+	private final String controllerName;                 // Group name
 	private final Lock lock;
 	private final SerialPort port;
 	private boolean stopped = false;
@@ -61,7 +61,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 
 	public MotorController(String name,SerialPort p,MotorManager mm) {
 		this.dxl = new DxlMessage();
-		this.group = name;
+		this.controllerName = name;
 		this.port = p;
 		this.motorManager = mm;
 		this.configurationsById = new HashMap<>();
@@ -73,7 +73,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 		this.timeOfLastWrite = System.nanoTime()/1000000; 
 	}
 
-	public String getGroupName() { return this.group; }
+	public String getControllerName() { return this.controllerName; }
 	public Map<String,MotorConfiguration> getConfigurations() { return this.configurationsByName; }
 	public MotorConfiguration getMotorConfiguration(String name) { return configurationsByName.get(name); }
 	public void putMotorConfiguration(String name,MotorConfiguration mc) {
@@ -92,7 +92,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	 * 	3) moves any limbs that are "out-of-bounds" back into range.
 	 */
 	public void initialize() {
-		LOGGER.info(String.format("%s.initialize: Initializing port %s)",CLSS,port.getPortName()));
+		LOGGER.info(String.format("%s(%s).initialize: Initializing port %s)",CLSS,controllerName,port.getPortName()));
 		if( !port.isOpened()) {
 			try {
 				boolean success = port.openPort();
@@ -104,11 +104,11 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					port.addEventListener(this);
 				}
 				else {
-					LOGGER.severe(String.format("%s.initialize: Failed to open port %s for %s",CLSS,port.getPortName(),group));
+					LOGGER.severe(String.format("%s.initialize: Failed to open port %s for %s",CLSS,port.getPortName(),controllerName));
 				}
 			}
 			catch(SerialPortException spe) {
-				LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",CLSS,port.getPortName(),group,spe.getLocalizedMessage()));
+				LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",CLSS,port.getPortName(),controllerName,spe.getLocalizedMessage()));
 			}
 			LOGGER.info(String.format("%s.initialize: Initialized port %s)",CLSS,port.getPortName()));
 		}
@@ -118,7 +118,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			port.closePort();
 		}
 		catch(SerialPortException spe) {
-			LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",CLSS,group,spe.getLocalizedMessage()));
+			LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",CLSS,controllerName,spe.getLocalizedMessage()));
 		}
 		stopped = true;
 	}
@@ -132,14 +132,14 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	 */
 	public void receiveRequest(MessageBottle request) {
 		lock.lock();
-		LOGGER.info(String.format("%s(%s).processRequest: processing %s",CLSS,group,request.fetchRequestType().name()));
+		//LOGGER.info(String.format("%s(%s).receiveRequest: processing %s",CLSS,controllerName,request.fetchRequestType().name()));
 		try {
 			if( isLocalRequest(request) ) {
 				handleLocalRequest(request);
 				return;
 			}
 			else if( isSingleGroupRequest(request)) {
-				// Do nothing if the joint or limb isn't in our group.
+				// Do nothing if the joint or limb isn't in our controllerName.
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME,Joint.UNKNOWN.name());
 				String limbName = request.getProperty(BottleConstants.LIMB_NAME,Limb.UNKNOWN.name());
 				if( !jointName.equalsIgnoreCase(Joint.UNKNOWN.name())) {
@@ -157,15 +157,15 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				}
 				else {
 					String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME,JointProperty.UNRECOGNIZED.name());
-					LOGGER.info(String.format("%s.receiveRequest %s (%s): for %s (%s)",CLSS,group,request.fetchRequestType().name(),
+					LOGGER.info(String.format("%s(%s).receiveRequest: (%s) for %s (%s)",CLSS,controllerName,request.fetchRequestType().name(),
 							jointName,propertyName));
 				}
 			}
 			else {
-				LOGGER.info(String.format("%s.receiveRequest: %s non-single group request (%s)",CLSS,group,request.fetchRequestType().name()));
+				LOGGER.info(String.format("%s(%s).receiveRequest: non-single controllerName request (%s)",CLSS,controllerName,request.fetchRequestType().name()));
 			}
 			requestQueue.addLast(request);
-			LOGGER.info(String.format("%s(%s).processRequest: added to request queue %s",CLSS,group,request.fetchRequestType().name()));
+			// LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
 			running.signal();
 		}
 		finally {
@@ -177,8 +177,10 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	
 	/**
 	 *  Wait until we receive a request message. Convert to serial request, write to port.
-	 *  From there a listener forwards the responses to the group controller (MotorManager).
+	 *  From there a listener forwards the responses to the controllerName controller (MotorManager).
 	 *  Do not free the request lock until we have the response in-hand.
+	 *  
+	 *  Integer.toHexString(this.hashCode()) 
 	 */
 	@Override
 	public void run() {
@@ -186,7 +188,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			lock.lock();
 			try{
 				running.await();
-				// LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,group,port.getPortName()));
+				// LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,controllerName,port.getPortName()));
 				MessageBottle req = requestQueue.removeFirst();  // Oldest
 				MessageWrapper wrapper = new MessageWrapper(req);
 				if(isSingleWriteRequest(req) ) {
@@ -196,17 +198,17 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 							responseQueue.addLast(wrapper);
 						}
 						writeBytesToSerial(bytes);
-						LOGGER.info(String.format("%s.run%s: %s wrote %d bytes",CLSS,Integer.toHexString(this.hashCode()),group,bytes.length));
+						LOGGER.info(String.format("%s(%s).run: wrote %d bytes",CLSS,controllerName,bytes.length));
 					}
 				}
-				else {
+				else  {
 					List<byte[]> byteArrayList = messageToByteList(wrapper);
 					if( wrapper.getResponseCount()>0) {
 						responseQueue.addLast(wrapper);
 					}
 					for(byte[] bytes:byteArrayList) {
 						writeBytesToSerial(bytes);
-						LOGGER.info(String.format("%s.run%s: %s wrote %d bytes",CLSS,Integer.toHexString(this.hashCode()),group,bytes.length));
+						LOGGER.info(String.format("%s(%s).run: wrote %d bytes",CLSS,controllerName,bytes.length));
 					}
 				}
 				
@@ -237,7 +239,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 		// The following two requests simply use the current positions of the motors, whatever they are
 		if(request.fetchRequestType().equals(RequestType.COMMAND)) {
 			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
-			LOGGER.warning(String.format("%s.createResponseForLocalRequest: command=%s",CLSS,command));
+			LOGGER.warning(String.format("%s(%s).createResponseForLocalRequest: command=%s",CLSS,controllerName,command));
 			if( command.equalsIgnoreCase(BottleConstants.COMMAND_RESET)) {
 				remainder = null;   // Resync after dropped messages.
 				responseQueue.clear();
@@ -453,7 +455,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",CLSS,type.name()));
 			}
 			for(byte[] bytes:list) {
-				LOGGER.info(String.format("%s.messageToByteList: request(%s) = (%s)",CLSS,request.fetchRequestType(),dxl.dump(bytes)));
+				LOGGER.info(String.format("%s(%s).messageToByteList: %s = \n(%s)",CLSS,controllerName,request.fetchRequestType(),dxl.dump(bytes)));
 			}
 		}
 		return list;
@@ -490,7 +492,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	}
 	
 	/**
-	 * Operate on the supplied message directly. This is already known to be a single group request, 
+	 * Operate on the supplied message directly. This is already known to be a single controllerName request, 
 	 * the first in the queue. Here we convert the request into a response.
 	 * @param req
 	 * @param bytes
@@ -551,22 +553,24 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			try {
 				long now = System.nanoTime()/1000000;
 				long interval = now - timeOfLastWrite;
-				LOGGER.info(String.format("%s.writeBytesToSerial %s: Write interval %d msecs",CLSS,Integer.toHexString(this.hashCode()),interval));
+				LOGGER.info(String.format("%s(%s).writeBytesToSerial: Write interval %d msecs",CLSS,controllerName,interval));
 				if( interval<MIN_WRITE_INTERVAL) {
 					Thread.sleep(MIN_WRITE_INTERVAL-interval);
-					LOGGER.info(String.format("%s.writeBytesToSerial %s: Slept %d msecs",CLSS,Integer.toHexString(this.hashCode()),MIN_WRITE_INTERVAL-interval));
+					//LOGGER.info(String.format("%s(%s).writeBytesToSerial: Slept %d msecs",CLSS,controllerName,MIN_WRITE_INTERVAL-interval));
 				}
 
 				boolean success = port.writeBytes(bytes);
 				timeOfLastWrite = now;
 				port.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);   // Force the write to complete
 				if( !success ) {
-					LOGGER.severe(String.format("%s.writeBytesToSerial: Failed write of %d bytes to %s",CLSS,bytes.length,port.getPortName()));
+					LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Failed write of %d bytes to %s",CLSS,controllerName,bytes.length,port.getPortName()));
 				}
 			}
-			catch(InterruptedException ignore) {}
+			catch(InterruptedException ie) {
+				LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Interruption writing to %s (%s)",CLSS,controllerName,port.getPortName(),ie.getLocalizedMessage()));
+			}
 			catch(SerialPortException spe) {
-				LOGGER.severe(String.format("%s.writeBytesToSerial: Error writing to %s (%s)",CLSS,port.getPortName(),spe.getLocalizedMessage()));
+				LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Error writing to %s (%s)",CLSS,controllerName,port.getPortName(),spe.getLocalizedMessage()));
 			}
 		}
 	}
@@ -583,8 +587,8 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			MessageBottle req = wrapper.getMessage();
 			// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();
-			LOGGER.info(String.format("%s.serialEvent (%s) %s: expect %d msgs got %d bytes",
-					CLSS,event.getPortName(),req.fetchRequestType().name(),wrapper.getResponseCount(),byteCount));
+			LOGGER.info(String.format("%s(%s).serialEvent (%s) %s: expect %d msgs got %d bytes",
+					CLSS,controllerName,event.getPortName(),req.fetchRequestType().name(),wrapper.getResponseCount(),byteCount));
 			if(byteCount>0){
 				try {
 					byte[] bytes = port.readBytes(byteCount);
@@ -592,10 +596,10 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					bytes = dxl.ensureLegalStart(bytes);  // null if no start characters
 					if( bytes!=null ) {
 						int nbytes = bytes.length;
-						LOGGER.info(String.format("%s.serialEvent: read = (%s)",CLSS,dxl.dump(bytes)));
+						LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",CLSS,controllerName,dxl.dump(bytes)));
 						int mlen = dxl.getMessageLength(bytes);  // First message
 						if( mlen<0 || nbytes < mlen) {
-							LOGGER.info(String.format("%s.serialEvent Message too short (%d), requires additional read",CLSS,nbytes));
+							LOGGER.info(String.format("%s(%s).serialEvent Message too short (%d), requires additional read",CLSS,controllerName,nbytes));
 							return;
 						}
 						if( returnsStatusArray(req) ) {
@@ -620,8 +624,8 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 								String name = configurationsById.get(key).getJoint().name();
 								req.setJointValue(name, param);
 								wrapper.decrementResponseCount();
-								LOGGER.info(String.format("%s.serialEvent: received %s (%d remaining) = %s",
-										CLSS,name,wrapper.getResponseCount(),param));
+								LOGGER.info(String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
+										CLSS,controllerName,name,wrapper.getResponseCount(),param));
 							}
 							if( wrapper.getResponseCount()<=0 ) {
 								responseQueue.removeFirst();
@@ -634,7 +638,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					System.out.println(ex);
 				}
 			}
-        }
+		}
     }
 	
 	private Map<String,MotorConfiguration> configurationsForLimb(Limb limb) {

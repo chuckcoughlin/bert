@@ -5,7 +5,6 @@
 package bert.control.message;
 
 import bert.control.controller.QueueName;
-import bert.share.message.HandlerType;
 import bert.share.message.MessageBottle;
 
 /**
@@ -51,7 +50,6 @@ public class InternalMessageHolder {
 		this.repeat = false;
 		this.originalSource = message.fetchSource();
 		message.setId(getNextId());
-		message.assignSource(HandlerType.INTERNAL.name());
 	}
 	/**
 	 * Constructor for a message that is restricted to sequential execution
@@ -65,7 +63,7 @@ public class InternalMessageHolder {
 		this.repeat = false;
 		this.originalSource = message.fetchSource();
 		message.setId(getNextId());
-		message.assignSource(HandlerType.INTERNAL.name());
+		
 	}
 	/**
 	 * The delay interval is an idle interval between when this message is

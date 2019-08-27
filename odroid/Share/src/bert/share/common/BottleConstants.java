@@ -15,6 +15,7 @@ public interface BottleConstants   {
 	// Additional data values as appropriate are keyed with the JointProperty keys
 	public final static String APPENDAGE_NAME      = "appendage";  // Request applies to this appendage, value is a Appendage
 	public final static String COMMAND_NAME        = "command";    // Value is a well-known command name, see below
+	public final static String CONTROLLER_NAME     = "controller"; // Message needs to be addressed to a specific controller
 	public final static String ERROR               = "error";      // Request resulted in an error, value is error text
 	public final static String JOINT_NAME          = "joint";      // Request applies to this joint, value is a Joint
 	public final static String LIMB_NAME           = "limb";       // Request applies to this limb, value is a Limb
@@ -32,6 +33,9 @@ public interface BottleConstants   {
 	public final static String COMMAND_RESET       = "reset";
 	public final static String COMMAND_SHUTDOWN    = "shutdown";
 	public final static String COMMAND_WAKE        = "wake";
+	// Controller names
+	public final static String CONTROLLER_LOWER    = "lower";
+	public final static String CONTROLLER_UPPER    = "upper";
 	
 	// Pose names (these are required to exist)
 	public final static String POSE_HOME           = "home";

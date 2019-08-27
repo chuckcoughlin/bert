@@ -632,7 +632,7 @@ public class DxlMessage  {
 		int length = 7;
 		int index  = 0;
 		while( index<bytes.length ) {
-			LOGGER.info(String.format("%s.updateParameterArrayFromBytes: index %d of %d",CLSS,index,bytes.length));
+			// LOGGER.info(String.format("%s.updateParameterArrayFromBytes: index %d of %d",CLSS,index,bytes.length));
 			if( verifyHeader(bytes,index) ) {
 				int id = bytes[index+2];
 				length = bytes[index+3] + 4;  // Takes care of fixed bytes pre-length
