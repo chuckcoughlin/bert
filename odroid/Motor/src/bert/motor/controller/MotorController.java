@@ -101,6 +101,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					port.setEventsMask(SerialPort.MASK_RXCHAR);
 					port.purgePort(SerialPort.PURGE_RXCLEAR);
 					port.purgePort(SerialPort.PURGE_TXCLEAR);
+					port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT);
 					port.addEventListener(this);
 				}
 				else {
@@ -141,11 +142,17 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			else if( isSingleGroupRequest(request)) {
 				// Do nothing if the joint or limb isn't in our controllerName.
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME,Joint.UNKNOWN.name());
+				String cName = request.getProperty(BottleConstants.CONTROLLER_NAME,"");
 				String limbName = request.getProperty(BottleConstants.LIMB_NAME,Limb.UNKNOWN.name());
 				if( !jointName.equalsIgnoreCase(Joint.UNKNOWN.name())) {
 					MotorConfiguration mc = configurationsByName.get(jointName);
 					if( mc==null ) { 
 						return; 
+					}
+				}
+				else if(!cName.isEmpty()) {
+					if( !cName.equalsIgnoreCase(controllerName) ) {
+						return;
 					}
 				}
 				else if(!limbName.equalsIgnoreCase(Limb.UNKNOWN.name())) {
@@ -157,12 +164,11 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				}
 				else {
 					String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME,JointProperty.UNRECOGNIZED.name());
-					LOGGER.info(String.format("%s(%s).receiveRequest: (%s) for %s (%s)",CLSS,controllerName,request.fetchRequestType().name(),
-							jointName,propertyName));
+					LOGGER.info(String.format("%s(%s).receiveRequest: %s (%s)",CLSS,controllerName,request.fetchRequestType().name(),propertyName));
 				}
 			}
 			else {
-				LOGGER.info(String.format("%s(%s).receiveRequest: non-single controllerName request (%s)",CLSS,controllerName,request.fetchRequestType().name()));
+				LOGGER.info(String.format("%s(%s).receiveRequest: multi-controller request (%s)",CLSS,controllerName,request.fetchRequestType().name()));
 			}
 			requestQueue.addLast(request);
 			// LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
@@ -225,14 +231,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	
 	
 	// ============================= Private Helper Methods =============================
-	// Get the value of the supplied property from the specified array. Create a map to 
-	// be aggregated by the MotorManager with similar responses from other motors.
-	// The byte array may be the concatenation of several responses.
-	private Map<Integer,String> createPropertyMapFromBytes(String propertyName,byte[] bytes) {
-		Map<Integer,String> props = new HashMap<>();
-		dxl.updateParameterArrayFromBytes(propertyName,configurationsById,bytes,props);
-		return props;
-	}
+
 	// Create a response for a request that can be handled immediately. There aren't many of them. The response is simply the original request
 	// with some text to send directly to the user. 
 	private MessageBottle handleLocalRequest(MessageBottle request) {
@@ -274,8 +273,10 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			msg.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)  ){
 			return true;
 		}
+		// LIST_MOTOR_PROPERTY applies to a single controller if controller name or limb is specified
 		else if( msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) &&
-				!msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name()).equalsIgnoreCase( Limb.UNKNOWN.name())) {
+				(!msg.getProperty(BottleConstants.CONTROLLER_NAME, "").equals( "") ||
+				 !msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name()).equalsIgnoreCase( Limb.UNKNOWN.name())) ) {
 			return true;
 		}
 		return false;
@@ -299,9 +300,11 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	 * @param msg the request
 	 * @return true if this is the type of message that returns a separate
 	 *         status response for every motor referenced in the request.
+	 *         (There may be only one).
 	 */
 	private boolean returnsStatusArray(MessageBottle msg) {
-		if( msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY))    {
+		if( msg.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) ||
+			msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) 	)    {
 			return true;
 		}
 		return false;
@@ -404,7 +407,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",CLSS,type.name()));
 				wrapper.setResponseCount(0);   // Error, there will be no response
 			}
-			LOGGER.info(String.format("%s.messageToBytes: request(%s) = (%s)",CLSS,request.fetchRequestType(),dxl.dump(bytes)));
+			LOGGER.info(String.format("%s.messageToBytes: %s = \n%s",CLSS,request.fetchRequestType(),dxl.dump(bytes)));
 		}
 		return bytes;
 	}
@@ -455,7 +458,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 				LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",CLSS,type.name()));
 			}
 			for(byte[] bytes:list) {
-				LOGGER.info(String.format("%s(%s).messageToByteList: %s = \n(%s)",CLSS,controllerName,request.fetchRequestType(),dxl.dump(bytes)));
+				LOGGER.info(String.format("%s(%s).messageToByteList: %s = \n%s",CLSS,controllerName,request.fetchRequestType(),dxl.dump(bytes)));
 			}
 		}
 		return list;
@@ -491,12 +494,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
         }
 	}
 	
-	/**
-	 * Operate on the supplied message directly. This is already known to be a single controllerName request, 
-	 * the first in the queue. Here we convert the request into a response.
-	 * @param req
-	 * @param bytes
-	 */
+
 	// We update the properties in the request from our serial message.
 	// The properties must include motor type and orientation
 	private void updateRequestFromBytes(MessageBottle request,byte[] bytes) {
@@ -544,6 +542,16 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			}
 		}
 	}
+	
+	// The bytes array contains the results of a request for status. It may be the concatenation
+	// of several responses. Update the loacal motor configuration map and return a map keyed by motor
+	// id to be aggregated by the MotorManager with similar responses from other motors.
+	// 
+	private Map<Integer,String> updateStatusFromBytes(String propertyName,byte[] bytes) {
+		Map<Integer,String> props = new HashMap<>();
+		dxl.updateParameterArrayFromBytes(propertyName,configurationsById,bytes,props);
+		return props;
+	}
 
 	/*
 	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL
@@ -553,14 +561,14 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			try {
 				long now = System.nanoTime()/1000000;
 				long interval = now - timeOfLastWrite;
-				LOGGER.info(String.format("%s(%s).writeBytesToSerial: Write interval %d msecs",CLSS,controllerName,interval));
 				if( interval<MIN_WRITE_INTERVAL) {
 					Thread.sleep(MIN_WRITE_INTERVAL-interval);
 					//LOGGER.info(String.format("%s(%s).writeBytesToSerial: Slept %d msecs",CLSS,controllerName,MIN_WRITE_INTERVAL-interval));
 				}
-
+				
+				LOGGER.info(String.format("%s(%s).writeBytesToSerial: Write interval %d msecs",CLSS,controllerName,interval));
 				boolean success = port.writeBytes(bytes);
-				timeOfLastWrite = now;
+				timeOfLastWrite = System.nanoTime()/1000000;
 				port.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);   // Force the write to complete
 				if( !success ) {
 					LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Failed write of %d bytes to %s",CLSS,controllerName,bytes.length,port.getPortName()));
@@ -577,11 +585,12 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	// ============================== SerialPortEventListener ===============================
 	/**
 	 * Handle the response from the serial request. Note that all our interactions with removing from the
-	 * responseQueue and dealing with remainder are synchronized. 
+	 * responseQueue and dealing with remainder are synchronized here. 
 	 * 
 	 * The response queue must have at least one response for associating results.
 	 */
 	public synchronized void serialEvent(SerialPortEvent event) {
+		LOGGER.info(String.format("%s(%s).serialEvent queue is %d",CLSS,controllerName,responseQueue.size()));
 		if(event.isRXCHAR() && !responseQueue.isEmpty() ){
 			MessageWrapper wrapper = responseQueue.getFirst();
 			MessageBottle req = wrapper.getMessage();
@@ -602,23 +611,16 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 							LOGGER.info(String.format("%s(%s).serialEvent Message too short (%d), requires additional read",CLSS,controllerName,nbytes));
 							return;
 						}
-						if( returnsStatusArray(req) ) {
+						if( returnsStatusArray(req) ) {  // Some requests return a message for each motor
 							int nmsgs = nbytes/STATUS_RESPONSE_LENGTH;
 							if( nmsgs>wrapper.getResponseCount() ) nmsgs = wrapper.getResponseCount();
 							nbytes = nmsgs*STATUS_RESPONSE_LENGTH;
-						}
-						if( nbytes<bytes.length ) {
-							bytes = truncateByteArray(bytes,nbytes);
-						}
-						if( isSingleGroupRequest(req)) {
-							updateRequestFromBytes(req,bytes);
-							responseQueue.removeFirst();
-							motorManager.handleSingleMotorResponse(req);
-						}
-						// Ultimately we get a callback for every individual motor. Any errors get swallowed, but logged.
-						else {
+							if( nbytes<bytes.length ) {
+								bytes = truncateByteArray(bytes,nbytes);
+							}
+							
 							String propertyName = req.getProperty(BottleConstants.PROPERTY_NAME, "NONE");
-							Map<Integer,String> map = createPropertyMapFromBytes(propertyName,bytes);
+							Map<Integer,String> map = updateStatusFromBytes(propertyName,bytes);
 							for( Integer key:map.keySet() ) {
 								String param = map.get(key);
 								String name = configurationsById.get(key).getJoint().name();
@@ -627,8 +629,15 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 								LOGGER.info(String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
 										CLSS,controllerName,name,wrapper.getResponseCount(),param));
 							}
-							if( wrapper.getResponseCount()<=0 ) {
-								responseQueue.removeFirst();
+						}
+
+						if( wrapper.getResponseCount()<=0 ) {
+							responseQueue.removeFirst();
+							if( isSingleGroupRequest(req)) {
+								updateRequestFromBytes(req,bytes);
+								motorManager.handleSingleMotorResponse(req);
+							}
+							else {
 								motorManager.handleAggregatedResponse(req);
 							}
 						}

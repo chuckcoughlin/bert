@@ -151,11 +151,20 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			msg.setProperty(BottleConstants.POSE_NAME,BottleConstants.POSE_NORMAL_SPEED);
 			msg.assignSource(HandlerType.BITBUCKET.name());
 			InternalMessageHolder holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
-			holder.setDelay(1000);   // 1 sec delay
+			holder.setDelay(500);   // 1/2 sec delay
 			internalController.receiveRequest(holder);
-			// Read all the joint positions
+			// Read all the joint positions, one controller at a time
 			msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
 			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
+			msg.setProperty(BottleConstants.CONTROLLER_NAME,BottleConstants.CONTROLLER_LOWER); 
+			msg.assignSource(HandlerType.BITBUCKET.name());
+			holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
+			holder.setDelay(1000);   // 1 sec delay
+			internalController.receiveRequest(holder);
+
+			msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
+			msg.setProperty(BottleConstants.PROPERTY_NAME,JointProperty.POSITION.name()); 
+			msg.setProperty(BottleConstants.CONTROLLER_NAME,BottleConstants.CONTROLLER_UPPER);
 			msg.assignSource(HandlerType.BITBUCKET.name());
 			holder = new InternalMessageHolder(msg,QueueName.GLOBAL);
 			holder.setDelay(1000);   // 1 sec delay

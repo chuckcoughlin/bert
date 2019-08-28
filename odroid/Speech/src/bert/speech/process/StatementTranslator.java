@@ -263,7 +263,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String pname = ctx.Properties().getText();  // plural
 		try {
 			JointProperty jp = determineJointProperty(pname);
-			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name()); 
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
+			if(ctx.Controller()!=null) {
+				bottle.setProperty(BottleConstants.CONTROLLER_NAME, determineController(ctx.Controller().getText()));
+			}
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("My joints don't hava a property %s, that I know of",pname.toLowerCase());
@@ -278,7 +281,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		String pname = ctx.Properties().getText();  // plural
 		try {
 			JointProperty jp = determineJointProperty(pname);
-			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name()); 
+			bottle.setProperty(BottleConstants.PROPERTY_NAME,jp.name());
+			if(ctx.Controller()!=null) {
+				bottle.setProperty(BottleConstants.CONTROLLER_NAME, determineController(ctx.Controller().getText()));
+			}
 		}
 		catch(IllegalArgumentException iae) {
 			String msg = String.format("My joints don't hava a property %s, that I know of",pname.toLowerCase());
@@ -814,7 +820,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		
 		return success;
 	}
-	
+	// Determine controller from the supplied string. 
+	private String determineController(String text) throws IllegalArgumentException  {
+		String controller = BottleConstants.CONTROLLER_UPPER;
+		if( text.equalsIgnoreCase("lower")) controller = BottleConstants.CONTROLLER_LOWER;
+		return controller;
+	}
 	// Determine the specific joint from the body part, side and axis. (The latter two are
 	// not always needed).
 	private Joint determineJoint(String bodyPart,String axis,String side) {

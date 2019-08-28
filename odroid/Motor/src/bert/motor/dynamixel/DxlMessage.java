@@ -471,7 +471,7 @@ public class DxlMessage  {
 	 */
 	public int getMessageLength(byte[] bytes) {
 		int len = -1;
-		if( bytes.length>-4 ) {
+		if( bytes.length> 4 ) {
 			len = bytes[3]+4;
 		}
 		return len;

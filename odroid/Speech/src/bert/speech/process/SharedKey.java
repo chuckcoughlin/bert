@@ -13,6 +13,7 @@ public enum SharedKey
     		APPENDAGE,
             ASLEEP,    // Robot ignores requests,
             AXIS,
+            CONTROLLER,
             JOINT,
             LIMB,
             PARTIAL,   // Text of an incomplete request

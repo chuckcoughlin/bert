@@ -21,8 +21,8 @@ command:
 	| Salutation? Initialize Article? Motors   					# initializeJoints
     | Salutation? List Article? Configuration                   # configurationRequest
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
-	| Salutation? List Article? Properties Of Article? Motors                   # handleListCommand1
-	| Salutation? List Article? Motor? Properties                               # handleListCommand2
+	| Salutation? List Article? Properties Of Article? Controller? Motors       # handleListCommand1
+	| Salutation? List Article? Controller? Motor? Properties                   # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
 	| Salutation? Move Adverb                                                   # moveSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?		# enableTorque
@@ -75,6 +75,7 @@ As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'x'|'y'|'z'|'horizontal'|'vertical'|Why;
 Configuration: 'configuration';
+Controller: 'lower'|'upper';
 Do: 'do';
 Goals: 'goals'|'targets';
 Greeting: 'hello'|'high'|'hi';
