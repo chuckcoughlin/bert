@@ -313,7 +313,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 			internalController.receiveRequest(holder);
 		}
 		// A limb
-		if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) && 
+		else if( request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) && 
 				properties.get(BottleConstants.PROPERTY_NAME).equalsIgnoreCase(JointProperty.STATE.name()) &&
 				properties.get(JointProperty.STATE.name()).equalsIgnoreCase(BottleConstants.ON_VALUE)) {
 			MessageBottle msg = new MessageBottle(RequestType.LIST_MOTOR_PROPERTY);
@@ -570,7 +570,5 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		runner.startup();
 		runner.start();
 	}
-
-
 
 }

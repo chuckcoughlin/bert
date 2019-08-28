@@ -171,7 +171,7 @@ public class DxlMessage  {
 		// First count all the joints in the limb
 		int count = map.size();
 
-		byte[] bytes = new byte[0];
+		byte[] bytes = null;
 		int dxlValue = 0;
 		if( count>0 ) {
 			int len = ((converter.dataBytesForProperty(property)+1) * count) + 8;  //  2 or 3 bytes per motor + address + byte count + header + checksum

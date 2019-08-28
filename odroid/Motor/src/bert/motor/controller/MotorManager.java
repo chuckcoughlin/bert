@@ -12,6 +12,6 @@ import bert.share.message.MessageBottle;
 public interface MotorManager  {
 	public void handleAggregatedResponse(MessageBottle response);
 	public void handleSynthesizedResponse(MessageBottle response);
-	public void handleSingleMotorResponse(MessageBottle response);
+	public void handleSingleControllerResponse(MessageBottle response);
 	public int getControllerCount();
 }

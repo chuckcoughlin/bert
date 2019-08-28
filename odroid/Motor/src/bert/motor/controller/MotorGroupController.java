@@ -194,11 +194,11 @@ public class MotorGroupController implements MotorManager {
 
 
 	/**
-	 * This method is called by the controller that handled a request that pertained to
-	 * a single motor. It has modified the request directly. Forward result to the Dispatcher.
+	 * This method is called by the controller that handled a request that pertained to it
+	 * alone. It has modified the request directly. Forward result to the Dispatcher.
 	 * @param response the message to be forwarded.
 	 */
-	public void handleSingleMotorResponse(MessageBottle response) {
+	public void handleSingleControllerResponse(MessageBottle response) {
 		responseHandler.handleResponse(response);		
 	}
 
