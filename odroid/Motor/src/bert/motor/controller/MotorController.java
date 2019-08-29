@@ -377,8 +377,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					mc.setProperty(jp, value);
 				}
 				bytes = dxl.byteArrayToSetProperty(configs,propertyName);  // Returns null if limb not on this controller
-				wrapper.setResponseCount(0);  // ASYNC WRITE, no response
-				request.assignText(String.format("My %s %s is %s",Limb.toText(limb),propertyName.toLowerCase(),value));
+				wrapper.setResponseCount(0);  // ASYNC WRITE, no response. Let source set text.
 			}
 			else if( type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 				String jointName = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name());

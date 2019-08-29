@@ -101,7 +101,7 @@ public class MessageTranslator  {
 					if( propertyName.equalsIgnoreCase(JointProperty.STATE.name())) {
 						String value = msg.getProperty(propertyName, "");
 						if( value.equals("0")) {
-							text = String.format("My %s is compliant ", Limb.toText(limb));
+							text = String.format("My %s is flexible ", Limb.toText(limb));
 						}
 						else {
 							text = String.format("My %s is rigid ", Limb.toText(limb));
