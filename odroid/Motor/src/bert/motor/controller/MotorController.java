@@ -530,7 +530,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					properties.put(BottleConstants.TEXT,String.format("My %s %s is %s", Joint.toText(joint),propertyName.toLowerCase(),partial));
 				}	
 			}
-			// The update applies to only one of several motors affected by this request
+			// If controller is specified, the update applies to only one of several motors affected by this request
 			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
 				int id = bytes[2];
 				MotorConfiguration mc = configurationsById.get(id);

@@ -143,32 +143,6 @@ public class Command extends Thread implements MessageHandler {
 		tabletController.receiveResponse(response);
 	}
 	
-	// Create a response for a request that can be handled immediately. These tend to be database requests,
-	// The response is simply the original request with some text to send directly to the user. 
-	private MessageBottle handleLocalRequest(MessageBottle request) {
-		// The following two requests simply use the current positions of the motors, whatever they are
-		if( request.fetchRequestType().equals(RequestType.MAP_POSE)) {
-			String cmd = request.getProperty(BottleConstants.COMMAND_NAME, "");
-			String pose = request.getProperty(BottleConstants.POSE_NAME, "");
-			if(!cmd.isEmpty() && !pose.isEmpty()) {
-				Database database = Database.getInstance();
-				database.mapCommandToPose(cmd,pose);
-				String text = messageTranslator.randomAcknowledgement();
-				request.setProperty(BottleConstants.TEXT, text);
-			}
-			else {
-				request.assignError("please specify both a command and related pose");
-			}
-		}
-		return request;
-	}
-	// Some database requests can be handled immediately
-	private boolean isLocalRequest(MessageBottle request) {
-		if( request.fetchRequestType().equals(RequestType.MAP_POSE) ) {
-			return true;
-		}
-		return false;
-	}
 	/**
 	 * Entry point for the application that contains the robot Java
 	 * code for control of the appendages, among other things. 

@@ -147,6 +147,7 @@ Sample command syntax:
 ```
     relax your right arm
     freeze your right elbow
+    hold it
     relax
     freeze
     go rigid
@@ -161,11 +162,12 @@ a named pose. The pose is saved in the robot's internal database.
 ```
     your pose is saluting
     you are standing
+    what is your pose
     save your pose
+    save your pose as leaping
 ```
-In the case where a name is not assigned,
-the robot will assign (and report) a name,
-a simple number.
+In the case where a name is not specified,
+the robot will use the most recently referenced pose name.
 
 * ![gray](/images/ball_gray.png) ``Map Pose to Command`` - Associate a pose with a command to
 take that pose. Pose and command names are
@@ -175,6 +177,7 @@ way as the Android text-to-speech processor. Sample syntax:
   to salute means to take the pose saluting
   when you sit you are sitting
   to wave at me means you are waving at me
+  to cry means to be crying
 ```
 * ![green](/images/ball_green.png) ``Pose`` - Command the robot to assume a previously stored
 pose. The command is a word or phrase taken from a previous mapping. As of yet, this movement does not

@@ -47,6 +47,7 @@ public class StatementParser  {
 		context.put(SharedKey.CONTROLLER,"");
 		context.put(SharedKey.JOINT,Joint.UNKNOWN);
 		context.put(SharedKey.LIMB,Limb.UNKNOWN);
+		context.put(SharedKey.POSE,"home");
 		context.put(SharedKey.SIDE,"right");
 		context.put(SharedKey.IT, SharedKey.JOINT);
 	}

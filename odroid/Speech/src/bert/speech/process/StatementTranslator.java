@@ -98,7 +98,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override
-	// save your pose
+	// save your pose,  save your pose as an alternate universe
 	public Object visitDeclareNoNamePose(SpeechSyntaxParser.DeclareNoNamePoseContext ctx) {
 		bottle.assignRequestType(RequestType.SAVE_POSE);
 		if(ctx.phrase()!=null ) {
@@ -183,6 +183,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				if( pose!=null ) {
 					bottle.assignRequestType(RequestType.SET_POSE);
 					bottle.setProperty(BottleConstants.POSE_NAME,pose );
+					sharedDictionary.put(SharedKey.POSE, pose);
 				}
 				else {
 					String msg = String.format("I do not know how to respond to \"%s\"",phrase);
@@ -425,14 +426,12 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
-	// when i say climb take the pose climbing
+	// to eat is to become eating
 	public Object visitMapPoseToCommand3(SpeechSyntaxParser.MapPoseToCommand3Context ctx) {
 		bottle.assignRequestType(RequestType.MAP_POSE);
 		if( ctx.phrase().size()>1 ) {
-			String command = visit(ctx.phrase(0)).toString();
-			String pose    = visit(ctx.phrase(1)).toString();
-			bottle.setProperty(BottleConstants.COMMAND_NAME,command);
-			bottle.setProperty(BottleConstants.POSE_NAME,pose);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,visit(ctx.phrase(0)).toString());
+			bottle.setProperty(BottleConstants.POSE_NAME,visit(ctx.phrase(1)).toString());
 		}
 		else {
 			String msg = String.format("I need both a pose name and associated command");
@@ -441,8 +440,24 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		return null;
 	}
 	@Override 
-	// when you climb then you are climbing
+	// when i say climb take the pose climbing
 	public Object visitMapPoseToCommand4(SpeechSyntaxParser.MapPoseToCommand4Context ctx) {
+		bottle.assignRequestType(RequestType.MAP_POSE);
+		if( ctx.phrase().size()>1 ) {
+			String command = visit(ctx.phrase(0)).toString();
+			String pose    = visit(ctx.phrase(1)).toString();
+			bottle.setProperty(BottleConstants.COMMAND_NAME,command);
+			bottle.setProperty(BottleConstants.POSE_NAME,pose);
+		}
+		else {
+			String msg = String.format("This mapping requires both a pose name and associated command");
+			bottle.assignError(msg);
+		}
+		return null;
+	}
+	@Override 
+	// when you climb then you are climbing
+	public Object visitMapPoseToCommand5(SpeechSyntaxParser.MapPoseToCommand5Context ctx) {
 		bottle.assignRequestType(RequestType.MAP_POSE);
 		if( ctx.phrase().size()>1 ) {
 			String command = visit(ctx.phrase(0)).toString();
@@ -578,7 +593,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 	public Object visitPoseQuestion(SpeechSyntaxParser.PoseQuestionContext ctx) {
 		String pose = sharedDictionary.get(SharedKey.POSE).toString();
 		bottle.assignRequestType(RequestType.NOTIFICATION);
-		bottle.assignText(messageTranslator.randomAcknowledgement());
+		bottle.setProperty(BottleConstants.POSE_NAME,pose);
+		bottle.assignText(String.format("My current pose is %s", pose));
 		return null;
 	}
 	// set your left hip y to 45 degrees
