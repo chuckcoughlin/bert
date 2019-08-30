@@ -89,8 +89,9 @@ public class MessageTranslator  {
 					text = String.format("The %s of my %s is %s", propertyName,Joint.toText(joint),value);
 				}
 				else if(type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+					String controllerName = msg.getProperty(BottleConstants.CONTROLLER_NAME, "");
 					String propertyName = msg.getProperty(BottleConstants.PROPERTY_NAME, "");
-					text = String.format("Motor %s have been written to log files", propertyName.toLowerCase());
+					text = String.format("%s motor %s have been written to log files", controllerName,propertyName.toLowerCase());
 				}
 				else if(type.equals(RequestType.MAP_POSE)) {
 					text = randomAcknowledgement();

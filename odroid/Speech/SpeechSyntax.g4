@@ -53,8 +53,10 @@ declaration:
 	| Save Article? Pose (As phrase)?           	# declareNoNamePose
 	| To phrase Means To Take Article? Pose phrase	# mapPoseToCommand1
 	| To phrase Means You Are phrase            	# mapPoseToCommand2
-	| When Isay phrase Then? Take Article? Pose phrase	# mapPoseToCommand3
-	| When You phrase Then You Are phrase			# mapPoseToCommand4
+	| To phrase Is To Be phrase						# mapPoseToCommand3
+	| When Isay phrase Then? Take Article? Pose phrase	# mapPoseToCommand4
+	| When You phrase Then You Are phrase			# mapPoseToCommand5
+	
 	;
 
 // Arbitrary string of words
@@ -74,6 +76,7 @@ Are: 'are';
 As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
+Be: 'become'|'be';
 Configuration: 'configuration';
 Controller: 'lower'|'upper';
 Do: 'do';
@@ -110,7 +113,7 @@ Side: 'left'|'right'|'other';
 Straighten: 'straighten';
 Take: 'assume' | 'take';
 Then: 'then';
-To: 'to become'|'to';
+To: 'to';
 Unit: 'degrees';
 Value: (INTEGER|DECIMAL);
 You: 'you';

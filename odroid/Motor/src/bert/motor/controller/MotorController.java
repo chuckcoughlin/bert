@@ -529,7 +529,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					Joint joint = Joint.valueOf(jointName);
 					properties.put(BottleConstants.TEXT,String.format("My %s %s is %s", Joint.toText(joint),propertyName.toLowerCase(),partial));
 				}	
-			} 
+			}
 			// The only thing we need to add to these responses is the error code.
 			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
 					 type.equals(RequestType.SET_LIMB_PROPERTY) ||
