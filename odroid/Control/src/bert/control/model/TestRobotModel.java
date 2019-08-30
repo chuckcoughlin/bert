@@ -39,7 +39,7 @@ public class TestRobotModel extends AbstractRobotModel  {
 	}
 	
 	/**
-	 * Set the initial positions of the motors to "attention"!
+	 * Set the initial positions of the motors to "home"!
 	 */
 	private void initializeMotorConfigurations() {
 		for( MotorConfiguration mc:getMotors().values()) {
@@ -50,8 +50,8 @@ public class TestRobotModel extends AbstractRobotModel  {
 				case ABS_Z:				mc.setPosition(0.); break;
 				case BUST_X:			mc.setPosition(180.); break;
 				case BUST_Y:			mc.setPosition(180.); break;
-				case HEAD_Y:			mc.setPosition(0.); break;
-				case HEAD_Z:			mc.setPosition(0.); break;
+				case NECK_Y:			mc.setPosition(0.); break;
+				case NECK_Z:			mc.setPosition(0.); break;
 				case LEFT_ANKLE_Y:		mc.setPosition(90.); break;
 				case LEFT_ARM_Z:		mc.setPosition(0.); break;
 				case LEFT_ELBOW_Y:		mc.setPosition(180.); break;

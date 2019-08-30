@@ -699,8 +699,8 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			sharedDictionary.put(SharedKey.JOINT, joint);
 			sharedDictionary.put(SharedKey.IT,SharedKey.JOINT);
 		}
-		else if(joint.equals(Joint.HEAD_Y)  ||
-				joint.equals(Joint.HEAD_Z) ||
+		else if(joint.equals(Joint.NECK_Y)  ||
+				joint.equals(Joint.NECK_Z) ||
 				joint.equals(Joint.LEFT_HIP_Z)   ||
 				joint.equals(Joint.RIGHT_HIP_Z)   ) {
 			// Straighten means 0 degrees
@@ -836,6 +836,7 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 			if( axis.equalsIgnoreCase("horizontal")  ) axis="Z";
 			else if( axis.equalsIgnoreCase("vertical") ||
 					 axis.equalsIgnoreCase("why")    ) axis="Y";
+			else if( axis.equalsIgnoreCase("ex")     ) axis="X";
 		}
 
 		
@@ -864,10 +865,10 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 				else                                       result = Joint.RIGHT_ELBOW_Y;
 			}
 		}
-		else if( bodyPart.equalsIgnoreCase("HEAD") || bodyPart.equalsIgnoreCase("NECK")) {
+		else if( bodyPart.equalsIgnoreCase("NECK")) {
 			if(axis!=null) {
-				if( axis.equalsIgnoreCase("Y"))         result = Joint.HEAD_Y;
-				else                                    result = Joint.HEAD_Z;
+				if( axis.equalsIgnoreCase("Y"))         result = Joint.NECK_Y;
+				else                                    result = Joint.NECK_Z;
 			}
 		}
 		else if( bodyPart.equalsIgnoreCase("HIP") || bodyPart.equalsIgnoreCase("THIGH")) {
@@ -951,6 +952,9 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		else if( bodyPart.equalsIgnoreCase("back") || bodyPart.equalsIgnoreCase("torso")) {
 			result = Limb.TORSO;
+		}
+		else if( bodyPart.equalsIgnoreCase("head") ) {
+			result = Limb.HEAD;
 		}
 
 		if( result.equals(Limb.UNKNOWN)) {

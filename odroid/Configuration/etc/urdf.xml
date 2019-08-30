@@ -149,13 +149,13 @@
 		<child link="BACK"></child>
 		<axis xyz="0 0 1"></axis>
 	</joint>
-	<joint name="HEAD_Z" type="revolute">
+	<joint name="NECK_Z" type="revolute">
 		<origin xyz="0 0.084 0.005" rpy="0 0 0"></origin>
 		<parent link="BACK"></parent>
 		<child link="CERVICAL"></child>
 		<axis xyz="0 1 0"></axis>
 	</joint>
-	<joint name="HEAD_Y" type="revolute">
+	<joint name="NECK_Y" type="revolute">
 		<origin xyz="0 0.02 0" rpy="-0.349065850398866 0 0"></origin>
 		<parent link="CERVICAL"></parent>
 		<child link="HEAD"></child>

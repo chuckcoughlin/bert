@@ -529,16 +529,10 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 					Joint joint = Joint.valueOf(jointName);
 					properties.put(BottleConstants.TEXT,String.format("My %s %s is %s", Joint.toText(joint),propertyName.toLowerCase(),partial));
 				}	
-			}
-			// The update applies to only one of several motors affected by this request
-			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
-				int id = bytes[2];
-				MotorConfiguration mc = configurationsById.get(id);
-				String propertyName = request.getProperty(BottleConstants.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name());
-				dxl.updateParameterFromBytes(propertyName,mc,properties,bytes);	
 			} 
-			// The only interesting response is the error code.
-			else if( type.equals(RequestType.SET_LIMB_PROPERTY) ||
+			// The only thing we need to add to these responses is the error code.
+			else if( type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+					 type.equals(RequestType.SET_LIMB_PROPERTY) ||
 					 type.equals(RequestType.SET_MOTOR_PROPERTY)) {
 				String err =  dxl.errorMessageFromStatus(bytes);
 				if( err!=null && !err.isEmpty() ) {
