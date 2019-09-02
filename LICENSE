@@ -760,3 +760,14 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
+
+======================================================================================
+The following license applies to the facial construction. A prototype head
+model was purchased from https://www.turbosquild.com/3d-models/3d-model-character-hair-morph/567150. This purchase is governed by a "Royalty Free License" that allows
+unfettered depiction of the final design and look-and-feel. It does not allow distribution
+of the solid model files used to generate the head's 3D print files. Consequently
+in keeping with the letter and intent of the license, I have created a solid model in Blender from scratch. The result has a similar appearance to the original. My creation
+is governed by an MIT license.
+======================================================================================
+See https://blog.turbosquid.com/royalty-free-license#Royalty-Free-License
+
