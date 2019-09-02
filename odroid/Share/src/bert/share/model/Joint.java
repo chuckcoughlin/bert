@@ -14,8 +14,8 @@ public enum Joint
 	ABS_Z,
 	BUST_X,
 	BUST_Y,
-	HEAD_Y,
-	HEAD_Z,
+	NECK_Y,
+	NECK_Z,
 	LEFT_ANKLE_Y,
 	LEFT_ARM_Z,
 	LEFT_ELBOW_Y,
@@ -50,8 +50,8 @@ public enum Joint
 			case ABS_Z: text = "abdomen z"; break;
 			case BUST_X: text = "chest horizontal"; break;
 			case BUST_Y: text = "chest vertical"; break;
-			case HEAD_Y: text = "neck y"; break;
-			case HEAD_Z: text = "neck z"; break;
+			case NECK_Y: text = "neck y"; break;
+			case NECK_Z: text = "neck z"; break;
 			case LEFT_ANKLE_Y: text = "left ankle"; break;
 			case LEFT_ARM_Z:   text = "left arm z"; break;
 			case LEFT_ELBOW_Y: text = "left elbow"; break;

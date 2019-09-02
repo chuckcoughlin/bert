@@ -190,13 +190,15 @@ public class SpeechAnalyzer implements  RecognitionListener  {
     }
 
     /**
-     * Perform any cleanup.
-     * For now, replace ° with " degrees"
+     * Perform any cleanup of phrases that ease or correct the parsing.
+     * For example, replace ° with " degrees"
      * @param text
      * @return spiffy-clean text
      */
     private String scrubText(String text) {
         text = text.replace("°"," degrees").toLowerCase();
+        text = text.replace("exposition","x position");
+        text = text.replace("fries","freeze");
         text = text.replace("zero","0");
         return text;
     }
