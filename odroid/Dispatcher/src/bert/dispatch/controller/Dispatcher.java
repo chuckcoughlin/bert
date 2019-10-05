@@ -475,7 +475,7 @@ public class Dispatcher extends Thread implements MessageHandler,SocketStateChan
 		}
 		return false;
 	}
-	// Local requests are those that can be handled immediately without forwarding the the motor controllers.
+	// Local requests are those that can be handled immediately without forwarding to the motor controllers.
 	private boolean isLocalRequest(MessageBottle request) {
 		if( request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION) || 
 			request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION)   ||

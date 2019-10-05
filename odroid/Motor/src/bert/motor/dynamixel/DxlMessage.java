@@ -46,6 +46,8 @@ public class DxlMessage  {
 	private static final byte BULK_READ  = (byte)0x92; // For multiple devices, Instruction to read data from different Addresses with different lengths at once 
 	private final DxlConversions converter;
 	private long travelTime = 0;
+	private static double MAX_HIP_X = 190.;
+	private static double MIN_HIP_Z = -8.;
 	
 	public DxlMessage() {
 		this.converter = new DxlConversions();
@@ -60,16 +62,16 @@ public class DxlMessage  {
 	/**
 	 * Iterate through the list of motor configurations to determine which, if any, are outside the max-min
 	 * angle ranges. For those outside, move the position to a legal value.
-	 * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
+	 * WARNING: SYNC_WRITE requests do not generate responses.
 	 * Discount any current readings of zero, it probably means that the motor positions were never evaluated.
 	 * @param configurations a list of motor configuration objects
 	 * @return list of byte arrays with bulk read plus extras for any AX-12. 
 	 */
-	public List<byte[]> byteArrayListToInitializePositions(Collection<MotorConfiguration> configurations) {
+	public List<byte[]> byteArrayListToInitializePositions(Map<String,MotorConfiguration> configurationsByName) {
 		List<MotorConfiguration> outliers = new ArrayList<>();  // Will hold the joints that need moving.
 		
 		travelTime = 0;
-		for(MotorConfiguration mc:configurations) {
+		for(MotorConfiguration mc:configurationsByName.values()) {
 			double pos = mc.getPosition();
 			if( pos==0. ) {
 				LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s never evaluated, ignored",CLSS,mc.getJoint().name()));
@@ -88,6 +90,19 @@ public class DxlMessage  {
 				outliers.add(mc);
 				if(mc.getTravelTime()>travelTime) travelTime = mc.getTravelTime();
 			}
+		}
+		// Add heuristics to avoid some common entanglements. Hip is only present in lower controller
+		// No knock-knees
+		MotorConfiguration leftHip = configurationsByName.get(Joint.LEFT_HIP_X.name());
+		if( leftHip!=null ) {
+			MotorConfiguration rightHip = configurationsByName.get(Joint.RIGHT_HIP_X.name());
+			if( leftHip.getPosition()>MAX_HIP_X ) { leftHip.setPosition(MAX_HIP_X);outliers.add(leftHip);}
+			if( rightHip.getPosition()>MAX_HIP_X ) { rightHip.setPosition(MAX_HIP_X);outliers.add(rightHip);}
+			// No pidgin toes
+			leftHip = configurationsByName.get(Joint.LEFT_HIP_X.name());
+			rightHip = configurationsByName.get(Joint.LEFT_HIP_X.name());
+			if( leftHip.getPosition()<MIN_HIP_Z ) { leftHip.setPosition(MIN_HIP_Z);outliers.add(leftHip);}
+			if( rightHip.getPosition()<MIN_HIP_Z ) { rightHip.setPosition(MIN_HIP_Z);outliers.add(rightHip);}
 		}
 		
 		List<byte[]> messages = new ArrayList<>();
@@ -459,7 +474,7 @@ public class DxlMessage  {
 			if( error!=0x00 ) {
 				byte id = bytes[2];
 				msg = String.format("Motor %d encountered %s",id,descriptionForError(error));
-				LOGGER.severe(msg);
+				//LOGGER.severe(msg);
 			}
 		}
 		return msg;
