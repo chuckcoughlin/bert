@@ -12,4 +12,8 @@ Steps to create the face model.
    from vertices". For each of the three faces, loop-cut and separate. Save as 
    collar-face.blend.
 6) From 5) Delete the collar (We will merge at the end). Merge the 3 faces into
-   a single object. Lock down perimeter. Save as face0.blend. 
+   a single object. Lock down perimeter. Save as face-only.blend. 
+7) Select the outer edge of the three planes. From the "Mesh" menu add a convex hull. 
+   Delete the part of the hull that is on the backside. From the "vertex" menu
+   select "bevel", in turn, for each of the two nodes that radiate a large number
+   of edges. Save as "face-mesh'.
