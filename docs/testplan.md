@@ -176,6 +176,7 @@ way as the Android text-to-speech processor. Sample syntax:
 ```
   to salute means to take the pose saluting
   when you sit you are sitting
+  when i say sit then take the pose sitting
   to wave at me means you are waving at me
   to cry means to be crying
 ```
