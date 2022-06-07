@@ -433,7 +433,7 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 			// Unfortunately broadcast requests don't work here. We have to concatenate the
 			// requests into single long lists.
 			if( type.equals(RequestType.INITIALIZE_JOINTS)) {
-				list = dxl.byteArrayListToInitializePositions(configurationsByName.values());
+				list = dxl.byteArrayListToInitializePositions(configurationsByName);
 				long duration = dxl.getMostRecentTravelTime();
 				if( request.getDuration()<duration ) request.setDuration(duration);
 				wrapper.setResponseCount(0);  // No response
@@ -589,17 +589,21 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 	 * Handle the response from the serial request. Note that all our interactions with removing from the
 	 * responseQueue and dealing with remainder are synchronized here. 
 	 * 
-	 * The response queue must have at least one response for associating results.
+	 * Unless an error is returned, the response queue must have at least one response for associating results.
 	 */
 	public synchronized void serialEvent(SerialPortEvent event) {
 		LOGGER.info(String.format("%s(%s).serialEvent queue is %d",CLSS,controllerName,responseQueue.size()));
-		if(event.isRXCHAR() && !responseQueue.isEmpty() ){
-			MessageWrapper wrapper = responseQueue.getFirst();
-			MessageBottle req = wrapper.getMessage();
+		if(event.isRXCHAR() ){
+			MessageBottle req = null;
+			MessageWrapper wrapper = null;
+			if( !responseQueue.isEmpty()) {
+				wrapper = responseQueue.getFirst();
+				req = wrapper.getMessage();
+			}
 			// The value is the number of bytes in the read buffer
 			int byteCount = event.getEventValue();
 			LOGGER.info(String.format("%s(%s).serialEvent (%s) %s: expect %d msgs got %d bytes",
-					CLSS,controllerName,event.getPortName(),req.fetchRequestType().name(),wrapper.getResponseCount(),byteCount));
+					CLSS,controllerName,event.getPortName(),(req==null?"":req.fetchRequestType().name()),(wrapper==null?0:wrapper.getResponseCount()),byteCount));
 			if(byteCount>0){
 				try {
 					byte[] bytes = port.readBytes(byteCount);
@@ -613,6 +617,12 @@ public class MotorController implements  Runnable, SerialPortEventListener {
 							LOGGER.info(String.format("%s(%s).serialEvent Message too short (%d), requires additional read",CLSS,controllerName,nbytes));
 							return;
 						}
+						// The message indicates an error
+						else if(dxl.errorMessageFromStatus(bytes)!=null) {
+							LOGGER.severe(String.format("%s(%s).serialEvent: ERROR: %s",CLSS,dxl.errorMessageFromStatus(bytes)));
+							if( req==null ) return;   // The original request was not supposed to have a response.
+						}
+						
 						if( returnsStatusArray(req) ) {  // Some requests return a message for each motor
 							int nmsgs = nbytes/STATUS_RESPONSE_LENGTH;
 							if( nmsgs>wrapper.getResponseCount() ) nmsgs = wrapper.getResponseCount();

@@ -813,9 +813,13 @@ public class StatementTranslator extends SpeechSyntaxBaseVisitor<Object>  {
 		}
 		else if( phrase.startsWith("ignore")||phrase.equalsIgnoreCase("go to sleep") || phrase.startsWith("sleep")) {
 			sharedDictionary.put(SharedKey.ASLEEP,"true");
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_SLEEP);
 		}
 		else if( phrase.startsWith("pay attention")||phrase.equalsIgnoreCase("wake up") ) {
 			sharedDictionary.put(SharedKey.ASLEEP,"false");
+			bottle.assignRequestType(RequestType.COMMAND);
+			bottle.setProperty(BottleConstants.COMMAND_NAME,BottleConstants.COMMAND_WAKE);
 		}
 		else if( phrase.equals("power off") || phrase.equals("shut down") || phrase.equals("shutdown") ) {
 			bottle.assignRequestType(RequestType.COMMAND);

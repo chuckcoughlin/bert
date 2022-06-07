@@ -32,6 +32,7 @@ public interface BottleConstants   {
 	public final static String COMMAND_RELAX       = "relax";
 	public final static String COMMAND_RESET       = "reset";
 	public final static String COMMAND_SHUTDOWN    = "shutdown";
+	public final static String COMMAND_SLEEP       = "sleep";
 	public final static String COMMAND_WAKE        = "wake";
 	// Controller names
 	public final static String CONTROLLER_LOWER    = "lower";

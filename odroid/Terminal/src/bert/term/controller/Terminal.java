@@ -45,13 +45,15 @@ public class Terminal extends Thread implements MessageHandler {
 	private final RobotTerminalModel model;
 	private SocketController socketController = null;
 	private final Condition busy;
-	private final MessageTranslator messageTranslator;
 	private MessageBottle currentRequest = null;
+	private boolean ignoring;
 	private final Lock lock;
 	private StdioController stdioController = null;
+	private final MessageTranslator messageTranslator;
 	
 	public Terminal(RobotTerminalModel m) {
 		this.model = m;
+		this.ignoring = false;
 		this.lock = new ReentrantLock();
 		this.busy = lock.newCondition();
 		this.messageTranslator = new MessageTranslator();
@@ -90,12 +92,21 @@ public class Terminal extends Thread implements MessageHandler {
 				try{
 					busy.await();
 					if( currentRequest==null) break;
-					socketController.receiveRequest(currentRequest);
 					if( currentRequest.fetchRequestType().equals(RequestType.COMMAND)        &&
 						BottleConstants.COMMAND_HALT.equalsIgnoreCase(currentRequest.getProperties().get(BottleConstants.COMMAND_NAME)) ) {
+						socketController.receiveRequest(currentRequest);  // halt the dispatcher as well
 						Thread.sleep(EXIT_WAIT_INTERVAL);
 						break;
 					}
+					else if( isLocalRequest(currentRequest) ) {
+						// Handle local request -create response
+						MessageBottle response = handleLocalRequest(currentRequest);
+						if(response!=null) handleResponse(response);
+					}
+					else if(!ignoring) {
+						socketController.receiveRequest(currentRequest);
+					}
+					
 				}
 				catch(InterruptedException ie ) {}
 				finally {
@@ -151,6 +162,37 @@ public class Terminal extends Thread implements MessageHandler {
 		stdioController.receiveResponse(response);
 	}
 	
+	// We handle the command to sleep and awake immediately.
+	private MessageBottle handleLocalRequest(MessageBottle request) {
+		if(request.fetchRequestType().equals(RequestType.COMMAND)) {
+			String command = request.getProperty(BottleConstants.COMMAND_NAME, "NONE");
+			//LOGGER.warning(String.format("%s.handleLocalRequest: command=%s",CLSS,command));
+			if( command.equalsIgnoreCase(BottleConstants.COMMAND_SLEEP)) {
+				ignoring = true;  
+			}
+			else if( command.equalsIgnoreCase(BottleConstants.COMMAND_WAKE)) {
+				ignoring = false;
+			}
+			else {
+				String msg = String.format("I don't recognize command %s",command);
+				request.assignError(msg);
+			}
+		}
+		request.assignText(messageTranslator.randomAcknowledgement());
+		return request;
+	}
+	// Local requests are those that can be handled immediately without forwarding to the dispatcher.
+	private boolean isLocalRequest(MessageBottle request) {
+		if (request.fetchRequestType().equals(RequestType.COMMAND) ) {
+			Map<String,String> properties = request.getProperties();
+			String cmd = properties.get(BottleConstants.COMMAND_NAME);
+			if( cmd.equalsIgnoreCase(BottleConstants.COMMAND_SLEEP) ||
+				cmd.equalsIgnoreCase(BottleConstants.COMMAND_WAKE) ) {
+				return true;
+			}
+		}
+		return false;
+	}
 	/**
 	 * Entry point for the application that allows direct user input through
 	 * stdio. The argument specifies a directory that is the root of the various

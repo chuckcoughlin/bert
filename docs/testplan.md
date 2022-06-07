@@ -224,8 +224,18 @@ likewise formulated into audible sentences.
 * ![green](/images/ball_green.png) ``Transcript`` - Validate that the tablet keeps a record of spoken
 commands and corresponding responses from the robot.
 
-* ![gray](/images/ball_gray.png) ``Logging`` - validate that notifications (errors and results
+* ![gray](/images/ball_gray.png) ``Logging`` - Validate that notifications (errors and results
   of commands that produce lists of things) are recorded on the tablet application.
+
+* ![gray](/images/ball_gray.png) ``Voice Suppression`` - It can be annoying when the robot
+  attempts to interpret (and fails) background speech not directed  towards it. The
+  commands below place the robot into a state where it ignores ambient speech until specifically
+  directed to be attentive.
+
+  ```
+      ignore me
+      pay attention
+  ```
 
 ### f - Performance <a id="performance"></a>
 Test the ability to query performance metrics from the dispatcher.
@@ -249,9 +259,3 @@ syntax shown above that are processed in a reasonable manner.
 
 * ![yellow](/images/ball_yellow.png) ``Desired``  - the list below consists of statements or queries
 that are useful, but not currently recognized.<br/>
-
-  Turn spoken interactions on or off.
-```
-  ignore me
-  pay attention
-```

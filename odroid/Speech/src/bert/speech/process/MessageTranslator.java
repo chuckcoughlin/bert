@@ -65,7 +65,7 @@ public class MessageTranslator  {
 			if( text==null || text.isEmpty() ) {
 				RequestType type = msg.fetchRequestType();
 				if(type.equals(RequestType.NOTIFICATION)) {
-					text = "Received empty notification.";
+					text = "Received an empty notification.";
 				}
 				else if(type.equals(RequestType.NONE)) {
 					text = "Received empty message.";

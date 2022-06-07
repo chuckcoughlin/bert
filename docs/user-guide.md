@@ -59,8 +59,8 @@ For additional examples see [testplan](https://github.com/chuckcoughlin/bert/tre
 Infrequently it may be necessary to inform the robot of some fact.
 ```
   you are "sitting"
+  save your pose as "saluting"
   "sit" means to become "sitting"
-  your pose is "saluting"
   when I say "sit" take the pose "sitting"
 ```
 *********************************************************
@@ -100,6 +100,8 @@ Any of these commands record the pose positions in the robot's internal database
 is given a number will be assigned. Note that the pose is now stored on the robot. If the
 development machine holds the canonical form of the database, then rows added to the "pose"
 table will need to be exported and imported onto the development machine.
+
+A video example of this process may be found [here](https://www.youtube.com/watch?v=3lilrxy11Ac).
 *********************************************************
 ### c - Vocabulary <a id="vocabulary"></a>
 "Bert" has a fixed vocabulary when it comes to names of parameters in
