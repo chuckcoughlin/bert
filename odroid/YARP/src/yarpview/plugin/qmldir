@@ -1,2 +1,0 @@
-module robotology.yarp.view
-plugin QtYARPViewPlugin

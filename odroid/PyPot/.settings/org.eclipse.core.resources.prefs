@@ -1,6 +1,0 @@
-eclipse.preferences.version=1
-encoding//doc/conf.py=utf-8
-encoding//pypot/dynamixel/conversion.py=utf-8
-encoding//pypot/dynamixel/error.py=utf-8
-encoding//pypot/dynamixel/io/abstract_io.py=utf-8
-encoding//pypot/dynamixel/protocol/v1.py=utf-8

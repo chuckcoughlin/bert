@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Use this for layout border for GPIO pins that are not yet configured-->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@color/lightGray"/>
-    <stroke
-        android:width="2dip"
-        android:color="@android:color/black" />
-</shape>
