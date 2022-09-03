@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Bert/Bert.iml" filepath="$PROJECT_DIR$/Bert/Bert.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Command/Command.iml" filepath="$PROJECT_DIR$/Command/Command.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Control/Control.iml" filepath="$PROJECT_DIR$/Control/Control.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Database/Database.iml" filepath="$PROJECT_DIR$/Database/Database.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Dispatcher/Dispatcher.iml" filepath="$PROJECT_DIR$/Dispatcher/Dispatcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Motor/Motor.iml" filepath="$PROJECT_DIR$/Motor/Motor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Share/Share.iml" filepath="$PROJECT_DIR$/Share/Share.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Speech/Speech.iml" filepath="$PROJECT_DIR$/Speech/Speech.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Terminal/Terminal.iml" filepath="$PROJECT_DIR$/Terminal/Terminal.iml" />
+    </modules>
+  </component>
+</project>
