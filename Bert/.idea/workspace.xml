@@ -4,113 +4,88 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d269a895-d6af-4550-b987-345b634c5bb7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../Bert.bak/Motor/Motor.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Bert.bak/Share/Share.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Bert.bak/Speech/Speech.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Bert.bak/Terminal/Terminal.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../BertSpeak/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Bert.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/antlr_4_7_2_complete.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/mods.xml" beforeDir="false" />
+    <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/Run_Application.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/kotlinc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/jars/antlr-4.7.2-complete.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/antlr-runtime-4.7.2.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/dbus-java-2.7.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/hipparchus-core-1.5.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/icu4j-63.1.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/jackson-annotations-2.9.8.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/jackson-core-2.9.8.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/jackson-databind-2.9.8.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/jssc-2.8.0.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/libmatthew-0.8.1.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/sqlite-jdbc-3.23.1.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Archive/mods/tinyb-0.5.0.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Bert/Bert.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Command/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Command/Command.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../Bert.bak/Database/Database.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/bert-blueserver" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/bert-command" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/bert-dispatch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/clear_logs.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/install_bert_init_scripts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/install_blueserver_init_scripts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/run_command.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/run_dispatcher.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/run_terminal.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/start_bert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/stop_bert" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/bin/test_port.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/csv/Action_empty.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/csv/Pose.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/csv/PoseMap.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/etc/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/pylib/testport.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/sql/createTables.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration/template/bert.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Control/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Control/Control.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Database/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Database/Database.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dispatcher/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dispatcher/Dispatcher.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Install/deploy.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Install/install_odroid_source.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Install/mkdatabase.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Install/test_chain.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Install/test_crc.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Install/test_solver.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Motor/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Motor/Motor.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Share/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Share/Share.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/Speech.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/SpeechSyntax.g4" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/build_antlr.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/Bert.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/GoToSleep.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/HowOld.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/Move.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/MoveAdverb.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/MoveToPose.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/Relax.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/RelaxYourArm.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/RelaxYourElbow.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/SingleWordCommand.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/StraightenUp.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/TwoWordCommand.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatAreLimits.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatIsConfiguration.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatIsIdOfHipY.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatIsName.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatIsPose.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatIsPosition.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatIsPositionofJoint.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhatIsYPosition.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhereIsAppendage.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/WhyMittens.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/YouAreStanding.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/pose1.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/pose2.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/pose3.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/pose4.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Speech/test/pose5.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Terminal/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Terminal/Terminal.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/.idea/dictionaries/chuckc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/kotlin/main/META-INF/Bert.kotlin_module" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/classes/kotlin/main/MainKt.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab_i" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab_i.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/counters.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab_i" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab_i.len" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/cacheable/last-build.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/kotlin/compileKotlin/local-state/build-history.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/.idea/codeStyles/Project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/app/proguard-rules.pro" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/app/proguard-rules.pro" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/gradlew.bat" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,10 +103,8 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectId" id="2EY7WrgMDH1br6fQKVM8L3JYhYb" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
-    <ConfirmationsSetting value="1" id="Add" />
-  </component>
+  <component name="ProjectId" id="2Eajk451i4zuDWAVGWW0t2bDDFj" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -141,48 +114,50 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "jdk.selected.JAVA_MODULE": "11",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0"
   }
 }]]></component>
   <component name="RunManager">
-    <configuration name="Tests in 'Bert'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration default="true" type="GradleRunConfiguration" factoryName="Gradle">
       <ExternalSystemSettings>
         <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalProjectPath" value="" />
         <option name="externalSystemIdString" value="GRADLE" />
         <option name="scriptParameters" value="" />
         <option name="taskDescriptions">
           <list />
         </option>
         <option name="taskNames">
-          <list>
-            <option value=":test" />
-          </list>
+          <list />
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Gradle.Tests in 'Bert'" />
-      </list>
-    </recent_temporary>
+    <configuration default="true" type="JetRunConfigurationType">
+      <option name="ALTERNATIVE_JRE_PATH" value="Kotlin SDK" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="MAIN_CLASS_NAME" value="chuckcoughlin.bert.App.kt" />
+      <module name="Bert" />
+      <shortenClasspath name="NONE" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="d269a895-d6af-4550-b987-345b634c5bb7" name="Changes" comment="" />
-      <created>1662760701083</created>
+      <changelist id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="" />
+      <created>1662840729966</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1662760701083</updated>
+      <updated>1662840729966</updated>
     </task>
     <servers />
   </component>
