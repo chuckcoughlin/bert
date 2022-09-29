@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Use this for indicator buttons on the Cover panel.
+     The icons do not get scaled at all -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Inactive -->
+    <item android:drawable="@drawable/ball_gray"
+        android:state_checked="false"
+        android:state_selected="false"/>
+    <!-- Error -->
+    <item android:drawable="@drawable/ball_red"
+        android:state_checked="false"
+        android:state_selected="true"/>
+    <!-- Connected -->
+    <item android:drawable="@drawable/ball_green"
+        android:state_checked="true"
+        android:state_selected="true"/>
+    <!-- Searching -->
+    <item android:drawable="@drawable/ball_yellow"
+        android:state_checked="true"
+        android:state_selected="false"/>
+</selector>

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Start the robot dispatcher and bluetooth command processes.
+# The terminal process must be started in its own window,
+# manually, if it is started at all.
+# Run as super-user
+export BERT_HOME=/usr/local/robot
+/etc/init.d/bert-dispatch start
+/etc/init.d/bert-command start
+

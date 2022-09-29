@@ -1,0 +1,77 @@
+#!/bin/sh
+# This is the init script for startup of the bluetooth tablet
+# connection for "bert".
+# Logs from this script will be found in /var/log/bert/
+#
+# This script starts the dispatcher and bluetooth command interface.
+# The interactive terminal interface must be started separately, if at all.
+
+### BEGIN INIT INFO
+# Provides:          bert-blueserver
+# Required-Start:    $local_fs $syslog $bluetooth
+# Required-Stop:     $local_fs $syslog
+# Should-Start:      $named
+# Should-Stop:       $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start bert tablet connection via bluetooth
+### END INIT INFO
+
+set -e
+export BERT_HOME=/usr/local/robot
+export BERTLOGDIR=${BERT_HOME}/logs
+export BERTLOG=${BERTLOGDIR}/blueserver.log
+export DAEMON=${BERT_HOME}/bin/blueserverd
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:${BERT_HOME}/bin
+
+. /lib/lsb/init-functions
+mkdir -p ${BERTLOGDIR}
+
+case "$1" in
+  start)
+#       Uncomment for debugging, execute as: sudo bin/bert start
+#        set -x
+	if [ -f ${BERTLOG} ]
+	then
+		mv ${BERTLOG} ${BERTLOG}.bak
+	fi
+	> ${BERTLOG}
+	chmod 777 ${BERTLOG}
+	
+	# This is important. You must wait until the IP address of the machine
+	# is actually configured. Loop until the IP comes up. This is needed
+	# for the Bluetooth connection
+ 	while true; do
+          IP="`hostname -I`"
+          if [ "$IP" ] ; then
+             break
+          fi
+	  sleep 1
+  	done
+	IP=`echo ${IP}|sed -e 's/^[ \t]*//'`
+	echo "IP = ${IP}" >> ${BERTLOG}
+	echo "=============== /etc/init.d/blueserver start ===============" >> ${BERTLOG}
+	# Launch Serial Port service and connect bluetooth devices
+	sdptool add SP
+	$DAEMON ${BERTLOG}
+  ;;
+
+  restart)
+    /etc/init.d/bert-blueserver stop
+    /etc/init.d/bert-blueserver start
+  ;;
+
+  stop)
+	killall ${DAEMON} 
+	echo "============ /etc/init.d/bert-blueserver stopped ============" >> ${BERTLOG}
+  ;;
+  force-reload)
+    /etc/init.d/bert-blueserver restart
+  ;;
+
+  *)
+    echo "Usage: /etc/init.d/bert-blueserver {start|stop|restart|force-reload}"
+    exit 1
+    ;;
+esac

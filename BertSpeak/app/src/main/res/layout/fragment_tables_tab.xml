@@ -1,0 +1,41 @@
+<!-- Handle the listing of a large number of log messages by using a RecyclerView -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="chuckcoughlin.bert.tab.TablesTabFragment">
+
+    <TextView
+        android:id="@+id/fragmentTablesText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:gravity="center"
+        android:textAppearance="@style/TabTitle"
+     />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/logs_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="800dp"
+        android:animateLayoutChanges="false"
+        android:focusableInTouchMode="true"
+        android:scrollbars="vertical"
+        android:isScrollContainer="true"/>
+
+    <!-- Create a list of table rows (the particular list id is required)
+         Do not use a ScrollView as scrolling is already implemented by ListView -->
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@color/navigationBarColor"
+        android:layout_below="@id/fragmentSettingsText"
+        android:layout_alignParentRight="true"
+        android:descendantFocusability="afterDescendants" />
+</LinearLayout>

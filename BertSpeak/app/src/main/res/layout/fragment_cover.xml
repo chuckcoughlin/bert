@@ -1,0 +1,106 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/fragmentCoverImage"
+        android:layout_width="800dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="-50dp" />
+
+    <LinearLayout
+        android:layout_width="225dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/fragmentCoverText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:background="@drawable/border_blue"
+            android:textAlignment="center"
+            android:textColor="@color/white" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="0dp"
+            android:background="@drawable/border_white"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/bluetooth_connection_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/border_gray"
+                android:text="@string/coverParameterBluetooth"
+                android:textAlignment="center"
+                android:textSize="@dimen/cover_parameter_text_size" />
+
+            <ToggleButton
+                android:id="@+id/bluetooth_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/button_image_left_margin"
+                android:background="@null"
+                android:button="@drawable/toggle"
+                android:scaleType="fitCenter"
+                android:textOff=""
+                android:textOn="" />
+
+            <TextView
+                android:id="@+id/socket_connection_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/border_gray"
+                android:text="@string/coverParameterSocket"
+                android:textAlignment="center"
+                android:textSize="@dimen/cover_parameter_text_size" />
+
+            <ToggleButton
+                android:id="@+id/socket_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/button_image_left_margin"
+                android:background="@null"
+                android:button="@drawable/toggle"
+                android:scaleType="fitCenter"
+                android:textOff=""
+                android:textOn="" />
+
+            <TextView
+                android:id="@+id/voice_connection_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/border_gray"
+                android:text="@string/coverParameterVoice"
+                android:textAlignment="center"
+                android:textSize="@dimen/cover_parameter_text_size" />
+
+            <ToggleButton
+                android:id="@+id/voice_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/button_image_left_margin"
+                android:background="@null"
+                android:button="@drawable/toggle"
+                android:scaleType="fitCenter"
+                android:textOff=""
+                android:textOn="" />
+        </LinearLayout>
+        <include layout="@layout/meter_main"
+            />
+    </LinearLayout>
+
+</LinearLayout>
