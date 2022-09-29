@@ -13,7 +13,14 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/command" />
+            <option value="$PROJECT_DIR$/common" />
+            <option value="$PROJECT_DIR$/control" />
+            <option value="$PROJECT_DIR$/database" />
+            <option value="$PROJECT_DIR$/dispatcher" />
+            <option value="$PROJECT_DIR$/motor" />
+            <option value="$PROJECT_DIR$/speech" />
+            <option value="$PROJECT_DIR$/terminal" />
           </set>
         </option>
       </GradleProjectSettings>
