@@ -3,14 +3,14 @@
  */
 package chuckcoughlin.bertspeak.waveform
 
-import android.content.*
+import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.View
 import java.util.*
 
 class WaveformView : View {
-    private var waveform: ByteArray
+    private var waveform: ByteArray = TODO()
     private var renderer: WaveformRenderer? = null
 
     constructor(context: Context?) : super(context) {}

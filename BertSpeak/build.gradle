@@ -4,6 +4,10 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
+    repositories {
+        google()
+        jcenter()
+    }
 }
 plugins {
     id 'com.android.application' version '7.2.2' apply false

@@ -6,7 +6,7 @@ package chuckcoughlin.bertspeak.waveform
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.support.annotation.ColorInt
+import androidx.annotation.ColorInt
 
 internal class SimpleWaveformRenderer(
     @field:ColorInt @param:ColorInt private val backgroundColour: Int,

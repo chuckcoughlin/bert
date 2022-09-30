@@ -1,8 +1,8 @@
 package chuckcoughlin.bertspeak.service
 
-import chuckcoughlin.bertspeak.bert.BertConstants
-import chuckcoughlin.bertspeak.bert.IntentObserver
 import android.content.Intent
+import chuckcoughlin.bertspeak.bert.common.IntentObserver
+import chuckcoughlin.bertspeak.common.BertConstants
 import java.util.ArrayList
 import java.util.HashMap
 

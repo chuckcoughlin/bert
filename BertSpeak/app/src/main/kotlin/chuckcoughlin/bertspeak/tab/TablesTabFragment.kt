@@ -4,10 +4,29 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.content.ComponentName
 import android.content.Context
-import android.support.v7.widget.LinearLayoutManager
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.annotation.NonNull
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import chuckcoughlin.bertspeak.R
+import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.FixedSizeList
+import chuckcoughlin.bertspeak.logs.TextMessageAdapter
+import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.service.DispatchServiceBinder
+import chuckcoughlin.bertspeak.speech.TextMessage
+import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import java.security.AccessController.getContext
 
 /**
  * This fragment displays data from the robot in tabular form. Only

@@ -4,20 +4,37 @@
  */
 package chuckcoughlin.bertspeak
 
+import android.content.ComponentName
 import android.content.Context
-import android.support.v4.view.ViewPager
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Bundle
+import android.os.IBinder
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import android.util.Log
+import android.view.WindowManager
+import androidx.fragment.app.FragmentActivity
+import androidx.viewpager.widget.ViewPager
+import chuckcoughlin.bertspeak.bert.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.service.FacilityState
-import chuckcoughlin.bertspeak.service.TieredFacility
+import chuckcoughlin.bertspeak.service.*
+import chuckcoughlin.bertspeak.speech.Annunciator
+import chuckcoughlin.bertspeak.speech.SpeechAnalyzer
+import chuckcoughlin.bertspeak.speech.TextMessage
+import chuckcoughlin.bertspeak.speech.TextMessageObserver
 import java.util.*
 
 /**
  * The main activity "owns" the page tab UI fragments. It also contains
  * the speech components, since they must execute on the main thread
  * (and not in the service).
+ *
+ * @see Android ViewPager2 sample code CardFragmentActivity
  */
-class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, OnInitListener,
+class MainActivity : FragmentActivity(), IntentObserver, TextMessageObserver,
+    TextToSpeech.OnInitListener,
     ServiceConnection {
     private var analyzer: SpeechAnalyzer? = null
     private var annunciator: Annunciator? = null
@@ -27,21 +44,21 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, O
     /**
      * The [ViewPager] that will host the section contents.
      */
-    private val viewPager: ViewPager? = null
+    private val viewPager2: ViewPager? = null
 
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
      *
      * @param savedInstanceState the saved instance state
      */
-    protected fun onCreate(savedInstanceState: Bundle?) {
+    override protected fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Create the comprehensive dispatch connection service
         val intent = Intent(this, DispatchService::class.java)
         getApplicationContext().startForegroundService(intent)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
         Log.i(CLSS, "onCreate ...")
-        // If I absolutely have to start over again with the database ...
+        // If we absolutely have to start over again with the database ...
         //this.deleteDatabase(BertConstants.DB_NAME);
         setContentView(R.layout.activity_main)
         // Close the soft keyboard - it will still open on an EditText
@@ -56,14 +73,14 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, O
     /**
      * Bind to the DispatchService, start speech analyzer and annunciator
      */
-    fun onStart() {
+    override fun onStart() {
         super.onStart()
         activateSpeechAnalyzer()
         annunciator = Annunciator(getApplicationContext(), this)
         annunciator.setOnUtteranceProgressListener(ul)
     }
 
-    fun onStop() {
+    override fun onStop() {
         super.onStop()
         if (service != null) {
             unbindService(this)
@@ -76,7 +93,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, O
     /**
      * Shutdown the DispatchService and text resources
      */
-    protected fun onDestroy() {
+    override protected fun onDestroy() {
         super.onDestroy()
         deactivateSpeechAnalyzer()
         val intent = Intent(this, DispatchService::class.java)
@@ -125,6 +142,9 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, O
             annunciator = null // don't use
         }
     }
+
+    override val name: String
+        get() = TODO("Not yet implemented")
 
     // ===================== IntentObserver =====================
     // Only turn on the speech recognizer if the action state is voice.

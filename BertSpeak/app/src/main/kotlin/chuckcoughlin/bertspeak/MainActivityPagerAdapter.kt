@@ -5,8 +5,9 @@
 package chuckcoughlin.bertspeak
 
 import android.content.Context
-import android.support.v4.app.Fragment
 import android.util.Log
+import androidx.fragment.app.FragmentStatePagerAdapter
+import chuckcoughlin.bertspeak.tab.*
 
 /**
  * This is a specialized page fragment for each tab position.
