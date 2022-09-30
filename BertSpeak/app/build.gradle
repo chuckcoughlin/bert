@@ -16,6 +16,9 @@ android {
         versionNameSuffix 'Kotlin'
     }
 
+    buildFeatures {
+        viewBinding="true"
+    }
     buildTypes {
         release {
             minifyEnabled false
