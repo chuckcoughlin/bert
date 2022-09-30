@@ -9,7 +9,7 @@ import android.support.v4.app.Fragment
 import android.util.Log
 
 /**
- * There is a specialized page fragment for each tab position.
+ * This is a specialized page fragment for each tab position.
  * Return the appropriate fragment when requested.
  */
 class MainActivityPagerAdapter(fm: FragmentManager?, ctx: Context) : FragmentStatePagerAdapter(fm) {
