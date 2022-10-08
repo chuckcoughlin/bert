@@ -15,36 +15,29 @@ import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
 import android.view.WindowManager
-import androidx.fragment.app.FragmentActivity
-import androidx.viewpager.widget.ViewPager
+import androidx.appcompat.app.AppCompatActivity
 import chuckcoughlin.bertspeak.bert.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.databinding.ActivityMainBinding
 import chuckcoughlin.bertspeak.service.*
 import chuckcoughlin.bertspeak.speech.Annunciator
 import chuckcoughlin.bertspeak.speech.SpeechAnalyzer
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import com.google.android.material.tabs.TabLayoutMediator
+
 import java.util.*
 
 /**
  * The main activity "owns" the page tab UI fragments. It also contains
  * the speech components, since they must execute on the main thread
  * (and not in the service).
- *
- * @see Android ViewPager2 sample code CardFragmentActivity
  */
-class MainActivity : FragmentActivity(), IntentObserver, TextMessageObserver,
-    TextToSpeech.OnInitListener,
-    ServiceConnection {
-    private var analyzer: SpeechAnalyzer? = null
-    private var annunciator: Annunciator? = null
-    private var service: DispatchService? = null
+class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, TextToSpeech.OnInitListener, ServiceConnection {
+    private lateinit var analyzer: SpeechAnalyzer
+    private lateinit var annunciator: Annunciator
+    private lateinit var service: DispatchService
     private val ul = UtteranceListener()
-
-    /**
-     * The [ViewPager] that will host the section contents.
-     */
-    private val viewPager2: ViewPager? = null
 
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
@@ -60,14 +53,21 @@ class MainActivity : FragmentActivity(), IntentObserver, TextMessageObserver,
         Log.i(CLSS, "onCreate ...")
         // If we absolutely have to start over again with the database ...
         //this.deleteDatabase(BertConstants.DB_NAME);
-        setContentView(R.layout.activity_main)
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
         // Close the soft keyboard - it will still open on an EditText
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
-        // Get the ViewPager and set it's PagerAdapter so that it can display items
-        val viewPager: ViewPager = findViewById(R.id.viewpager)
-        val pagerAdapter =
-            MainActivityPagerAdapter(getSupportFragmentManager(), getApplicationContext())
+        // Get the ViewPager2 and set it's PagerAdapter so that it can display items
+        val viewPager = binding.pager
+        viewPager.setPageTransformer(FragmentPageTransformer())
+        val pagerAdapter = MainActivityPagerAdapter(getSupportFragmentManager(), lifecycle)
         viewPager.setAdapter(pagerAdapter)
+
+        val tabLayout = binding.tabLayout
+        TabLayoutMediator(tabLayout,viewPager) {
+            tab,position -> tab.text = pagerAdapter.getPageTitle(position)
+        }.attach()
     }
 
     /**
@@ -137,7 +137,8 @@ class MainActivity : FragmentActivity(), IntentObserver, TextMessageObserver,
             annunciator.setSpeechRate(1.0f) // Default=1.0
             Log.i(CLSS, "onInit: TextToSpeech initialized ...")
             annunciator.speak(selectRandomText(), TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
-        } else {
+        }
+        else {
             Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status))
             annunciator = null // don't use
         }
@@ -166,7 +167,8 @@ class MainActivity : FragmentActivity(), IntentObserver, TextMessageObserver,
                 TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY))
             if (tf == TieredFacility.SOCKET && actionState == FacilityState.ACTIVE) {
                 runOnUiThread(Runnable { activateSpeechAnalyzer() })
-            } else if (tf == TieredFacility.SOCKET) {
+            }
+            else if (tf == TieredFacility.SOCKET) {
                 runOnUiThread(Runnable { deactivateSpeechAnalyzer() })
             }
         }

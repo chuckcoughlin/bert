@@ -18,7 +18,7 @@
         android:textAppearance="@style/TabTitle"
      />
 
-    <android.support.v7.widget.RecyclerView
+    <RecyclerView
         android:id="@+id/logs_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="800dp"

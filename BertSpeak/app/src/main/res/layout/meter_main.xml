@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<chuckcoughlin.bertspeak.bert.waveform.WaveformView xmlns:android="http://schemas.android.com/apk/res/android"
+<chuckcoughlin.bertspeak.waveform.WaveformView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/waveform_view"
@@ -8,5 +8,5 @@
     android:layout_marginTop="@dimen/fab_margin"
     android:layout_marginBottom="@dimen/fab_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="chuckcoughlin.bert.MainActivity"
+    tools:context="chuckcoughlin.bertspeak.MainActivity"
     tools:showIn="@layout/fragment_cover" />

@@ -11,6 +11,10 @@
         <entry key="app/src/main/res/layout/fragment_cover.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_robot_logs.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_tables_tab.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_transcript.xml" value="0.17552083333333332" />
+        <entry key="app/src/main/res/layout/log_item.xml" value="0.17552083333333332" />
+        <entry key="app/src/main/res/layout/meter_main.xml" value="0.17552083333333332" />
+        <entry key="app/src/main/res/layout/settings_item.xml" value="0.17552083333333332" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.15" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.15" />
       </map>
