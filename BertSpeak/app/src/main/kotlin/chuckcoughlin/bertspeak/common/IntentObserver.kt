@@ -2,7 +2,7 @@
  * Copyright 2019 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.bert.common
+package chuckcoughlin.bertspeak.common
 
 import android.content.Intent
 

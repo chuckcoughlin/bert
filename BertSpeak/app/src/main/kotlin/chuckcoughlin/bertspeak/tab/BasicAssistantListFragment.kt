@@ -5,7 +5,8 @@
 package chuckcoughlin.bertspeak.tab
 
 import android.os.Bundle
-import androidx.core.app.ListFragment
+import androidx.fragment.app.ListFragment
+
 
 /**
  * This is a base class for all the page fragments that are lists.

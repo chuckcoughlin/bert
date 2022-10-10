@@ -17,8 +17,8 @@ import chuckcoughlin.bertspeak.tab.*
  * This is a specialized page fragment for each tab position.
  * Return the appropriate fragment when requested.
  */
-class MainActivityPagerAdapter(fragManager: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fragManager,lifecycle) {
-    private val tabTitles: Array<String>
+class MainActivityPagerAdapter(fragManager: FragmentManager, lifecycle: Lifecycle,titles: Array<String>) : FragmentStateAdapter(fragManager,lifecycle) {
+    private val tabTitles = titles
     /**
      * Each page is a different class. If position is out of range, use 0
      * @param position page number
@@ -35,12 +35,13 @@ class MainActivityPagerAdapter(fragManager: FragmentManager, lifecycle: Lifecycl
             2 -> frag = RobotLogsFragment()
             3 -> frag = TablesTabFragment()
             4 -> frag = SettingsFragment()
-            else -> {}
+            else ->
+                frag = CoverFragment()
         }
 
         Log.i(CLSS, "getItem: " + position + ": fragment=" + frag.javaClass.getCanonicalName())
         frag.pageNumber = position
-        frag.title = tabTitles[position]
+        frag.title = getPageTitle(position)
         return frag as Fragment
     }
 
@@ -50,23 +51,12 @@ class MainActivityPagerAdapter(fragManager: FragmentManager, lifecycle: Lifecycl
     override fun getItemCount(): Int {
         return tabTitles.size
     }
-
-    fun getPageTitle(position: Int): CharSequence {
+    fun getPageTitle(position: Int): String {
         return tabTitles[position]
     }
 
+
     companion object {
         private const val CLSS = "MainActivityPagerAdapter"
-    }
-
-    init {
-        tabTitles = arrayOf(
-            ctx.getString(R.string.cover_tab_label),
-            ctx.getString(R.string.transcript_tab_label),
-            ctx.getString(R.string.robot_log_tab_label),
-            ctx.getString(R.string.tables_tab_label),
-            ctx.getString(R.string.settings_tab_label)
-        )
-        Log.i(CLSS, "Constructor ...")
     }
 }

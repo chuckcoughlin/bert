@@ -40,14 +40,16 @@ android {
 }
 
 dependencies {
-    // These dependencies from ViewPager2 sample code
+    // Add these for various UI widgets
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.recyclerview:recyclerview-selection:1.1.0'
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation 'androidx.fragment:fragment-ktx:1.5.3'
-    // Add these for various UI widgets
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
 
     // These dependencies came from the project migration
+    //implementation 'org.jetbrains.kotlinx:kotlinx-collections-immutable:$IC_VERSION'
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.6.1'

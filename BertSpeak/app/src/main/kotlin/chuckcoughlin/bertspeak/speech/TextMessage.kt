@@ -10,19 +10,15 @@ import java.util.*
 /**
  * Instances of this class are displayed in the log.
  */
-class TextMessage(private val type: MessageType, private val msg: String) {
+data class TextMessage(val msg: String, val type: MessageType ) {
     private val timestamp: Date
-    fun getMessage(): String {
-        return msg
-    }
+    val message:String
+        get() =  msg
 
-    fun getTimestamp(): Date {
-        return timestamp
-    }
+    val messageType: MessageType
+        get() = type
 
-    fun getMessageType(): MessageType {
-        return type
-    }
+    fun getTimestamp(): Date {return timestamp }
 
     init {
         timestamp = Date()

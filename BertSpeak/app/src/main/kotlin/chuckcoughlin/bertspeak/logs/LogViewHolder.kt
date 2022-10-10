@@ -4,7 +4,9 @@
  */
 package chuckcoughlin.bertspeak.logs
 
-import android.support.v7.widget.RecyclerView
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 
 /**
  * Facilitates data transfer by the Recycler view.

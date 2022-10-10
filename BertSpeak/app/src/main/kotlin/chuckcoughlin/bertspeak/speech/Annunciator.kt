@@ -6,33 +6,30 @@ package chuckcoughlin.bertspeak.speech
 
 import android.speech.tts.TextToSpeech
 import android.content.*
+import android.speech.tts.TextToSpeech.ERROR_INVALID_REQUEST
+import android.speech.tts.TextToSpeech.QUEUE_FLUSH
 import android.util.Log
 
 /**
- * Pronounce a supplied phrase.
+ *  The Android facility for pronouncing text. Configuration
+ *  methods are not effective in the constructor
+ *  Pronounce a supplied phrase.
  */
-class Annunciator
-/**
- * The Android facility for pronouncing text. Configuration
- * methods are not effective in the constructor
- */
-    (context: Context?, listener: OnInitListener?) : TextToSpeech(context, listener) {
+class Annunciator (context: Context, listener: OnInitListener?) : TextToSpeech(context, listener) {
     /**
-     * Convert error text to speach in the chosen language. We are not yet using the distance.
+     * Convert error text to speech in the chosen language. We are not yet using the distance.
      * @param text the text to pronounce
      */
-    fun speak(text: String?) {
+    fun speak(text: String) {
         Log.i(CLSS, String.format("speak: %s", text))
-        var result = 0
-        result = speak(text, QUEUE_FLUSH, null, UTTERANCE_ID)
+        var result = speak(text, QUEUE_FLUSH, null, UTTERANCE_ID)
         if (result != SUCCESS) {
             Log.w(CLSS, String.format("speak: %s pronouncing: %s", errorToText(result), text))
         }
     }
 
     private fun errorToText(err: Int): String {
-        var error = "??"
-        error = when (err) {
+        var error = when (err) {
             ERROR_INVALID_REQUEST -> "Invalid request"
             ERROR_NETWORK -> "Network error"
             ERROR_NETWORK_TIMEOUT -> "Network timeout"

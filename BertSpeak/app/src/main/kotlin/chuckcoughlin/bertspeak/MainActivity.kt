@@ -16,7 +16,8 @@ import android.speech.tts.Voice
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import chuckcoughlin.bertspeak.bert.common.IntentObserver
+import chuckcoughlin.bertspeak.common.IntentObserver
+import chuckcoughlin.bertspeak.common.FragmentPageTransformer
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.ActivityMainBinding
 import chuckcoughlin.bertspeak.service.*
@@ -34,10 +35,11 @@ import java.util.*
  * (and not in the service).
  */
 class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, TextToSpeech.OnInitListener, ServiceConnection {
-    private lateinit var analyzer: SpeechAnalyzer
-    private lateinit var annunciator: Annunciator
-    private lateinit var service: DispatchService
-    private val ul = UtteranceListener()
+    private var analyzer: SpeechAnalyzer? = null
+    private var annunciator: Annunciator? = null
+    private var service: DispatchService? = null
+
+    override val name by lazy { CLSS }
 
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
@@ -61,7 +63,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         // Get the ViewPager2 and set it's PagerAdapter so that it can display items
         val viewPager = binding.pager
         viewPager.setPageTransformer(FragmentPageTransformer())
-        val pagerAdapter = MainActivityPagerAdapter(getSupportFragmentManager(), lifecycle)
+        val pagerAdapter = MainActivityPagerAdapter(getSupportFragmentManager(), lifecycle, getTabTitles())
         viewPager.setAdapter(pagerAdapter)
 
         val tabLayout = binding.tabLayout
@@ -77,16 +79,15 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         super.onStart()
         activateSpeechAnalyzer()
         annunciator = Annunciator(getApplicationContext(), this)
-        annunciator.setOnUtteranceProgressListener(ul)
+        annunciator!!.setOnUtteranceProgressListener(UtteranceListener())
     }
 
     override fun onStop() {
         super.onStop()
-        if (service != null) {
+        if (service==null) {
             unbindService(this)
-            service = null
         }
-        annunciator.stop()
+        annunciator!!.stop()
         deactivateSpeechAnalyzer()
     }
 
@@ -98,10 +99,20 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         deactivateSpeechAnalyzer()
         val intent = Intent(this, DispatchService::class.java)
         stopService(intent)
-        annunciator.shutdown()
+        annunciator!!.shutdown()
         annunciator = null
     }
 
+    private fun getTabTitles() : Array<String> {
+        val tabTitles = arrayOf(
+            getString(R.string.cover_tab_label),
+            getString(R.string.transcript_tab_label),
+            getString(R.string.robot_log_tab_label),
+            getString(R.string.tables_tab_label),
+            getString(R.string.settings_tab_label)
+        )
+        return tabTitles
+    }
     /**
      * Select a random startup phrase from the list.
      *
@@ -116,7 +127,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     // =================================== OnInitListener ===============================
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val voices: Set<Voice> = annunciator.getVoices()
+            val voices: Set<Voice> = annunciator!!.getVoices()
             if (voices != null) {
                 for (v in voices) {
                     if (v.getName().equals("en-GB-SMTm00", ignoreCase = true)) {
@@ -128,24 +139,21 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
                                 v.describeContents()
                             )
                         )
-                        annunciator.setVoice(v)
+                        annunciator!!.setVoice(v)
                     }
                 }
             }
-            annunciator.setLanguage(Locale.UK)
-            annunciator.setPitch(1.6f) //Default＝1.0
-            annunciator.setSpeechRate(1.0f) // Default=1.0
+            annunciator!!.setLanguage(Locale.UK)
+            annunciator!!.setPitch(1.6f) //Default＝1.0
+            annunciator!!.setSpeechRate(1.0f) // Default=1.0
             Log.i(CLSS, "onInit: TextToSpeech initialized ...")
-            annunciator.speak(selectRandomText(), TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
+            annunciator!!.speak(selectRandomText(), TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
         }
         else {
             Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status))
-            annunciator = null // don't use
+            annunciator = null  // Don't use
         }
     }
-
-    override val name: String
-        get() = TODO("Not yet implemented")
 
     // ===================== IntentObserver =====================
     // Only turn on the speech recognizer if the action state is voice.
@@ -161,15 +169,20 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     // The speed analyzer must run on the "main thread"
     override fun update(intent: Intent) {
         if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
-            val actionState: FacilityState =
-                FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE))
-            val tf: TieredFacility =
-                TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY))
-            if (tf == TieredFacility.SOCKET && actionState == FacilityState.ACTIVE) {
-                runOnUiThread(Runnable { activateSpeechAnalyzer() })
-            }
-            else if (tf == TieredFacility.SOCKET) {
-                runOnUiThread(Runnable { deactivateSpeechAnalyzer() })
+            var value = intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE)
+            if (value != null) {
+                val actionState: FacilityState = FacilityState.valueOf(value)
+                value = intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)
+                if (value != null) {
+                    val tf: TieredFacility =
+                        TieredFacility.valueOf(value)
+                    if (tf == TieredFacility.SOCKET && actionState == FacilityState.ACTIVE) {
+                        runOnUiThread(Runnable { activateSpeechAnalyzer() })
+                    }
+                    else if (tf == TieredFacility.SOCKET) {
+                        runOnUiThread(Runnable { deactivateSpeechAnalyzer() })
+                    }
+                }
             }
         }
     }
@@ -177,11 +190,11 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     // =================================== ServiceConnection ===============================
     override fun onServiceDisconnected(name: ComponentName) {
         if (service != null) {
-            service.getStatusManager().unregister(this)
-            service.getTextManager().unregisterTranscriptViewer(this)
+            service!!.getStatusManager()!!.unregister(this)
+            service!!.getTextManager()!!.unregisterTranscriptViewer(this)
         }
         service = null
-        analyzer.shutdown()
+        analyzer!!.shutdown()
         analyzer = null
     }
 
@@ -190,8 +203,8 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         val binder: DispatchServiceBinder = bndr as DispatchServiceBinder
         service = binder.getService()
         activateSpeechAnalyzer()
-        service.getStatusManager().register(this)
-        service.getTextManager().registerTranscriptViewer(this)
+        service!!.getStatusManager()!!.register(this)
+        service!!.getTextManager()!!.registerTranscriptViewer(this)
     }
 
     // Turn off the audio to mute the annoying beeping
@@ -199,14 +212,14 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         if (service != null && analyzer == null) {
             suppressAudio()
             analyzer = SpeechAnalyzer(service, getApplicationContext())
-            analyzer.start()
+            analyzer!!.start()
         }
     }
 
     private fun deactivateSpeechAnalyzer() {
         if (analyzer != null) {
             restoreAudio()
-            analyzer.shutdown()
+            analyzer!!.shutdown()
         }
         analyzer = null
     }
@@ -236,9 +249,9 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
      * @param msg the new message
      */
     override fun update(msg: TextMessage) {
-        if (msg.getMessageType() == MessageType.ANS) {
+        if ( msg.messageType.equals(MessageType.ANS) ) {
             restoreAudio()
-            annunciator.speak(msg.getMessage())
+            annunciator!!.speak(msg.message)
             suppressAudio()
         }
     }
@@ -249,7 +262,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         @Synchronized
         override fun onDone(utteranceId: String) {
             if (analyzer != null) {
-                runOnUiThread(Runnable { analyzer.listen() })
+                runOnUiThread(Runnable { analyzer!!.listen() })
             }
         }
 
@@ -257,7 +270,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         override fun onError(utteranceId: String, code: Int) {}
         override fun onStart(utteranceId: String) {
             if (analyzer != null) {
-                runOnUiThread(Runnable { analyzer.cancel() })
+                runOnUiThread(Runnable { analyzer!!.cancel() })
             }
         }
     }

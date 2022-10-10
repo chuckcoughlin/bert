@@ -1,16 +1,27 @@
 /**
- * Copyright 2019 Charles Coughlin. All rights reserved.
+ * Copyright 2022 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
 
 import android.R
 import android.app.Notification
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Handler
+import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import android.util.Log
 import chuckcoughlin.bertspeak.bert.MessageType
+import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.db.DatabaseManager
 import java.lang.IllegalArgumentException
 import java.util.*
 

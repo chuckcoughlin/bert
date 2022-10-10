@@ -9,7 +9,8 @@ import chuckcoughlin.bertspeak.common.IntentObserver
 import android.media.audiofx.Visualizer.OnDataCaptureListener
 import chuckcoughlin.bertspeak.service.DispatchService
 import android.media.audiofx.Visualizer
-import chuckcoughlin.bertspeak.bert.waveform.WaveformView
+import chuckcoughlin.bertspeak.waveform.RendererFactory
+import chuckcoughlin.bertspeak.waveform.WaveformView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.os.Bundle
@@ -24,7 +25,6 @@ import android.graphics.Color
 import android.util.Log
 import android.view.View
 import android.widget.*
-import chuckcoughlin.bertspeak.bert.waveform.RendererFactory
 import java.lang.Exception
 
 /**

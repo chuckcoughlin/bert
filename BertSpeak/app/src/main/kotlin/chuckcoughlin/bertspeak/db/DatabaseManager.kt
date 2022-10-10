@@ -16,10 +16,9 @@ import java.util.ArrayList
  * checks are ignored. Create a separate instance of this class wherever needed.
  * The database is closed after each transaction.
  */
-class DatabaseManager(context: Context) :
-    SQLiteOpenHelper(context, BertConstants.DB_NAME, null, BertConstants.DB_VERSION) {
-    @Volatile
-    private val context: Context? = null
+class DatabaseManager(ctx: Context) :
+    SQLiteOpenHelper(ctx, BertConstants.DB_NAME, null, BertConstants.DB_VERSION) {
+    private var context: Context = ctx
 
     /**
      * Called when the database connection is being configured.
@@ -148,10 +147,7 @@ class DatabaseManager(context: Context) :
             val cursor = database.rawQuery(SQL, args)
             cursor.moveToFirst()
             while (!cursor.isAfterLast) {
-                val nv = NameValue()
-                nv.name = cursor.getString(0)
-                nv.value = cursor.getString(1)
-                nv.hint = cursor.getString(2)
+                val nv = NameValue(cursor.getString(0),cursor.getString(1),cursor.getString(2))
                 Log.i(CLSS, String.format("getSettings: %s = %s (%s)", nv.name, nv.value, nv.hint))
                 list.add(nv)
                 cursor.moveToNext()

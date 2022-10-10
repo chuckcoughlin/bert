@@ -7,8 +7,15 @@ package chuckcoughlin.bertspeak.logs
 import android.graphics.Color
 import android.support.transition.TransitionManager
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import chuckcoughlin.bertspeak.bert.common.MessageType
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import chuckcoughlin.bertspeak.R
+import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.speech.TextMessage
 import java.text.SimpleDateFormat
 import java.util.*
 
