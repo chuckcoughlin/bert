@@ -46,6 +46,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview-selection:1.1.0'
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation 'androidx.fragment:fragment-ktx:1.5.3'
+    implementation 'androidx.collection:collection-ktx:1.2.0'
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
 
     // These dependencies came from the project migration

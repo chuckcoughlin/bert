@@ -60,13 +60,13 @@ class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
     }
 
     // Bind to the DispatchService
-    fun onStart() {
+    override fun onStart() {
         super.onStart()
         val intent = Intent(getContext().getApplicationContext(), DispatchService::class.java)
         getContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
-    fun onResume() {
+    override fun onResume() {
         super.onResume()
         if (service != null) {
             Log.i(name, "onResume: registering as observer")
@@ -74,7 +74,7 @@ class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
         }
     }
 
-    fun onPause() {
+    override fun onPause() {
         super.onPause()
         if (service != null) {
             Log.i(name, "onPause: unregistering as observer")
@@ -82,12 +82,12 @@ class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
         }
     }
 
-    fun onStop() {
+    override fun onStop() {
         super.onStop()
         if (getContext() != null) getContext().getApplicationContext().unbindService(this)
     }
 
-    fun onDestroyView() {
+    override fun onDestroyView() {
         Log.i(name, "onDestroyView")
         super.onDestroyView()
     }

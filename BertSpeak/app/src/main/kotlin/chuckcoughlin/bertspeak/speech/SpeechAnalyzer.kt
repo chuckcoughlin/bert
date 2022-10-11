@@ -20,11 +20,11 @@ import java.util.*
  * This class analyzes speech, converting it into text (lists of words).
  * The SpeechRecognizer methods must be executed on the main application thread (UI thread).
  */
-class SpeechAnalyzer(h: BluetoothHandler?, c: Context) : RecognitionListener {
+class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     private val context: Context
     private var listening = false
     private var sr: SpeechRecognizer? = null
-    private val handler: BluetoothHandler?
+    private val handler: BluetoothHandler
     private var recognizerIntent: Intent? = null
 
     /**
@@ -88,7 +88,7 @@ class SpeechAnalyzer(h: BluetoothHandler?, c: Context) : RecognitionListener {
 
     // ========================================= RecognitionListener ============================
     override fun onReadyForSpeech(params: Bundle) {
-        //Log.i(CLSS, "onReadyForSpeech");
+        Log.i(CLSS, "onReadyForSpeech");
     }
 
     override fun onBeginningOfSpeech() {
@@ -103,7 +103,7 @@ class SpeechAnalyzer(h: BluetoothHandler?, c: Context) : RecognitionListener {
     }
 
     override fun onEndOfSpeech() {
-        //Log.i(CLSS, "onEndofSpeech");
+        Log.i(CLSS, "onEndofSpeech");
     }
 
     override fun onError(error: Int) {
@@ -131,7 +131,7 @@ class SpeechAnalyzer(h: BluetoothHandler?, c: Context) : RecognitionListener {
         }
         if (reason != null) {
             Log.e(CLSS, String.format("SpeechRecognizer: Error - %s", reason))
-            handler!!.handleVoiceError(reason)
+            handler.handleVoiceError(reason)
         }
         // Try again
         resetSpeechRecognizer()
@@ -204,6 +204,5 @@ class SpeechAnalyzer(h: BluetoothHandler?, c: Context) : RecognitionListener {
         listening = false
         context = c
         handler = h
-        if (handler == null) Log.e(CLSS, "SpeechAnalyzer: ERROR: BluetoothHandler is null.")
     }
 }

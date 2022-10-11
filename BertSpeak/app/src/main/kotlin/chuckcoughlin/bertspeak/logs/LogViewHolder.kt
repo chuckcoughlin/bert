@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bertspeak.logs
 
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -11,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 /**
  * Facilitates data transfer by the Recycler view.
  */
-class LogViewHolder(v: ViewGroup?) : RecyclerView.ViewHolder(v) {
+class LogViewHolder(v: View) : RecyclerView.ViewHolder(v) {
     private val rowParent: ViewGroup
     val timestampView: TextView
         get() = rowParent.getChildAt(0) as TextView

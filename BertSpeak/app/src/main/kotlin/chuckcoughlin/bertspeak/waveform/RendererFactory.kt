@@ -3,7 +3,7 @@
  */
 package chuckcoughlin.bertspeak.waveform
 
-import android.support.annotation.ColorInt
+import androidx.annotation.ColorInt
 
 class RendererFactory {
     fun createSimpleWaveformRenderer(

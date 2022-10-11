@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
      *
      * @param savedInstanceState the saved instance state
      */
-    override protected fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Create the comprehensive dispatch connection service
         val intent = Intent(this, DispatchService::class.java)
@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     private fun activateSpeechAnalyzer() {
         if (service != null && analyzer == null) {
             suppressAudio()
-            analyzer = SpeechAnalyzer(service, getApplicationContext())
+            analyzer = SpeechAnalyzer(service!!, getApplicationContext())
             analyzer!!.start()
         }
     }

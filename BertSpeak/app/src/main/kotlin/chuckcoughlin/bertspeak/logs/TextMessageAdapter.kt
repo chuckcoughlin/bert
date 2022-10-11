@@ -5,7 +5,7 @@
 package chuckcoughlin.bertspeak.logs
 
 import android.graphics.Color
-import android.support.transition.TransitionManager
+import android.transition.TransitionManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -26,16 +26,17 @@ import java.util.*
 class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewHolder?>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     private var expandedPosition = -1
-    private var recyclerView: RecyclerView? = null
-    private var messages: List<TextMessage>
-    fun onAttachedToRecyclerView(view: RecyclerView?) {
+    private lateinit var recyclerView: RecyclerView
+    private var messages: List<TextMessage> = msgs
+
+     override fun onAttachedToRecyclerView(view: RecyclerView) {
         recyclerView = view
     }
 
     /**
      * Create a new view holder. Inflate the row layout, set the item height.
      */
-    fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
         val inflater: LayoutInflater = LayoutInflater.from(parent.getContext())
         val shouldAttachToParent = false
         val layout: LinearLayout =
@@ -50,7 +51,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
      * @param holder the viewholder that should be populated at the given position
      * @param position row that should be updated
      */
-    fun onBindViewHolder(holder: LogViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
         Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
         val expand = position == expandedPosition
         val msg: TextMessage = messages[position]
@@ -58,16 +59,16 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
             Log.w(CLSS, String.format("Null log holder at %d", position))
             return
         }
-        val type: MessageType = msg.getMessageType()
+        val type: MessageType = msg.messageType
         // The timestamp is always the same
-        val timestampView: TextView? = holder.timestampView
+        val timestampView: TextView = holder.timestampView
         val tstamp: Date = msg.getTimestamp()
         val dt = dateFormatter.format(tstamp)
         timestampView.setText(dt)
 
         // In expanded mode the source is the type
-        val sourceView: TextView? = holder.sourceView
-        var source: String = msg.getMessageType().name
+        val sourceView: TextView = holder.sourceView
+        var source: String = msg.messageType.name
         if (expand) {
             sourceView.setText(source)
             if (type == MessageType.ANS) {
@@ -80,8 +81,8 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         }
 
         // In expanded mode, the message is the source (node-name).
-        val messageView: TextView? = holder.messageView
-        var msgText: String = msg.getMessage().trim { it <= ' ' }
+        val messageView: TextView = holder.messageView
+        var msgText: String = msg.message.trim { it <= ' ' }
         if (expand) {
             messageView.setText(source)
         } else {
@@ -91,7 +92,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
                 messageView.setTextColor(Color.BLUE)
             }
         }
-        val detailView: TextView? = holder.detailView
+        val detailView: TextView = holder.detailView
         val params: ViewGroup.LayoutParams = holder.itemView.getLayoutParams()
         if (expand) {
             detailView.setText(msgText)
@@ -113,12 +114,12 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
 
     // It is important that the widget and backing manager be in synch
     // with respect to item count.
-    fun getItemCount(): Int {
+    override fun getItemCount(): Int {
         return messages.size
     }
 
-    fun onDetachedFromRecyclerView(recyclerView: RecyclerView?) {
-        this.recyclerView = null
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        //
     }
 
     /**

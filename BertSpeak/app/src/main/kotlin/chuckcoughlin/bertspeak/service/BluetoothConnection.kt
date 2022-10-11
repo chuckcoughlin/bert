@@ -34,14 +34,15 @@ class BluetoothConnection(handler: BluetoothHandler) {
     private var `in`: BufferedReader? = null
     private var out: PrintWriter? = null
     private val buffer: CharArray
-    fun openConnections(dev: BluetoothDevice?) {
+
+    fun openConnections(dev: BluetoothDevice) {
         device = dev
         if (connectionThread != null && connectionThread!!.isAlive && !connectionThread!!.isInterrupted) {
             Log.i(CLSS, "socket connection already in progress ...")
             return
         }
         connectionThread = ConnectionThread(device)
-        connectionThread!!.start()
+        connectionThread.start()
     }
 
     fun stopChecking() {
@@ -68,7 +69,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
         }
         try {
             if (socket != null) socket!!.close()
-        } catch (ioe: IOException) {
+        }
+        catch (ioe: IOException) {
         }
     }
 
@@ -86,32 +88,26 @@ class BluetoothConnection(handler: BluetoothHandler) {
                 Log.i(CLSS, String.format("read: reading ... "))
                 text = `in`!!.readLine() // Does not include CR
                 Log.i(CLSS, String.format("read: returning: %s", text))
-            } else {
+            }
+            else {
                 Log.e(
                     CLSS,
                     String.format("read: Error reading from %s before connection", device!!.name)
                 )
             }
-        } catch (ioe: IOException) {
+        }
+        catch (ioe: IOException) {
             Log.e(
                 CLSS,
-                String.format(
-                    "read: Error reading from %s (%s)",
-                    device!!.name,
-                    ioe.localizedMessage
-                )
+                String.format("read: Error reading from %s (%s)", device!!.name,ioe.localizedMessage)
             )
             // Close and attempt to reopen port
             text = reread()
-        } catch (npe: NullPointerException) {
-            Log.e(
-                CLSS,
-                String.format(
-                    "read: Null pointer reading from %s (%s)",
-                    device!!.name,
-                    npe.localizedMessage
-                )
-            )
+        }
+        catch (npe: NullPointerException) {
+            Log.e(CLSS,
+                String.format("read: Null pointer reading from %s (%s)",device!!.name, npe.localizedMessage))
+
             // Close and attempt to reopen port
             text = reread()
         }
@@ -148,10 +144,12 @@ class BluetoothConnection(handler: BluetoothHandler) {
                     )
                     out!!.println(text) // Appends new-line
                     out!!.flush()
-                } else {
+                }
+                else {
                     Log.e(CLSS, String.format("write: out stream error", deviceName))
                 }
-            } else {
+            }
+            else {
                 Log.e(
                     CLSS,
                     String.format("write: Error writing to %s before connection", deviceName)
@@ -238,7 +236,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
                             break
                         }
                         logged = true
-                    } else {
+                    }
+                    else {
                         reason = String.format(
                             "The tablet failed to fetch service UUIDS to %s",
                             device.name
@@ -278,7 +277,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
                     // See: https://stackoverflow.com/questions/18657427/ioexception-read-failed-socket-might-closed-bluetooth-on-android-4-3
                     try {
                         sleep(CLIENT_ATTEMPT_INTERVAL)
-                    } catch (ie: InterruptedException) {
+                    }
+                    catch (ie: InterruptedException) {
                         if (attempts % CLIENT_LOG_INTERVAL == 0) {
                             reason = String.format(
                                 "The tablet failed to create a client socket to %s due to %s",
@@ -294,7 +294,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
             }
             if (reason == null) {
                 handler.receiveSocketConnection()
-            } else {
+            }
+            else {
                 handler.handleBluetoothError(reason)
             }
         }
@@ -313,7 +314,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
                         out = PrintWriter(socket!!.outputStream, true)
                         Log.i(CLSS, String.format("openPorts: opened %s for write", device.name))
                         write(String.format("%s:the tablet is connected", MessageType.LOG.name))
-                    } catch (ex: Exception) {
+                    }
+                    catch (ex: Exception) {
                         reason = String.format(
                             "The tablet failed to open a socket for writing due to %s",
                             ex.message

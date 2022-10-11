@@ -40,7 +40,7 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
     private var waveformView: WaveformView? = null
 
     // Inflate the view. It holds a fixed image of the robot
-    fun onCreateView(
+    override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -75,13 +75,13 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
     /**
      * Bind to the DispatchService, start speech analyzer and enunciator
      */
-    fun onStart() {
+    override fun onStart() {
         super.onStart()
         val intent = Intent(getActivity(), DispatchService::class.java)
         getActivity().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
-    fun onResume() {
+    override fun onResume() {
         super.onResume()
         if (service != null) {
             Log.i(Companion.name, "onResume: registering as observer")
@@ -90,7 +90,7 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
         startVisualizer()
     }
 
-    fun onPause() {
+    override fun onPause() {
         super.onPause()
         if (service != null) {
             Log.i(Companion.name, "onPause: unregistering as observer")
@@ -99,12 +99,12 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
         stopVisualizer()
     }
 
-    fun onStop() {
+    override fun onStop() {
         super.onStop()
         getActivity().getApplicationContext().unbindService(this)
     }
 
-    fun onDestroyView() {
+    override fun onDestroyView() {
         Log.i(Companion.name, "onDestroyView: ...")
         super.onDestroyView()
     }
@@ -115,7 +115,8 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
             visualizer!!.setDataCaptureListener(this, Visualizer.getMaxCaptureRate(), true, false)
             visualizer!!.captureSize = CAPTURE_SIZE
             visualizer!!.enabled = true
-        } catch (ex: Exception) {  // This will fail in the emulator
+        }
+        catch (ex: Exception) {  // This will fail in the emulator
             Log.i(
                 Companion.name,
                 String.format(

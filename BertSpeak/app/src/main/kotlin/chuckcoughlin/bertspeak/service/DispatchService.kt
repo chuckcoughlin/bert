@@ -18,7 +18,6 @@ import android.os.Handler
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import android.util.Log
-import chuckcoughlin.bertspeak.bert.MessageType
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
@@ -35,7 +34,7 @@ import java.util.*
  * Android speech recognition classes.
  */
 class DispatchService : Service(), BluetoothHandler {
-    @Volatile
+
     private var notificationManager: NotificationManager? = null
     private var bluetoothConnection: BluetoothConnection? = null // Stays null when simulated
     private var bluetoothDevice: BluetoothDevice? = null

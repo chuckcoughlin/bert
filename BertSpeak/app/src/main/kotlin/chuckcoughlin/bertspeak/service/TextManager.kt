@@ -1,5 +1,6 @@
 package chuckcoughlin.bertspeak.service
 
+import android.text.method.TextKeyListener.clear
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
 import chuckcoughlin.bertspeak.speech.TextMessage
 import kotlin.jvm.Synchronized
@@ -19,14 +20,12 @@ import java.util.HashMap
  */
 class TextManager {
     private val logList: FixedSizeList<TextMessage?>
-    private val columnList // Columns in the most recent table
-            : MutableList<String>
-    private val rowList // Text is tab-delimited
-            : MutableList<TextMessage>
+    private val columnList : MutableList<String>   // Columns in the most recent table
+    private val rowList: MutableList<TextMessage>  // Text is tab-delimited
     private val transcriptList: FixedSizeList<TextMessage?>
-    private val logObservers: MutableMap<String?, TextMessageObserver>
-    private val tableObservers: MutableMap<String?, TextMessageObserver>
-    private val transcriptObservers: MutableMap<String?, TextMessageObserver>
+    private val logObservers: MutableMap<String, TextMessageObserver>
+    private val tableObservers: MutableMap<String, TextMessageObserver>
+    private val transcriptObservers: MutableMap<String, TextMessageObserver>
 
     /**
      * Called when main activity is stopped. Clean up any resources.
@@ -65,22 +64,22 @@ class TextManager {
         Log.i(CLSS, String.format("processText: %s: %s", type.name, text))
         when (type) {
             MessageType.ANS -> {
-                msg = TextMessage(type, text)
+                msg = TextMessage(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.LOG -> {
-                msg = TextMessage(type, text)
+                msg = TextMessage(text,type)
                 logList.addFirst(msg)
                 notifyLogObservers(msg)
             }
             MessageType.MSG -> {
-                msg = TextMessage(type, text)
+                msg = TextMessage(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.ROW -> {
-                msg = TextMessage(type, text)
+                msg = TextMessage(text,type)
                 rowList.add(msg)
                 notifyTableObservers(msg)
             }
@@ -98,30 +97,42 @@ class TextManager {
      * @param observer
      */
     fun registerLogViewer(observer: TextMessageObserver) {
-        logObservers[observer.name] = observer
+        logObservers[observer.getName()] = observer
         observer.initialize()
     }
 
     fun registerTableViewer(observer: TextMessageObserver) {
-        tableObservers[observer.name] = observer
+        tableObservers[observer.getName()] = observer
         observer.initialize()
     }
 
     fun registerTranscriptViewer(observer: TextMessageObserver) {
-        transcriptObservers[observer.name] = observer
+        transcriptObservers[observer.getName()] = observer
         observer.initialize()
     }
 
-    fun unregisterLogViewer(observer: TextMessageObserver?) {
-        logObservers.remove(observer)
+    fun unregisterLogViewer(observer: TextMessageObserver) {
+        for( key in logObservers.keys ) {
+            if( logObservers.get(key)!!.equals(observer) ) {
+                logObservers.remove(key,observer)
+            }
+        }
     }
 
-    fun unregisterTableViewer(observer: TextMessageObserver?) {
-        tableObservers.remove(observer)
+    fun unregisterTableViewer(observer: TextMessageObserver) {
+        for( key in tableObservers.keys ) {
+            if( tableObservers.get(key)!!.equals(observer) ) {
+                tableObservers.remove(key,observer)
+            }
+        }
     }
 
-    fun unregisterTranscriptViewer(observer: TextMessageObserver?) {
-        transcriptObservers.remove(observer)
+    fun unregisterTranscriptViewer(observer: TextMessageObserver) {
+        for( key in transcriptObservers.keys ) {
+            if( transcriptObservers.get(key)!!.equals(observer) ) {
+                transcriptObservers.remove(key,observer)
+            }
+        }
     }
 
     /**
@@ -132,17 +143,17 @@ class TextManager {
         logList.clear()
         transcriptList.clear()
         for (observer in logObservers.values) {
-            observer?.initialize()
+            observer.initialize()
         }
         transcriptList.clear()
         for (observer in transcriptObservers.values) {
-            observer?.initialize()
+            observer.initialize()
         }
     }
 
     private fun initializeTableObservers(mgr: TextManager) {
         for (observer in tableObservers.values) {
-            observer?.initialize()
+            observer.initialize()
         }
     }
 
@@ -151,23 +162,21 @@ class TextManager {
      */
     private fun notifyLogObservers(msg: TextMessage) {
         for (observer in logObservers.values) {
-            observer?.update(msg)
+            observer.update(msg)
         }
     }
 
     private fun notifyTableObservers(msg: TextMessage) {
         for (observer in tableObservers.values) {
-            observer?.update(msg)
+            observer.update(msg)
         }
     }
 
     private fun notifyTranscriptObservers(msg: TextMessage) {
         for (observer in transcriptObservers.values) {
             Log.i(CLSS, String.format("notifyTranscript: %s", msg.message))
-            if (observer != null) {
-                Log.i(CLSS, String.format("notifyTranscript: updating for %s", msg.message))
-                observer.update(msg)
-            }
+            Log.i(CLSS, String.format("notifyTranscript: updating for %s", msg.message))
+            observer.update(msg)
         }
     }
 
@@ -186,11 +195,11 @@ class TextManager {
      */
     init {
         logList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
-        columnList = ArrayList()
-        rowList = ArrayList()
+        columnList     = mutableListOf<String>()
+        rowList        = mutableListOf<TextMessage>()
         transcriptList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
-        logObservers = HashMap()
-        tableObservers = HashMap()
-        transcriptObservers = HashMap()
+        logObservers        = mutableMapOf<String, TextMessageObserver>()
+        tableObservers      = mutableMapOf<String, TextMessageObserver>()
+        transcriptObservers = mutableMapOf<String, TextMessageObserver>()
     }
 }

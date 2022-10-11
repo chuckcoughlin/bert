@@ -38,7 +38,7 @@ class SettingsFragment : BasicAssistantListFragment() {
     // Called to have the fragment instantiate its user interface view.
     // Inflate the view for the fragment based on layout XML. Populate
     // the text fields from the database.
-    fun onCreateView(
+    override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?

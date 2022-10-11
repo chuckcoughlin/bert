@@ -61,7 +61,7 @@ class TablesTabFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
     }
 
     // Bind to the DispatchService
-    fun onStart() {
+    override fun onStart() {
         super.onStart()
         if (getContext() != null) {
             val intent = Intent(getContext().getApplicationContext(), DispatchService::class.java)
@@ -69,13 +69,13 @@ class TablesTabFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
         }
     }
 
-    fun onResume() {
+    override fun onResume() {
         super.onResume()
         Log.i(name, "onResume: registering adapter as observer")
         if (service != null) service.getTextManager().registerTableViewer(this)
     }
 
-    fun onPause() {
+    override fun onPause() {
         super.onPause()
         Log.i(name, "onPause: unregistering adapter as observer")
         if (service != null) {
@@ -83,12 +83,12 @@ class TablesTabFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
         }
     }
 
-    fun onStop() {
+    override fun onStop() {
         super.onStop()
         if (getContext() != null) getContext().getApplicationContext().unbindService(this)
     }
 
-    fun onDestroyView() {
+    override fun onDestroyView() {
         Log.i(name, "onDestroyView")
         super.onDestroyView()
     }
