@@ -31,8 +31,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
     private var readerThread: ReaderThread? = null
     private var device: BluetoothDevice? = null
     private var socket: BluetoothSocket? = null
-    private var `in`: BufferedReader? = null
-    private var out: PrintWriter? = null
+    private var input: BufferedReader? = null
+    private var output: PrintWriter? = null
     private val buffer: CharArray
 
     fun openConnections(dev: BluetoothDevice) {
@@ -42,7 +42,7 @@ class BluetoothConnection(handler: BluetoothHandler) {
             return
         }
         connectionThread = ConnectionThread(device)
-        connectionThread.start()
+        connectionThread!!.start()
     }
 
     fun stopChecking() {
@@ -56,16 +56,16 @@ class BluetoothConnection(handler: BluetoothHandler) {
      */
     fun shutdown() {
         stopChecking()
-        if (`in` != null) {
+        if (input != null) {
             try {
-                `in`!!.close()
+                input!!.close()
             } catch (ignore: IOException) {
             }
-            `in` = null
+            input = null
         }
-        if (out != null) {
-            out!!.close()
-            out = null
+        if (output != null) {
+            output!!.close()
+            output = null
         }
         try {
             if (socket != null) socket!!.close()
@@ -84,9 +84,9 @@ class BluetoothConnection(handler: BluetoothHandler) {
     fun read(): String? {
         var text: String? = null
         try {
-            if (`in` != null) {
+            if (input != null) {
                 Log.i(CLSS, String.format("read: reading ... "))
-                text = `in`!!.readLine() // Does not include CR
+                text = input!!.readLine() // Does not include CR
                 Log.i(CLSS, String.format("read: returning: %s", text))
             }
             else {
@@ -131,8 +131,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
         val deviceName =
             if (device == null) "No device" else if (device!!.name == null) "No name" else device!!.name
         try {
-            if (out != null) {
-                if (!out!!.checkError()) {
+            if (output != null) {
+                if (!output!!.checkError()) {
                     Log.i(
                         CLSS,
                         String.format(
@@ -142,8 +142,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
                             deviceName
                         )
                     )
-                    out!!.println(text) // Appends new-line
-                    out!!.flush()
+                    output!!.println(text) // Appends new-line
+                    output!!.flush()
                 }
                 else {
                     Log.e(CLSS, String.format("write: out stream error", deviceName))
@@ -176,13 +176,13 @@ class BluetoothConnection(handler: BluetoothHandler) {
         shutdown()
         openConnections(device)
         try {
-            `in` = BufferedReader(InputStreamReader(socket!!.inputStream))
+            input = BufferedReader(InputStreamReader(socket!!.inputStream))
             Log.i(CLSS, String.format("reread: reopened %s for read", device!!.name))
-            text = `in`!!.readLine()
-        } catch (ex: Exception) {
+            text = input!!.readLine()
+        }
+        catch (ex: Exception) {
             Log.i(
-                CLSS,
-                String.format("reread: ERROR opening %s for read (%s)", device!!.name, ex.message)
+                CLSS,String.format("reread: ERROR opening %s for read (%s)", device!!.name, ex.message)
             )
         }
         Log.i(CLSS, String.format("reread: got %s", text))
@@ -210,9 +210,7 @@ class BluetoothConnection(handler: BluetoothHandler) {
                         Log.i(
                             CLSS,
                             String.format(
-                                "run: %s returned %d service UUIDs",
-                                device.name,
-                                uuids.size
+                                "run: %s returned %d service UUIDs",device.name,uuids.size
                             )
                         )
                         for (id in uuids) {
@@ -220,17 +218,12 @@ class BluetoothConnection(handler: BluetoothHandler) {
                             if (!logged) Log.i(
                                 CLSS,
                                 String.format(
-                                    "run: %s: service UUID = %s",
-                                    device.name,
-                                    uuid.toString()
+                                    "run: %s: service UUID = %s",device!!.name,uuid.toString()
                                 )
                             )
                         }
                         if (uuid == null) {
-                            reason = String.format(
-                                "There were no service UUIDs found on %s",
-                                device.name
-                            )
+                            reason = String.format("There were no service UUIDs found on %s",device.name)
                             Log.w(CLSS, String.format("run: ERROR %s", reason))
                             handler.handleSocketError(reason)
                             break
@@ -238,24 +231,16 @@ class BluetoothConnection(handler: BluetoothHandler) {
                         logged = true
                     }
                     else {
-                        reason = String.format(
-                            "The tablet failed to fetch service UUIDS to %s",
-                            device.name
-                        )
+                        reason = String.format("The tablet failed to fetch service UUIDS to %s",device.name)
                         Log.w(CLSS, String.format("run: ERROR %s", reason))
                         handler.handleSocketError(reason)
                         break
                     }
-                    Log.i(
-                        CLSS,
-                        String.format(
-                            "run: creating insecure RFComm socket for %s ...",
-                            SERIAL_UUID
-                        )
+                    Log.i(CLSS,String.format("run: creating insecure RFComm socket for %s ...",SERIAL_UUID)
                     )
                     socket = device.createInsecureRfcommSocketToServiceRecord(SERIAL_UUID)
                     Log.i(CLSS, String.format("run: attempting to connect to %s ...", device.name))
-                    socket.connect()
+                    socket!!.connect()
                     Log.i(
                         CLSS,
                         String.format(
@@ -308,10 +293,10 @@ class BluetoothConnection(handler: BluetoothHandler) {
             var reason: String? = null
             if (socket != null) {
                 try {
-                    `in` = BufferedReader(InputStreamReader(socket!!.inputStream))
+                    input = BufferedReader(InputStreamReader(socket!!.inputStream))
                     Log.i(CLSS, String.format("openPorts: opened %s for read", device!!.name))
                     try {
-                        out = PrintWriter(socket!!.outputStream, true)
+                        output = PrintWriter(socket!!.outputStream, true)
                         Log.i(CLSS, String.format("openPorts: opened %s for write", device.name))
                         write(String.format("%s:the tablet is connected", MessageType.LOG.name))
                     }
@@ -337,16 +322,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
                         "The tablet failed to open a socket for reading due to %s",
                         ex.message
                     )
-                    Log.i(
-                        CLSS,
-                        String.format(
-                            "openPorts: ERROR opening %s for read (%s)",
-                            CLSS,
-                            device!!.name,
-                            ex.message
-                        ),
-                        ex
-                    )
+                    Log.i(CLSS,String.format("openPorts: ERROR opening %s for read (%s)",CLSS,device!!.name,ex.message),
+                        ex)
                     handler.handleSocketError(reason)
                 }
             }
@@ -357,10 +334,7 @@ class BluetoothConnection(handler: BluetoothHandler) {
             isDaemon = true
             // don't require callers to explicitly kill all the old checker threads.
             uncaughtExceptionHandler = UncaughtExceptionHandler { thread, ex ->
-                val msg = String.format(
-                    "There was an uncaught exception creating socket connection: %s",
-                    ex.localizedMessage
-                )
+                val msg = String.format("There was an uncaught exception creating socket connection: %s",ex.localizedMessage)
                 Log.e(CLSS, msg, ex)
                 handler.handleSocketError(msg)
             }
@@ -380,8 +354,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
                     val text = read() ?: break
                     handler.receiveText(text)
                     sleep(100)
-                } catch (ex: InterruptedException) {
                 }
+                catch (ex: InterruptedException) {}
             }
         }
     }
@@ -401,7 +375,7 @@ class BluetoothConnection(handler: BluetoothHandler) {
      * @param handler the parent fragment
      */
     init {
-        buffer = CharArray(BUFFER_SIZE)
+        this.buffer = CharArray(BUFFER_SIZE)
         this.handler = handler
     }
 }

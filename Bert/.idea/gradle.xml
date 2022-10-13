@@ -4,8 +4,6 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
-        <option name="delegatedBuild" value="true" />
-        <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="/usr/local/Cellar/gradle/7.5.1/libexec" />
@@ -13,14 +11,17 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/command" />
-            <option value="$PROJECT_DIR$/common" />
-            <option value="$PROJECT_DIR$/control" />
-            <option value="$PROJECT_DIR$/database" />
-            <option value="$PROJECT_DIR$/dispatcher" />
-            <option value="$PROJECT_DIR$/motor" />
-            <option value="$PROJECT_DIR$/speech" />
-            <option value="$PROJECT_DIR$/terminal" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleHome" value="/usr/local/Cellar/gradle/7.5.1/libexec" />
+        <option name="gradleJvm" value="18" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
           </set>
         </option>
       </GradleProjectSettings>
