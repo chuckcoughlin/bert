@@ -1,14 +1,11 @@
 package chuckcoughlin.bertspeak.db
 
-import android.database.sqlite.SQLiteOpenHelper
-import kotlin.jvm.Volatile
-import android.database.sqlite.SQLiteDatabase
 import android.content.*
 import android.database.SQLException
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import chuckcoughlin.bertspeak.common.*
-import java.lang.StringBuilder
-import java.util.ArrayList
 
 /**
  * Persistent application parameters are stored in a SQLite database. The SQLiteOpenHelper
@@ -118,7 +115,7 @@ class DatabaseManager(ctx: Context) :
     /**
      * Read name/value pairs from the database.
      */
-    fun getSetting(name: String?): String? {
+    fun getSetting(name: String): String? {
         var result: String? = null
         val database = this.readableDatabase
         val args = arrayOfNulls<String>(1) // Use for PreparedStatement

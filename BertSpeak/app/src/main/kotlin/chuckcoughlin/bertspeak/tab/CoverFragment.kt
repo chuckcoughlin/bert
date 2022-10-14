@@ -25,16 +25,14 @@ import android.graphics.Color
 import android.util.Log
 import android.view.View
 import android.widget.*
+import chuckcoughlin.bertspeak.databinding.ActivityMainBinding
 import java.lang.Exception
 
 /**
  * This fragment presents a static "cover" with no dynamic content.
  */
-class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureListener,
-    ServiceConnection {
-    private var bluetoothStatus: ToggleButton? = null
-    private var socketStatus: ToggleButton? = null
-    private var voiceStatus: ToggleButton? = null
+class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureListener,ServiceConnection {
+    private lateinit var bluetoothStatus:ToggleButton
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null
     private var waveformView: WaveformView? = null
@@ -53,8 +51,8 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
         val imageView = view.findViewById<ImageView>(R.id.fragmentCoverImage)
         imageView.setImageResource(R.drawable.recliner)
         bluetoothStatus = view.findViewById(R.id.bluetooth_status)
-        socketStatus = view.findViewById(R.id.socket_status)
-        voiceStatus = view.findViewById(R.id.voice_status)
+        val socketStatus = view.findViewById(R.id.socket_status)
+        val voiceStatus = view.findViewById(R.id.voice_status)
         bluetoothStatus.setClickable(false) // Not really buttons, just indicators
         socketStatus.setClickable(false)
         voiceStatus.setClickable(false)
@@ -63,7 +61,7 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
         updateToggleButton(voiceStatus, FacilityState.IDLE)
         waveformView = view.findViewById(R.id.waveform_view)
         val rendererFactory = RendererFactory()
-        waveformView.setRenderer(
+        waveformView!!.setRenderer(
             rendererFactory.createSimpleWaveformRenderer(
                 Color.GREEN,
                 Color.DKGRAY
@@ -85,7 +83,7 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
         super.onResume()
         if (service != null) {
             Log.i(Companion.name, "onResume: registering as observer")
-            service!!.statusManager!!.register(this)
+            service!!.statusManager.register(this)
         }
         startVisualizer()
     }
@@ -94,7 +92,7 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
         super.onPause()
         if (service != null) {
             Log.i(Companion.name, "onPause: unregistering as observer")
-            service!!.statusManager!!.unregister(this)
+            service!!.statusManager.unregister(this)
         }
         stopVisualizer()
     }
@@ -152,13 +150,16 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
             if (state == FacilityState.IDLE) {
                 btn.isChecked = false
                 btn.isSelected = false
-            } else if (state == FacilityState.WAITING) {
+            }
+            else if (state == FacilityState.WAITING) {
                 btn.isChecked = true
                 btn.isSelected = false
-            } else if (state == FacilityState.ACTIVE) {
+            }
+            else if (state == FacilityState.ACTIVE) {
                 btn.isChecked = true
                 btn.isSelected = true
-            } else if (state == FacilityState.ERROR) {
+            }
+            else if (state == FacilityState.ERROR) {
                 btn.isChecked = false
                 btn.isSelected = true
             }
@@ -176,9 +177,11 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
                     TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
                 if (tf == TieredFacility.BLUETOOTH) {
                     updateToggleButton(bluetoothStatus, actionState)
-                } else if (tf == TieredFacility.SOCKET) {
+                }
+                else if (tf == TieredFacility.SOCKET) {
                     updateToggleButton(socketStatus, actionState)
-                } else {
+                }
+                else {
                     updateToggleButton(voiceStatus, actionState)
                 }
             }
@@ -193,9 +196,11 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
                 TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
             if (tf == TieredFacility.BLUETOOTH) {
                 updateToggleButton(bluetoothStatus, actionState)
-            } else if (tf == TieredFacility.SOCKET) {
+            }
+            else if (tf == TieredFacility.SOCKET) {
                 updateToggleButton(socketStatus, actionState)
-            } else {
+            }
+            else {
                 updateToggleButton(voiceStatus, actionState)
             }
         }
@@ -225,14 +230,13 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
     // name.getClassName() contains the class of the service.
     override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
         val binder = bndr as DispatchServiceBinder
-        service = binder.service
+        service = binder!!.service
         service!!.statusManager!!.register(this)
     }
 
     companion object {
         // ===================== IntentObserver =====================
         val name = "CoverFragment"
-            get() = Companion.field
         private const val CAPTURE_SIZE = 256
     }
 }

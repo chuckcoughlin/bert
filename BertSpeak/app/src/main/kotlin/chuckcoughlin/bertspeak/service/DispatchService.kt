@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.R
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -16,12 +15,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Handler
 import android.os.IBinder
-import androidx.core.app.NotificationCompat
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
-import java.lang.IllegalArgumentException
 import java.util.*
 
 /**
@@ -34,14 +33,13 @@ import java.util.*
  * Android speech recognition classes.
  */
 class DispatchService : Service(), BluetoothHandler {
-
     private var notificationManager: NotificationManager? = null
     private var bluetoothConnection: BluetoothConnection? = null // Stays null when simulated
     private var bluetoothDevice: BluetoothDevice? = null
     private val binder: DispatchServiceBinder
-    private var dbManager: DatabaseManager? = null
-    private var statusManager: StatusManager? = null
-    private var textManager: TextManager? = null
+    private lateinit var dbManager: DatabaseManager
+    lateinit var statusManager: StatusManager
+    private lateinit var textManager: TextManager
     private var isMuted = false
     private var simulatedConnectionMode: Boolean
 
@@ -54,13 +52,10 @@ class DispatchService : Service(), BluetoothHandler {
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val notification = buildNotification()
         dbManager = DatabaseManager(applicationContext)
-        val flag: String = dbManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION)
+        val flag: String? = dbManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION)
         if ("true".equals(flag, ignoreCase = true)) simulatedConnectionMode = true
         startForeground(DISPATCH_NOTIFICATION, notification)
-        statusManager = StatusManager()
-        textManager = TextManager()
     }
-
     /**
      * The initial intent action is null. Otherwise we receive values when the user clicks on the
      * notification buttons.
@@ -98,13 +93,16 @@ class DispatchService : Service(), BluetoothHandler {
                 ) // Just to initialize
                 determineNextAction(TieredFacility.BLUETOOTH)
             }
-        } else if (action.equals(getString(R.string.notificationMute), ignoreCase = true)) {
+        }
+        else if (action.equals(getString(R.string.notificationMute), ignoreCase = true)) {
             toggleMute()
-        } else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
+        }
+        else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
             if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
             statusManager!!.reportState(TieredFacility.SOCKET, FacilityState.IDLE)
             determineNextAction(TieredFacility.BLUETOOTH)
-        } else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
+        }
+        else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
             stopSelf()
         }
         return START_STICKY
@@ -130,7 +128,7 @@ class DispatchService : Service(), BluetoothHandler {
      */
     override fun onDestroy() {
         super.onDestroy()
-        notificationManager.cancelAll()
+        notificationManager!!.cancelAll()
         if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
         statusManager!!.stop()
         textManager!!.stop()
@@ -159,10 +157,10 @@ class DispatchService : Service(), BluetoothHandler {
 
         // Create notification builder.
         val builder: NotificationCompat.Builder =
-            Builder(this, BertConstants.NOTIFICATION_CHANNEL_ID)
+            NotificationCompat.Builder(this, BertConstants.NOTIFICATION_CHANNEL_ID)
 
         // Make notification show big text.
-        val bigTextStyle: NotificationCompat.BigTextStyle = BigTextStyle()
+        val bigTextStyle: NotificationCompat.BigTextStyle = NotificationCompat.BigTextStyle()
         bigTextStyle.setBigContentTitle(getString(R.string.notificationLabel))
         bigTextStyle.bigText(getString(R.string.notificationDescription))
         // Set big text style.
@@ -183,7 +181,7 @@ class DispatchService : Service(), BluetoothHandler {
         startIntent.setAction(action)
         val pendingStartIntent: PendingIntent = PendingIntent.getBroadcast(this, 1, startIntent, 0)
         val resetAction: NotificationCompat.Action =
-            Action(R.drawable.ic_media_play, action, pendingStartIntent)
+            NotificationCompat.Action(android.R.drawable.ic_media_play, action, pendingStartIntent)
         builder.addAction(resetAction)
         builder.setOngoing(true)
 
@@ -193,7 +191,7 @@ class DispatchService : Service(), BluetoothHandler {
         muteIntent.setAction(action)
         val pendingMuteIntent: PendingIntent = PendingIntent.getBroadcast(this, 2, muteIntent, 0)
         val muteAction: NotificationCompat.Action =
-            Action(R.drawable.ic_media_pause, action, pendingMuteIntent)
+            NotificationCompat.Action(android.R.drawable.ic_media_pause, action, pendingMuteIntent)
         builder.addAction(muteAction)
         builder.setOngoing(true)
 
@@ -203,7 +201,7 @@ class DispatchService : Service(), BluetoothHandler {
         stopIntent.setAction(action)
         val pendingStopIntent: PendingIntent = PendingIntent.getBroadcast(this, 3, stopIntent, 0)
         val stopAction: NotificationCompat.Action =
-            Action(R.drawable.ic_lock_power_off, action, pendingStopIntent)
+            NotificationCompat.Action(android.R.drawable.ic_lock_power_off, action, pendingStopIntent)
         builder.addAction(stopAction)
         builder.setOngoing(true)
 
@@ -216,51 +214,53 @@ class DispatchService : Service(), BluetoothHandler {
         val currentState = statusManager!!.getStateForFacility(currentFacility)
         if (currentFacility == TieredFacility.BLUETOOTH) {
             if (currentState != FacilityState.ACTIVE) {
-                var name: String = dbManager.getSetting(BertConstants.BERT_PAIRED_DEVICE)
+                var name: String? = dbManager.getSetting(BertConstants.BERT_PAIRED_DEVICE)
                 if (name == null) name = "UNKNOWN"
                 val checker = BluetoothChecker(this, name)
                 reportConnectionState(currentFacility, FacilityState.WAITING)
                 checker.beginChecking(getSystemService(BLUETOOTH_SERVICE) as BluetoothManager)
-            } else {
+            }
+            else {
                 reportConnectionState(TieredFacility.SOCKET, FacilityState.WAITING)
                 if (bluetoothConnection != null) bluetoothConnection!!.openConnections(
                     bluetoothDevice
                 )
             }
-        } else if (currentFacility == TieredFacility.SOCKET) {
+        }
+        else if (currentFacility == TieredFacility.SOCKET) {
             if (currentState != FacilityState.ACTIVE) {
                 reportConnectionState(currentFacility, FacilityState.WAITING)
-                if (bluetoothConnection != null) bluetoothConnection!!.openConnections(
-                    bluetoothDevice
-                )
-                Log.i(
-                    CLSS,
-                    String.format(
-                        "%s: Set connection to %s (%s %s)",
-                        CLSS,
-                        bluetoothDevice.getName(),
-                        bluetoothDevice.getType(),
-                        bluetoothDevice.getAddress()
+                if (bluetoothConnection != null) {
+                    bluetoothConnection!!.openConnections(bluetoothDevice)
+                }
+                Log.i(CLSS,String.format("%s: Set connection to %s (%s %s)", CLSS,
+                        bluetoothDevice!!.getName(),
+                        bluetoothDevice!!.getType(),
+                        bluetoothDevice!!.getAddress()
                     )
                 )
-            } else {
+            }
+            else {
                 val mainHandler = Handler(this.mainLooper)
                 mainHandler.post {
                     if (bluetoothConnection != null) {
                         bluetoothConnection!!.readInThread()
-                    } else {
+                    }
+                    else {
                         try {
                             Thread.sleep(ERROR_CYCLE_DELAY)
-                        } catch (ignore: InterruptedException) {
                         }
+                        catch (ignore: InterruptedException) {}
                     }
                 }
                 reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING)
             }
-        } else if (currentFacility == TieredFacility.VOICE) {
+        }
+        else if (currentFacility == TieredFacility.VOICE) {
             if (isMuted) {
                 reportConnectionState(currentFacility, FacilityState.WAITING)
-            } else {
+            }
+            else {
                 reportConnectionState(currentFacility, FacilityState.ACTIVE)
             }
         }
@@ -416,5 +416,7 @@ class DispatchService : Service(), BluetoothHandler {
     init {
         binder = DispatchServiceBinder(this)
         simulatedConnectionMode = false
+        statusManager = StatusManager()
+        textManager = TextManager()
     }
 }

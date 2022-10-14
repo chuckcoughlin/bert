@@ -5,12 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/buildSrc/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.application-conventions.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.common-conventions.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.library-conventions.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/command/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/command/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/common/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/app/src/main/kotlin/chuckcoughlin/bertspeak/service/BluetoothConnection.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/app/src/main/kotlin/chuckcoughlin/bertspeak/service/BluetoothConnection.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,9 +24,6 @@
     <option name="optimizeImportsOnTheFly" value="true" />
   </component>
   <component name="ExternalProjectsData">
-    <projectState path="$PROJECT_DIR$">
-      <ProjectState />
-    </projectState>
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
     </projectState>

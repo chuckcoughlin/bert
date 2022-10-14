@@ -1,30 +1,16 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 
 plugins {
-    // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm") version "1.6.21"
-}
-
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
+    id("demo.kotlin-application-conventions")
 }
 
 dependencies {
-    // Align versions of all Kotlin components
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation("org.apache.commons:commons-text")
+    implementation(project(":utilities"))
+}
 
-    // Use the Kotlin JDK 8 standard library.
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+application {
+    mainClass.set("demo.app.AppKt") 
+}
 
-    // This dependency is used by the application.
-    implementation("com.google.guava:guava:31.0.1-jre")
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "18"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "18"
-}
+

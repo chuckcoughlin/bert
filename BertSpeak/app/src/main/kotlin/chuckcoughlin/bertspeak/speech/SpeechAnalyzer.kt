@@ -4,16 +4,16 @@
  */
 package chuckcoughlin.bertspeak.speech
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.util.Log
+import chuckcoughlin.bertspeak.service.BluetoothHandler
 import chuckcoughlin.bertspeak.service.FacilityState
 import chuckcoughlin.bertspeak.service.TieredFacility
-import chuckcoughlin.bertspeak.service.BluetoothHandler
-import android.speech.RecognitionListener
-import android.speech.SpeechRecognizer
-import android.speech.RecognizerIntent
-import android.content.*
-import android.util.Log
-import java.lang.IllegalArgumentException
 import java.util.*
 
 /**
@@ -82,7 +82,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
             sr!!.destroy()
         }
         sr = SpeechRecognizer.createSpeechRecognizer(context)
-        sr.setRecognitionListener(this)
+        sr!!.setRecognitionListener(this)
         listening = false
     }
 

@@ -35,14 +35,16 @@ class BluetoothConnection(handler: BluetoothHandler) {
     private var output: PrintWriter? = null
     private val buffer: CharArray
 
-    fun openConnections(dev: BluetoothDevice) {
-        device = dev
-        if (connectionThread != null && connectionThread!!.isAlive && !connectionThread!!.isInterrupted) {
-            Log.i(CLSS, "socket connection already in progress ...")
-            return
+    fun openConnections(dev: BluetoothDevice?) {
+        if( dev!= null ) {
+            device = dev
+            if (connectionThread != null && connectionThread!!.isAlive && !connectionThread!!.isInterrupted) {
+                Log.i(CLSS, "socket connection already in progress ...")
+                return
+            }
+            connectionThread = ConnectionThread(device)
+            connectionThread!!.start()
         }
-        connectionThread = ConnectionThread(device)
-        connectionThread!!.start()
     }
 
     fun stopChecking() {
