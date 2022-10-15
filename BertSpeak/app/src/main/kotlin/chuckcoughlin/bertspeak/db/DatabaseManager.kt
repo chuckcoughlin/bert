@@ -57,12 +57,7 @@ class DatabaseManager(ctx: Context) :
         statement =
             "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_SIMULATED_CONNECTION + "','" + BertConstants.BERT_SIMULATED_CONNECTION_HINT + "')"
         execLenient(sqLiteDatabase, statement)
-        Log.i(
-            CLSS,
-            String.format(
-                "onCreate: Created %s at %s",
-                BertConstants.DB_NAME,
-                context!!.getDatabasePath(BertConstants.DB_NAME)
+        Log.i(CLSS,String.format("onCreate: Created %s at %s",BertConstants.DB_NAME,context.getDatabasePath(BertConstants.DB_NAME)
             )
         )
     }
@@ -75,11 +70,9 @@ class DatabaseManager(ctx: Context) :
         val database = this.writableDatabase
         try {
             database.execSQL(sql)
-        } catch (sqle: SQLException) {
-            Log.e(
-                CLSS,
-                String.format("execSQL:%s; SQLException ignored (%s)", sql, sqle.localizedMessage)
-            )
+        }
+        catch (sqle: SQLException) {
+            Log.e(CLSS,String.format("execSQL:%s; SQLException ignored (%s)", sql, sqle.localizedMessage))
         }
     }
 
@@ -91,7 +84,8 @@ class DatabaseManager(ctx: Context) :
     fun execLenient(sqLiteDatabase: SQLiteDatabase, sql: String?) {
         try {
             sqLiteDatabase.execSQL(sql)
-        } catch (sqle: SQLException) {
+        }
+        catch (sqle: SQLException) {
             Log.i(CLSS, String.format("SQLException ignored (%s)", sqle.localizedMessage))
         }
     }
@@ -107,7 +101,8 @@ class DatabaseManager(ctx: Context) :
         if (oldVersion == BertConstants.DB_VERSION) return  // Already at latest version
         try {
             onCreate(sqLiteDatabase)
-        } catch (sqle: SQLException) {
+        }
+        catch (sqle: SQLException) {
             Log.e(CLSS, String.format("onUpgrade: SQLError: %s", sqle.localizedMessage))
         }
     }
@@ -135,8 +130,7 @@ class DatabaseManager(ctx: Context) :
     /**
      * Read name/value pairs from the database.
      */
-    val settings: List<NameValue>
-        get() {
+    fun getSettings (): List<NameValue> {
             val list: MutableList<NameValue> = ArrayList()
             val database = this.readableDatabase
             val args = arrayOfNulls<String>(0) // Use for PreparedStatement

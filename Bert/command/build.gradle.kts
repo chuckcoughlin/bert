@@ -1,7 +1,7 @@
 
 
 plugins {
-    id("demo.kotlin-library-conventions")
+    id("bert.library-conventions")
 }
 
 dependencies {

@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.util.Log
 import chuckcoughlin.bertspeak.common.*
+import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -27,13 +28,15 @@ import java.util.*
  */
 class BluetoothConnection(handler: BluetoothHandler) {
     private val handler: BluetoothHandler
+    private val buffer: CharArray
     private var connectionThread: ConnectionThread? = null
     private var readerThread: ReaderThread? = null
     private var device: BluetoothDevice? = null
-    private var socket: BluetoothSocket? = null
+    private var _socket: BluetoothSocket? = null
+    private val socket get() = _socket!!        // Must always be protected by test for null
     private var input: BufferedReader? = null
     private var output: PrintWriter? = null
-    private val buffer: CharArray
+
 
     fun openConnections(dev: BluetoothDevice?) {
         if( dev!= null ) {
@@ -61,8 +64,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
         if (input != null) {
             try {
                 input!!.close()
-            } catch (ignore: IOException) {
             }
+            catch (ignore: IOException) {}
             input = null
         }
         if (output != null) {
@@ -70,7 +73,10 @@ class BluetoothConnection(handler: BluetoothHandler) {
             output = null
         }
         try {
-            if (socket != null) socket!!.close()
+            if (_socket != null) {
+                _socket = null
+                socket.close()
+            }
         }
         catch (ioe: IOException) {
         }
@@ -217,11 +223,7 @@ class BluetoothConnection(handler: BluetoothHandler) {
                         )
                         for (id in uuids) {
                             uuid = id.uuid
-                            if (!logged) Log.i(
-                                CLSS,
-                                String.format(
-                                    "run: %s: service UUID = %s",device!!.name,uuid.toString()
-                                )
+                            if (!logged) Log.i(CLSS,String.format("run: %s: service UUID = %s",device!!.name,uuid.toString())
                             )
                         }
                         if (uuid == null) {
@@ -240,20 +242,14 @@ class BluetoothConnection(handler: BluetoothHandler) {
                     }
                     Log.i(CLSS,String.format("run: creating insecure RFComm socket for %s ...",SERIAL_UUID)
                     )
-                    socket = device.createInsecureRfcommSocketToServiceRecord(SERIAL_UUID)
+                    _socket = device.createInsecureRfcommSocketToServiceRecord(SERIAL_UUID)
                     Log.i(CLSS, String.format("run: attempting to connect to %s ...", device.name))
-                    socket!!.connect()
-                    Log.i(
-                        CLSS,
-                        String.format(
-                            "run: connected to %s after %d attempts",
-                            device.name,
-                            attempts
-                        )
-                    )
+                    socket.connect()
+                    Log.i(CLSS,String.format("run: connected to %s after %d attempts",device.name,attempts))
                     reason = openPorts()
                     break
-                } catch (ioe: IOException) {
+                }
+                catch (ioe: IOException) {
                     Log.w(
                         CLSS,
                         String.format(
@@ -342,7 +338,7 @@ class BluetoothConnection(handler: BluetoothHandler) {
             }
         }
     }
-    // ================================================= Connection Thread =========================
+    // ================================================= Reader Thread =========================
     /**
      * Check for the network in a separate thread.
      */

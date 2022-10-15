@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Charles Coughlin. All rights reserved.
+ * Copyright 2022 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -20,57 +20,60 @@ import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
+import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
+import chuckcoughlin.bertspeak.databinding.FragmentRobotLogsBinding
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import java.security.AccessController.getContext
 
 /**
  * This fragment shows log messages originating in the robot.
  */
-class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessageObserver {
+class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), ServiceConnection, TextMessageObserver {
+    val name : String
     private var adapter: TextMessageAdapter? = null
-    private var rootView: View? = null
-    private var logMessageView: RecyclerView? = null
     private var service: DispatchService? = null
     private var frozen = false
-    fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    // This property is only valid between onCreateView and onDestroyView
+    private lateinit var binding: FragmentRobotLogsBinding
+
+    override fun getName() :String  { return name }
+
+    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
+        binding = FragmentRobotLogsBinding.inflate(inflater,container,false)
         adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
-        rootView = inflater.inflate(R.layout.fragment_robot_logs, container, false)
-        logMessageView = rootView!!.findViewById(R.id.logs_recycler_view)
+        var logMessageView = binding.logsRecyclerView   // RecyclerView
         logMessageView.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(logMessageView.getContext())
         logMessageView.setLayoutManager(layoutManager)
         logMessageView.setAdapter(adapter)
         val scrollPosition: Int = layoutManager.findFirstCompletelyVisibleItemPosition()
         logMessageView.scrollToPosition(scrollPosition)
-        var button = rootView!!.findViewById<Button>(R.id.logClearButton)
+        var button = binding.logClearButton
         button.setOnClickListener { clearButtonClicked() }
-        button = rootView!!.findViewById(R.id.logFreezeButton)
+        button = binding.logFreezeButton
         button.setOnClickListener { freezeButtonClicked() }
         updateUI()
-        return rootView
+        return binding.root
     }
 
     // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
-        val intent = Intent(getContext().getApplicationContext(), DispatchService::class.java)
-        getContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
+        val intent = Intent(requireContext().getApplicationContext(), DispatchService::class.java)
+        requireContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
     override fun onResume() {
         super.onResume()
         if (service != null) {
             Log.i(name, "onResume: registering as observer")
-            service.getTextManager().registerLogViewer(this)
+            service?.getTextManager()?.registerLogViewer(this)
         }
     }
 
@@ -78,13 +81,13 @@ class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
         super.onPause()
         if (service != null) {
             Log.i(name, "onPause: unregistering as observer")
-            service.getTextManager().unregisterLogViewer(this)
+            service?.getTextManager()?.unregisterLogViewer(this)
         }
     }
 
     override fun onStop() {
         super.onStop()
-        if (getContext() != null) getContext().getApplicationContext().unbindService(this)
+        if (getContext() != null) requireContext().getApplicationContext().unbindService(this)
     }
 
     override fun onDestroyView() {
@@ -102,8 +105,8 @@ class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
     fun clearButtonClicked() {
         Log.i(name, "Clear button clicked")
         if (service != null) {
-            service.getTextManager().getLogs().clear()
-            adapter.notifyDataSetChanged()
+            service?.getTextManager()?.getLogs()?.clear()
+            adapter?.notifyDataSetChanged()
         }
     }
 
@@ -111,14 +114,14 @@ class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
         frozen = !frozen
         if (service != null) {
             if (!frozen) {
-                adapter.notifyDataSetChanged()
+                adapter?.notifyDataSetChanged()
             }
         }
         updateUI()
     }
 
     private fun updateUI() {
-        val button = rootView!!.findViewById<Button>(R.id.logFreezeButton)
+        val button = binding.logFreezeButton
         if (frozen) {
             button.setText(R.string.buttonThaw)
         } else {
@@ -128,36 +131,39 @@ class RobotLogsFragment : BasicAssistantFragment(), ServiceConnection, TextMessa
 
     // =================================== ServiceConnection ===============================
     override fun onServiceDisconnected(name: ComponentName) {
-        if (service != null) service.getTextManager().unregisterLogViewer(this)
-        service = null
+        if (service != null) {
+            service?.getTextManager()?.unregisterLogViewer(this)
+            service = null
+        }
     }
 
     override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
         val binder: DispatchServiceBinder = bndr as DispatchServiceBinder
         service = binder.getService()
-        adapter.resetList(service.getTextManager().getLogs())
-        service.getTextManager().registerLogViewer(this)
+        adapter?.resetList(service?.getTextManager()?.getLogs()?.toList())
+        service?.getTextManager()?.registerLogViewer(this)
     }
 
     override fun initialize() {
         Log.i(name, "initialize: message list is now ...")
-        for (m in service.getTextManager().getLogs()) {
-            Log.i(name, String.format("initialize: \t%s", m.getMessage()))
+        for (m in service?.getTextManager()?.getLogs()!!) {
+            Log.i(name, String.format("initialize: \t%s", m.message))
         }
-        adapter.notifyDataSetChanged()
+        adapter?.notifyDataSetChanged()
     }
 
     override fun update(msg: TextMessage) {
-        Log.i(name, String.format("update: message = %s", msg.getMessage()))
+        Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen) {
-            adapter.notifyItemInserted(0)
-            logMessageView.scrollToPosition(0)
+            adapter?.notifyItemInserted(0)
+            binding.logsRecyclerView.scrollToPosition(0)
         }
     }
 
     companion object {
-        // =================================== TextMessageObserver ===============================
-        val name = "RobotLogsFragment"
-            get() = Companion.field
+        val CLSS = "RobotLogsFragment"
+    }
+    init {
+        this.name = CLSS
     }
 }

@@ -81,7 +81,8 @@ class DispatchService : Service(), BluetoothHandler {
                     FacilityState.IDLE
                 ) // Just to initialize
                 determineNextAction(TieredFacility.VOICE)
-            } else {
+            }
+            else {
                 reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE)
                 reportConnectionState(
                     TieredFacility.SOCKET,

@@ -11,30 +11,22 @@ import androidx.fragment.app.ListFragment
 /**
  * This is a base class for all the page fragments that are lists.
  */
-open class BasicAssistantListFragment : ListFragment(), AssistantFragment {
-    override var pageNumber: Int
-        get() {
-            assert(getArguments() != null)
-            return getArguments().getInt(AssistantFragment.Companion.PAGE_ARG)
-        }
-        set(page) {
-            assert(getArguments() != null)
-            getArguments().putInt(AssistantFragment.Companion.PAGE_ARG, page)
-        }
+open class BasicAssistantListFragment(page:Int) : ListFragment(), AssistantFragment {
+    override val pageNumber = page
     override var title: String?
         get() {
             assert(getArguments() != null)
-            return getArguments().getString(AssistantFragment.Companion.TITLE_ARG)
+            return getArguments()?.getString(AssistantFragment.Companion.TITLE_ARG)
         }
         set(title) {
             assert(getArguments() != null)
-            getArguments().putString(AssistantFragment.Companion.TITLE_ARG, title)
+            getArguments()?.putString(AssistantFragment.Companion.TITLE_ARG, title)
         }
 
     /**
      * The saved state becomes the fragment's state.
      */
-    fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
 
@@ -43,7 +35,7 @@ open class BasicAssistantListFragment : ListFragment(), AssistantFragment {
      * @param stateToSave dictionary of values to persist
      */
     fun onSaveInstanceState(stateToSave: Bundle?) {
-        super.onSaveInstanceState(stateToSave)
+        super.onSaveInstanceState(stateToSave!!)
     }
 
     /**

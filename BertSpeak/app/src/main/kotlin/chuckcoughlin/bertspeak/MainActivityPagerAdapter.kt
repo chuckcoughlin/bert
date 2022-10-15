@@ -30,17 +30,16 @@ class MainActivityPagerAdapter(fragManager: FragmentManager, lifecycle: Lifecycl
         if (position<0) pos = 0
         if(position>tabTitles.size - 1) pos = tabTitles.size - 1
         when (pos) {
-            0 -> frag = CoverFragment()
-            1 -> frag = TranscriptFragment()
-            2 -> frag = RobotLogsFragment()
-            3 -> frag = TablesTabFragment()
-            4 -> frag = SettingsFragment()
+            0 -> frag = CoverFragment(pos)
+            1 -> frag = TranscriptFragment(pos)
+            2 -> frag = RobotLogsFragment(pos)
+            3 -> frag = TablesTabFragment(pos)
+            4 -> frag = SettingsFragment(pos)
             else ->
-                frag = CoverFragment()
+                frag = CoverFragment(pos)
         }
 
         Log.i(CLSS, "getItem: " + position + ": fragment=" + frag.javaClass.getCanonicalName())
-        frag.pageNumber = position
         frag.title = getPageTitle(position)
         return frag as Fragment
     }

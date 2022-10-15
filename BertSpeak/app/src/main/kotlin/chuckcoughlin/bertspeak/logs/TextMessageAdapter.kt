@@ -126,8 +126,13 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
      * Replace the source of messages for this adapter.
      * @param msgs message list, managed externally
      */
-    fun resetList(msgs: List<TextMessage>) {
-        messages = msgs
+    fun resetList(msgs: List<TextMessage>?) {
+        if(msgs == null ) {
+            messages = listOf<TextMessage>()
+        }
+        else {
+            messages = msgs!!
+        }
         notifyDataSetChanged()
     }
 

@@ -39,8 +39,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     private var annunciator: Annunciator? = null
     private var service: DispatchService? = null
 
-    override val name by lazy { CLSS }
-
+    override public val name: String = CLSS
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
      *

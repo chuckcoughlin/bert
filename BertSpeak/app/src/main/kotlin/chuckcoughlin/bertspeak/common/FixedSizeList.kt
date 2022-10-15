@@ -42,6 +42,14 @@ class FixedSizeList<E>(length: Int) : LinkedList<E>() {
         return true
     }
 
+    // Return an iterable list
+    @Synchronized
+    fun toList() : List<E> {
+        val copy = mutableListOf<E>()
+        copy.addAll(this)
+        return copy
+    }
+
     companion object {
         private const val serialVersionUID = 5843873110336467006L
     }

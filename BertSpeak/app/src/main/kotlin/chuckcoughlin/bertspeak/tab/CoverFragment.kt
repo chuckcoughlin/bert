@@ -25,49 +25,43 @@ import android.graphics.Color
 import android.util.Log
 import android.view.View
 import android.widget.*
-import chuckcoughlin.bertspeak.databinding.ActivityMainBinding
+import androidx.lifecycle.Lifecycle
+import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import java.lang.Exception
 
 /**
  * This fragment presents a static "cover" with no dynamic content.
  */
-class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureListener,ServiceConnection {
-    private lateinit var bluetoothStatus:ToggleButton
+class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), IntentObserver, OnDataCaptureListener,ServiceConnection {
+    override public val name : String
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null
-    private var waveformView: WaveformView? = null
+    // This property is only valid between onCreateView and onDestroyView
+    private lateinit var binding: FragmentCoverBinding
+    private lateinit var waveformView : WaveformView
 
     // Inflate the view. It holds a fixed image of the robot
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        Log.i(Companion.name, "onCreateView: ....")
-        val view = inflater.inflate(R.layout.fragment_cover, container, false)
-        val label = view.findViewById<TextView>(R.id.fragmentCoverText)
-        label.setText(getString(R.string.fragmentCoverLabel))
-        label.textSize = 36f
-        val imageView = view.findViewById<ImageView>(R.id.fragmentCoverImage)
-        imageView.setImageResource(R.drawable.recliner)
-        bluetoothStatus = view.findViewById(R.id.bluetooth_status)
-        val socketStatus = view.findViewById(R.id.socket_status)
-        val voiceStatus = view.findViewById(R.id.voice_status)
+    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
+        Log.i(name, "onCreateView: ....")
+        binding = FragmentCoverBinding.inflate(inflater,container,false)
+        binding.fragmentCoverText.setText(getString(R.string.fragmentCoverLabel))
+        binding.fragmentCoverText.textSize = 36f
+        binding.fragmentCoverImage.setImageResource(R.drawable.recliner)
+        val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
+        val socketStatus    = binding.socketStatus
+        val voiceStatus     = binding.voiceStatus
         bluetoothStatus.setClickable(false) // Not really buttons, just indicators
         socketStatus.setClickable(false)
         voiceStatus.setClickable(false)
         updateToggleButton(bluetoothStatus, FacilityState.IDLE)
         updateToggleButton(socketStatus, FacilityState.IDLE)
         updateToggleButton(voiceStatus, FacilityState.IDLE)
-        waveformView = view.findViewById(R.id.waveform_view)
         val rendererFactory = RendererFactory()
-        waveformView!!.setRenderer(
-            rendererFactory.createSimpleWaveformRenderer(
-                Color.GREEN,
-                Color.DKGRAY
-            )
+        waveformView = binding.root.findViewById(R.id.waveform_view)
+        waveformView.setRenderer(
+            rendererFactory.createSimpleWaveformRenderer(Color.GREEN,Color.DKGRAY)
         )
-        return view
+        return binding.root
     }
 
     /**
@@ -76,13 +70,13 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
     override fun onStart() {
         super.onStart()
         val intent = Intent(getActivity(), DispatchService::class.java)
-        getActivity().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
+        getActivity()?.getApplicationContext()?.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
     override fun onResume() {
         super.onResume()
         if (service != null) {
-            Log.i(Companion.name, "onResume: registering as observer")
+            Log.i(name, "onResume: registering as observer")
             service!!.statusManager.register(this)
         }
         startVisualizer()
@@ -91,7 +85,7 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
     override fun onPause() {
         super.onPause()
         if (service != null) {
-            Log.i(Companion.name, "onPause: unregistering as observer")
+            Log.i(name, "onPause: unregistering as observer")
             service!!.statusManager.unregister(this)
         }
         stopVisualizer()
@@ -99,11 +93,11 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
 
     override fun onStop() {
         super.onStop()
-        getActivity().getApplicationContext().unbindService(this)
+        getActivity()?.getApplicationContext()?.unbindService(this)
     }
 
     override fun onDestroyView() {
-        Log.i(Companion.name, "onDestroyView: ...")
+        Log.i(name, "onDestroyView: ...")
         super.onDestroyView()
     }
 
@@ -115,14 +109,7 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
             visualizer!!.enabled = true
         }
         catch (ex: Exception) {  // This will fail in the emulator
-            Log.i(
-                Companion.name,
-                String.format(
-                    "startVisualizer: FAILED to start (%s).",
-                    Companion.name,
-                    ex.localizedMessage
-                )
-            )
+            Log.i(name,String.format("startVisualizer: FAILED to start (%s).",name,ex.localizedMessage))
         }
     }
 
@@ -143,9 +130,9 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
      * red - enabled = false
      * @param state
      */
-    private fun updateToggleButton(btn: ToggleButton?, state: FacilityState) {
-        Log.i(Companion.name, String.format("updateToggleButton:%s %s", btn!!.text, state.name))
-        getActivity().runOnUiThread(Runnable {
+    private fun updateToggleButton(btn: ToggleButton, state: FacilityState) {
+        Log.i(name, String.format("updateToggleButton:%s %s", btn.text, state.name))
+        getActivity()?.runOnUiThread(Runnable {
             btn.visibility = View.INVISIBLE
             if (state == FacilityState.IDLE) {
                 btn.isChecked = false
@@ -176,13 +163,13 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
                 val tf =
                     TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
                 if (tf == TieredFacility.BLUETOOTH) {
-                    updateToggleButton(bluetoothStatus, actionState)
+                    updateToggleButton(binding.bluetoothStatus, actionState)
                 }
                 else if (tf == TieredFacility.SOCKET) {
-                    updateToggleButton(socketStatus, actionState)
+                    updateToggleButton(binding.socketStatus, actionState)
                 }
                 else {
-                    updateToggleButton(voiceStatus, actionState)
+                    updateToggleButton(binding.voiceStatus, actionState)
                 }
             }
         }
@@ -195,25 +182,22 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
             val tf =
                 TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
             if (tf == TieredFacility.BLUETOOTH) {
-                updateToggleButton(bluetoothStatus, actionState)
+                updateToggleButton(binding.bluetoothStatus, actionState)
             }
             else if (tf == TieredFacility.SOCKET) {
-                updateToggleButton(socketStatus, actionState)
+                updateToggleButton(binding.socketStatus, actionState)
             }
             else {
-                updateToggleButton(voiceStatus, actionState)
+                updateToggleButton(binding.voiceStatus, actionState)
             }
         }
     }
 
     // =================================== OnDataCaptureListener ===============================
-    override fun onWaveFormDataCapture(
-        thisVisualiser: Visualizer,
-        waveform: ByteArray,
-        samplingRate: Int
-    ) {
-        if (waveformView != null) {
-            waveformView!!.setWaveform(waveform)
+    // This is valid only between view-create and destroy
+    override fun onWaveFormDataCapture(thisVisualiser: Visualizer,waveform: ByteArray,samplingRate: Int) {
+       if( lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            waveformView.setWaveform(waveform)
         }
     }
 
@@ -230,13 +214,15 @@ class CoverFragment : BasicAssistantFragment(), IntentObserver, OnDataCaptureLis
     // name.getClassName() contains the class of the service.
     override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
         val binder = bndr as DispatchServiceBinder
-        service = binder!!.service
-        service!!.statusManager!!.register(this)
+        service = binder.getService()
+        service!!.statusManager.register(this)
     }
 
     companion object {
-        // ===================== IntentObserver =====================
-        val name = "CoverFragment"
+        val CLSS = "CoverFragment"
         private const val CAPTURE_SIZE = 256
+    }
+    init {
+        name = CLSS
     }
 }

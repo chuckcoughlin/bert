@@ -98,9 +98,9 @@
                 android:scaleType="fitCenter"
                 android:textOff=""
                 android:textOn="" />
+
+              <include layout="@layout/meter_main"/>
         </LinearLayout>
-        <include layout="@layout/meter_main"
-            />
     </LinearLayout>
 
 </LinearLayout>

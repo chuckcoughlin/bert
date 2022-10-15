@@ -16,21 +16,27 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import chuckcoughlin.bertspeak.common.*
+import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
+import chuckcoughlin.bertspeak.databinding.FragmentSettingsBinding
 import java.util.*
 
 /**
  * Display the current values of global application settings and allow
  * editing.
  */
-class SettingsFragment : BasicAssistantListFragment() {
-    private var dbManager: DatabaseManager? = null
-    fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        dbManager = DatabaseManager(getContext().getApplicationContext())
+class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) {
+    val name : String
+
+    // This property is only valid between onCreateView and onDestroyView
+    private lateinit var binding: FragmentSettingsBinding
+    private lateinit var dbManager: DatabaseManager
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        dbManager = DatabaseManager(requireContext())
         val nvpairs = dbManager.getSettings()
-        val nvarray = nvpairs!!.toTypedArray()
+        val nvarray = nvpairs.toTypedArray()
         Log.i(CLSS, String.format("onActivityCreated: will display %d name-values", nvarray.size))
-        val adapter = SettingsListAdapter(getContext(), nvarray)
+        val adapter = SettingsListAdapter(requireContext(), nvarray)
         setListAdapter(adapter)
         getListView().setItemsCanFocus(true)
     }
@@ -38,21 +44,15 @@ class SettingsFragment : BasicAssistantListFragment() {
     // Called to have the fragment instantiate its user interface view.
     // Inflate the view for the fragment based on layout XML. Populate
     // the text fields from the database.
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        val contentView = inflater.inflate(R.layout.fragment_settings, container, false)
-        val textView = contentView.findViewById<TextView>(R.id.fragmentSettingsText)
-        textView.setText(R.string.fragmentSettingsLabel)
-        return contentView
+    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
+        binding = FragmentSettingsBinding.inflate(inflater,container,false)
+        binding.fragmentSettingsText.setText(R.string.fragmentSettingsLabel)
+        return binding.root
     }
 
-    inner class SettingsListAdapter(context: Context?, values: Array<NameValue?>?) :
-        ArrayAdapter<NameValue?>(
-            context!!, R.layout.settings_item, values!!
-        ), ListAdapter {
+    inner class SettingsListAdapter(context: Context, values: Array<NameValue>) :
+        ArrayAdapter<NameValue>( context, R.layout.settings_item, values), ListAdapter {
+
         override fun getItemId(position: Int): Long {
             return getItem(position).hashCode().toLong()
         }
@@ -85,14 +85,8 @@ class SettingsFragment : BasicAssistantListFragment() {
                      * and the databasesetInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
                      */
                 if (!hasFocus) {
-                    Log.i(
-                        CLSS,
-                        String.format(
-                            "SettingsListAdapter.getView.onFocusChange %d = %s",
-                            position,
-                            (v as EditText).text.toString()
-                        )
-                    )
+                    Log.i(CLSS,String.format("SettingsListAdapter.getView.onFocusChange %d = %s",position,
+                            (v as EditText).text.toString()))
                     nv.value = v.text.toString()
                     dbManager!!.updateSetting(nv)
                 }
@@ -106,5 +100,8 @@ class SettingsFragment : BasicAssistantListFragment() {
 
     companion object {
         private const val CLSS = "SettingsFragment"
+    }
+    init {
+        name = CLSS
     }
 }

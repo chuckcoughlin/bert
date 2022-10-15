@@ -1,4 +1,4 @@
 
 plugins {
-	id(i"bert.kotlin-library-conventions")
+	id("bert.library-conventions")
 }

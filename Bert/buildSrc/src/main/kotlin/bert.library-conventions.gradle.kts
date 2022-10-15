@@ -1,8 +1,7 @@
 
 
 plugins {
-    id("demo.kotlin-common-conventions") 
-    library
+    id("bert.common-conventions")
 }
 
 

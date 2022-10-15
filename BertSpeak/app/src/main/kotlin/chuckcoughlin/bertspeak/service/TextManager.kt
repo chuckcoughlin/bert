@@ -1,13 +1,10 @@
 package chuckcoughlin.bertspeak.service
 
-import android.text.method.TextKeyListener.clear
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
 import chuckcoughlin.bertspeak.speech.TextMessage
 import kotlin.jvm.Synchronized
 import android.util.Log
 import chuckcoughlin.bertspeak.common.*
-import java.util.ArrayList
-import java.util.HashMap
 
 /**
  * The text manager is a repository of text messages destined to be
@@ -19,10 +16,10 @@ import java.util.HashMap
  * existing rows. Column and row data consist of pipe-delimited strings.
  */
 class TextManager {
-    private val logList: FixedSizeList<TextMessage?>
+    private val logList: FixedSizeList<TextMessage>
     private val columnList : MutableList<String>   // Columns in the most recent table
     private val rowList: MutableList<TextMessage>  // Text is tab-delimited
-    private val transcriptList: FixedSizeList<TextMessage?>
+    private val transcriptList: FixedSizeList<TextMessage>
     private val logObservers: MutableMap<String, TextMessageObserver>
     private val tableObservers: MutableMap<String, TextMessageObserver>
     private val transcriptObservers: MutableMap<String, TextMessageObserver>
@@ -38,7 +35,7 @@ class TextManager {
         transcriptObservers.clear()
     }
 
-    fun getLogs(): FixedSizeList<TextMessage?> {
+    fun getLogs(): FixedSizeList<TextMessage> {
         return logList
     }
 
@@ -50,7 +47,7 @@ class TextManager {
         return rowList
     }
 
-    fun getTranscript(): FixedSizeList<TextMessage?> {
+    fun getTranscript(): FixedSizeList<TextMessage> {
         return transcriptList
     }
 
@@ -60,26 +57,25 @@ class TextManager {
      */
     @Synchronized
     fun processText(type: MessageType, text: String) {
-        var msg: TextMessage? = null
         Log.i(CLSS, String.format("processText: %s: %s", type.name, text))
         when (type) {
             MessageType.ANS -> {
-                msg = TextMessage(text,type)
+                var msg = TextMessage(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.LOG -> {
-                msg = TextMessage(text,type)
+                var msg = TextMessage(text,type)
                 logList.addFirst(msg)
                 notifyLogObservers(msg)
             }
             MessageType.MSG -> {
-                msg = TextMessage(text,type)
+                var msg = TextMessage(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.ROW -> {
-                msg = TextMessage(text,type)
+                var msg = TextMessage(text,type)
                 rowList.add(msg)
                 notifyTableObservers(msg)
             }

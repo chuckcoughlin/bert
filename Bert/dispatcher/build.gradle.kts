@@ -1,16 +1,17 @@
 
 
 plugins {
-    id("demo.kotlin-application-conventions")
+    id("bert.application-conventions")
+    application
 }
 
 dependencies {
     implementation("org.apache.commons:commons-text")
-    implementation(project(":utilities"))
+    implementation(project(":common"))
 }
 
 application {
-    mainClass.set("demo.app.AppKt") 
+    mainClass.set("chuckcoughlin.bert.dispatch.controller.Dispatcher")
 }
 
 
