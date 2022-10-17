@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     private var annunciator: Annunciator? = null
     private var service: DispatchService? = null
 
-    override public val name: String = CLSS
+    override val name: String = CLSS
     /**
      * It is possible to restart the activity in tbe same JVM leaving our singletons intact.
      *
@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         super.onCreate(savedInstanceState)
         // Create the comprehensive dispatch connection service
         val intent = Intent(this, DispatchService::class.java)
-        getApplicationContext().startForegroundService(intent)
+        applicationContext.startForegroundService(intent)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
         Log.i(CLSS, "onCreate ...")
         // If we absolutely have to start over again with the database ...
@@ -58,12 +58,12 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         val view = binding.root
         setContentView(view)
         // Close the soft keyboard - it will still open on an EditText
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+        this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         // Get the ViewPager2 and set it's PagerAdapter so that it can display items
         val viewPager = binding.pager
         viewPager.setPageTransformer(FragmentPageTransformer())
-        val pagerAdapter = MainActivityPagerAdapter(getSupportFragmentManager(), lifecycle, getTabTitles())
-        viewPager.setAdapter(pagerAdapter)
+        val pagerAdapter = MainActivityPagerAdapter(supportFragmentManager, lifecycle, getTabTitles())
+        viewPager.adapter = pagerAdapter
 
         val tabLayout = binding.tabLayout
         TabLayoutMediator(tabLayout,viewPager) {
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     override fun onStart() {
         super.onStart()
         activateSpeechAnalyzer()
-        annunciator = Annunciator(getApplicationContext(), this)
+        annunciator = Annunciator(applicationContext, this)
         annunciator!!.setOnUtteranceProgressListener(UtteranceListener())
     }
 
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     /**
      * Shutdown the DispatchService and text resources
      */
-    override protected fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
         deactivateSpeechAnalyzer()
         val intent = Intent(this, DispatchService::class.java)
@@ -102,15 +102,14 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         annunciator = null
     }
 
-    private fun getTabTitles() : Array<String> {
-        val tabTitles = arrayOf(
+    private fun getTabTitles(): Array<String> {
+        return arrayOf(
             getString(R.string.cover_tab_label),
             getString(R.string.transcript_tab_label),
             getString(R.string.robot_log_tab_label),
             getString(R.string.tables_tab_label),
             getString(R.string.settings_tab_label)
         )
-        return tabTitles
     }
     /**
      * Select a random startup phrase from the list.
@@ -126,23 +125,15 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     // =================================== OnInitListener ===============================
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val voices: Set<Voice> = annunciator!!.getVoices()
-            if (voices != null) {
-                for (v in voices) {
-                    if (v.getName().equals("en-GB-SMTm00", ignoreCase = true)) {
-                        Log.i(
-                            CLSS,
-                            String.format(
-                                "onInit: voice = %s %d",
-                                v.getName(),
-                                v.describeContents()
-                            )
-                        )
-                        annunciator!!.setVoice(v)
-                    }
+            val voices: Set<Voice> = annunciator!!.voices
+            for (v in voices) {
+                if (v.name.equals("en-GB-SMTm00", ignoreCase = true)) {
+                    Log.i(CLSS, String.format("onInit: voice = %s %d",
+                            v.name,v.describeContents()))
+                    annunciator!!.voice = v
                 }
             }
-            annunciator!!.setLanguage(Locale.UK)
+            annunciator!!.language = Locale.UK
             annunciator!!.setPitch(1.6f) //Default＝1.0
             annunciator!!.setSpeechRate(1.0f) // Default=1.0
             Log.i(CLSS, "onInit: TextToSpeech initialized ...")
@@ -176,10 +167,10 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
                     val tf: TieredFacility =
                         TieredFacility.valueOf(value)
                     if (tf == TieredFacility.SOCKET && actionState == FacilityState.ACTIVE) {
-                        runOnUiThread(Runnable { activateSpeechAnalyzer() })
+                        runOnUiThread { activateSpeechAnalyzer() }
                     }
                     else if (tf == TieredFacility.SOCKET) {
-                        runOnUiThread(Runnable { deactivateSpeechAnalyzer() })
+                        runOnUiThread { deactivateSpeechAnalyzer() }
                     }
                 }
             }
@@ -189,7 +180,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     // =================================== ServiceConnection ===============================
     override fun onServiceDisconnected(name: ComponentName) {
         if (service != null) {
-            service!!.getStatusManager()!!.unregister(this)
+            service!!.statusManager.unregister(this)
             service!!.getTextManager()!!.unregisterTranscriptViewer(this)
         }
         service = null
@@ -202,7 +193,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         val binder: DispatchServiceBinder = bndr as DispatchServiceBinder
         service = binder.getService()
         activateSpeechAnalyzer()
-        service!!.getStatusManager()!!.register(this)
+        service!!.statusManager.register(this)
         service!!.getTextManager()!!.registerTranscriptViewer(this)
     }
 
@@ -210,7 +201,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     private fun activateSpeechAnalyzer() {
         if (service != null && analyzer == null) {
             suppressAudio()
-            analyzer = SpeechAnalyzer(service!!, getApplicationContext())
+            analyzer = SpeechAnalyzer(service!!, applicationContext)
             analyzer!!.start()
         }
     }
@@ -236,9 +227,6 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     }
 
     // =================================== TextMessageObserver ===============================
-    override fun getName(): String {
-        return CLSS
-    }
 
     override fun initialize() {}
 
@@ -248,7 +236,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
      * @param msg the new message
      */
     override fun update(msg: TextMessage) {
-        if ( msg.messageType.equals(MessageType.ANS) ) {
+        if (msg.messageType == MessageType.ANS) {
             restoreAudio()
             annunciator!!.speak(msg.message)
             suppressAudio()
@@ -261,15 +249,16 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         @Synchronized
         override fun onDone(utteranceId: String) {
             if (analyzer != null) {
-                runOnUiThread(Runnable { analyzer!!.listen() })
+                runOnUiThread { analyzer!!.listen() }
             }
         }
 
+        @Deprecated("Deprecated in Java")
         override fun onError(utteranceId: String) {}
         override fun onError(utteranceId: String, code: Int) {}
         override fun onStart(utteranceId: String) {
             if (analyzer != null) {
-                runOnUiThread(Runnable { analyzer!!.cancel() })
+                runOnUiThread { analyzer!!.cancel() }
             }
         }
     }

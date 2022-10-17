@@ -102,6 +102,6 @@ class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) 
         private const val CLSS = "SettingsFragment"
     }
     init {
-        name = CLSS
+        this.name = CLSS
     }
 }

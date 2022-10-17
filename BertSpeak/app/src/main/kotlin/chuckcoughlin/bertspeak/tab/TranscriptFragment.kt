@@ -29,14 +29,12 @@ import chuckcoughlin.bertspeak.speech.TextMessageObserver
  * This fragment allows perusal of the robot's spoken interactions..
  */
 class TranscriptFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), ServiceConnection, TextMessageObserver {
-    val name : String
+    override val name : String
     private var service: DispatchService? = null
     private var frozen = false
     // These property is only valid between onCreateView and onDestroyView
     private lateinit var adapter: TextMessageAdapter
     private lateinit var binding: FragmentTranscriptBinding
-
-    override fun getName() :String  { return name }
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
         if (savedInstanceState != null) frozen =

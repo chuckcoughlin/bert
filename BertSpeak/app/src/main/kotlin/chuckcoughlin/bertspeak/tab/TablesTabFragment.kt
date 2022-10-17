@@ -36,7 +36,7 @@ import java.security.AccessController.getContext
  * next table is read. The table is dynamically sized to fit the data.
  */
 class TablesTabFragment( pageNumber:Int) : BasicAssistantFragment(pageNumber), ServiceConnection, TextMessageObserver {
-    val name : String
+    override val name : String
     private val layoutManager: RecyclerView.LayoutManager? = null
     private var adapter: TextMessageAdapter? = null
     private var rootView: View? = null
@@ -45,8 +45,6 @@ class TablesTabFragment( pageNumber:Int) : BasicAssistantFragment(pageNumber), S
     private var service: DispatchService? = null
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentTablesTabBinding
-
-    override fun getName() :String  { return name }
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
         super.onCreate(savedInstanceState)

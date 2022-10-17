@@ -38,7 +38,7 @@ class DispatchService : Service(), BluetoothHandler {
     private var bluetoothDevice: BluetoothDevice? = null
     private val binder: DispatchServiceBinder
     private lateinit var dbManager: DatabaseManager
-    lateinit var statusManager: StatusManager
+    val statusManager: StatusManager
     private lateinit var textManager: TextManager
     private var isMuted = false
     private var simulatedConnectionMode: Boolean
@@ -397,9 +397,11 @@ class DispatchService : Service(), BluetoothHandler {
     }
 
     // ===================================== Methods Exposed thru Service Binder ====================================
+    /*
     fun getStatusManager(): StatusManager? {
         return statusManager
     }
+    */
 
     fun getTextManager(): TextManager? {
         return textManager

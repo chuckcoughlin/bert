@@ -13,7 +13,7 @@ interface TextMessageObserver {
      * Allow only one observer of a given name.
      * @return the name of the observer
      */
-    fun getName(): String
+    public val name: String
 
     /**
      * Call this method after an observer newly registers. The

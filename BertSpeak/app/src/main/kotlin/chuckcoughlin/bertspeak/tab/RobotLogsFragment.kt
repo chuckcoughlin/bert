@@ -33,14 +33,12 @@ import java.security.AccessController.getContext
  * This fragment shows log messages originating in the robot.
  */
 class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), ServiceConnection, TextMessageObserver {
-    val name : String
+    override val name = CLSS
     private var adapter: TextMessageAdapter? = null
     private var service: DispatchService? = null
     private var frozen = false
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentRobotLogsBinding
-
-    override fun getName() :String  { return name }
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
         if (savedInstanceState != null) frozen =
@@ -162,8 +160,5 @@ class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), Se
 
     companion object {
         val CLSS = "RobotLogsFragment"
-    }
-    init {
-        this.name = CLSS
     }
 }

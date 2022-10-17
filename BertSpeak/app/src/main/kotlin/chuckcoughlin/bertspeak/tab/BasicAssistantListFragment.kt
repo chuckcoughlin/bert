@@ -31,14 +31,6 @@ open class BasicAssistantListFragment(page:Int) : ListFragment(), AssistantFragm
     }
 
     /**
-     * Everything that matters is in the bundle.
-     * @param stateToSave dictionary of values to persist
-     */
-    fun onSaveInstanceState(stateToSave: Bundle?) {
-        super.onSaveInstanceState(stateToSave!!)
-    }
-
-    /**
      * A no-arg constructor is required.
      */
     init {

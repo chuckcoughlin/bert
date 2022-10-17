@@ -93,17 +93,17 @@ class TextManager {
      * @param observer
      */
     fun registerLogViewer(observer: TextMessageObserver) {
-        logObservers[observer.getName()] = observer
+        logObservers[observer.name] = observer
         observer.initialize()
     }
 
     fun registerTableViewer(observer: TextMessageObserver) {
-        tableObservers[observer.getName()] = observer
+        tableObservers[observer.name] = observer
         observer.initialize()
     }
 
     fun registerTranscriptViewer(observer: TextMessageObserver) {
-        transcriptObservers[observer.getName()] = observer
+        transcriptObservers[observer.name] = observer
         observer.initialize()
     }
 
