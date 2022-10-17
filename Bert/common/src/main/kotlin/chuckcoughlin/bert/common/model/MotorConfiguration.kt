@@ -33,13 +33,7 @@ class MotorConfiguration : Serializable {
     var minAngle = 0.0
     var maxAngle = 0.0
     var maxSpeed = 0.0
-        set(val) {
-            field = `val`
-        }
     var maxTorque = 0.0
-        set(val) {
-            field = `val`
-        }
     var isDirect: Boolean
 
     // Save the current goal (or actual) values. All other members

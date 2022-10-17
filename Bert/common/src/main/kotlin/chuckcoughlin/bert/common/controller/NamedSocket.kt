@@ -197,8 +197,8 @@ class NamedSocket {
         try {
             if (socket != null) socket!!.close()
             if (serverSocket != null) serverSocket!!.close()
-        } catch (ioe: IOException) {
         }
+        catch (ioe: IOException) {}
         chuckcoughlin.bert.common.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.shutdown: %s closing in ...",
             chuckcoughlin.bert.common.controller.NamedSocket.Companion.CLSS, name))
         if (`in` != null) {
@@ -234,24 +234,23 @@ class NamedSocket {
                 while (json == null) {
                     json = reread()
                 }
-                chuckcoughlin.bert.common.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.read: %s got %s",
-                    chuckcoughlin.bert.common.controller.NamedSocket.Companion.CLSS, name, json))
-                if (json != null) bottle = MessageBottle.Companion.fromJSON(json)
-            } else {
+                LOGGER.info(String.format("%s.read: %s got %s",CLSS, name, json))
+                if (json != null) bottle = MessageBottle.fromJSON(json!!)
+            }
+            else {
                 chuckcoughlin.bert.common.controller.NamedSocket.Companion.LOGGER.warning(
                     String.format(
-                        "%s.read: Attempt to read from %s before port is open (ignored)",
-                        chuckcoughlin.bert.common.controller.NamedSocket.Companion.CLSS,
+                        "%s.read: Attempt to read from %s before port is open (ignored)",CLSS,
                         name
                     )
                 )
             }
-        } catch (npe: NullPointerException) {
-            chuckcoughlin.bert.common.controller.NamedSocket.Companion.LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
-                chuckcoughlin.bert.common.controller.NamedSocket.Companion.CLSS, name, npe.localizedMessage))
-        } catch (ioe: IOException) {
-            chuckcoughlin.bert.common.controller.NamedSocket.Companion.LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
-                chuckcoughlin.bert.common.controller.NamedSocket.Companion.CLSS, name, ioe.localizedMessage))
+        }
+        catch (npe: NullPointerException) {
+            LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",CLSS, name, npe.localizedMessage))
+        }
+        catch (ioe: IOException) {
+            LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",CLSS, name, ioe.localizedMessage))
         }
         return bottle
     }
@@ -292,15 +291,10 @@ class NamedSocket {
                     )
                 )
             }
-        } catch (ioe: IOException) {
-            chuckcoughlin.bert.common.controller.NamedSocket.Companion.LOGGER.severe(
-                String.format(
-                    "%s.readLine: Exception reading from %s (%s)",
-                    chuckcoughlin.bert.common.controller.NamedSocket.Companion.CLSS,
-                    name,
-                    ioe.localizedMessage
-                )
-            )
+        }
+        catch (ioe: IOException) {
+            LOGGER.severe(
+                String.format("%s.readLine: Exception reading from %s (%s)",CLSS,name,ioe.localizedMessage))
         }
         return text
     }

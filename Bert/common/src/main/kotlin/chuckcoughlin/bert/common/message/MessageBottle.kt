@@ -6,6 +6,9 @@ package chuckcoughlin.bert.common.message
 
 import chuckcoughlin.bert.common.BottleConstants
 import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.module.kotlin.*
 import java.io.IOException
 import java.io.Serializable
 import java.util.logging.Logger
@@ -21,9 +24,10 @@ import java.util.logging.Logger
  * fetch/assign instead of get/set for the shortcut methods that
  * access the properties to avoid confusion by the JSON mapper.
  */
-data class MessageBottle : Serializable {
-    var properties  : MutableMap<String, String>  // Multiple properties for a single motor
+data class MessageBottle (val type:RequestType) : Serializable {
+    var properties : MutableMap<String, String> // Multiple properties for a single motor
     var jointValues : MutableMap<String, String> // A single property for multiple motors
+
     var id: Long = 0
 
     /**
@@ -35,17 +39,6 @@ data class MessageBottle : Serializable {
      */
     var duration: Long = 0 // ~msecs
     var responderCount = 0 // Number of controllers/motors that have contributed
-
-    constructor() {
-        properties = HashMap()
-        jointValues = HashMap()
-    }
-
-    constructor(type: RequestType) {
-        properties = HashMap()
-        jointValues = HashMap()
-        assignRequestType(type)
-    }
 
     /**
      * Increment the responder count by a specified value.
@@ -74,14 +67,6 @@ data class MessageBottle : Serializable {
 
     fun setJointValue(joint: String, value: String) {
         jointValues[joint] = value
-    }
-
-    fun getProperties(): Map<String, String> {
-        return properties
-    }
-
-    fun getJointValues(): Map<String, String> {
-        return jointValues
     }
 
     fun getProperty(key: String, defaultValue: String?): String? {
@@ -185,9 +170,9 @@ data class MessageBottle : Serializable {
     fun assignSource(source: String) {
         setProperty(BottleConstants.SOURCE, source)
     }
-
-    fun toJSON(): String? {
-        val mapper = ObjectMapper()
+    // =================================== JSON ======================================
+    fun toJSON(): String {
+        val mapper = jacksonObjectMapper()
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         var json = ""
         try {
@@ -199,33 +184,34 @@ data class MessageBottle : Serializable {
         return json
     }
 
+
+
+
     companion object {
         private const val serialVersionUID = 4356286171135500644L
         private const val CLSS = "MessageBottle"
         protected val LOGGER = Logger.getLogger(CLSS)
 
         // =================================== JSON ======================================
-        fun fromJSON(json: String?): MessageBottle? {
+        fun fromJSON(json: String): MessageBottle? {
             var bottle: MessageBottle? = null
-            val mapper = ObjectMapper()
+            val mapper = jacksonObjectMapper()
             try {
-                bottle = mapper.readValue(json, MessageBottle::class.java)
-            } catch (jpe: JsonParseException) {
+                bottle = mapper.readValue(json)
+            }
+            catch (jpe: JsonParseException) {
                 LOGGER.severe(
-                    java.lang.String.format(
+                    String.format(
                         "%s.fromJSON: Parse exception (%s) from %s",
-                        CLSS,
-                        jpe.getLocalizedMessage(),
-                        json
+                        CLSS, jpe.getLocalizedMessage(), json
                     )
                 )
-            } catch (jme: JsonMappingException) {
+            }
+            catch (jme: JsonMappingException) {
                 LOGGER.severe(
-                    java.lang.String.format(
+                    String.format(
                         "%s.fromJSON: Mapping exception (%s) from %s",
-                        CLSS,
-                        jme.getLocalizedMessage(),
-                        json
+                        CLSS, jme.getLocalizedMessage(), json
                     )
                 )
             } catch (ioe: IOException) {
@@ -233,5 +219,10 @@ data class MessageBottle : Serializable {
             }
             return bottle
         }
+    }
+
+    init {
+        properties = HashMap()
+        jointValues = HashMap()
     }
 }

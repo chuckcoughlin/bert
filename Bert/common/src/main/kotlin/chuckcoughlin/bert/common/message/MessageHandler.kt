@@ -1,5 +1,5 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.message
@@ -16,8 +16,9 @@ interface MessageHandler {
      * Controllers handle communication with peripheral entities. Instances
      * specific to this application are created here.
      */
+    val controllerName: String
     fun createControllers()
-    val controllerName: String?
+
     fun run()
     fun handleRequest(request: MessageBottle?)
     fun handleResponse(response: MessageBottle?)

@@ -89,13 +89,10 @@ private constructor() {
             }
             return sb.toString()
         }
-
-        companion object {
-            private const val DATE_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS "
-        }
     }
 
     companion object {
+        const val DATE_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS "
         const val MAX_BYTES = 100000 // Max bytes in a log file
         const val MAX_FILES = 3 // Max log files before overwriting
 

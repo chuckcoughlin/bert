@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.common.controller
 
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageHandler
 import java.util.logging.Logger
 
 /**

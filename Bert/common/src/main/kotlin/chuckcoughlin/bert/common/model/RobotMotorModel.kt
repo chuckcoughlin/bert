@@ -1,13 +1,16 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
 
-import bert.share.message.HandlerType
+import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.util.XMLUtility
 import jssc.SerialPort
 import org.w3c.dom.Element
+import org.w3c.dom.NodeList
 import java.nio.file.Path
+import java.util.*
 import java.util.logging.Logger
 
 /**
@@ -16,22 +19,15 @@ import java.util.logging.Logger
  * for motor configuration objects which are the single place to obtain joint state.
  */
 class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
-    private val jointsByController // List of joints by controller name
-            : MutableMap<String, List<Joint>>
-    private val ports // Port objects by controller
-            : MutableMap<String, SerialPort>
+    private val jointsByController : MutableMap<String, List<Joint>>    // List of joints by controller name
+    private val ports : MutableMap<String, SerialPort>           // Port objects by controller
 
-    init {
-        jointsByController = HashMap()
-        ports = HashMap<String, SerialPort>()
-    }
-
-    fun getJointsForController(controller: String): List<Joint> {
-        return jointsByController[controller]!!
+    fun getJointsForController(controller: String): List<Joint>? {
+        return jointsByController.get(controller)
     }
 
     fun getPortForController(controller: String): SerialPort? {
-        return ports[controller]
+        return ports.get(controller)
     }
 
     // Analyze the document
@@ -55,20 +51,17 @@ class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
                 val controllerElement = elements.item(index) as Element
                 val name: String = XMLUtility.attributeValue(controllerElement, "name")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
-                if (type != null && !type.isEmpty() &&
-                    type.equals(HandlerType.COMMAND.name, ignoreCase = true)
-                ) {
+                if( type==HandlerType.COMMAND.name )  {
                     val socketElements = controllerElement.getElementsByTagName("socket")
                     if (socketElements.length > 0) {
-                        handlerTypes[name] = type.uppercase(Locale.getDefault())
+                        handlerTypes.put(name,type)
                         val socketElement = socketElements.item(0) as Element
                         val portName: String = XMLUtility.attributeValue(socketElement, "port")
-                        sockets[name] = portName.toInt()
+                        sockets.put(name,portName.toInt())
                     }
-                } else if (type != null && !type.isEmpty() &&
-                    type.equals(HandlerType.TERMINAL.name, ignoreCase = true)
-                ) {
-                    val socketElements = controllerElement.getElementsByTagName("socket")
+                }
+                else if( type==HandlerType.TERMINAL.name ) {
+                    val socketElements: NodeList = controllerElement.getElementsByTagName("socket")
                     if (socketElements.length > 0) {
                         handlerTypes[name] = type.uppercase(Locale.getDefault())
                         val socketElement = socketElements.item(0) as Element
@@ -78,7 +71,7 @@ class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
                 }
                 index++
             }
-            properties[ConfigurationConstants.Companion.PROPERTY_CONTROLLER_NAME] =
+            properties[ConfigurationConstants.PROPERTY_CONTROLLER_NAME] =
                 CONTROLLER_NAME // Name not in XML configuration
         }
     }
@@ -95,9 +88,7 @@ class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
                 val controllerElement = elements.item(index) as Element
                 val controller: String = XMLUtility.attributeValue(controllerElement, "name")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
-                if (type != null && !type.isEmpty() &&
-                    type.equals(HandlerType.SERIAL.name, ignoreCase = true)
-                ) {
+                if( type == HandlerType.SERIAL.name ) {
                     // Configure the port - there should only be one per motor controller.
                     val portElements = controllerElement.getElementsByTagName("port")
                     if (portElements.length > 0) {
@@ -121,14 +112,10 @@ class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
                             val joint = Joint.valueOf(jname)
                             joints.add(joint)
                             //LOGGER.info(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
-                        } catch (iae: IllegalArgumentException) {
-                            LOGGER.warning(
-                                String.format(
-                                    "%s.analyzeControllers: %s is not a legal joint name ",
-                                    CLSS,
-                                    jname
-                                )
-                            )
+                        }
+                        catch (iae: IllegalArgumentException) {
+                            LOGGER.warning(String.format("%s.analyzeControllers: %s is not a legal joint name ",
+                                    CLSS,jname ))
                         }
                         jindex++
                     }
@@ -143,5 +130,9 @@ class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
         private const val CLSS = "RobotMotorModel"
         private const val CONTROLLER_NAME = "Dispatcher"
         private val LOGGER = Logger.getLogger(CLSS)
+    }
+    init {
+        jointsByController = mutableMapOf<String, List<Joint>>()
+        ports              = mutableMapOf<String, SerialPort>()
     }
 }

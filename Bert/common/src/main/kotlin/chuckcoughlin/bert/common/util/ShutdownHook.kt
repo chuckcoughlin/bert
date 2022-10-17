@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.common.util
 
-import bert.share.message.MessageHandler
+import chuckcoughlin.bert.common.message.MessageHandler
 import java.util.logging.Level
 import java.util.logging.Logger
 

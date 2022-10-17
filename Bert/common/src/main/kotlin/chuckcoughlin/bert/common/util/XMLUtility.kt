@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.common.xml
+package chuckcoughlin.bert.common.util
 
 import org.w3c.dom.Document
 import org.w3c.dom.Node
@@ -27,15 +27,12 @@ object XMLUtility {
         try {
             val builder = factory.newDocumentBuilder()
             xml = builder.parse(ByteArrayInputStream(bytes))
-        } catch (pce: ParserConfigurationException) {
-            LOGGER.warning(
-                String.format(
-                    "%s.documentFromBytes: Failed to create builder (%s)",
-                    CLSS,
-                    pce.localizedMessage
-                )
-            )
-        } catch (saxe: SAXException) {
+        }
+        catch (pce: ParserConfigurationException) {
+            LOGGER.warning(String.format("%s.documentFromBytes: Failed to create builder (%s)",
+                    CLSS,pce.localizedMessage))
+        }
+        catch (saxe: SAXException) {
             LOGGER.warning(
                 String.format(
                     "%s.documentFromBytes: Illegal XML document (%s)",
@@ -43,14 +40,10 @@ object XMLUtility {
                     saxe.localizedMessage
                 )
             )
-        } catch (ioe: IOException) {
-            LOGGER.warning(
-                String.format(
-                    "%s.documentFromBytes: IOException parsing XML (%s)",
-                    CLSS,
-                    ioe.localizedMessage
-                )
-            )
+        }
+        catch (ioe: IOException) {
+            LOGGER.warning(String.format("%s.documentFromBytes: IOException parsing XML (%s)",
+                    CLSS,ioe.localizedMessage))
         }
         return xml
     }
