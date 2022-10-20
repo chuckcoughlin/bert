@@ -19,6 +19,7 @@
             <option value="$PROJECT_DIR$/dispatcher" />
             <option value="$PROJECT_DIR$/motor" />
             <option value="$PROJECT_DIR$/speech" />
+            <option value="$PROJECT_DIR$/syntax" />
             <option value="$PROJECT_DIR$/terminal" />
           </set>
         </option>

@@ -1,10 +1,11 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.controller
 
-import bert.share.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageBottle
+
 
 /**
  * Wrap a request/response message while processing within the MotorController.

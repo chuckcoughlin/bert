@@ -1,10 +1,18 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2020. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.speech.process
 
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.speech.antlr.SpeechSyntaxLexer
+import chuckcoughlin.bert.speech.antlr.SpeechSyntaxParser
 import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.CodePointCharStream
+import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.tree.ParseTree
+import java.io.ByteArrayInputStream
 
 /**
  * Parse spoken text using ANTLR classes. A context dictionary is passed

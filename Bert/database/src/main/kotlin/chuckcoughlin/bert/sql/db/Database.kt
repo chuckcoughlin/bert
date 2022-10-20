@@ -1,13 +1,18 @@
 /**
- * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
 package chuckcoughlin.bert.sql.db
 
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.sql.pose.PoseTable
 import org.sqlite.JDBC
 import java.nio.file.Path
 import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.SQLException
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -33,7 +38,7 @@ class Database private constructor() {
      * @param command user entered string
      * @return the corresponding pose name if it exists, otherwise NULL
      */
-    fun getPoseForCommand(command: String?): String {
+    fun getPoseForCommand(command: String?): String? {
         return pose.getPoseForCommand(connection, command)
     }
 
