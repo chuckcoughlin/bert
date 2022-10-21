@@ -5,35 +5,33 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import chuckcoughlin.bertspeak.common.IntentObserver
-import android.media.audiofx.Visualizer.OnDataCaptureListener
-import chuckcoughlin.bertspeak.service.DispatchService
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.graphics.Color
 import android.media.audiofx.Visualizer
+import android.media.audiofx.Visualizer.OnDataCaptureListener
+import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ToggleButton
+import androidx.lifecycle.Lifecycle
+import chuckcoughlin.bertspeak.R
+import chuckcoughlin.bertspeak.common.IntentObserver
+import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
+import chuckcoughlin.bertspeak.service.*
 import chuckcoughlin.bertspeak.waveform.RendererFactory
 import chuckcoughlin.bertspeak.waveform.WaveformView
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.os.Bundle
-import chuckcoughlin.bertspeak.R
-import chuckcoughlin.bertspeak.service.FacilityState
-import chuckcoughlin.bertspeak.service.VoiceConstants
-import chuckcoughlin.bertspeak.service.TieredFacility
-import android.os.IBinder
-import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import android.content.*
-import android.graphics.Color
-import android.util.Log
-import android.view.View
-import android.widget.*
-import androidx.lifecycle.Lifecycle
-import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
-import java.lang.Exception
 
 /**
  * This fragment presents a static "cover" with no dynamic content.
  */
 class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), IntentObserver, OnDataCaptureListener,ServiceConnection {
-    override public val name : String
+    override val name : String
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null
     // This property is only valid between onCreateView and onDestroyView
@@ -44,15 +42,15 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
         binding = FragmentCoverBinding.inflate(inflater,container,false)
-        binding.fragmentCoverText.setText(getString(R.string.fragmentCoverLabel))
+        binding.fragmentCoverText.text = getString(R.string.fragmentCoverLabel)
         binding.fragmentCoverText.textSize = 36f
         binding.fragmentCoverImage.setImageResource(R.drawable.recliner)
         val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
         val socketStatus    = binding.socketStatus
         val voiceStatus     = binding.voiceStatus
         bluetoothStatus.setClickable(false) // Not really buttons, just indicators
-        socketStatus.setClickable(false)
-        voiceStatus.setClickable(false)
+        socketStatus.isClickable = false
+        voiceStatus.isClickable = false
         updateToggleButton(bluetoothStatus, FacilityState.IDLE)
         updateToggleButton(socketStatus, FacilityState.IDLE)
         updateToggleButton(voiceStatus, FacilityState.IDLE)
@@ -132,23 +130,25 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
      */
     private fun updateToggleButton(btn: ToggleButton, state: FacilityState) {
         Log.i(name, String.format("updateToggleButton:%s %s", btn.text, state.name))
-        getActivity()?.runOnUiThread(Runnable {
+        activity?.runOnUiThread(Runnable {
             btn.visibility = View.INVISIBLE
-            if (state == FacilityState.IDLE) {
-                btn.isChecked = false
-                btn.isSelected = false
-            }
-            else if (state == FacilityState.WAITING) {
-                btn.isChecked = true
-                btn.isSelected = false
-            }
-            else if (state == FacilityState.ACTIVE) {
-                btn.isChecked = true
-                btn.isSelected = true
-            }
-            else if (state == FacilityState.ERROR) {
-                btn.isChecked = false
-                btn.isSelected = true
+            when (state) {
+                FacilityState.IDLE -> {
+                    btn.isChecked = false
+                    btn.isSelected = false
+                }
+                FacilityState.WAITING -> {
+                    btn.isChecked = true
+                    btn.isSelected = false
+                }
+                FacilityState.ACTIVE -> {
+                    btn.isChecked = true
+                    btn.isSelected = true
+                }
+                FacilityState.ERROR -> {
+                    btn.isChecked = false
+                    btn.isSelected = true
+                }
             }
             btn.visibility = View.VISIBLE
         })
@@ -162,14 +162,16 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
                 )
                 val tf =
                     TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
-                if (tf == TieredFacility.BLUETOOTH) {
-                    updateToggleButton(binding.bluetoothStatus, actionState)
-                }
-                else if (tf == TieredFacility.SOCKET) {
-                    updateToggleButton(binding.socketStatus, actionState)
-                }
-                else {
-                    updateToggleButton(binding.voiceStatus, actionState)
+                when (tf) {
+                    TieredFacility.BLUETOOTH -> {
+                        updateToggleButton(binding.bluetoothStatus, actionState)
+                    }
+                    TieredFacility.SOCKET -> {
+                        updateToggleButton(binding.socketStatus, actionState)
+                    }
+                    else -> {
+                        updateToggleButton(binding.voiceStatus, actionState)
+                    }
                 }
             }
         }
@@ -181,14 +183,16 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
                 FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE)!!)
             val tf =
                 TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
-            if (tf == TieredFacility.BLUETOOTH) {
-                updateToggleButton(binding.bluetoothStatus, actionState)
-            }
-            else if (tf == TieredFacility.SOCKET) {
-                updateToggleButton(binding.socketStatus, actionState)
-            }
-            else {
-                updateToggleButton(binding.voiceStatus, actionState)
+            when (tf) {
+                TieredFacility.BLUETOOTH -> {
+                    updateToggleButton(binding.bluetoothStatus, actionState)
+                }
+                TieredFacility.SOCKET -> {
+                    updateToggleButton(binding.socketStatus, actionState)
+                }
+                else -> {
+                    updateToggleButton(binding.voiceStatus, actionState)
+                }
             }
         }
     }
@@ -207,7 +211,7 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
 
     // =================================== ServiceConnection ===============================
     override fun onServiceDisconnected(name: ComponentName) {
-        if (service != null) service!!.statusManager!!.unregister(this)
+        if (service != null) service!!.statusManager.unregister(this)
         service = null
     }
 
@@ -219,7 +223,7 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
     }
 
     companion object {
-        val CLSS = "CoverFragment"
+        const val CLSS = "CoverFragment"
         private const val CAPTURE_SIZE = 256
     }
     init {

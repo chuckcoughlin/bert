@@ -140,7 +140,7 @@ to be ultimately located in the head.
 [toc](#table-of-contents)
 
 *** Initial Configuration ***<br/>
-The following sections describe setup of the main processor on the robot, an Odroid-XU4 running Ubuntu 16.04 Linux. The instructions below assume an initial board setup as described  [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf).
+The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Ubuntu 16.04 Linux. The instructions below assume an initial board setup as described  [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf).
 
 A USB extension board is required as slots are used for:
  * Keyboard/Mouse

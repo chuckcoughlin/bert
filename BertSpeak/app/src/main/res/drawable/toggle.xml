@@ -11,9 +11,7 @@
         android:state_checked="false"
         android:state_selected="true"/>
     <!-- Connected -->
-    <item android:drawable="@drawable/ball_green"
-        android:state_checked="true"
-        android:state_selected="true"/>
+    <item android:drawable="@drawable/ball_green" android:state_checked="true" android:state_selected="true" />
     <!-- Searching -->
     <item android:drawable="@drawable/ball_yellow"
         android:state_checked="true"

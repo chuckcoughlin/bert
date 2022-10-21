@@ -154,7 +154,7 @@ class DispatchService : Service(), BluetoothHandler {
 
         // Create notification default intent.
         val intent = Intent()
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         // Create notification builder.
         val builder: NotificationCompat.Builder =

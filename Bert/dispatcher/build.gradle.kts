@@ -1,5 +1,4 @@
 
-
 plugins {
     id("bert.application-conventions")
     application

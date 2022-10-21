@@ -6,8 +6,7 @@
     android:insetBottom="6dp">
     <ripple android:color="?attr/colorControlHighlight">
         <item>
-            <shape android:shape="rectangle"
-                android:tint="@color/colorPrimary">
+            <shape android:shape="rectangle">
                 <corners android:radius="10dp" />
                 <solid android:color="@color/colorPrimary" />
                 <padding android:bottom="6dp" />
