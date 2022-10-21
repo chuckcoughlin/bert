@@ -1,11 +1,10 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.controller
 
-import bert.share.message.MessageBottle
-
+import chuckcoughlin.bert.common.message.MessageBottle
 /**
  * This interface is satisfied by the MotorGroupController and describes
  * the callbacks utilized by individual MotorContrtollers

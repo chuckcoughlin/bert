@@ -19,7 +19,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitLine(ctx: LineContext?): T? {
+    override fun visitLine(ctx: SpeechSyntaxParser.LineContext?): T? {
         return visitChildren(ctx)
     }
 
@@ -41,7 +41,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitHandleGreeting(ctx: HandleGreetingContext?): T? {
+    override fun visitHandleGreeting(ctx: SpeechSyntaxParser.HandleGreetingContext?): T? {
         return visitChildren(ctx)
     }
 
@@ -52,7 +52,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitInitializeJoints(ctx: InitializeJointsContext?): T? {
+    override fun visitInitializeJoints(ctx: SpeechSyntaxParser.InitializeJointsContext?): T? {
         return visitChildren(ctx)
     }
 
@@ -63,7 +63,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitConfigurationRequest(ctx: ConfigurationRequestContext?): T? {
+    override fun visitConfigurationRequest(ctx: SpeechSyntaxParser.ConfigurationRequestContext?): T? {
         return visitChildren(ctx)
     }
 
@@ -74,7 +74,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitHandleBulkPropertyRequest(ctx: HandleBulkPropertyRequestContext): T? {
+    override fun visitHandleBulkPropertyRequest(ctx: SpeechSyntaxParser.HandleBulkPropertyRequestContext): T? {
         return visitChildren(ctx)
     }
 
@@ -85,7 +85,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitHandleListCommand1(ctx: HandleListCommand1Context): T? {
+    override fun visitHandleListCommand1(ctx: SpeechSyntaxParser.HandleListCommand1Context): T? {
         return visitChildren(ctx)
     }
 
@@ -96,7 +96,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitHandleListCommand2(ctx: HandleListCommand2Context): T? {
+    override fun visitHandleListCommand2(ctx: SpeechSyntaxParser.HandleListCommand2Context): T? {
         return visitChildren(ctx)
     }
 
@@ -107,7 +107,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMoveMotor(ctx: MoveMotorContext): T? {
+    override fun visitMoveMotor(ctx: SpeechSyntaxParser.MoveMotorContext): T? {
         return visitChildren(ctx)
     }
 
@@ -118,7 +118,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMoveSpeed(ctx: MoveSpeedContext): T? {
+    override fun visitMoveSpeed(ctx: SpeechSyntaxParser.MoveSpeedContext): T? {
         return visitChildren(ctx)
     }
 
@@ -129,7 +129,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitEnableTorque(ctx: EnableTorqueContext): T? {
+    override fun visitEnableTorque(ctx: SpeechSyntaxParser.EnableTorqueContext): T? {
         return visitChildren(ctx)
     }
 
@@ -140,7 +140,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitSetMotorPosition(ctx: SetMotorPositionContext): T? {
+    override fun visitSetMotorPosition(ctx: SpeechSyntaxParser.SetMotorPositionContext): T? {
         return visitChildren(ctx)
     }
 
@@ -151,7 +151,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitSetMotorProperty(ctx: SetMotorPropertyContext): T? {
+    override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorPropertyContext): T? {
         return visitChildren(ctx)
     }
 
@@ -162,7 +162,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitStraightenJoint(ctx: StraightenJointContext): T? {
+    override fun visitStraightenJoint(ctx: SpeechSyntaxParser.StraightenJointContext): T? {
         return visitChildren(ctx)
     }
 
@@ -173,7 +173,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitHandleArbitraryCommand(ctx: HandleArbitraryCommandContext): T? {
+    override fun visitHandleArbitraryCommand(ctx: SpeechSyntaxParser.HandleArbitraryCommandContext): T? {
         return visitChildren(ctx)
     }
 
@@ -184,7 +184,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitAttributeQuestion(ctx: AttributeQuestionContext): T? {
+    override fun visitAttributeQuestion(ctx: SpeechSyntaxParser.AttributeQuestionContext): T? {
         return visitChildren(ctx)
     }
 
@@ -195,7 +195,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitConfigurationQuestion(ctx: ConfigurationQuestionContext?): T? {
+    override fun visitConfigurationQuestion(ctx: SpeechSyntaxParser.ConfigurationQuestionContext?): T? {
         return visitChildren(ctx)
     }
 
@@ -206,7 +206,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitHandleBulkPropertyQuestion(ctx: HandleBulkPropertyQuestionContext): T? {
+    override fun visitHandleBulkPropertyQuestion(ctx: SpeechSyntaxParser.HandleBulkPropertyQuestionContext): T? {
         return visitChildren(ctx)
     }
 
@@ -217,7 +217,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitJointPropertyQuestion(ctx: JointPropertyQuestionContext): T? {
+    override fun visitJointPropertyQuestion(ctx: SpeechSyntaxParser.JointPropertyQuestionContext): T? {
         return visitChildren(ctx)
     }
 
@@ -228,7 +228,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMotorPropertyQuestion1(ctx: MotorPropertyQuestion1Context): T? {
+    override fun visitMotorPropertyQuestion1(ctx: SpeechSyntaxParser.MotorPropertyQuestion1Context): T? {
         return visitChildren(ctx)
     }
 
@@ -239,7 +239,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMotorPropertyQuestion2(ctx: MotorPropertyQuestion2Context): T? {
+    override fun visitMotorPropertyQuestion2(ctx: SpeechSyntaxParser.MotorPropertyQuestion2Context): T? {
         return visitChildren(ctx)
     }
 
@@ -250,7 +250,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMetricsQuestion(ctx: MetricsQuestionContext): T? {
+    override fun visitMetricsQuestion(ctx: SpeechSyntaxParser.MetricsQuestionContext): T? {
         return visitChildren(ctx)
     }
 
@@ -261,7 +261,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitPoseQuestion(ctx: PoseQuestionContext?): T? {
+    override fun visitPoseQuestion(ctx: SpeechSyntaxParser.PoseQuestionContext?): T? {
         return visitChildren(ctx)
     }
 
@@ -272,7 +272,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitLimbLocationQuestion(ctx: LimbLocationQuestionContext): T? {
+    override fun visitLimbLocationQuestion(ctx: SpeechSyntaxParser.LimbLocationQuestionContext): T? {
         return visitChildren(ctx)
     }
 
@@ -283,7 +283,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitWhyMittens(ctx: WhyMittensContext?): T? {
+    override fun visitWhyMittens(ctx: SpeechSyntaxParser.WhyMittensContext?): T? {
         return visitChildren(ctx)
     }
 
@@ -294,7 +294,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitDeclarePose1(ctx: DeclarePose1Context): T? {
+    override fun visitDeclarePose1(ctx: SpeechSyntaxParser.DeclarePose1Context): T? {
         return visitChildren(ctx)
     }
 
@@ -305,7 +305,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitDeclarePose2(ctx: DeclarePose2Context): T? {
+    override fun visitDeclarePose2(ctx: SpeechSyntaxParser.DeclarePose2Context): T? {
         return visitChildren(ctx)
     }
 
@@ -316,7 +316,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitDeclareNoNamePose(ctx: DeclareNoNamePoseContext): T? {
+    override fun visitDeclareNoNamePose(ctx: SpeechSyntaxParser.DeclareNoNamePoseContext): T? {
         return visitChildren(ctx)
     }
 
@@ -327,7 +327,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMapPoseToCommand1(ctx: MapPoseToCommand1Context): T? {
+    override fun visitMapPoseToCommand1(ctx: SpeechSyntaxParser.MapPoseToCommand1Context): T? {
         return visitChildren(ctx)
     }
 
@@ -338,7 +338,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMapPoseToCommand2(ctx: MapPoseToCommand2Context): T? {
+    override fun visitMapPoseToCommand2(ctx: SpeechSyntaxParser.MapPoseToCommand2Context): T? {
         return visitChildren(ctx)
     }
 
@@ -349,7 +349,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMapPoseToCommand3(ctx: MapPoseToCommand3Context): T? {
+    override fun visitMapPoseToCommand3(ctx: SpeechSyntaxParser.MapPoseToCommand3Context): T? {
         return visitChildren(ctx)
     }
 
@@ -360,7 +360,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMapPoseToCommand4(ctx: MapPoseToCommand4Context): T? {
+    override fun visitMapPoseToCommand4(ctx: SpeechSyntaxParser.MapPoseToCommand4Context): T? {
         return visitChildren(ctx)
     }
 
@@ -371,7 +371,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitMapPoseToCommand5(ctx: MapPoseToCommand5Context): T? {
+    override fun visitMapPoseToCommand5(ctx: SpeechSyntaxParser.MapPoseToCommand5Context): T? {
         return visitChildren(ctx)
     }
 
@@ -382,7 +382,7 @@ open class SpeechSyntaxBaseVisitor<T> : AbstractParseTreeVisitor<T>(), SpeechSyn
      * The default implementation returns the result of calling
      * [.visitChildren] on `ctx`.
      */
-    override fun visitWordList(ctx: WordListContext): T? {
+    override fun visitWordList(ctx: SpeechSyntaxParser.WordListContext): T? {
         return visitChildren(ctx)
     }
 }

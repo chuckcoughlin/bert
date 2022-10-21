@@ -4,7 +4,11 @@
  */
 package chuckcoughlin.bert.motor.controller
 
-import bert.share.common.BottleConstants
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.model.RobotMotorModel
+import jssc.SerialPort
 import java.util.logging.Logger
 
 /**

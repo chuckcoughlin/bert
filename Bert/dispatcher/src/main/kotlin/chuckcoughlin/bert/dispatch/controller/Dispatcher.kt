@@ -1,15 +1,31 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch.controller
 
-import bert.control.controller.InternalController
+import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.PathConstants
+import chuckcoughlin.bert.common.controller.SocketController
+import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
+import chuckcoughlin.bert.common.controller.SocketStateChangeListener
+import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.util.LoggerUtility
+import chuckcoughlin.bert.common.util.ShutdownHook
+import chuckcoughlin.bert.control.controller.InternalController
+import chuckcoughlin.bert.control.controller.QueueName
+import chuckcoughlin.bert.control.message.InternalMessageHolder
+import chuckcoughlin.bert.control.solver.Solver
+import java.io.IOException
 import java.nio.file.Paths
 import java.time.LocalDate
+import java.time.Month
 import java.time.Period
+import java.util.*
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 
 /**
@@ -332,7 +348,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
             val metric: MetricType = MetricType.valueOf(request.getProperty(BottleConstants.METRIC_NAME, "NAME"))
             var text = ""
             when (metric) {
-                AGE -> {
+                MetricType.AGE -> {
                     val today = LocalDate.now()
                     val birthday: LocalDate = LocalDate.of(2019, Month.JANUARY, 1)
                     val p = Period.between(birthday, today)
@@ -340,12 +356,12 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
                             " months, and " + p.days + " days old"
                 }
 
-                CADENCE -> text = "The cadence is " + cadence + " milliseconds"
-                CYCLECOUNT -> text = "I've processed " + cycleCount + " requests"
-                CYCLETIME -> text = "The average cycle time is " + cycleTime.toInt() + " milliseconds"
-                DUTYCYCLE -> text = "My average duty cycle is " + (100.0 * dutyCycle).toInt() + " percent"
+                MetricType.CADENCE -> text = "The cadence is " + cadence + " milliseconds"
+                MetricType.CYCLECOUNT -> text = "I've processed " + cycleCount + " requests"
+                MetricType.CYCLETIME -> text = "The average cycle time is " + cycleTime.toInt() + " milliseconds"
+                MetricType.DUTYCYCLE -> text = "My average duty cycle is " + (100.0 * dutyCycle).toInt() + " percent"
                 HEIGHT -> text = "My height when standing is 83 centimeters"
-                MITTENS -> text = selectRandomText(mittenPhrases)
+                MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                 NAME -> text = "My name is $name"
             }
             request.assignText(text)

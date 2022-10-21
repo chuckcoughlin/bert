@@ -1,10 +1,17 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command.controller
 
-import bert.share.common.BottleConstants
+import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.controller.NamedSocket
+import chuckcoughlin.bert.common.controller.SocketController
+import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
+import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageHandler
+import chuckcoughlin.bert.common.message.RequestType
 import java.util.logging.Logger
 
 /**

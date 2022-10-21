@@ -5,10 +5,12 @@
  */
 package chuckcoughlin.bert.sql.pose
 
-import bert.share.model.Joint
-import java.sql.Connection
-import java.sql.Statement
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.MotorConfiguration
+import java.sql.*
+import java.util.*
 import java.util.logging.Logger
+import kotlin.collections.HashMap
 
 /**
  * A pose is a list of positions for each motor. There are up to
@@ -46,11 +48,13 @@ class PoseTable
                 break
             }
             rs.close()
-        } catch (e: SQLException) {
+        }
+        catch (e: SQLException) {
             // if the error message is "out of memory", 
             // it probably means no database file is found
             LOGGER.severe(String.format("%s.getPoseForCommand: Error (%s)", CLSS, e.message))
-        } finally {
+        }
+        finally {
             if (rs != null) {
                 try {
                     rs.close()
@@ -60,7 +64,8 @@ class PoseTable
             if (statement != null) {
                 try {
                     statement.close()
-                } catch (ignore: SQLException) {
+                }
+                catch (ignore: SQLException) {
                 }
             }
         }
@@ -106,10 +111,9 @@ class PoseTable
                     try {
                         val dbl = `val`.toString().toDouble()
                         map[name.uppercase(Locale.getDefault())] = dbl
-                    } catch (nfe: NumberFormatException) {
-                        LOGGER.warning(
-                            String.format(
-                                "%s.getPoseJointValuesForParameter: %s value for %s not a double (%s)",
+                    }
+                    catch (nfe: NumberFormatException) {
+                        LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: %s value for %s not a double (%s)",
                                 CLSS, parameter, name, nfe.message
                             )
                         )
@@ -117,15 +121,18 @@ class PoseTable
                 }
             }
             rs.close()
-        } catch (e: SQLException) {
+        }
+        catch (e: SQLException) {
             // if the error message is "out of memory", 
             // it probably means no database file is found
             LOGGER.severe(String.format("%s.getPoseJointValuesForParameter: Database error (%s)", CLSS, e.message))
-        } finally {
+        }
+        finally {
             if (rs != null) {
                 try {
                     rs.close()
-                } catch (ignore: SQLException) {
+                }
+                catch (ignore: SQLException) {
                 }
             }
             if (statement != null) {

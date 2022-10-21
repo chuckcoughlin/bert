@@ -5,10 +5,25 @@
  */
 package chuckcoughlin.bert.motor.controller
 
-import bert.share.common.BottleConstants
+import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage
+import jssc.SerialPort
+import jssc.SerialPortEvent
+import jssc.SerialPortEventListener
+import jssc.SerialPortException
+import java.util.*
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * Handle requests directed to a specific controllerName of motors. All motors under the

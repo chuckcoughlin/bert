@@ -1,10 +1,14 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.dynamixel
 
-import bert.share.common.BottleConstants
+import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.model.DynamixelType
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.MotorConfiguration
 import java.util.logging.Logger
 
 /**

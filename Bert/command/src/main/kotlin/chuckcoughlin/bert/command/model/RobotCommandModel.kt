@@ -4,10 +4,14 @@
  */
 package chuckcoughlin.bert.command.model
 
-import bert.share.message.HandlerType
+import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.model.AbstractRobotModel
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.util.XMLUtility
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
 import java.nio.file.Path
+import java.util.*
 import java.util.logging.Logger
 
 /**

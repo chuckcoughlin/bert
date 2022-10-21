@@ -5,7 +5,10 @@
  */
 package chuckcoughlin.bert.control.controller
 
-import bert.share.message.HandlerType
+
+import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.control.message.InternalMessageHolder
 import java.lang.String
 import java.util.logging.Logger
 

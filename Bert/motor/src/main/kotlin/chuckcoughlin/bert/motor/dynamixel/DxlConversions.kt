@@ -4,8 +4,12 @@
  */
 package chuckcoughlin.bert.motor.dynamixel
 
-import bert.share.model.DynamixelType
+import chuckcoughlin.bert.common.model.DynamixelType
+import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.MotorConfiguration
+import java.util.*
 import java.util.logging.Logger
+import kotlin.collections.HashMap
 
 /**
  * This class contains methods used to convert between Dynamixel jointValues and engineering units.

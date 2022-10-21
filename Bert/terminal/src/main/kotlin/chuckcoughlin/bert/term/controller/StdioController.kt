@@ -4,7 +4,15 @@
  */
 package chuckcoughlin.bert.term.controller
 
-import bert.share.controller.Controller
+import chuckcoughlin.bert.common.controller.Controller
+import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageHandler
+import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.speech.process.MessageTranslator
+import chuckcoughlin.bert.speech.process.StatementParser
+import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.util.logging.Logger
 
@@ -33,13 +41,13 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
         translator = MessageTranslator()
     }
 
-    fun start() {
+    override fun start() {
         val rdr = StdinReader(dispatcher)
         runner = Thread(rdr)
         runner!!.start()
     }
 
-    fun stop() {
+    override fun stop() {
         if (runner != null) {
             runner!!.interrupt()
             runner = null
@@ -55,7 +63,7 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
      * message or a value that can be formatted into understandable text.
      * @param response
      */
-    fun receiveResponse(response: MessageBottle?) {
+    override fun receiveResponse(response: MessageBottle?) {
         val text: String = translator.messageToText(response)
         println(text)
         print(prompt)
