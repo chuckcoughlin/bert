@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command.model

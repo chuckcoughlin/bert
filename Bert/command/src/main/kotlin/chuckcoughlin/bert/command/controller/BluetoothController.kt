@@ -73,7 +73,7 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
     private fun handleImmediateResponse(request: MessageBottle) {
         if (!request.fetchRequestType().equals(RequestType.PARTIAL)) {
             if (!suppressingErrors) receiveResponse(request) else {
-                suppressingErrors = true // Suppress replies to consecutive yntax errors
+                suppressingErrors = true // Suppress replies to consecutive syntax errors
                 val text: String = translator.messageToText(request)
                 LOGGER.info(String.format("%s.SuppressedErrorMessage: %s", CLSS, text))
             }

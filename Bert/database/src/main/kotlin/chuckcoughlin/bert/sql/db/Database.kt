@@ -38,7 +38,7 @@ class Database private constructor() {
      * @param command user entered string
      * @return the corresponding pose name if it exists, otherwise NULL
      */
-    fun getPoseForCommand(command: String?): String? {
+    fun getPoseForCommand(command: String): String? {
         return pose.getPoseForCommand(connection, command)
     }
 

@@ -64,7 +64,7 @@ phrase: (NAME|Value|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|R
     ;
 
 // First is a list of terms that are used below or use word that appear elsewhere
-Freeze: 'freeze'|'hold'|'stiffen'|'tighten'|'go rigid';
+Freeze: 'freeze'|'stiffen'|'tighten'|'go rigid';
 Relax:'loosen'|'relax'|'go limp';
 Why: 'why';
 // Pardon the license taken with some of these categories ...
@@ -101,7 +101,7 @@ Move: 'bend'|'go'|'move'|'turn';
 Of: 'of'|'for';
 Off: 'off';
 On: 'on';
-Joint: 'ankle'|'arm'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
+Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'state'|'torque'|'load'|'temperature'|'voltage'|'velocity';
