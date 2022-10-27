@@ -7,6 +7,8 @@ plugins {
 dependencies {
     implementation("org.apache.commons:commons-text")
     implementation(project(":common"))
+    implementation(project(":control"))
+    implementation(project(":motor"))
 }
 
 application {

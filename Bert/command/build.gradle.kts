@@ -5,5 +5,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":common"))
+    implementation(project(":common"))
+    implementation(project(":speech"))
 }

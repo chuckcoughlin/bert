@@ -27,19 +27,14 @@ class Database private constructor() {
     private var connection: Connection? = null
     private val pose: PoseTable
 
-    /**
-     * Constructor is private per Singleton pattern.
-     */
-    init {
-        pose = PoseTable()
-    }
+
 
     /**
      * @param command user entered string
      * @return the corresponding pose name if it exists, otherwise NULL
      */
     fun getPoseForCommand(command: String): String? {
-        return pose.getPoseForCommand(connection, command)
+        return pose.getPoseForCommand(connection!!, command)
     }
 
     /** Return a list of column names with non-null values for the indicated pose
@@ -136,5 +131,11 @@ class Database private constructor() {
                 return field
             }
             private set
+    }
+    /**
+     * Initialize the table.
+     */
+    init {
+        pose = PoseTable()
     }
 }

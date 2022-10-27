@@ -1,8 +1,7 @@
 /*
  * The settings file is used to specify which projects and modules to include in your build.
  *
- * Detailed information about configuring a multi-project build in Gradle can be found
- * in the user manual at https://docs.gradle.org/7.5/userguide/multi_project_builds.html
+ * There is only a single project (Bert) with multiple modules.
  */
 
 rootProject.name = "Bert"
