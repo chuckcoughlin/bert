@@ -11,10 +11,9 @@ repositories {
     }
 }
 
-
 dependencies {
     antlr("org.antlr:antlr4:4.7.1")
-    implementation(files("antlr-runtime-4.7.2.jar"))
+    //implementation(files("antlr-runtime-4.7.2.jar"))
     //testImplementation("org.antlr:antlr-runtime-4.7.2")
 }
 
@@ -31,36 +30,16 @@ tasks.generateGrammarSource {
             into("generated-src/main/java")
         }
     }
+    finalizedBy(listOf("jar"))
 }
-/*
-tasks {
-    println("syntax.jar ....")
-    val syntaxJar = register<Jar>("syntaxJar") {
-        dependsOn.addAll(listOf("compileJava","compileKotlin","classes"))
-        archiveFileName.set("bert-syntax")
-        val sourcesMain = sourceSets.main
-        val contents = configurations.runtimeClasspath.get()
-            .map{ if(it.isDirectory) it else zipTree(it) }
-        from(listOf("${buildDir}/classes/java/main"))
-    }
 
-
-    build {
-        dependsOn(syntaxJar)   // Trigger jar creation during build
-    }
-}
-tasks.withType<Jar> (){
-    println("tasks with type ....")
-    archiveFileName.set("bert-syntax")
-    val sourcesMain = sourceSets.main
-    val contents = configurations.runtimeClasspath.get()
-        .map{ if(it.isDirectory) it else zipTree(it) }
-    from(listOf("${buildDir}/classes/java/main"))
-}
-*/
+// Generates libs/syntax.jar after executing run-configuration bert:syntax[jar]
 tasks.jar {
-    println("jar task ....")
-    archiveFileName.set("bert-syntax")
-    from(listOf("${buildDir}/classes/java/main"))
+    doLast {
+        println("syntax:jar task ....")
+        from(listOf("${buildDir}/classes/java/main"))
+
+        println("syntax:jar task complete.")
+    }
 }
 
