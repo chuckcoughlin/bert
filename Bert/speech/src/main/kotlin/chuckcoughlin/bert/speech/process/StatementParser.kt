@@ -6,8 +6,9 @@ package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.speech.antlr.SpeechSyntaxLexer
-import chuckcoughlin.bert.speech.antlr.SpeechSyntaxParser
+import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.Limb
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CodePointCharStream
 import org.antlr.v4.runtime.CommonTokenStream

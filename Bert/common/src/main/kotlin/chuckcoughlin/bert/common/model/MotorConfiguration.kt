@@ -37,12 +37,10 @@ class MotorConfiguration : Serializable {
     var isDirect: Boolean
 
     // Save the current goal (or actual) values. All other members
-    private var position // ~ degrees
-            = 0.0
+    var position // ~ degrees
     var speed // ~ degrees/second
             = 0.0
-    private var temperature // deg C
-            = 0.0
+    var temperature // deg C
     var torque // ~ N-m
             = 0.0
     var travelTime // ~msecs
@@ -104,7 +102,8 @@ class MotorConfiguration : Serializable {
         try {
             val jp = JointProperty.valueOf(propertyName.uppercase(Locale.getDefault()))
             setProperty(jp, value)
-        } catch (iae: IllegalArgumentException) {
+        }
+        catch (iae: IllegalArgumentException) {
             LOGGER.warning(
                 String.format(
                     "%s.setProperty: Illegal property %s (%s)",
@@ -153,5 +152,9 @@ class MotorConfiguration : Serializable {
         private const val CLSS = "MotorConfiguration"
         private val LOGGER = Logger.getLogger(CLSS)
         private const val serialVersionUID = -3452548869138158183L
+    }
+    init {
+        setPosition(0.0)
+        setTemperature(0.0)
     }
 }

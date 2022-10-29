@@ -17,7 +17,7 @@ enum class Appendage {
          * @param limb the enumeration
          * @return user-recognizable text
          */
-        fun toText(limb: Appendage?): String {
+        fun toText(limb: Appendage): String {
             var text = ""
             when (limb) {
                 LEFT_EAR -> text = "left ear"

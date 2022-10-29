@@ -1,15 +1,16 @@
 plugins {
     id("bert.library-conventions")
 }
-/*
-compile.Java.dependsOn("antlr4")
-sourceSets.main.java.sourceDirs += antlr4.output
-// Add antlr4 to the classpath
-configurations {
-    compile.extendsFrom antlr4
+
+// Make special reference to the compiled ANTLR classes
+repositories {
+    flatDir {
+        dirs("../syntax/buiild/libs")
+    }
 }
-*/
+
 dependencies {
     api(project(":common"))
     api(project(":syntax"))
+    implementation(files("syntax.jar"))
 }

@@ -202,7 +202,7 @@ class PoseTable
             val valuesBuffer = StringBuffer("VALUES ('NEWPOSE','position'")
             for (mc in map.values) {
                 sb.append(",")
-                sb.append(mc.getJoint().name())
+                sb.append(mc.joint.name)
                 valuesBuffer.append(",?")
             }
             var SQL = sb.append(") ").append(valuesBuffer).append(")").toString()
@@ -221,9 +221,11 @@ class PoseTable
             SQL = "UPDATE Pose Set name = id WHERE name='NEWPOSE'"
             statement = cxn.createStatement()
             statement.execute(SQL)
-        } catch (e: SQLException) {
+        }
+        catch (e: SQLException) {
             LOGGER.severe(String.format("%s.saveJointPositionsAsNewPose: Error (%s)", CLSS, e.message))
-        } finally {
+        }
+        finally {
             if (prep != null) {
                 try {
                     prep.close()
@@ -233,8 +235,8 @@ class PoseTable
             if (statement != null) {
                 try {
                     statement.close()
-                } catch (ignore: SQLException) {
                 }
+                catch (ignore: SQLException) {}
             }
         }
         return id.toString()
@@ -256,9 +258,8 @@ class PoseTable
         for (mc in map.values) {
             index++
             SQL.append(
-                java.lang.String.format(
-                    "\n'%s'=%.1f%s",
-                    mc.getJoint().name(),
+                java.lang.String.format("\n'%s'=%.1f%s",
+                    mc.joint.name,
                     mc.getPosition(),
                     if (index == map.size) "" else ","
                 )
@@ -277,7 +278,7 @@ class PoseTable
                 val valuesBuffer = StringBuffer("VALUES (?,'position'")
                 for (mc in map.values) {
                     SQL.append(",")
-                    SQL.append(mc.getJoint().name())
+                    SQL.append(mc.joint.name)
                     valuesBuffer.append(",?")
                 }
                 SQL.append(") ").append(valuesBuffer).append(")").toString()
@@ -286,19 +287,21 @@ class PoseTable
                 statement.setString(1, pose)
                 index = 2
                 for (mc in map.values) {
-                    statement.setInt(index, mc.getPosition() as Int)
+                    statement.setInt(index, mc.position as Int)
                     index++
                 }
                 statement.executeUpdate()
             }
-        } catch (e: SQLException) {
+        }
+        catch (e: SQLException) {
             LOGGER.severe(String.format("%s.saveJointPositionsForPose: Database error (%s)", CLSS, e.message))
-        } finally {
+        }
+        finally {
             if (statement != null) {
                 try {
                     statement.close()
-                } catch (ignore: SQLException) {
                 }
+                catch (ignore: SQLException) {}
             }
         }
     }
@@ -307,4 +310,5 @@ class PoseTable
         private const val CLSS = "PoseTable"
         private val LOGGER = Logger.getLogger(CLSS)
     }
+
 }

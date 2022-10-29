@@ -22,7 +22,7 @@ enum class Limb {
          * @param limb the enumeration
          * @return user-recognizable text
          */
-        fun toText(limb: Limb?): String {
+        fun toText(limb: Limb): String {
             var text = ""
             when (limb) {
                 BACK -> text = "back"

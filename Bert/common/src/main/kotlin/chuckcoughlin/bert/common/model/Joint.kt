@@ -16,7 +16,7 @@ enum class Joint {
          * @param joint the enumeration
          * @return user-recognizable text
          */
-        fun toText(joint: Joint?): String {
+        fun toText(joint: Joint): String {
             var text = ""
             when (joint) {
                 ABS_X -> text = "abdomen x"
