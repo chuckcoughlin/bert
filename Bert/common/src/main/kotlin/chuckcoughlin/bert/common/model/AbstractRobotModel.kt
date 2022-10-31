@@ -23,12 +23,12 @@ abstract class AbstractRobotModel(configPath: Path) {
     protected val document: Document?
     protected val properties: Properties
     val handlerTypes : MutableMap<String, String>   // Map of type names for each message handler used by this application.
-    val sockets : MutableMap<String, Int>                // Socket port by handler name. The key list is sufficient to get the controller names.
+    val sockets : MutableMap<String, Int>           // Socket port by handler name. The list keys are sufficient to get the controller names.
     val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by motor name
 
     /**
-     * Each application needs to extract the controller(s) of interest from the
-     * configuration file. Presumably this method will be called as part of the
+     * Each application needs to extract the definitiona for controller(s) of interest
+     * from the configuration file. Presumably this method will be called as part of the
      * populate() process.
      */
     abstract fun analyzeControllers()
@@ -53,12 +53,10 @@ abstract class AbstractRobotModel(configPath: Path) {
             if (bytes != null) {
                 contents = XMLUtility.documentFromBytes(bytes)
             }
-        } catch (ioe: IOException) {
-            LOGGER.severe(
-                String.format(
-                    "%s.getConfiguration: Failed to read file %s (%s)",
-                    CLSS, filePath.toAbsolutePath().toString(), ioe.localizedMessage
-                )
+        }
+        catch (ioe: IOException) {
+            LOGGER.severe(String.format("%s.getConfiguration: Failed to read file %s (%s)",
+                    CLSS, filePath.toAbsolutePath().toString(), ioe.localizedMessage)
             )
         }
         return contents
@@ -76,13 +74,9 @@ abstract class AbstractRobotModel(configPath: Path) {
             while (index < count) {
                 val propertyNode = elements.item(index)
                 val key = XMLUtility.attributeValue(propertyNode, "name")
-                if (key == null) {
-                    LOGGER.warning(String.format("%s.analyzeProperties: Missing name attribute in property", CLSS))
-                } else {
-                    val value = propertyNode.textContent
-                    if (value != null && !value.isEmpty()) {
-                        properties[key.lowercase(Locale.getDefault())] = value
-                    }
+                val value = propertyNode.textContent
+                if (value != null && !value.isEmpty()) {
+                    properties[key.lowercase(Locale.getDefault())] = value
                 }
                 index++
             }
@@ -101,51 +95,41 @@ abstract class AbstractRobotModel(configPath: Path) {
             while (index < count) {
                 val controllerNode = controllers.item(index)
                 val type = XMLUtility.attributeValue(controllerNode, "type")
-                if (type != null && type.equals("SERIAL", ignoreCase = true)) {
+                if( type.equals("SERIAL", ignoreCase = true )) {
                     val controller = XMLUtility.attributeValue(controllerNode, "name")
-                    if (controller != null) {
                         var node = controllerNode.firstChild
                         while (node != null) {
                             if (node.nodeType == Node.ELEMENT_NODE) {
                                 val joint = node as Element
                                 if (joint.tagName == "joint") {
-                                    val motor = MotorConfiguration()
-                                    motor.controller = controller
-                                    var value = XMLUtility.attributeValue(joint, "name")
-                                    if (value != null) {
-                                        val name = Joint.valueOf(value.uppercase(Locale.getDefault()))
-                                        motor.joint = name
-                                    }
-                                    value = XMLUtility.attributeValue(joint, "type")
-                                    if (value != null) motor.setType(value)
-                                    value = XMLUtility.attributeValue(joint, "id")
-                                    if (value != null) motor.id = value.toInt()
-                                    value = XMLUtility.attributeValue(joint, "offset")
-                                    if (value != null) motor.offset = value.toDouble()
+                                    val j = Joint.valueOf(XMLUtility.attributeValue(joint, "name"))
+                                    val id = XMLUtility.attributeValue(joint, "id").toInt()
+                                    val typ = DynamixelType.valueOf(type.uppercase(Locale.getDefault()))
+                                    var value = XMLUtility.attributeValue(joint, "orientation")
+                                    val isDirect = value.equals("direct", ignoreCase = true)
+
+                                    val motor = MotorConfiguration(j,typ,id,controller,isDirect)
+
+                                    motor.offset = XMLUtility.attributeValue(joint, "offset").toDouble()
+                                    // The following attributes are optional
                                     value = XMLUtility.attributeValue(joint, "min")
-                                    if (value != null && !value.isEmpty()) motor.minAngle = value.toDouble()
+                                    if(!value.isEmpty() ) motor.minAngle = value.toDouble()
                                     value = XMLUtility.attributeValue(joint, "max")
-                                    if (value != null && !value.isEmpty()) motor.maxAngle = value.toDouble()
+                                    if( !value.isEmpty()) motor.maxAngle = value.toDouble()
                                     value = XMLUtility.attributeValue(joint, "speed")
-                                    if (value != null && !value.isEmpty()) motor.maxSpeed = value.toDouble()
+                                    if( !value.isEmpty()) motor.maxSpeed = value.toDouble()
                                     value = XMLUtility.attributeValue(joint, "torque")
-                                    if (value != null && !value.isEmpty()) motor.maxTorque = value.toDouble()
-                                    value = XMLUtility.attributeValue(joint, "orientation")
-                                    if (value != null && !value.isEmpty()) {
-                                        motor.isDirect=value.equals("direct", ignoreCase = true)
-                                    }
+                                    if( !value.isEmpty()) motor.maxTorque = value.toDouble()
                                     value = XMLUtility.attributeValue(joint, "limb")
-                                    if (value != null && !value.isEmpty()) {
+                                    if( !value.isEmpty()) {
                                         try {
                                             val limb = Limb.valueOf(value.uppercase(Locale.getDefault()))
                                             motor.limb = limb
-                                        } catch (iae: IllegalArgumentException) {
-                                            LOGGER.warning(
-                                                String.format(
+                                        }
+                                        catch (iae: IllegalArgumentException) {
+                                            LOGGER.warning( String.format(
                                                     "%s.analyzeMotors: %s has unknown limb %s",
-                                                    CLSS,
-                                                    motor.joint.name,
-                                                    value
+                                                    CLSS,motor.joint.name, value
                                                 )
                                             )
                                         }
@@ -156,9 +140,6 @@ abstract class AbstractRobotModel(configPath: Path) {
                             }
                             node = node.nextSibling
                         }
-                    } else {
-                        LOGGER.warning(String.format("%s.analyzeProperties: Missing name attribute in property", CLSS))
-                    }
                 }
                 index++
             }

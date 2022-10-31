@@ -4,10 +4,14 @@
  */
 package chuckcoughlin.bert.control.model
 
-import bert.share.model.Appendage
+import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.util.XMLUtility
 import org.w3c.dom.Document
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 import java.util.logging.Logger
 
 /**
@@ -35,11 +39,10 @@ class URDFModel {
         LOGGER.info(String.format("%s.analyzePath: URDF file(%s)", CLSS, filePath.toAbsolutePath().toString()))
         try {
             val bytes = Files.readAllBytes(filePath)
-            if (bytes != null) {
-                document = XMLUtility.documentFromBytes(bytes)
-                analyzeChain()
-            }
-        } catch (ioe: IOException) {
+            document = XMLUtility.documentFromBytes(bytes)
+            analyzeChain()
+        }
+        catch (ioe: IOException) {
             LOGGER.severe(
                 String.format(
                     "%s.analyzePath: Failed to read file %s (%s)",
@@ -69,7 +72,8 @@ class URDFModel {
                         text = XMLUtility.attributeValue(cNode, "xyz")
                         val xyz = doubleArrayFromString(text)
                         chain.setOrigin(xyz)
-                    } else if ("axis".equals(cNode.localName, ignoreCase = true)) {
+                    }
+                    else if ("axis".equals(cNode.localName, ignoreCase = true)) {
                         text = XMLUtility.attributeValue(cNode, "xyz")
                         val xyz = doubleArrayFromDirectionString(text)
                         chain.setAxes(xyz)
@@ -120,14 +124,10 @@ class URDFModel {
                         }
                         aindex++
                     }
-                } catch (iae: IllegalArgumentException) {
-                    LOGGER.warning(
-                        String.format(
-                            "%s.analyzeChain: link or appendage has unknown name: %s, ignored (%s)",
-                            CLSS,
-                            name,
-                            iae.localizedMessage
-                        )
+                }
+                catch (iae: IllegalArgumentException) {
+                    LOGGER.warning(String.format("%s.analyzeChain: link or appendage has unknown name: %s, ignored (%s)",
+                                    CLSS,name,iae.localizedMessage)
                     )
                     iae.printStackTrace()
                 }

@@ -1,6 +1,8 @@
 package chuckcoughlin.bert.control.model
 
-import bert.share.model.Appendage
+import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.Joint
+
 
 /**
  * A LinkPoint is a hinged joint (as they all are).
@@ -14,75 +16,61 @@ import bert.share.model.Appendage
  * is along the z axis.
  */
 class LinkPoint {
-    var orientation: DoubleArray?
-    var offset // Joint offset
-            : DoubleArray
+    val name: String
+        get() = joint.name
+    var offset : DoubleArray // Joint offset
+        private set
+    var orientation: DoubleArray
+    /**
+     * Create a LinkPoint representing the origin of the link chain.
+     * @return the origin
+     */
+    var origin : LinkPoint
         private set
     val type: LinkPointType
-    private val appendage: Appendage?
-    private val joint: Joint?
-
-    constructor(app: Appendage?, rot: DoubleArray?, pos: DoubleArray) {
-        type = LinkPointType.APPENDAGE
-        appendage = app
-        joint = null
-        offset = pos
-        orientation = degreesToRadians(rot)
-    }
-
-    constructor(j: Joint?, rot: DoubleArray?, pos: DoubleArray) {
-        type = LinkPointType.REVOLUTE
-        appendage = null
-        joint = j
-        offset = pos
-        orientation = degreesToRadians(rot)
-    }
+    private val appendage: Appendage
+    private val joint: Joint
 
     /**
      * Special constructor for the origin.
      */
     constructor() {
         type = LinkPointType.ORIGIN
-        appendage = null
+        appendage = Appendage.UNKNOWN
         joint = Joint.UNKNOWN
         offset = doubleArrayOf(0.0, 0.0, 0.0)
         orientation = doubleArrayOf(0.0, 0.0, 0.0)
     }
-
-    val name: String
-        get() = joint.name()
-
-    fun getAppendage(): Appendage? {
-        return appendage
+    constructor(app: Appendage, rot: DoubleArray, pos: DoubleArray) {
+        type = LinkPointType.APPENDAGE
+        appendage = app
+        joint = Joint.UNKNOWN
+        offset = pos
+        orientation = degreesToRadians(rot)
     }
 
-    fun getJoint(): Joint? {
-        return joint
+    constructor(j: Joint, rot: DoubleArray, pos: DoubleArray) {
+        type = LinkPointType.REVOLUTE
+        appendage = Appendage.UNKNOWN
+        joint = j
+        offset = pos
+        orientation = degreesToRadians(rot)
     }
-
-    private fun degreesToRadians(array: DoubleArray?): DoubleArray? {
-        if (array != null) {
+    
+    private fun degreesToRadians(array: DoubleArray): DoubleArray {
             var i = 0
             while (i < array.size) {
                 array[i] = array[i] * Math.PI / 180.0
                 i++
             }
-        }
         return array
     }
 
     companion object {
         private const val CLSS = "LinkPoint"
-
-        /**
-         * Create a LinkPoint representing the origin of the link chain.
-         * @return the origin
-         */
-        var origin: LinkPoint? = null
-            get() {
-                if (field == null) field = LinkPoint()
-                return field
-            }
-            private set
     }
+    init {
+        origin = LinkPoint()
+    }
+
 }

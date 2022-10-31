@@ -62,22 +62,28 @@ class MessageTranslator
                 val type: RequestType = msg.fetchRequestType()
                 text = if (type.equals(RequestType.NOTIFICATION)) {
                     "Received an empty notification."
-                } else if (type.equals(RequestType.NONE)) {
+                }
+                else if (type.equals(RequestType.NONE)) {
                     "Received empty message."
-                } else if (type.equals(RequestType.COMMAND)) {
+                }
+                else if (type.equals(RequestType.COMMAND)) {
                     randomAcknowledgement()
-                } else if (type.equals(RequestType.GET_METRIC)) {
+                }
+                else if (type.equals(RequestType.GET_METRIC)) {
                     val metric: MetricType = MetricType.valueOf(msg.getProperty(BottleConstants.METRIC_NAME, "NAME"))
                     java.lang.String.format("The metric %s is unknown", metric.name().toLowerCase())
-                } else if (type.equals(RequestType.GET_CONFIGURATION)) {
+                }
+                else if (type.equals(RequestType.GET_CONFIGURATION)) {
                     "Motor metrics have been written to log files"
-                } else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
+                }
+                else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
                     val propertyName: String = msg.getProperty(BottleConstants.PROPERTY_NAME, "")
                     val joint: Joint =
                         Joint.valueOf(msg.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name()).toUpperCase())
                     val value: String = msg.getProperty(propertyName, "")
                     java.lang.String.format("The %s of my %s is %s", propertyName, Joint.toText(joint), value)
-                } else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+                }
+                else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
                     val controllerName: String = msg.getProperty(BottleConstants.CONTROLLER_NAME, "")
                     val propertyName: String = msg.getProperty(BottleConstants.PROPERTY_NAME, "")
                     String.format(
@@ -85,9 +91,11 @@ class MessageTranslator
                         controllerName,
                         propertyName.lowercase(Locale.getDefault())
                     )
-                } else if (type.equals(RequestType.MAP_POSE)) {
+                }
+                else if (type.equals(RequestType.MAP_POSE)) {
                     randomAcknowledgement()
-                } else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
+                }
+                else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
                     val limb: Limb =
                         Limb.valueOf(msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name()).toUpperCase())
                     val propertyName: String =
@@ -96,24 +104,30 @@ class MessageTranslator
                         val value: String = msg.getProperty(propertyName, "")
                         if (value == "0") {
                             java.lang.String.format("My %s is flexible ", Limb.toText(limb))
-                        } else {
+                        }
+                        else {
                             java.lang.String.format("My %s is rigid ", Limb.toText(limb))
                         }
-                    } else {
+                    }
+                    else {
                         java.lang.String.format("My %s is set ", Limb.toText(limb))
                     }
-                } else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+                }
+                else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
                     randomAcknowledgement()
-                } else if (type.equals(RequestType.SET_POSE)) {
+                }
+                else if (type.equals(RequestType.SET_POSE)) {
                     val propertyName: String = msg.getProperty(BottleConstants.POSE_NAME, "")
                     String.format("I am %s", propertyName.lowercase(Locale.getDefault()))
-                } else {
+                }
+                else {
                     val property: String = msg.getProperty(BottleConstants.PROPERTY_NAME, "unknown")
                     val value: String = msg.getProperty(property, "unknown")
                     String.format("Its %s is %s", property.lowercase(Locale.getDefault()), value)
                 }
             }
-        } else {
+        }
+        else {
             text = "I received an empty message"
         }
         if (text == null || text.isEmpty()) {

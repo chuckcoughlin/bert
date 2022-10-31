@@ -1,10 +1,11 @@
 /**
- * Copyright 2019 Charles Coughlin. All rights reserved.
+ * Copyright 2022 Charles Coughlin. All rights reserved.
  * MIT License
  */
 package chuckcoughlin.bert.control.message
 
-import bert.share.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.control.controller.QueueName
 
 /**
  * This is a base class for carriers of MessageBottles as they are processed by the
@@ -17,7 +18,6 @@ class InternalMessageHolder {
      * first placed on the timer queue and when actually executes. Any time
      * spent waiting on the sequential queue is counted toward the delay
      * ("time served").
-     * @return delay time ~ msecs.
      */
     var delay: Long = 0
 
@@ -25,25 +25,19 @@ class InternalMessageHolder {
      * The execution time is earliest time at which this message is allowed
      * to be sent to the Dispatcher. The time is calculated as the message
      * is placed on the timer queue.
-     * @return current executionTime time ~ msecs.
      */
-    var executionTime: Long = 0
+    var executionTime: Long = 0     // ~msecs
+    var repeatInterval: Long = 1000 // ~msecs
     private val message: MessageBottle?
     private val originalSource: String?
     private var queue: QueueName?
-    var repeatInterval: Long = 1000 // ~msecs
     private var repeat: Boolean
 
     /**
      * Constructor for the IDLE holder used by the timer. There is
      * no message.
      */
-    constructor() {
-        message = null
-        queue = null
-        delay = 0
-        repeat = false
-        originalSource = null
+    constructor() {message = null,queue = null,delay,repeat = false,originalSource = null
     }
 
     /**
@@ -58,7 +52,7 @@ class InternalMessageHolder {
         delay = interval
         repeat = false
         originalSource = message.fetchSource()
-        message.setId(nextId)
+        message.id = nextId
     }
 
     /**
@@ -72,7 +66,7 @@ class InternalMessageHolder {
         queue = q
         repeat = false
         originalSource = message.fetchSource()
-        message.setId(nextId)
+        message.id = nextId
     }
 
     fun getMessage(): MessageBottle? {
@@ -96,12 +90,8 @@ class InternalMessageHolder {
     }
 
     override fun toString(): String {
-        return java.lang.String.format(
-            "%s: %s expires in %d ms",
-            CLSS,
-            message.fetchRequestType().name(),
-            executionTime - System.nanoTime() / 1000000
-        )
+        return String.format("%s: %s expires in %d ms",
+            CLSS,message.fetchRequestType().name(),executionTime - System.nanoTime() / 1000000 )
     }
 
     companion object {

@@ -27,14 +27,24 @@ class Database private constructor() {
     private var connection: Connection? = null
     private val pose: PoseTable
 
-
+    /**
+     * Static method to create and/or fetch the single instance.
+     */
+    var instance: Database? = null
+        get() {
+            if (field == null) {
+                synchronized(Database::class.java) { field = Database() }
+            }
+            return field
+        }
+        private set
 
     /**
      * @param command user entered string
      * @return the corresponding pose name if it exists, otherwise NULL
      */
     fun getPoseForCommand(command: String): String? {
-        return pose.getPoseForCommand(connection!!, command)
+        return pose.getPoseForCommand(connection, command)
     }
 
     /** Return a list of column names with non-null values for the indicated pose
@@ -45,10 +55,7 @@ class Database private constructor() {
      * @return list of upper-case joint names.
      */
     fun getPoseJointValuesForParameter(
-        mcmap: Map<String?, MotorConfiguration?>?,
-        poseName: String?,
-        parameter: String?
-    ): Map<String, Double> {
+        mcmap: Map<String, MotorConfiguration>,poseName: String,parameter: String): Map<String, Double> {
         return pose.getPoseJointValuesForParameter(connection, mcmap, poseName, parameter)
     }
 
@@ -56,9 +63,8 @@ class Database private constructor() {
      * @param user-entered command user
      * @param the corresponding pose name
      */
-    fun mapCommandToPose(cmd: String?, poseName: String?) {
-        pose.mapCommandToPose(connection, cmd, poseName)
-        return
+    fun mapCommandToPose(cmd: String, poseName: String) {
+        return pose.mapCommandToPose(connection, cmd, poseName)
     }
 
     /**
@@ -66,7 +72,7 @@ class Database private constructor() {
      * @param mcmap contains a map of motor configurations with positions that define the pose.
      * @param poseName
      */
-    fun saveJointPositionsForPose(mcmap: Map<Joint?, MotorConfiguration?>?, poseName: String?) {
+    fun saveJointPositionsForPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String) {
         pose.saveJointPositionsForPose(connection, mcmap, poseName)
         return
     }
@@ -77,7 +83,7 @@ class Database private constructor() {
      * @param mcmap contains a map of motor configurations with positions that define the pose.
      * @return the new record id as a string.
      */
-    fun saveJointPositionsAsNewPose(mcmap: Map<Joint?, MotorConfiguration?>?): String {
+    fun saveJointPositionsAsNewPose(mcmap: Map<Joint, MotorConfiguration>): String {
         return pose.saveJointPositionsAsNewPose(connection, mcmap)
     }
 
@@ -90,7 +96,8 @@ class Database private constructor() {
         LOGGER.info(String.format("%s.startup: database path = %s", CLSS, path.toString()))
         try {
             connection = DriverManager.getConnection(connectPath)
-        } catch (e: SQLException) {
+        }
+        catch (e: SQLException) {
             // if the error message is "out of memory", 
             // it probably means no database file is found
             LOGGER.log(Level.SEVERE, String.format("%s.startup: Database error (%s)", CLSS, e.message))
@@ -107,7 +114,8 @@ class Database private constructor() {
         if (connection != null) {
             try {
                 connection!!.close()
-            } catch (e: SQLException) {
+            }
+            catch (e: SQLException) {
                 // if the error message is "out of memory", 
                 // it probably means no database file is found
                 LOGGER.warning(String.format("%s.shutdown: Error closing database (%s)", CLSS, e.message))
@@ -119,18 +127,6 @@ class Database private constructor() {
         private const val CLSS = "Database"
         private val LOGGER = Logger.getLogger(CLSS)
         private val driver: JDBC = JDBC() // Force driver to be loaded
-
-        /**
-         * Static method to create and/or fetch the single instance.
-         */
-        var instance: Database? = null
-            get() {
-                if (field == null) {
-                    synchronized(Database::class.java) { field = Database() }
-                }
-                return field
-            }
-            private set
     }
     /**
      * Initialize the table.
