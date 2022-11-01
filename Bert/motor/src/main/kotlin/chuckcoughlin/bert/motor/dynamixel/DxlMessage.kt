@@ -46,16 +46,13 @@ class DxlMessage {
             ArrayList<MotorConfiguration?>() // Will hold the joints that need moving.
         mostRecentTravelTime = 0
         for (mc in configurationsByName.values) {
-            val pos: Double = mc.getPosition()
+            val pos: Double = mc.position
             if (pos == 0.0) {
-                LOGGER.info(
-                    java.lang.String.format(
+                LOGGER.info(String.format(
                         "%s.byteArrayListToInitializePositions: %s never evaluated, ignored",
-                        CLSS,
-                        mc.getJoint().name()
-                    )
-                )
-            } else if (pos > mc.getMaxAngle()) {
+                        CLSS,mc.joint.name))
+            }
+            else if (pos > mc.getMaxAngle()) {
                 LOGGER.info(
                     java.lang.String.format(
                         "%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
@@ -65,7 +62,8 @@ class DxlMessage {
                 mc.setPosition(mc.getMaxAngle())
                 outliers.add(mc)
                 if (mc.getTravelTime() > mostRecentTravelTime) mostRecentTravelTime = mc.getTravelTime()
-            } else if (pos < mc.getMinAngle()) {
+            }
+            else if (pos < mc.getMinAngle()) {
                 LOGGER.info(
                     java.lang.String.format(
                         "%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (min=%.0f)",
@@ -86,8 +84,8 @@ class DxlMessage {
                 leftHip.setPosition(MAX_HIP_X)
                 outliers.add(leftHip)
             }
-            if (rightHip.getPosition() > MAX_HIP_X) {
-                rightHip.setPosition(MAX_HIP_X)
+            if (rightHip.position > MAX_HIP_X) {
+                rightHip.position = MAX_HIP_X
                 outliers.add(rightHip)
             }
             // No pidgin toes
@@ -240,7 +238,7 @@ class DxlMessage {
      * @return up to 3 byte arrays as required by the pose
      */
     fun byteArrayListToSetPose(map: Map<String?, MotorConfiguration?>, pose: String?): List<ByteArray> {
-        val db: Database = Database.getInstance()
+        val db: Database = Database.get()
         val torques: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, "torque")
         val speeds: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, "speed")
         val positions: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, "position")

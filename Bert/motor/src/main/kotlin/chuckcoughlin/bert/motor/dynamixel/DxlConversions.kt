@@ -7,6 +7,12 @@ package chuckcoughlin.bert.motor.dynamixel
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.Companion.CLSS
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.Companion.LOGGER
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.Companion.range
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.Companion.resolution
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.Companion.torque
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.Companion.velocity
 import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.HashMap
@@ -16,49 +22,33 @@ import kotlin.collections.HashMap
  * Code is derived from Pypot dynamixel.conversion.py
  * Protocol 1 only.
  */
-class DxlConversions {
-    fun degreeToDxl(mc: MotorConfiguration?, value: Double): Int {
+object DxlConversions {
+    fun degreeToDxl(mc: MotorConfiguration, value: Double): Int {
         var value = value
-        if (value > mc.getMaxAngle()) {
-            LOGGER.warning(
-                java.lang.String.format(
-                    "%s.degreeToDxl: %s attempted move to %.0f (max = %.0f)",
-                    CLSS,
-                    mc.getJoint().name(),
-                    value,
-                    mc.getMaxAngle()
-                )
-            )
-            value = mc.getMaxAngle()
+        if (value > mc.maxAngle) {
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (max = %.0f)",
+                    CLSS,mc.joint.name,value,mc.maxAngle))
+            value = mc.maxAngle
         }
-        if (value < mc.getMinAngle()) {
-            LOGGER.warning(
-                java.lang.String.format(
-                    "%s.degreeToDxl: %s attempted move to %.0f (min = %.0f)",
-                    CLSS,
-                    mc.getJoint().name(),
-                    value,
-                    mc.getMinAngle()
-                )
-            )
-            value = mc.getMinAngle()
+        if (value < mc.minAngle) {
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (min = %.0f)",
+                    CLSS,mc.joint.name,value,mc.minAngle))
+            value = mc.minAngle
         }
-        mc.setPosition(value)
-        value = value - mc.getOffset()
-        val r = range!![mc.getType()]!!
+        mc.position = value
+        value = value - mc.offset
+        val r = range!![mc.type]!!
         if (!mc.isDirect()) value = r - value
         val res = resolution!![mc.getType()]!!
         var `val` = (value * res / r).toInt()
         `val` = `val` and res
         LOGGER.info(
-            java.lang.String.format(
-                "%s.degreeToDxl: %s b1,b2: %02X,%02X, offset %.0f %s",
-                CLSS,
-                mc.getJoint().name(),
+            String.format("%s.degreeToDxl: %s b1,b2: %02X,%02X, offset %.0f %s",
+                CLSS,mc.joint.name,
                 (`val` shr 8).toByte(),
                 `val` and 0xFF,
-                mc.getOffset(),
-                if (mc.isDirect()) "DIRECT" else "INDIRECT"
+                mc.offset,
+                if (mc.isDirect) "DIRECT" else "INDIRECT"
             )
         )
         return `val`
@@ -153,12 +143,12 @@ class DxlConversions {
     // of that property. These need to  be independent of motor type.
     fun addressForGoalProperty(name: String): Byte {
         var address: Byte = 0
-        if (name.equals(JointProperty.POSITION.name(), ignoreCase = true)) address = GOAL_POSITION else if (name.equals(
-                JointProperty.SPEED.name(),
-                ignoreCase = true
-            )
-        ) address = GOAL_SPEED else if (name.equals(JointProperty.TORQUE.name(), ignoreCase = true)) address =
-            GOAL_TORQUE else if (name.equals(JointProperty.STATE.name(), ignoreCase = true)) address =
+        if (name.equals(JointProperty.POSITION.name, ignoreCase = true)) {
+            address = GOAL_POSITION
+        }
+        else if (name.equals(JointProperty.SPEED.name,ignoreCase = true)
+        ) address = GOAL_SPEED else if (name.equals(JointProperty.TORQUE.name, ignoreCase = true)) address =
+            GOAL_TORQUE else if (name.equals(JointProperty.STATE.name, ignoreCase = true)) address =
             GOAL_TORQUE_ENABLE else {
             LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)", CLSS, name))
         }
@@ -169,8 +159,8 @@ class DxlConversions {
     // of that property. These need to  be independent of motor type.
     fun addressForPresentProperty(name: String): Byte {
         var address: Byte = 0
-        if (name.equals(JointProperty.MAXIMUMANGLE.name(), ignoreCase = true)) address =
-            MAXIMUM_ANGLE else if (name.equals(JointProperty.MINIMUMANGLE.name(), ignoreCase = true)) address =
+        if (name.equals(JointProperty.MAXIMUMANGLE.name, ignoreCase = true)) address =
+            MAXIMUM_ANGLE else if (name.equals(JointProperty.MINIMUMANGLE.name, ignoreCase = true)) address =
             MINIMUM_ANGLE else if (name.equals(JointProperty.POSITION.name(), ignoreCase = true)) address =
             PRESENT_POSITION else if (name.equals(JointProperty.SPEED.name(), ignoreCase = true)) address =
             PRESENT_SPEED else if (name.equals(JointProperty.TEMPERATURE.name(), ignoreCase = true)) address =
@@ -188,8 +178,8 @@ class DxlConversions {
     // Valid for Protocol 1 only.
     fun dataBytesForProperty(name: String): Byte {
         var length: Byte = 0
-        if (name.equals(JointProperty.MAXIMUMANGLE.name(), ignoreCase = true)) length = 2 else if (name.equals(
-                JointProperty.MINIMUMANGLE.name(),
+        if (name.equals(JointProperty.MAXIMUMANGLE.name, ignoreCase = true)) length = 2 else if (name.equals(
+                JointProperty.MINIMUMANGLE.name,
                 ignoreCase = true
             )
         ) length = 2 else if (name.equals(JointProperty.POSITION.name(), ignoreCase = true)) length =

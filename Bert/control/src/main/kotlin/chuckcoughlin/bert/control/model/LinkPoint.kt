@@ -28,8 +28,8 @@ class LinkPoint {
     var origin : LinkPoint
         private set
     val type: LinkPointType
-    private val appendage: Appendage
-    private val joint: Joint
+    val appendage: Appendage
+    val joint: Joint
 
     /**
      * Special constructor for the origin.
@@ -56,7 +56,7 @@ class LinkPoint {
         offset = pos
         orientation = degreesToRadians(rot)
     }
-    
+
     private fun degreesToRadians(array: DoubleArray): DoubleArray {
             var i = 0
             while (i < array.size) {

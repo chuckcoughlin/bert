@@ -26,13 +26,12 @@ class PoseTable {
      * @param command user entered string
      * @return the corresponding pose name if it exists, otherwise NULL
      */
-    fun getPoseForCommand(cxn: Connection?, command: String): String? {
+    fun getPoseForCommand(cxn: Connection?, cmd: String): String? {
         var pose: String? = null
         if( cxn!=null ) {
-            var command = command
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
-            command = command.lowercase(Locale.getDefault())
+            val command = cmd.lowercase(Locale.getDefault())
 
             val SQL = "select pose from PoseMap where command = ?"
             try {
@@ -143,14 +142,14 @@ class PoseTable {
      * Associate a pose with the specified command. If the command already exists
      * it will be updated.
      * @cxn an open database connection
-     * @param command user entered string
-     * @param pose the name of the pose to assume
+     * @param cmd user entered string
+     * @param pz the name of the pose to assume
      */
-    fun mapCommandToPose(cxn: Connection?, command: String, pose: String) {
+    fun mapCommandToPose(cxn: Connection?, cmd: String, pz: String) {
         if( cxn!=null ) {
             var statement: PreparedStatement? = null
-            var command = command.lowercase(Locale.getDefault())
-            var pose = pose.lowercase(Locale.getDefault())
+            val command = cmd.lowercase(Locale.getDefault())
+            val pose = pz.lowercase(Locale.getDefault())
             var SQL = "UPDATE PoseMap SET pose=? WHERE command = ?"
             try {
                 LOGGER.info(String.format("%s.mapCommandToPose: \n%s", CLSS, SQL))
@@ -209,7 +208,7 @@ class PoseTable {
                 prep = cxn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)
                 var index = 1
                 for (mc in map.values) {
-                    prep.setInt(index, mc.position as Int)
+                    prep.setInt(index, mc.position.toInt())
                     index++
                 }
                 prep.executeUpdate()
@@ -248,15 +247,13 @@ class PoseTable {
      * Save a list of motor position values as a pose. Try an update first. If no rows are affected
      * then do an insert.
      * @param mcmap contains a map of motor configurations. Joints not in the list are ignored.
-     * @param pose name
+     * @param pz name
      */
-    fun saveJointPositionsForPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>, pose: String) {
+    fun saveJointPositionsForPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>, pz: String) {
         if( cxn!=null ) {
-            var pose = pose
-
-            LOGGER.info(String.format("%s.saveJointPositionsForPose: %s)", CLSS, pose))
+            LOGGER.info(String.format("%s.saveJointPositionsForPose: %s)", CLSS, pz))
             var statement: PreparedStatement? = null
-            pose = pose.lowercase(Locale.getDefault())
+            val pose = pz.lowercase(Locale.getDefault())
             var SQL = StringBuffer("UPDATE Pose SET ")
             var index = 0
             for (mc in map.values) {
@@ -290,7 +287,7 @@ class PoseTable {
                     statement.setString(1, pose)
                     index = 2
                     for (mc in map.values) {
-                        statement.setInt(index, mc.position as Int)
+                        statement.setInt(index, mc.position.toInt())
                         index++
                     }
                     statement.executeUpdate()

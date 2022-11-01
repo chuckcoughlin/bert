@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 Charles Coughlin. All rights reserved.
+ * Copyright 2022 Charles Coughlin. All rights reserved.
  * MIT License
  */
 package chuckcoughlin.bert.common.message
@@ -59,20 +59,22 @@ data class MessageBottle (val type:RequestType) : Serializable {
         return responderCount
     }
 
-    fun getJointValue(joint: String, defaultValue: String?): String? {
+    fun getJointValue(joint: String, defaultValue: String): String {
+        var result = defaultValue
         var value = jointValues[joint]
-        if (value == null) value = defaultValue
-        return value
+        if (value != null) result = value!!
+        return result
     }
 
     fun setJointValue(joint: String, value: String) {
         jointValues[joint] = value
     }
 
-    fun getProperty(key: String, defaultValue: String?): String? {
+    fun getProperty(key: String, defaultValue: String): String {
+        var result = defaultValue
         var value = properties[key]
-        if (value == null) value = defaultValue
-        return value
+        if (value != null) result = value!!
+        return result
     }
 
     fun setProperty(key: String, value: String) {
@@ -93,8 +95,8 @@ data class MessageBottle (val type:RequestType) : Serializable {
      *
      * @return an error message. If there is no error message, return null.
      */
-    fun fetchError(): String? {
-        return getProperty(BottleConstants.ERROR, null)
+    fun fetchError(): String {
+        return getProperty(BottleConstants.ERROR, BottleConstants.NO_ERROR)
     }
 
     /**
@@ -116,10 +118,8 @@ data class MessageBottle (val type:RequestType) : Serializable {
      */
     fun fetchRequestType(): RequestType {
         var type = RequestType.NONE
-        val prop = getProperty(BottleConstants.TYPE, null)
-        if (prop != null) {
-            type = RequestType.valueOf(prop)
-        }
+        val prop = getProperty(BottleConstants.TYPE, type.name)
+        type = RequestType.valueOf(prop)
         return type
     }
 
@@ -157,8 +157,8 @@ data class MessageBottle (val type:RequestType) : Serializable {
      *
      * @return a source name. If there is no identified source, return null.
      */
-    fun fetchSource(): String? {
-        return getProperty(BottleConstants.SOURCE, null)
+    fun fetchSource(): String {
+        return getProperty(BottleConstants.SOURCE, BottleConstants.NO_SOURCE)
     }
 
     /**
@@ -178,7 +178,8 @@ data class MessageBottle (val type:RequestType) : Serializable {
         try {
             json = mapper.writeValueAsString(this)
             LOGGER.info(String.format("%s.toJSON: [%s]", CLSS, json))
-        } catch (ex: Exception) {
+        }
+        catch (ex: Exception) {
             LOGGER.severe(String.format("%s.toJSON: Exception (%s)", CLSS, ex.localizedMessage))
         }
         return json

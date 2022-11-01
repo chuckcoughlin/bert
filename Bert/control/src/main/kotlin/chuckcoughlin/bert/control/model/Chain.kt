@@ -1,8 +1,15 @@
 package chuckcoughlin.bert.control.model
 
-import bert.share.common.PathConstants
+
+import chuckcoughlin.bert.common.PathConstants
+import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.util.LoggerUtility
+import chuckcoughlin.bert.control.solver.Solver
 import java.nio.file.Paths
+import java.util.*
 import java.util.logging.Logger
+import kotlin.collections.HashMap
 
 /**
  * A Chain represents a tree of Links starting with the
@@ -16,17 +23,13 @@ import java.util.logging.Logger
  */
 class Chain {
     var root: Link? = null
-    private val linkByAppendage: MutableMap<Appendage?, Link>
-    private val jointParent: MutableMap<Joint?, Link>
-    private val linksByLimbName: MutableMap<String?, Link?>
-    private var origin: DoubleArray? = doubleArrayOf(0.0, 0.0, 0.0)
-    private var axis: DoubleArray? = doubleArrayOf(0.0, 0.0, 0.0)
+    private val linkByAppendage: MutableMap<Appendage, Link>
+    private val jointParent: MutableMap<Joint, Link>
+    private val linksByLimbName: MutableMap<String, Link>
+    private var origin: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0)
+    private var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
 
-    init {
-        jointParent = HashMap<Joint?, Link>()
-        linkByAppendage = HashMap<Appendage?, Link>()
-        linksByLimbName = HashMap()
-    }
+
 
     /**
      * As we add origin and endpoints, the new link gets added to the various
@@ -177,5 +180,11 @@ class Chain {
                 println(String.format("\t%s ", link.name))
             }
         }
+    }
+
+    init {
+        jointParent = HashMap<Joint?, Link>()
+        linkByAppendage = HashMap<Appendage?, Link>()
+        linksByLimbName = HashMap()
     }
 }

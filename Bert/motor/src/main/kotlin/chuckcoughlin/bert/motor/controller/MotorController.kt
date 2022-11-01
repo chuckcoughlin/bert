@@ -76,7 +76,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
     }
 
     fun putMotorConfiguration(name: String, mc: MotorConfiguration) {
-        configurationsById[mc.getId()] = mc
+        configurationsById[mc.id] = mc
         configurationsByName[name] = mc
     }
 
@@ -109,7 +109,8 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
                     port.purgePort(SerialPort.PURGE_TXCLEAR)
                     port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN or SerialPort.FLOWCONTROL_RTSCTS_OUT)
                     port.addEventListener(this)
-                } else {
+                }
+                else {
                     LOGGER.severe(
                         java.lang.String.format(
                             "%s.initialize: Failed to open port %s for %s",
@@ -173,17 +174,20 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
                 val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name())
                 if (!jointName.equals(Joint.UNKNOWN.name(), ignoreCase = true)) {
                     val mc: MotorConfiguration = configurationsByName[jointName] ?: return
-                } else if (!cName.isEmpty()) {
+                }
+                else if (!cName.isEmpty()) {
                     if (!cName.equals(controllerName, ignoreCase = true)) {
                         return
                     }
-                } else if (!limbName.equals(Limb.UNKNOWN.name(), ignoreCase = true)) {
+                }
+                else if (!limbName.equals(Limb.UNKNOWN.name(), ignoreCase = true)) {
                     val limb: Limb = Limb.valueOf(limbName)
                     val count = configurationsForLimb(limb).size
                     if (count == 0) {
                         return
                     }
-                } else {
+                }
+                else {
                     val propertyName: String =
                         request.getProperty(BottleConstants.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name())
                     LOGGER.info(
@@ -196,7 +200,8 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
                         )
                     )
                 }
-            } else {
+            }
+            else {
                 LOGGER.info(
                     java.lang.String.format(
                         "%s(%s).receiveRequest: multi-controller request (%s)",
@@ -209,7 +214,8 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
             requestQueue.addLast(request)
             // LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
             running.signal()
-        } finally {
+        }
+        finally {
             lock.unlock()
         }
     }
@@ -238,7 +244,8 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
                         writeBytesToSerial(bytes)
                         LOGGER.info(String.format("%s(%s).run: wrote %d bytes", CLSS, controllerName, bytes.size))
                     }
-                } else {
+                }
+                else {
                     val byteArrayList = messageToByteList(wrapper)
                     if (wrapper.responseCount > 0) {
                         responseQueue.addLast(wrapper)
@@ -844,10 +851,10 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
     }
 
     companion object {
-        protected const val CLSS = "MotorController"
-        private val LOGGER = Logger.getLogger(CLSS)
-        private const val BAUD_RATE = 1000000
-        private const val MIN_WRITE_INTERVAL = 100 // msecs between writes (50 was too short)
-        private const val STATUS_RESPONSE_LENGTH = 8 // byte count
+        const val CLSS = "MotorController"
+        val LOGGER = Logger.getLogger(CLSS)
+        const val BAUD_RATE = 1000000
+        const val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
+        const val STATUS_RESPONSE_LENGTH = 8 // byte count
     }
 }

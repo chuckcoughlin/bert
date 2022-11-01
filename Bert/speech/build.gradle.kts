@@ -5,7 +5,7 @@ plugins {
 // Make special reference to the compiled ANTLR classes
 repositories {
     flatDir {
-        dirs("../syntax/buiild/libs")
+        dirs("../syntax/build/libs")
     }
 }
 

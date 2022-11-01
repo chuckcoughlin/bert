@@ -8,7 +8,5 @@ package chuckcoughlin.bert.sql.db
  * Static constants indicating SQL Errors
  */
 object SQLConstants {
-    companion object {
-        protected const val SQL_NULL_CONNECTION : Long = -1
-    }
+    const val SQL_NULL_CONNECTION : Long = -1
 }

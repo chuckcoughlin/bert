@@ -5,7 +5,6 @@
  */
 package chuckcoughlin.bert.control.controller
 
-
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
@@ -47,7 +46,7 @@ class InternalController(launcher: MessageHandler) {
         if (qn != null) queue = sequentialQueues[qn]
         if (queue != null) {
             LOGGER.info(
-                String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.getMessage().fetchRequestType().name(),
+                String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.getMessage().fetchRequestType().name,
                     holder.getQueue().name, if (queue.isInProgress) "IN PROGRESS" else "IDLE"
                 )
             )
