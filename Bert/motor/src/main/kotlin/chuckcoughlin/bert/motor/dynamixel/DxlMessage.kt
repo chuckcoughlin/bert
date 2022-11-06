@@ -9,7 +9,7 @@ import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.motor.dynamixel.DxlMessage.converter
+import chuckcoughlin.bert.sql.db.Database
 import java.util.logging.Logger
 
 /**
@@ -41,45 +41,47 @@ object DxlMessage {
             }
             else if (pos > mc.maxAngle ) {
                 LOGGER.info(java.lang.String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
-                        CLSS, mc.getJoint().name(), pos, mc.getMaxAngle()))
+                        CLSS, mc.joint.name, pos, mc.maxAngle))
                 mc.position = mc.maxAngle
                 outliers.add(mc)
-                if (mc.getTravelTime() > mostRecentTravelTime) mostRecentTravelTime = mc.getTravelTime()
+                if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
             else if (pos < mc.minAngle ) {
-                LOGGER.info(
-                    java.lang.String.format(
-                        "%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (min=%.0f)",
-                        CLSS, mc.getJoint().name(), pos, mc.getMinAngle()
-                    )
-                )
-                mc.setPosition(mc.getMinAngle())
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (min=%.0f)",
+                        CLSS, mc.joint.name, pos, mc.minAngle))
+                mc.position = mc.minAngle
                 outliers.add(mc)
-                if (mc.getTravelTime() > mostRecentTravelTime) mostRecentTravelTime = mc.getTravelTime()
+                if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
         }
         // Add heuristics to avoid some common entanglements. Hip is only present in lower controller
         // No knock-knees
         var leftHip: MotorConfiguration? = configurationsByName[Joint.LEFT_HIP_X.name]
         if (leftHip != null) {
-            var rightHip: MotorConfiguration? = configurationsByName[Joint.RIGHT_HIP_X.name]
-            if (leftHip.getPosition() > MAX_HIP_X) {
-                leftHip.setPosition(MAX_HIP_X)
+            if (leftHip.position > MAX_HIP_X) {
+                leftHip.position = MAX_HIP_X
                 outliers.add(leftHip)
             }
-            if (rightHip.position > MAX_HIP_X) {
-                rightHip.position = MAX_HIP_X
-                outliers.add(rightHip)
+        }
+            var rightHip: MotorConfiguration? = configurationsByName[Joint.RIGHT_HIP_X.name]
+            if( rightHip!=null) {
+                if (rightHip.position > MAX_HIP_X) {
+                    rightHip.position = MAX_HIP_X
+                    outliers.add(rightHip)
+                }
             }
             // No pidgin toes
             leftHip = configurationsByName[Joint.LEFT_HIP_X.name]
-            rightHip = configurationsByName[Joint.LEFT_HIP_X.name]
-            if (leftHip.getPosition() < MIN_HIP_Z) {
-                leftHip.setPosition(MIN_HIP_Z)
-                outliers.add(leftHip)
+            if( leftHip!=null ) {
+                rightHip = configurationsByName[Joint.LEFT_HIP_X.name]
+                if (leftHip.position < MIN_HIP_Z) {
+                    leftHip.position = MIN_HIP_Z
+                    outliers.add(leftHip)
+                }
             }
-            if (rightHip.getPosition() < MIN_HIP_Z) {
-                rightHip.setPosition(MIN_HIP_Z)
+        if( rightHip!=null) {
+            if (rightHip.position < MIN_HIP_Z) {
+                rightHip.position = MIN_HIP_Z
                 outliers.add(rightHip)
             }
         }
@@ -92,20 +94,14 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION.name)
+            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in outliers) {
-                LOGGER.info(
-                    java.lang.String.format(
-                        "%s.byteArrayListToInitializePositions: set position for %s to %.0f",
-                        CLSS,
-                        mc.getJoint().name(),
-                        mc.getPosition()
-                    )
-                )
-                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION.name(), mc, mc.getPosition())
-                bytes[index] = mc.getId() as Byte
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",
+                        CLSS,mc.joint.name,mc.position))
+                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION, mc, mc.position)
+                bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
                 index = index + 3
@@ -121,24 +117,21 @@ object DxlMessage {
      * property. Unfortunately AX-12 motors do not support this request, so must be
      * queried separately (thus the list). Note that the bulk read results in individual
      * responses from each motor.
-     * @param propertyName the name of the desired property (must be a joint property)
+     * @param property the desired joint property
      * @return list of byte arrays with bulk read plus extras for any AX-12.
      */
-    fun byteArrayListToListProperty(
-            propertyName: String,
-            configurations: Collection<MotorConfiguration?>
-    ): List<ByteArray> {
+    fun byteArrayListToListProperty(property: JointProperty, configurations: Collection<MotorConfiguration>): List<ByteArray> {
         val messages: MutableList<ByteArray> = ArrayList()
         var count = configurations.size // Number of motors, less AX-12
         for (mc in configurations) {
-            if (mc.getType().equals(DynamixelType.AX12)) {
+            if (mc.type.equals(DynamixelType.AX12)) {
                 val length = 4 // Remaining bytes past length including checksum
                 val bytes = ByteArray(length + 4) // Account for header and length
-                setHeader(bytes, mc.getId())
+                setHeader(bytes, mc.id)
                 bytes[3] = length.toByte()
                 bytes[4] = READ
-                bytes[5] = DxlConversions.addressForPresentProperty(propertyName)
-                bytes[6] = DxlConversions.dataBytesForProperty(propertyName)
+                bytes[5] = DxlConversions.addressForPresentProperty(property)
+                bytes[6] = DxlConversions.dataBytesForProperty(property)
                 setChecksum(bytes)
                 messages.add(bytes)
                 count--
@@ -154,10 +147,10 @@ object DxlMessage {
         bytes[5] = 0
         var addr = 6
         for (mc in configurations) {
-            if (mc.getType().equals(DynamixelType.AX12)) continue
-            bytes[addr] = DxlConversions.dataBytesForProperty(propertyName)
-            bytes[addr + 1] = mc.getId() as Byte
-            bytes[addr + 2] = DxlConversions.addressForPresentProperty(propertyName)
+            if (mc.type.equals(DynamixelType.AX12)) continue
+            bytes[addr] = DxlConversions.dataBytesForProperty(property)
+            bytes[addr + 1] = mc.id as Byte
+            bytes[addr + 2] = DxlConversions.addressForPresentProperty(property)
             addr += 3
         }
         setChecksum(bytes)
@@ -172,7 +165,7 @@ object DxlMessage {
      * @param property, either speed,torque or torque_enable
      * @return a byte array with entries corresponding to joints, if any.
      */
-    fun byteArrayToSetProperty(map: Map<String?, MotorConfiguration?>, property: String): ByteArray? {
+    fun byteArrayToSetProperty(map: Map<String, MotorConfiguration>, property: JointProperty): ByteArray? {
         // First count all the joints in the limb
         val count = map.size
         var bytes: ByteArray? = null
@@ -188,20 +181,20 @@ object DxlMessage {
             bytes[6] = DxlConversions.dataBytesForProperty(property)
             var index = 7
             for (mc in map.values) {
-                bytes[index] = mc.getId() as Byte
-                if (property.equals(JointProperty.TORQUE.name(), ignoreCase = true)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name(), mc, mc.getTorque())
+                bytes[index] = mc.id as Byte
+                if (property.equals(JointProperty.TORQUE)) {
+                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE, mc, mc.torque)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
-                } else if (property.equals(JointProperty.SPEED.name(), ignoreCase = true)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED.name(), mc, mc.getSpeed())
+                }
+                else if (property.equals(JointProperty.SPEED)) {
+                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED, mc, mc.speed)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
-                } else if (property.equals(JointProperty.STATE.name(), ignoreCase = true)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(
-                        JointProperty.STATE.name(),
-                        mc,
-                        if (mc.isTorqueEnabled()) 1.0 else 0.0
+                }
+                else if (property.equals(JointProperty.STATE)) {
+                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.STATE,
+                        mc,if (mc.isTorqueEnabled) 1.0 else 0.0
                     )
                     bytes[index + 1] = dxlValue.toByte()
                 }
@@ -220,11 +213,11 @@ object DxlMessage {
      * @param pose name of the pose to be set
      * @return up to 3 byte arrays as required by the pose
      */
-    fun byteArrayListToSetPose(map: Map<String?, MotorConfiguration?>, pose: String?): List<ByteArray> {
-        val db: Database = Database()
-        val torques: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, "torque")
-        val speeds: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, "speed")
-        val positions: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, "position")
+    fun byteArrayListToSetPose(map: Map<String, MotorConfiguration>, pose: String?): List<ByteArray> {
+        val db: Database = Database.instance
+        val torques: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, JointProperty.TORQUE)
+        val speeds: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, JointProperty.SPEED)
+        val positions: Map<String?, Double> = db.getPoseJointValuesForParameter(map, pose, JointProperty.POSITION)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
         val tc = torques.size
@@ -235,16 +228,16 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.TORQUE.name())
+            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.TORQUE.name)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in torques.keys) {
                 val mc: MotorConfiguration? = map[key]
-                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name(), mc, torques[key]!!)
-                bytes[index] = mc.getId() as Byte
+                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE.name, mc, torques[key]!!)
+                bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.setTorque(torques[key]) // percent of max
+                mc.torque = torques[key] // percent of max
                 index = index + 3
             }
             setChecksum(bytes)
@@ -258,16 +251,16 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.SPEED.name())
+            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.SPEED.name)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in speeds.keys) {
                 val mc: MotorConfiguration? = map[key]
                 val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED.name(), mc, speeds[key]!!)
-                bytes[index] = mc.getId() as Byte
+                bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.setSpeed(speeds[key]) // percent of max
+                mc.speed = speeds[key] // percent of max
                 index = index + 3
             }
             setChecksum(bytes)
@@ -289,11 +282,11 @@ object DxlMessage {
                 val mc: MotorConfiguration? = map[key]
                 //LOGGER.info(String.format("%s.bytesToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.getId(),key,positions.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION.name(), mc, positions[key]!!)
-                bytes[index] = mc.getId() as Byte
+                bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.setPosition(positions[key])
-                if (mc.getTravelTime() > mostRecentTravelTime) mostRecentTravelTime = mc.getTravelTime()
+                mc.position = positions[key]
+                if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
                 index = index + 3
             }
             setChecksum(bytes)
@@ -355,17 +348,17 @@ object DxlMessage {
     /**
      * Create a serial message to read a specified property of a motor.
      * @param id of the motor
-     * @param propertyName the name of the desired property (must be a joint property)
+     * @param property the desired property
      * @return byte array with command to read the property
      */
-    fun bytesToGetProperty(id: Int, propertyName: String): ByteArray {
+    fun bytesToGetProperty(id: Int, property: JointProperty): ByteArray {
         val length = 4 // Remaining bytes past length including checksum
         val bytes = ByteArray(length + 4) // Account for header and length
         setHeader(bytes, id)
         bytes[3] = length.toByte()
         bytes[4] = READ
-        bytes[5] = DxlConversions.addressForPresentProperty(propertyName)
-        bytes[6] = DxlConversions.dataBytesForProperty(propertyName)
+        bytes[5] = DxlConversions.addressForPresentProperty(property)
+        bytes[6] = DxlConversions.dataBytesForProperty(property)
         setChecksum(bytes)
         return bytes
     }
@@ -374,46 +367,39 @@ object DxlMessage {
      * Create a serial message to write a goal for the motor. Recognized properties are:
      * position, speed, torque and torque_enable. All except torque enable are two byte parameters.
      * @param id of the motor
-     * @param propertyName the name of the desired property (must be a joint property)
+     * @param property the desired property
      * @return byte array with command to read the property
      */
-    fun bytesToSetProperty(mc: MotorConfiguration, propertyName: String, value: Double): ByteArray {
-        val dxlValue = converter.dxlValueForProperty(propertyName, mc, value)
-        val length = 3 + converter.dataBytesForProperty(propertyName) // Remaining bytes past length including checksum
+    fun bytesToSetProperty(mc: MotorConfiguration, property: JointProperty, value: Double): ByteArray {
+        val dxlValue = DxlConversions.dxlValueForProperty(property, mc, value)
+        val length = 3 + DxlConversions.dataBytesForProperty(property) // Remaining bytes past length including checksum
         val bytes = ByteArray(length + 4) // Account for header and length
-        setHeader(bytes, mc.getId())
+        setHeader(bytes, mc.id)
         bytes[3] = length.toByte()
         bytes[4] = WRITE
-        bytes[5] = converter.addressForGoalProperty(propertyName)
-        if (converter.dataBytesForProperty(propertyName).toInt() == 2) {
+        bytes[5] = DxlConversions.addressForGoalProperty(property)
+        if (DxlConversions.dataBytesForProperty(property).toInt() == 2) {
             bytes[6] = (dxlValue and 0xFF).toByte()
             bytes[7] = (dxlValue shr 8).toByte()
         } else {
             bytes[6] = dxlValue.toByte()
         }
         setChecksum(bytes)
-        if (propertyName.equals(JointProperty.POSITION.name(), ignoreCase = true)) {
-            mc.setPosition(value)
-            mostRecentTravelTime = mc.getTravelTime()
-        } else if (propertyName.equals(
-                JointProperty.SPEED.name(),
-                ignoreCase = true
-            )
-        ) mc.setSpeed(value) else if (propertyName.equals(
-                JointProperty.STATE.name(),
-                ignoreCase = true
-            )
-        ) mc.setTorqueEnabled(
-            if (value == 0.0) false else true
-        ) else if (propertyName.equals(
-                JointProperty.TEMPERATURE.name(),
-                ignoreCase = true
-            )
-        ) mc.setTemperature(value) else if (propertyName.equals(
-                JointProperty.TORQUE.name(),
-                ignoreCase = true
-            )
-        ) mc.setTorque(value)
+        if (property.equals(JointProperty.POSITION)) {
+            mc.position = value
+            mostRecentTravelTime = mc.travelTime
+        }
+        else if (property.equals(JointProperty.SPEED)) {
+            mc.speed = value
+        }
+        else if (property.equals(JointProperty.STATE)) {
+            mc.isTorqueEnabled = (if (value == 0.0) false else true)
+        }
+        else if (property.equals(JointProperty.TEMPERATURE)) {
+            mc.temperature = value
+        }
+        else if (property.equals(JointProperty.TORQUE)
+        ) mc.torque = value
         return bytes
     }
 
@@ -437,7 +423,8 @@ object DxlMessage {
             sb.append("(")
             sb.append(bytes.size)
             sb.append(")")
-        } else {
+        }
+        else {
             sb.append("null message")
         }
         return sb.toString()
@@ -453,18 +440,15 @@ object DxlMessage {
         var i = 0
         while (i < bytes.size - 2) {
             if (bytes[i] == 0xFF.toByte() &&
-                bytes[i] == 0xFF.toByte()
-            ) {
-                return if (i == 0) bytes else {
+                bytes[i] == 0xFF.toByte() ) {
+                return if (i == 0) {
+                    bytes
+                }
+                else {
                     val copy = ByteArray(bytes.size - i)
                     System.arraycopy(bytes, i, copy, 0, copy.size)
-                    LOGGER.warning(
-                        String.format(
-                            "%s.ensureLegalStart: cut %d bytes to provide legal msg",
-                            CLSS,
-                            i
-                        )
-                    )
+                    LOGGER.warning( String.format( "%s.ensureLegalStart: cut %d bytes to provide legal msg",
+                            CLSS,i))
                     copy
                 }
             }
@@ -524,33 +508,31 @@ object DxlMessage {
             val v1 = DxlConversions.valueForProperty(parameterName, mc, bytes[5], bytes[6])
             val t1 = DxlConversions.textForProperty(parameterName, mc, bytes[5], bytes[6])
             props[parameterName] = v1.toString()
-            mc.setPosition(v1)
-            parameterName = JointProperty.SPEED.name() // Non-directional
+            mc.position = v1
+            parameterName = JointProperty.SPEED.name // Non-directional
             var v2 = DxlConversions.valueForProperty(parameterName, mc, bytes[7], bytes[8])
             val t2 = DxlConversions.textForProperty(parameterName, mc, bytes[7], bytes[8])
             props[parameterName] = v2.toString()
-            v2 = v2 * 100.0 / DxlConversions.velocity!!.get(mc.getType())!! // Convert to percent
-            mc.setSpeed(v2)
-            parameterName = JointProperty.TORQUE.name() // Non-directional
+            v2 = v2 * 100.0 / DxlConversions.velocity.get(mc.type)!! // Convert to percent
+            mc.speed = v2
+            parameterName = JointProperty.TORQUE.name // Non-directional
             var v3 = DxlConversions.valueForProperty(parameterName, mc, bytes[9], bytes[10])
             val t3 = DxlConversions.textForProperty(parameterName, mc, bytes[9], bytes[10])
             props[parameterName] = v3.toString()
-            v3 = v2 * 100.0 / DxlConversions.torque!!.get(mc.getType())!! // Convert to percent
-            mc.setTorque(v3)
+            v3 = v2 * 100.0 / DxlConversions.torque!!.get(mc.type)!! // Convert to percent
+            mc.torque = v3
             val text = String.format("Goal position, speed and torque are : %s, %s, %s", t1, t2, t3)
             if (err.toInt() == 0) {
                 props[BottleConstants.TEXT] = text
-            } else {
-                msg = String.format(
-                    "%s.updateGoalsFromBytes: message returned error %d (%s)",
-                    CLSS,
-                    err,
-                    descriptionForError(err)
-                )
+            }
+            else {
+                msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",
+                    CLSS,err,descriptionForError(err))
                 props[BottleConstants.ERROR] = msg
                 LOGGER.severe(msg)
             }
-        } else {
+        }
+        else {
             msg = String.format("%s.updateGoalsFromBytes: Illegal message: %s", CLSS, dump(bytes))
             props[BottleConstants.ERROR] = msg
             LOGGER.severe(msg)
@@ -568,23 +550,23 @@ object DxlMessage {
      */
     fun updateLimitsFromBytes(mc: MotorConfiguration, props: MutableMap<String?, String?>, bytes: ByteArray) {
         var msg = ""
-        mc.setIsDirect(true)
-        mc.setOffset(0.0)
+        mc.isDirect = true
+        mc.offset = 0.0
         if (verifyHeader(bytes)) {
             msg = String.format("%s.updateLimitsFromBytes: %s", CLSS, dump(bytes))
             val id = bytes[2].toInt()
             val err = bytes[4]
-            var parameterName: String = JointProperty.MAXIMUMANGLE.name() // CW
-            val v1 = converter.valueForProperty(parameterName, mc, bytes[5], bytes[6])
-            val t1 = converter.textForProperty(parameterName, mc, bytes[5], bytes[6])
+            var parameterName: String = JointProperty.MAXIMUMANGLE.name // CW
+            val v1 = DxlConversions.valueForProperty(parameterName, mc, bytes[5], bytes[6])
+            val t1 = DxlConversions.textForProperty(parameterName, mc, bytes[5], bytes[6])
             props[parameterName] = v1.toString()
-            parameterName = JointProperty.MINIMUMANGLE.name() // CCW
-            val v2 = converter.valueForProperty(parameterName, mc, bytes[7], bytes[8])
-            val t2 = converter.textForProperty(parameterName, mc, bytes[7], bytes[8])
+            parameterName = JointProperty.MINIMUMANGLE.name // CCW
+            val v2 = DxlConversions.valueForProperty(parameterName, mc, bytes[7], bytes[8])
+            val t2 = DxlConversions.textForProperty(parameterName, mc, bytes[7], bytes[8])
             props[parameterName] = v2.toString()
-            parameterName = JointProperty.TORQUE.name() // Non-directional
-            val v3 = converter.valueForProperty(parameterName, mc, bytes[12], bytes[13])
-            val t3 = converter.textForProperty(parameterName, mc, bytes[12], bytes[13])
+            parameterName = JointProperty.TORQUE.name // Non-directional
+            val v3 = DxlConversions.valueForProperty(parameterName, mc, bytes[12], bytes[13])
+            val t3 = DxlConversions.textForProperty(parameterName, mc, bytes[12], bytes[13])
             props[parameterName] = v3.toString()
             val text = String.format("min, max angle and torque limits are : %s, %s, %s", t2, t1, t3)
             if (err.toInt() == 0) {
@@ -626,33 +608,25 @@ object DxlMessage {
             msg = String.format("%s.updateParameterFromBytes: %s", CLSS, dump(bytes))
             val id = bytes[2].toInt()
             val err = bytes[4]
-            val value = converter.valueForProperty(parameterName, mc, bytes[5], bytes[6])
-            val text = converter.textForProperty(parameterName, mc, bytes[5], bytes[6])
+            val value = DxlConversions.valueForProperty(parameterName, mc, bytes[5], bytes[6])
+            val text = DxlConversions.textForProperty(parameterName, mc, bytes[5], bytes[6])
             if (err.toInt() == 0) {
                 props[BottleConstants.PROPERTY_NAME] = parameterName
                 props[BottleConstants.TEXT] = text
                 props[parameterName] = String.format("%.2f", value)
                 mc.setProperty(parameterName, value)
-                LOGGER.info(
-                    java.lang.String.format(
-                        "%s.updateParameterFromBytes: %s %s=%.2f",
-                        CLSS,
-                        mc.getJoint(),
-                        parameterName,
-                        value
-                    )
+                LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.2f",
+                        CLSS,mc.joint,parameterName,value)
                 )
-            } else {
-                msg = String.format(
-                    "%s.updateParameterFromBytes: message returned error %d (%s)",
-                    CLSS,
-                    err,
-                    descriptionForError(err)
-                )
+            }
+            else {
+                msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",
+                    CLSS,err, descriptionForError(err))
                 props[BottleConstants.ERROR] = msg
                 LOGGER.severe(msg)
             }
-        } else {
+        }
+        else {
             msg = String.format("%s.updateParameterFromBytes: Illegal message: %s", CLSS, dump(bytes))
             props[BottleConstants.ERROR] = msg
             LOGGER.severe(msg)
@@ -669,7 +643,7 @@ object DxlMessage {
      * @param parameters an array of positions by id, supplied. This is augmented by the method.
      */
     fun updateParameterArrayFromBytes(parameterName: String,configurations: Map<Int, MotorConfiguration>,
-            bytes: ByteArray parameters: MutableMap<Int, String> ) {
+            bytes: ByteArray, parameters: MutableMap<Int, String> ) {
         var msg = ""
         var length = 7
         var index = 0
@@ -688,28 +662,19 @@ object DxlMessage {
                             CLSS,mc.joint.name,parameterName,param))
                 }
                 else if (err.toInt() != 0) {
-                    msg = String.format(
-                        "%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)", CLSS, id, err,
-                        descriptionForError(err)
-                    )
+                    msg = String.format( "%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",
+                        CLSS, id, err, descriptionForError(err))
                     LOGGER.severe(msg)
                 }
                 else if (mc == null) {
                     msg = String.format(
                         "%s.updateParameterArrayFromBytes: motor %d not supplied in motor configurations",
-                        CLSS,
-                        id,
-                        dump(bytes)
-                    )
+                        CLSS,id,dump(bytes))
                     LOGGER.severe(msg)
                 }
                 else if (bytes.size <= index + 6) {
-                    msg = String.format(
-                        "%s.updateParameterArrayFromBytes: motor %d input truncated (%s)",
-                        CLSS,
-                        id,
-                        dump(bytes)
-                    )
+                    msg = String.format("%s.updateParameterArrayFromBytes: motor %d input truncated (%s)",
+                        CLSS,id,)
                     LOGGER.severe(msg)
                 }
                 else {

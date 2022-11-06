@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.sql.pose
 
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import java.sql.*
@@ -75,7 +76,8 @@ class PoseTable {
      * @return list of upper-case joint names.
      */
     fun getPoseJointValuesForParameter(cxn: Connection?,mcmap: Map<String, MotorConfiguration>,
-                                        p: String,parameter: String?): Map<String, Double> {
+                                        p: String,parameter: JointProperty
+    ): Map<String, Double> {
 
         val map: MutableMap<String, Double> = HashMap()
         if( cxn!=null ) {
@@ -89,7 +91,7 @@ class PoseTable {
                 statement = cxn.prepareStatement(SQL)
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
                 statement.setString(1, pose)
-                statement.setString(2, parameter)
+                statement.setString(2, parameter.name.lowercase())
                 rs = statement.executeQuery()
                 val meta: ResultSetMetaData = rs.getMetaData()
                 val colCount: Int = meta.getColumnCount()

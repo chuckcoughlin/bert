@@ -8,7 +8,7 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.control.controller.QueueName
 
 /**
- * This is a base class for carriers of MessageBottles as they are processed by the
+ * This is a base class for carriers of MessageBottles as they are processed by an
  * InternalController. These come in two flavors - those that wait on a queue and
  * those wait on a timer. The queued messages may optionally have a timed delay as well.
  */

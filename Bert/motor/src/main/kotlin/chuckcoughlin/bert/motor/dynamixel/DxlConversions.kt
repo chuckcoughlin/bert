@@ -7,7 +7,6 @@ package chuckcoughlin.bert.motor.dynamixel
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
-import java.util.*
 import java.util.logging.Logger
 
 /**
@@ -130,56 +129,56 @@ object DxlConversions {
 
     // Convert the named property to a control table address for the present state
     // of that property. These need to  be independent of motor type.
-    fun addressForGoalProperty(name: String): Byte {
+    fun addressForGoalProperty(property: JointProperty): Byte {
         var address: Byte = 0
-        if (name.equals(JointProperty.POSITION.name, ignoreCase = true)) {
+        if (property.equals(JointProperty.POSITION)) {
             address = GOAL_POSITION
         }
-        else if (name.equals(JointProperty.SPEED.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.SPEED)) {
             address = GOAL_SPEED
         }
-        else if (name.equals(JointProperty.TORQUE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.TORQUE)) {
             address = GOAL_TORQUE
         }
-        else if (name.equals(JointProperty.STATE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.STATE)) {
             address = GOAL_TORQUE_ENABLE
         }
         else {
-            LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)", CLSS, name))
+            LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)", CLSS, property))
         }
         return address
     }
 
     // Convert the named property to a control table address for the present state
     // of that property. These need to  be independent of motor type.
-    fun addressForPresentProperty(name: String): Byte {
+    fun addressForPresentProperty(property: JointProperty): Byte {
         var address: Byte = 0
-        if (name.equals(JointProperty.MAXIMUMANGLE.name, ignoreCase = true)) {
+        if (property.equals(JointProperty.MAXIMUMANGLE)) {
             address = MAXIMUM_ANGLE
         }
-        else if (name.equals(JointProperty.MINIMUMANGLE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.MINIMUMANGLE)) {
             address = MINIMUM_ANGLE
         }
-        else if (name.equals(JointProperty.POSITION.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.POSITION)) {
             address = PRESENT_POSITION
         }
-        else if (name.equals(JointProperty.SPEED.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.SPEED)) {
             address = PRESENT_SPEED
         }
-        else if (name.equals(JointProperty.TEMPERATURE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.TEMPERATURE)) {
             address = PRESENT_TEMPERATURE
         }
-        else if (name.equals(JointProperty.TORQUE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.TORQUE)) {
             address = PRESENT_LOAD
         }
-        else if (name.equals(JointProperty.STATE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.STATE)) {
             address = GOAL_TORQUE_ENABLE
         }
-        else if (name.equals(JointProperty.VOLTAGE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.VOLTAGE)) {
             address = PRESENT_VOLTAGE
         }
         else {
-            LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)", CLSS, name))
+            LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)", CLSS, property))
         }
         return address
     }
@@ -187,52 +186,55 @@ object DxlConversions {
     // Return the data length for the named property in the control table. We assume that
     // present values and goals are the same number of bytes.
     // Valid for Protocol 1 only.
-    fun dataBytesForProperty(name: String): Byte {
+    fun dataBytesForProperty(property: JointProperty): Byte {
         var length: Byte = 0
-        if (name.equals(JointProperty.MAXIMUMANGLE.name, ignoreCase = true)) length = 2
-        else if (name.equals(JointProperty.MINIMUMANGLE.name,ignoreCase = true)) {
+        if (property.equals(JointProperty.MAXIMUMANGLE)) {
             length = 2
         }
-        else if (name.equals(JointProperty.POSITION.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.MINIMUMANGLE)) {
             length = 2
         }
-        else if (name.equals(JointProperty.SPEED.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.POSITION)) {
             length = 2
         }
-        else if (name.equals(JointProperty.TEMPERATURE.name,ignoreCase = true )) {
+        else if (property.equals(JointProperty.SPEED)) {
+            length = 2
+        }
+        else if (property.equals(JointProperty.TEMPERATURE )) {
             length = 1
         }
-        else if (name.equals(JointProperty.TORQUE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.TORQUE)) {
             length = 2
         }
-        else if (name.equals(JointProperty.STATE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.STATE)) {
             length = 1
         }
-        else if (name.equals(JointProperty.VOLTAGE.name,ignoreCase = true)) {
+        else if (property.equals(JointProperty.VOLTAGE)) {
             length = 1
         }
         else {
-            LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)", CLSS, name))
+            LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)", CLSS, property))
         }
         return length
     }
 
     // Convert the value into a raw setting for the motor. Position is in degrees, speed and torque are percent.
     // Valid for Protocol 1 only.
-    fun dxlValueForProperty(name: String, mc: MotorConfiguration, arg: Double): Int {
+    fun dxlValueForProperty(property: JointProperty, mc: MotorConfiguration, arg: Double): Int {
         var value = arg
         var dxlValue = 0
-        if (name.equals(JointProperty.POSITION.name, ignoreCase = true)) dxlValue =
-            degreeToDxl(mc, value)
-        else if (name.equals(JointProperty.SPEED.name, ignoreCase = true)) {
+        if (property.equals(JointProperty.POSITION)) {
+            dxlValue = degreeToDxl(mc, value)
+        }
+        else if (property.equals(JointProperty.SPEED)) {
             value = value * mc.maxSpeed / 100.0
             dxlValue = speedToDxl(mc, value)
         }
-        else if (name.equals(JointProperty.TORQUE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.TORQUE)) {
             value = value * mc.maxTorque / 100.0
             dxlValue = torqueToDxl(mc, value)
         }
-        else if (name.equals(JointProperty.STATE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.STATE)) {
             dxlValue = 1
             if (value == 0.0) dxlValue = 0
         }
@@ -241,37 +243,35 @@ object DxlConversions {
 
     // Convert the raw data bytes text describing the value and units. It may or may not use the second byte.
     // Presumably the ultimate will have more context.
-    fun textForProperty(name: String, mc: MotorConfiguration, b1: Byte, b2: Byte): String {
-        var name = name
-        name = name.lowercase(Locale.getDefault())
+    fun textForProperty(property: JointProperty, mc: MotorConfiguration, b1: Byte, b2: Byte): String {
         var text = ""
-        val value = valueForProperty(name, mc, b1, b2)
-        if (name.equals(JointProperty.MAXIMUMANGLE.name, ignoreCase = true)) {
+        val value = valueForProperty(property, mc, b1, b2)
+        if (property.equals(JointProperty.MAXIMUMANGLE)) {
             text = String.format("%.0f degrees", value)
         }
-        else if (name.equals(JointProperty.MINIMUMANGLE.name,ignoreCase = true)) {
+        else if (property.equals(JointProperty.MINIMUMANGLE) ) {
             text = String.format("%.0f degrees", value)
         }
-        else if (name.equals(JointProperty.POSITION.name,ignoreCase = true)) {
+        else if (property.equals(JointProperty.POSITION)) {
             text = String.format("%.0f degrees", value)
         }
-        else if (name.equals(JointProperty.SPEED.name,ignoreCase = true )) {
+        else if (property.equals(JointProperty.SPEED )) {
             text = String.format("%.0f degrees per second", value)
         }
-        else if (name.equals(JointProperty.TEMPERATURE.name,ignoreCase = true )) {
+        else if (property.equals(JointProperty.TEMPERATURE )) {
             text = String.format("%.0f degrees centigrade", value)
         }
-        else if (name.equals(JointProperty.TORQUE.name,ignoreCase = true)) {
+        else if (property.equals(JointProperty.TORQUE)) {
             text = String.format("%.1f newton-meters", value)
         }
-        else if (name.equals(JointProperty.STATE.name,ignoreCase = true)) {
+        else if (property.equals(JointProperty.STATE)) {
             text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
         }
-        else if (name.equals(JointProperty.VOLTAGE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.VOLTAGE)) {
             text = String.format("%.1f volts", value)
         }
         else {
-            LOGGER.warning(String.format("%s.textForProperty: Unrecognized property name (%s)", CLSS, name))
+            LOGGER.warning(String.format("%s.textForProperty: Unrecognized property name (%s)", CLSS, property.name))
         }
         return text
     }
@@ -279,35 +279,36 @@ object DxlConversions {
     // Convert the raw data bytes into a double value. It may or may not use the second byte.
     // Value is engineering units.
     // Valid for Protocol 1 only.
-    fun valueForProperty(name: String, mc: MotorConfiguration, b1: Byte, b2: Byte): Double {
+    fun valueForProperty(property: JointProperty, mc: MotorConfiguration, b1: Byte, b2: Byte): Double {
         var value = 0.0
-        if (name.equals(JointProperty.MAXIMUMANGLE.name, ignoreCase = true)) {
+        if (property.equals(JointProperty.MAXIMUMANGLE)) {
             value = dxlToDegree(mc, b1, b2)
         }
-        else if (name.equals(JointProperty.MINIMUMANGLE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.MINIMUMANGLE)) {
             value = dxlToDegree(mc, b1, b2)
         }
-        else if (name.equals(JointProperty.POSITION.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.POSITION)) {
             value = dxlToDegree(mc, b1, b2)
         }
-        else if (name.equals(JointProperty.SPEED.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.SPEED)) {
             value =
                 dxlToSpeed(mc, b1, b2)
         }
-        else if (name.equals(JointProperty.TEMPERATURE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.TEMPERATURE)) {
             value = dxlToTemperature(b1)
         }
-        else if (name.equals(JointProperty.TORQUE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.TORQUE)) {
             value = dxlToTorque(mc, b1, b2)
         }
-        else if (name.equals(JointProperty.STATE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.STATE)) {
             value = dxlToTorqueEnable(mc, b1)
         }
-        else if (name.equals(JointProperty.VOLTAGE.name, ignoreCase = true)) {
+        else if (property.equals(JointProperty.VOLTAGE)) {
             value = dxlToVoltage(b1)
         }
         else {
-            LOGGER.warning(String.format("%s.valueForProperty: Unrecognized property name (%s)", CLSS, name))
+            LOGGER.warning(String.format("%s.valueForProperty: Unrecognized property name (%s)",
+                CLSS, property.name))
         }
         return value
     }

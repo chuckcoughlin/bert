@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":control"))
     implementation(project(":motor"))
+    implementation(project(":database"))
 }
 
 application {

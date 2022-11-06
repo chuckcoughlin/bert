@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.sql.db
 
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.sql.pose.PoseTable
 import org.sqlite.JDBC
@@ -30,13 +31,7 @@ class Database private constructor() {
     /**
      * Static method to create and/or fetch the single instance.
      */
-    var instance: Database? = null
-        get() {
-            if (field == null) {
-                synchronized(Database::class.java) { field = Database() }
-            }
-            return field
-        }
+    var database: Database = Database()
         private set
 
     /**
@@ -55,7 +50,8 @@ class Database private constructor() {
      * @return list of upper-case joint names.
      */
     fun getPoseJointValuesForParameter(
-        mcmap: Map<String, MotorConfiguration>,poseName: String,parameter: String): Map<String, Double> {
+        mcmap: Map<String, MotorConfiguration>,poseName: String,parameter: JointProperty
+    ): Map<String, Double> {
         return pose.getPoseJointValuesForParameter(connection, mcmap, poseName, parameter)
     }
 

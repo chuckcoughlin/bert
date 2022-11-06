@@ -1,13 +1,19 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.control.solver
 
+import chuckcoughlin.bert.common.PathConstants
+import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.control.model.Link
-import bert.share.common.PathConstants
+import chuckcoughlin.bert.control.model.URDFModel
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 import java.util.logging.Logger
 
 /**
@@ -39,12 +45,12 @@ class Solver {
      * motor configurations. Mark the links as "dirty".
      */
     fun setTreeState() {
-        val links: Collection<Link> = model.getChain().getLinks()
+        val links: Collection<Link> = model.chain.getLinks()
         for (link in links) {
             link.setDirty()
             val joint: Joint? = link.linkPoint.joint
             val mc: MotorConfiguration? = motorConfigurations!![joint]
-            link.jointAngle = mc.getPosition()
+            link.jointAngle = mc.position
         }
     }
 
@@ -65,7 +71,7 @@ class Solver {
      * robot origin in the pelvis.
      */
     fun getPosition(appendage: Appendage?): DoubleArray? {
-        val subchain: List<Link> = model.getChain().partialChainToAppendage(appendage)
+        val subchain: List<Link> = model.chain.partialChainToAppendage(appendage)
         return if (subchain.size > 0) subchain[0].coordinates else ERROR_POSITION
     }
 
@@ -74,7 +80,7 @@ class Solver {
      * robot origin in the pelvis in the inertial reference frame.
      */
     fun getPosition(joint: Joint?): DoubleArray? {
-        val subchain: List<Link> = model.getChain().partialChainToJoint(joint)
+        val subchain: List<Link> = model.chain.partialChainToJoint(joint)
         return if (subchain.size > 0) subchain[0].coordinates else ERROR_POSITION
     }
 
@@ -90,7 +96,7 @@ class Solver {
      */
     fun setJointPosition(joint: Joint?, pos: Double) {
         val mc: MotorConfiguration? = motorConfigurations!![joint]
-        mc.setPosition(pos)
+        mc.position = pos
     }
 
     companion object {

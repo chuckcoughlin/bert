@@ -38,7 +38,11 @@ tasks.jar {
     doLast {
         println("syntax:jar task ....")
         from(listOf("${buildDir}/classes/java/main"))
-
+        // Put the jar file in a public place
+        copy {
+            from("${buildDir}/libs/syntax.jar")
+            into("${buildDir}/../lib/syntax.jar")
+        }
         println("syntax:jar task complete.")
     }
 }

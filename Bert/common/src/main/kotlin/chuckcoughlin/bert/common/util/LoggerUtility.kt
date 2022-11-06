@@ -41,9 +41,11 @@ private constructor() {
             fh.level = Level.INFO
             root.addHandler(fh)
             fh.formatter = BertFormatter()
-        } catch (e: SecurityException) {
+        }
+        catch (e: SecurityException) {
             e.printStackTrace()
-        } catch (e: IOException) {
+        }
+        catch (e: IOException) {
             e.printStackTrace()
         }
     }
@@ -84,7 +86,8 @@ private constructor() {
                     record.thrown.printStackTrace(pw)
                     pw.close()
                     sb.append(sw.toString())
-                } catch (ex: Exception) {
+                }
+                catch (ex: Exception) {
                 }
             }
             return sb.toString()
@@ -99,7 +102,7 @@ private constructor() {
         /**
          * Static method to create and/or fetch the single instance.
          */
-        var instance: LoggerUtility? = null
+        var instance: LoggerUtility = LoggerUtility()
             get() {
                 if (field == null) {
                     synchronized(LoggerUtility::class.java) { field = LoggerUtility() }
