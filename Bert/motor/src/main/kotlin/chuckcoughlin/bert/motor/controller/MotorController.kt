@@ -26,21 +26,20 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 /**
- * Handle requests directed to a specific controllerName of motors. All motors under the
+ * Handle requests directed to a specific set of motors. All motors under the
  * same controller are connected to the same serial port. We respond to the group controller
  * using call-backs. The responses from the serial port do not necessarily keep
  * to request boundaries. All we are sure of is that the requests are processed
  * in order.
  *
- * The configuration array has only those joints that are part of the controllerName.
+ * The configuration array has only those joints that are part of the controller set.
  * It is important that the MotorConfiguration objects are the same objects
  * (not clones) as those held by the MotorManager (MotorGroupController).
  */
-class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable, SerialPortEventListener {
-    private val running: Condition
-    private val dxl: DxlMessage
-    val controllerName // Group name
-            : String
+class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPortEventListener {
+    val running: Condition
+        private set
+    val controllerName : String // Group name
     private val lock: Lock
     private val port: SerialPort
     private var stopped = false
@@ -54,19 +53,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
             : LinkedList<MessageWrapper>
     private var timeOfLastWrite: Long
 
-    init {
-        dxl = DxlMessage()
-        controllerName = name
-        port = p
-        motorManager = mm
-        configurationsById = HashMap<Int, MotorConfiguration>()
-        configurationsByName = HashMap<String, MotorConfiguration>()
-        requestQueue = LinkedList<MessageBottle>()
-        responseQueue = LinkedList<MessageWrapper>()
-        lock = ReentrantLock()
-        running = lock.newCondition()
-        timeOfLastWrite = System.nanoTime() / 1000000
-    }
+
 
     val configurations: Map<String, Any>
         get() = configurationsByName
@@ -91,14 +78,8 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
      * 3) moves any limbs that are "out-of-bounds" back into range.
      */
     fun initialize() {
-        LOGGER.info(
-            java.lang.String.format(
-                "%s(%s).initialize: Initializing port %s)",
-                CLSS,
-                controllerName,
-                port.getPortName()
-            )
-        )
+        LOGGER.info(String.format("%s(%s).initialize: Initializing port %s)",
+                CLSS,controllerName,port.getPortName()))
         if (!port.isOpened()) {
             try {
                 val success: Boolean = port.openPort()
@@ -111,16 +92,12 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
                     port.addEventListener(this)
                 }
                 else {
-                    LOGGER.severe(
-                        java.lang.String.format(
+                    LOGGER.severe(String.format(
                             "%s.initialize: Failed to open port %s for %s",
-                            CLSS,
-                            port.getPortName(),
-                            controllerName
-                        )
-                    )
+                            CLSS,port.getPortName(),controllerName))
                 }
-            } catch (spe: SerialPortException) {
+            }
+            catch (spe: SerialPortException) {
                 LOGGER.severe(
                     java.lang.String.format(
                         "%s.initialize: Error opening port %s for %s (%s)",
@@ -349,10 +326,12 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
      */
     private fun returnsStatusArray(msg: MessageBottle?): Boolean {
         return if (msg.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)
-        ) {
+                  msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
             true
-        } else false
+        }
+        else {
+            false
+        }
     }
 
     /**
@@ -373,16 +352,17 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
                 for (mc in configurationsByName.values) {
                     mc.setTorqueEnabled(true)
                 }
-                bytes = dxl.byteArrayToSetProperty(configurationsByName, propertyName)
+                bytes = DxlMessage.byteArrayToSetProperty(configurationsByName, propertyName)
                 wrapper.responseCount = 0 // No response
-            } else if (type.equals(RequestType.COMMAND) &&
+            }
+            else if (type.equals(RequestType.COMMAND) &&
                 request.getProperty(BottleConstants.COMMAND_NAME, "").equalsIgnoreCase(BottleConstants.COMMAND_RELAX)
             ) {
                 for (mc in configurationsByName.values) {
                     mc.setTorqueEnabled(false)
                 }
                 val propertyName: String = JointProperty.STATE.name()
-                bytes = dxl.byteArrayToSetProperty(configurationsByName, propertyName)
+                bytes = DxlMessage.byteArrayToSetProperty(configurationsByName, propertyName)
                 wrapper.responseCount = 0 // No response
             } else if (type.equals(RequestType.GET_GOALS)) {
                 val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, "")
@@ -856,5 +836,17 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : Runnable,
         const val BAUD_RATE = 1000000
         const val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
         const val STATUS_RESPONSE_LENGTH = 8 // byte count
+    }
+    init {
+        controllerName = name
+        port = p
+        motorManager = mm
+        configurationsById = HashMap<Int, MotorConfiguration>()
+        configurationsByName = HashMap<String, MotorConfiguration>()
+        requestQueue = LinkedList<MessageBottle>()
+        responseQueue = LinkedList<MessageWrapper>()
+        lock = ReentrantLock()
+        running = lock.newCondition()
+        timeOfLastWrite = System.nanoTime() / 1000000
     }
 }

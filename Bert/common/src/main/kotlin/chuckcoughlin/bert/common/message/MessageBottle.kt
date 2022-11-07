@@ -27,7 +27,6 @@ import java.util.logging.Logger
 data class MessageBottle (val type:RequestType) : Serializable {
     var properties : MutableMap<String, String> // Multiple properties for a single motor
     var jointValues : MutableMap<String, String> // A single property for multiple motors
-
     var id: Long = 0
 
     /**

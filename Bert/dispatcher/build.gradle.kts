@@ -1,7 +1,15 @@
+// Gradle build script (Kotlin style) for the "dispatcher" module
 
 plugins {
     id("bert.application-conventions")
     application
+}
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs("../lib")
+    }
 }
 
 dependencies {

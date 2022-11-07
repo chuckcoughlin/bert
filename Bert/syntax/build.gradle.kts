@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     antlr("org.antlr:antlr4:4.7.1")
-    //implementation(files("antlr-runtime-4.7.2.jar"))
+    implementation(files("syntax.jar"))
     //testImplementation("org.antlr:antlr-runtime-4.7.2")
 }
 

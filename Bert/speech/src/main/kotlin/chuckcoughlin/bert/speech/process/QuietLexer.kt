@@ -9,7 +9,9 @@
 package chuckcoughlin.bert.speech.process
 
 import org.antlr.v4.runtime.CharStream
-
+import org.antlr.v4.runtime.LexerNoViableAltException
+import org.antlr.v4.runtime.RecognitionException
+import chuckcoughlin.bert.syntax.SpeechSyntaxLexer
 /**
  * This class is a failed attempt to quiet the lexer complaints about
  * token recognition errors whenever we hit whitespace.
@@ -21,16 +23,14 @@ class QuietLexer(input: CharStream?) : SpeechSyntaxLexer(input) {
      *
      * line 1:13 token recognition error at: ' '
      */
-    fun recover(e: LexerNoViableAltException?) {
+    override fun recover(e: LexerNoViableAltException) {
         super.recover(e)
         // log.info(TAG+"AFTER recover LexerNoViableAltException");
     }
 
-    fun recover(e: RecognitionException?) {
+    override fun recover(e: RecognitionException) {
         super.recover(e)
     }
 
-    companion object {
-        private const val CLSS = "QuietLexer"
-    }
+    val CLSS = "QuietLexer"
 }

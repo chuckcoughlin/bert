@@ -148,7 +148,7 @@ class InternalController(launcher: MessageHandler) {
      */
     private fun sendToTimerQueue(queue: SequentialQueue?, holder: InternalMessageHolder?) {
         if (queue != null) {
-            pendingMessages[holder.getMessage().getId()] = holder
+            pendingMessages[holder.message.id] = holder
             // LOGGER.info(String.format("%s.sendToTimerQueue: %d from %s",CLSS,holder.getMessage().getId(),holder.getQueue().name()));
             queue.isInProgress = true
         }

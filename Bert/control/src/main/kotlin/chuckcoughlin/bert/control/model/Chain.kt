@@ -52,7 +52,8 @@ class Chain {
                 jointParent[j] = link
             }
             link.setEndPoint(lp)
-        } else {
+        }
+        else {
             LOGGER.warning(String.format("%s.setEndPoint: No link %s found", CLSS, name))
         }
     }

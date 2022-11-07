@@ -35,7 +35,6 @@ class MotorConfiguration : Serializable {
     var maxSpeed : Double
     var maxTorque : Double
     var isDirect: Boolean
-        private set
 
     /**
      * When we set a new position, use the previous position and speed

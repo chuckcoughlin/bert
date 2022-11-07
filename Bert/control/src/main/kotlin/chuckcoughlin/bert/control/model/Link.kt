@@ -26,8 +26,10 @@ class Link(val name: String) {
     var isDirty = true // Requires calculations
         private set
     var parent: Link? = null
-    private var angle: Double
-    private val coordinates = doubleArrayOf(0.0, 0.0, 0.0)
+        private set
+    var angle: Double
+        private set
+    val coordinates = doubleArrayOf(0.0, 0.0, 0.0)
 
     /**
      * Define a link given the name. The name must be unique.
@@ -85,31 +87,27 @@ class Link(val name: String) {
             if (parent != null) {
                 coords = parent!!.getCoordinates()
                 alpha = parent!!.jointAngle
-                val orient = parent!!.linkPoint.getOrientation()
+                val orient = parent!!.linkPoint.orientation
                 rotation = rotationFromCoordinates(coords)
-                rotation[0] = rotation[0] + orient!![0]
-                rotation[1] = rotation[1] + orient!![1]
-                rotation[2] = rotation[2] + orient!![2]
-            } else {
-                coords = LinkPoint.Companion.getOrigin().getOffset()
-                rotation = LinkPoint.Companion.getOrigin().getOrientation()
+                rotation[0] = rotation[0] + orient[0]
+                rotation[1] = rotation[1] + orient[1]
+                rotation[2] = rotation[2] + orient[2]
+            }
+            else {
+                coords = LinkPoint.Companion.origin.offset
+                rotation = LinkPoint.Companion.origin().orientation
                 alpha = Math.PI
             }
             LOGGER.info(
-                java.lang.String.format(
-                    "%s.getCoordinates: %s (%s) ---------------",
-                    CLSS,
-                    name,
-                    linkPoint!!.joint.name()
+                java.lang.String.format("%s.getCoordinates: %s (%s) ---------------",
+                    CLSS,name,linkPoint!!.joint.name
                 )
             )
             LOGGER.info(String.format("           rotation = %.2f,%.2f,%.2f", rotation[0], rotation[1], rotation[2]))
-            val offset = linkPoint.getOffset()
+            val offset = linkPoint.offset
             LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f", offset!![0], offset!![1], offset!![2]))
             val q0 = Quaternion(alpha, rotation[0], rotation[1], rotation[2])
-            LOGGER.info(
-                java.lang.String.format(
-                    "           q0       = %.2f,%.2f,%.2f,%.2f",
+            LOGGER.info(String.format("           q0       = %.2f,%.2f,%.2f,%.2f",
                     q0.getQ0(),
                     q0.getQ1(),
                     q0.getQ2(),
@@ -117,19 +115,10 @@ class Link(val name: String) {
                 )
             )
             val v = Quaternion(0.0, offset!![0], offset!![1], offset!![2])
-            LOGGER.info(
-                java.lang.String.format(
-                    "           v        = %.2f,%.2f,%.2f,%.2f",
-                    v.getQ0(),
-                    v.getQ1(),
-                    v.getQ2(),
-                    v.getQ3()
-                )
-            )
+            LOGGER.info(String.format("           v        = %.2f,%.2f,%.2f,%.2f",
+                    v.getQ0(), v.getQ1(),v.getQ2(),v.getQ3()))
             val inverse: Quaternion = q0.getInverse()
-            LOGGER.info(
-                java.lang.String.format(
-                    "           inverse  = %.2f,%.2f,%.2f,%.2f",
+            LOGGER.info(String.format("           inverse  = %.2f,%.2f,%.2f,%.2f",
                     inverse.getQ0(),
                     inverse.getQ1(),
                     inverse.getQ2(),
@@ -137,9 +126,7 @@ class Link(val name: String) {
                 )
             )
             val result: Quaternion = q0.multiply(v).multiply(inverse)
-            LOGGER.info(
-                java.lang.String.format(
-                    "           result   = %.2f,%.2f,%.2f,%.2f",
+            LOGGER.info(String.format("           result   = %.2f,%.2f,%.2f,%.2f",
                     result.getQ0(),
                     result.getQ1(),
                     result.getQ2(),
@@ -149,14 +136,8 @@ class Link(val name: String) {
             coordinates[0] = coords[0] + result.getQ1()
             coordinates[1] = coords[1] + result.getQ2()
             coordinates[2] = coords[2] + result.getQ3()
-            LOGGER.info(
-                String.format(
-                    "      coordinates   = %.2f,%.2f,%.2f",
-                    coordinates[0],
-                    coordinates[1],
-                    coordinates[2]
-                )
-            )
+            LOGGER.info(String.format("      coordinates   = %.2f,%.2f,%.2f",
+                    coordinates[0],coordinates[1],coordinates[2]))
             isDirty = false
         }
         return coordinates

@@ -13,6 +13,9 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CodePointCharStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
+import chuckcoughlin.bert.syntax.SpeechSyntaxLexer
+import chuckcoughlin.bert.syntax.StatementTranslator
+import java.awt.SystemColor.text
 import java.io.ByteArrayInputStream
 
 /**
@@ -61,10 +64,10 @@ class StatementParser {
      * @return a request bottle to be sent to the server
      */
     @Throws(Exception::class)
-    fun parseStatement(text: String?): MessageBottle {
-        var text = text
+    fun parseStatement(txt: String): MessageBottle {
+        var text = txt
         val bottle = MessageBottle()
-        if (text != null) {
+        if ( !text.isBlank() ) {
             if (context[SharedKey.PARTIAL] != null) {
                 text = String.format("%s %s", context[SharedKey.PARTIAL], text)
                 context.remove(SharedKey.PARTIAL)
@@ -84,7 +87,8 @@ class StatementParser {
             if (bottle.fetchRequestType().equals(RequestType.PARTIAL)) {
                 context[SharedKey.PARTIAL] = text
             }
-        } else {
+        }
+        else {
             bottle.assignError("Empty")
         }
         return bottle

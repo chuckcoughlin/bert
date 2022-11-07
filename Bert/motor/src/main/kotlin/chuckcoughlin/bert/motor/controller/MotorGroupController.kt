@@ -4,12 +4,18 @@
  */
 package chuckcoughlin.bert.motor.controller
 
+import chuckcoughlin.bert.common.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.RobotMotorModel
 import jssc.SerialPort
+import java.util.*
 import java.util.logging.Logger
+import kotlin.collections.HashMap
 
 /**
  * The MotorGroupController receives requests from the server having to do with
@@ -23,28 +29,13 @@ import java.util.logging.Logger
  * requests being made.
  */
 class MotorGroupController(m: RobotMotorModel) : MotorManager {
-    private val model: RobotMotorModel
+    private val model: RobotMotorModel = m
     private val motorControllers: MutableMap<String, MotorController>
     private val motorNameById: MutableMap<Int, String>
     private val motorControllerThreads: MutableMap<String, Thread>
     private val development: Boolean
-    private override var controllerCount: Int
-    private var responseHandler: MessageHandler? = null // Dispatcher
-
-    /**
-     * Constructor:
-     * @param m the server model
-     */
-    init {
-        model = m
-        controllerCount = 0
-        motorControllers = HashMap()
-        motorControllerThreads = HashMap()
-        motorNameById = HashMap()
-        LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
-        LOGGER.info(String.format("%s: os.name = %s", CLSS, System.getProperty("os.name"))) // Mac OS X
-        development = System.getProperty("os.arch").startsWith("x86")
-    }
+    override var controllerCount
+    private var lazy responseHandler: MessageHandler // Dispatcher - delayed initialization
 
     /**
      * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
@@ -53,8 +44,8 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
      */
     fun initialize() {
         if (!development) {
-            val controllerNames: Set<String> = model.getHandlerTypes().keySet()
-            val motors: Map<Joint, MotorConfiguration> = model.getMotors()
+            val controllerNames: Set<String> = model.handlerTypes.keys
+            val motors: Map<Joint, MotorConfiguration> = model.motors
             for (cname in controllerNames) {
                 val port: SerialPort = model.getPortForController(cname) ?: continue
                 // Controller is not a motor controller
@@ -72,8 +63,9 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                     if (motor != null) {
                         //LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name(),controller.getGroupName()));
                         controller.putMotorConfiguration(joint.name(), motor)
-                        motorNameById[motor.getId()] = joint.name()
-                    } else {
+                        motorNameById[motor.id] = joint.name()
+                    }
+                    else {
                         LOGGER.warning(
                             java.lang.String.format(
                                 "%s.initialize: Motor %s not found in %s",
@@ -100,7 +92,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
         return motorControllers.size
     }
 
-    fun setResponseHandler(mh: MessageHandler?) {
+    fun setResponseHandler(mh: MessageHandler) {
         responseHandler = mh
     }
 
@@ -303,19 +295,19 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                         text = "The id of my $jointName is $id"
                     }
 
-                    MAXIMUMANGLE -> text = java.lang.String.format(
+                    JointProperty.MAXIMUMANGLE -> text = java.lang.String.format(
                         "The maximum angle of my %s is %.0f degrees",
                         jointName,
                         mc.getMaxAngle()
                     )
 
-                    MINIMUMANGLE -> text = java.lang.String.format(
+                    JointProperty.MINIMUMANGLE -> text = java.lang.String.format(
                         "The minimum angle of my %s is %.0f degrees",
                         jointName,
                         mc.getMinAngle()
                     )
 
-                    MOTORTYPE -> {
+                    JointProperty.MOTORTYPE -> {
                         var modelName = "A X 12"
                         if (mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28" else if (mc.getType()
                                 .equals(DynamixelType.MX64)
@@ -323,12 +315,12 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                         text = "My $jointName is a dynamixel $modelName"
                     }
 
-                    OFFSET -> {
+                    JointProperty.OFFSET -> {
                         val offset: Double = mc.getOffset()
                         text = "The offset of my $jointName is $offset"
                     }
 
-                    ORIENTATION -> {
+                    JointProperty.ORIENTATION -> {
                         var orientation = "indirect"
                         if (mc.isDirect()) orientation = "direct"
                         text = "The orientation of my $jointName is $orientation"
@@ -372,33 +364,28 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                     request.setJointValue(JointProperty.MOTORTYPE.name(), mc.getType().name())
                 }
             }
-        } else if (request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
+        }
+        else if (request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
             val property: JointProperty = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""))
-            LOGGER.info(
-                java.lang.String.format(
-                    "%s.createResponseForLocalRequest: %s %s for all motors",
-                    CLSS,
-                    request.fetchRequestType().name(),
-                    property.name()
-                )
-            )
+            LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
+                    CLSS,request.fetchRequestType().name(),property.name()))
             var text: String? = ""
-            val mcs: Map<Joint, MotorConfiguration> = model.getMotors()
+            val mcs: Map<Joint, MotorConfiguration> = model.motors
             for (joint in mcs.keys) {
-                val mc: MotorConfiguration? = mcs[joint]
+                val mc: MotorConfiguration = mcs[joint]!!
                 when (property) {
                     ID -> {
                         val id: Int = mc.getId()
                         text = "The id of $joint is $id"
                     }
 
-                    MAXIMUMANGLE -> text =
+                    JointProperty.MAXIMUMANGLE -> text =
                         java.lang.String.format("The maximum angle for %s is %.0f degrees", joint, mc.getMaxAngle())
 
-                    MINIMUMANGLE -> text =
+                    JointProperty.MINIMUMANGLE -> text =
                         java.lang.String.format("The minimum angle for %s is %.0f degrees", joint, mc.getMinAngle())
 
-                    MOTORTYPE -> {
+                    JointProperty.MOTORTYPE -> {
                         var modelName = "A X 12"
                         if (mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28" else if (mc.getType()
                                 .equals(DynamixelType.MX64)
@@ -406,12 +393,12 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                         text = joint.toString() + " is a dynamixel " + modelName
                     }
 
-                    OFFSET -> {
+                    JointProperty.OFFSET -> {
                         val offset: Double = mc.getOffset()
                         text = "The offset of $joint is $offset"
                     }
 
-                    ORIENTATION -> {
+                    JointProperty.ORIENTATION -> {
                         var orientation = "indirect"
                         if (mc.isDirect()) orientation = "direct"
                         text = "The orientation of $joint is $orientation"
@@ -426,10 +413,12 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             }
             text = java.lang.String.format("The %ss of all motors have been logged", property.name().toLowerCase())
             request.setProperty(BottleConstants.TEXT, text)
-        } else if (request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
+        }
+        else if (request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
             val property: String = request.getProperty(BottleConstants.PROPERTY_NAME, "")
             request.assignError("I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb")
-        } else if (request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
+        }
+        else if (request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
             val property: String = request.getProperty(BottleConstants.PROPERTY_NAME, "")
             request.assignError("I cannot change a motor " + property.lowercase(Locale.getDefault()))
         }
@@ -444,9 +433,9 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             val joint: Joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"))
             var text = ""
             val jointName: String = Joint.toText(joint)
-            val mc: MotorConfiguration = model.getMotors().get(joint)
+            val mc: MotorConfiguration = model.motors.get(joint)
             when (property) {
-                POSITION -> {
+                JointProperty.POSITION -> {
                     val position = 0
                     text = "The position of my $jointName is $position"
                 }
@@ -457,14 +446,10 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                 }
             }
             request.assignText(text)
-        } else {
-            LOGGER.warning(
-                java.lang.String.format(
-                    "%s.simulateResponseForRequest: Request type %s not handled",
-                    CLSS,
-                    requestType
-                )
-            )
+        }
+        else {
+            LOGGER.warning(String.format("%s.simulateResponseForRequest: Request type %s not handled",
+                    CLSS,requestType))
         }
         return request
     }
@@ -472,5 +457,17 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
     companion object {
         private const val CLSS = "MotorGroupController"
         private val LOGGER = Logger.getLogger(CLSS)
+    }
+    /**
+     * Constructor:
+     * @param m the server model
+     */
+    init {
+        motorControllers = HashMap()
+        motorControllerThreads = HashMap()
+        motorNameById = HashMap()
+        LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
+        LOGGER.info(String.format("%s: os.name = %s", CLSS, System.getProperty("os.name"))) // Mac OS X
+        development = System.getProperty("os.arch").startsWith("x86")
     }
 }

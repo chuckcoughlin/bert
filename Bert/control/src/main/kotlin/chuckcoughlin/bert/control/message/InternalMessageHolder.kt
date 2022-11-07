@@ -28,8 +28,8 @@ class InternalMessageHolder {
      */
     var executionTime: Long = 0     // ~msecs
     var repeatInterval: Long = 1000 // ~msecs
-    private val message: MessageBottle?
-    private val originalSource: String?
+    private val message: MessageBottle
+    private val originalSource: String
     private var queue: QueueName?
     private var repeat: Boolean
 
@@ -46,7 +46,7 @@ class InternalMessageHolder {
      * @param msg the ultimate message to execute
      * @param interval delay time ~msecs
      */
-    constructor(msg: MessageBottle?, interval: Long) {
+    constructor(msg: MessageBottle, interval: Long) {
         message = msg
         queue = null
         delay = interval
@@ -60,7 +60,7 @@ class InternalMessageHolder {
      * after existing messages on its same FIFO queue.
      * @param msg the message to execute when processing by the InternalController is complete.
      */
-    constructor(msg: MessageBottle?, q: QueueName?) {
+    constructor(msg: MessageBottle, q: QueueName) {
         message = msg
         delay = 0
         queue = q
@@ -69,7 +69,7 @@ class InternalMessageHolder {
         message.id = nextId
     }
 
-    fun getMessage(): MessageBottle? {
+    fun getMessage(): MessageBottle {
         return message
     }
 

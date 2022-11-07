@@ -10,8 +10,9 @@ import chuckcoughlin.bert.common.message.MessageBottle
  * the callbacks utilized by individual MotorContrtollers
  */
 interface MotorManager {
-    fun handleAggregatedResponse(response: MessageBottle?)
+    fun handleAggregatedResponse(response: MessageBottle)
     fun handleSynthesizedResponse(response: MessageBottle)
-    fun handleSingleControllerResponse(response: MessageBottle?)
-    val controllerCount: Int
+    fun handleSingleControllerResponse(response: MessageBottle)
+
+    var controllerCount: Int
 }

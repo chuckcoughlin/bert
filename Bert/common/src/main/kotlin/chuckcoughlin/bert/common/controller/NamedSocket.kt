@@ -68,7 +68,7 @@ class NamedSocket {
      */
     fun create(): Boolean {
         var attempts = 1
-        var success:Boolean = false
+        var success:Boolean
         if (isServer) {
             while (true) {
                 try {

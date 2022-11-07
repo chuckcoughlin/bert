@@ -18,21 +18,13 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
- * This class is a wrapper for the entire robot database. It is implemented
- * as a singleton for easy access. The startup() method must be called
- * before it can be used as it opens the database connection.
+ * This singleton object is a wrapper for the entire robot database. The startup()
+ * method must be called before it can be used as it opens the database connection.
  *
  * Call shutdown() when database access is no longer required.
  */
-class Database private constructor() {
-    private var connection: Connection? = null
-    private val pose: PoseTable
+object Database  {
 
-    /**
-     * Static method to create and/or fetch the single instance.
-     */
-    var database: Database = Database()
-        private set
 
     /**
      * @param command user entered string
@@ -119,11 +111,12 @@ class Database private constructor() {
         }
     }
 
-    companion object {
-        private const val CLSS = "Database"
-        private val LOGGER = Logger.getLogger(CLSS)
-        private val driver: JDBC = JDBC() // Force driver to be loaded
-    }
+    private const val CLSS = "Database"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val driver: JDBC = JDBC() // Force driver to be loaded
+    private var connection: Connection? = null
+    private val pose: PoseTable
+
     /**
      * Initialize the table.
      */

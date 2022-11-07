@@ -1,3 +1,6 @@
+// Kotlin Gradle build file for library modules
+import org.gradle.internal.impldep.junit.runner.Version.id
+
 plugins {
     id("org.jetbrains.kotlin.jvm") 
 }
@@ -19,4 +22,3 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
     implementation("io.github.java-native:jssc:2.9.4")
 }
-

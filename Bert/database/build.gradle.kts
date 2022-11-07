@@ -1,3 +1,5 @@
+// Kotlin Gradle build file for the SQLite database module
+
 plugins {
     id("bert.library-conventions")
 }

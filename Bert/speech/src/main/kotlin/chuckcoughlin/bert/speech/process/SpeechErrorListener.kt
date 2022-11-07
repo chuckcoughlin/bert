@@ -25,13 +25,8 @@ class SpeechErrorListener(bot: MessageBottle) : BaseErrorListener() {
         bottle = bot
     }
 
-    fun syntaxError(
-        recognizer: Recognizer<*, *>?,
-        offendingSymbol: Any?,
-        line: Int, charPositionInLine: Int,
-        msg: String?,
-        e: RecognitionException?
-    ) {
+    fun syntaxError(recognizer: Recognizer<*, *>?,offendingSymbol: Any?,
+        line: Int, charPositionInLine: Int,msg: String?,e: RecognitionException? ) {
         recordError(
             recognizer, offendingSymbol as Token?,
             line, charPositionInLine
