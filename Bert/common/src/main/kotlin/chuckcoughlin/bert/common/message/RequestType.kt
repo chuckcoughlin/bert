@@ -1,5 +1,5 @@
 /**
- * Copyright 2018. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.message
@@ -36,7 +36,7 @@ enum class RequestType {
          */
         fun names(): String {
             val names = StringBuffer()
-            for (type in values()) {
+            for( type in values() ) {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)

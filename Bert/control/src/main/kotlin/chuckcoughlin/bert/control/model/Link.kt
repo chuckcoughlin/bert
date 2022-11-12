@@ -21,12 +21,11 @@ import java.util.logging.Logger
  *
  */
 class Link(val name: String) {
-    var linkPoint: LinkPoint? = null
+    lateinit var linkPoint: LinkPoint
         private set
     var isDirty = true // Requires calculations
         private set
     var parent: Link? = null
-        private set
     var angle: Double
         private set
     val coordinates = doubleArrayOf(0.0, 0.0, 0.0)
@@ -58,7 +57,7 @@ class Link(val name: String) {
             angle = a * Math.PI / 180.0
         }
 
-    fun setEndPoint(end: LinkPoint?) {
+    fun setEndPoint(end: LinkPoint) {
         linkPoint = end
     }
 
@@ -80,29 +79,26 @@ class Link(val name: String) {
      * with respect to the inertial frame of reference.
      */
     fun getCoordinates(): DoubleArray {
-        var coords: DoubleArray? = null // Coordinates in progress
-        var rotation: DoubleArray? = null
+        var coords: DoubleArray // Coordinates in progress
+        var rotation: DoubleArray
         var alpha = 0.0
         if (isDirty) {
             if (parent != null) {
                 coords = parent!!.getCoordinates()
                 alpha = parent!!.jointAngle
-                val orient = parent!!.linkPoint.orientation
+                val orient = parent!!.linkPoint!!.orientation
                 rotation = rotationFromCoordinates(coords)
                 rotation[0] = rotation[0] + orient[0]
                 rotation[1] = rotation[1] + orient[1]
                 rotation[2] = rotation[2] + orient[2]
             }
-            else {
-                coords = LinkPoint.Companion.origin.offset
-                rotation = LinkPoint.Companion.origin().orientation
+            else {  // Reference the origin
+                coords = LinkPoint().offset
+                rotation = LinkPoint().orientation
                 alpha = Math.PI
             }
-            LOGGER.info(
-                java.lang.String.format("%s.getCoordinates: %s (%s) ---------------",
-                    CLSS,name,linkPoint!!.joint.name
-                )
-            )
+            LOGGER.info(String.format("%s.getCoordinates: %s (%s) ---------------",
+                    CLSS,name,linkPoint!!.joint.name ))
             LOGGER.info(String.format("           rotation = %.2f,%.2f,%.2f", rotation[0], rotation[1], rotation[2]))
             val offset = linkPoint.offset
             LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f", offset!![0], offset!![1], offset!![2]))
@@ -143,7 +139,7 @@ class Link(val name: String) {
         return coordinates
     }
 
-    private fun rotationFromCoordinates(cc: DoubleArray?): DoubleArray {
+    private fun rotationFromCoordinates(cc: DoubleArray): DoubleArray {
         var len = Math.sqrt(cc!![0] * cc[0] + cc[1] * cc[1] + cc[2] * cc[2])
         if (len == 0.0) len = 1.0 // All angles will be 90 deg
         val rot = DoubleArray(3)

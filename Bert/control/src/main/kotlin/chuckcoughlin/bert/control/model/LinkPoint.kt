@@ -21,18 +21,14 @@ class LinkPoint {
     var offset : DoubleArray // Joint offset
         private set
     var orientation: DoubleArray
-    /**
-     * Create a LinkPoint representing the origin of the link chain.
-     * @return the origin
-     */
     var origin : LinkPoint
-        private set
     val type: LinkPointType
     val appendage: Appendage
     val joint: Joint
 
     /**
-     * Special constructor for the origin.
+     * Special constructor for
+     * a LinkPoint representing the origin of the link chain.
      */
     constructor() {
         type = LinkPointType.ORIGIN

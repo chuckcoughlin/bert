@@ -1,12 +1,12 @@
 /**
- * Copyright 2018-2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022 Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command.controller
 
 
 import chuckcoughlin.bert.command.model.RobotCommandModel
-import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.message.HandlerType
@@ -16,6 +16,8 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
+import chuckcoughlin.bert.speech.process.MessageTranslator
+import chuckcoughlin.bert.sql.db.Database
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.locks.Condition
@@ -50,17 +52,17 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
      * This application routes requests/responses between the Dispatcher and "blueserverd" daemon. Both
      * destinations involve socket controllers.
      */
-    fun createControllers() {
-        tabletController = BluetoothController(this, model.getBlueserverPort())
+    override fun createControllers() {
+        tabletController = BluetoothController(this, model.blueserverPort)
         val hostName: String = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost")
-        val sockets: Map<String, Int> = model.getSockets()
+        val sockets: Map<String, Int> = model.sockets
         val walker = sockets.keys.iterator()
         val key = walker.next()
         val port = sockets[key]!!
-        dispatchController = SocketController(this, HandlerType.COMMAND.name(), hostName, port)
+        dispatchController = SocketController(this, HandlerType.COMMAND.name, hostName, port)
     }
 
-    val controllerName: String
+    override val controllerName: String
         get() = model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "command")
 
     /**

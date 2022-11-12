@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.common.message
 
-import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.model.JointProperty
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonMappingException
@@ -15,18 +15,20 @@ import java.util.logging.Logger
 
 /**
  * This class represents the contents of requests and responses that are sent
- * across sockets between parts of the robot. it becomes serialized into JSON.
+ * across channels between parts of the robot.
  *
  * There is no intrinsic difference between requests and
  * responses. We leave it to context to determine which is which.
+ * There may be multiple affected joints and multiple properties.
+ * The collection of properties determines whether or not the
+ * message makes practical sense.
  *
- * Leave members public to be accessible via Reflection. We use
- * fetch/assign instead of get/set for the shortcut methods that
- * access the properties to avoid confusion by the JSON mapper.
+ * The message affects a single joint, but may change multiple
+ * properties at a time.
  */
 data class MessageBottle (val type:RequestType) : Serializable {
-    var properties : MutableMap<String, String> // Multiple properties for a single motor
-    var jointValues : MutableMap<String, String> // A single property for multiple motors
+    var properties : MutableMap<PropertyType, Any> // Data type depends on the key
+    var jointValues : MutableMap<JointProperty, Any>    // A single property for multiple motors
     var id: Long = 0
 
     /**
@@ -58,25 +60,25 @@ data class MessageBottle (val type:RequestType) : Serializable {
         return responderCount
     }
 
-    fun getJointValue(joint: String, defaultValue: String): String {
+    fun getJointValue(joint: JointProperty, defaultValue: Any): Any {
         var result = defaultValue
         var value = jointValues[joint]
         if (value != null) result = value!!
         return result
     }
 
-    fun setJointValue(joint: String, value: String) {
+    fun setJointValue(joint: JointProperty, value: Any) {
         jointValues[joint] = value
     }
 
-    fun getProperty(key: String, defaultValue: String): String {
+    fun getProperty(key: PropertyType, defaultValue: Any): Any {
         var result = defaultValue
         var value = properties[key]
         if (value != null) result = value!!
         return result
     }
 
-    fun setProperty(key: String, value: String) {
+    fun setProperty(key: PropertyType, value: Any) {
         properties[key] = value
     }
 
@@ -95,7 +97,7 @@ data class MessageBottle (val type:RequestType) : Serializable {
      * @return an error message. If there is no error message, return null.
      */
     fun fetchError(): String {
-        return getProperty(BottleConstants.ERROR, BottleConstants.NO_ERROR)
+        return getProperty(PropertyType.ERROR, BottleConstants.NO_ERROR).toString()
     }
 
     /**
@@ -106,7 +108,7 @@ data class MessageBottle (val type:RequestType) : Serializable {
      * @param msg a message suitable to be played for the user.
      */
     fun assignError(msg: String) {
-        setProperty(BottleConstants.ERROR, msg)
+        setProperty(PropertyType.ERROR, msg)
     }
 
     /**
@@ -117,8 +119,8 @@ data class MessageBottle (val type:RequestType) : Serializable {
      */
     fun fetchRequestType(): RequestType {
         var type = RequestType.NONE
-        val prop = getProperty(BottleConstants.TYPE, type.name)
-        type = RequestType.valueOf(prop)
+        val prop = getProperty(PropertyType.TYPE, type)
+        type = RequestType.valueOf(prop.toString().uppercase())
         return type
     }
 
@@ -129,7 +131,7 @@ data class MessageBottle (val type:RequestType) : Serializable {
      * @param type the type of request.
      */
     fun assignRequestType(type: RequestType) {
-        setProperty(BottleConstants.TYPE, type.name)
+        setProperty(PropertyType.TYPE, type)
     }
 
     /**
@@ -148,16 +150,15 @@ data class MessageBottle (val type:RequestType) : Serializable {
      * @param text a speech-compatible response
      */
     fun assignText(text: String) {
-        setProperty(BottleConstants.TEXT, text)
+        setProperty(PropertyType.TEXT, text)
     }
 
     /**
      * Convenience method to retrieve the ControllerType of the message source.
-     *
      * @return a source name. If there is no identified source, return null.
      */
     fun fetchSource(): String {
-        return getProperty(BottleConstants.SOURCE, BottleConstants.NO_SOURCE)
+        return getProperty(PropertyType.SOURCE, BottleConstants.NO_SOURCE).toString()
     }
 
     /**
@@ -167,7 +168,7 @@ data class MessageBottle (val type:RequestType) : Serializable {
      * @param source the name of the message creator.
      */
     fun assignSource(source: String) {
-        setProperty(BottleConstants.SOURCE, source)
+        setProperty(PropertyType.SOURCE, source)
     }
     // =================================== JSON ======================================
     fun toJSON(): String {
@@ -208,13 +209,10 @@ data class MessageBottle (val type:RequestType) : Serializable {
                 )
             }
             catch (jme: JsonMappingException) {
-                LOGGER.severe(
-                    String.format(
-                        "%s.fromJSON: Mapping exception (%s) from %s",
-                        CLSS, jme.getLocalizedMessage(), json
-                    )
-                )
-            } catch (ioe: IOException) {
+                LOGGER.severe(String.format("%s.fromJSON: Mapping exception (%s) from %s",
+                        CLSS, jme.getLocalizedMessage(), json))
+            }
+            catch (ioe: IOException) {
                 LOGGER.severe(String.format("%s.fromJSON: IO exception (%s)", CLSS, ioe.getLocalizedMessage()))
             }
             return bottle

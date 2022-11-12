@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.motor.dynamixel
 
-import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointProperty

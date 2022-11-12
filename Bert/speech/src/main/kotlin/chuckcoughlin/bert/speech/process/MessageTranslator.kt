@@ -5,7 +5,7 @@
 package chuckcoughlin.bert.speech.process
 
 
-import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MetricType
 import chuckcoughlin.bert.common.message.RequestType

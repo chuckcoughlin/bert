@@ -29,17 +29,7 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
     private val translator: MessageTranslator
     private val prompt: String
 
-    /**
-     * Constructor:
-     * @param launcher the parent application
-     * @param text prompt displayed for user entry
-     */
-    init {
-        dispatcher = launcher
-        prompt = text
-        parser = StatementParser()
-        translator = MessageTranslator()
-    }
+
 
     override fun start() {
         val rdr = StdinReader(dispatcher)
@@ -54,7 +44,7 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
         }
     }
 
-    fun receiveRequest(request: MessageBottle?) {
+    override fun receiveRequest(request: MessageBottle) {
         dispatcher.handleRequest(request)
     }
 
@@ -63,7 +53,7 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
      * message or a value that can be formatted into understandable text.
      * @param response
      */
-    override fun receiveResponse(response: MessageBottle?) {
+    override fun receiveResponse(response: MessageBottle) {
         val text: String = translator.messageToText(response)
         println(text)
         print(prompt)
@@ -87,23 +77,26 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
                     print(prompt)
                     val input: String = br.readLine()
                     if (input.isEmpty()) continue else {
-                        LOGGER.info(java.lang.String.format("%s parsing: %s", HandlerType.TERMINAL.name(), input))
+                        LOGGER.info(java.lang.String.format("%s parsing: %s", HandlerType.TERMINAL.name, input))
                         val request: MessageBottle = parser.parseStatement(input)
-                        request.assignSource(HandlerType.TERMINAL.name())
-                        if (request.fetchError() != null || request.fetchRequestType()
-                                .equals(RequestType.NOTIFICATION)
-                        ) {
+                        request.assignSource(HandlerType.TERMINAL.name)
+                        if (request.fetchError() != null
+                            || request.fetchRequestType().equals(RequestType.NOTIFICATION)) {
                             receiveResponse(request) // Handle locally/immediately
-                        } else {
+                        }
+                        else {
                             receiveRequest(request)
                         }
                     }
                 }
-            } catch (ioe: IOException) {
+            }
+            catch (ioe: IOException) {
                 ioe.printStackTrace()
-            } catch (ex: Exception) {
+            }
+            catch (ex: Exception) {
                 ex.printStackTrace()
-            } finally {
+            }
+            finally {
                 if (br != null) {
                     try {
                         br.close()
@@ -117,5 +110,16 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
 
     companion object {
         private const val CLSS = "StdioController"
+    }
+
+    /**
+     * @param launcher the parent application
+     * @param text prompt displayed for user entry
+     */
+    init {
+        dispatcher = launcher
+        prompt = text
+        parser = StatementParser()
+        translator = MessageTranslator()
     }
 }

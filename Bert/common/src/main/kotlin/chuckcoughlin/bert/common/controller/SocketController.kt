@@ -75,11 +75,11 @@ class SocketController : chuckcoughlin.bert.common.controller.Controller {
      * else it comes from the parent using a direct call.
      * @param request
      */
-    override fun receiveRequest(request: MessageBottle?) {
-        if (request == null) return  // Can happen if socket closed (e.g. shutdown)
+    override fun receiveRequest(request: MessageBottle) {
         if (server) {
             launcher.handleRequest(request)
-        } else {
+        }
+        else {
             socket.write(request)
         }
     }
@@ -89,10 +89,11 @@ class SocketController : chuckcoughlin.bert.common.controller.Controller {
      * Otherwise we are on the receiving end. Handle it.
      * @param response
      */
-    override fun receiveResponse(response: MessageBottle?) {
+    override fun receiveResponse(response: MessageBottle) {
         if (server) {
             socket.write(response)
-        } else {
+        }
+        else {
             launcher.handleResponse(response)
         }
     }
@@ -117,13 +118,17 @@ class SocketController : chuckcoughlin.bert.common.controller.Controller {
                     try {
                         Thread.sleep(CLIENT_READ_ATTEMPT_INTERVAL) // A read error has happened, we don't want a hard loop
                         continue
-                    } catch (ignore: InterruptedException) {
+                    }
+                    catch (ignore: InterruptedException) {
                     }
                 }
-                if (sock.isServer) {
-                    receiveRequest(msg)
-                } else {
-                    receiveResponse(msg)
+                else {
+                    if (sock.isServer) {
+                        receiveRequest(msg)
+                    }
+                    else {
+                        receiveResponse(msg)
+                    }
                 }
             }
             LOGGER.info(String.format("BackgroundReader,%s stopped", sock.name))

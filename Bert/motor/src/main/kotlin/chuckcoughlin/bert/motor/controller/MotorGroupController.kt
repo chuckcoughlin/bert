@@ -4,8 +4,10 @@
  */
 package chuckcoughlin.bert.motor.controller
 
-import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageHandler
+import chuckcoughlin.bert.common.message.PropertyType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
@@ -33,9 +35,9 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
     private val motorControllers: MutableMap<String, MotorController>
     private val motorNameById: MutableMap<Int, String>
     private val motorControllerThreads: MutableMap<String, Thread>
-    private val development: Boolean
-    override var controllerCount
-    private var lazy responseHandler: MessageHandler // Dispatcher - delayed initialization
+    var development: Boolean = false
+    override var controllerCount:Int
+    var lazy responseHandler: MessageHandler // Dispatcher - delayed initialization
 
     /**
      * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
@@ -62,18 +64,12 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                     val motor: MotorConfiguration? = motors[joint]
                     if (motor != null) {
                         //LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name(),controller.getGroupName()));
-                        controller.putMotorConfiguration(joint.name(), motor)
-                        motorNameById[motor.id] = joint.name()
+                        controller.putMotorConfiguration(joint.name, motor)
+                        motorNameById[motor.id] = joint.name
                     }
                     else {
-                        LOGGER.warning(
-                            java.lang.String.format(
-                                "%s.initialize: Motor %s not found in %s",
-                                CLSS,
-                                joint.name(),
-                                cname
-                            )
-                        )
+                        LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",
+                                CLSS,joint.name, cname))
                     }
                 }
                 controllerCount += 1
@@ -167,22 +163,11 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
      */
     override fun handleAggregatedResponse(rsp: MessageBottle?) {
         val count: Int = rsp.incrementResponderCount()
-        LOGGER.info(
-            java.lang.String.format(
-                "%s.handleAggregatedResponse: received %s (%d of %d)",
-                CLSS,
-                rsp.fetchRequestType().name(),
-                count,
-                controllerCount
-            )
-        )
+        LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
+                CLSS,rsp.fetchRequestType().name,count,controllerCount))
         if (count >= controllerCount) {
-            LOGGER.info(
-                String.format(
-                    "%s.handleAggregatedResponse: all controllers accounted for: responding ...",
-                    CLSS
-                )
-            )
+            LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",
+                    CLSS ))
             responseHandler.handleResponse(rsp)
         }
     }
@@ -196,14 +181,8 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
     @Synchronized
     override fun handleSynthesizedResponse(rsp: MessageBottle) {
         val count: Int = rsp.incrementResponderCount()
-        LOGGER.info(
-            java.lang.String.format(
-                "%s.handleSynthesizedResponse: received %s (%d of %d)",
-                CLSS,
-                rsp.fetchRequestType().name(),
-                count,
-                controllerCount
-            )
+        LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",
+                CLSS,rsp.fetchRequestType().name,count,controllerCount)
         )
         if (count >= controllerCount) {
             LOGGER.info(
@@ -233,7 +212,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)
         ) {
             // Certain properties are constants available from the configuration file.
-            val property: String = request.getProperty(BottleConstants.PROPERTY_NAME, "")
+            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
                 property.equals(JointProperty.MINIMUMANGLE.name(), ignoreCase = true) ||
                 property.equals(JointProperty.MAXIMUMANGLE.name(), ignoreCase = true) ||
@@ -245,7 +224,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             }
         } else if (request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
-            val property: String = request.getProperty(BottleConstants.PROPERTY_NAME, "")
+            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
                 property.equals(JointProperty.MOTORTYPE.name(), ignoreCase = true) ||
                 property.equals(JointProperty.OFFSET.name(), ignoreCase = true) ||
@@ -256,7 +235,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             }
         } else if (request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
-            val property: String = request.getProperty(BottleConstants.PROPERTY_NAME, "")
+            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
                 property.equals(JointProperty.MOTORTYPE.name(), ignoreCase = true) ||
                 property.equals(JointProperty.OFFSET.name(), ignoreCase = true) ||
@@ -274,7 +253,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
     // to return directly to the user. These jointValues are obtained from the initial configuration.
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
         if (request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val property: JointProperty = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""))
+            val property: JointProperty = JointProperty.valueOf(request.getProperty(PropertyType.PROPERTY_NAME, ""))
             val joint: Joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"))
             LOGGER.info(
                 java.lang.String.format(
@@ -360,13 +339,13 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                             if (mc.isDirect()) "" else "(indirect)"
                         )
                     )
-                    request.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.MOTORTYPE.name())
+                    request.setProperty(PropertyType.PROPERTY_NAME, JointProperty.MOTORTYPE.name())
                     request.setJointValue(JointProperty.MOTORTYPE.name(), mc.getType().name())
                 }
             }
         }
         else if (request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
-            val property: JointProperty = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""))
+            val property: JointProperty = JointProperty.valueOf(request.getProperty(PropertyType.PROPERTY_NAME, ""))
             LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
                     CLSS,request.fetchRequestType().name(),property.name()))
             var text: String? = ""
@@ -412,14 +391,14 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                 LOGGER.info(text)
             }
             text = java.lang.String.format("The %ss of all motors have been logged", property.name().toLowerCase())
-            request.setProperty(BottleConstants.TEXT, text)
+            request.setProperty(PropertyType.TEXT, text)
         }
         else if (request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
-            val property: String = request.getProperty(BottleConstants.PROPERTY_NAME, "")
+            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             request.assignError("I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb")
         }
         else if (request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
-            val property: String = request.getProperty(BottleConstants.PROPERTY_NAME, "")
+            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             request.assignError("I cannot change a motor " + property.lowercase(Locale.getDefault()))
         }
         return request

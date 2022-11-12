@@ -9,7 +9,8 @@ package chuckcoughlin.bert.common.model
  * These are body parts where we need locations.
  */
 enum class Appendage {
-    LEFT_EAR, LEFT_EYE, LEFT_FINGER, LEFT_HEEL, LEFT_TOE, NOSE, RIGHT_EAR, RIGHT_EYE, RIGHT_FINGER, RIGHT_HEEL, RIGHT_TOE, UNKNOWN;
+    LEFT_EAR, LEFT_EYE, LEFT_FINGER, LEFT_HEEL, LEFT_TOE, NOSE,
+    RIGHT_EAR, RIGHT_EYE, RIGHT_FINGER, RIGHT_HEEL, RIGHT_TOE, UNKNOWN;
 
     companion object {
         /**

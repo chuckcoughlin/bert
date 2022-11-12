@@ -21,7 +21,7 @@ class RobotTerminalModel(configPath: Path?) : AbstractRobotModel(configPath) {
     /**
      * Analyze the document and populate the model.
      */
-    fun populate() {
+    override fun populate() {
         analyzeProperties()
         analyzeControllers()
     }
@@ -29,7 +29,7 @@ class RobotTerminalModel(configPath: Path?) : AbstractRobotModel(configPath) {
     /**
      * Search the XML configuration for the terminal controller. It's the only one we care about.
      */
-    fun analyzeControllers() {
+    override fun analyzeControllers() {
         if (this.document != null) {
             var controllerName = "UNASSIGNED"
             val elements: NodeList = document.getElementsByTagName("controller")
@@ -40,8 +40,7 @@ class RobotTerminalModel(configPath: Path?) : AbstractRobotModel(configPath) {
                 controllerName = XMLUtility.attributeValue(controllerElement, "name")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
                 if (type != null && !type.isEmpty() &&
-                    type.equals(HandlerType.TERMINAL.name(), ignoreCase = true)
-                ) {
+                    type.equals(HandlerType.TERMINAL.name, ignoreCase = true) ) {
                     // Configure the socket - there should only be one.
                     val socketElements = controllerElement.getElementsByTagName("socket")
                     if (socketElements.length > 0) {

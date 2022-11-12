@@ -1,15 +1,10 @@
 package chuckcoughlin.bert.control.model
 
 
-import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.util.LoggerUtility
-import chuckcoughlin.bert.control.solver.Solver
-import java.nio.file.Paths
 import java.util.*
 import java.util.logging.Logger
-import kotlin.collections.HashMap
 
 /**
  * A Chain represents a tree of Links starting with the
@@ -29,8 +24,6 @@ class Chain {
     private var origin: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0)
     private var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
 
-
-
     /**
      * As we add origin and endpoints, the new link gets added to the various
      * maps that allow us to navigate the chain.
@@ -41,13 +34,14 @@ class Chain {
         linksByLimbName[link.name] = link
     }
 
-    fun setEndPoint(name: String?, lp: LinkPoint) {
+    fun setEndPoint(name: String, lp: LinkPoint) {
         val link = linksByLimbName[name]
         if (link != null) {
             if (lp.type == LinkPointType.APPENDAGE) {
                 linkByAppendage[lp.appendage] = link
-            } else if (lp.type == LinkPointType.REVOLUTE) {
-                val j: Joint? = lp.joint
+            }
+            else if (lp.type == LinkPointType.REVOLUTE) {
+                val j: Joint = lp.joint
                 //LOGGER.info(String.format("Chain.setEndPoint: add joint %s", j.name()));
                 jointParent[j] = link
             }
@@ -58,7 +52,7 @@ class Chain {
         }
     }
 
-    val links: Collection<Link?>
+    val links: Collection<Link>
         get() = linksByLimbName.values
 
     fun getLinkForLimbName(name: String): Link? {
@@ -97,7 +91,7 @@ class Chain {
      * @param joint, the source
      * @return
      */
-    fun partialChainToJoint(joint: Joint?): List<Link> {
+    fun partialChainToJoint(joint: Joint): List<Link> {
         val partial: LinkedList<Link> = LinkedList<Link>()
         var link = jointParent[joint]
         while (link != null) {
@@ -111,7 +105,7 @@ class Chain {
      * The axes are the Euler angles in three dimensions between the robot and the reference frame.
      * @param a three dimensional array of rotational offsets between the robot and reference frame.
      */
-    fun setAxes(a: DoubleArray?) {
+    fun setAxes(a: DoubleArray) {
         axis = a
     }
 
@@ -119,7 +113,7 @@ class Chain {
      * The origin is the offset of the IMU with respect to the origin of the robot.
      * @param o three dimensional array of offsets to the origin of the chain
      */
-    fun setOrigin(o: DoubleArray?) {
+    fun setOrigin(o: DoubleArray) {
         origin = o
     }
 
@@ -128,7 +122,7 @@ class Chain {
      * @param childName
      * @param parentName
      */
-    fun setParent(childName: String?, parentName: String?) {
+    fun setParent(childName: String, parentName: String) {
         val parent = linksByLimbName[parentName]
         val child = linksByLimbName[childName]
         if (parent != null && child != null) child.parent = parent
@@ -137,55 +131,11 @@ class Chain {
     companion object {
         private const val CLSS = "Chain"
         private val LOGGER = Logger.getLogger(CLSS)
-
-        /**
-         * Test construction of the chain of robot "limbs" based on the URDF file in
-         * $BERT_HOME/etc on the development machine.
-         */
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // Analyze command-line argument to obtain the robot root directory.
-            val arg = args[0]
-            val path = Paths.get(arg)
-            PathConstants.setHome(path)
-            // Setup logging to use only a file appender to our logging directory
-            val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
-            LoggerUtility.getInstance().configureTestLogger(LOG_ROOT)
-            // Analyze the xml for motor configurations. Initialize the motor configurations.
-            val model = TestRobotModel(PathConstants.CONFIG_PATH)
-            model.populate() //
-            val solver = Solver()
-            solver.configure(model.getMotors(), PathConstants.URDF_PATH)
-            val chain: Chain = solver.getModel().getChain()
-            val root = chain.root
-            println(String.format("%s: root = %s ", CLSS, root.getName()))
-            // Test the links to some appendages
-            println("=========================================================================")
-            var subchain = chain.partialChainToAppendage(Appendage.LEFT_EAR)
-            for (link in subchain) {
-                println(String.format("\t%s ", link.name))
-            }
-            println("=========================================================================")
-            subchain = chain.partialChainToAppendage(Appendage.RIGHT_FINGER)
-            for (link in subchain) {
-                println(String.format("\t%s ", link.name))
-            }
-            println("=========================================================================")
-            subchain = chain.partialChainToAppendage(Appendage.RIGHT_TOE)
-            for (link in subchain) {
-                println(String.format("\t%s ", link.name))
-            }
-            println("=========================================================================")
-            subchain = chain.partialChainToJoint(Joint.ABS_Y)
-            for (link in subchain) {
-                println(String.format("\t%s ", link.name))
-            }
-        }
     }
 
     init {
-        jointParent = HashMap<Joint?, Link>()
-        linkByAppendage = HashMap<Appendage?, Link>()
+        jointParent = HashMap<Joint, Link>()
+        linkByAppendage = HashMap<Appendage, Link>()
         linksByLimbName = HashMap()
     }
 }

@@ -4,14 +4,16 @@
  */
 package chuckcoughlin.bert.speech.process
 
-import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.PropertyType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.sql.db.Database
 import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.HashMap
@@ -21,10 +23,11 @@ import chuckcoughlin.bert.syntax.SpeechSyntaxParser
 
 /**
  * This translator takes spoken lines of text and converts them into
- * "Request Bottles".
+ * "Request Bottles". Note that the "visit" methods all return null,
+ * an indicator that there is no further traversing the parse tree.
  */
-class StatementTranslator(bot: MessageBottle, private val sharedDictionary: HashMap<SharedKey, Any>) :
-    SpeechSyntaxBaseVisitor<Any?>() {
+class StatementTranslator(bot: MessageBottle, val sharedDictionary: HashMap<SharedKey, Any>) :
+    SpeechSyntaxBaseVisitor<Any>() {
     private val bottle: MessageBottle
     private val messageTranslator: MessageTranslator
 
@@ -48,10 +51,10 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         bottle.assignRequestType(RequestType.GET_METRIC)
         val attribute: String = ctx.Attribute().getText()
         if (attribute.equals("old", ignoreCase = true)) {
-            bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.AGE.name)
+            bottle.setProperty(PropertyType.METRIC, MetricType.AGE.name)
         }
         else if (attribute.equals("tall", ignoreCase = true)) {
-            bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.HEIGHT.name)
+            bottle.setProperty(PropertyType.METRIC, MetricType.HEIGHT.name)
         }
         else {
             val msg = String.format("I don't know what %s means", attribute)
@@ -77,7 +80,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         val pose: String = visit(ctx.phrase()).toString()
         sharedDictionary[SharedKey.POSE] = pose
         bottle.assignRequestType(RequestType.SAVE_POSE)
-        bottle.setProperty(BottleConstants.POSE_NAME, pose)
+        bottle.setProperty(PropertyType.POSE_NAME, pose)
         bottle.assignText(messageTranslator.randomAcknowledgement())
         return null
     }
@@ -87,7 +90,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         val pose: String = visit(ctx.phrase()).toString()
         sharedDictionary[SharedKey.POSE] = pose
         bottle.assignRequestType(RequestType.SAVE_POSE)
-        bottle.setProperty(BottleConstants.POSE_NAME, pose)
+        bottle.setProperty(PropertyType.POSE_NAME, pose)
         bottle.assignText(messageTranslator.randomAcknowledgement())
         return null
     }
@@ -98,7 +101,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         if (ctx.phrase() != null) {
             val pose: String = visit(ctx.phrase()).toString()
             sharedDictionary[SharedKey.POSE] = pose
-            bottle.setProperty(BottleConstants.POSE_NAME, pose)
+            bottle.setProperty(PropertyType.POSE_NAME, pose)
         }
         bottle.assignText(messageTranslator.randomAcknowledgement())
         return null
@@ -121,19 +124,19 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
             if (ctx.Relax() != null) cmd = ctx.Relax().getText().toLowerCase()
             var joint: Joint = Joint.UNKNOWN
             if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
-                joint = sharedDictionary[SharedKey.JOINT] as Joint?
+                joint = sharedDictionary[SharedKey.JOINT] as Joint
             }
             if (ctx.Joint() != null) {
                 joint = determineJoint(ctx.Joint().getText(), axis, side)
             }
             if (!joint.equals(Joint.UNKNOWN)) {
                 bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY)
-                bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
-                bottle.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.STATE.name())
+                bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
+                bottle.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.STATE.name)
                 if (ctx.Freeze() != null || ctx.Hold() != null) bottle.setProperty(
-                    JointProperty.STATE.name(),
+                    JointProperty.STATE.name,
                     BottleConstants.ON_VALUE
-                ) else bottle.setProperty(JointProperty.STATE.name(), BottleConstants.OFF_VALUE)
+                ) else bottle.setProperty(JointProperty.STATE.name, BottleConstants.OFF_VALUE)
                 sharedDictionary[SharedKey.JOINT] = joint
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             }
@@ -148,12 +151,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
                 if (!limb.equals(Limb.UNKNOWN)) {
                     bottle.assignRequestType(RequestType.SET_LIMB_PROPERTY)
                     bottle.setProperty(BottleConstants.LIMB_NAME, limb.name)
-                    bottle.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.STATE.name())
+                    bottle.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.STATE.name)
                     if (ctx.Freeze() != null || ctx.Hold() != null) bottle.setProperty(
-                        JointProperty.STATE.name(),
+                        JointProperty.STATE.name,
                         BottleConstants.ON_VALUE
                     )
-                    else bottle.setProperty(JointProperty.STATE.name(), BottleConstants.OFF_VALUE)
+                    else bottle.setProperty(JointProperty.STATE.name, BottleConstants.OFF_VALUE)
                     sharedDictionary[SharedKey.LIMB] = limb
                     sharedDictionary[SharedKey.IT] = SharedKey.LIMB
                 }
@@ -162,7 +165,10 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
                     if (ctx.Freeze() != null || ctx.Hold() != null) bottle.setProperty(
                         BottleConstants.COMMAND_NAME,
                         BottleConstants.COMMAND_FREEZE
-                    ) else bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_RELAX)
+                    )
+                    else {
+                        bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_RELAX)
+                    }
                 }
             }
         }
@@ -172,18 +178,19 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     // Handle a (possible) multi-word command to take a pose. However we make an initial check for "well-known"
     // commands.
     // carry the torch, go limp.
-    override fun visitHandleArbitraryCommand(ctx: HandleArbitraryCommandContext): Any? {
+    override fun visitHandleArbitraryCommand(ctx: SpeechSyntaxParser.HandleArbitraryCommandContext): Any? {
         if (ctx.phrase() != null) {
             val phrase: String = visit(ctx.phrase()).toString()
             // First handle "well-known" commands
             if (!determineCommandFromPhrase(phrase)) {   // Configures bottle
                 // Next check to see if this is a pose
-                val pose: String = Database.getPoseForCommand(phrase)
+                val pose: String? = Database.getPoseForCommand(phrase)
                 if (pose != null) {
                     bottle.assignRequestType(RequestType.SET_POSE)
                     bottle.setProperty(BottleConstants.POSE_NAME, pose)
                     sharedDictionary[SharedKey.POSE] = pose
-                } else {
+                }
+                else {
                     val msg = String.format("I do not know how to respond to \"%s\"", phrase)
                     bottle.assignError(msg)
                 }
@@ -193,7 +200,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // list the limits of your left hip y? (same logic as "handleBulkPropertyRequest)
-    override fun visitHandleBulkPropertyQuestion(ctx: HandleBulkPropertyQuestionContext): Any? {
+    override fun visitHandleBulkPropertyQuestion(ctx: SpeechSyntaxParser.HandleBulkPropertyQuestionContext): Any? {
         if (ctx.Limits() != null) bottle.assignRequestType(RequestType.GET_LIMITS) else bottle.assignRequestType(
             RequestType.GET_GOALS
         )
@@ -226,7 +233,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // what are the limits of your left hip y? (same logic as "handleBulkPropertyQuestion)
-    override fun visitHandleBulkPropertyRequest(ctx: HandleBulkPropertyRequestContext): Any? {
+    override fun visitHandleBulkPropertyRequest(ctx: SpeechSyntaxParser.HandleBulkPropertyRequestContext): Any? {
         if (ctx.Limits() != null) bottle.assignRequestType(RequestType.GET_LIMITS) else bottle.assignRequestType(
             RequestType.GET_GOALS
         )
@@ -239,7 +246,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
         sharedDictionary[SharedKey.AXIS] = axis
         val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
-        bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+        bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
         if (joint.equals(Joint.UNKNOWN)) {
             val msg = java.lang.String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
             bottle.assignError(msg)
@@ -251,19 +258,19 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         return null
     }
 
-    override fun visitHandleGreeting(ctx: HandleGreetingContext?): Any? {
+    override fun visitHandleGreeting(ctx: SpeechSyntaxParser.HandleGreetingContext?): Any? {
         bottle.assignRequestType(RequestType.NOTIFICATION)
         bottle.setProperty(BottleConstants.TEXT, messageTranslator.randomGreetingResponse())
         return null
     }
 
     // List the joint properties
-    override fun visitHandleListCommand1(ctx: HandleListCommand1Context): Any? {
+    override fun visitHandleListCommand1(ctx: SpeechSyntaxParser.HandleListCommand1Context): Any? {
         bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY)
         val pname: String = ctx.Properties().getText() // plural
         try {
             val jp: JointProperty = determineJointProperty(pname)
-            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name())
+            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name)
             if (ctx.Controller() != null) {
                 bottle.setProperty(BottleConstants.CONTROLLER_NAME, determineController(ctx.Controller().getText()))
             }
@@ -278,16 +285,17 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // Tell me your joint positions
-    override fun visitHandleListCommand2(ctx: HandleListCommand2Context): Any? {
+    override fun visitHandleListCommand2(ctx: SpeechSyntaxParser.HandleListCommand2Context) :Any? {
         bottle.assignRequestType(RequestType.LIST_MOTOR_PROPERTY)
         val pname: String = ctx.Properties().getText() // plural
         try {
             val jp: JointProperty = determineJointProperty(pname)
-            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name())
+            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name)
             if (ctx.Controller() != null) {
                 bottle.setProperty(BottleConstants.CONTROLLER_NAME, determineController(ctx.Controller().getText()))
             }
-        } catch (iae: IllegalArgumentException) {
+        }
+        catch (iae: IllegalArgumentException) {
             val msg = String.format(
                 "My joints don't hava a property %s, that I know of",
                 pname.lowercase(Locale.getDefault())
@@ -298,18 +306,18 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // initialize your joints
-    override fun visitInitializeJoints(ctx: InitializeJointsContext?): Any? {
+    override fun visitInitializeJoints(ctx: SpeechSyntaxParser.InitializeJointsContext?): Any? {
         bottle.assignRequestType(RequestType.INITIALIZE_JOINTS)
         return null
     }
 
     // what is the id of your left hip y?
-    override fun visitJointPropertyQuestion(ctx: JointPropertyQuestionContext): Any? {
+    override fun visitJointPropertyQuestion(ctx: SpeechSyntaxParser.JointPropertyQuestionContext): Any? {
         bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY)
         val property: String = ctx.Property().getText().toUpperCase()
         try {
             val jp: JointProperty = determineJointProperty(property)
-            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name())
+            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name)
             // If side or axis were set previously, use those jointValues as defaults
             var side = sharedDictionary[SharedKey.SIDE].toString()
             if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -318,15 +326,17 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
             if (ctx.Axis() != null) axis = ctx.Axis().getText()
             sharedDictionary[SharedKey.AXIS] = axis
             val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
             if (joint.equals(Joint.UNKNOWN)) {
                 val msg = java.lang.String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
                 bottle.assignError(msg)
-            } else {
+            }
+            else {
                 sharedDictionary[SharedKey.JOINT] = joint
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             }
-        } catch (iae: IllegalArgumentException) {
+        }
+        catch (iae: IllegalArgumentException) {
             val msg = String.format("I don't have a property %s, that I know of", property)
             bottle.assignError(msg)
         }
@@ -334,7 +344,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // where is your left ear
-    override fun visitLimbLocationQuestion(ctx: LimbLocationQuestionContext): Any? {
+    override fun visitLimbLocationQuestion(ctx: SpeechSyntaxParser.LimbLocationQuestionContext): Any? {
         // If axis was set previously, use it as default
         var axis = sharedDictionary[SharedKey.AXIS].toString()
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
@@ -345,26 +355,28 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         sharedDictionary[SharedKey.SIDE] = side
         if (ctx.Appendage() == null) {
             bottle.assignRequestType(RequestType.GET_JOINT_LOCATION)
-            var joint: Joint? = sharedDictionary[SharedKey.JOINT] as Joint?
+            var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
             if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
             if (joint.equals(Joint.UNKNOWN)) {
                 val msg = String.format("I don't have a joint like that")
                 bottle.assignError(msg)
-            } else {
+            }
+            else {
                 sharedDictionary[SharedKey.JOINT] = joint
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             }
-        } else {
+        }
+        else {
             bottle.assignRequestType(RequestType.GET_APPENDAGE_LOCATION)
-            var appendage: Appendage? = sharedDictionary[SharedKey.APPENDAGE] as Appendage?
+            var appendage = Appendage.UNKNOWN
             if (ctx.Appendage() != null) appendage = determineAppendage(ctx.Appendage().getText(), side)
-            bottle.setProperty(BottleConstants.APPENDAGE_NAME, appendage.name())
+            bottle.setProperty(BottleConstants.APPENDAGE_NAME, appendage.name)
             if (appendage.equals(Appendage.UNKNOWN)) {
-                val msg =
-                    java.lang.String.format("I don't have an appendage %s, that I know of", ctx.Appendage().getText())
+                val msg = String.format("I don't have an appendage %s, that I know of", ctx.Appendage().getText())
                 bottle.assignError(msg)
-            } else {
+            }
+            else {
                 sharedDictionary[SharedKey.APPENDAGE] = appendage
             }
         }
@@ -372,17 +384,19 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // What is your duty cycle?
-    override fun visitMetricsQuestion(ctx: MetricsQuestionContext): Any? {
+    override fun visitMetricsQuestion(ctx: SpeechSyntaxParser.MetricsQuestionContext): Any? {
         bottle.assignRequestType(RequestType.GET_METRIC)
         val metric: String = ctx.Metric().getText().toUpperCase()
         if (metric.equals("cycle time", ignoreCase = true)) {
-            bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.CYCLETIME.name())
+            bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.CYCLETIME.name)
         } else if (metric.equals("duty cycle", ignoreCase = true)) {
-            bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.DUTYCYCLE.name())
-        } else {
+            bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.DUTYCYCLE.name)
+        }
+        else {
             try {
-                bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.valueOf(metric).name())
-            } catch (iae: IllegalArgumentException) {
+                bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.valueOf(metric).name)
+            }
+            catch (iae: IllegalArgumentException) {
                 val msg = String.format("I did't know that I had a %s", metric)
                 bottle.assignError(msg)
             }
@@ -392,7 +406,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
 
     // Map a command to holding a pose
     // to stand means to take the pose standing
-    override fun visitMapPoseToCommand1(ctx: MapPoseToCommand1Context): Any? {
+    override fun visitMapPoseToCommand1(ctx: SpeechSyntaxParser.MapPoseToCommand1Context): Any? {
         bottle.assignRequestType(RequestType.MAP_POSE)
         if (ctx.phrase().size > 1) {
             bottle.setProperty(BottleConstants.COMMAND_NAME, visit(ctx.phrase(0)).toString())
@@ -405,7 +419,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // to climb means you are climbing
-    override fun visitMapPoseToCommand2(ctx: MapPoseToCommand2Context): Any? {
+    override fun visitMapPoseToCommand2(ctx: SpeechSyntaxParser.MapPoseToCommand2Context): Any? {
         bottle.assignRequestType(RequestType.MAP_POSE)
         if (ctx.phrase().size > 1) {
             bottle.setProperty(BottleConstants.COMMAND_NAME, visit(ctx.phrase(0)).toString())
@@ -418,7 +432,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // to eat is to become eating
-    override fun visitMapPoseToCommand3(ctx: MapPoseToCommand3Context): Any? {
+    override fun visitMapPoseToCommand3(ctx: SpeechSyntaxParser.MapPoseToCommand3Context): Any? {
         bottle.assignRequestType(RequestType.MAP_POSE)
         if (ctx.phrase().size > 1) {
             bottle.setProperty(BottleConstants.COMMAND_NAME, visit(ctx.phrase(0)).toString())
@@ -431,14 +445,15 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // when i say climb take the pose climbing
-    override fun visitMapPoseToCommand4(ctx: MapPoseToCommand4Context): Any? {
+    override fun visitMapPoseToCommand4(ctx: SpeechSyntaxParser.MapPoseToCommand4Context): Any? {
         bottle.assignRequestType(RequestType.MAP_POSE)
         if (ctx.phrase().size > 1) {
             val command: String = visit(ctx.phrase(0)).toString()
             val pose: String = visit(ctx.phrase(1)).toString()
             bottle.setProperty(BottleConstants.COMMAND_NAME, command)
             bottle.setProperty(BottleConstants.POSE_NAME, pose)
-        } else {
+        }
+        else {
             val msg = String.format("This mapping requires both a pose name and associated command")
             bottle.assignError(msg)
         }
@@ -446,7 +461,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // when you climb then you are climbing
-    override fun visitMapPoseToCommand5(ctx: MapPoseToCommand5Context): Any? {
+    override fun visitMapPoseToCommand5(ctx: SpeechSyntaxParser.MapPoseToCommand5Context): Any? {
         bottle.assignRequestType(RequestType.MAP_POSE)
         if (ctx.phrase().size > 1) {
             val command: String = visit(ctx.phrase(0)).toString()
@@ -462,12 +477,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
 
     // what is the z position of your left hip?
     // Identical to JointPropertyQuestion, but different word order
-    override fun visitMotorPropertyQuestion1(ctx: MotorPropertyQuestion1Context): Any? {
+    override fun visitMotorPropertyQuestion1(ctx: SpeechSyntaxParser.MotorPropertyQuestion1Context): Any? {
         bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY)
         val property: String = ctx.Property().getText().toUpperCase()
         try {
             val jp: JointProperty = determineJointProperty(property)
-            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name())
+            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name)
             // If side or axis were set previously, use those jointValues as defaults
             var side = sharedDictionary[SharedKey.SIDE].toString()
             if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -475,19 +490,20 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
             var axis = sharedDictionary[SharedKey.AXIS].toString()
             if (ctx.Axis() != null) axis = ctx.Axis().getText()
             sharedDictionary[SharedKey.AXIS] = axis
-            var joint: Joint? = sharedDictionary[SharedKey.JOINT] as Joint?
+            var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
             if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
             if (joint.equals(Joint.UNKNOWN)) {
-                var msg: String? = "You must specify a legal joint"
-                if (ctx.Joint() != null) msg =
-                    java.lang.String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
+                var msg: String = "You must specify a legal joint"
+                if (ctx.Joint() != null) msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
                 bottle.assignError(msg)
-            } else {
+            }
+            else {
                 sharedDictionary[SharedKey.JOINT] = joint
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             }
-        } catch (iae: IllegalArgumentException) {
+        }
+        catch (iae: IllegalArgumentException) {
             val msg = String.format("I don't have a property %s, that I know of", property)
             bottle.assignError(msg)
         }
@@ -496,12 +512,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
 
     // what is the speed of your left hip x?
     // Identical to MotorPropertyQuestion1, but different word order
-    override fun visitMotorPropertyQuestion2(ctx: MotorPropertyQuestion2Context): Any? {
+    override fun visitMotorPropertyQuestion2(ctx: SpeechSyntaxParser.MotorPropertyQuestion2Context): Any? {
         bottle.assignRequestType(RequestType.GET_MOTOR_PROPERTY)
         val property: String = ctx.Property().getText().toUpperCase()
         try {
             val jp: JointProperty = determineJointProperty(property)
-            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name())
+            bottle.setProperty(BottleConstants.PROPERTY_NAME, jp.name)
             // If side or axis were set previously, use those jointValues as defaults
             var side = sharedDictionary[SharedKey.SIDE].toString()
             if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -509,19 +525,20 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
             var axis = sharedDictionary[SharedKey.AXIS].toString()
             if (ctx.Axis() != null) axis = ctx.Axis().getText()
             sharedDictionary[SharedKey.AXIS] = axis
-            var joint: Joint? = sharedDictionary[SharedKey.JOINT] as Joint?
+            var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
             if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
             if (joint.equals(Joint.UNKNOWN)) {
-                var msg: String? = "You must specify a legal joint"
-                if (ctx.Joint() != null) msg =
-                    java.lang.String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
+                var msg: String = "You must specify a legal joint"
+                if (ctx.Joint() != null) msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
                 bottle.assignError(msg)
-            } else {
+            }
+            else {
                 sharedDictionary[SharedKey.JOINT] = joint
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             }
-        } catch (iae: IllegalArgumentException) {
+        }
+        catch (iae: IllegalArgumentException) {
             val msg = String.format("I don't have a property %s, that I know of", property)
             bottle.assignError(msg)
         }
@@ -529,7 +546,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // move your left hip y to 45 degrees
-    override fun visitMoveMotor(ctx: MoveMotorContext): Any? {
+    override fun visitMoveMotor(ctx: SpeechSyntaxParser.MoveMotorContext): Any? {
         bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY)
 
         // If side or axis were set previously, use those jointValues as defaults
@@ -541,25 +558,27 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         sharedDictionary[SharedKey.AXIS] = axis
         var joint: Joint = Joint.UNKNOWN
         if (ctx.It() != null) {
-            joint = sharedDictionary[SharedKey.JOINT] as Joint?
-        } else if (ctx.Joint() != null) {
+            joint = sharedDictionary[SharedKey.JOINT] as Joint
+        }
+        else if (ctx.Joint() != null) {
             joint = determineJoint(ctx.Joint().getText(), axis, side)
         }
         if (joint.equals(Joint.UNKNOWN)) {
             val msg = String.format("I don't have a joint like that")
             bottle.assignError(msg)
-        } else {
+        }
+        else {
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
         }
-        bottle.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.POSITION.name())
-        bottle.setProperty(JointProperty.POSITION.name(), ctx.Value().getText())
+        bottle.setProperty(BottleConstants.PROPERTY_NAME, JointProperty.POSITION.name)
+        bottle.setProperty(JointProperty.POSITION.name, ctx.Value().getText())
         return null
     }
 
     // move slowly
-    override fun visitMoveSpeed(ctx: MoveSpeedContext): Any? {
+    override fun visitMoveSpeed(ctx: SpeechSyntaxParser.MoveSpeedContext): Any? {
         bottle.assignRequestType(RequestType.SET_POSE)
         val pose = poseForAdverb(ctx.Adverb().getText())
         if (pose != null) {
@@ -570,7 +589,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // What is your current pose?
-    override fun visitPoseQuestion(ctx: PoseQuestionContext?): Any? {
+    override fun visitPoseQuestion(ctx: SpeechSyntaxParser.PoseQuestionContext?): Any? {
         val pose = sharedDictionary[SharedKey.POSE].toString()
         bottle.assignRequestType(RequestType.NOTIFICATION)
         bottle.setProperty(BottleConstants.POSE_NAME, pose)
@@ -580,7 +599,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
 
     // set your left hip y to 45 degrees
     // set your left elbow torque to 1.2
-    override fun visitSetMotorPosition(ctx: SetMotorPositionContext): Any? {
+    override fun visitSetMotorPosition(ctx: SpeechSyntaxParser.SetMotorPositionContext): Any? {
         bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY)
         // Property defaults to position
         var property: JointProperty = JointProperty.POSITION
@@ -596,14 +615,14 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         var joint: Joint = Joint.UNKNOWN
         if (ctx.Joint() != null) {
             joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
         }
         if (joint.equals(Joint.UNKNOWN)) {
             val msg = String.format("I don't have a joint like that")
             bottle.assignError(msg)
         }
-        bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name())
-        bottle.setProperty(property.name(), ctx.Value().getText())
+        bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name)
+        bottle.setProperty(property.name, ctx.Value().getText())
         if (!property.equals(JointProperty.POSITION) &&
             !property.equals(JointProperty.SPEED) &&
             !property.equals(JointProperty.STATE) &&
@@ -617,7 +636,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // set the position of your left hip y to 45 degrees
-    override fun visitSetMotorProperty(ctx: SetMotorPropertyContext): Any? {
+    override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorPropertyContext) : Any?{
         bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY)
         // Get the property
         val property: JointProperty = determineJointProperty(ctx.Property().getText())
@@ -632,28 +651,30 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         var joint: Joint = Joint.UNKNOWN
         if (ctx.Joint() != null) {
             joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
         }
         if (joint.equals(Joint.UNKNOWN)) {
             val msg = String.format("I don't have a joint like that")
             bottle.assignError(msg)
-        } else {
+        }
+        else {
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         }
-        bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name())
+        bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name)
         if (ctx.Value() != null) bottle.setProperty(
-            property.name(),
+            property.name,
             ctx.Value().getText()
-        ) else if (ctx.On() != null) bottle.setProperty(
-            property.name(),
+        )
+        else if (ctx.On() != null) bottle.setProperty(
+            property.name,
             BottleConstants.ON_VALUE
-        ) else if (ctx.Off() != null) bottle.setProperty(property.name(), BottleConstants.OFF_VALUE)
+        ) else if (ctx.Off() != null) bottle.setProperty(property.name, BottleConstants.OFF_VALUE)
         if (!property.equals(JointProperty.POSITION) &&
             !property.equals(JointProperty.SPEED) &&
             !property.equals(JointProperty.STATE) &&
-            !property.equals(JointProperty.TORQUE)
-        ) {
+            !property.equals(JointProperty.TORQUE)) {
+
             bottle.assignError("Only position, speed, torque and state are settable for a joint")
         }
         return null
@@ -661,7 +682,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
 
     // If the joint is not specified, then straighten the entire body
     // straighten your left elbow.
-    override fun visitStraightenJoint(ctx: StraightenJointContext): Any? {
+    override fun visitStraightenJoint(ctx: SpeechSyntaxParser.StraightenJointContext): Any? {
         // A real joint
         bottle.assignRequestType(RequestType.SET_MOTOR_PROPERTY)
         // Get the property
@@ -676,39 +697,39 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         sharedDictionary[SharedKey.AXIS] = axis
         var joint: Joint = Joint.UNKNOWN
         if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
-            joint = sharedDictionary[SharedKey.JOINT] as Joint?
+            joint = sharedDictionary[SharedKey.JOINT] as Joint
         }
         if (ctx.Joint() != null) {
             joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
         }
         if (joint.equals(Joint.UNKNOWN)) {
             val msg = String.format("Which joint am i supposed to straighten?")
             bottle.assignError(msg)
-        } else if (joint.equals(Joint.LEFT_ELBOW_Y) ||
+        }
+        else if (joint.equals(Joint.LEFT_ELBOW_Y) ||
             joint.equals(Joint.RIGHT_ELBOW_Y) ||
             joint.equals(Joint.LEFT_KNEE_Y) ||
             joint.equals(Joint.RIGHT_KNEE_Y) ||
             joint.equals(Joint.LEFT_HIP_Y) ||
-            joint.equals(Joint.RIGHT_HIP_Y)
-        ) {
+            joint.equals(Joint.RIGHT_HIP_Y) ) {
             // Straighten means 180 degrees
             val value = 180.0
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
-            bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name())
-            bottle.setProperty(JointProperty.POSITION.name(), value.toString())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
+            bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name)
+            bottle.setProperty(JointProperty.POSITION.name, value.toString())
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-        } else if (joint.equals(Joint.NECK_Y) ||
+        }
+        else if (joint.equals(Joint.NECK_Y) ||
             joint.equals(Joint.NECK_Z) ||
             joint.equals(Joint.LEFT_HIP_Z) ||
-            joint.equals(Joint.RIGHT_HIP_Z)
-        ) {
+            joint.equals(Joint.RIGHT_HIP_Z)) {
             // Straighten means 0 degrees
             val value = 0.0
-            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name())
-            bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name())
-            bottle.setProperty(JointProperty.POSITION.name(), value.toString())
+            bottle.setProperty(BottleConstants.JOINT_NAME, joint.name)
+            bottle.setProperty(BottleConstants.PROPERTY_NAME, property.name)
+            bottle.setProperty(JointProperty.POSITION.name, value.toString())
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         }
@@ -716,14 +737,14 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     }
 
     // why do you wear mittens
-    override fun visitWhyMittens(ctx: WhyMittensContext?): Any? {
+    override fun visitWhyMittens(ctx: SpeechSyntaxParser.WhyMittensContext?): Any? {
         bottle.assignRequestType(RequestType.GET_METRIC)
-        bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.MITTENS.name())
+        bottle.setProperty(BottleConstants.METRIC_NAME, MetricType.MITTENS.name)
         return null
     }
 
     // a phrase. Return space-separated words
-    override fun visitWordList(ctx: WordListContext): Any? {
+    override fun visitWordList(ctx: SpeechSyntaxParser.WordListContext): Any? {
         val text = StringBuffer()
         var needsSpace = false
         for (token in ctx.children) {
@@ -745,30 +766,33 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
             }
-        } else if (bodyPart.equals("EYE", ignoreCase = true) || bodyPart.equals("EYES", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("EYE", ignoreCase = true) || bodyPart.equals("EYES", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
             }
-        } else if (bodyPart.equals("FINGER", ignoreCase = true) || bodyPart.equals("HAND", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("FINGER", ignoreCase = true) || bodyPart.equals("HAND", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
             }
-        } else if (bodyPart.equals("FOOT", ignoreCase = true) || bodyPart.equals("TOE", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("FOOT", ignoreCase = true) || bodyPart.equals("TOE", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
             }
-        } else if (bodyPart.equals("HEEL", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("HEEL", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
             }
-        } else if (bodyPart.equals("NOSE", ignoreCase = true)) result = Appendage.NOSE
+        }
+        else if (bodyPart.equals("NOSE", ignoreCase = true)) {
+            result = Appendage.NOSE
+        }
         if (result.equals(Limb.UNKNOWN)) {
-            LOGGER.info(
-                String.format(
-                    "WARNING: StatementTranslator.determineLimb did not find a match for %s",
-                    bodyPart
-                )
-            )
+            LOGGER.info(String.format("WARNING: StatementTranslator.determineLimb did not find a match for %s",
+                    bodyPart ))
         }
         return result
     }
@@ -780,34 +804,39 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
         if (phrase == "die" || phrase == "exit" || phrase == "halt" || phrase == "quit" || phrase == "stop") {
             bottle.assignRequestType(RequestType.COMMAND)
             bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_HALT)
-        } else if (phrase == BottleConstants.COMMAND_RELAX || phrase.startsWith("go limp")) {
+        }
+        else if (phrase == BottleConstants.COMMAND_RELAX || phrase.startsWith("go limp")) {
             bottle.assignRequestType(RequestType.COMMAND)
             bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_RELAX)
-        } else if (phrase == BottleConstants.COMMAND_FREEZE || phrase.startsWith("go rigid")) {
+        }
+        else if (phrase == BottleConstants.COMMAND_FREEZE || phrase.startsWith("go rigid")) {
             bottle.assignRequestType(RequestType.COMMAND)
             bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_FREEZE)
-        } else if (phrase.startsWith("ignore") || phrase.equals(
-                "go to sleep",
-                ignoreCase = true
-            ) || phrase.startsWith("sleep")
-        ) {
+        }
+        else if (phrase.startsWith("ignore") || phrase.equals("go to sleep",ignoreCase = true) ||
+                 phrase.startsWith("sleep")) {
             sharedDictionary[SharedKey.ASLEEP] = "true"
             bottle.assignRequestType(RequestType.COMMAND)
             bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_SLEEP)
-        } else if (phrase.startsWith("pay attention") || phrase.equals("wake up", ignoreCase = true)) {
+        }
+        else if (phrase.startsWith("pay attention") || phrase.equals("wake up", ignoreCase = true)) {
             sharedDictionary[SharedKey.ASLEEP] = "false"
             bottle.assignRequestType(RequestType.COMMAND)
             bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_WAKE)
-        } else if (phrase == "power off" || phrase == "shut down" || phrase == "shutdown") {
+        }
+        else if (phrase == "power off" || phrase == "shut down" || phrase == "shutdown") {
             bottle.assignRequestType(RequestType.COMMAND)
             bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_SHUTDOWN)
-        } else if (phrase == "reset") {
+        }
+        else if (phrase == "reset") {
             bottle.assignRequestType(RequestType.COMMAND)
             bottle.setProperty(BottleConstants.COMMAND_NAME, BottleConstants.COMMAND_RESET)
-        } else if (phrase.startsWith("straighten")) {
+        }
+        else if (phrase.startsWith("straighten")) {
             bottle.assignRequestType(RequestType.SET_POSE)
             bottle.setProperty(BottleConstants.POSE_NAME, BottleConstants.POSE_HOME)
-        } else {
+        }
+        else {
             success = false
         }
         return success
@@ -844,23 +873,28 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
                     )
                 ) Joint.ABS_Y else Joint.ABS_Z
             }
-        } else if (bodyPart.equals("ANKLE", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("ANKLE", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Joint.LEFT_ANKLE_Y else Joint.RIGHT_ANKLE_Y
             }
-        } else if (bodyPart.equals("BUST", ignoreCase = true) || bodyPart.equals("CHEST", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("BUST", ignoreCase = true) || bodyPart.equals("CHEST", ignoreCase = true)) {
             if (axis != null) {
                 result = if (axis.equals("X", ignoreCase = true)) Joint.BUST_X else Joint.BUST_Y
             }
-        } else if (bodyPart.equals("ELBOW", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("ELBOW", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Joint.LEFT_ELBOW_Y else Joint.RIGHT_ELBOW_Y
             }
-        } else if (bodyPart.equals("NECK", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("NECK", ignoreCase = true)) {
             if (axis != null) {
                 result = if (axis.equals("Y", ignoreCase = true)) Joint.NECK_Y else Joint.NECK_Z
             }
-        } else if (bodyPart.equals("HIP", ignoreCase = true) || bodyPart.equals("THIGH", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("HIP", ignoreCase = true) || bodyPart.equals("THIGH", ignoreCase = true)) {
             if (axis != null && side != null) {
                 if (side.equals("left", ignoreCase = true)) {
                     result = if (axis.equals("X", ignoreCase = true)) Joint.LEFT_HIP_X else if (axis.equals(
@@ -876,11 +910,13 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
                     ) Joint.RIGHT_HIP_Y else Joint.RIGHT_HIP_Z
                 }
             }
-        } else if (bodyPart.equals("KNEE", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("KNEE", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Joint.LEFT_KNEE_Y else Joint.RIGHT_KNEE_Y
             }
-        } else if (bodyPart.equals("SHOULDER", ignoreCase = true) || bodyPart.equals("ARM", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("SHOULDER", ignoreCase = true) || bodyPart.equals("ARM", ignoreCase = true)) {
             if (axis != null && side != null) {
                 if (side.equals("left", ignoreCase = true)) {
                     result = if (axis.equals("X", ignoreCase = true)) Joint.LEFT_SHOULDER_X else if (axis.equals(
@@ -888,7 +924,8 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
                             ignoreCase = true
                         )
                     ) Joint.LEFT_SHOULDER_Y else Joint.LEFT_ARM_Z
-                } else if (side.equals("right", ignoreCase = true)) {
+                }
+                else if (side.equals("right", ignoreCase = true)) {
                     result = if (axis.equals("X", ignoreCase = true)) Joint.RIGHT_SHOULDER_X else if (axis.equals(
                             "Y",
                             ignoreCase = true
@@ -898,12 +935,9 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
             }
         }
         if (result.equals(Joint.UNKNOWN)) {
-            LOGGER.info(
-                String.format(
+            LOGGER.info(String.format(
                     "WARNING: StatementTranslator.determineJoint did not find a match for %s",
-                    bodyPart
-                )
-            )
+                    bodyPart))
         }
         return result
     }
@@ -945,22 +979,21 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Limb.LEFT_ARM else Limb.RIGHT_ARM
             }
-        } else if (bodyPart.equals("leg", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("leg", ignoreCase = true)) {
             if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Limb.LEFT_LEG else Limb.RIGHT_LEG
             }
-        } else if (bodyPart.equals("back", ignoreCase = true) || bodyPart.equals("torso", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("back", ignoreCase = true) || bodyPart.equals("torso", ignoreCase = true)) {
             result = Limb.TORSO
-        } else if (bodyPart.equals("head", ignoreCase = true)) {
+        }
+        else if (bodyPart.equals("head", ignoreCase = true)) {
             result = Limb.HEAD
         }
         if (result.equals(Limb.UNKNOWN)) {
-            LOGGER.info(
-                String.format(
-                    "WARNING: StatementTranslator.determineLimb did not find a match for %s",
-                    bodyPart
-                )
-            )
+            LOGGER.info(String.format("WARNING: StatementTranslator.determineLimb did not find a match for %s",
+                    bodyPart))
         }
         return result
     }
@@ -968,9 +1001,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     // Determine side from the supplied string. If the string is "other", return
     // the side different from the last used.
     @Throws(IllegalArgumentException::class)
-    private fun determineSide(text: String, dict: HashMap<SharedKey, Any?>): String {
+    private fun determineSide(text: String, dict: HashMap<SharedKey, Any>): String {
         var side = "right"
-        if (text.equals("left", ignoreCase = true)) side = "left" else if (text.equals("other", ignoreCase = true)) {
+        if (text.equals("left", ignoreCase = true)) {
+            side = "left"
+        }
+        else if (text.equals("other", ignoreCase = true)) {
             val former = dict[SharedKey.SIDE].toString()
             side = if (former.equals("left", ignoreCase = true)) "right" else "left"
         }
@@ -980,15 +1016,29 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Hash
     // The poses returned here are expected to exist in the Pose table of the database.
     private fun poseForAdverb(adverb: String): String {
         var pose = ""
-        pose = if (adverb.lowercase(Locale.getDefault())
-                .contains("slow motion")
-        ) "very slow speed" else if (adverb.lowercase(Locale.getDefault()).contains("slow")) {
-            if (adverb.lowercase(Locale.getDefault()).contains("very")) "very slow speed" else "slow speed"
-        } else if (adverb.lowercase(Locale.getDefault()).contains("fast") || adverb.lowercase(Locale.getDefault())
-                .contains("quick")
-        ) {
-            if (adverb.lowercase(Locale.getDefault()).contains("very")) "very fast speed" else "fast speed"
-        } else "normal speed"
+        pose = if (adverb.lowercase(Locale.getDefault()).contains("slow motion")) {
+            "very slow speed"
+        }
+        else if (adverb.lowercase(Locale.getDefault()).contains("slow")) {
+            if (adverb.lowercase(Locale.getDefault()).contains("very")) {
+                "very slow speed"
+            }
+            else {
+                "slow speed"
+            }
+        }
+        else if (adverb.lowercase(Locale.getDefault()).contains("fast") ||
+                 adverb.lowercase(Locale.getDefault()).contains("quick")) {
+            if (adverb.lowercase(Locale.getDefault()).contains("very")) {
+                "very fast speed"
+            }
+            else {
+                "fast speed"
+            }
+        }
+        else {
+            "normal speed"
+        }
         return pose
     }
 

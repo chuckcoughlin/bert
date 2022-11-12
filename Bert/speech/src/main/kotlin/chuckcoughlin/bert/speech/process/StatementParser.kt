@@ -14,7 +14,8 @@ import org.antlr.v4.runtime.CodePointCharStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import chuckcoughlin.bert.syntax.SpeechSyntaxLexer
-import chuckcoughlin.bert.syntax.StatementTranslator
+import chuckcoughlin.bert.syntax.SpeechSyntaxParser
+import chuckcoughlin.bert.speech.process.StatementTranslator
 import java.awt.SystemColor.text
 import java.io.ByteArrayInputStream
 
@@ -23,7 +24,7 @@ import java.io.ByteArrayInputStream
  * between invocations of the parser.
  */
 class StatementParser {
-    private val context: HashMap<SharedKey, Any?>
+    private val context: HashMap<SharedKey, Any>
 
     /**
      * Constructor provides parameters specific to the robot. The
@@ -31,7 +32,7 @@ class StatementParser {
      * invocations of the translator.
      */
     init {
-        context = HashMap()
+        context = HashMap<SharedKey,Any>()
         initialize()
     }
 
@@ -50,7 +51,7 @@ class StatementParser {
         context[SharedKey.IT] = SharedKey.JOINT
     }
 
-    fun setSharedProperty(key: SharedKey, value: Any?) {
+    fun setSharedProperty(key: SharedKey, value: Any) {
         context[key] = value
     }
 
@@ -66,7 +67,7 @@ class StatementParser {
     @Throws(Exception::class)
     fun parseStatement(txt: String): MessageBottle {
         var text = txt
-        val bottle = MessageBottle()
+        val bottle = MessageBottle(RequestType.NONE)
         if ( !text.isBlank() ) {
             if (context[SharedKey.PARTIAL] != null) {
                 text = String.format("%s %s", context[SharedKey.PARTIAL], text)

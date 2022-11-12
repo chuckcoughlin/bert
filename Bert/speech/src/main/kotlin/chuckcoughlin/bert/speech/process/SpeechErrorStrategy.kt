@@ -11,8 +11,11 @@ package chuckcoughlin.bert.speech.process
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import org.antlr.v4.runtime.DefaultErrorStrategy
+import org.antlr.v4.runtime.InputMismatchException
+import org.antlr.v4.runtime.Parser
 import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Recognizer
+import org.antlr.v4.runtime.Token
 import java.util.logging.Logger
 
 /** Instead of recovering from exceptions, log the information to
@@ -35,7 +38,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
     /**
      * This appears to be a top-level view of things
      */
-    fun recover(recognizer: Parser?, e: RecognitionException?) {
+    override fun recover(recognizer: Parser, e: RecognitionException?) {
         super.recover(recognizer, e)
         //LOGGER.warning(CLSS+": RECOVER");
         //recordError(recognizer,e);  // Moved to reportError() override
@@ -44,7 +47,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
     /** Make sure we don't attempt to recover inline; if the parser
      * successfully recovers, it won't throw an exception.
      */
-    fun recoverInline(recognizer: Parser?): Token {
+    override fun recoverInline(recognizer: Parser): Token {
         // LOGGER.warning(CLSS+": RECOVER-INLINE");
         recordError(recognizer, InputMismatchException(recognizer))
         return super.recoverInline(recognizer)
@@ -53,22 +56,24 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
     /**
      * This appears to be a top-level view of things...
      */
-    fun reportError(recognizer: Parser?, e: RecognitionException) {
+    override fun reportError(recognizer: Parser, e: RecognitionException) {
         //LOGGER.warning(CLSS+":reportError ...");
         recordError(recognizer, e)
     }
 
     /** Make sure we don't attempt to recover from problems in sub-rules.  */
-    fun sync(recognizer: Parser?) {}
+    override fun sync(recognizer: Parser) {}
     protected fun recordError(recognizer: Recognizer<*, *>?, re: RecognitionException) {
         // In each case the expected tokens are an expression. Don't bother to list
         val offender: Token = re.getOffendingToken()
-        var msg: String? = ""
+        var msg: String = ""
         if (offender != null && offender.getText() != null && !offender.getText().isEmpty()) {
             msg = java.lang.String.format("I don't understand the word \"%s\"", offender.getText())
-        } else if (offender.getText() != null && offender.getText().startsWith("<EOF>")) {  // EOF
+        }
+        else if (offender.getText() != null && offender.getText().startsWith("<EOF>")) {  // EOF
             bottle.assignRequestType(RequestType.PARTIAL)
-        } else {  // Don't understand
+        }
+        else {  // Don't understand
             val rand = Math.random()
             val index = (rand * phrases.size).toInt()
             msg = phrases[index]

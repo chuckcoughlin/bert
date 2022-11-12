@@ -26,10 +26,7 @@ class URDFModel {
      */
     val chain: Chain
 
-    init {
-        chain = Chain()
-        document = null
-    }
+
 
     /**
      * Expand the supplied path as the URDF XML file.
@@ -102,33 +99,31 @@ class URDFModel {
                             val childNodes = node.childNodes
                             val childCount = childNodes.length
                             var childIndex = 0
-                            var xyz: DoubleArray? = null
-                            var ijk: DoubleArray? = null
+                            var xyz: DoubleArray
+                            var ijk: DoubleArray
                             while (childIndex < childCount) {
                                 val cNode = childNodes.item(childIndex)
-                                if ("origin".equals(cNode.localName, ignoreCase = true)) xyz = doubleArrayFromString(
-                                    XMLUtility.attributeValue(
-                                        cNode,
-                                        "xyz"
-                                    )
-                                ) else if ("axis".equals(cNode.localName, ignoreCase = true)) {
+                                if ("origin".equals(cNode.localName, ignoreCase = true)) {
+                                    xyz = doubleArrayFromString(
+                                        XMLUtility.attributeValue(cNode, "xyz"))
+                                }
+                                else if ("axis".equals(cNode.localName, ignoreCase = true)) {
                                     ijk = doubleArrayFromDirectionString(XMLUtility.attributeValue(cNode, "xyz"))
                                 }
                                 childIndex++
                             }
                             val a: Appendage = Appendage.valueOf(aname.uppercase(Locale.getDefault()))
-                            chain.createLink(a.name())
+                            chain.createLink(a)
                             val end = LinkPoint(a, ijk, xyz)
-                            chain.setEndPoint(a.name(), end)
-                            chain.setParent(a.name(), name.uppercase(Locale.getDefault()))
+                            chain.setEndPoint(a.name, end)
+                            chain.setParent(a.name, name.uppercase(Locale.getDefault()))
                         }
                         aindex++
                     }
                 }
                 catch (iae: IllegalArgumentException) {
                     LOGGER.warning(String.format("%s.analyzeChain: link or appendage has unknown name: %s, ignored (%s)",
-                                    CLSS,name,iae.localizedMessage)
-                    )
+                                    CLSS,name,iae.localizedMessage))
                     iae.printStackTrace()
                 }
                 index++
@@ -201,23 +196,15 @@ class URDFModel {
                                 )
                             )
                         }
-                    } else {
-                        LOGGER.warning(
-                            java.lang.String.format(
-                                "%s.analyzeChain: joint %s has no parent",
-                                CLSS,
-                                joint.name()
-                            )
-                        )
                     }
-                } catch (iae: IllegalArgumentException) {
-                    LOGGER.warning(
-                        String.format(
-                            "%s.analyzeChains: link element has unknown name (%s), ignored",
-                            CLSS,
-                            name
-                        )
-                    )
+                    else {
+                        LOGGER.warning(String.format("%s.analyzeChain: joint %s has no parent",
+                                CLSS,joint.name))
+                    }
+                }
+                catch (iae: IllegalArgumentException) {
+                    LOGGER.warning(String.format("%s.analyzeChains: link element has unknown name (%s), ignored",
+                            CLSS,name))
                 }
                 index++
             }
@@ -239,22 +226,16 @@ class URDFModel {
     }
 
     // ============================================= Helper Methods ==============================================
-    private fun doubleArrayFromString(text: String?): DoubleArray? {
-        if (text == null) return null
+    private fun doubleArrayFromString(text: String): DoubleArray {
         val result = DoubleArray(3)
         val raw = text.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         for (i in raw.indices) {
             try {
                 result[i] = raw[i].toDouble()
-            } catch (nfe: NumberFormatException) {
-                LOGGER.warning(
-                    String.format(
-                        "%s.doubleArrayFromString: Error parsing %s (%s);",
-                        CLSS,
-                        text,
-                        nfe.localizedMessage
-                    )
-                )
+            }
+            catch (nfe: NumberFormatException) {
+                LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",
+                        CLSS,text,nfe.localizedMessage ) )
             }
         }
         //LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]));
@@ -267,22 +248,16 @@ class URDFModel {
      * @param text
      * @return
      */
-    private fun doubleArrayFromDirectionString(text: String?): DoubleArray? {
-        if (text == null) return null
+    private fun doubleArrayFromDirectionString(text: String): DoubleArray {
         val result = DoubleArray(3)
         val raw = text.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         for (i in raw.indices) {
             try {
                 result[i] = 180.0 * raw[1].toDouble()
-            } catch (nfe: NumberFormatException) {
-                LOGGER.warning(
-                    String.format(
-                        "%s.doubleArrayFromString: Error parsing %s (%s);",
-                        CLSS,
-                        text,
-                        nfe.localizedMessage
-                    )
-                )
+            }
+            catch (nfe: NumberFormatException) {
+                LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",
+                        CLSS,text,nfe.localizedMessage) )
             }
         }
         return result
@@ -291,5 +266,9 @@ class URDFModel {
     companion object {
         private const val CLSS = "URDFModel"
         private val LOGGER = Logger.getLogger(CLSS)
+    }
+    init {
+        chain = Chain()
+        document = null
     }
 }

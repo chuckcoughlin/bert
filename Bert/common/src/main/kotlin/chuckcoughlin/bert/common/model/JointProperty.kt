@@ -8,7 +8,19 @@ package chuckcoughlin.bert.common.model
  * These are properties of each stepper motor.
  */
 enum class JointProperty {
-    ID, MAXIMUMANGLE, MINIMUMANGLE, MOTORTYPE, OFFSET, ORIENTATION, POSITION, SPEED, STATE, TEMPERATURE, TORQUE, VOLTAGE, UNRECOGNIZED;
+    ID,
+    MAXIMUMANGLE,
+    MINIMUMANGLE,
+    MOTORTYPE,
+    OFFSET,
+    ORIENTATION,
+    POSITION,
+    SPEED,
+    STATE,
+    TEMPERATURE,
+    TORQUE,
+    VOLTAGE,
+    UNRECOGNIZED;
 
     companion object {
         /**

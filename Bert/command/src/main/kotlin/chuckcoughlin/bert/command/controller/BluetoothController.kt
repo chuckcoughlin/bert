@@ -4,14 +4,17 @@
  */
 package chuckcoughlin.bert.command.controller
 
-import chuckcoughlin.bert.common.BottleConstants
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.controller.NamedSocket
 import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
+import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.speech.process.MessageTranslator
+import chuckcoughlin.bert.speech.process.StatementParser
 import java.util.logging.Logger
 
 /**
@@ -21,7 +24,7 @@ import java.util.logging.Logger
  * to and from the simple text messages recognized by the tablet.
  */
 class BluetoothController(launcher: MessageHandler?, port: Int) :
-    SocketController(launcher, HandlerType.TABLET.name(), "localhost", port), Controller {
+    SocketController(launcher, HandlerType.TABLET.name, "localhost", port), Controller {
     private val LOGGER = Logger.getLogger(CLSS)
     private val parser: StatementParser
     private val translator: MessageTranslator
@@ -48,7 +51,7 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
      * Format a request from the spoken text arriving from the tablet.
      * Forward on to the launcher.
      */
-    fun receiveRequest(request: MessageBottle?) {
+    fun receiveRequest(request: MessageBottle) {
         launcher.handleRequest(request)
     }
 
@@ -59,10 +62,10 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
      *
      * @param response
      */
-    fun receiveResponse(response: MessageBottle?) {
+    fun receiveResponse(response: MessageBottle) {
         var text: String = translator.messageToText(response)
         text = text.trim { it <= ' ' }
-        socket.write(java.lang.String.format("%s:%s", MessageType.ANS.name(), text))
+        socket.write(java.lang.String.format("%s:%s", MessageType.ANS.name, text))
     }
 
     /**
@@ -104,7 +107,7 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
         override fun run() {
             sock.create()
             sock.startup()
-            notifyChangeListeners(sock.getName(), SocketStateChangeEvent.READY)
+            notifyChangeListeners(sock.name, SocketStateChangeEvent.READY)
             while (!Thread.currentThread().isInterrupted) {
                 var msg: MessageBottle? = null
                 var text: String? = sock.readLine() // Strips trailing new-line
@@ -116,7 +119,7 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
                     }
                 } else if (text.length > BottleConstants.HEADER_LENGTH) {
                     val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)
-                    if (hdr.equals(MessageType.MSG.name(), ignoreCase = true)) {
+                    if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
                         // Strip header then translate the rest.
                         try {
                             text = text.substring(BottleConstants.HEADER_LENGTH)

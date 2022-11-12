@@ -12,7 +12,7 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import org.antlr.v4.runtime.BaseErrorListener
 import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Recognizer
-
+import org.antlr.v4.runtime.Token
 import java.util.logging.Logger
 
 /**
@@ -25,7 +25,7 @@ class SpeechErrorListener(bot: MessageBottle) : BaseErrorListener() {
         bottle = bot
     }
 
-    fun syntaxError(recognizer: Recognizer<*, *>?,offendingSymbol: Any?,
+    override fun syntaxError(recognizer: Recognizer<*, *>?,offendingSymbol: Any?,
         line: Int, charPositionInLine: Int,msg: String?,e: RecognitionException? ) {
         recordError(
             recognizer, offendingSymbol as Token?,

@@ -56,12 +56,14 @@ class PoseTable {
                 if (rs != null) {
                     try {
                         rs.close()
-                    } catch (ignore: SQLException) {}
+                    }
+                    catch (ignore: SQLException) {}
                 }
                 if (statement != null) {
                     try {
                         statement.close()
-                    } catch (ignore: SQLException) {}
+                    }
+                    catch (ignore: SQLException) {}
                 }
             }
         }
@@ -76,8 +78,7 @@ class PoseTable {
      * @return list of upper-case joint names.
      */
     fun getPoseJointValuesForParameter(cxn: Connection?,mcmap: Map<String, MotorConfiguration>,
-                                        p: String,parameter: JointProperty
-    ): Map<String, Double> {
+                                        p: String,parameter: JointProperty): Map<String, Double> {
 
         val map: MutableMap<String, Double> = HashMap()
         if( cxn!=null ) {
@@ -177,8 +178,7 @@ class PoseTable {
                     try {
                         statement.close()
                     }
-                    catch (ignore: SQLException) {
-                    }
+                    catch (ignore: SQLException) {}
                 }
             }
         }

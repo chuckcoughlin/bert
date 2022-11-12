@@ -1,4 +1,5 @@
 // Gradle build script (Kotlin style) for the "dispatcher" module
+// The dispatcher is the entry point for the entire application.
 
 plugins {
     id("bert.application-conventions")

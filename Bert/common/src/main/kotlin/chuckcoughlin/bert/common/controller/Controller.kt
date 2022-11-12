@@ -10,8 +10,8 @@ import chuckcoughlin.bert.common.message.MessageBottle
  * A common interface for controllers owned by application instances.
  */
 interface Controller {
-    fun receiveRequest(request: MessageBottle?)
-    fun receiveResponse(response: MessageBottle?)
+    fun receiveRequest(request: MessageBottle)
+    fun receiveResponse(response: MessageBottle)
     fun start()
     fun stop()
 }

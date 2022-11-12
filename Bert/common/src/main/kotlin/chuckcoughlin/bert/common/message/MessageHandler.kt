@@ -20,8 +20,8 @@ interface MessageHandler {
     fun createControllers()
 
     fun run()
-    fun handleRequest(request: MessageBottle?)
-    fun handleResponse(response: MessageBottle?)
+    fun handleRequest(request: MessageBottle)
+    fun handleResponse(response: MessageBottle)
     fun startup()
     fun shutdown()
 }

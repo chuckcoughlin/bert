@@ -18,7 +18,7 @@ import java.util.logging.Logger
  * This is the base class for a collection of models that keep basic configuration
  * information, all reading from the same files. The information
  */
-class RobotCommandModel(configPath: Path?) : AbstractRobotModel(configPath) {
+class RobotCommandModel(configPath: Path) : AbstractRobotModel(configPath) {
     var blueserverPort = 11046
         private set
 
@@ -33,7 +33,7 @@ class RobotCommandModel(configPath: Path?) : AbstractRobotModel(configPath) {
     /**
      * Analyze the document and populate the model.
      */
-    fun populate() {
+    override fun populate() {
         analyzeControllers()
         analyzeProperties()
         analyzeMotors()
@@ -43,7 +43,7 @@ class RobotCommandModel(configPath: Path?) : AbstractRobotModel(configPath) {
      * Search the XML configuration for the command controller. It's the only one we care about.
      * If not found, the controller will be null.
      */
-    fun analyzeControllers() {
+    override fun analyzeControllers() {
         if (this.document != null) {
             var controllerName = "UNASSIGNED"
             val elements: NodeList = document.getElementsByTagName("controller")
@@ -87,7 +87,7 @@ class RobotCommandModel(configPath: Path?) : AbstractRobotModel(configPath) {
     /**
      * Extend the default search for properties to convert the "blueserver" port to an int.
      */
-    protected fun analyzeProperties() {
+    protected override fun analyzeProperties() {
         super.analyzeProperties()
         val port: String = properties.getProperty("blueserver")
         if (port != null) {
