@@ -8,7 +8,11 @@ package chuckcoughlin.bert.common.model
  * These are the canonical names for the joints of the humanoid.
  */
 enum class Joint {
-    ABS_X, ABS_Y, ABS_Z, BUST_X, BUST_Y, NECK_Y, NECK_Z, LEFT_ANKLE_Y, LEFT_ARM_Z, LEFT_ELBOW_Y, LEFT_HIP_X, LEFT_HIP_Y, LEFT_HIP_Z, LEFT_KNEE_Y, LEFT_SHOULDER_X, LEFT_SHOULDER_Y, RIGHT_ANKLE_Y, RIGHT_ARM_Z, RIGHT_ELBOW_Y, RIGHT_HIP_X, RIGHT_HIP_Y, RIGHT_HIP_Z, RIGHT_KNEE_Y, RIGHT_SHOULDER_X, RIGHT_SHOULDER_Y, UNKNOWN;
+    ABS_X, ABS_Y, ABS_Z, BUST_X, BUST_Y, NECK_Y, NECK_Z,
+    LEFT_ANKLE_Y, LEFT_ARM_Z, LEFT_ELBOW_Y, LEFT_HIP_X, LEFT_HIP_Y, LEFT_HIP_Z,
+    LEFT_KNEE_Y, LEFT_SHOULDER_X, LEFT_SHOULDER_Y,
+    RIGHT_ANKLE_Y, RIGHT_ARM_Z, RIGHT_ELBOW_Y, RIGHT_HIP_X, RIGHT_HIP_Y, RIGHT_HIP_Z,
+    RIGHT_KNEE_Y, RIGHT_SHOULDER_X, RIGHT_SHOULDER_Y, NONE;
 
     companion object {
         /**
@@ -44,7 +48,7 @@ enum class Joint {
                 RIGHT_KNEE_Y -> text = "right knee"
                 RIGHT_SHOULDER_X -> text = "right shoulder horizontal"
                 RIGHT_SHOULDER_Y -> text = "right shoulder vertical"
-                UNKNOWN -> text = "unknown"
+                NONE -> text = "unknown"
             }
             return text
         }

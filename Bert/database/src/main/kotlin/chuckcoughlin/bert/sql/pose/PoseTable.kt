@@ -6,7 +6,7 @@
 package chuckcoughlin.bert.sql.pose
 
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import java.sql.*
@@ -78,7 +78,8 @@ class PoseTable {
      * @return list of upper-case joint names.
      */
     fun getPoseJointValuesForParameter(cxn: Connection?,mcmap: Map<String, MotorConfiguration>,
-                                        p: String,parameter: JointProperty): Map<String, Double> {
+                                        p: String,parameter: JointDynamicProperty
+    ): Map<String, Double> {
 
         val map: MutableMap<String, Double> = HashMap()
         if( cxn!=null ) {

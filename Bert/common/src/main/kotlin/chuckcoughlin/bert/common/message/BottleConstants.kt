@@ -8,8 +8,6 @@ package chuckcoughlin.bert.common.message
  * Define strings used in requests and responses between server and client.
  */
 object BottleConstants {
-
-
     // Command names
     const val COMMAND_FREEZE = "freeze"
     const val COMMAND_HALT = "halt"
@@ -39,7 +37,9 @@ object BottleConstants {
     const val OFF_VALUE = "0"
 
     // Default values for some "empty" properties
+    const val NO_CONTROLLER = "No Controller"
     const val NO_ERROR = "No Error"
+    const val NO_POSE  = "No Pose"
     const val NO_SOURCE = "No Source"
 
 }

@@ -18,6 +18,21 @@ import java.util.logging.Logger
  * at runtime, others are read-only
  */
 class MotorConfiguration : Serializable {
+    /**
+     * Constructor: Sets configuration attributes. The rest are left at default jointValues.
+     * @param j name of the motor (its joint)
+     * @param type Dynamixel model
+     * @param motorId address
+     * @param cname controller name
+     * @param isDirect true if orientation is "forward"
+     */
+    constructor(j: Joint, type: DynamixelType, motorId: Int, cname: String, isDirect: Boolean)  {
+        id = motorId
+        controller = cname
+        joint = j
+        this.type = type
+        this.isDirect = isDirect
+    }
     var joint: Joint
         private set
     var limb: Limb
@@ -36,10 +51,8 @@ class MotorConfiguration : Serializable {
     var maxTorque : Double
     var isDirect: Boolean
 
-    /**
-     * When we set a new position, use the previous position and speed
-     * to estimate the travel time.
-     */
+    // When we set a new position, use the previous position and speed
+    // to estimate the travel time.
     var position : Double // ~ degrees
         get() = field
         set(value) {
@@ -53,56 +66,22 @@ class MotorConfiguration : Serializable {
     var torque : Double // ~ N-m
     var travelTime : Long // ~msecs
         private set       // Read-only
-
-    /**
-     * Constructor: Sets configuration attributes. The rest are left at default jointValues.
-     * @param j name of the motor (its joint)
-     * @param type Dynamixel model
-     * @param motorId address
-     * @param name controller name
-     * @param isDirect true if orientation is "forward"
-     */
-    constructor(j: Joint, type: DynamixelType, motorId: Int, name: String, isDirect: Boolean)  {
-        id = motorId
-        controller = name
-        joint = j
-        this.type = type
-        this.isDirect = isDirect
-    }
-
-
-
-    fun setProperty(propertyName: String, value: Double) {
-        try {
-            val jp = JointProperty.valueOf(propertyName.uppercase(Locale.getDefault()))
-            setProperty(jp, value)
-        }
-        catch (iae: IllegalArgumentException) {
-            LOGGER.warning(
-                String.format("%s.setProperty: Undefined property %s (%s)",
-                    CLSS,propertyName,iae.localizedMessage
-                )
-            )
-        }
-    }
+    var voltage: Double
 
     /**
      * Use the motor value to set the corresponding property.
      * NOTE: In Kotlin, using the dot notation for a member
      *       actually accesses the custom getter or setter.
      */
-    fun setProperty(jp: JointProperty, value: Double) {
+    fun setDynamicProperty(jp: JointDynamicProperty, value: Double) {
         when (jp) {
-            JointProperty.POSITION -> position = value
-            JointProperty.SPEED -> speed = value
-            JointProperty.STATE -> setState(value)
-            JointProperty.TEMPERATURE -> temperature = value
-            JointProperty.TORQUE -> torque = value
-            else -> {
-                val warning = String.format("%s.setProperty: Readonly property %s",
-                        CLSS,jp.name)
-                throw IllegalArgumentException(warning)
-            }
+            JointDynamicProperty.POSITION -> position = value
+            JointDynamicProperty.SPEED -> speed = value
+            JointDynamicProperty.STATE -> setState(value)
+            JointDynamicProperty.TEMPERATURE -> temperature = value
+            JointDynamicProperty.TORQUE -> torque = value
+            JointDynamicProperty.VOLTAGE -> voltage = value
+            JointDynamicProperty.NONE-> value
         }
     }
 
@@ -121,9 +100,12 @@ class MotorConfiguration : Serializable {
         private val LOGGER = Logger.getLogger(CLSS)
         private const val serialVersionUID = -3452548869138158183L
     }
+
+    /**
+     * Set initial values for both definition and runtime parameters.
+     */
     init {
-        joint = Joint.UNKNOWN
-        limb = Limb.UNKNOWN
+        limb = Limb.NONE
         type = DynamixelType.MX28
         id = 0
         controller = ""
@@ -140,5 +122,6 @@ class MotorConfiguration : Serializable {
         temperature = 20.0 // Room temperature
         torque = 0.0 // Power-off value
         isTorqueEnabled = true // Initially torque is enabled
+        voltage = 0.0
     }
 }

@@ -2,18 +2,24 @@
  * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.common.message
+package chuckcoughlin.bert.common.model
 
 /**
- * These quantities are attributes of the robot as a whole.
+ * These are properties that define a stepper motor.
+ * These are defined in the URDF file and are not
+ * generally modifiable.
  */
-enum class MetricType {
-    AGE, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
-    HEIGHT, MITTENS, NAME;
+enum class JointDefinitionProperty {
+    ID,
+    MAXIMUMANGLE,
+    MINIMUMANGLE,
+    MOTORTYPE,
+    OFFSET,
+    ORIENTATION;
 
     companion object {
         /**
-         * @return  a comma-separated list of status types in a single String.
+         * @return  a comma-separated list of all property types in a single String.
          */
         fun names(): String {
             val names = StringBuffer()

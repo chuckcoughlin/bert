@@ -1,5 +1,5 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -14,7 +14,7 @@ package chuckcoughlin.bert.common.model
  */
 enum class Limb {
     BACK, CERVICAL, HEAD, LEFT_CLAVICLE, LEFT_FOOT, LEFT_FOREARM, LEFT_HIP_LINK, LEFT_HIP_SOCKET, LEFT_ILLIUM, LEFT_SHIN, LEFT_SHOULDER_LINK, LEFT_THIGH, LEFT_UPPER_ARM, LOWER_SPINE, LUMBAR, PELVIS, RIGHT_CLAVICLE, RIGHT_FOOT, RIGHT_FOREARM, RIGHT_HIP_LINK, RIGHT_HIP_SOCKET, RIGHT_ILLIUM, RIGHT_SHIN, RIGHT_SHOULDER_LINK, RIGHT_THIGH, RIGHT_UPPER_ARM, SPINE, THORACIC,  // These represent groups of joints ...
-    LEFT_ARM, RIGHT_ARM, LEFT_LEG, RIGHT_LEG, TORSO, UNKNOWN;
+    LEFT_ARM, RIGHT_ARM, LEFT_LEG, RIGHT_LEG, TORSO, NONE;
 
     companion object {
         /**
@@ -58,7 +58,7 @@ enum class Limb {
                 LEFT_LEG -> text = "left leg"
                 RIGHT_LEG -> text = "right leg"
                 TORSO -> text = "torso"
-                UNKNOWN -> text = "unknown"
+                NONE -> text = "none"
             }
             return text
         }

@@ -45,7 +45,7 @@ class InternalController(launcher: MessageHandler) {
         if (qn != null) queue = sequentialQueues[qn]
         if (queue != null) {
             LOGGER.info(
-                String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.getMessage().fetchRequestType().name,
+                String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.getMessage().type,
                     holder.getQueue().name, if (queue.isInProgress) "IN PROGRESS" else "IDLE"
                 )
             )

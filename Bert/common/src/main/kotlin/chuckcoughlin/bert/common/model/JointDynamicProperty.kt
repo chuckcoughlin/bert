@@ -5,22 +5,17 @@
 package chuckcoughlin.bert.common.model
 
 /**
- * These are properties of each stepper motor.
+ * These are properties of a stepper motor that are modifiable
+ * at runtime. These all have numeric values.
  */
-enum class JointProperty {
-    ID,
-    MAXIMUMANGLE,
-    MINIMUMANGLE,
-    MOTORTYPE,
-    OFFSET,
-    ORIENTATION,
+enum class JointDynamicProperty {
     POSITION,
     SPEED,
     STATE,
     TEMPERATURE,
     TORQUE,
     VOLTAGE,
-    UNRECOGNIZED;
+    NONE;
 
     companion object {
         /**

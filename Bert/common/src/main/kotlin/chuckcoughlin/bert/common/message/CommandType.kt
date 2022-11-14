@@ -15,7 +15,8 @@ enum class CommandType {
     RESET,
     SHUTDOWN,
     SLEEP,
-    WAKE;
+    WAKE,
+    NONE;
 
     companion object {
         /**

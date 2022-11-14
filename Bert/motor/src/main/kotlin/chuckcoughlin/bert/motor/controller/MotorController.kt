@@ -6,11 +6,11 @@
 package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.PropertyType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.JointDynMICProperty
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.contracts.InvocationKind
 
 /**
  * Handle requests directed to a specific set of motors. All motors under the
@@ -136,10 +137,10 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
             }
             else if (isSingleControllerRequest(request)) {
                 // Do nothing if the joint or limb isn't in our controllerName.
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name)
+                val joint: Joint = request.joint
                 val cName: String = request.getProperty(PropertyType.CONTROLLER_NAME, "")
-                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name)
-                if (!jointName.equals(Joint.UNKNOWN.name, ignoreCase = true)) {
+                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name)
+                if (!jointName.equals(InvocationKind.UNKNOWN.name, ignoreCase = true)) {
                     val mc: MotorConfiguration = configurationsByName[jointName] ?: return
                 }
                 else if (!cName.isEmpty()) {
@@ -147,7 +148,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                         return
                     }
                 }
-                else if (!limbName.equals(Limb.UNKNOWN.name, ignoreCase = true)) {
+                else if (!limb.equals(InvocationKind.UNKNOWN.name, ignoreCase = true)) {
                     val limb: Limb = Limb.valueOf(limbName)
                     val count = configurationsForLimb(limb).size
                     if (count == 0) {
@@ -226,16 +227,11 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
     // with some text to send directly to the user. 
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
         // The following two requests simply use the current positions of the motors, whatever they are
-        if (request.fetchRequestType().equals(RequestType.COMMAND)) {
-            val command: String = request.getProperty(BottleConstants.COMMAND_NAME, "NONE")
-            LOGGER.warning(
-                String.format(
+        if (request.type.equals(RequestType.COMMAND)) {
+            val command: CommandType = request.command
+            LOGGER.warning(String.format(
                     "%s(%s).createResponseForLocalRequest: command=%s",
-                    CLSS,
-                    controllerName,
-                    command
-                )
-            )
+                    CLSS,controllerName,command.name) )
             if (command.equals(BottleConstants.COMMAND_RESET, ignoreCase = true)) {
                 remainder = null // Resync after dropped messages.
                 responseQueue.clear()
@@ -274,8 +270,8 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
             return true
         } else if (msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) &&
             (!msg.getProperty(PropertyType.CONTROLLER_NAME, "").equals("") ||
-                    !msg.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name())
-                        .equalsIgnoreCase(Limb.UNKNOWN.name()))
+                    !msg.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
+                        .equalsIgnoreCase(InvocationKind.UNKNOWN.name()))
         ) {
             return true
         }
@@ -370,7 +366,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 }
             }
             else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
-                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name())
+                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
                 val propertyName: String =
                     request.getProperty(PropertyType.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name())
                 val jp: JointProperty = JointProperty.valueOf(propertyName)
@@ -385,7 +381,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 wrapper.responseCount = 0 // ASYNC WRITE, no response. Let source set text.
             }
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name())
+                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
                 val mc: MotorConfiguration? = configurationsByName[jointName]
                 val propertyName: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
                 val value: String = request.getProperty(propertyName.uppercase(Locale.getDefault()), "0.0")
@@ -454,9 +450,9 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 wrapper.responseCount = 0 // No response
             }
             else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
-                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name())
+                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
                 val propertyName: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-                if (limbName.equals(Limb.UNKNOWN.name(), ignoreCase = true)) {
+                if (limbName.equals(InvocationKind.UNKNOWN.name(), ignoreCase = true)) {
                     list = DxlMessage.byteArrayListToListProperty(propertyName, configurationsByName.values)
                     wrapper.responseCount = configurationsByName.size // Status packet for each motor
                 }
@@ -527,17 +523,17 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
             val type: RequestType = request.fetchRequestType()
             val properties: MutableMap<String, String> = request.getProperties()
             if (type.equals(RequestType.GET_GOALS)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name())
+                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
                 val mc: MotorConfiguration? = getMotorConfiguration(jointName)
                 dxl.updateGoalsFromBytes(mc, properties, bytes)
             }
             else if (type.equals(RequestType.GET_LIMITS)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name())
+                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
                 val mc: MotorConfiguration? = getMotorConfiguration(jointName)
                 dxl.updateLimitsFromBytes(mc, properties, bytes)
             }
             else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name())
+                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
                 val mc: MotorConfiguration? = getMotorConfiguration(jointName)
                 val propertyName: String =
                     request.getProperty(PropertyType.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name())

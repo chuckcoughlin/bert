@@ -6,7 +6,7 @@
 package chuckcoughlin.bert.sql.db
 
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.sql.pose.PoseTable
 import org.sqlite.JDBC
@@ -41,8 +41,8 @@ object Database  {
      * @param parameter, e.g. "position","speed","torque"
      * @return list of upper-case joint names.
      */
-    fun getPoseJointValuesForParameter(
-        mcmap: Map<String, MotorConfiguration>,poseName: String,parameter: JointProperty): Map<String, Double> {
+    fun getPoseJointValuesForParameter(mcmap: Map<String, MotorConfiguration>,poseName: String,
+                                       parameter: JointDynamicProperty): Map<String, Double> {
         return pose.getPoseJointValuesForParameter(connection, mcmap, poseName, parameter)
     }
 

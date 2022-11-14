@@ -1,5 +1,5 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.control.model
@@ -187,14 +187,12 @@ class URDFModel {
                         if (child != null) {
                             val childLink = chain.getLinkForLimbName(child)
                             childLink.parent = parentLink
-                        } else {
+                        }
+                        else {
                             LOGGER.warning(
                                 java.lang.String.format(
                                     "%s.analyzeChain: joint %s has no child",
-                                    CLSS,
-                                    joint.name()
-                                )
-                            )
+                                    CLSS,joint.name))
                         }
                     }
                     else {

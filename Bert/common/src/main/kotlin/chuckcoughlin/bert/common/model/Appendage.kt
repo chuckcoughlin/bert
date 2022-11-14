@@ -10,7 +10,7 @@ package chuckcoughlin.bert.common.model
  */
 enum class Appendage {
     LEFT_EAR, LEFT_EYE, LEFT_FINGER, LEFT_HEEL, LEFT_TOE, NOSE,
-    RIGHT_EAR, RIGHT_EYE, RIGHT_FINGER, RIGHT_HEEL, RIGHT_TOE, UNKNOWN;
+    RIGHT_EAR, RIGHT_EYE, RIGHT_FINGER, RIGHT_HEEL, RIGHT_TOE, NONE;
 
     companion object {
         /**
@@ -32,7 +32,7 @@ enum class Appendage {
                 RIGHT_FINGER -> text = "right finger"
                 RIGHT_HEEL -> text = "right heel"
                 RIGHT_TOE -> text = "right toe"
-                UNKNOWN -> text = "unknown"
+                NONE -> text = "unknown"
             }
             return text
         }
