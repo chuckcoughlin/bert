@@ -33,7 +33,7 @@ object BottleConstants {
     const val TORQUE_NORMAL = 20
 
     // For values that are boolean. Use these strings for "values"
-    const val ON_VALUE = "1"
+    const val ON_VALUE  = "1"
     const val OFF_VALUE = "0"
 
     // Default values for some "empty" properties

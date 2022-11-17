@@ -46,7 +46,7 @@ abstract class AbstractRobotModel(configPath: Path) {
      * Expand the supplied path as the configuration XML file.
      * @return the configuration, an XML document.
      */
-    private fun analyzePath(filePath: Path): Document? {
+     fun analyzePath(filePath: Path): Document? {
         var contents: Document? = null
         try {
             val bytes = Files.readAllBytes(filePath)
@@ -66,7 +66,7 @@ abstract class AbstractRobotModel(configPath: Path) {
      * Search the model for property elements. The results are saved in the properties member.
      * Call this if the model has any properties of interest.
      */
-    protected fun analyzeProperties() {
+     fun analyzeProperties() {
         if (document != null) {
             val elements = document.getElementsByTagName("property")
             val count = elements.length

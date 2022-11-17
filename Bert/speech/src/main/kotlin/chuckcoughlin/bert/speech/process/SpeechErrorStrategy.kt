@@ -68,10 +68,10 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
         val offender: Token = re.getOffendingToken()
         var msg: String = ""
         if (offender != null && offender.getText() != null && !offender.getText().isEmpty()) {
-            msg = java.lang.String.format("I don't understand the word \"%s\"", offender.getText())
+            msg = String.format("I don't understand the word \"%s\"", offender.getText())
         }
         else if (offender.getText() != null && offender.getText().startsWith("<EOF>")) {  // EOF
-            bottle.assignRequestType(RequestType.PARTIAL)
+            bottle.type = RequestType.PARTIAL
         }
         else {  // Don't understand
             val rand = Math.random()
@@ -79,7 +79,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
             msg = phrases[index]
         }
         LOGGER.info(String.format("WARNING: %s: %s", CLSS, msg))
-        bottle.assignError(msg)
+        bottle.error = msg
     }
 
     companion object {

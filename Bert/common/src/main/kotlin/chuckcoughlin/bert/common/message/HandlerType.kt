@@ -10,7 +10,15 @@ package chuckcoughlin.bert.common.message
  * The "launcher" is a server application and accesses all controllers.
  */
 enum class HandlerType {
-    BITBUCKET, COMMAND, DISPATCHER, INTERNAL, REQUEST, SERIAL, TABLET, TERMINAL;
+    BITBUCKET,
+    COMMAND,
+    DISPATCHER,
+    INTERNAL,
+    REQUEST,
+    SERIAL,
+    TABLET,
+    TERMINAL,
+    UNDEFINED;
 
     companion object {
         /**

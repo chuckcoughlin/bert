@@ -9,6 +9,8 @@ package chuckcoughlin.bert.common.model
  * at runtime. These all have numeric values.
  */
 enum class JointDynamicProperty {
+    MAXIMUMANGLE,
+    MINIMUMANGLE,
     POSITION,
     SPEED,
     STATE,

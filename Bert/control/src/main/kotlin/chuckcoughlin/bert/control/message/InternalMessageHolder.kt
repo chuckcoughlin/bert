@@ -4,40 +4,42 @@
  */
 package chuckcoughlin.bert.control.message
 
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.control.controller.QueueName
 
 /**
- * This is a base class for carriers of MessageBottles as they are processed by an
+ * This is a wrapper for carriers of MessageBottles as they are processed by an
  * InternalController. These come in two flavors - those that wait on a queue and
  * those wait on a timer. The queued messages may optionally have a timed delay as well.
  */
 class InternalMessageHolder {
-    /**
+    /*
      * The delay interval is an idle interval between when this message is
      * first placed on the timer queue and when actually executes. Any time
-     * spent waiting on the sequential queue is counted toward the delay
+     *  spent waiting on the sequential queue is counted toward the delay
      * ("time served").
-     */
-    var delay: Long = 0
-
-    /**
-     * The execution time is earliest time at which this message is allowed
+    */
+    var delay: Long
+     /*
+     * The execution time is the earliest time at which this message is allowed
      * to be sent to the Dispatcher. The time is calculated as the message
      * is placed on the timer queue.
      */
-    var executionTime: Long = 0     // ~msecs
-    var repeatInterval: Long = 1000 // ~msecs
-    private val message: MessageBottle
-    private val originalSource: String
-    private var queue: QueueName?
-    private var repeat: Boolean
+    var executionTime: Long   // ~msecs
+    var repeatInterval: Long  // ~msecs
+    var message: MessageBottle
+    var originalSource: String
+    var queue: QueueName
+    var shouldRepeat: Boolean
 
     /**
-     * Constructor for the IDLE holder used by the timer. There is
-     * no message.
+     * Constructor for the IDLE holder used by the timer. The message
+     * is of type NONE
      */
-    constructor() {message = null,queue = null,delay,repeat = false,originalSource = null
+    constructor() {
+        message = MessageBottle(RequestType.NONE)
     }
 
     /**
@@ -48,11 +50,8 @@ class InternalMessageHolder {
      */
     constructor(msg: MessageBottle, interval: Long) {
         message = msg
-        queue = null
         delay = interval
-        repeat = false
-        originalSource = message.fetchSource()
-        message.id = nextId
+        originalSource = message.source
     }
 
     /**
@@ -64,43 +63,34 @@ class InternalMessageHolder {
         message = msg
         delay = 0
         queue = q
-        repeat = false
-        originalSource = message.fetchSource()
-        message.id = nextId
+        originalSource = message.source
     }
 
-    fun getMessage(): MessageBottle {
-        return message
-    }
-
-    fun getQueue(): QueueName? {
-        return queue
-    }
-
-    fun shouldRepeat(): Boolean {
-        return repeat
-    }
-
-    fun setShouldRepeat(flag: Boolean) {
-        repeat = flag
-    }
 
     fun reinstateOriginalSource() {
-        message.assignSource(originalSource)
+        message.source = originalSource
     }
 
     override fun toString(): String {
         return String.format("%s: %s expires in %d ms",
-            CLSS,message.fetchRequestType().name(),executionTime - System.nanoTime() / 1000000 )
+            CLSS,message.type.name,executionTime - System.nanoTime() / 1000000 )
     }
 
-    companion object {
-        private const val serialVersionUID = 4356286171135500677L
-        private const val CLSS = "InternalMessageHolder"
-        private var id: Long = 0 // Sequential id for messages
-
+    companion object ID {
+        const val serialVersionUID = 4356286171135500677L
+        const val CLSS = "InternalMessageHolder"
+        var id: Long = 0 // Sequential id for messages
         @get:Synchronized
         val nextId: Long
             get() = ++id
+    }
+    init {
+        delay = 0
+        executionTime  = 0
+        repeatInterval = 0
+        shouldRepeat = false
+        originalSource = BottleConstants.NO_SOURCE
+        queue = QueueName.GLOBAL
+        id = nextId
     }
 }

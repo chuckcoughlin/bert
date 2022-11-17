@@ -54,7 +54,7 @@ class RobotCommandModel(configPath: Path) : AbstractRobotModel(configPath) {
                 controllerName = XMLUtility.attributeValue(controllerElement, "name")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
                 if (type != null && !type.isEmpty() &&
-                    type.equals(HandlerType.COMMAND.name(), ignoreCase = true)
+                    type.equals(HandlerType.COMMAND.name, ignoreCase = true)
                 ) {
                     // Configure the socket - there should only be one.
                     val socketElements = controllerElement.getElementsByTagName("socket")
@@ -87,7 +87,7 @@ class RobotCommandModel(configPath: Path) : AbstractRobotModel(configPath) {
     /**
      * Extend the default search for properties to convert the "blueserver" port to an int.
      */
-    protected override fun analyzeProperties() {
+    override fun analyzeProperties() {
         super.analyzeProperties()
         val port: String = properties.getProperty("blueserver")
         if (port != null) {

@@ -11,8 +11,6 @@ package chuckcoughlin.bert.common.model
  */
 enum class JointDefinitionProperty {
     ID,
-    MAXIMUMANGLE,
-    MINIMUMANGLE,
     MOTORTYPE,
     OFFSET,
     ORIENTATION;

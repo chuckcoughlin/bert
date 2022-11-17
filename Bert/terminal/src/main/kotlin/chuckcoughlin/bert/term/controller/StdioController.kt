@@ -79,9 +79,8 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
                     if (input.isEmpty()) continue else {
                         LOGGER.info(java.lang.String.format("%s parsing: %s", HandlerType.TERMINAL.name, input))
                         val request: MessageBottle = parser.parseStatement(input)
-                        request.assignSource(HandlerType.TERMINAL.name)
-                        if (request.fetchError() != null
-                            || request.fetchRequestType().equals(RequestType.NOTIFICATION)) {
+                        request.handler = HandlerType.TERMINAL
+                        if( !request.error.isBlank()|| request.type.equals(RequestType.NOTIFICATION)) {
                             receiveResponse(request) // Handle locally/immediately
                         }
                         else {

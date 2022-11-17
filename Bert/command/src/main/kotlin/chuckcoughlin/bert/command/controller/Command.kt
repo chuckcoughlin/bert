@@ -9,6 +9,7 @@ import chuckcoughlin.bert.command.model.RobotCommandModel
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.controller.SocketController
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
@@ -18,6 +19,7 @@ import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.sql.db.Database
+import chuckcoughlin.bert.sql.db.Database.startup
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.locks.Condition
@@ -40,13 +42,7 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
     private val lock: Lock
     private var ignoring: Boolean
 
-    init {
-        model = m
-        lock = ReentrantLock()
-        busy = lock.newCondition()
-        ignoring = false
-        messageTranslator = MessageTranslator()
-    }
+
 
     /**
      * This application routes requests/responses between the Dispatcher and "blueserverd" daemon. Both
@@ -77,7 +73,7 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
                 try {
                     busy.await()
                     if (currentRequest == null) break
-                    if (currentRequest.fetchRequestType().equals(RequestType.COMMAND) &&
+                    if (currentRequest.type.equals(RequestType.COMMAND) &&
                         BottleConstants.COMMAND_HALT.equalsIgnoreCase(
                             currentRequest.getProperties().get(BottleConstants.COMMAND_NAME)
                         )
@@ -92,8 +88,10 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
                     } else if (!ignoring) {
                         dispatchController.receiveRequest(currentRequest)
                     }
-                } catch (ie: InterruptedException) {
-                } finally {
+                }
+                catch (ie: InterruptedException) {
+                }
+                finally {
                     lock.unlock()
                 }
             }
@@ -102,7 +100,7 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
         } finally {
             shutdown()
         }
-        Database.getInstance().shutdown()
+        Database.shutdown()
         System.exit(0)
     }
 
@@ -140,25 +138,27 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.fetchRequestType().equals(RequestType.COMMAND)) {
-            val command: String = request.getProperty(BottleConstants.COMMAND_NAME, "NONE")
+        if (request.type.equals(RequestType.COMMAND)) {
+            val command: CommandType = request.command
             LOGGER.warning(String.format("%s.handleLocalRequest: command=%s", CLSS, command))
-            if (command.equals(BottleConstants.COMMAND_SLEEP, ignoreCase = true)) {
+            if( command.equals(CommandType.SLEEP) ) {
                 ignoring = true
-            } else if (command.equals(BottleConstants.COMMAND_WAKE, ignoreCase = true)) {
+            }
+            else if( command.equals(CommandType.WAKE) ) {
                 ignoring = false
-            } else {
+            }
+            else {
                 val msg = String.format("I don't recognize command %s", command)
-                request.assignError(msg)
+                request.error = msg
             }
         }
-        request.assignText(messageTranslator.randomAcknowledgement())
+        request.text = messageTranslator.randomAcknowledgement()
         return request
     }
 
     // Local requests are those that can be handled immediately without forwarding to the dispatcher.
     private fun isLocalRequest(request: MessageBottle): Boolean {
-        if (request.fetchRequestType().equals(RequestType.COMMAND)) {
+        if (request.type.equals(RequestType.COMMAND)) {
             val properties: Map<String, String> = request.getProperties()
             val cmd = properties[BottleConstants.COMMAND_NAME]
             if (cmd.equals(BottleConstants.COMMAND_SLEEP, ignoreCase = true) ||
@@ -199,15 +199,23 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
             val path = Paths.get(arg)
             PathConstants.setHome(path)
             // Setup logging to use only a file appender to our logging directory
-            LoggerUtility.getInstance().configureRootLogger(LOG_ROOT)
+            LoggerUtility.configureRootLogger(LOG_ROOT)
             val model = RobotCommandModel(PathConstants.CONFIG_PATH)
             model.populate()
-            Database.getInstance().startup(PathConstants.DB_PATH)
+            Database.startup(PathConstants.DB_PATH)
             val runner = Command(model)
             runner.createControllers()
             Runtime.getRuntime().addShutdownHook(ShutdownHook(runner))
             runner.startup()
             runner.start()
         }
+    }
+
+    init {
+        model = m
+        lock = ReentrantLock()
+        busy = lock.newCondition()
+        ignoring = false
+        messageTranslator = MessageTranslator()
     }
 }

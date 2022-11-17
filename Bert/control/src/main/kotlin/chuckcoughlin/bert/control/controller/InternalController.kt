@@ -4,7 +4,6 @@
  *
  */
 package chuckcoughlin.bert.control.controller
-
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
@@ -21,12 +20,7 @@ class InternalController(launcher: MessageHandler) {
     private val dispatcher: MessageHandler
     private val timedQueue: TimedQueue
     private val sequentialQueues: MutableMap<QueueName, SequentialQueue>
-    private val pendingMessages: MutableMap<Long, InternalMessageHolder?>
-
-    /**
-     * Constructor: Create all the necessary queues
-     * @param launcher the launcher parent process
-     */
+    private val pendingMessages: MutableMap<Long, InternalMessageHolder>
 
 
     /**
@@ -36,8 +30,7 @@ class InternalController(launcher: MessageHandler) {
      * @param request incoming message holder
      */
     @Synchronized
-    fun receiveRequest(holder: InternalMessageHolder?) {
-        var holder: InternalMessageHolder? = holder
+    fun receiveRequest(holder: InternalMessageHolder) {
         val now = System.nanoTime() / 1000000
         holder.executionTime = now + holder.delay
         val qn: QueueName = holder.queue
@@ -50,7 +43,7 @@ class InternalController(launcher: MessageHandler) {
                 )
             )
             queue.addLast(holder)
-            if (!queue.isInProgress) {
+            if (!queue.inProgress) {
                 holder = queue.removeFirst()
                 queue.isInProgress = true
                 sendToTimerQueue(queue, holder) // Just in case there's a required delay
@@ -85,7 +78,7 @@ class InternalController(launcher: MessageHandler) {
                     LOGGER.info(
                         String.format(
                             "%s.receiveResponse(%d) %s on %s (empty)", CLSS, holder.getMessage().getId(),
-                            holder.getMessage().fetchRequestType().name(), qn.name
+                            holder.getMessage().type.name, qn.name
                         )
                     )
                     queue.isInProgress = false
@@ -95,13 +88,14 @@ class InternalController(launcher: MessageHandler) {
                     LOGGER.info(
                         String.format("%s.receiveResponse(%d) %s on %s (%d queued)",
                             CLSS, holder.getMessage().id,
-                            holder.getMessage().fetchRequestType().name(), qn.name, queue.size
+                            holder.getMessage().type.name, qn.name, queue.size
                         )
                     )
                     holder = queue.removeFirst()
                     sendToTimerQueue(queue, holder) // Just in case there's a required delay
                 }
-            } else {
+            }
+            else {
                 if (holder.shouldRepeat()) {
                     val now = System.nanoTime() / 1000000 // Work in milliseconds
                     holder.setExecutionTime(now + holder.getRepeatInterval())
@@ -126,8 +120,8 @@ class InternalController(launcher: MessageHandler) {
      */
     @Synchronized
     fun dispatch(holder: InternalMessageHolder?) {
-        holder.getMessage().assignSource(HandlerType.INTERNAL.name())
-        dispatcher.handleRequest(holder.getMessage())
+        holder.getMessage().source = HandlerType.INTERNAL.name
+        dispatcher.handleRequest(holder.message)
     }
 
     fun start() {
@@ -147,9 +141,9 @@ class InternalController(launcher: MessageHandler) {
      */
     private fun sendToTimerQueue(queue: SequentialQueue?, holder: InternalMessageHolder?) {
         if (queue != null) {
-            pendingMessages[holder.message.id] = holder
+            pendingMessages[holder.ID.id] = holder
             // LOGGER.info(String.format("%s.sendToTimerQueue: %d from %s",CLSS,holder.getMessage().getId(),holder.getQueue().name()));
-            queue.isInProgress = true
+            queue.inProgress = true
         }
         timedQueue.addMessage(holder)
     }

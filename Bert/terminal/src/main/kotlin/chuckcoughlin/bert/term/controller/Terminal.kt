@@ -7,6 +7,7 @@ package chuckcoughlin.bert.term.controller
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.controller.SocketController
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
@@ -42,13 +43,7 @@ class Terminal(m: RobotTerminalModel) : Thread(), MessageHandler {
     private var stdioController: StdioController? = null
     private val messageTranslator: MessageTranslator
 
-    init {
-        model = m
-        ignoring = false
-        lock = ReentrantLock()
-        busy = lock.newCondition()
-        messageTranslator = MessageTranslator()
-    }
+
 
     /**
      * This application contains a stdio stdioController and a client socket stdioController
@@ -80,7 +75,7 @@ class Terminal(m: RobotTerminalModel) : Thread(), MessageHandler {
                 try {
                     busy.await()
                     if (currentRequest == null) break
-                    if (currentRequest!!.fetchRequestType().equals(RequestType.COMMAND) &&
+                    if (currentRequest!!.type.equals(RequestType.COMMAND) &&
                         BottleConstants.COMMAND_HALT.equalsIgnoreCase(
                             currentRequest.properties.get(BottleConstants.COMMAND_NAME))) {
                         socketController.receiveRequest(currentRequest) // halt the dispatcher as well
@@ -148,31 +143,30 @@ class Terminal(m: RobotTerminalModel) : Thread(), MessageHandler {
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.fetchRequestType().equals(RequestType.COMMAND)) {
-            val command: String = request.getProperty(BottleConstants.COMMAND_NAME, "NONE")
+        if (request.type.equals(RequestType.COMMAND)) {
+            val command: CommandType = request.command
             //LOGGER.warning(String.format("%s.handleLocalRequest: command=%s",CLSS,command));
-            if (command.equals(BottleConstants.COMMAND_SLEEP, ignoreCase = true)) {
+            if( command.equals(CommandType.SLEEP) ){
                 ignoring = true
             }
-            else if (command.equals(BottleConstants.COMMAND_WAKE, ignoreCase = true)) {
+            else if( command.equals(CommandType.WAKE)) {
                 ignoring = false
             }
             else {
                 val msg = String.format("I don't recognize command %s", command)
-                request.assignError(msg)
+                request.error = msg
             }
         }
-        request.assignText(messageTranslator.randomAcknowledgement())
+        request.text = messageTranslator.randomAcknowledgement()
         return request
     }
 
     // Local requests are those that can be handled immediately without forwarding to the dispatcher.
     private fun isLocalRequest(request: MessageBottle): Boolean {
-        if (request.fetchRequestType().equals(RequestType.COMMAND)) {
-            val properties: Map<String, String> = request.properties
-            val cmd = properties[BottleConstants.COMMAND_NAME]
-            if (cmd.equals(BottleConstants.COMMAND_SLEEP, ignoreCase = true) ||
-                cmd.equals(BottleConstants.COMMAND_WAKE, ignoreCase = true)) {
+        if (request.type.equals(RequestType.COMMAND)) {
+            val cmd = request.command
+            if (cmd.equals(CommandType.SLEEP) ||
+                cmd.equals(CommandType.WAKE )) {
 
                 return true
             }
@@ -220,5 +214,12 @@ class Terminal(m: RobotTerminalModel) : Thread(), MessageHandler {
             runner.startup()
             runner.start()
         }
+    }
+    init {
+        model = m
+        ignoring = false
+        lock = ReentrantLock()
+        busy = lock.newCondition()
+        messageTranslator = MessageTranslator()
     }
 }

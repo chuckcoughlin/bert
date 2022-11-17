@@ -7,6 +7,7 @@ package chuckcoughlin.bert.control.model
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.util.XMLUtility
+import chuckcoughlin.bert.control.controller.SequentialQueue.Companion.LOGGER
 import org.w3c.dom.Document
 import java.io.IOException
 import java.nio.file.Files
@@ -26,8 +27,6 @@ class URDFModel {
      */
     val chain: Chain
 
-
-
     /**
      * Expand the supplied path as the URDF XML file.
      * @return the geometry, an XML document.
@@ -40,12 +39,8 @@ class URDFModel {
             analyzeChain()
         }
         catch (ioe: IOException) {
-            LOGGER.severe(
-                String.format(
-                    "%s.analyzePath: Failed to read file %s (%s)",
-                    CLSS, filePath.toAbsolutePath().toString(), ioe.getLocalizedMessage()
-                )
-            )
+            LOGGER.severe(String.format("%s.analyzePath: Failed to read file %s (%s)",
+                    CLSS, filePath.toAbsolutePath().toString(), ioe.getLocalizedMessage()))
         }
     }
     // ================================ Auxiliary Methods  ===============================
@@ -99,8 +94,8 @@ class URDFModel {
                             val childNodes = node.childNodes
                             val childCount = childNodes.length
                             var childIndex = 0
-                            var xyz: DoubleArray
-                            var ijk: DoubleArray
+                            var xyz = DoubleArray(3, { i->0.0 })
+                            var ijk = DoubleArray(3, { i->0.0 })
                             while (childIndex < childCount) {
                                 val cNode = childNodes.item(childIndex)
                                 if ("origin".equals(cNode.localName, ignoreCase = true)) {
@@ -151,19 +146,16 @@ class URDFModel {
                         if ("parent" == childNode.localName) {
                             parent = XMLUtility.attributeValue(childNode, "link")
                             if (parent == null) {
-                                LOGGER.warning(
-                                    java.lang.String.format(
-                                        "%s.analyzeChain: joint %s has no parent, ignored",
-                                        CLSS,
-                                        joint.name()
-                                    )
-                                )
+                                LOGGER.warning(String.format( "%s.analyzeChain: joint %s has no parent, ignored",
+                                        CLSS,joint.name))
                             }
-                        } else if ("child" == childNode.localName) {
+                        }
+                        else if ("child" == childNode.localName) {
                             child = XMLUtility.attributeValue(childNode, "link")
                             if (child == null) {
                             }
-                        } else if ("origin".equals(childNode.localName, ignoreCase = true)) xyz =
+                        }
+                        else if ("origin".equals(childNode.localName, ignoreCase = true)) xyz =
                             doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz")) else if ("axis".equals(
                                 childNode.localName,
                                 ignoreCase = true
@@ -172,10 +164,8 @@ class URDFModel {
                         childIndex++
                     }
                     val rev = LinkPoint(joint, ijk, xyz)
-                    LOGGER.info(
-                        java.lang.String.format(
-                            " %s    xyz   = %.2f,%.2f,%.2f",
-                            joint.name(),
+                    LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
+                            joint.name,
                             xyz!![0],
                             xyz[1],
                             xyz[2]
@@ -189,9 +179,7 @@ class URDFModel {
                             childLink.parent = parentLink
                         }
                         else {
-                            LOGGER.warning(
-                                java.lang.String.format(
-                                    "%s.analyzeChain: joint %s has no child",
+                            LOGGER.warning(String.format("%s.analyzeChain: joint %s has no child",
                                     CLSS,joint.name))
                         }
                     }

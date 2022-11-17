@@ -28,12 +28,13 @@ import java.util.logging.Logger
  *
  *  Sets bottle type. The rest are settable
 */
-data class MessageBottle (val type:RequestType) : Serializable {
+data class MessageBottle (var type:RequestType) : Serializable {
     private var jointValues : MutableList<JointPropertyValue>   // Property values for one or more motors
     var appendage: Appendage // Message applies to this appendage
     var command : CommandType
     var controller: String
     var error : String       // Error message if not blank
+    var handler: HandlerType // The subsystem to handle this message
     var joint : Joint        // Request applies to this joint (if one)
     var limb: Limb           // Message applies to this limb
     var metric: MetricType
@@ -74,6 +75,13 @@ data class MessageBottle (val type:RequestType) : Serializable {
     fun addJointValue(j: Joint,prop: JointDynamicProperty, value: Number) {
         jointValues.add(JointPropertyValue(j,prop,value))
     }
+    // Use this version where the request is a query for values
+    fun addJointValue(j: Joint,prop: JointDynamicProperty) {
+        jointValues.add(JointPropertyValue(j,prop,Double.NaN))
+    }
+    fun clearJointValues() {
+        jointValues.clear()
+    }
 
     fun getPropertyValueIterator() : MutableListIterator<JointPropertyValue> {
         return jointValues.listIterator()
@@ -93,6 +101,7 @@ data class MessageBottle (val type:RequestType) : Serializable {
         command = CommandType.NONE
         controller = BottleConstants.NO_CONTROLLER
         error =  BottleConstants.NO_ERROR   // No error
+        handler = HandlerType.UNDEFINED
         joint = Joint.NONE                  // Name of relavant joint
         limb  = Limb.NONE
         metric = MetricType.NAME

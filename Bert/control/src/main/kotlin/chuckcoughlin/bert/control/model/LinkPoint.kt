@@ -32,22 +32,22 @@ class LinkPoint {
      */
     constructor() {
         type = LinkPointType.ORIGIN
-        appendage = Appendage.UNKNOWN
-        joint = Joint.UNKNOWN
+        appendage = Appendage.NONE
+        joint = Joint.NONE
         offset = doubleArrayOf(0.0, 0.0, 0.0)
         orientation = doubleArrayOf(0.0, 0.0, 0.0)
     }
     constructor(app: Appendage, rot: DoubleArray, pos: DoubleArray) {
         type = LinkPointType.APPENDAGE
         appendage = app
-        joint = Joint.UNKNOWN
+        joint = Joint.NONE
         offset = pos
         orientation = degreesToRadians(rot)
     }
 
     constructor(j: Joint, rot: DoubleArray, pos: DoubleArray) {
         type = LinkPointType.REVOLUTE
-        appendage = Appendage.UNKNOWN
+        appendage = Appendage.NONE
         joint = j
         offset = pos
         orientation = degreesToRadians(rot)
@@ -68,5 +68,4 @@ class LinkPoint {
     init {
         origin = LinkPoint()
     }
-
 }

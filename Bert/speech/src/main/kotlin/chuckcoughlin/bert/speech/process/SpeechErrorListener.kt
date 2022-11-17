@@ -27,19 +27,13 @@ class SpeechErrorListener(bot: MessageBottle) : BaseErrorListener() {
 
     override fun syntaxError(recognizer: Recognizer<*, *>?,offendingSymbol: Any?,
         line: Int, charPositionInLine: Int,msg: String?,e: RecognitionException? ) {
-        recordError(
-            recognizer, offendingSymbol as Token?,
-            line, charPositionInLine
-        )
+
+        recordError(offendingSymbol as Token?)
     }
 
-    protected fun recordError(
-        recognizer: Recognizer<*, *>?,
-        offendingToken: Token?, line: Int,
-        charPositionInLine: Int
-    ) {
+    fun recordError(offendingToken: Token? ) {
         // Defer to the parser.
-        if (bottle.fetchError() == null) {
+        if (bottle.error.isBlank()) {
             if (offendingToken != null) {
                 val msg = java.lang.String.format(
                     "I didn't understand what came after %s",
@@ -47,11 +41,12 @@ class SpeechErrorListener(bot: MessageBottle) : BaseErrorListener() {
                     offendingToken.getText()
                 )
                 LOGGER.info(CLSS + msg)
-                bottle.assignError(msg)
-            } else {
+                bottle.error = msg
+            }
+            else {
                 val msg = "I don't understand"
                 LOGGER.info(CLSS + msg)
-                bottle.assignError(msg)
+                bottle.error = msg
             }
         }
     }

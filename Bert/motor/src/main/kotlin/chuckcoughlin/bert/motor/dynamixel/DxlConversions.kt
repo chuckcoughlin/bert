@@ -5,7 +5,7 @@
 package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.model.DynamixelType
-import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import java.util.logging.Logger
 
@@ -128,57 +128,35 @@ object DxlConversions {
     }
 
     // Convert the named property to a control table address for the present state
-    // of that property. These need to  be independent of motor type.
-    fun addressForGoalProperty(property: JointProperty): Byte {
+    // of that property. These are independent of motor type.
+    fun addressForGoalProperty(property: JointDynamicProperty): Byte {
         var address: Byte = 0
-        if (property.equals(JointProperty.POSITION)) {
-            address = GOAL_POSITION
-        }
-        else if (property.equals(JointProperty.SPEED)) {
-            address = GOAL_SPEED
-        }
-        else if (property.equals(JointProperty.TORQUE)) {
-            address = GOAL_TORQUE
-        }
-        else if (property.equals(JointProperty.STATE)) {
-            address = GOAL_TORQUE_ENABLE
-        }
-        else {
-            LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)", CLSS, property))
+        when (property) {
+            JointDynamicProperty.POSITION -> address = GOAL_POSITION
+            JointDynamicProperty.SPEED    -> address = GOAL_SPEED
+            JointDynamicProperty.TORQUE   -> address = GOAL_TORQUE
+            JointDynamicProperty.STATE    -> address = GOAL_TORQUE_ENABLE
+            else -> {
+                LOGGER.warning(String.format("%s.addressForGoalProperty: Unrecognized goal (%s)", CLSS, property.name))
+                address = 0
+            }
         }
         return address
     }
 
     // Convert the named property to a control table address for the present state
     // of that property. These need to  be independent of motor type.
-    fun addressForPresentProperty(property: JointProperty): Byte {
+    fun addressForPresentProperty(property: JointDynamicProperty): Byte {
         var address: Byte = 0
-        if (property.equals(JointProperty.MAXIMUMANGLE)) {
-            address = MAXIMUM_ANGLE
-        }
-        else if (property.equals(JointProperty.MINIMUMANGLE)) {
-            address = MINIMUM_ANGLE
-        }
-        else if (property.equals(JointProperty.POSITION)) {
-            address = PRESENT_POSITION
-        }
-        else if (property.equals(JointProperty.SPEED)) {
-            address = PRESENT_SPEED
-        }
-        else if (property.equals(JointProperty.TEMPERATURE)) {
-            address = PRESENT_TEMPERATURE
-        }
-        else if (property.equals(JointProperty.TORQUE)) {
-            address = PRESENT_LOAD
-        }
-        else if (property.equals(JointProperty.STATE)) {
-            address = GOAL_TORQUE_ENABLE
-        }
-        else if (property.equals(JointProperty.VOLTAGE)) {
-            address = PRESENT_VOLTAGE
-        }
-        else {
-            LOGGER.warning(String.format("%s.addressForProperty: Unrecognized property name (%s)", CLSS, property))
+        when(property) {
+            JointDynamicProperty.MAXIMUMANGLE -> address = MAXIMUM_ANGLE
+            JointDynamicProperty.MINIMUMANGLE -> address = MINIMUM_ANGLE
+            JointDynamicProperty.POSITION        -> address = PRESENT_POSITION
+            JointDynamicProperty.SPEED           -> address = PRESENT_SPEED
+            JointDynamicProperty.TEMPERATURE     -> address = PRESENT_TEMPERATURE
+            JointDynamicProperty.TORQUE          -> address = PRESENT_LOAD
+            JointDynamicProperty.STATE           -> address = GOAL_TORQUE_ENABLE
+            JointDynamicProperty.VOLTAGE         -> address = PRESENT_VOLTAGE
         }
         return address
     }
@@ -186,92 +164,58 @@ object DxlConversions {
     // Return the data length for the named property in the control table. We assume that
     // present values and goals are the same number of bytes.
     // Valid for Protocol 1 only.
-    fun dataBytesForProperty(property: JointProperty): Byte {
+    fun dataBytesForProperty(property: JointDynamicProperty): Byte {
         var length: Byte = 0
-        if (property.equals(JointProperty.MAXIMUMANGLE)) {
-            length = 2
-        }
-        else if (property.equals(JointProperty.MINIMUMANGLE)) {
-            length = 2
-        }
-        else if (property.equals(JointProperty.POSITION)) {
-            length = 2
-        }
-        else if (property.equals(JointProperty.SPEED)) {
-            length = 2
-        }
-        else if (property.equals(JointProperty.TEMPERATURE )) {
-            length = 1
-        }
-        else if (property.equals(JointProperty.TORQUE)) {
-            length = 2
-        }
-        else if (property.equals(JointProperty.STATE)) {
-            length = 1
-        }
-        else if (property.equals(JointProperty.VOLTAGE)) {
-            length = 1
-        }
-        else {
-            LOGGER.warning(String.format("%s.dataBytesForProperty: Unrecognized property name (%s)", CLSS, property))
+        when(property) {
+            JointDynamicProperty.MAXIMUMANGLE -> length = 2
+            JointDynamicProperty.MINIMUMANGLE -> length = 2
+            JointDynamicProperty.POSITION         -> length = 2
+            JointDynamicProperty.SPEED            -> length = 2
+            JointDynamicProperty.TEMPERATURE      -> length = 1
+            JointDynamicProperty.TORQUE           -> length = 2
+            JointDynamicProperty.STATE            -> length = 1
+            JointDynamicProperty.VOLTAGE          -> length = 1
         }
         return length
     }
 
     // Convert the value into a raw setting for the motor. Position is in degrees, speed and torque are percent.
     // Valid for Protocol 1 only.
-    fun dxlValueForProperty(property: JointProperty, mc: MotorConfiguration, arg: Double): Int {
+    fun dxlValueForProperty(property: JointDynamicProperty, mc: MotorConfiguration, arg: Double): Int {
         var value = arg
         var dxlValue = 0
-        if (property.equals(JointProperty.POSITION)) {
-            dxlValue = degreeToDxl(mc, value)
-        }
-        else if (property.equals(JointProperty.SPEED)) {
-            value = value * mc.maxSpeed / 100.0
-            dxlValue = speedToDxl(mc, value)
-        }
-        else if (property.equals(JointProperty.TORQUE)) {
-            value = value * mc.maxTorque / 100.0
-            dxlValue = torqueToDxl(mc, value)
-        }
-        else if (property.equals(JointProperty.STATE)) {
-            dxlValue = 1
-            if (value == 0.0) dxlValue = 0
+        when(property) {
+            JointDynamicProperty.POSITION -> dxlValue = degreeToDxl(mc, value)
+            JointDynamicProperty.SPEED -> {
+                value = value * mc.maxSpeed / 100.0
+                dxlValue = speedToDxl(mc, value)
+            }
+            JointDynamicProperty.TORQUE -> {
+                value = value * mc.maxTorque / 100.0
+                dxlValue = torqueToDxl(mc, value)
+            }
+            JointDynamicProperty.STATE -> {
+                dxlValue = 1
+                if (value == 0.0) dxlValue = 0
+            }
         }
         return dxlValue
     }
 
     // Convert the raw data bytes text describing the value and units. It may or may not use the second byte.
     // Presumably the ultimate will have more context.
-    fun textForProperty(property: JointProperty, mc: MotorConfiguration, b1: Byte, b2: Byte): String {
+    fun textForProperty(property: JointDynamicProperty, mc: MotorConfiguration, b1: Byte, b2: Byte): String {
         var text = ""
         val value = valueForProperty(property, mc, b1, b2)
-        if (property.equals(JointProperty.MAXIMUMANGLE)) {
-            text = String.format("%.0f degrees", value)
-        }
-        else if (property.equals(JointProperty.MINIMUMANGLE) ) {
-            text = String.format("%.0f degrees", value)
-        }
-        else if (property.equals(JointProperty.POSITION)) {
-            text = String.format("%.0f degrees", value)
-        }
-        else if (property.equals(JointProperty.SPEED )) {
-            text = String.format("%.0f degrees per second", value)
-        }
-        else if (property.equals(JointProperty.TEMPERATURE )) {
-            text = String.format("%.0f degrees centigrade", value)
-        }
-        else if (property.equals(JointProperty.TORQUE)) {
-            text = String.format("%.1f newton-meters", value)
-        }
-        else if (property.equals(JointProperty.STATE)) {
-            text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
-        }
-        else if (property.equals(JointProperty.VOLTAGE)) {
-            text = String.format("%.1f volts", value)
-        }
-        else {
-            LOGGER.warning(String.format("%s.textForProperty: Unrecognized property name (%s)", CLSS, property.name))
+        when (property ) {
+            JointDynamicProperty.MAXIMUMANGLE  -> text = String.format("%.0f degrees", value)
+            JointDynamicProperty.MINIMUMANGLE  -> text = String.format("%.0f degrees", value)
+            JointDynamicProperty.POSITION      -> text = String.format("%.0f degrees", value)
+            JointDynamicProperty.SPEED         -> text = String.format("%.0f degrees per second", value)
+            JointDynamicProperty.TEMPERATURE   -> text = String.format("%.0f degrees centigrade", value)
+            JointDynamicProperty.TORQUE        -> text = String.format("%.1f newton-meters", value)
+            JointDynamicProperty.STATE         -> text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
+            JointDynamicProperty.VOLTAGE       -> text = String.format("%.1f volts", value)
         }
         return text
     }
@@ -279,36 +223,17 @@ object DxlConversions {
     // Convert the raw data bytes into a double value. It may or may not use the second byte.
     // Value is engineering units.
     // Valid for Protocol 1 only.
-    fun valueForProperty(property: JointProperty, mc: MotorConfiguration, b1: Byte, b2: Byte): Double {
+    fun valueForProperty(property: JointDynamicProperty, mc: MotorConfiguration, b1: Byte, b2: Byte): Double {
         var value = 0.0
-        if (property.equals(JointProperty.MAXIMUMANGLE)) {
-            value = dxlToDegree(mc, b1, b2)
-        }
-        else if (property.equals(JointProperty.MINIMUMANGLE)) {
-            value = dxlToDegree(mc, b1, b2)
-        }
-        else if (property.equals(JointProperty.POSITION)) {
-            value = dxlToDegree(mc, b1, b2)
-        }
-        else if (property.equals(JointProperty.SPEED)) {
-            value =
-                dxlToSpeed(mc, b1, b2)
-        }
-        else if (property.equals(JointProperty.TEMPERATURE)) {
-            value = dxlToTemperature(b1)
-        }
-        else if (property.equals(JointProperty.TORQUE)) {
-            value = dxlToTorque(mc, b1, b2)
-        }
-        else if (property.equals(JointProperty.STATE)) {
-            value = dxlToTorqueEnable(mc, b1)
-        }
-        else if (property.equals(JointProperty.VOLTAGE)) {
-            value = dxlToVoltage(b1)
-        }
-        else {
-            LOGGER.warning(String.format("%s.valueForProperty: Unrecognized property name (%s)",
-                CLSS, property.name))
+        when(property) {
+            JointDynamicProperty.MAXIMUMANGLE   -> value = dxlToDegree(mc, b1, b2)
+            JointDynamicProperty.MINIMUMANGLE   -> value = dxlToDegree(mc, b1, b2)
+            JointDynamicProperty.POSITION       -> value = dxlToDegree(mc, b1, b2)
+            JointDynamicProperty.SPEED          -> value = dxlToSpeed(mc, b1, b2)
+            JointDynamicProperty.TEMPERATURE    -> value = dxlToTemperature(b1)
+            JointDynamicProperty.TORQUE         -> value = dxlToTorque(mc, b1, b2)
+            JointDynamicProperty.STATE          -> value = dxlToTorqueEnable(mc, b1)
+            JointDynamicProperty.VOLTAGE        -> value = dxlToVoltage(b1)
         }
         return value
     }

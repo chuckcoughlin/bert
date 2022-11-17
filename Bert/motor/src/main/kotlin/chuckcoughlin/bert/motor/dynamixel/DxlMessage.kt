@@ -4,10 +4,10 @@
  */
 package chuckcoughlin.bert.motor.dynamixel
 
-import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.sql.db.Database
 import java.util.logging.Logger
@@ -94,13 +94,13 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION)
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.POSITION)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in outliers) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",
                         CLSS,mc.joint.name,mc.position))
-                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION, mc, mc.position)
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, mc.position)
                 bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
@@ -120,7 +120,7 @@ object DxlMessage {
      * @param property the desired joint property
      * @return list of byte arrays with bulk read plus extras for any AX-12.
      */
-    fun byteArrayListToListProperty(property: JointProperty, configurations: Collection<MotorConfiguration>): List<ByteArray> {
+    fun byteArrayListToListProperty(property: JointDynamicProperty, configurations: Collection<MotorConfiguration>): List<ByteArray> {
         val messages: MutableList<ByteArray> = ArrayList()
         var count = configurations.size // Number of motors, less AX-12
         for (mc in configurations) {
@@ -165,7 +165,7 @@ object DxlMessage {
      * @param property, either speed,torque or torque_enable
      * @return a byte array with entries corresponding to joints, if any.
      */
-    fun byteArrayToSetProperty(map: Map<String, MotorConfiguration>, property: JointProperty): ByteArray? {
+    fun byteArrayToSetProperty(map: Map<String, MotorConfiguration>, property: JointDynamicProperty): ByteArray? {
         // First count all the joints in the limb
         val count = map.size
         var bytes: ByteArray? = null
@@ -182,18 +182,18 @@ object DxlMessage {
             var index = 7
             for (mc in map.values) {
                 bytes[index] = mc.id as Byte
-                if (property.equals(JointProperty.TORQUE)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE, mc, mc.torque)
+                if (property.equals(JointDynamicProperty.TORQUE)) {
+                    dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                 }
-                else if (property.equals(JointProperty.SPEED)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED, mc, mc.speed)
+                else if (property.equals(JointDynamicProperty.SPEED)) {
+                    dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.speed)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                 }
-                else if (property.equals(JointProperty.STATE)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(JointProperty.STATE,
+                else if (property.equals(JointDynamicProperty.STATE)) {
+                    dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.STATE,
                         mc,if (mc.isTorqueEnabled) 1.0 else 0.0
                     )
                     bytes[index + 1] = dxlValue.toByte()
@@ -214,9 +214,9 @@ object DxlMessage {
      * @return up to 3 byte arrays as required by the pose
      */
     fun byteArrayListToSetPose(map: Map<String, MotorConfiguration>, pose: String): List<ByteArray> {
-        val torques: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointProperty.TORQUE)
-        val speeds: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointProperty.SPEED)
-        val positions: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointProperty.POSITION)
+        val torques: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.TORQUE)
+        val speeds: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.SPEED)
+        val positions: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.POSITION)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
         val tc = torques.size
@@ -227,12 +227,12 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.TORQUE)
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.TORQUE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in torques.keys) {
                 val mc: MotorConfiguration = map[key]!!
-                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.TORQUE, mc, torques[key]!!)
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
                 bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
@@ -250,12 +250,12 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.SPEED)
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.SPEED)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in speeds.keys) {
                 val mc: MotorConfiguration = map[key]!!
-                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.SPEED, mc, speeds[key]!!)
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, speeds[key]!!)
                 bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
@@ -274,13 +274,13 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointProperty.POSITION)
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.POSITION)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in positions.keys) {
                 val mc: MotorConfiguration = map[key]!!
                 //LOGGER.info(String.format("%s.bytesToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.getId(),key,positions.get(key)));
-                val dxlValue = DxlConversions.dxlValueForProperty(JointProperty.POSITION, mc, positions[key]!!)
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, positions[key]!!)
                 bytes[index] = mc.id as Byte
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
@@ -350,7 +350,7 @@ object DxlMessage {
      * @param property the desired property
      * @return byte array with command to read the property
      */
-    fun bytesToGetProperty(id: Int, property: JointProperty): ByteArray {
+    fun bytesToGetProperty(id: Int, property: JointDynamicProperty): ByteArray {
         val length = 4 // Remaining bytes past length including checksum
         val bytes = ByteArray(length + 4) // Account for header and length
         setHeader(bytes, id)
@@ -369,7 +369,7 @@ object DxlMessage {
      * @param property the desired property
      * @return byte array with command to read the property
      */
-    fun bytesToSetProperty(mc: MotorConfiguration, property: JointProperty, value: Double): ByteArray {
+    fun bytesToSetProperty(mc: MotorConfiguration, property: JointDynamicProperty, value: Double): ByteArray {
         val dxlValue = DxlConversions.dxlValueForProperty(property, mc, value)
         val length = 3 + DxlConversions.dataBytesForProperty(property) // Remaining bytes past length including checksum
         val bytes = ByteArray(length + 4) // Account for header and length
@@ -385,20 +385,20 @@ object DxlMessage {
             bytes[6] = dxlValue.toByte()
         }
         setChecksum(bytes)
-        if (property.equals(JointProperty.POSITION)) {
+        if (property.equals(JointDynamicProperty.POSITION)) {
             mc.position = value
             mostRecentTravelTime = mc.travelTime
         }
-        else if (property.equals(JointProperty.SPEED)) {
+        else if (property.equals(JointDynamicProperty.SPEED)) {
             mc.speed = value
         }
-        else if (property.equals(JointProperty.STATE)) {
+        else if (property.equals(JointDynamicProperty.STATE)) {
             mc.isTorqueEnabled = (if (value == 0.0) false else true)
         }
-        else if (property.equals(JointProperty.TEMPERATURE)) {
+        else if (property.equals(JointDynamicProperty.TEMPERATURE)) {
             mc.temperature = value
         }
-        else if (property.equals(JointProperty.TORQUE)
+        else if (property.equals(JointDynamicProperty.TORQUE)
         ) mc.torque = value
         return bytes
     }
@@ -495,46 +495,46 @@ object DxlMessage {
      * Convert speeds and torques to percent of max disregarding direction.
      * @param type the model of the motor
      * @param isDirect the orientation of the motor
-     * @param props properties from a MessageBottle
+     * @param bottle a MessageBottle in which we set properties
      * @param bytes status response from the controller
      */
-    fun updateGoalsFromBytes(mc: MotorConfiguration, props: MutableMap<String, String>, bytes: ByteArray) {
+    fun updateGoalsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
         var msg = ""
         if (verifyHeader(bytes)) {
             msg = String.format("%s.updateGoalsFromBytes: %s", CLSS, dump(bytes))
             val id = bytes[2].toInt()
             val err = bytes[4]
-            var property: JointProperty = JointProperty.POSITION
+            var property: JointDynamicProperty = JointDynamicProperty.POSITION
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val t1 = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
-            props[property.name] = v1.toString()
+            bottle.addJointValue(bottle.joint,property,v1)
             mc.position = v1
-            property = JointProperty.SPEED // Non-directional
+            property = JointDynamicProperty.SPEED // Non-directional
             var v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
             val t2 = DxlConversions.textForProperty(property, mc, bytes[7], bytes[8])
-            props[property.name] = v2.toString()
+            bottle.addJointValue(bottle.joint,property,v2)
             v2 = v2 * 100.0 / DxlConversions.velocity.get(mc.type)!! // Convert to percent
             mc.speed = v2
-            property = JointProperty.TORQUE // Non-directional
+            property = JointDynamicProperty.TORQUE // Non-directional
             var v3 = DxlConversions.valueForProperty(property, mc, bytes[9], bytes[10])
             val t3 = DxlConversions.textForProperty(property, mc, bytes[9], bytes[10])
-            props[property.name] = v3.toString()
-            v3 = v2 * 100.0 / DxlConversions.torque!!.get(mc.type)!! // Convert to percent
+            bottle.addJointValue(bottle.joint,property,v3)
+            v3 = v2 * 100.0 / DxlConversions.torque.get(mc.type)!! // Convert to percent
             mc.torque = v3
             val text = String.format("Goal position, speed and torque are : %s, %s, %s", t1, t2, t3)
             if (err.toInt() == 0) {
-                props[BottleConstants.TEXT] = text
+                bottle.text = text
             }
             else {
                 msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",
                     CLSS,err,descriptionForError(err))
-                props[BottleConstants.ERROR] = msg
+                bottle.error = msg
                 LOGGER.severe(msg)
             }
         }
         else {
             msg = String.format("%s.updateGoalsFromBytes: Illegal message: %s", CLSS, dump(bytes))
-            props[BottleConstants.ERROR] = msg
+            bottle.error = msg
             LOGGER.severe(msg)
         }
     }
@@ -545,10 +545,10 @@ object DxlMessage {
      * angles and torque. These are NOT corrected for offset or orientation.
      * @param type the model of the motor
      * @param isDirect the orientation of the motor
-     * @param props properties from a MessageBottle
+     * @param bottle a MessageBottle in which we set properties
      * @param bytes status response from the controller
      */
-    fun updateLimitsFromBytes(mc: MotorConfiguration, props: MutableMap<String, String>, bytes: ByteArray) {
+    fun updateLimitsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
         var msg = ""
         mc.isDirect = true
         mc.offset = 0.0
@@ -556,32 +556,32 @@ object DxlMessage {
             msg = String.format("%s.updateLimitsFromBytes: %s", CLSS, dump(bytes))
             val id = bytes[2].toInt()
             val err = bytes[4]
-            var property: JointProperty = JointProperty.MAXIMUMANGLE // CW
+            var property: JointDynamicProperty = JointDynamicProperty.MAXIMUMANGLE // CW
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val t1 = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
-            props[property.name] = v1.toString()
-            property = JointProperty.MINIMUMANGLE // CCW
+            bottle.addJointValue(bottle.joint,property,v1)
+            property = JointDynamicProperty.MINIMUMANGLE // CCW
             val v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
             val t2 = DxlConversions.textForProperty(property, mc, bytes[7], bytes[8])
-            props[property.name] = v2.toString()
-            property = JointProperty.TORQUE // Non-directional
+            bottle.addJointValue(bottle.joint,property,v2)
+            property = JointDynamicProperty.TORQUE // Non-directional
             val v3 = DxlConversions.valueForProperty(property, mc, bytes[12], bytes[13])
             val t3 = DxlConversions.textForProperty(property, mc, bytes[12], bytes[13])
-            props[property.name] = v3.toString()
+            bottle.addJointValue(bottle.joint,property,v3)
             val text = String.format("min, max angle and torque limits are : %s, %s, %s", t2, t1, t3)
             if (err.toInt() == 0) {
-                props[BottleConstants.TEXT] = text
+                bottle.text = text
             }
             else {
                 msg = String.format("%s.updateLimitsFromBytes: message returned error %d (%s)",
                     CLSS,err,descriptionForError(err))
-                props[BottleConstants.ERROR] = msg
+                bottle.error = msg
                 LOGGER.severe(msg)
             }
         }
         else {
             msg = String.format("%s.updateLimitsFromBytes: Illegal message: %s", CLSS, dump(bytes))
-            props[BottleConstants.ERROR] = msg
+            bottle.error = msg
             LOGGER.severe(msg)
         }
     }
@@ -595,8 +595,8 @@ object DxlMessage {
      * @param props properties from a MessageBottle
      * @param bytes status response from the controller
      */
-    fun updateParameterFromBytes(property: JointProperty,mc: MotorConfiguration,
-            props: MutableMap<String, String>,bytes: ByteArray) {
+    fun updateParameterFromBytes(property: JointDynamicProperty,mc: MotorConfiguration,
+            bottle: MessageBottle,bytes: ByteArray) {
         var msg = ""
         if (verifyHeader(bytes)) {
             msg = String.format("%s.updateParameterFromBytes: %s", CLSS, dump(bytes))
@@ -605,10 +605,8 @@ object DxlMessage {
             val value = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val text = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
             if (err.toInt() == 0) {
-                props[BottleConstants.PROPERTY_NAME] = property.name
-                props[BottleConstants.TEXT] = text
-                props[property.name] = String.format("%.2f", value)
-                mc.setProperty(property, value)
+                bottle.addJointValue(Joint.NONE,property,value)
+                bottle.text = text
                 LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.2f",
                         CLSS,mc.joint,property,value)
                 )
@@ -616,13 +614,13 @@ object DxlMessage {
             else {
                 msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",
                     CLSS,err, descriptionForError(err))
-                props[BottleConstants.ERROR] = msg
+                bottle.error = msg
                 LOGGER.severe(msg)
             }
         }
         else {
             msg = String.format("%s.updateParameterFromBytes: Illegal message: %s", CLSS, dump(bytes))
-            props[BottleConstants.ERROR] = msg
+            bottle.error = msg
             LOGGER.severe(msg)
         }
     }
@@ -636,7 +634,7 @@ object DxlMessage {
      * @param bytes status response from the controller
      * @param parameters an array of positions by id, supplied. This is augmented by the method.
      */
-    fun updateParameterArrayFromBytes(property: JointProperty,configurations: Map<Int, MotorConfiguration>,
+    fun updateParameterArrayFromBytes(property: JointDynamicProperty,configurations: Map<Int, MotorConfiguration>,
             bytes: ByteArray, parameters: MutableMap<Int, String> ) {
         var msg = ""
         var length = 7
@@ -651,7 +649,16 @@ object DxlMessage {
                 if (err.toInt() == 0 && mc != null && bytes.size > index + 6) {
                     val param = DxlConversions.valueForProperty(property, mc, bytes[index + 5], bytes[index + 6])
                     parameters[id] = String.format("%.2f", param)
-                    mc.setProperty(property, param)
+                    when(property) {
+                        JointDynamicProperty.POSITION -> mc.position = param
+                        JointDynamicProperty.TORQUE   -> mc.torque = param
+                        JointDynamicProperty.MAXIMUMANGLE -> mc.maxAngle = param
+                        JointDynamicProperty.MINIMUMANGLE -> mc.minAngle = param
+                        JointDynamicProperty.SPEED        -> mc.speed = param
+                        JointDynamicProperty.STATE        -> {}
+                        JointDynamicProperty.TEMPERATURE  -> mc.temperature = param
+                        JointDynamicProperty.VOLTAGE      -> mc.voltage = param
+                    }
                     LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%.0f",
                             CLSS,mc.joint.name,property,param))
                 }

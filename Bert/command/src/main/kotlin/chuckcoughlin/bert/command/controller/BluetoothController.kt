@@ -74,7 +74,7 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
      * we simply wait until the next parse.
      */
     private fun handleImmediateResponse(request: MessageBottle) {
-        if (!request.fetchRequestType().equals(RequestType.PARTIAL)) {
+        if (!request.type.equals(RequestType.PARTIAL)) {
             if (!suppressingErrors) receiveResponse(request) else {
                 suppressingErrors = true // Suppress replies to consecutive syntax errors
                 val text: String = translator.messageToText(request)

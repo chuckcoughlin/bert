@@ -9,14 +9,12 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.syntax.SpeechSyntaxLexer
+import chuckcoughlin.bert.syntax.SpeechSyntaxParser
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CodePointCharStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
-import chuckcoughlin.bert.syntax.SpeechSyntaxLexer
-import chuckcoughlin.bert.syntax.SpeechSyntaxParser
-import chuckcoughlin.bert.speech.process.StatementTranslator
-import java.awt.SystemColor.text
 import java.io.ByteArrayInputStream
 
 /**
@@ -24,28 +22,18 @@ import java.io.ByteArrayInputStream
  * between invocations of the parser.
  */
 class StatementParser {
-    private val context: HashMap<SharedKey, Any>
-
-    /**
-     * Constructor provides parameters specific to the robot. The
-     * shared dictionary is intended for communication between the
-     * invocations of the translator.
-     */
-    init {
-        context = HashMap<SharedKey,Any>()
-        initialize()
-    }
+    private val context: MutableMap<SharedKey, Any>
 
     /**
      * Initialize the shared dictionary
      */
     private fun initialize() {
         context[SharedKey.ASLEEP] = "false"
-        context[SharedKey.APPENDAGE] = Appendage.UNKNOWN
+        context[SharedKey.APPENDAGE] = Appendage.NONE
         context[SharedKey.AXIS] = "x"
         context[SharedKey.CONTROLLER] = ""
-        context[SharedKey.JOINT] = Joint.UNKNOWN
-        context[SharedKey.LIMB] = Limb.UNKNOWN
+        context[SharedKey.JOINT] = Joint.NONE
+        context[SharedKey.LIMB] = Limb.NONE
         context[SharedKey.POSE] = "home"
         context[SharedKey.SIDE] = "right"
         context[SharedKey.IT] = SharedKey.JOINT
@@ -85,13 +73,24 @@ class StatementParser {
             val tree: ParseTree = parser.line() // Start with a line
             val visitor = StatementTranslator(bottle, context)
             visitor.visit(tree)
-            if (bottle.fetchRequestType().equals(RequestType.PARTIAL)) {
+            if (bottle.type.equals(RequestType.PARTIAL)) {
                 context[SharedKey.PARTIAL] = text
             }
         }
         else {
-            bottle.assignError("Empty")
+            bottle.error = "Empty"
         }
         return bottle
+    }
+
+
+    /**
+     * Constructor provides parameters specific to the robot. The
+     * shared dictionary is intended for communication between the
+     * invocations of the translator.
+     */
+    init {
+        context = mutableMapOf<SharedKey,Any>()
+        initialize()
     }
 }

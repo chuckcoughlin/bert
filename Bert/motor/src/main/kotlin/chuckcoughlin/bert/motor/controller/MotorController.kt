@@ -10,7 +10,7 @@ import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDynMICProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
@@ -249,7 +249,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
      * @return true if this is the type of request that can be satisfied locally.
      */
     private fun isLocalRequest(msg: MessageBottle): Boolean {
-        return if (msg.fetchRequestType().equals(RequestType.COMMAND) &&
+        return if (msg.type.equals(RequestType.COMMAND) &&
             msg.getProperty(BottleConstants.COMMAND_NAME, "NONE").equalsIgnoreCase(BottleConstants.COMMAND_RESET)
         ) {
             true
@@ -261,14 +261,15 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle?): Boolean {
-        if (msg.fetchRequestType().equals(RequestType.GET_GOALS) ||
-            msg.fetchRequestType().equals(RequestType.GET_LIMITS) ||
-            msg.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)
+        if (msg.type.equals(RequestType.GET_GOALS) ||
+            msg.type.equals(RequestType.GET_LIMITS) ||
+            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
+            msg.type.equals(RequestType.SET_MOTOR_PROPERTY)
         ) {
             return true
-        } else if (msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) &&
+        }
+        else if (msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) &&
             (!msg.getProperty(PropertyType.CONTROLLER_NAME, "").equals("") ||
                     !msg.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
                         .equalsIgnoreCase(InvocationKind.UNKNOWN.name()))
@@ -285,9 +286,9 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
      * false implies that an array of serial messages are required.
      */
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
-        return if (msg.fetchRequestType().equals(RequestType.INITIALIZE_JOINTS) ||
-            msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY) ||
-            msg.fetchRequestType().equals(RequestType.SET_POSE)
+        return if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
+            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.SET_POSE)
         ) {
             false
         } else true
@@ -300,8 +301,8 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
      * (There may be only one).
      */
     private fun returnsStatusArray(msg: MessageBottle?): Boolean {
-        return if (msg.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) ||
-                  msg.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
+        return if (msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+                  msg.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
             true
         }
         else {
@@ -319,7 +320,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
         val request: MessageBottle? = wrapper.message
         var bytes: ByteArray? = null
         if (request != null) {
-            val type: RequestType = request.fetchRequestType()
+            val type: RequestType = request.type
             if (type.equals(RequestType.COMMAND) &&
                 request.getProperty(BottleConstants.COMMAND_NAME, "").equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)
             ) {
@@ -344,7 +345,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, "")
                 val mc: MotorConfiguration? = configurationsByName[jointName]
                 if (mc != null) {
-                    bytes = dxl.bytesToGetGoals(mc.getId())
+                    bytes = DxlMessage.bytesToGetGoals(mc.getId())
                     wrapper.responseCount = 1 // Status message
                 }
             }
@@ -352,7 +353,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, "")
                 val mc: MotorConfiguration? = configurationsByName[jointName]
                 if (mc != null) {
-                    bytes = dxl.bytesToGetLimits(mc.getId())
+                    bytes = DxlMessage.bytesToGetLimits(mc.getId())
                     wrapper.responseCount = 1 // Status message
                 }
             }
@@ -361,7 +362,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 val mc: MotorConfiguration? = configurationsByName[jointName]
                 val propertyName: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
                 if (mc != null) {
-                    bytes = dxl.bytesToGetProperty(mc.getId(), propertyName)
+                    bytes = DxlMessage.bytesToGetProperty(mc.getId(), propertyName)
                     wrapper.responseCount = 1 // Status message
                 }
             }
@@ -377,7 +378,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 for (mc in configs.values) {
                     mc.setProperty(jp, value)
                 }
-                bytes = dxl.byteArrayToSetProperty(configs, propertyName) // Returns null if limb not on this controller
+                bytes = DxlMessage.byteArrayToSetProperty(configs, propertyName) // Returns null if limb not on this controller
                 wrapper.responseCount = 0 // ASYNC WRITE, no response. Let source set text.
             }
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
@@ -386,7 +387,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 val propertyName: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
                 val value: String = request.getProperty(propertyName.uppercase(Locale.getDefault()), "0.0")
                 if (value != null && !value.isEmpty() && mc != null) {
-                    bytes = dxl.bytesToSetProperty(mc, propertyName, value.toDouble())
+                    bytes = DxlMessage.bytesToSetProperty(mc, propertyName, value.toDouble())
                     if (propertyName.equals("POSITION", ignoreCase = true)) {
                         val duration: Long = mc.getTravelTime()
                         if (request.getDuration() < duration) request.setDuration(duration)
@@ -406,15 +407,13 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                     wrapper.responseCount = 1 // Status message
                 }
                 else {
-                    LOGGER.warning(String.format(
-                            "%s.messageToBytes: Empty property value - ignored (%s)",
+                    LOGGER.warning(String.format("%s.messageToBytes: Empty property value - ignored (%s)",
                             CLSS,type.name))
                     wrapper.responseCount = 0 // Error, there will be no response
                 }
             }
             else if (type.equals(RequestType.NONE)) {
-                LOGGER.warning(String.format(
-                        "%s.messageToBytes: Empty request - ignored (%s)",
+                LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
                         CLSS, type.name))
                 wrapper.responseCount = 0 // Error, there will be no response
             }
@@ -424,7 +423,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 wrapper.responseCount = 0 // Error, there will be no response
             }
             LOGGER.info(String.format("%s.messageToBytes: %s = \n%s",
-                    CLSS,request.fetchRequestType(),DxlMessageMessage.dump(bytes)))
+                    CLSS,request.type.name,DxlMessageMessage.dump(bytes)))
         }
         return bytes
     }
@@ -489,12 +488,12 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
      * @param msg the request
      */
     private fun synthesizeResponse(msg: MessageBottle) {
-        if (msg.fetchRequestType().equals(RequestType.INITIALIZE_JOINTS) ||
-            msg.fetchRequestType().equals(RequestType.SET_POSE)
+        if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
+            msg.type.equals(RequestType.SET_POSE)
         ) {
             motorManager.handleSynthesizedResponse(msg)
         }
-        else if (msg.fetchRequestType().equals(RequestType.COMMAND)) {
+        else if (msg.type.equals(RequestType.COMMAND)) {
             val cmd: String = msg.getProperty(BottleConstants.COMMAND_NAME, "")
             if (cmd.equals(BottleConstants.COMMAND_FREEZE, ignoreCase = true) ||
                 cmd.equals(BottleConstants.COMMAND_RELAX, ignoreCase = true)
@@ -506,38 +505,38 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 motorManager.handleSingleControllerResponse(msg) // Probably an error
             }
         }
-        else if (msg.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
+        else if (msg.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             motorManager.handleSingleControllerResponse(msg)
         }
         else {
             LOGGER.severe(String.format("%s.synthesizeResponse: Unhandled response for %s",
-                    CLSS, msg.fetchRequestType().name()))
+                    CLSS, msg.type.name))
             motorManager.handleSingleControllerResponse(msg) // Probably an error
         }
     }
 
     // We update the properties in the request from our serial message.
     // The properties must include motor type and orientation
-    private fun updateRequestFromBytes(request: MessageBottle?, bytes: ByteArray?) {
+    private fun updateRequestFromBytes(request: MessageBottle, bytes: ByteArray?) {
         if (request != null) {
-            val type: RequestType = request.fetchRequestType()
+            val type: RequestType = request.type
             val properties: MutableMap<String, String> = request.getProperties()
             if (type.equals(RequestType.GET_GOALS)) {
                 val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
                 val mc: MotorConfiguration? = getMotorConfiguration(jointName)
-                dxl.updateGoalsFromBytes(mc, properties, bytes)
+                DxlMessage.updateGoalsFromBytes(mc, properties, bytes)
             }
             else if (type.equals(RequestType.GET_LIMITS)) {
                 val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
                 val mc: MotorConfiguration? = getMotorConfiguration(jointName)
-                dxl.updateLimitsFromBytes(mc, properties, bytes)
+                DxlMessage.updateLimitsFromBytes(mc, properties, bytes)
             }
             else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
                 val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
                 val mc: MotorConfiguration? = getMotorConfiguration(jointName)
                 val propertyName: String =
                     request.getProperty(PropertyType.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name())
-                dxl.updateParameterFromBytes(propertyName, mc, properties, bytes)
+                DxlMessage.updateParameterFromBytes(propertyName, mc, properties, bytes)
                 val partial = properties[PropertyType.TEXT]
                 if (partial != null && !partial.isEmpty()) {
                     val joint: Joint = Joint.valueOf(jointName)
@@ -551,18 +550,14 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 }
             }
             else if (type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
-                type.equals(RequestType.SET_LIMB_PROPERTY) ||
-                type.equals(RequestType.SET_MOTOR_PROPERTY)
-            ) {
-                val err: String = dxl.errorMessageFromStatus(bytes)
-                if (err != null && !err.isEmpty()) {
-                    request.assignError(err)
-                }
+                    type.equals(RequestType.SET_LIMB_PROPERTY) ||
+                    type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+                val err: String = DxlMessage.errorMessageFromStatus(bytes)
+                request.error = err
             }
             else {
-                LOGGER.severe(String.format(
-                        "%s.updateRequestFromBytes: Unhandled response for %s",
-                        CLSS,type.name()))
+                LOGGER.severe(String.format("%s.updateRequestFromBytes: Unhandled response for %s",
+                        CLSS,type.name))
             }
         }
     }
@@ -573,7 +568,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
     // 
     private fun updateStatusFromBytes(propertyName: String, bytes: ByteArray?): Map<Int, String> {
         val props: Map<Int, String> = HashMap()
-        dxl.updateParameterArrayFromBytes(propertyName, configurationsById, bytes, props)
+        DxlMessage.updateParameterArrayFromBytes(propertyName, configurationsById, bytes, props)
         return props
     }
 
@@ -589,40 +584,26 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                     Thread.sleep(MIN_WRITE_INTERVAL - interval)
                     //LOGGER.info(String.format("%s(%s).writeBytesToSerial: Slept %d msecs",CLSS,controllerName,MIN_WRITE_INTERVAL-interval));
                 }
-                LOGGER.info(
-                    String.format(
-                        "%s(%s).writeBytesToSerial: Write interval %d msecs",
-                        CLSS,
-                        controllerName,
-                        interval
-                    )
-                )
+                LOGGER.info(String.format("%s(%s).writeBytesToSerial: Write interval %d msecs",
+                        CLSS, controllerName,interval))
                 val success: Boolean = port.writeBytes(bytes)
                 timeOfLastWrite = System.nanoTime() / 1000000
                 port.purgePort(SerialPort.PURGE_RXCLEAR or SerialPort.PURGE_TXCLEAR) // Force the write to complete
                 if (!success) {
                     LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Failed write of %d bytes to %s",
-                            CLSS,controllerName,
-                            bytes.size,port.getPortName()) )
+                            CLSS,controllerName, bytes.size,port.getPortName()) )
                 }
             }
             catch (ie: InterruptedException) {
-                LOGGER.severe(
-                    java.lang.String.format(
-                        "%s(%s).writeBytesToSerial: Interruption writing to %s (%s)",
-                        CLSS,
-                        controllerName,
-                        port.getPortName(),
-                        ie.localizedMessage
-                    )
-                )
+                LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Interruption writing to %s (%s)",
+                        CLSS,controllerName,
+                        port.getPortName(),ie.localizedMessage))
             }
             catch (spe: SerialPortException) {
                 LOGGER.severe(
                     java.lang.String.format(
                         "%s(%s).writeBytesToSerial: Error writing to %s (%s)",
-                        CLSS,
-                        controllerName,
+                        CLSS,controllerName,
                         port.getPortName(),
                         spe.getLocalizedMessage()
                     )
@@ -653,7 +634,7 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                     CLSS,
                     controllerName,
                     event.getPortName(),
-                    if (req == null) "" else req.fetchRequestType().name(),
+                    if (req == null) "" else req.type.name,
                     wrapper?.responseCount ?: 0,
                     byteCount
                 )
@@ -662,18 +643,12 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 try {
                     var bytes: ByteArray? = port.readBytes(byteCount)
                     bytes = prependRemainder(bytes)
-                    bytes = dxl.ensureLegalStart(bytes) // null if no start characters
+                    bytes = DxlMessage.ensureLegalStart(bytes) // null if no start characters
                     if (bytes != null) {
                         var nbytes = bytes.size
-                        LOGGER.info(
-                            String.format(
-                                "%s(%s).serialEvent: read =\n%s",
-                                CLSS,
-                                controllerName,
-                                dxl.dump(bytes)
-                            )
-                        )
-                        val mlen: Int = dxl.getMessageLength(bytes) // First message
+                        LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",
+                                CLSS,controllerName, DxlMessage.dump(bytes)))
+                        val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
                         if (mlen < 0 || nbytes < mlen) {
                             LOGGER.info(
                                 String.format(
@@ -684,12 +659,13 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                                 )
                             )
                             return
-                        } else if (dxl.errorMessageFromStatus(bytes) != null) {
+                        }
+                        else if (DxlMessage.errorMessageFromStatus(bytes) != null) {
                             LOGGER.severe(
                                 String.format(
                                     "%s(%s).serialEvent: ERROR: %s",
                                     CLSS,
-                                    dxl.errorMessageFromStatus(bytes)
+                                    DxlMessage.errorMessageFromStatus(bytes)
                                 )
                             )
                             if (req == null) return  // The original request was not supposed to have a response.

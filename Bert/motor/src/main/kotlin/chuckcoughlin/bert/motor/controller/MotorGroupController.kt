@@ -161,10 +161,10 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
      * by synchronized.
      * @param rsp the original request
      */
-    override fun handleAggregatedResponse(rsp: MessageBottle?) {
+    override fun handleAggregatedResponse(rsp: MessageBottle) {
         val count: Int = rsp.incrementResponderCount()
         LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
-                CLSS,rsp.fetchRequestType().name,count,controllerCount))
+                CLSS,rsp.type.name,count,controllerCount))
         if (count >= controllerCount) {
             LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",
                     CLSS ))
@@ -182,15 +182,11 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
     override fun handleSynthesizedResponse(rsp: MessageBottle) {
         val count: Int = rsp.incrementResponderCount()
         LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",
-                CLSS,rsp.fetchRequestType().name,count,controllerCount)
+                CLSS,rsp.type.name,count,controllerCount)
         )
         if (count >= controllerCount) {
-            LOGGER.info(
-                String.format(
-                    "%s.handleSynthesizedResponse: all controllers accounted for: responding ...",
-                    CLSS
-                )
-            )
+            LOGGER.info(String.format("%s.handleSynthesizedResponse: all controllers accounted for: responding ...",
+                    CLSS) )
             responseHandler.handleResponse(rsp)
         }
     }
@@ -200,7 +196,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
      * alone. It has modified the request directly. Forward result to the Dispatcher.
      * @param response the message to be forwarded.
      */
-    override fun handleSingleControllerResponse(response: MessageBottle?) {
+    override fun handleSingleControllerResponse(response: MessageBottle) {
         responseHandler.handleResponse(response)
     }
 
@@ -208,8 +204,8 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
     // Queries of fixed properties of the motors are the kinds of requests that can be handled
     // immediately. Results are created from the original configuration file
     private fun canHandleImmediately(request: MessageBottle): Boolean {
-        if (request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY) ||
-            request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)
+        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+            request.type.equals(RequestType.LIST_MOTOR_PROPERTY)
         ) {
             // Certain properties are constants available from the configuration file.
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
@@ -222,7 +218,8 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             ) {
                 return true
             }
-        } else if (request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
+        }
+        else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
@@ -233,7 +230,8 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             ) {
                 return true
             }
-        } else if (request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
+        }
+        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
@@ -243,7 +241,8 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
             ) {
                 return true
             }
-        } else if (request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
+        }
+        else if (request.type.equals(RequestType.GET_CONFIGURATION)) {
             return true
         }
         return false
@@ -252,18 +251,13 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
     // The "local" response is simply the original request with some text
     // to return directly to the user. These jointValues are obtained from the initial configuration.
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.fetchRequestType().equals(RequestType.GET_MOTOR_PROPERTY)) {
+        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val property: JointProperty = JointProperty.valueOf(request.getProperty(PropertyType.PROPERTY_NAME, ""))
             val joint: Joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"))
             LOGGER.info(
                 java.lang.String.format(
                     "%s.createResponseForLocalRequest: %s %s in %s",
-                    CLSS,
-                    request.fetchRequestType().name(),
-                    property.name(),
-                    joint.name()
-                )
-            )
+                    CLSS,request.type.name,property.name,joint.name))
             var text: String? = ""
             val jointName: String = Joint.toText(joint)
             val mc: MotorConfiguration = model.getMotors().get(joint)
@@ -310,13 +304,10 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                         request.assignError(property.name() + " is not a property that I can look up")
                     }
                 }
-            } else {
-                request.assignError(
-                    java.lang.String.format(
-                        "The configuration file does not include joint %s",
-                        joint.name()
-                    )
-                )
+            }
+            else {
+                request.assignError(String.format("The configuration file does not include joint %s",
+                        joint.name ) )
             }
             request.assignText(text)
         } else if (request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {

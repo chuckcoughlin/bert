@@ -10,29 +10,18 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
+ * At the specified time, the next message is sent to the launcher.
  * Patterned after a watchdog timer which manages a collection of "watchdogs". The dogs
  * are sorted by expiration time. "petting" a dog resets the timeout
  * perhaps indefinitely. Once the petting stops, the dog's "evaluate"
  * method is invoked. There is always, at least one dog present in
  * the list, the IDLE dog.
  */
-class TimedQueue(private val controller: InternalController) : LinkedList<InternalMessageHolder?>(), Runnable {
+class TimedQueue(private val controller: InternalController) : LinkedList<InternalMessageHolder>(), Runnable {
     protected var stopped = true
     protected var timerThread: Thread? = null
     protected val idleMessage: InternalMessageHolder
     protected var currentTime: Long = 0
-    var name = CLSS
-        protected set
-
-    /**
-     * Constructor: At the specified time, the next message is sent to the laumcher.
-     * @param launcher parent launcher
-     */
-    init {
-        idleMessage = InternalMessageHolder()
-        idleMessage.setShouldRepeat(true)
-        idleMessage.repeatInterval = IDLE_DELAY.toLong()
-    }
 
     /**
      * Add a new message (in a holder) to the list ordered by its absolute
@@ -40,8 +29,7 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
      * The list is never empty, there is at least the IDLE message.
      * @param msg message to be added
      */
-    fun addMessage(holder: InternalMessageHolder?) {
-        if (holder == null) return  // Ignore
+    fun addMessage(holder: InternalMessageHolder) {
         insertMessage(holder)
     }
 
@@ -60,7 +48,7 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
                 LOGGER.info(
                     java.lang.String.format(
                         "%s.insertMessage(%d): %s scheduled in %d msecs position %d",
-                        CLSS, holder.message.getId(), holder.message.fetchRequestType().name(),
+                        CLSS, holder.ID.id, holder.message.type.name,
                         holder.executionTime - now, index
                     )
                 )
@@ -84,15 +72,10 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
             val now = System.nanoTime() / 1000000
             holder.executionTime = now + holder.repeatInterval
             add(holder)
-        } else {
-            LOGGER.info(
-                java.lang.String.format(
-                    "%s.fireExecutor: dispatching(%d) %s ...",
-                    CLSS,
-                    holder.message.id,
-                    holder.message.fetchRequestType().name()
-                )
-            )
+        }
+        else {
+            LOGGER.info(String.format("%s.fireExecutor: dispatching(%d) %s ...",
+                    CLSS,holder.ID.id,holder.message.type.name))
             controller.dispatch(holder)
         }
         timerThread!!.interrupt()
@@ -110,9 +93,7 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
             timerThread = Thread(this, CLSS)
             timerThread!!.isDaemon = true
             timerThread!!.start()
-            LOGGER.info(
-                String.format(
-                    "%s.START timer thread %s (%d)",
+            LOGGER.info(String.format("%s.START timer thread %s (%d)",
                     name,
                     timerThread!!.name,
                     timerThread.hashCode()
@@ -142,12 +123,12 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
         while (!stopped) {
             val now = System.nanoTime() / 1000000 // Work in milliseconds
             val head = first
-            val waitTime = (head.getExecutionTime() - now) as Long
+            val waitTime = (head.executionTime - now) as Long
             try {
                 if (waitTime > 0) {
                     wait(waitTime)
                 }
-                currentTime = head.getExecutionTime()
+                currentTime = head.executionTime
                 if (!stopped) fireExecutor()
             } // An interruption allows a recognition of re-ordering the queue
             catch (e: InterruptedException) {
@@ -167,5 +148,10 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
         private const val CLSS = "TimedQueue"
         private const val IDLE_DELAY = 60000 // One minute
         private val LOGGER = Logger.getLogger(CLSS)
+    }
+    init {
+        idleMessage = InternalMessageHolder()
+        idleMessage.shouldRepeat = true
+        idleMessage.repeatInterval = IDLE_DELAY.toLong()
     }
 }
