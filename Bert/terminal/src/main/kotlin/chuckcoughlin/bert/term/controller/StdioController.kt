@@ -29,8 +29,6 @@ class StdioController(launcher: MessageHandler, text: String) : Controller {
     private val translator: MessageTranslator
     private val prompt: String
 
-
-
     override fun start() {
         val rdr = StdinReader(dispatcher)
         runner = Thread(rdr)

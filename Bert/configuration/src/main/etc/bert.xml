@@ -25,7 +25,7 @@
 		 Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
 		 the well-known UUID for RFCOMM.
 	-->
-	<controller name="terminal" type="TERMINAL">
+	<controller name="terminal" type="TERMINAL" prompt="bert:">
 		<socket  name="terminal" port="11044"/>
 	</controller>
 	<controller name="command" type="COMMAND">

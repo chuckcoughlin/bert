@@ -19,6 +19,8 @@ import chuckcoughlin.bert.sql.db.Database
 
 import chuckcoughlin.bert.term.model.RobotTerminalModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
@@ -36,9 +38,13 @@ import java.util.logging.Logger
  * Input is StdIn and output is Stdout. Communication channels are
  * created by the dispatcher and supplied to the "process" function.
  */
-class Terminal(configPath: Path) : MessageHandler {
+class Terminal(configPath: Path,receiveChannel: ReceiveChannel<MessageBottle>,sendChannel: SendChannel<MessageBottle>) : MessageHandler {
     private val messageTranslator: MessageTranslator
     private val model: RobotTerminalModel
+    var lazy stdioController: StdioController
+    val scope = MainScope() // Uses Dispatchers.Main
+    val toStdOut = receiveChannel
+    val fromStdIn = sendChannel
     var running:Boolean
 
 
@@ -56,72 +62,52 @@ class Terminal(configPath: Path) : MessageHandler {
     override fun createControllers() {
         val prompt: String = model.getProperty(ConfigurationConstants.PROPERTY_PROMPT, "bert:")
         stdioController = StdioController(this, prompt)
-        val hostName: String = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost")
-        val sockets: Map<String, Int> = model.sockets
-        val walker = sockets.keys.iterator()
-        val key = walker.next()
-        val port = sockets[key]!!
-        socketController = SocketController(this, HandlerType.TERMINAL.name, hostName, port)
     }
 
     override val controllerName: String
         get() = model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "terminal")
 
-    /**
-     * Loop forever reading from the terminal and forwarding the resulting requests
-     * via socket to the server (launcher). We accept its responses and forward to the stdio stdioController.
-     *
-     * Note that the locks guarantee that the currentRequest global cannot be modified between the signal and wait.
-     */
-    override fun run() {
-        try {
-            while (true) {
-                lock.lock()
-                try {
-                    busy.await()
-                    if (currentRequest == null) break
-                    if (currentRequest!!.type.equals(RequestType.COMMAND) &&
-                        BottleConstants.COMMAND_HALT.equalsIgnoreCase(
-                            currentRequest.properties.get(BottleConstants.COMMAND_NAME))) {
-                        socketController.receiveRequest(currentRequest) // halt the dispatcher as well
-                        sleep(EXIT_WAIT_INTERVAL)
-                        break
-                    }
-                    else if (isLocalRequest(currentRequest)) {
-                        // Handle local request -create response
-                        val response: MessageBottle = handleLocalRequest(currentRequest)
-                        if (response != null) handleResponse(response)
-                    }
-                    else if (!ignoring) {
-                        socketController.receiveRequest(currentRequest)
-                    }
-                }
-                catch (ie: InterruptedException) {}
-                finally {
-                    lock.unlock()
-                }
-            }
-        }
-        catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-        finally {
-            shutdown()
-        }
-        Database.shutdown()
-        LOGGER.warning(String.format("%s: exiting...", CLSS))
-        System.exit(0)
-    }
 
+
+    // Does this ever complete?
     override fun startup() {
         super.startup()
         running = true
+        scope.launch {
+           while( running )  {
+               select<Unit> {
+                   toStdOut.onReceive {
+                       msg = toStdOut.receive()
+                       if (msg.type.equals(RequestType.COMMAND) &&
+                           msg.command.equals(CommandType.COMMAND_HALT ) ) {
+                           shutdown()
+                       }
+                       else if(isLocalRequest(msg)) {
+                           // Handle local request -create response
+                           val response = handleLocalRequest(msg)
+                           if( !response.type.equals(RequestType.NONE)) handleResponse(response)
+                       }
+                       else if (!ignoring) {
+                           fromStdIn.onSend(msg)
+                       }
+                   }
 
+                   fromStdIn.onSend(msg) {
+
+                   }
+               }
+           }
+        }
     }
 
+    // Shutdown the entire application right here?
     override fun shutdown() {
         runnng = false
+        scope.cancel()
         super.shutdown()
+        Database.shutdown()
+        LOGGER.warning(String.format("%s: exiting...", CLSS))
+        System.exit(0)
     }
 
     /**
@@ -183,7 +169,6 @@ class Terminal(configPath: Path) : MessageHandler {
     companion object {
         private const val CLSS = "Terminal"
         private const val USAGE = "Usage: terminal <robot_root>"
-        private const val EXIT_WAIT_INTERVAL: Long = 1000
         private val LOGGER = Logger.getLogger(CLSS)
         private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
 
@@ -221,8 +206,12 @@ class Terminal(configPath: Path) : MessageHandler {
             runner.start()
         }
     }
+
+
+
     init {
         messageTranslator = MessageTranslator()
         model = RobotTerminalModel(configPath)
+        running = false
     }
 }

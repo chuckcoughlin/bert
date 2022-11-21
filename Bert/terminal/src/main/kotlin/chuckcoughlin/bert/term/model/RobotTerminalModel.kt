@@ -32,12 +32,14 @@ class RobotTerminalModel(configPath: Path) : AbstractRobotModel(configPath) {
     override fun analyzeControllers() {
         if (this.document != null) {
             var controllerName = "UNASSIGNED"
+            var prompt = ":"
             val elements: NodeList = document.getElementsByTagName("controller")
             val count = elements.length
             var index = 0
             while (index < count) {
                 val controllerElement = elements.item(index) as Element
                 controllerName = XMLUtility.attributeValue(controllerElement, "name")
+                prompt = XMLUtility.attributeValue(controllerElement, "prompt")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
                 if (type != null && !type.isEmpty() &&
                     type.equals(HandlerType.TERMINAL.name, ignoreCase = true) ) {
@@ -54,6 +56,7 @@ class RobotTerminalModel(configPath: Path) : AbstractRobotModel(configPath) {
                 index++
             }
             properties.put(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, controllerName)
+            properties.put(ConfigurationConstants.PROPERTY_PROMPT, prompt)
         }
     }
 
