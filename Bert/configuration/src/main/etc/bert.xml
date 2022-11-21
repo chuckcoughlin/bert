@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This file describes "bert", a robot derived from the Poppy project. 
+	 This identical configuration is used for each of the independent processes.
+ -->
+<robot>
+	<!-- This first section lists miscellaneous properties. @...@ values are
+	     replaced by the build scripts.
+	-->
+	<property name="name">bert</property>
+	<property name="release">1.0</property>
+	<property name="date">08/28/2019 21:44</property>
+	<!--  Socket port used by the bluetooth RFCOMM server  -->
+	<property name="blueserver">11046</property>
+	<!--  Cadence in msecs refers to the record frequency  -->
+	<property name="cadence">1000</property>
+	<!--  Name of machine hosting the server process  -->
+	<property name="hostname">localhost</property>
+	<!--  Used by the terminal  -->
+	<property name="prompt">bert: </property>
+
+
+	<!-- The following section defines client-side processes that are also known to the server.
+		 Each client process communicates in both directions over its own socket. 
+		 Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
+		 the well-known UUID for RFCOMM.
+	-->
+	<controller name="terminal" type="TERMINAL">
+		<socket  name="terminal" port="11044"/>
+	</controller>
+	<controller name="command" type="COMMAND">
+		<socket  name="command" port="11045"/>
+		<socket  type="bluetooth"  uuid="33001101-0000-2000-8080-00815FAB34FF"/>
+	</controller>
+	
+	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
+	     a serial connection. The names must exist in the enumeration bert.share.motor.Joint.
+	     There is an upper body group and a lower body group. Additionally joints are organized into
+	     "limbs" for purposes of setting torques and speeds as a group.
+	     
+	     Loads and speeds are software-enforced limits and are used to compute percents of maximum.
+	     Spec loads are: 6.0,2.5,1.2; spec speeds are: 700,700,684 for MX-64, MX-28,AT-12, respectively.
+    -->
+	<controller name="lower" type="SERIAL">
+		<port  name="lower" device="/dev/ttyACM1" />
+		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="-91" min="60" max="135" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
+		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="-8" min="155" max="205" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
+		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="-18" min="75" max="225" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
+		<joint name="LEFT_HIP_Z"   type="MX28" id="12" offset="-200" min="-20" max="45" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
+		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-4" min="50" max="180" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
+		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="-108" min="60" max="135" orientation="indirect" speed="660" load="1.9" limb="RIGHT_LEG"/>
+		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="16" min="155" max="205" orientation="direct" speed="660" load="3.9" limb="RIGHT_LEG"/>
+		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="-18" min="75" max="225" orientation="indirect" speed="660" load="3.9" limb="RIGHT_LEG"/>
+		<joint name="RIGHT_HIP_Z"      type="MX28" id="22" offset="-160" min="-20" max="45" orientation="direct" speed="660" load="1.9" limb="RIGHT_LEG"/>
+		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="15" min="50" max="180" orientation="direct" speed="660" load="1.9" limb="RIGHT_LEG"/>
+	</controller>
+	<controller name="upper" type="SERIAL">
+		<port  name="upper" device="/dev/ttyACM0" />
+		<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="-198" min="-45" max="90" orientation="indirect" speed="660" load="1.9" limb="LEFT_ARM"/>
+		<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="17" min="45" max="180" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>
+		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="-70" min="90" max="215" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>
+		<joint name="LEFT_SHOULDER_Y"  type="MX28" id="41" offset="-65" min="0" max="225" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>
+		<joint name="RIGHT_ARM_Z"      type="MX28" id="53" offset="-180" min="-45" max="90" orientation="direct" speed="660" load="1.9" limb="RIGHT_ARM"/>
+		<joint name="RIGHT_ELBOW_Y"    type="MX28" id="54" offset="4" min="45" max="180" orientation="indirect" speed="660" load="1.9" />
+		<joint name="RIGHT_SHOULDER_X" type="MX28" id="52" offset="-105" min="90" max="215" orientation="indirect" speed="660" load="1.9" limb="RIGHT_ARM"/>
+		<joint name="RIGHT_SHOULDER_Y" type="MX28" id="51" offset="-100" min="0" max="225" orientation="indirect" speed="660" load="1.9" limb="RIGHT_ARM"/>
+		<joint name="HEAD_Y"       type="AX12" id="37" offset="-120" min="-5" max="20" orientation="direct" speed="640" load="0.9" />
+		<joint name="HEAD_Z"       type="AX12" id="36" offset="-150" min="-30" max="30" orientation="indirect" speed="640" load="0.9" />
+		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="150" max="210" orientation="direct"   speed="660" load="3.9" limb="TORSO"/>
+		<joint name="ABS_Y"        type="MX64" id="31" offset="16" min="150" max="210" orientation="direct"  speed="660" load="3.9" limb="TORSO"/>
+		<joint name="ABS_Z"        type="MX28" id="33" offset="-160" min="-60" max="60" orientation="direct" speed="660" load="1.9" limb="TORSO"/>
+		<joint name="BUST_X"       type="MX28" id="35" offset="5" min="150" max="210" orientation="direct"   speed="660" load="1.9" limb="TORSO"/>
+		<joint name="BUST_Y"       type="MX28" id="34" offset="24" min="150" max="210" orientation="direct"  speed="660" load="1.9" limb="TORSO"/>
+	</controller>
+</robot>
+
