@@ -6,7 +6,6 @@ package chuckcoughlin.bert.term.controller
 
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
-import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
@@ -17,33 +16,39 @@ import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.sql.db.Database
+
 import chuckcoughlin.bert.term.model.RobotTerminalModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
+import java.lang.Thread.sleep
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 
 /**
- * "Terminal" is an application that allows interaction from the command line
+ * "Terminal" is a static class that allows interaction from the command line
  * to command and interrogate the robot. Typed entries are the same as
  * those given to the "headless" application, "Command", in spoken form.
  *
- * The application acts as the intermediary between a StdioController and
- * SocketController communicating with the Dispatcher.
+ * Input is StdIn and output is Stdout. Communication channels are
+ * created by the dispatcher and supplied to the "process" function.
  */
-class Terminal(m: RobotTerminalModel) : Thread(), MessageHandler {
-    private val model: RobotTerminalModel
-    private var socketController: SocketController? = null
-    private val busy: Condition
-    private var currentRequest: MessageBottle? = null
-    private var ignoring: Boolean
-    private val lock: Lock
-    private var stdioController: StdioController? = null
+class Terminal(configPath: Path) : MessageHandler {
     private val messageTranslator: MessageTranslator
+    private val model: RobotTerminalModel
+    var running:Boolean
 
 
+    fun CoroutineScope.process(getStdIn:ReceiveChannel<MessageBottle>,
+                                putStdOut:SendChannel<MessageBottle> ) = launch {
+        waitUntil(running)
+        while(running) {
+
+        }
+    }
 
     /**
      * This application contains a stdio stdioController and a client socket stdioController
@@ -109,13 +114,14 @@ class Terminal(m: RobotTerminalModel) : Thread(), MessageHandler {
     }
 
     override fun startup() {
-        socketController.start()
-        stdioController!!.start()
+        super.startup()
+        running = true
+
     }
 
     override fun shutdown() {
-        socketController.stop()
-        stdioController!!.stop()
+        runnng = false
+        super.shutdown()
     }
 
     /**
@@ -216,10 +222,7 @@ class Terminal(m: RobotTerminalModel) : Thread(), MessageHandler {
         }
     }
     init {
-        model = m
-        ignoring = false
-        lock = ReentrantLock()
-        busy = lock.newCondition()
         messageTranslator = MessageTranslator()
+        model = RobotTerminalModel(configPath)
     }
 }

@@ -7,6 +7,7 @@ package chuckcoughlin.bert.control.controller
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
+import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.control.message.InternalMessageHolder
 import java.util.logging.Logger
 
@@ -45,7 +46,7 @@ class InternalController(launcher: MessageHandler) {
             queue.addLast(holder)
             if (!queue.inProgress) {
                 holder = queue.removeFirst()
-                queue.isInProgress = true
+                queue.inProgress = true
                 sendToTimerQueue(queue, holder) // Just in case there's a required delay
             }
         }
@@ -64,7 +65,7 @@ class InternalController(launcher: MessageHandler) {
     fun receiveResponse(msg: MessageBottle) {
         var holder: InternalMessageHolder? = pendingMessages[msg.id]
         if (holder != null) {
-            pendingMessages.remove(msg.id)
+            pendingMessages.remove(JointDefinitionProperty.ID.id)
             // Reinstate the original source in the message so the dispatcher can route appropriately	
             holder.reinstateOriginalSource()
 
@@ -78,17 +79,17 @@ class InternalController(launcher: MessageHandler) {
                     LOGGER.info(
                         String.format(
                             "%s.receiveResponse(%d) %s on %s (empty)", CLSS, holder.getMessage().getId(),
-                            holder.getMessage().type.name, qn.name
+                            holder.message.type.name, qn.name
                         )
                     )
-                    queue.isInProgress = false
+                    queue.inProgress = false
                 }
                 else {
-                    queue.isInProgress = true
+                    queue.inProgress = true
                     LOGGER.info(
                         String.format("%s.receiveResponse(%d) %s on %s (%d queued)",
-                            CLSS, holder.getMessage().id,
-                            holder.getMessage().type.name, qn.name, queue.size
+                            CLSS, holder.ID.id,
+                            holder.message.type.name, qn.name, queue.size
                         )
                     )
                     holder = queue.removeFirst()
@@ -107,7 +108,7 @@ class InternalController(launcher: MessageHandler) {
         else {
             LOGGER.info(
                 String.format("%s.receiveResponse(%d) %s: not on pending queue for %s",
-                    CLSS,msg.id,msg.fetchRequestType().name(),msg.fetchSource())
+                    CLSS,msg.id,msg.type.name,msg.source)
             )
         }
     }
@@ -120,7 +121,7 @@ class InternalController(launcher: MessageHandler) {
      */
     @Synchronized
     fun dispatch(holder: InternalMessageHolder?) {
-        holder.getMessage().source = HandlerType.INTERNAL.name
+        holder.message.source = HandlerType.INTERNAL.name
         dispatcher.handleRequest(holder.message)
     }
 

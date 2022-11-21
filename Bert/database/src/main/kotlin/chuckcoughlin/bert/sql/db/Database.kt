@@ -18,13 +18,12 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
- * This singleton object is a wrapper for the entire robot database. The startup()
+ * This static class (object) is a wrapper for the entire robot database. The startup()
  * method must be called before it can be used as it opens the database connection.
  *
  * Call shutdown() when database access is no longer required.
  */
 object Database  {
-
 
     /**
      * @param command user entered string
