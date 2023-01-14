@@ -40,7 +40,7 @@ class InternalController(launcher: MessageHandler) {
         if (queue != null) {
             LOGGER.info(
                 String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.getMessage().type,
-                    holder.getQueue().name, if (queue.isInProgress) "IN PROGRESS" else "IDLE"
+                    holder.queue.name, if (queue.inProgress) "IN PROGRESS" else "IDLE"
                 )
             )
             queue.addLast(holder)
@@ -71,25 +71,21 @@ class InternalController(launcher: MessageHandler) {
 
             //LOGGER.info(String.format("%s.receiveResponse(%d) %s",CLSS,holder.getMessage().getId(),
             //		holder.getMessage().fetchRequestType().name()));
-            val qn: QueueName = holder.getQueue()
+            val qn: QueueName = holder.queue
             var queue: SequentialQueue? = null
             if (qn != null) queue = sequentialQueues[qn]
             if (queue != null) {
                 if (queue.isEmpty()) {
-                    LOGGER.info(
-                        String.format(
-                            "%s.receiveResponse(%d) %s on %s (empty)", CLSS, holder.getMessage().getId(),
-                            holder.message.type.name, qn.name
+                    LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (empty)",
+                        CLSS, holder.ID.id,holder.message.type.name, qn.name
                         )
                     )
                     queue.inProgress = false
                 }
                 else {
                     queue.inProgress = true
-                    LOGGER.info(
-                        String.format("%s.receiveResponse(%d) %s on %s (%d queued)",
-                            CLSS, holder.ID.id,
-                            holder.message.type.name, qn.name, queue.size
+                    LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (%d queued)",
+                            CLSS, holder.ID.id,holder.message.type.name, qn.name, queue.size
                         )
                     )
                     holder = queue.removeFirst()
@@ -99,7 +95,7 @@ class InternalController(launcher: MessageHandler) {
             else {
                 if (holder.shouldRepeat()) {
                     val now = System.nanoTime() / 1000000 // Work in milliseconds
-                    holder.setExecutionTime(now + holder.getRepeatInterval())
+                    holder.executionTime = (now + holder.repeatInterval)
                     sendToTimerQueue(null, holder)
                 }
             }

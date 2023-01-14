@@ -1,10 +1,11 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.util
 
-import chuckcoughlin.bert.common.message.MessageHandler
+import chuckcoughlin.bert.common.controller.Controller
+import kotlinx.coroutines.runBlocking
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -17,12 +18,15 @@ import java.util.logging.Logger
 class ShutdownHook
 /**
  * Constructor: Create a new hook.
- */(private val msghandler: MessageHandler) : Thread() {
+ */(private val controller: Controller) : Thread() {
     override fun run() {
-        LOGGER.info(String.format("%s: shutting down %s...", CLSS, msghandler.controllerName))
+        LOGGER.info(String.format("%s: shutting down %s...", CLSS, controller.controllerName))
         try {
-            msghandler.shutdown()
-        } catch (ex: Exception) {
+            runBlocking {
+                controller.stop()
+            }
+        }
+        catch (ex: Exception) {
             LOGGER.log(Level.SEVERE, String.format("%s: ERROR (%s)", CLSS, ex.message), ex)
         }
         Runtime.getRuntime().halt(0)

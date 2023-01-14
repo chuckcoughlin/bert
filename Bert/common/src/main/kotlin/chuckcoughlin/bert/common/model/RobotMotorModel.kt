@@ -94,7 +94,6 @@ class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
                     if (portElements.length > 0) {
                         handlerTypes[controller] = type.uppercase(Locale.getDefault())
                         val portElement = portElements.item(0) as Element
-                        val pname: String = XMLUtility.attributeValue(portElement, "name")
                         val device: String = XMLUtility.attributeValue(portElement, "device")
                         val port = SerialPort(device)
                         ports[controller] = port

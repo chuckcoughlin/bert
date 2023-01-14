@@ -48,7 +48,7 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
                 LOGGER.info(
                     java.lang.String.format(
                         "%s.insertMessage(%d): %s scheduled in %d msecs position %d",
-                        CLSS, holder.ID.id, holder.message.type.name,
+                        CLSS, InternalMessageHolder.ID.id, holder.message.type.name,
                         holder.executionTime - now, index
                     )
                 )

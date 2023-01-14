@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch.controller
@@ -29,12 +29,16 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
+import kotlin.contracts.InvocationKind
 
 /**
- * The Dispatcher is its own system process. It's job is to accept requests from
- * the command sockets, distribute them to the motor manager channels and post the results.
+ * The Dispatcher is the core compute hub of the application. It's job is to accept requests from
+ * the various peripheral controllers, distribute them to the motor manager channels and post the results.
  * For complicated requests it may invoke the services of the "Solver" and insert
  * internal intermediate requests.
+ *
+ * For the peripheral controllers, the dispatcher presents itself as a controller, but not the same one
+ * for all sub-controllers.
  */
 class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Thread(), MessageHandler,
     SocketStateChangeListener {
@@ -293,7 +297,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
             msg.setProperty(PropertyType.PROPERTY_NAME, JointProperty.POSITION.name())
             msg.setProperty(
                 BottleConstants.LIMB_NAME,
-                request.getProperty(BottleConstants.LIMB_NAME, Limb.UNKNOWN.name())
+                request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
             )
             msg.assignSource(HandlerType.BITBUCKET.name())
             var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
@@ -309,7 +313,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
             msg.setProperty(PropertyType.PROPERTY_NAME, JointProperty.POSITION.name())
             msg.setProperty(
                 BottleConstants.JOINT_NAME,
-                request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name())
+                request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
             )
             msg.assignSource(HandlerType.BITBUCKET.name())
             var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
@@ -327,7 +331,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
         // The following two requests simply use the current positions of the motors, whatever they are
         if (request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
             solver.setTreeState() // Forces new calculations
-            val appendageName: String = request.getProperty(BottleConstants.APPENDAGE_NAME, Appendage.UNKNOWN.name())
+            val appendageName: String = request.getProperty(BottleConstants.APPENDAGE_NAME, InvocationKind.UNKNOWN.name())
             val xyz: DoubleArray = solver.getPosition(Appendage.valueOf(appendageName))
             val text = String.format(
                 "%s is located at %0.2f %0.2f %0.2f meters",
@@ -340,7 +344,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
         }
         else if (request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION)) {
             solver.setTreeState()
-            val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, Joint.UNKNOWN.name())
+            val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
             // Choose any one of the links attached to the joint, get its parent
             val joint: Joint = Joint.valueOf(jointName.uppercase(Locale.getDefault()))
             val xyz: DoubleArray = solver.getPosition(joint)

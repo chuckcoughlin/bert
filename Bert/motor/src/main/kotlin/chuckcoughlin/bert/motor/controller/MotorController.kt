@@ -138,10 +138,10 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
             else if (isSingleControllerRequest(request)) {
                 // Do nothing if the joint or limb isn't in our controllerName.
                 val joint: Joint = request.joint
-                val cName: String = request.getProperty(PropertyType.CONTROLLER_NAME, "")
+                val cName: String = request.controller
                 val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name)
-                if (!jointName.equals(InvocationKind.UNKNOWN.name, ignoreCase = true)) {
-                    val mc: MotorConfiguration = configurationsByName[jointName] ?: return
+                if (!joint.equals(Joint.NONE) {
+                    val mc: MotorConfiguration = configurationsByName[joint] ?: return
                 }
                 else if (!cName.isEmpty()) {
                     if (!cName.equals(controllerName, ignoreCase = true)) {
@@ -156,10 +156,9 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                     }
                 }
                 else {
-                    val propertyName: String =
-                        request.getProperty(PropertyType.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name)
+                    val property: JointDynamicProperty = request.property
                     LOGGER.info(String.format("%s(%s).receiveRequest: %s (%s)",
-                            CLSS,controllerName,request.fetchRequestType().name,propertyName))
+                            CLSS,controllerName,request.type.name,property.name))
                 }
             }
             else {

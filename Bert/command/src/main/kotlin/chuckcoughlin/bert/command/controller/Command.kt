@@ -81,16 +81,17 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
                         dispatchController.receiveRequest(currentRequest) // halt the dispatcher as well
                         sleep(EXIT_WAIT_INTERVAL)
                         break
-                    } else if (isLocalRequest(currentRequest)) {
+                    }
+                    else if (isLocalRequest(currentRequest)) {
                         // Handle local request -create response
                         val response: MessageBottle = handleLocalRequest(currentRequest)
                         if (response != null) handleResponse(response)
-                    } else if (!ignoring) {
+                    }
+                    else if (!ignoring) {
                         dispatchController.receiveRequest(currentRequest)
                     }
                 }
-                catch (ie: InterruptedException) {
-                }
+                catch (ie: InterruptedException) { }
                 finally {
                     lock.unlock()
                 }
