@@ -1,9 +1,10 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.controller
 
+import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
@@ -11,6 +12,8 @@ import chuckcoughlin.bert.common.message.PropertyType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointDefinitionProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.RobotMotorModel
@@ -30,7 +33,7 @@ import kotlin.collections.HashMap
  * development, then responses are simulated without any direct serial
  * requests being made.
  */
-class MotorGroupController(m: RobotMotorModel) : MotorManager {
+class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
     private val model: RobotMotorModel = m
     private val motorControllers: MutableMap<String, MotorController>
     private val motorNameById: MutableMap<Int, String>
@@ -141,11 +144,10 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
         } else if (development) {
             responseHandler.handleResponse(simulateResponseForRequest(request))
         } else {
-            LOGGER.info(
-                java.lang.String.format(
+            LOGGER.info(String.format(
                     "%s.processRequest: processing %s",
                     CLSS,
-                    request.fetchRequestType().name()
+                    request.type.name()
                 )
             )
             for (controller in motorControllers.values) {
@@ -209,12 +211,12 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
         ) {
             // Certain properties are constants available from the configuration file.
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
-                property.equals(JointProperty.MINIMUMANGLE.name(), ignoreCase = true) ||
-                property.equals(JointProperty.MAXIMUMANGLE.name(), ignoreCase = true) ||
-                property.equals(JointProperty.MOTORTYPE.name(), ignoreCase = true) ||
-                property.equals(JointProperty.OFFSET.name(), ignoreCase = true) ||
-                property.equals(JointProperty.ORIENTATION.name(), ignoreCase = true)
+            if (property.equals(JointDefinitionProperty.ID.name, ignoreCase = true) ||
+                property.equals(JointDynamicProperty.MINIMUMANGLE.name, ignoreCase = true) ||
+                property.equals(JointDynamicProperty.MAXIMUMANGLE.name, ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.MOTORTYPE.name, ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.OFFSET.name, ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.ORIENTATION.name, ignoreCase = true)
             ) {
                 return true
             }
@@ -222,11 +224,11 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
-                property.equals(JointProperty.MOTORTYPE.name(), ignoreCase = true) ||
-                property.equals(JointProperty.OFFSET.name(), ignoreCase = true) ||
-                property.equals(JointProperty.ORIENTATION.name(), ignoreCase = true) ||
-                property.equals(JointProperty.POSITION.name(), ignoreCase = true)
+            if (property.equals(JointDefinitionProperty.ID.name(), ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.MOTORTYPE.name(), ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.OFFSET.name, ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.ORIENTATION.name(), ignoreCase = true) ||
+                property.equals(JointDynamicProperty.POSITION.name, ignoreCase = true)
             ) {
                 return true
             }
@@ -234,10 +236,10 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            if (property.equals(JointProperty.ID.name(), ignoreCase = true) ||
-                property.equals(JointProperty.MOTORTYPE.name(), ignoreCase = true) ||
-                property.equals(JointProperty.OFFSET.name(), ignoreCase = true) ||
-                property.equals(JointProperty.ORIENTATION.name(), ignoreCase = true)
+            if (property.equals(JointDefinitionProperty.ID.name, ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.MOTORTYPE.name, ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.OFFSET.name, ignoreCase = true) ||
+                property.equals(JointDefinitionProperty.ORIENTATION.name, ignoreCase = true)
             ) {
                 return true
             }
@@ -322,11 +324,11 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
                         java.lang.String.format(
                             "Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
                             joint,
-                            mc.getId(),
-                            mc.getType().name(),
-                            mc.getMinAngle(),
-                            mc.getMaxAngle(),
-                            mc.getOffset(),
+                            mc.id,
+                            mc.type.name,
+                            mc.minAngle,
+                            mc.maxAngle,
+                            mc.offset,
                             if (mc.isDirect()) "" else "(indirect)"
                         )
                     )
@@ -338,7 +340,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
         else if (request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
             val property: JointProperty = JointProperty.valueOf(request.getProperty(PropertyType.PROPERTY_NAME, ""))
             LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
-                    CLSS,request.fetchRequestType().name(),property.name()))
+                    CLSS,request.type.name,property.name()))
             var text: String? = ""
             val mcs: Map<Joint, MotorConfiguration> = model.motors
             for (joint in mcs.keys) {
@@ -390,7 +392,7 @@ class MotorGroupController(m: RobotMotorModel) : MotorManager {
         }
         else if (request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            request.assignError("I cannot change a motor " + property.lowercase(Locale.getDefault()))
+            request.error = "I cannot change a motor " + property.lowercase(Locale.getDefault())
         }
         return request
     }

@@ -1,10 +1,11 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
 package chuckcoughlin.bert.motor.controller
 
+import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
@@ -18,6 +19,14 @@ import jssc.SerialPort
 import jssc.SerialPortEvent
 import jssc.SerialPortEventListener
 import jssc.SerialPortException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.selects.select
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.util.*
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
@@ -37,17 +46,22 @@ import kotlin.contracts.InvocationKind
  * The configuration array has only those joints that are part of the controller set.
  * It is important that the MotorConfiguration objects are the same objects
  * (not clones) as those held by the MotorManager (MotorGroupController).
+ *
+ * @param p - the serial port shared by the motors under control
+ * @param parent - the motor manager
+ * @param req - channel for requests from the parent (motor manager)
+ * @param rsp - channel for responses sent to the parent (motor manager)
  */
-class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPortEventListener {
-    var running: Condition
-        private set
-    val controllerName : String // Group name
-    private val lock: Lock
+class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
+
     private val port: SerialPort
-    private var stopped = false
+    private var running:Condition
     private val motorManager: MotorManager
     private val configurationsById: MutableMap<Int, MotorConfiguration>
     private val configurationsByName: MutableMap<String, MotorConfiguration>
+    private var parentRequestChannel = req
+    private var parentResponseChannel = rsp
+    private val lock: Lock
     private var remainder: ByteArray? = null
     private val requestQueue // requests waiting to be processed
             : LinkedList<MessageBottle>
@@ -79,9 +93,9 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
      * 2) sets travel speeds to "normal"
      * 3) moves any limbs that are "out-of-bounds" back into range.
      */
-    fun initialize() {
-        LOGGER.info(String.format("%s(%s).initialize: Initializing port %s)",
-                CLSS,controllerName,port.getPortName()))
+    override suspend fun start() {
+        LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
+            CLSS, controllerName, port.getPortName()))
         if (!port.isOpened()) {
             try {
                 val success: Boolean = port.openPort()
@@ -95,19 +109,53 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                 }
                 else {
                     LOGGER.severe(String.format(
-                            "%s.initialize: Failed to open port %s for %s",
-                            CLSS,port.getPortName(),controllerName))
+                        "%s.initialize: Failed to open port %s for %s",
+                        CLSS, port.getPortName(), controllerName))
                 }
             }
             catch (spe: SerialPortException) {
                 LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",
-                        CLSS,port.getPortName(),controllerName,spe.getLocalizedMessage()))
+                    CLSS, port.getPortName(), controllerName, spe.getLocalizedMessage()))
+                return
             }
             LOGGER.info(String.format("%s.initialize: Initialized port %s)", CLSS, port.getPortName()))
         }
+        // Port is open, now use it.
+        running = true
+        runBlocking<Unit> {
+            launch {
+                Dispatchers.IO
+                while (running) {
+                    select<Unit> {
+                        parentResponseChannel.onReceive() {
+                            displayMessage(it)   // stdOut
+                        }
+                        /**
+                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
+                         * Forward requests to the Terminal launcher.
+                         */
+                        /**
+                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
+                         * Forward requests to the Terminal launcher.
+                         */
+                        /**
+                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
+                         * Forward requests to the Terminal launcher.
+                         */
+                        /**
+                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
+                         * Forward requests to the Terminal launcher.
+                         */
+                        async {
+                            handleUserInput(br)
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    fun stop() {
+    override suspend fun stop() {
         try {
             port.closePort()
         }
@@ -116,10 +164,6 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
                     CLSS,controllerName,spe.getLocalizedMessage()))
         }
         stopped = true
-    }
-
-    fun setStopped(flag: Boolean) {
-        stopped = flag
     }
 
     /**
@@ -749,23 +793,23 @@ class MotorController(name: String, p: SerialPort, mm: MotorManager) : SerialPor
         return copy
     }
 
-    companion object {
-        const val CLSS = "MotorController"
-        val LOGGER = Logger.getLogger(CLSS)
-        const val BAUD_RATE = 1000000
-        const val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
-        const val STATUS_RESPONSE_LENGTH = 8 // byte count
-    }
+    private val CLSS = "MotorController"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val BAUD_RATE = 1000000
+    private val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
+    private val STATUS_RESPONSE_LENGTH = 8 // byte count
+    override var controllerName = CLSS
+
     init {
-        controllerName = name
         port = p
-        motorManager = mm
+        controllerName = String.format("%s:%s",CLSS,port.portName)
+        motorManager = parent
+        lock = ReentrantLock()
+        running = lock.newCondition()
         configurationsById = HashMap<Int, MotorConfiguration>()
         configurationsByName = HashMap<String, MotorConfiguration>()
         requestQueue = LinkedList<MessageBottle>()
         responseQueue = LinkedList<MessageWrapper>()
-        lock = ReentrantLock()
-        running = lock.newCondition()
         timeOfLastWrite = System.nanoTime() / 1000000
     }
 }

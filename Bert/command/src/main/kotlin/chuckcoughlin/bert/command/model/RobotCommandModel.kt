@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command.model
@@ -87,7 +87,7 @@ class RobotCommandModel(configPath: Path) : AbstractRobotModel(configPath) {
     /**
      * Extend the default search for properties to convert the "blueserver" port to an int.
      */
-    override fun analyzeProperties() {
+    fun analyzeProperties() {
         super.analyzeProperties()
         val port: String = properties.getProperty("blueserver")
         if (port != null) {

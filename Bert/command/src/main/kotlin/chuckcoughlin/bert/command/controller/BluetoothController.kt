@@ -5,7 +5,7 @@
 package chuckcoughlin.bert.command.controller
 
 import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.controller.sNamedSocket
+import chuckcoughlin.bert.common.controller.NamedSocket
 import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
 import chuckcoughlin.bert.common.message.HandlerType

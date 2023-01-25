@@ -28,19 +28,18 @@ import java.util.logging.Logger
  * controller in spoken form. Requests originate from stdIn and responses
  * sent to stdOut.
  *
- * Dispatcher.localResponseChannel  - messages that need to be displayed to the user
- * Terminal.localResponseChannel    - not used (stdOut)
- *
- * Dispatcher.localRequestChannel    - commands from the user
- * Terminal.localRequestChannel      - not used (stdIn)
+ * @param configPath - path to the configuration file
+ * @param parent - the dispatcher
+ * @param req - channel for requests from the parent (Dispatcher)
+ * @param rsp - channel for responses sent to the parent (Dispatcher)
  */
-class Terminal(configPath: Path,parent: Controller) : Controller {
+class Terminal(configPath: Path,parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) : Controller {
     private val parser: StatementParser
     private val translator: MessageTranslator
     private val model: RobotTerminalModel
     private val dispatcher = parent
-    override var parentRequestChannel = dispatcher.localRequestChannel
-    override var parentResponseChannel = dispatcher.localResponseChannel
+    private var parentRequestChannel = req
+    private var parentResponseChannel = rsp
     private var prompt:String
 
     val scope = MainScope() // Uses Dispatchers.Main
@@ -48,9 +47,9 @@ class Terminal(configPath: Path,parent: Controller) : Controller {
     var running:Boolean
 
     /**
-     * When running this controller processes messages between the Dispatcher
-     * and StdioController. A few messages are intercepted that cause a
-     * quick shutdown. These are responses
+     * When running, this controller processes messages between the Dispatcher
+     * and the user. A few messages are intercepted that cause a
+     * quick shutdown. These are direct responses to user input, like "shutdown".
      */
     override suspend fun start() {
         running = true
@@ -151,8 +150,6 @@ class Terminal(configPath: Path,parent: Controller) : Controller {
     private val LOGGER = Logger.getLogger(CLSS)
     private val PROMPT = "Bert:"
     override var controllerName = CLSS
-    override val localRequestChannel = Channel<MessageBottle>()  // From Stdin
-    override val localResponseChannel = Channel<MessageBottle>() // To st
 
     init {
         parser = StatementParser()

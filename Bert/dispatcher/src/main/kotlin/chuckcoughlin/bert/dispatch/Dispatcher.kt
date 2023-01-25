@@ -2,18 +2,17 @@
  * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.dispatch.controller
+package chuckcoughlin.bert.dispatch
 
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
+import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.controller.SocketStateChangeListener
 import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
-import chuckcoughlin.bert.control.controller.InternalController
 import chuckcoughlin.bert.control.controller.QueueName
 import chuckcoughlin.bert.control.message.InternalMessageHolder
 import chuckcoughlin.bert.control.solver.Solver
@@ -37,19 +36,18 @@ import kotlin.contracts.InvocationKind
  * For complicated requests it may invoke the services of the "Solver" and insert
  * internal intermediate requests.
  *
- * For the peripheral controllers, the dispatcher presents itself as a controller, but not the same one
- * for all sub-controllers.
+ * For the peripheral controllers, the dispatcher presents itself as a controller, but different
+ * channels apply to the different peripherals.
  */
-class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Thread(), MessageHandler,
-    SocketStateChangeListener {
+class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
     private val model: RobotMotorModel
-    private var commandController: SocketController? = null
-    private var terminalController: SocketController? = null
-    private var internalController: InternalController? = null
-    private var motorGroupController: MotorGroupController? = null
+    private var commandController: Controller
+    private var terminalController: Controller
+    private var internalController: Controller
+    private var motorGroupController: Controller
     private val busy: Condition
-    private var currentRequest: MessageBottle? = null
+    private var currentRequest: MessageBottle
     private val lock: Lock
     private val solver: Solver
     private var cadence = 1000 // msecs
@@ -329,7 +327,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
     // with some text to return back to the user. 
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
         // The following two requests simply use the current positions of the motors, whatever they are
-        if (request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION)) {
+        if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
             solver.setTreeState() // Forces new calculations
             val appendageName: String = request.getProperty(BottleConstants.APPENDAGE_NAME, InvocationKind.UNKNOWN.name())
             val xyz: DoubleArray = solver.getPosition(Appendage.valueOf(appendageName))
@@ -355,7 +353,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
                 xyz[1],
                 xyz[2]
             )
-            request.assignText(text)
+            request.text = text
         }
         else if (request.fetchRequestType().equals(RequestType.GET_METRIC)) {
             val metric: MetricType = MetricType.valueOf(request.getProperty(BottleConstants.METRIC_NAME, "NAME"))
@@ -377,9 +375,9 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
                 MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                 NAME -> text = "My name is $name"
             }
-            request.assignText(text)
+            request.text = text
         }
-        else if (request.fetchRequestType().equals(RequestType.COMMAND)) {
+        else if (request.type.equals(RequestType.COMMAND)) {
             val command: String = request.getProperty(BottleConstants.COMMAND_NAME, "NONE")
             LOGGER.warning(String.format("%s.handleLocalRequest: command=%s", CLSS, command))
             if (command.equals(BottleConstants.COMMAND_HALT, ignoreCase = true)) {
@@ -403,7 +401,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
                 request.assignError(msg)
             }
         }
-        else if (request.fetchRequestType().equals(RequestType.MAP_POSE)) {
+        else if (request.type.equals(RequestType.MAP_POSE)) {
             val commandName: String = request.getProperty(BottleConstants.COMMAND_NAME, "")
             val poseName: String = request.getProperty(PropertyType.POSE_NAME, "")
             if (!commandName.isEmpty() && !poseName.isEmpty()) {
@@ -413,7 +411,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
                 request.assignError("I could not map because either command or pose is empty")
             }
         }
-        else if (request.fetchRequestType().equals(RequestType.SAVE_POSE)) {
+        else if (request.type.equals(RequestType.SAVE_POSE)) {
             var poseName: String = request.getProperty(PropertyType.POSE_NAME, "")
             if (!poseName.isEmpty()) {
                 Database.getInstance().saveJointPositionsForPose(model.getMotors(), poseName)
@@ -440,12 +438,12 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
         // Never send a request launched by the internal controller back to it. That would be an infinite loop
         if (request.fetchSource().equalsIgnoreCase(HandlerType.INTERNAL.name())) return false
         val properties: Map<String, String> = request.getProperties()
-        if (request.fetchRequestType().equals(RequestType.COMMAND) &&
+        if (request.type.equals(RequestType.COMMAND) &&
             properties[BottleConstants.COMMAND_NAME].equals(BottleConstants.COMMAND_FREEZE, ignoreCase = true)
         ) {
             return true
         }
-        else if (request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY) &&
+        else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             properties[PropertyType.PROPERTY_NAME].equals(JointProperty.STATE.name(), ignoreCase = true) &&
             properties[JointProperty.STATE.name()].equals(BottleConstants.ON_VALUE, ignoreCase = true)
         ) {
@@ -462,15 +460,15 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
 
     // Local requests are those that can be handled immediately without forwarding to the motor controllers.
     private fun isLocalRequest(request: MessageBottle): Boolean {
-        if (request.fetchRequestType().equals(RequestType.GET_APPENDAGE_LOCATION) ||
-            request.fetchRequestType().equals(RequestType.GET_JOINT_LOCATION) ||
-            request.fetchRequestType().equals(RequestType.GET_METRIC) ||
-            request.fetchRequestType().equals(RequestType.MAP_POSE) ||
-            request.fetchRequestType().equals(RequestType.SAVE_POSE)
+        if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION) ||
+            request.type.equals(RequestType.GET_JOINT_LOCATION) ||
+            request.type.equals(RequestType.GET_METRIC) ||
+            request.type.equals(RequestType.MAP_POSE) ||
+            request.type.equals(RequestType.SAVE_POSE)
         ) {
             return true
         }
-        else if (request.fetchRequestType().equals(RequestType.COMMAND)) {
+        else if (request.type.equals(RequestType.COMMAND)) {
             val properties: Map<String, String> = request.getProperties()
             val cmd = properties[BottleConstants.COMMAND_NAME]
             return if (cmd.equals(BottleConstants.COMMAND_FREEZE, ignoreCase = true) ||
@@ -481,7 +479,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
                 true
             }
         }
-        else if (request.fetchRequestType().equals(RequestType.NOTIFICATION)) {
+        else if (request.type.equals(RequestType.NOTIFICATION)) {
             request.assignSource(HandlerType.DISPATCHER.name()) // Setup to broadcast
             return true
         }
@@ -515,61 +513,57 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController?) : Th
         }
     }
 
-    companion object {
-        private const val CLSS = "Dispatcher"
-        private const val USAGE = "Usage: launcher <robot_root>"
+    private const val CLSS = "Dispatcher"
+    private const val USAGE = "Usage: launcher <robot_root>"
 
-        // Phrases to choose from ...
-        private val mittenPhrases = arrayOf(
-            "My hands cut easily",
-            "My hands are cold",
-            "Mittens are stylish"
-        )
-        private val startPhrases = arrayOf(
-            "Bert is ready",
-            "At your command",
-            "I'm listening",
-            "Speak your wishes"
-        )
-        private val LOGGER = Logger.getLogger(CLSS)
-        private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
-        // ==================================== Main =================================================
-        /**
-         * Entry point for the launcher application that receives commands, processes
-         * them through the serial interfaces to the motors and returns results.
-         *
-         * Usage: Usage: dispatch <robot_root>
-         *
-         * @param args command-line arguments
-        </robot_root> */
-        @JvmStatic
-        fun main(args: Array<String>) {
+    // Phrases to choose from ...
+    private val mittenPhrases = arrayOf(
+        "My hands cut easily",
+        "My hands are cold",
+        "Mittens are stylish"
+    )
+    private val startPhrases = arrayOf(
+        "Bert is ready",
+        "At your command",
+        "I'm listening",
+        "Speak your wishes"
+    )
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
 
-            // Make sure there is command-line argument
-            if (args.size < 1) {
-                println(USAGE)
-                System.exit(1)
-            }
-
-
-            // Analyze command-line argument to obtain the robot root directory.
-            val arg = args[0]
-            val path = Paths.get(arg)
-            PathConstants.setHome(path)
-            // Setup logging to use only a file appender to our logging directory
-            LoggerUtility.configureRootLogger(LOG_ROOT)
-            val model = RobotMotorModel(PathConstants.CONFIG_PATH)
-            model.populate() // Analyze the xml for motors and motor groups
-            Database.startup(PathConstants.DB_PATH)
-            val mgc = MotorGroupController(model)
-            val solver = Solver()
-            solver.configure(model.getMotors(), PathConstants.URDF_PATH)
-            val runner = Dispatcher(model, solver, mgc)
-            mgc.setResponseHandler(runner)
-            runner.createControllers()
-            Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(runner)))
-            runner.startup()
-            runner.start()
+    // ==================================== Main =================================================
+    /**
+     * Entry point for the launcher application that receives commands, processes
+     * them through the serial interfaces to the motors and returns results.
+     *
+     * Usage: Usage: dispatch <robot_root>
+     *
+     * @param args command-line arguments
+     */
+    fun main(args: Array<String>) {
+        // Make sure there is command-line argument
+        if (args.size < 1) {
+            println(USAGE)
+            System.exit(1)
         }
+
+        // Analyze command-line argument to obtain the robot root directory.
+        val arg = args[0]
+        val path = Paths.get(arg)
+        PathConstants.setHome(path)
+        // Setup logging to use only a file appender to our logging directory
+        LoggerUtility.configureRootLogger(LOG_ROOT)
+        val model = RobotMotorModel(PathConstants.CONFIG_PATH)
+        model.populate() // Analyze the xml for motors and motor groups
+        Database.startup(PathConstants.DB_PATH)
+        val mgc = MotorGroupController(model)
+        val solver = Solver()
+        solver.configure(model.getMotors(), PathConstants.URDF_PATH)
+        val runner = Dispatcher(model, solver, mgc)
+        mgc.setResponseHandler(runner)
+        runner.createControllers()
+        Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(runner)))
+        runner.startup()
+        runner.start()
     }
 }

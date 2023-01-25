@@ -3,6 +3,8 @@
 This document lays out a series of feature tests for the "Bert" project. Those tests which have passed are marked with green (![green](/images/ball_green.png)). Features that are currently in a broken state are marked in red (![red](/images/ball_red.png)).  A yellow (![yellow](/images/ball_yellow.png)) marker indicates
 a feature that is actively being debugged. Gray (![gray](/images/ball_gray.png)) indicates features that are not yet implemented. The green marker is a pretty fair indication of completion status of the project.
 
+Tests are run simply by giving typed commands to the robot.
+
 
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>

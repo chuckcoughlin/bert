@@ -163,7 +163,7 @@ class URDFModel {
                         ) ijk = doubleArrayFromDirectionString(XMLUtility.attributeValue(childNode, "xyz"))
                         childIndex++
                     }
-                    val rev = LinkPoint(joint, ijk, xyz)
+                    val rev = LinkPoint(joint, ijk!!, xyz!!)
                     LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
                             joint.name,
                             xyz!![0],

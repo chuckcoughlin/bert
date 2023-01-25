@@ -9,7 +9,6 @@ import chuckcoughlin.bert.common.model.AbstractRobotModel
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.util.XMLUtility
 import org.w3c.dom.Element
-import org.w3c.dom.NodeList
 import java.nio.file.Path
 import java.util.*
 
@@ -33,7 +32,7 @@ class RobotTerminalModel(configPath: Path) : AbstractRobotModel(configPath) {
         if (this.document != null) {
             var controllerName = "UNASSIGNED"
             var prompt = ":"
-            val elements: NodeList = document.getElementsByTagName("controller")
+            val elements = document.getElementsByTagName("controller")
             val count = elements.length
             var index = 0
             while (index < count) {
@@ -41,7 +40,7 @@ class RobotTerminalModel(configPath: Path) : AbstractRobotModel(configPath) {
                 controllerName = XMLUtility.attributeValue(controllerElement, "name")
                 prompt = XMLUtility.attributeValue(controllerElement, "prompt")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
-                if (type != null && !type.isEmpty() &&
+                if(!type.isEmpty() &&
                     type.equals(HandlerType.TERMINAL.name, ignoreCase = true) ) {
                     // Configure the socket - there should only be one.
                     val socketElements = controllerElement.getElementsByTagName("socket")
