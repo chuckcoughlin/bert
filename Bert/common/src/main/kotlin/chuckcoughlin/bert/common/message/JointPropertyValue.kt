@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.message
@@ -26,10 +26,9 @@ class JointPropertyValue()  {
         value = valu
     }
 
-    companion object {
-        private const val CLSS = "JointPropertyValue"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "JointPropertyValue"
+    private val LOGGER = Logger.getLogger(CLSS)
+
     init {
         joint = Joint.NONE
         property = JointDynamicProperty.NONE

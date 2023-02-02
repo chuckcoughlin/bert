@@ -59,6 +59,10 @@ class Terminal(configPath: Path,parent: Controller,req : Channel<MessageBottle>,
                 Dispatchers.IO
                 while(running) {
                     select<Unit> {
+                        /**
+                         * These are responses coming from the Dispatcher
+                         * Simply display them.
+                         */
                         parentResponseChannel.onReceive() {
                             displayMessage(it)   // stdOut
                         }
@@ -97,7 +101,9 @@ class Terminal(configPath: Path,parent: Controller,req : Channel<MessageBottle>,
         print(prompt)
     }
     /**
-     * Read directly from stdin
+     * Read directly from stdin.
+     * Convert the text into a MessageBottle and forward
+     * it to the dispatcher.
      */
     suspend fun handleUserInput(br:BufferedReader) {
         val input = br.readLine()

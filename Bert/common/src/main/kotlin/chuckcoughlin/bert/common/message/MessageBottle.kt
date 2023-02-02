@@ -87,20 +87,18 @@ data class MessageBottle (var type:RequestType) : Serializable {
         return jointValues.listIterator()
     }
 
-    companion object {
-        private const val serialVersionUID = 4356286171135500644L
-        private const val CLSS = "MessageBottle"
-        protected val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "MessageBottle"
+    protected val LOGGER = Logger.getLogger(CLSS)
+
     /**
      * Set initiial values for all message parameters
      */
     init {
         appendage   = Appendage.NONE
         jointValues = mutableListOf<JointPropertyValue>()
-        command = CommandType.NONE
-        controller = BottleConstants.NO_CONTROLLER
-        error =  BottleConstants.NO_ERROR   // No error
+        command     = CommandType.NONE
+        controller  = BottleConstants.NO_CONTROLLER
+        error   =  BottleConstants.NO_ERROR   // No error
         handler = HandlerType.UNDEFINED
         joint = Joint.NONE                  // Name of relavant joint
         limb  = Limb.NONE

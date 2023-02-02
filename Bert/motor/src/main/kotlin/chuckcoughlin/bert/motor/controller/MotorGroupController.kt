@@ -76,11 +76,8 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
                     }
                 }
                 controllerCount += 1
-                LOGGER.info(
-                    String.format(
-                        "%s.initialize: Created motor controller %s",
-                        CLSS,
-                        controller.controllerName
+                LOGGER.info(String.format("%s.initialize: Created motor controller %s",
+                        CLSS,controller.controllerName
                     )
                 )
             }
@@ -223,23 +220,23 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
-            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            if (property.equals(JointDefinitionProperty.ID.name(), ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.MOTORTYPE.name(), ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.OFFSET.name, ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.ORIENTATION.name(), ignoreCase = true) ||
-                property.equals(JointDynamicProperty.POSITION.name, ignoreCase = true)
+            val property = request.property
+            if (property.equals(JointDefinitionProperty.ID) ||
+                property.equals(JointDefinitionProperty.MOTORTYPE) ||
+                property.equals(JointDefinitionProperty.OFFSET) ||
+                property.equals(JointDefinitionProperty.ORIENTATION) ||
+                property.equals(JointDynamicProperty.POSITION)
             ) {
                 return true
             }
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
-            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            if (property.equals(JointDefinitionProperty.ID.name, ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.MOTORTYPE.name, ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.OFFSET.name, ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.ORIENTATION.name, ignoreCase = true)
+            val property = request.property
+            if (property.equals(JointDefinitionProperty.ID.) ||
+                property.equals(JointDefinitionProperty.MOTORTYPE) ||
+                property.equals(JointDefinitionProperty.OFFSET) ||
+                property.equals(JointDefinitionProperty.ORIENTATION)
             ) {
                 return true
             }
@@ -254,7 +251,7 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
     // to return directly to the user. These jointValues are obtained from the initial configuration.
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
         if (request.type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val property: JointProperty = JointProperty.valueOf(request.getProperty(PropertyType.PROPERTY_NAME, ""))
+            val property = request.property
             val joint: Joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"))
             LOGGER.info(
                 java.lang.String.format(
@@ -311,23 +308,18 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
                 request.assignError(String.format("The configuration file does not include joint %s",
                         joint.name ) )
             }
-            request.assignText(text)
-        } else if (request.fetchRequestType().equals(RequestType.GET_CONFIGURATION)) {
+            request.text = text
+        }
+        else if (request.type.equals(RequestType.GET_CONFIGURATION)) {
             val text = "Motor configuration parameters have been logged"
-            request.assignText(text)
+            request.text = text
             for (group in motorControllers.keys) {
                 val controller = motorControllers[group]
                 val map: Map<String?, MotorConfiguration?>? = controller.getConfigurations()
                 for (joint in map!!.keys) {
                     val mc: MotorConfiguration? = map[joint]
-                    LOGGER.info(
-                        java.lang.String.format(
-                            "Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
-                            joint,
-                            mc.id,
-                            mc.type.name,
-                            mc.minAngle,
-                            mc.maxAngle,
+                    LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
+                            joint,mc.id,mc.type.name,mc.minAngle,mc.maxAngle,
                             mc.offset,
                             if (mc.isDirect()) "" else "(indirect)"
                         )
@@ -337,8 +329,8 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
                 }
             }
         }
-        else if (request.fetchRequestType().equals(RequestType.LIST_MOTOR_PROPERTY)) {
-            val property: JointProperty = JointProperty.valueOf(request.getProperty(PropertyType.PROPERTY_NAME, ""))
+        else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+            val property = request.property
             LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
                     CLSS,request.type.name,property.name()))
             var text: String? = ""
@@ -347,7 +339,7 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
                 val mc: MotorConfiguration = mcs[joint]!!
                 when (property) {
                     ID -> {
-                        val id: Int = mc.getId()
+                        val id: Int = mc.id
                         text = "The id of $joint is $id"
                     }
 
@@ -378,19 +370,19 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
 
                     else -> {
                         text = ""
-                        request.assignError(property.name() + " is not a property that I can look up")
+                        request.error = property.name() + " is not a property that I can look up"
                     }
                 }
                 LOGGER.info(text)
             }
-            text = java.lang.String.format("The %ss of all motors have been logged", property.name().toLowerCase())
-            request.setProperty(PropertyType.TEXT, text)
+            text = String.format("The %ss of all motors have been logged", property.name().toLowerCase())
+            request.text =  text
         }
-        else if (request.fetchRequestType().equals(RequestType.SET_LIMB_PROPERTY)) {
+        else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            request.assignError("I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb")
+            request.error = "I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb")
         }
-        else if (request.fetchRequestType().equals(RequestType.SET_MOTOR_PROPERTY)) {
+        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
             request.error = "I cannot change a motor " + property.lowercase(Locale.getDefault())
         }
@@ -399,7 +391,7 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
 
     // When in development mode, simulate something reasonable as a response.
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {
-        val requestType: RequestType = request.fetchRequestType()
+        val requestType = request.type
         if (requestType.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val property: JointProperty = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""))
             val joint: Joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"))
@@ -414,22 +406,21 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
 
                 else -> {
                     text = ""
-                    request.assignError(property.name() + " is not a property that I can read")
+                    request.error = property.name() + " is not a property that I can read")
                 }
             }
-            request.assignText(text)
+            request.text = text
         }
         else {
             LOGGER.warning(String.format("%s.simulateResponseForRequest: Request type %s not handled",
-                    CLSS,requestType))
+                    CLSS,requestType.name))
         }
         return request
     }
 
-    companion object {
-        private const val CLSS = "MotorGroupController"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "MotorGroupController"
+    private val LOGGER = Logger.getLogger(CLSS)
+
     /**
      * Constructor:
      * @param m the server model

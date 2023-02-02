@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.control.model
@@ -7,7 +7,6 @@ package chuckcoughlin.bert.control.model
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.util.XMLUtility
-import chuckcoughlin.bert.control.controller.SequentialQueue.Companion.LOGGER
 import org.w3c.dom.Document
 import java.io.IOException
 import java.nio.file.Files
@@ -108,7 +107,7 @@ class URDFModel {
                                 childIndex++
                             }
                             val a: Appendage = Appendage.valueOf(aname.uppercase(Locale.getDefault()))
-                            chain.createLink(a)
+                            chain.createLink(a.name)
                             val end = LinkPoint(a, ijk, xyz)
                             chain.setEndPoint(a.name, end)
                             chain.setParent(a.name, name.uppercase(Locale.getDefault()))
@@ -166,17 +165,17 @@ class URDFModel {
                     val rev = LinkPoint(joint, ijk!!, xyz!!)
                     LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
                             joint.name,
-                            xyz!![0],
+                            xyz[0],
                             xyz[1],
                             xyz[2]
                         )
                     )
                     if (parent != null) {
                         val parentLink = chain.getLinkForLimbName(parent)
-                        chain.setEndPoint(parentLink.name, rev)
+                        chain.setEndPoint(parentLink!!.name, rev)
                         if (child != null) {
                             val childLink = chain.getLinkForLimbName(child)
-                            childLink.parent = parentLink
+                            childLink!!.parent = parentLink
                         }
                         else {
                             LOGGER.warning(String.format("%s.analyzeChain: joint %s has no child",
@@ -249,10 +248,10 @@ class URDFModel {
         return result
     }
 
-    companion object {
-        private const val CLSS = "URDFModel"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+
+    private val CLSS = "URDFModel"
+    private val LOGGER = Logger.getLogger(CLSS)
+
     init {
         chain = Chain()
         document = null

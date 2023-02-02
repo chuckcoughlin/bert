@@ -165,7 +165,7 @@ object DxlMessage {
      * @param property, either speed,torque or torque_enable
      * @return a byte array with entries corresponding to joints, if any.
      */
-    fun byteArrayToSetProperty(map: Map<String, MotorConfiguration>, property: JointDynamicProperty): ByteArray? {
+    fun byteArrayToSetProperty(map: Map<Joint, MotorConfiguration>, property: JointDynamicProperty): ByteArray? {
         // First count all the joints in the limb
         val count = map.size
         var bytes: ByteArray? = null

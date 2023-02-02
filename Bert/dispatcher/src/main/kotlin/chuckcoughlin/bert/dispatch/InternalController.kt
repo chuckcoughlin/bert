@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
@@ -10,7 +10,6 @@ import chuckcoughlin.bert.common.message.MessageHandler
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.control.controller.QueueName
 import chuckcoughlin.bert.control.controller.SequentialQueue
-import chuckcoughlin.bert.control.controller.TimedQueue
 import chuckcoughlin.bert.control.message.InternalMessageHolder
 import java.util.logging.Logger
 

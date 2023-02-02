@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.controller
+package chuckcoughlin.bert.dispatch
 
 import chuckcoughlin.bert.control.message.InternalMessageHolder
 import java.util.*

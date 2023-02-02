@@ -25,8 +25,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.util.*
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
@@ -55,10 +53,11 @@ import kotlin.contracts.InvocationKind
 class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
 
     private val port: SerialPort
-    private var running:Condition
+    private var running:Boolean
     private val motorManager: MotorManager
+    private val condition: Condition
     private val configurationsById: MutableMap<Int, MotorConfiguration>
-    private val configurationsByName: MutableMap<String, MotorConfiguration>
+    private val configurationsByJoint: MutableMap<Joint, MotorConfiguration>
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
     private val lock: Lock
@@ -71,16 +70,16 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
 
 
 
-    val configurations: Map<String, Any>
-        get() = configurationsByName
+    val configurations: Map<Joint, MotorConfiguration>
+        get() = configurationsByJoint
 
-    fun getMotorConfiguration(name: String): MotorConfiguration? {
-        return configurationsByName[name]
+    fun getMotorConfiguration(joint: Joint): MotorConfiguration? {
+        return configurationsByJoint[joint]
     }
 
-    fun putMotorConfiguration(name: String, mc: MotorConfiguration) {
+    fun putMotorConfiguration(joint: Joint, mc: MotorConfiguration) {
         configurationsById[mc.id] = mc
-        configurationsByName[name] = mc
+        configurationsByJoint[joint] = mc
     }
 
     /**
@@ -127,27 +126,19 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 Dispatchers.IO
                 while (running) {
                     select<Unit> {
-                        parentResponseChannel.onReceive() {
-                            displayMessage(it)   // stdOut
-                        }
                         /**
-                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
-                         * Forward requests to the Terminal launcher.
-                         */
-                        /**
-                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
-                         * Forward requests to the Terminal launcher.
-                         */
-                        /**
-                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
-                         * Forward requests to the Terminal launcher.
-                         */
-                        /**
-                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
-                         * Forward requests to the Terminal launcher.
+                         * On receipt of a message from the SerialPort,
+                         * decypher and forward to the MotorManager.
                          */
                         async {
-                            handleUserInput(br)
+                            receiveSerialResponse()
+                        }
+                        /**
+                         * The parent request is a motor command. Convert it
+                         * into a message for the SerialPort amd write.
+                         */
+                        parentRequestChannel.onReceive() {
+                            receiveRequest(it)   // stdOut
                         }
                     }
                 }
@@ -163,15 +154,15 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",
                     CLSS,controllerName,spe.getLocalizedMessage()))
         }
-        stopped = true
+        running = false
     }
 
     /**
-     * This method blocks until the prior request completes. Ignore requests that apply to a single controller
+     * This method blocks until any prior request completes. Ignore requests that apply to a single controller
      * and that controller is not this one, otherwise add the request to the request queue.
      * @param request
      */
-    fun receiveRequest(request: MessageBottle) {
+    suspend fun receiveRequest(request: MessageBottle) {
         lock.lock()
         //LOGGER.info(String.format("%s(%s).receiveRequest: processing %s",CLSS,controllerName,request.fetchRequestType().name()));
         try {
@@ -183,17 +174,16 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 // Do nothing if the joint or limb isn't in our controllerName.
                 val joint: Joint = request.joint
                 val cName: String = request.controller
-                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name)
-                if (!joint.equals(Joint.NONE) {
-                    val mc: MotorConfiguration = configurationsByName[joint] ?: return
+                val limb: Limb = request.limb
+                if( !joint.equals(Joint.NONE) ) {
+                    val mc: MotorConfiguration = configurationsByJoint[joint] ?: return
                 }
                 else if (!cName.isEmpty()) {
                     if (!cName.equals(controllerName, ignoreCase = true)) {
                         return
                     }
                 }
-                else if (!limb.equals(InvocationKind.UNKNOWN.name, ignoreCase = true)) {
-                    val limb: Limb = Limb.valueOf(limbName)
+                else if (!limb.equals(Limb.NONE) ) {
                     val count = configurationsForLimb(limb).size
                     if (count == 0) {
                         return
@@ -207,11 +197,11 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             }
             else {
                 LOGGER.info(String.format("%s(%s).receiveRequest: multi-controller request (%s)",
-                        CLSS,controllerName,request.fetchRequestType().name))
+                        CLSS,controllerName,request.type.name))
             }
             requestQueue.addLast(request)
             // LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
-            running.signal()
+            condition.signal()
         }
         finally {
             lock.unlock()
@@ -225,11 +215,11 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      *
      * Integer.toHexString(this.hashCode())
      */
-    override fun run() {
-        while (!stopped) {
+     suspend fun receiveSerialResponse() {
+        while (running) {
             lock.lock()
             try {
-                running.await()
+                condition.await()
                 // LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,controllerName,port.getPortName()));
                 val req: MessageBottle = requestQueue.removeFirst() // Oldest
                 val wrapper = MessageWrapper(req)
@@ -266,8 +256,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     }
 
     // ============================= Private Helper Methods =============================
-    // Create a response for a request that can be handled immediately. There aren't many of them. The response is simply the original request
-    // with some text to send directly to the user. 
+    // Create a response for a request that can be handled immediately. There aren't many of them.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
         // The following two requests simply use the current positions of the motors, whatever they are
         if (request.type.equals(RequestType.COMMAND)) {
@@ -275,48 +264,47 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             LOGGER.warning(String.format(
                     "%s(%s).createResponseForLocalRequest: command=%s",
                     CLSS,controllerName,command.name) )
-            if (command.equals(BottleConstants.COMMAND_RESET, ignoreCase = true)) {
+            if (command.equals(CommandType.RESET)) {
                 remainder = null // Resync after dropped messages.
                 responseQueue.clear()
                 motorManager.handleAggregatedResponse(request)
-            } else {
+            }
+            else {
                 val msg = String.format("Unrecognized command: %s", command)
-                request.assignError(msg)
+                request.error = msg
             }
         }
         return request
     }
 
     /**
+     * A local command is one that can be handled directly without any serial
+     * communications.
      * @param msg the request
      * @return true if this is the type of request that can be satisfied locally.
      */
     private fun isLocalRequest(msg: MessageBottle): Boolean {
         return if (msg.type.equals(RequestType.COMMAND) &&
-            msg.getProperty(BottleConstants.COMMAND_NAME, "NONE").equalsIgnoreCase(BottleConstants.COMMAND_RESET)
-        ) {
+            msg.command.equals(CommandType.RESET) ) {
             true
-        } else false
+        }
+        else false
     }
 
     /**
      * @param msg the request
      * @return true if this is the type of request satisfied by a single controller.
      */
-    private fun isSingleControllerRequest(msg: MessageBottle?): Boolean {
+    private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
         if (msg.type.equals(RequestType.GET_GOALS) ||
             msg.type.equals(RequestType.GET_LIMITS) ||
             msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.type.equals(RequestType.SET_MOTOR_PROPERTY)
-        ) {
+            msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
         }
         else if (msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) &&
-            (!msg.getProperty(PropertyType.CONTROLLER_NAME, "").equals("") ||
-                    !msg.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
-                        .equalsIgnoreCase(InvocationKind.UNKNOWN.name()))
-        ) {
+                (!msg.controller.isEmpty() || !msg.limb.equals(Limb.NONE))) {
             return true
         }
         return false
@@ -331,10 +319,12 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         return if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_POSE)
-        ) {
+            msg.type.equals(RequestType.SET_POSE) ) {
             false
-        } else true
+        }
+        else {
+            true
+        }
     }
 
     /**
@@ -343,7 +333,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * status response for every motor referenced in the request.
      * (There may be only one).
      */
-    private fun returnsStatusArray(msg: MessageBottle?): Boolean {
+    private fun returnsStatusArray(msg: MessageBottle): Boolean {
         return if (msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
                   msg.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
             true
@@ -360,117 +350,142 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * @return
      */
     private fun messageToBytes(wrapper: MessageWrapper): ByteArray? {
-        val request: MessageBottle? = wrapper.message
+        val request: MessageBottle = wrapper.message
+        wrapper.responseCount = 0 // No response, unless specified otherwise
         var bytes: ByteArray? = null
-        if (request != null) {
-            val type: RequestType = request.type
-            if (type.equals(RequestType.COMMAND) &&
-                request.getProperty(BottleConstants.COMMAND_NAME, "").equalsIgnoreCase(BottleConstants.COMMAND_FREEZE)
-            ) {
-                val propertyName: String = JointProperty.STATE.name()
-                for (mc in configurationsByName.values) {
-                    mc.setTorqueEnabled(true)
+        val type: RequestType = request.type
+        if (type.equals(RequestType.COMMAND) &&
+            request.command.equals(CommandType.FREEZE) ) {
+
+            val propertyValues = request.getPropertyValueIterator()
+            if( propertyValues.hasNext() ) {             // There should be only one entry
+                val pv = propertyValues.next()
+                val joint = pv.joint // This is the one we want to freeze
+                val prop  = pv.property
+
+                for (mc in configurationsByJoint.values) {
+                    if (mc.joint.equals(joint)) {
+                        mc.isTorqueEnabled = true
+                        bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, prop)
+                        break
+                    }
                 }
-                bytes = DxlMessage.byteArrayToSetProperty(configurationsByName, propertyName)
-                wrapper.responseCount = 0 // No response
             }
-            else if (type.equals(RequestType.COMMAND) &&
-                request.getProperty(BottleConstants.COMMAND_NAME, "").equalsIgnoreCase(BottleConstants.COMMAND_RELAX)
-            ) {
-                for (mc in configurationsByName.values) {
-                    mc.setTorqueEnabled(false)
+        }
+        else if (type.equals(RequestType.COMMAND) &&
+            request.command.equals(CommandType.RELAX) ) {
+            val propertyValues = request.getPropertyValueIterator()
+            if( propertyValues.hasNext() ) {             // There should be only one entry
+                val pv = propertyValues.next()
+                val joint = pv.joint // This is the one we want to freeze
+                val prop = pv.property
+                for (mc in configurationsByJoint.values) {
+                    if (mc.joint.equals(joint)) {
+                        mc.isTorqueEnabled = false
+                        bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, prop)
+                        break
+                    }
                 }
-                val propertyName: String = JointProperty.STATE.name()
-                bytes = DxlMessage.byteArrayToSetProperty(configurationsByName, propertyName)
-                wrapper.responseCount = 0 // No response
             }
-            else if (type.equals(RequestType.GET_GOALS)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, "")
-                val mc: MotorConfiguration? = configurationsByName[jointName]
-                if (mc != null) {
-                    bytes = DxlMessage.bytesToGetGoals(mc.getId())
+        }
+        else if (type.equals(RequestType.GET_GOALS)) {
+            val joint = request.joint
+            for (mc in configurationsByJoint.values) {
+                if (mc.joint.equals(joint)) {
+                    bytes = DxlMessage.bytesToGetGoals(mc.id)
                     wrapper.responseCount = 1 // Status message
+                    break
                 }
             }
-            else if (type.equals(RequestType.GET_LIMITS)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, "")
-                val mc: MotorConfiguration? = configurationsByName[jointName]
-                if (mc != null) {
-                    bytes = DxlMessage.bytesToGetLimits(mc.getId())
+        }
+        else if (type.equals(RequestType.GET_LIMITS)) {
+            val joint = request.joint
+            for (mc in configurationsByJoint.values) {
+                if (mc.joint.equals(joint)) {
+                    bytes = DxlMessage.bytesToGetLimits(mc.id)
                     wrapper.responseCount = 1 // Status message
+                    break
                 }
             }
-            else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, "")
-                val mc: MotorConfiguration? = configurationsByName[jointName]
-                val propertyName: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-                if (mc != null) {
-                    bytes = DxlMessage.bytesToGetProperty(mc.getId(), propertyName)
-                    wrapper.responseCount = 1 // Status message
+        }
+        else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
+            val propertyValues = request.getPropertyValueIterator()
+            if( propertyValues.hasNext() ) {             // There should be only one entry
+                val pv = propertyValues.next()
+                val joint = pv.joint // This is the one we want to freeze
+                val prop = pv.property
+                for (mc in configurationsByJoint.values) {
+                    if (mc.joint.equals(joint)) {
+                        bytes = DxlMessage.bytesToGetLimits(mc.id)
+                        wrapper.responseCount = 1 // Status message
+                        break
+                    }
                 }
             }
-            else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
-                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
-                val propertyName: String =
-                    request.getProperty(PropertyType.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name())
-                val jp: JointProperty = JointProperty.valueOf(propertyName)
-                val value: Double = request.getProperty(propertyName.uppercase(Locale.getDefault()), "0.0").toDouble()
+        }
+        else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
+            val limb = request.limb
+            val propertyValues = request.getPropertyValueIterator()
+            if (propertyValues.hasNext()) {             // There should be only one entry
+                val pv = propertyValues.next()
+                val prop = pv.property
+                val value = pv.value.toDouble()
                 // Loop over motor config map, set the property
-                val limb: Limb = Limb.valueOf(limbName)
-                val configs: Map<String, MotorConfiguration> = configurationsForLimb(limb)
+                val configs = configurationsForLimb(limb)
                 for (mc in configs.values) {
-                    mc.setProperty(jp, value)
+                    mc.setDynamicProperty(prop,value)
                 }
-                bytes = DxlMessage.byteArrayToSetProperty(configs, propertyName) // Returns null if limb not on this controller
-                wrapper.responseCount = 0 // ASYNC WRITE, no response. Let source set text.
+                bytes =
+                    DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
+                // ASYNC WRITE, no response. Let source set text.
             }
-            else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
-                val mc: MotorConfiguration? = configurationsByName[jointName]
-                val propertyName: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-                val value: String = request.getProperty(propertyName.uppercase(Locale.getDefault()), "0.0")
-                if (value != null && !value.isEmpty() && mc != null) {
-                    bytes = DxlMessage.bytesToSetProperty(mc, propertyName, value.toDouble())
-                    if (propertyName.equals("POSITION", ignoreCase = true)) {
-                        val duration: Long = mc.getTravelTime()
-                        if (request.getDuration() < duration) request.setDuration(duration)
-                        request.assignText(java.lang.String.format("My position is %.0f", mc.getPosition()))
-                    }
-                    else if (propertyName.equals("STATE", ignoreCase = true)) {
-                        request.assignText(String.format(
-                                "My %s state is torque-%s", Joint.toText(mc.getJoint()),
-                                if (value.equals("0", ignoreCase = true)) "disabled" else "enabled"
+        }
+        else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+            val propertyValues = request.getPropertyValueIterator()
+            if (propertyValues.hasNext()) {             // There should be only one entry
+                val pv = propertyValues.next()
+                val joint = pv.joint
+                val prop = pv.property
+                val value = pv.value.toDouble()
+                for (mc in configurationsByJoint.values) {
+                    if (mc.joint.equals(joint)) {
+                        bytes = DxlMessage.bytesToSetProperty(mc, prop, value.toDouble())
+                        if (prop.equals(JointDynamicProperty.POSITION) ) {
+                            val duration = mc.travelTime
+                            if (request.duration < duration) request.duration = duration
+                            request.text = String.format("My position is %.0f", mc.position)
+                        }
+                        else if (prop.equals(JointDynamicProperty.STATE) ) {
+                            request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
+                                if (value == 0.0) "disabled" else "enabled"
                             )
-                        )
-                    }
-                    else {
-                        request.assignText(String.format("My %s %s is %s",
-                                Joint.toText(mc.joint),propertyName.lowercase(Locale.getDefault()),value))
+                        }
+                        else {
+                            request.text = String.format("My %s %s is %s",Joint.toText(mc.joint), prop.name, value
+                            )
+                        }
                     }
                     wrapper.responseCount = 1 // Status message
+                    break
                 }
-                else {
-                    LOGGER.warning(String.format("%s.messageToBytes: Empty property value - ignored (%s)",
-                            CLSS,type.name))
-                    wrapper.responseCount = 0 // Error, there will be no response
-                }
-            }
-            else if (type.equals(RequestType.NONE)) {
-                LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
-                        CLSS, type.name))
-                wrapper.responseCount = 0 // Error, there will be no response
             }
             else {
-                LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",
-                        CLSS,type.name))
-                wrapper.responseCount = 0 // Error, there will be no response
+                LOGGER.warning(String.format("%s.messageToBytes: Empty property value - ignored (%s)",
+                            CLSS, type.name) )
             }
-            LOGGER.info(String.format("%s.messageToBytes: %s = \n%s",
-                    CLSS,request.type.name,DxlMessageMessage.dump(bytes)))
         }
+        else if (type.equals(RequestType.NONE)) {
+                LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
+                        CLSS, type.name ) )
+        }
+        else {
+            LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",
+                CLSS, type.name))
+        }
+        LOGGER.info(String.format("%s.messageToBytes: %s = \n%s",
+            CLSS, request.type.name, DxlMessage.dump(bytes)))
         return bytes
     }
-
     /**
      * Convert the request message into a list of commands for the serial port. As a side
      * effect set the number of expected responses. This can vary by request type (and may
@@ -479,48 +494,46 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * @return
      */
     private fun messageToByteList(wrapper: MessageWrapper): List<ByteArray> {
-        val request: MessageBottle? = wrapper.message
+        val request: MessageBottle = wrapper.message
         var list: List<ByteArray> = ArrayList()
-        if (request != null) {
-            val type: RequestType = request.fetchRequestType()
-            // Unfortunately broadcast requests don't work here. We have to concatenate the
-            // requests into single long lists.
-            if (type.equals(RequestType.INITIALIZE_JOINTS)) {
-                list = DxlMessage.byteArrayListToInitializePositions(configurationsByName)
-                val duration: Long = DxlMessage.getMostRecentTravelTime()
-                if (request.getDuration() < duration) request.setDuration(duration)
-                wrapper.responseCount = 0 // No response
-            }
-            else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
-                val limbName: String = request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
-                val propertyName: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-                if (limbName.equals(InvocationKind.UNKNOWN.name(), ignoreCase = true)) {
-                    list = DxlMessage.byteArrayListToListProperty(propertyName, configurationsByName.values)
-                    wrapper.responseCount = configurationsByName.size // Status packet for each motor
-                }
-                else {
-                    val limb: Limb = Limb.valueOf(limbName)
-                    val configs: Map<String, MotorConfiguration> = configurationsForLimb(limb)
-                    list = DxlMessage.byteArrayListToListProperty(propertyName, configs.values)
-                    wrapper.responseCount = configs.size // Status packet for each motor in limb
-                }
-            }
-            else if (type.equals(RequestType.SET_POSE)) {
-                val poseName: String = request.getProperty(PropertyType.POSE_NAME, "")
-                list = DxlMessage.byteArrayListToSetPose(configurationsByName, poseName)
-                val duration: Long = DxlMessage.getMostRecentTravelTime()
-                if (request.duration < duration) request.setDuration(duration)
-                wrapper.responseCount = 0 // AYNC WRITE, no responses
+        val type: RequestType = request.type
+        // Unfortunately broadcast requests don't work here. We have to concatenate the
+        // requests into single long lists.
+        if (type.equals(RequestType.INITIALIZE_JOINTS)) {
+            list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
+            val duration: Long = DxlMessage.mostRecentTravelTime
+            if (request.duration < duration) request.duration = duration
+            wrapper.responseCount = 0 // No response
+        }
+        else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+            val limb = request.limb
+            val prop = request.property
+            if( limb.equals(Limb.NONE) ) {
+                list = DxlMessage.byteArrayListToListProperty(prop, configurationsByJoint.values)
+                wrapper.responseCount = configurationsByJoint.size // Status packet for each motor
             }
             else {
-                LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",
-                        CLSS,type.name))
-            }
-            for (bytes in list) {
-                LOGGER.info(String.format( "%s(%s).messageToByteList: %s = \n%s",
-                        CLSS,controllerName,request.fetchRequestType(),dxl.dump(bytes)))
+                val configs: Map<String, MotorConfiguration> = configurationsForLimb(limb)
+                list = DxlMessage.byteArrayListToListProperty(prop, configs.values)
+                wrapper.responseCount = configs.size // Status packet for each motor in limb
             }
         }
+        else if (type.equals(RequestType.SET_POSE)) {
+            val poseName: String = request.pose
+            list = DxlMessage.byteArrayListToSetPose(configurationsByJoint, poseName)
+            val duration: Long = DxlMessage.mostRecentTravelTime
+            if (request.duration < duration) request.duration = duration
+            wrapper.responseCount = 0 // AYNC WRITE, no responses
+        }
+        else {
+            LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",
+                CLSS,type.name))
+        }
+        for (bytes in list) {
+            LOGGER.info(String.format( "%s(%s).messageToByteList: %s = \n%s",
+                CLSS,controllerName,request.type,DxlMessage.dump(bytes)))
+        }
+
         return list
     }
 
@@ -532,17 +545,14 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
     private fun synthesizeResponse(msg: MessageBottle) {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
-            msg.type.equals(RequestType.SET_POSE)
-        ) {
+            msg.type.equals(RequestType.SET_POSE)) {
             motorManager.handleSynthesizedResponse(msg)
         }
         else if (msg.type.equals(RequestType.COMMAND)) {
-            val cmd: String = msg.getProperty(BottleConstants.COMMAND_NAME, "")
-            if (cmd.equals(BottleConstants.COMMAND_FREEZE, ignoreCase = true) ||
-                cmd.equals(BottleConstants.COMMAND_RELAX, ignoreCase = true)
-            ) {
-                motorManager.handleSynthesizedResponse(msg)
-            }
+            val cmd: CommandType = msg.command
+            if (cmd.equals(CommandType.FREEZE) ||
+                cmd.equals(CommandType.RELAX) ) {
+                motorManager.handleSynthesizedResponse(msg) }
             else {
                 LOGGER.severe(String.format("%s.synthesizeResponse: Unhandled response for command %s", CLSS, cmd))
                 motorManager.handleSingleControllerResponse(msg) // Probably an error
@@ -561,47 +571,38 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     // We update the properties in the request from our serial message.
     // The properties must include motor type and orientation
     private fun updateRequestFromBytes(request: MessageBottle, bytes: ByteArray?) {
-        if (request != null) {
-            val type: RequestType = request.type
-            val properties: MutableMap<String, String> = request.getProperties()
-            if (type.equals(RequestType.GET_GOALS)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
-                val mc: MotorConfiguration? = getMotorConfiguration(jointName)
-                DxlMessage.updateGoalsFromBytes(mc, properties, bytes)
+        val type: RequestType = request.type
+        val properties: MutableMap<String, String> = request.getProperties()
+        if (type.equals(RequestType.GET_GOALS)) {
+            val joint = request.joint
+            val mc: MotorConfiguration? = getMotorConfiguration(joint)
+            DxlMessage.updateGoalsFromBytes(mc, properties, bytes)
+        }
+        else if (type.equals(RequestType.GET_LIMITS)) {
+            val joint = request.joint
+            val mc: MotorConfiguration = getMotorConfiguration(joint)
+            DxlMessage.updateLimitsFromBytes(mc, properties, bytes)
+        }
+        else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
+            val joint = request.joint
+            val mc: MotorConfiguration = getMotorConfiguration(joint)
+            val property = request.property
+            DxlMessage.updateParameterFromBytes(property, mc, properties, bytes)
+            val partial = request.text
+            if (partial != null && !partial.isEmpty()) {
+                request.text = String.format("My %s %s is %s",
+                    Joint.toText(joint),property.name.lowercase(Locale.getDefault()),partial)
             }
-            else if (type.equals(RequestType.GET_LIMITS)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
-                val mc: MotorConfiguration? = getMotorConfiguration(jointName)
-                DxlMessage.updateLimitsFromBytes(mc, properties, bytes)
-            }
-            else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-                val jointName: String = request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
-                val mc: MotorConfiguration? = getMotorConfiguration(jointName)
-                val propertyName: String =
-                    request.getProperty(PropertyType.PROPERTY_NAME, JointProperty.UNRECOGNIZED.name())
-                DxlMessage.updateParameterFromBytes(propertyName, mc, properties, bytes)
-                val partial = properties[PropertyType.TEXT]
-                if (partial != null && !partial.isEmpty()) {
-                    val joint: Joint = Joint.valueOf(jointName)
-                    properties[PropertyType.TEXT] =
-                        java.lang.String.format(
-                            "My %s %s is %s",
-                            Joint.toText(joint),
-                            propertyName.lowercase(Locale.getDefault()),
-                            partial
-                        )
-                }
-            }
-            else if (type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
-                    type.equals(RequestType.SET_LIMB_PROPERTY) ||
-                    type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-                val err: String = DxlMessage.errorMessageFromStatus(bytes)
-                request.error = err
-            }
-            else {
-                LOGGER.severe(String.format("%s.updateRequestFromBytes: Unhandled response for %s",
-                        CLSS,type.name))
-            }
+        }
+        else if (type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            type.equals(RequestType.SET_LIMB_PROPERTY) ||
+            type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+            val err: String = DxlMessage.errorMessageFromStatus(bytes)
+            request.error = err
+        }
+        else {
+            LOGGER.severe(String.format("%s.updateRequestFromBytes: Unhandled response for %s",
+                CLSS,type.name))
         }
     }
 
@@ -609,9 +610,9 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     // of several responses. Update the loacal motor configuration map and return a map keyed by motor
     // id to be aggregated by the MotorManager with similar responses from other motors.
     // 
-    private fun updateStatusFromBytes(propertyName: String, bytes: ByteArray?): Map<Int, String> {
+    private fun updateStatusFromBytes(property: JointDynamicProperty, bytes: ByteArray): Map<Int, String> {
         val props: Map<Int, String> = HashMap()
-        DxlMessage.updateParameterArrayFromBytes(propertyName, configurationsById, bytes, props)
+        DxlMessage.updateParameterArrayFromBytes(property, configurationsById, bytes, props)
         return props
     }
 
@@ -643,14 +644,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                         port.getPortName(),ie.localizedMessage))
             }
             catch (spe: SerialPortException) {
-                LOGGER.severe(
-                    java.lang.String.format(
-                        "%s(%s).writeBytesToSerial: Error writing to %s (%s)",
-                        CLSS,controllerName,
-                        port.getPortName(),
-                        spe.getLocalizedMessage()
-                    )
-                )
+                LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Error writing to %s (%s)",
+                        CLSS,controllerName,port.getPortName(),spe.getLocalizedMessage() ) )
             }
         }
     }
@@ -674,9 +669,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             // The value is the number of bytes in the read buffer
             val byteCount: Int = event.getEventValue()
             LOGGER.info(String.format("%s(%s).serialEvent (%s) %s: expect %d msgs got %d bytes",
-                    CLSS,
-                    controllerName,
-                    event.getPortName(),
+                    CLSS,controllerName,event.getPortName(),
                     if (req == null) "" else req.type.name,
                     wrapper?.responseCount ?: 0,
                     byteCount
@@ -704,18 +697,14 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                             return
                         }
                         else if (DxlMessage.errorMessageFromStatus(bytes) != null) {
-                            LOGGER.severe(
-                                String.format(
-                                    "%s(%s).serialEvent: ERROR: %s",
-                                    CLSS,
-                                    DxlMessage.errorMessageFromStatus(bytes)
-                                )
+                            LOGGER.severe( String.format("%s(%s).serialEvent: ERROR: %s",
+                                    CLSS,DxlMessage.errorMessageFromStatus(bytes))
                             )
                             if (req == null) return  // The original request was not supposed to have a response.
                         }
                         if (returnsStatusArray(req)) {  // Some requests return a message for each motor
                             var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
-                            if (nmsgs > wrapper.getResponseCount()) nmsgs = wrapper.getResponseCount()
+                            if (nmsgs > wrapper.responseCount) nmsgs = wrapper.responseCount
                             nbytes = nmsgs * STATUS_RESPONSE_LENGTH
                             if (nbytes < bytes.size) {
                                 bytes = truncateByteArray(bytes, nbytes)
@@ -734,12 +723,13 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                                 )
                             }
                         }
-                        if (wrapper.getResponseCount() <= 0) {
+                        if (wrapper.responseCount <= 0) {
                             responseQueue.removeFirst()
                             if (isSingleControllerRequest(req)) {
                                 updateRequestFromBytes(req, bytes)
                                 motorManager.handleSingleControllerResponse(req)
-                            } else {
+                            }
+                            else {
                                 motorManager.handleAggregatedResponse(req)
                             }
                         }
@@ -754,9 +744,9 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
 
     private fun configurationsForLimb(limb: Limb): Map<String, MotorConfiguration> {
         val result: MutableMap<String, MotorConfiguration> = HashMap<String, MotorConfiguration>()
-        for (mc in configurationsByName.values) {
-            if (mc.getLimb().equals(limb)) {
-                result[mc.getJoint().name()] = mc
+        for (mc in configurationsByJoint.values) {
+            if (mc.limb.equals(limb)) {
+                result[mc.joint.name] = mc
             }
         }
         return result
@@ -770,7 +760,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private fun prependRemainder(bytes: ByteArray?): ByteArray? {
         if (remainder == null) return bytes
         val combination = ByteArray(remainder!!.size + bytes!!.size)
-        System.arraycopy(remainder, 0, combination, 0, remainder!!.size)
+        System.arraycopy(remainder!!, 0, combination, 0, remainder!!.size)
         System.arraycopy(bytes, 0, combination, remainder!!.size, bytes.size)
         remainder = null
         return combination
@@ -783,9 +773,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * @param nbytes count of bytes we need.
      * @return
      */
-    private fun truncateByteArray(bytes: ByteArray?, nbytes: Int): ByteArray? {
-        var nbytes = nbytes
-        if (nbytes > bytes!!.size) nbytes = bytes.size
+    private fun truncateByteArray(bytes: ByteArray, var nbytes: Int): ByteArray? {
+        if (nbytes > bytes.size) nbytes = bytes.size
         if (nbytes == bytes.size) return bytes
         val copy = ByteArray(nbytes)
         System.arraycopy(bytes, 0, copy, 0, nbytes)
@@ -805,11 +794,12 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         controllerName = String.format("%s:%s",CLSS,port.portName)
         motorManager = parent
         lock = ReentrantLock()
-        running = lock.newCondition()
+        condition = lock.newCondition()
         configurationsById = HashMap<Int, MotorConfiguration>()
-        configurationsByName = HashMap<String, MotorConfiguration>()
+        configurationsByJoint = HashMap<Joint, MotorConfiguration>()
         requestQueue = LinkedList<MessageBottle>()
         responseQueue = LinkedList<MessageWrapper>()
         timeOfLastWrite = System.nanoTime() / 1000000
+        running = false
     }
 }

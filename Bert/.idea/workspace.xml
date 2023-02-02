@@ -8,19 +8,24 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/BluetoothController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/BluetoothController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/model/RobotCommandModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/model/RobotCommandModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/controller/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/controller/Controller.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/controller/InternalController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/HandlerType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/HandlerType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/JointPropertyValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/JointPropertyValue.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MessageBottle.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MessageBottle.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MetricType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MetricType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/RequestType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/RequestType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/AbstractRobotModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/AbstractRobotModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/controller/TimedQueue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/TimedQueue.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/Chain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/Chain.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/Link.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/Link.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPointType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPointType.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/URDFModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/URDFModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/controller/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MessageWrapper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MessageWrapper.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/test/kotlin/chuckcoughlin/bert/motor/dynamixel/DxlMessageTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/test/kotlin/chuckcoughlin/bert/motor/dynamixel/DxlMessageTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/dynamixel/DxlMessage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/dynamixel/DxlMessage.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/model/RobotTerminalModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/model/RobotTerminalModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/architecture.md" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/architecture.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/testplan.md" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/testplan.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -252,17 +257,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt</url>
-          <line>61</line>
+          <line>65</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt</url>
-          <line>343</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt</url>
-          <line>370</line>
+          <line>364</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">

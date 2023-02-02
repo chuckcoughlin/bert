@@ -87,22 +87,21 @@ class RobotCommandModel(configPath: Path) : AbstractRobotModel(configPath) {
     /**
      * Extend the default search for properties to convert the "blueserver" port to an int.
      */
-    fun analyzeProperties() {
+    override fun analyzeProperties() {
         super.analyzeProperties()
         val port: String = properties.getProperty("blueserver")
         if (port != null) {
             try {
                 blueserverPort = properties.getProperty("blueserver").toInt()
-            } catch (nfe: NumberFormatException) {
-                LOGGER.warning(
-                    String.format(
-                        "%s.analyzeProperties: Port for \"blueserver\" not a number (%s)",
-                        CLSS,
-                        nfe.localizedMessage
+            }
+            catch (nfe: NumberFormatException) {
+                LOGGER.warning(String.format("%s.analyzeProperties: Port for \"blueserver\" not a number (%s)",
+                        CLSS,nfe.localizedMessage
                     )
                 )
             }
-        } else {
+        }
+        else {
             LOGGER.warning(String.format("%s.analyzeProperties: Port for \"blueserver\" missing in XML", CLSS))
         }
     }

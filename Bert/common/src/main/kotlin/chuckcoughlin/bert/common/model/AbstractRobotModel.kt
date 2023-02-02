@@ -46,7 +46,7 @@ abstract class AbstractRobotModel(configPath: Path) {
      * Expand the supplied path as the configuration XML file.
      * @return the configuration, an XML document.
      */
-     fun analyzePath(filePath: Path): Document? {
+     protected fun analyzePath(filePath: Path): Document? {
         var contents: Document? = null
         try {
             val bytes = Files.readAllBytes(filePath)

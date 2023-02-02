@@ -6,7 +6,6 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.message.MessageBottle
 
-
 /**
  * Wrap a request/response message while processing within the MotorController.
  * The ultimate purpose is to attach a serial message response count to the
@@ -14,7 +13,7 @@ import chuckcoughlin.bert.common.message.MessageBottle
  * @author chuckc
  */
 class MessageWrapper(msg: MessageBottle) {
-    private val message: MessageBottle
+    val message: MessageBottle
 
     /**
      * The response count indicates the number of serial responses
@@ -27,10 +26,6 @@ class MessageWrapper(msg: MessageBottle) {
     init {
         message = msg
         responseCount = 1
-    }
-
-    fun getMessage(): MessageBottle {
-        return message
     }
 
     fun decrementResponseCount() {

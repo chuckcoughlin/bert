@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command.controller
@@ -10,7 +10,6 @@ import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
 import chuckcoughlin.bert.common.message.HandlerType
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageHandler
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.speech.process.MessageTranslator
@@ -125,32 +124,35 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
                             text = text.substring(BottleConstants.HEADER_LENGTH)
                             LOGGER.info(java.lang.String.format("%s parsing: %s", sock.getName(), text))
                             msg = parser.parseStatement(text)
-                        } catch (ex: Exception) {
-                            msg = MessageBottle()
-                            msg.assignRequestType(RequestType.NOTIFICATION)
-                            msg.assignError(String.format("Parse failure (%s) on: %s", ex.localizedMessage, text))
                         }
-                    } else if (hdr.equals(MessageType.LOG.name(), ignoreCase = true)) {
+                        catch (ex: Exception) {
+                            msg = MessageBottle()
+                            msg.type = RequestType.NOTIFICATION
+                            msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, text)
+                        }
+                    }
+                    else if (hdr.equals(MessageType.LOG.name(), ignoreCase = true)) {
                         LOGGER.info(java.lang.String.format("%s: %s", sock.getName(), text))
                         continue
-                    } else {
+                    }
+                    else {
                         msg = MessageBottle()
-                        msg.assignRequestType(RequestType.NOTIFICATION)
-                        msg.assignError(String.format("Message has an unrecognized prefix (%s)", text))
+                        msg.type = RequestType.NOTIFICATION
+                        msg.error = String.format("Message has an unrecognized prefix (%s)", text)
                     }
                 } else {
                     msg = MessageBottle()
-                    msg.assignRequestType(RequestType.NOTIFICATION)
-                    msg.assignError(String.format("Received a short message from the tablet (%s)", text))
+                    msg.type = RequestType.NOTIFICATION
+                    msg.error = String.format("Received a short message from the tablet (%s)", text)
                 }
                 if (msg == null) break // This happens on shutdown - I don't know how
                 msg.assignSource(HandlerType.COMMAND.name())
-                if (msg.fetchRequestType().equals(RequestType.NOTIFICATION) ||
-                    msg.fetchRequestType().equals(RequestType.NONE) ||
-                    msg.fetchRequestType().equals(RequestType.PARTIAL) || msg.fetchError() != null
-                ) {
+                if (msg.type.equals(RequestType.NOTIFICATION) ||
+                    msg.type.equals(RequestType.NONE) ||
+                    msg.type.equals(RequestType.PARTIAL) || msg.error != null ) {
                     handleImmediateResponse(msg)
-                } else {
+                }
+                else {
                     suppressingErrors = false
                     receiveRequest(msg)
                 }

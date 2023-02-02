@@ -1,13 +1,13 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.message
 
 /**
- * Recognized types of messsage handler. These are used to match specific
- * process instance with definitions in the configuration file.
- * The "launcher" is a server application and accesses all controllers.
+ * This is a marker for the Dispatcher to let it keep track of the controller
+ * from which an individual message had come, so it can determine where it
+ * needs to go.
  */
 enum class HandlerType {
     BITBUCKET,

@@ -1,5 +1,8 @@
+/**
+ * Copyright 2023. Charles Coughlin. All Rights Reserved.
+ * MIT License.
+ */
 package chuckcoughlin.bert.control.model
-
 
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
@@ -128,10 +131,8 @@ class Chain {
         if (parent != null && child != null) child.parent = parent
     }
 
-    companion object {
-        private const val CLSS = "Chain"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "Chain"
+    private val LOGGER = Logger.getLogger(CLSS)
 
     init {
         jointParent = HashMap<Joint, Link>()
