@@ -19,35 +19,27 @@ import java.util.logging.Logger
  * can be calculated.
  *
  * Within the linkPoint object, coordinates are with respect to the
- * link's origin and are static. Coordinates within the link object
+ * link's origin and are static. Coordinates within the link object are
  * temporary and are calculated with respect to the inertial frame of
  * reference. Any corrections due to IMU readings are handled externally.
  *
+ * Define a link given the name. The name must be unique.
+ * @param name either a limb or appendage name
  */
 class Link(val name: String) {
     lateinit var linkPoint: LinkPoint
         private set
-    var isDirty = true // Requires calculations
-        private set
-    var parent: Link? = null
-    var angle: Double
-        private set
-    val coordinates = doubleArrayOf(0.0, 0.0, 0.0)
-
-    /**
-     * Define a link given the name. The name must be unique.
-     * @param name either a limb or appendage name
-     */
-    init {
-        angle = Math.PI
-    }
+    private var initialized = false // Requires calculations
+    var parent: Link? = null        // This is never set
+    private var angle: Double
+    var coordinates = doubleArrayOf(0.0, 0.0, 0.0)
 
     /**
      * Mark link as needing new calculations. We do this because sub-chains
      * that share links can avoid redundant computations.
      */
     fun setDirty() {
-        isDirty = true
+        initialized = false
     }
 
     /**
@@ -82,15 +74,15 @@ class Link(val name: String) {
      * @return the coordinates of the joint/appendage associated with this link in meters
      * with respect to the inertial frame of reference.
      */
-    fun getCoordinates(): DoubleArray {
+    fun getEndPointCoordinates(): DoubleArray {
         var coords: DoubleArray // Coordinates in progress
         var rotation: DoubleArray
-        var alpha = 0.0
-        if (isDirty) {
+        var alpha: Double // = 0.0
+        if( !initialized ) {
             if (parent != null) {
-                coords = parent!!.getCoordinates()
+                coords = parent!!.getEndPointCoordinates()
                 alpha = parent!!.jointAngle
-                val orient = parent!!.linkPoint!!.orientation
+                val orient = parent!!.linkPoint.orientation
                 rotation = rotationFromCoordinates(coords)
                 rotation[0] = rotation[0] + orient[0]
                 rotation[1] = rotation[1] + orient[1]
@@ -102,10 +94,10 @@ class Link(val name: String) {
                 alpha = Math.PI
             }
             LOGGER.info(String.format("%s.getCoordinates: %s (%s) ---------------",
-                    CLSS,name,linkPoint!!.joint.name ))
+                    CLSS,name,linkPoint.joint.name ))
             LOGGER.info(String.format("           rotation = %.2f,%.2f,%.2f", rotation[0], rotation[1], rotation[2]))
             val offset = linkPoint.offset
-            LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f", offset!![0], offset!![1], offset!![2]))
+            LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f", offset[0], offset[1], offset[2]))
             val q0 = Quaternion(alpha, rotation[0], rotation[1], rotation[2])
             LOGGER.info(String.format("           q0       = %.2f,%.2f,%.2f,%.2f",
                     q0.getQ0(),
@@ -114,7 +106,7 @@ class Link(val name: String) {
                     q0.getQ3()
                 )
             )
-            val v = Quaternion(0.0, offset!![0], offset!![1], offset!![2])
+            val v = Quaternion(0.0, offset[0], offset[1], offset[2])
             LOGGER.info(String.format("           v        = %.2f,%.2f,%.2f,%.2f",
                     v.getQ0(), v.getQ1(),v.getQ2(),v.getQ3()))
             val inverse: Quaternion = q0.getInverse()
@@ -138,13 +130,13 @@ class Link(val name: String) {
             coordinates[2] = coords[2] + result.getQ3()
             LOGGER.info(String.format("      coordinates   = %.2f,%.2f,%.2f",
                     coordinates[0],coordinates[1],coordinates[2]))
-            isDirty = false
+            initialized = true
         }
         return coordinates
     }
 
     private fun rotationFromCoordinates(cc: DoubleArray): DoubleArray {
-        var len = Math.sqrt(cc!![0] * cc[0] + cc[1] * cc[1] + cc[2] * cc[2])
+        var len = Math.sqrt(cc[0] * cc[0] + cc[1] * cc[1] + cc[2] * cc[2])
         if (len == 0.0) len = 1.0 // All angles will be 90 deg
         val rot = DoubleArray(3)
         rot[0] = Math.acos(cc[0] / len)
@@ -153,8 +145,14 @@ class Link(val name: String) {
         return rot
     }
 
-    companion object {
-        private const val CLSS = "Link"
-        private val LOGGER = Logger.getLogger(CLSS)
+
+    private val CLSS = "Link"
+    private val LOGGER = Logger.getLogger(CLSS)
+
+    /**
+     */
+    init {
+        angle = Math.PI
+        initialized = false
     }
 }

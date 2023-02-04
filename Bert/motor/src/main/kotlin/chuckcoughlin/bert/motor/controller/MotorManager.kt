@@ -7,7 +7,7 @@ package chuckcoughlin.bert.motor.controller
 import chuckcoughlin.bert.common.message.MessageBottle
 /**
  * This interface is satisfied by the MotorGroupController and describes
- * the callbacks utilized by individual MotorContrtollers
+ * the callbacks utilized by individual MotorControllers
  */
 interface MotorManager {
     fun handleAggregatedResponse(response: MessageBottle)

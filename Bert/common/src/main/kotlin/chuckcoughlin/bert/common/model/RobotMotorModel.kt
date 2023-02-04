@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022=2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -18,9 +18,10 @@ import java.util.logging.Logger
  * plus a hand-full of properties. It also reads the configuration file creating
  * for motor configuration objects which are the single place to obtain joint state.
  */
-class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
+open class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
     private val jointsByController : MutableMap<String, List<Joint>>    // List of joints by controller name
-    private val ports : MutableMap<String, SerialPort>           // Port objects by controller
+    private val ports : MutableMap<String, SerialPort>                  // Port objects by controller
+    private val controllers: MutableList<String>
 
     fun getJointsForController(controller: String): List<Joint>? {
         return jointsByController.get(controller)
@@ -125,12 +126,13 @@ class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
         }
     }
 
-    companion object {
-        private const val CLSS = "RobotMotorModel"
-        private const val CONTROLLER_NAME = "Dispatcher"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+
+    private val CLSS = "RobotMotorModel"
+    private val CONTROLLER_NAME = "Dispatcher"
+    private val LOGGER = Logger.getLogger(CLSS)
+
     init {
+        controllers        = mutableListOf<String>()
         jointsByController = mutableMapOf<String, List<Joint>>()
         ports              = mutableMapOf<String, SerialPort>()
     }

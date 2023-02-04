@@ -17,7 +17,6 @@ import java.util.logging.*
  * and, presumably, all its progeny.
  */
 object LoggerUtility {
-
     /**
      * @param root core name for the log files
      */

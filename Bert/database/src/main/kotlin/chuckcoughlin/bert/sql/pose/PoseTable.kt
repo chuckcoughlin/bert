@@ -77,11 +77,11 @@ class PoseTable {
      * @param parameter, e.g. "position","speed","torque"
      * @return list of upper-case joint names.
      */
-    fun getPoseJointValuesForParameter(cxn: Connection?,mcmap: Map<String, MotorConfiguration>,
+    fun getPoseJointValuesForParameter(cxn: Connection?,mcmap: Map<Joint, MotorConfiguration>,
                                         p: String,parameter: JointDynamicProperty
-    ): Map<String, Double> {
+    ): Map<Joint, Double> {
 
-        val map: MutableMap<String, Double> = HashMap()
+        val map: MutableMap<Joint, Double> = HashMap()
         if( cxn!=null ) {
             var pose = p
             var statement: PreparedStatement? = null
@@ -102,18 +102,22 @@ class PoseTable {
                         val name: String = meta.getColumnName(col)
                         if (name.equals("name", ignoreCase = true)) continue
                         if (name.equals("parameter", ignoreCase = true)) continue
-                        if (!mcmap.containsKey(name)) continue
-                        val value = rs.getObject(col) ?: continue
-                        if (value.toString().isEmpty()) continue
                         try {
-                            val dbl = value.toString().toDouble()
-                            map[name.uppercase(Locale.getDefault())] = dbl
+                            val joint = Joint.valueOf(name.uppercase(Locale.getDefault()))
+                            val value = rs.getObject(col) ?: continue
+                            if (value.toString().isEmpty()) continue
+                            try {
+                                val dbl = value.toString().toDouble()
+                                map[joint] = dbl
+                            }
+                            catch (nfe: NumberFormatException) {
+                                LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: %s value for %s not a double (%s)",
+                                    CLSS, parameter, name, nfe.message))
+                            }
                         }
-                        catch (nfe: NumberFormatException) {
-                            LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: %s value for %s not a double (%s)",
-                                CLSS, parameter, name, nfe.message
-                            )
-                            )
+                        catch(iae: IllegalArgumentException) {
+                            LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: %s not a joint name (%s)",
+                                CLSS, name, iae.message))
                         }
                     }
                 }

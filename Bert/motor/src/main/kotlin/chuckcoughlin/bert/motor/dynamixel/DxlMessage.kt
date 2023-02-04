@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.dynamixel
@@ -29,10 +29,10 @@ object DxlMessage {
      * @param configurations a list of motor configuration objects
      * @return list of byte arrays with bulk read plus extras for any AX-12.
      */
-    fun byteArrayListToInitializePositions(configurationsByName: Map<String, MotorConfiguration>): List<ByteArray> {
+    fun byteArrayListToInitializePositions(configurationsByJoint: Map<Joint, MotorConfiguration>): List<ByteArray> {
         val outliers: MutableList<MotorConfiguration> = ArrayList<MotorConfiguration>() // Will hold the joints that need moving.
         mostRecentTravelTime = 0
-        for (mc in configurationsByName.values) {
+        for (mc in configurationsByJoint.values) {
             val pos: Double = mc.position
             if (pos == 0.0) {
                 LOGGER.info(String.format(
@@ -56,29 +56,29 @@ object DxlMessage {
         }
         // Add heuristics to avoid some common entanglements. Hip is only present in lower controller
         // No knock-knees
-        var leftHip: MotorConfiguration? = configurationsByName[Joint.LEFT_HIP_X.name]
+        var leftHip: MotorConfiguration? = configurationsByJoint[Joint.LEFT_HIP_X]
         if (leftHip != null) {
             if (leftHip.position > MAX_HIP_X) {
                 leftHip.position = MAX_HIP_X
                 outliers.add(leftHip)
             }
         }
-            var rightHip: MotorConfiguration? = configurationsByName[Joint.RIGHT_HIP_X.name]
-            if( rightHip!=null) {
-                if (rightHip.position > MAX_HIP_X) {
-                    rightHip.position = MAX_HIP_X
-                    outliers.add(rightHip)
-                }
+        var rightHip: MotorConfiguration? = configurationsByJoint[Joint.RIGHT_HIP_X]
+        if( rightHip!=null) {
+            if (rightHip.position > MAX_HIP_X) {
+                rightHip.position = MAX_HIP_X
+                outliers.add(rightHip)
             }
-            // No pidgin toes
-            leftHip = configurationsByName[Joint.LEFT_HIP_X.name]
-            if( leftHip!=null ) {
-                rightHip = configurationsByName[Joint.LEFT_HIP_X.name]
-                if (leftHip.position < MIN_HIP_Z) {
-                    leftHip.position = MIN_HIP_Z
-                    outliers.add(leftHip)
-                }
+        }
+        // No pidgin toes
+        leftHip = configurationsByJoint[Joint.LEFT_HIP_X]
+        if( leftHip!=null ) {
+            rightHip = configurationsByJoint[Joint.LEFT_HIP_X]
+            if (leftHip.position < MIN_HIP_Z) {
+                leftHip.position = MIN_HIP_Z
+                outliers.add(leftHip)
             }
+        }
         if( rightHip!=null) {
             if (rightHip.position < MIN_HIP_Z) {
                 rightHip.position = MIN_HIP_Z
@@ -165,10 +165,10 @@ object DxlMessage {
      * @param property, either speed,torque or torque_enable
      * @return a byte array with entries corresponding to joints, if any.
      */
-    fun byteArrayToSetProperty(map: Map<Joint, MotorConfiguration>, property: JointDynamicProperty): ByteArray? {
+    fun byteArrayToSetProperty(map: Map<Joint, MotorConfiguration>, property: JointDynamicProperty): ByteArray {
         // First count all the joints in the limb
         val count = map.size
-        var bytes: ByteArray? = null
+        var bytes: ByteArray = ByteArray(0)
         var dxlValue = 0
         if (count > 0) {
             val len =
@@ -213,10 +213,10 @@ object DxlMessage {
      * @param pose name of the pose to be set
      * @return up to 3 byte arrays as required by the pose
      */
-    fun byteArrayListToSetPose(map: Map<String, MotorConfiguration>, pose: String): List<ByteArray> {
-        val torques: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.TORQUE)
-        val speeds: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.SPEED)
-        val positions: Map<String, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.POSITION)
+    fun byteArrayListToSetPose(map: Map<Joint, MotorConfiguration>, pose: String): List<ByteArray> {
+        val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.TORQUE)
+        val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.SPEED)
+        val positions: Map<Joint, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.POSITION)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
         val tc = torques.size
@@ -408,11 +408,11 @@ object DxlMessage {
      * @param bytes
      * @return a formatted string of the bytes as hex digits.
      */
-    fun dump(bytes: ByteArray?): String {
+    fun dump(bytes: ByteArray): String {
         val sb = StringBuffer()
         var index = 0
-        if (bytes != null) {
-            while (index < bytes.size) {
+        if( bytes.size>0 ) {
+            while( index < bytes.size ) {
                 //if( bytes[index]=='\0') break;
                 sb.append(String.format("%02X", bytes[index]))
                 sb.append(" ")
@@ -436,7 +436,7 @@ object DxlMessage {
      * @param bytes
      * @return buffer guaranteed to be a legal message start, else null.
      */
-    fun ensureLegalStart(bytes: ByteArray): ByteArray? {
+    fun ensureLegalStart(bytes: ByteArray): ByteArray {
         var i = 0
         while (i < bytes.size - 2) {
             if (bytes[i] == 0xFF.toByte() &&
@@ -454,7 +454,7 @@ object DxlMessage {
             }
             i++
         }
-        return null
+        return bytes
     }
 
     /**
@@ -463,8 +463,8 @@ object DxlMessage {
      * @param bytes
      * @return
      */
-    fun errorMessageFromStatus(bytes: ByteArray): String? {
-        var msg: String? = null
+    fun errorMessageFromStatus(bytes: ByteArray): String {
+        var msg: String = ""
         if (bytes.size > 4) {
             val error = bytes[4]
             if (error.toInt() != 0x00) {

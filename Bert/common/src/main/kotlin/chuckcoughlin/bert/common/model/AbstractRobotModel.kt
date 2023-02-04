@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -19,12 +19,12 @@ import java.util.logging.Logger
  * information, all reading from the same file. The information retained is specific
  * to the application.
  */
-abstract class AbstractRobotModel(configPath: Path) {
+abstract open class AbstractRobotModel(configPath: Path) {
     protected val document: Document?
     protected val properties: Properties
-    val handlerTypes : MutableMap<String, String>   // Map of type names for each message handler used by this application.
+    protected val handlerTypes : MutableMap<String, String>   // Map of type names for each message handler used by this application.
     val sockets : MutableMap<String, Int>           // Socket port by handler name. The list keys are sufficient to get the controller names.
-    val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by motor name
+    protected val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
 
     /**
      * Each application needs to extract the definitiona for controller(s) of interest
@@ -38,6 +38,7 @@ abstract class AbstractRobotModel(configPath: Path) {
      * (client or server). This must be called before the model is accessed.
      */
     abstract fun populate()
+
     fun getProperty(key: String?, defaultValue: String?): String {
         return properties.getProperty(key, defaultValue)
     }
@@ -56,8 +57,7 @@ abstract class AbstractRobotModel(configPath: Path) {
         }
         catch (ioe: IOException) {
             LOGGER.severe(String.format("%s.getConfiguration: Failed to read file %s (%s)",
-                    CLSS, filePath.toAbsolutePath().toString(), ioe.localizedMessage)
-            )
+                    CLSS, filePath.toAbsolutePath().toString(), ioe.localizedMessage) )
         }
         return contents
     }
@@ -66,7 +66,7 @@ abstract class AbstractRobotModel(configPath: Path) {
      * Search the model for property elements. The results are saved in the properties member.
      * Call this if the model has any properties of interest.
      */
-     fun analyzeProperties() {
+      open fun analyzeProperties() {
         if (document != null) {
             val elements = document.getElementsByTagName("property")
             val count = elements.length
@@ -84,7 +84,7 @@ abstract class AbstractRobotModel(configPath: Path) {
     }
 
     /**
-     * Search the model for controller elements with joint sub-elements. The results form a list
+     * Search the XML description for controller elements with joint sub-elements. The results form a list
      * of MotorConfiguration objects.
      */
     protected fun analyzeMotors() {
@@ -109,7 +109,6 @@ abstract class AbstractRobotModel(configPath: Path) {
                                     val isDirect = value.equals("direct", ignoreCase = true)
 
                                     val motor = MotorConfiguration(j,typ,id,controller,isDirect)
-
                                     motor.offset = XMLUtility.attributeValue(joint, "offset").toDouble()
                                     // The following attributes are optional
                                     value = XMLUtility.attributeValue(joint, "min")
@@ -129,9 +128,7 @@ abstract class AbstractRobotModel(configPath: Path) {
                                         catch (iae: IllegalArgumentException) {
                                             LOGGER.warning( String.format(
                                                     "%s.analyzeMotors: %s has unknown limb %s",
-                                                    CLSS,motor.joint.name, value
-                                                )
-                                            )
+                                                    CLSS,motor.joint.name, value ))
                                         }
                                     }
                                     motors[motor.joint] = motor
@@ -146,10 +143,8 @@ abstract class AbstractRobotModel(configPath: Path) {
         }
     }
 
-    companion object {
-        private const val CLSS = "AbstractRobotModel"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "AbstractRobotModel"
+    private val LOGGER = Logger.getLogger(CLSS)
 
     init {
         document = analyzePath(configPath)

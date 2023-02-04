@@ -18,6 +18,13 @@ import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.RobotMotorModel
 import jssc.SerialPort
+import jssc.SerialPortException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.selects.select
 import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.HashMap
@@ -33,56 +40,84 @@ import kotlin.collections.HashMap
  * development, then responses are simulated without any direct serial
  * requests being made.
  */
-class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
+class MotorGroupController(m: RobotMotorModel,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) : Controller,MotorManager {
     private val model: RobotMotorModel = m
     private val motorControllers: MutableMap<String, MotorController>
+    private var parentRequestChannel = req
+    private var parentResponseChannel = rsp
     private val motorNameById: MutableMap<Int, String>
-    private val motorControllerThreads: MutableMap<String, Thread>
     var development: Boolean = false
     override var controllerCount:Int
-    var lazy responseHandler: MessageHandler // Dispatcher - delayed initialization
 
     /**
-     * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
-     * instances each running in its own thread. Each controller handles a group of
-     * motors all communicating on the same serial port.
+     * Start a motor controller for each port.
      */
-    fun initialize() {
-        if (!development) {
-            val controllerNames: Set<String> = model.handlerTypes.keys
-            val motors: Map<Joint, MotorConfiguration> = model.motors
-            for (cname in controllerNames) {
-                val port: SerialPort = model.getPortForController(cname) ?: continue
-                // Controller is not a motor controller
-                val controller = MotorController(cname, port, this)
-                val t = Thread(controller)
-                motorControllers[cname] = controller
-                motorControllerThreads[cname] = t
+    override suspend fun start() {
+        LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
+            CLSS, controllerName, port.getPortName()))
 
-                // Add configurations to the controller for each motor in the group
-                val joints: List<Joint> = model.getJointsForController(cname)
-                LOGGER.info(String.format("%s.initialize: getting joints for %s", CLSS, cname))
-                LOGGER.info(String.format("%s.initialize: %d joints for %s", CLSS, joints.size, cname))
-                for (joint in joints) {
-                    val motor: MotorConfiguration? = motors[joint]
-                    if (motor != null) {
-                        //LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name(),controller.getGroupName()));
-                        controller.putMotorConfiguration(joint.name, motor)
-                        motorNameById[motor.id] = joint.name
-                    }
-                    else {
-                        LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",
-                                CLSS,joint.name, cname))
+        // Port is open, now use it.
+        runBlocking<Unit> {
+            launch {
+                Dispatchers.IO
+                while (running) {
+                    select<Unit> {
+                        /**
+                         * On receipt of a message from the SerialPort,
+                         * decypher and forward to the MotorManager.
+                         */
+                        /**
+                         * On receipt of a message from the SerialPort,
+                         * decypher and forward to the MotorManager.
+                         */
+                        /**
+                         * On receipt of a message from the SerialPort,
+                         * decypher and forward to the MotorManager.
+                         */
+
+                        /**
+                         * On receipt of a message from the SerialPort,
+                         * decypher and forward to the MotorManager.
+                         */
+                        async {
+                            receiveSerialResponse()
+                        }
+                        /**
+                         * The parent request is a motor command. Convert it
+                         * into a message for the SerialPort amd write.
+                         */
+                        /**
+                         * The parent request is a motor command. Convert it
+                         * into a message for the SerialPort amd write.
+                         */
+                        /**
+                         * The parent request is a motor command. Convert it
+                         * into a message for the SerialPort amd write.
+                         */
+                        /**
+                         * The parent request is a motor command. Convert it
+                         * into a message for the SerialPort amd write.
+                         */
+                        parentRequestChannel.onReceive() {
+                            receiveRequest(it)   // stdOut
+                        }
                     }
                 }
-                controllerCount += 1
-                LOGGER.info(String.format("%s.initialize: Created motor controller %s",
-                        CLSS,controller.controllerName
-                    )
-                )
             }
         }
     }
+
+    override suspend fun stop() {
+        try {
+            port.closePort()
+        }
+        catch (spe: SerialPortException) {
+            LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",
+                CLSS,controllerName,spe.getLocalizedMessage()))
+        }
+        running = false
+    }
+
 
     override fun getControllerCount(): Int {
         return motorControllers.size
@@ -379,11 +414,11 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
             request.text =  text
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
-            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
+            val property = request.property
             request.error = "I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb")
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
+            val property = request.property
             request.error = "I cannot change a motor " + property.lowercase(Locale.getDefault())
         }
         return request
@@ -422,15 +457,47 @@ class MotorGroupController(m: RobotMotorModel) : Controller,MotorManager {
     private val LOGGER = Logger.getLogger(CLSS)
 
     /**
-     * Constructor:
-     * @param m the server model
+     * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
+     * instances each running in its own thread. Each controller handles a group of
+     * motors all communicating on the same serial port.
      */
-    init {
-        motorControllers = HashMap()
-        motorControllerThreads = HashMap()
-        motorNameById = HashMap()
+    fun init {
+        motorControllers = HashMap<MotorController>()
+        motorNameById = MutableMap<Int, String>()
         LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
         LOGGER.info(String.format("%s: os.name = %s", CLSS, System.getProperty("os.name"))) // Mac OS X
         development = System.getProperty("os.arch").startsWith("x86")
+        if (!development) {
+            val controllerNames: Set<String> = model.handlerTypes.keys
+            val motors: Map<Joint, MotorConfiguration> = model.motors
+            for (cname in controllerNames) {
+                val port: SerialPort = model.getPortForController(cname) ?: continue
+                // Controller is not a motor controller
+                val controller = MotorController(cname, port, this)
+                motorControllers[cname] = controller
+
+                // Add configurations to the controller for each motor in the group
+                val joints: List<Joint> = model.getJointsForController(cname)
+                LOGGER.info(String.format("%s.initialize: getting joints for %s", CLSS, cname))
+                LOGGER.info(String.format("%s.initialize: %d joints for %s", CLSS, joints.size, cname))
+                for (joint in joints) {
+                    val motor: MotorConfiguration? = motors[joint]
+                    if (motor != null) {
+                        //LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name(),controller.getGroupName()));
+                        controller.putMotorConfiguration(joint.name, motor)
+                        motorNameById[motor.id] = joint.name
+                    }
+                    else {
+                        LOGGER.warning(String.format("%s.initialize: Motor %s not found in %s",
+                            CLSS,joint.name, cname))
+                    }
+                }
+                controllerCount += 1
+                LOGGER.info(String.format("%s.initialize: Created motor controller %s",
+                    CLSS,controller.controllerName
+                )
+                )
+            }
+        }
     }
 }

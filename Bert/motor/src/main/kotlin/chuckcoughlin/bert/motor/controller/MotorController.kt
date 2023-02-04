@@ -6,7 +6,6 @@
 package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
-import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -30,9 +29,6 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.contracts.InvocationKind
 
 /**
  * Handle requests directed to a specific set of motors. All motors under the
@@ -352,7 +348,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private fun messageToBytes(wrapper: MessageWrapper): ByteArray? {
         val request: MessageBottle = wrapper.message
         wrapper.responseCount = 0 // No response, unless specified otherwise
-        var bytes: ByteArray? = null
+        var bytes: ByteArray  = ByteArray(0)
         val type: RequestType = request.type
         if (type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.FREEZE) ) {
@@ -513,7 +509,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 wrapper.responseCount = configurationsByJoint.size // Status packet for each motor
             }
             else {
-                val configs: Map<String, MotorConfiguration> = configurationsForLimb(limb)
+                val configs: Map<Joint, MotorConfiguration> = configurationsForLimb(limb)
                 list = DxlMessage.byteArrayListToListProperty(prop, configs.values)
                 wrapper.responseCount = configs.size // Status packet for each motor in limb
             }
@@ -570,24 +566,23 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
 
     // We update the properties in the request from our serial message.
     // The properties must include motor type and orientation
-    private fun updateRequestFromBytes(request: MessageBottle, bytes: ByteArray?) {
+    private fun updateRequestFromBytes(request: MessageBottle, bytes: ByteArray) {
         val type: RequestType = request.type
-        val properties: MutableMap<String, String> = request.getProperties()
         if (type.equals(RequestType.GET_GOALS)) {
             val joint = request.joint
             val mc: MotorConfiguration? = getMotorConfiguration(joint)
-            DxlMessage.updateGoalsFromBytes(mc, properties, bytes)
+            DxlMessage.updateGoalsFromBytes(mc!!, request, bytes)
         }
         else if (type.equals(RequestType.GET_LIMITS)) {
             val joint = request.joint
-            val mc: MotorConfiguration = getMotorConfiguration(joint)
-            DxlMessage.updateLimitsFromBytes(mc, properties, bytes)
+            val mc: MotorConfiguration? = getMotorConfiguration(joint)
+            DxlMessage.updateLimitsFromBytes(mc!!, request, bytes)
         }
         else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val joint = request.joint
-            val mc: MotorConfiguration = getMotorConfiguration(joint)
+            val mc: MotorConfiguration? = getMotorConfiguration(joint)
             val property = request.property
-            DxlMessage.updateParameterFromBytes(property, mc, properties, bytes)
+            DxlMessage.updateParameterFromBytes(property, mc!!, request, bytes)
             val partial = request.text
             if (partial != null && !partial.isEmpty()) {
                 request.text = String.format("My %s %s is %s",
@@ -611,7 +606,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     // id to be aggregated by the MotorManager with similar responses from other motors.
     // 
     private fun updateStatusFromBytes(property: JointDynamicProperty, bytes: ByteArray): Map<Int, String> {
-        val props: Map<Int, String> = HashMap()
+        val props: MutableMap<Int, String> = HashMap()
         DxlMessage.updateParameterArrayFromBytes(property, configurationsById, bytes, props)
         return props
     }
@@ -619,8 +614,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     /*
 	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL
 	 */
-    private fun writeBytesToSerial(bytes: ByteArray?) {
-        if (bytes != null && bytes.size > 0) {
+    private fun writeBytesToSerial(bytes: ByteArray) {
+        if( bytes.size > 0 ) {
             try {
                 val now = System.nanoTime() / 1000000
                 val interval = now - timeOfLastWrite
@@ -657,10 +652,10 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * Unless an error is returned, the response queue must have at least one response for associating results.
      */
     @Synchronized
-    fun serialEvent(event: SerialPortEvent) {
+    override fun serialEvent(event: SerialPortEvent) {
         LOGGER.info(String.format("%s(%s).serialEvent queue is %d", CLSS, controllerName, responseQueue.size))
         if (event.isRXCHAR()) {
-            var req: MessageBottle? = null
+            var req: MessageBottle = MessageBottle(RequestType.NONE)
             var wrapper: MessageWrapper? = null
             if (!responseQueue.isEmpty()) {
                 wrapper = responseQueue.getFirst()
@@ -671,13 +666,10 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             LOGGER.info(String.format("%s(%s).serialEvent (%s) %s: expect %d msgs got %d bytes",
                     CLSS,controllerName,event.getPortName(),
                     if (req == null) "" else req.type.name,
-                    wrapper?.responseCount ?: 0,
-                    byteCount
-                )
-            )
+                    wrapper?.responseCount ?: 0, byteCount) )
             if (byteCount > 0) {
                 try {
-                    var bytes: ByteArray? = port.readBytes(byteCount)
+                    var bytes: ByteArray = port.readBytes(byteCount)
                     bytes = prependRemainder(bytes)
                     bytes = DxlMessage.ensureLegalStart(bytes) // null if no start characters
                     if (bytes != null) {
@@ -686,44 +678,35 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                                 CLSS,controllerName, DxlMessage.dump(bytes)))
                         val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
                         if (mlen < 0 || nbytes < mlen) {
-                            LOGGER.info(
-                                String.format(
-                                    "%s(%s).serialEvent Message too short (%d), requires additional read",
-                                    CLSS,
-                                    controllerName,
-                                    nbytes
-                                )
-                            )
+                            LOGGER.info( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
+                                    CLSS,controllerName,nbytes))
                             return
                         }
                         else if (DxlMessage.errorMessageFromStatus(bytes) != null) {
                             LOGGER.severe( String.format("%s(%s).serialEvent: ERROR: %s",
-                                    CLSS,DxlMessage.errorMessageFromStatus(bytes))
-                            )
-                            if (req == null) return  // The original request was not supposed to have a response.
+                                    CLSS,DxlMessage.errorMessageFromStatus(bytes)) )
+                            if (req.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
                         }
-                        if (returnsStatusArray(req)) {  // Some requests return a message for each motor
+                        if(returnsStatusArray(req)) {  // Some requests return a message for each motor
                             var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
-                            if (nmsgs > wrapper.responseCount) nmsgs = wrapper.responseCount
+                            if (nmsgs > wrapper!!.responseCount) nmsgs = wrapper.responseCount
                             nbytes = nmsgs * STATUS_RESPONSE_LENGTH
                             if (nbytes < bytes.size) {
                                 bytes = truncateByteArray(bytes, nbytes)
                             }
-                            val propertyName: String = req.getProperty(PropertyType.PROPERTY_NAME, "NONE")
-                            val map = updateStatusFromBytes(propertyName, bytes)
+                            val prop= req.property
+                            val map = updateStatusFromBytes(prop, bytes)
                             for (key in map.keys) {
                                 val param = map[key]
-                                val name: String = configurationsById[key].getJoint().name()
-                                req.setJointValue(name, param)
+                                val joint = configurationsById[key]!!.joint
+                                req.addJointValue(joint,prop, param!!.toDouble())
                                 wrapper!!.decrementResponseCount()
                                 LOGGER.info(
                                     String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
-                                        CLSS, controllerName, name, wrapper.responseCount, param
-                                    )
-                                )
+                                        CLSS, controllerName, prop.name, wrapper.responseCount, param) )
                             }
                         }
-                        if (wrapper.responseCount <= 0) {
+                        if (wrapper!!.responseCount <= 0) {
                             responseQueue.removeFirst()
                             if (isSingleControllerRequest(req)) {
                                 updateRequestFromBytes(req, bytes)
@@ -742,11 +725,11 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
     }
 
-    private fun configurationsForLimb(limb: Limb): Map<String, MotorConfiguration> {
-        val result: MutableMap<String, MotorConfiguration> = HashMap<String, MotorConfiguration>()
+    private fun configurationsForLimb(limb: Limb): Map<Joint, MotorConfiguration> {
+        val result: MutableMap<Joint, MotorConfiguration> = HashMap<Joint, MotorConfiguration>()
         for (mc in configurationsByJoint.values) {
             if (mc.limb.equals(limb)) {
-                result[mc.joint.name] = mc
+                result[mc.joint] = mc
             }
         }
         return result
@@ -757,8 +740,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * @param bytes
      * @return
      */
-    private fun prependRemainder(bytes: ByteArray?): ByteArray? {
-        if (remainder == null) return bytes
+    private fun prependRemainder(bytes: ByteArray): ByteArray {
+        if(remainder == null) return bytes
         val combination = ByteArray(remainder!!.size + bytes!!.size)
         System.arraycopy(remainder!!, 0, combination, 0, remainder!!.size)
         System.arraycopy(bytes, 0, combination, remainder!!.size, bytes.size)
@@ -773,7 +756,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * @param nbytes count of bytes we need.
      * @return
      */
-    private fun truncateByteArray(bytes: ByteArray, var nbytes: Int): ByteArray? {
+    private fun truncateByteArray(bytes: ByteArray, nb: Int): ByteArray {
+        var nbytes = nb
         if (nbytes > bytes.size) nbytes = bytes.size
         if (nbytes == bytes.size) return bytes
         val copy = ByteArray(nbytes)

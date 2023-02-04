@@ -40,8 +40,8 @@ object Database  {
      * @param parameter, e.g. "position","speed","torque"
      * @return list of upper-case joint names.
      */
-    fun getPoseJointValuesForParameter(mcmap: Map<String, MotorConfiguration>,poseName: String,
-                                       parameter: JointDynamicProperty): Map<String, Double> {
+    fun getPoseJointValuesForParameter(mcmap: Map<Joint, MotorConfiguration>,poseName: String,
+                                       parameter: JointDynamicProperty): Map<Joint, Double> {
         return pose.getPoseJointValuesForParameter(connection, mcmap, poseName, parameter)
     }
 
