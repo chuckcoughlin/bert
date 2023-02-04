@@ -20,12 +20,12 @@ import javax.xml.parsers.ParserConfigurationException
 object XMLUtility {
     private const val CLSS = "XMLUtility"
     private val LOGGER = Logger.getLogger(CLSS)
-    fun documentFromBytes(bytes: ByteArray?): Document? {
-        var xml: Document? = null
+    fun documentFromBytes(bytes: ByteArray): Document {
         val factory = DocumentBuilderFactory.newInstance()
         factory.isNamespaceAware = true
+        val builder = factory.newDocumentBuilder()
+        var xml = builder.newDocument()
         try {
-            val builder = factory.newDocumentBuilder()
             xml = builder.parse(ByteArrayInputStream(bytes))
         }
         catch (pce: ParserConfigurationException) {

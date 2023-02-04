@@ -10,7 +10,7 @@ import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
 import chuckcoughlin.bert.common.message.RequestType
@@ -19,7 +19,6 @@ import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.sql.db.Database
-import chuckcoughlin.bert.sql.db.Database.startup
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.locks.Condition
@@ -55,7 +54,7 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
         val walker = sockets.keys.iterator()
         val key = walker.next()
         val port = sockets[key]!!
-        dispatchController = SocketController(this, HandlerType.COMMAND.name, hostName, port)
+        dispatchController = SocketController(this, ControllerType.COMMAND.name, hostName, port)
     }
 
     override val controllerName: String

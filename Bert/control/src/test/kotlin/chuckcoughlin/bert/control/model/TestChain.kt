@@ -20,7 +20,6 @@ import java.util.*
  * are all handled here.
  */
 class TestChain {
-
     /**
      * Test construction of the chain of robot "limbs" based on the URDF file in
      * $BERT_HOME/etc on the development machine.

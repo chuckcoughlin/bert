@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 
-	Right-handed coordinate system: x positive to frony, y positive to right, z positive up
+	Right-handed coordinate system: x positive to front, y positive to right, z positive up
 	- axis is unit vector around which joint rotates clockwise
    	- lengths ~ m, angles ~ degrees -->
 <robot name="bert">
-	<!-- The IMU position plsces it relative to the root link's origin. It represents the world-frame. 
-	     Theaxis of rotation represents the movement of the entire robot with respect to this frame.
+	<!-- The IMU position places it relative to the root link's origin. It represents the world-frame.
+	     The axis of rotation represents the movement of the entire robot with respect to this frame.
 	-->
 	<imu> 
 		<origin xyz="0 0 -0.045" />

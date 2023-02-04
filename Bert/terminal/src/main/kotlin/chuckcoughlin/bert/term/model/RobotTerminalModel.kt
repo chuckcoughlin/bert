@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.term.model
 
-import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.model.AbstractRobotModel
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.util.XMLUtility
@@ -41,7 +41,7 @@ class RobotTerminalModel(configPath: Path) : AbstractRobotModel(configPath) {
                 prompt = XMLUtility.attributeValue(controllerElement, "prompt")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
                 if(!type.isEmpty() &&
-                    type.equals(HandlerType.TERMINAL.name, ignoreCase = true) ) {
+                    type.equals(ControllerType.TERMINAL.name, ignoreCase = true) ) {
                     // Configure the socket - there should only be one.
                     val socketElements = controllerElement.getElementsByTagName("socket")
                     if (socketElements.length > 0) {

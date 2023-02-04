@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- This file describes "bert", a robot derived from the Poppy project. 
-	 This identical configuration is used for each of the independent processes.
+	 This is the single location for configuration parameters.
  -->
 <robot>
 	<!-- This first section lists miscellaneous properties. @...@ values are
 	     replaced by the build scripts.
 	-->
 	<property name="name">bert</property>
-	<property name="release">1.0</property>
-	<property name="date">08/28/2019 21:44</property>
+	<property name="release">2.0</property>
+	<property name="date">@DATE@</property>
 	<!--  Socket port used by the bluetooth RFCOMM server  -->
 	<property name="blueserver">11046</property>
 	<!--  Cadence in msecs refers to the record frequency  -->
@@ -19,22 +19,21 @@
 	<!--  Used by the terminal  -->
 	<property name="prompt">bert: </property>
 
-
-	<!-- The following section defines client-side processes that are also known to the server.
-		 Each client process communicates in both directions over its own socket. 
+	<!-- The following section defines controller objects that make up the application.
+		These objects communicate asynchronously via Kotlin Channels.
 		 Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
 		 the well-known UUID for RFCOMM.
 	-->
+	<controller name="dispatcher" type="DISPATCHER" >
+	</controller>
 	<controller name="terminal" type="TERMINAL" prompt="bert:">
-		<socket  name="terminal" port="11044"/>
 	</controller>
 	<controller name="command" type="COMMAND">
-		<socket  name="command" port="11045"/>
 		<socket  type="bluetooth"  uuid="33001101-0000-2000-8080-00815FAB34FF"/>
 	</controller>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
-	     a serial connection. The names must exist in the enumeration bert.share.motor.Joint.
+	     a serial connection. The names must exist in the enumeration chuckcoughlin.bert.common.model.Joint.
 	     There is an upper body group and a lower body group. Additionally joints are organized into
 	     "limbs" for purposes of setting torques and speeds as a group.
 	     
@@ -73,4 +72,3 @@
 		<joint name="BUST_Y"       type="MX28" id="34" offset="24" min="150" max="210" orientation="direct"  speed="660" load="1.9" limb="TORSO"/>
 	</controller>
 </robot>
-

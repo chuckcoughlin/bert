@@ -7,6 +7,7 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.controller.Controller
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
 import chuckcoughlin.bert.common.message.*
@@ -89,14 +90,14 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
         val walker = sockets.keys.iterator()
         while (walker.hasNext()) {
             val key = walker.next()
-            val type: HandlerType = HandlerType.valueOf(model.getHandlerTypes().get(key))
+            val type: ControllerType = ControllerType.valueOf(model.getHandlerTypes().get(key))
             val port = sockets[key]!!
-            if (type.equals(HandlerType.COMMAND)) {
+            if (type.equals(ControllerType.COMMAND)) {
                 commandController = SocketController(this, type.name(), port)
                 commandController.addChangeListener(this)
                 LOGGER.info(String.format("%s: created command controller", CLSS))
             }
-            else if (type.equals(HandlerType.TERMINAL)) {
+            else if (type.equals(ControllerType.TERMINAL)) {
                 terminalController = SocketController(this, type.name, port)
                 terminalController.addChangeListener(this)
                 LOGGER.info(String.format("%s: created terminal controller", CLSS))
@@ -123,7 +124,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
             // Set the speed to "normal" rate. Delay to all startup to complete
             var msg = MessageBottle(RequestType.SET_POSE)
             msg.setProperty(PropertyType.POSE_NAME, BottleConstants.POSE_NORMAL_SPEED)
-            msg.assignSource(HandlerType.BITBUCKET.name())
+            msg.assignSource(ControllerType.BITBUCKET.name())
             var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
             holder.setDelay(500) // 1/2 sec delay
             internalController.receiveRequest(holder)
@@ -131,20 +132,20 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
             msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
             msg.setProperty(PropertyType.PROPERTY_NAME, JointProperty.POSITION.name())
             msg.setProperty(PropertyType.CONTROLLER_NAME, BottleConstants.CONTROLLER_LOWER)
-            msg.assignSource(HandlerType.BITBUCKET.name())
+            msg.assignSource(ControllerType.BITBUCKET.name())
             holder = InternalMessageHolder(msg, QueueName.GLOBAL)
             holder.setDelay(1000) // 1 sec delay
             internalController.receiveRequest(holder)
             msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
             msg.setProperty(PropertyType.PROPERTY_NAME, JointProperty.POSITION.name())
             msg.setProperty(PropertyType.CONTROLLER_NAME, BottleConstants.CONTROLLER_UPPER)
-            msg.assignSource(HandlerType.BITBUCKET.name())
+            msg.assignSource(ControllerType.BITBUCKET.name())
             holder = InternalMessageHolder(msg, QueueName.GLOBAL)
             holder.setDelay(1000) // 1 sec delay
             internalController.receiveRequest(holder)
             // Bring any joints that are outside sane limits into compliance
             msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
-            msg.assignSource(HandlerType.BITBUCKET.name())
+            msg.assignSource(ControllerType.BITBUCKET.name())
             holder = InternalMessageHolder(msg, QueueName.GLOBAL)
             holder.setDelay(2000) // 2 sec delay
             internalController.receiveRequest(holder)
@@ -254,16 +255,16 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
                 source
             )
         )
-        if (source.equals(HandlerType.COMMAND.name(), ignoreCase = true)) {
+        if (source.equals(ControllerType.COMMAND.name(), ignoreCase = true)) {
             commandController.receiveResponse(response)
-        } else if (source.equals(HandlerType.TERMINAL.name(), ignoreCase = true)) {
+        } else if (source.equals(ControllerType.TERMINAL.name(), ignoreCase = true)) {
             terminalController.receiveResponse(response)
-        } else if (source.equals(HandlerType.DISPATCHER.name(), ignoreCase = true)) {
+        } else if (source.equals(ControllerType.DISPATCHER.name(), ignoreCase = true)) {
             commandController.receiveResponse(response)
             terminalController.receiveResponse(response)
-        } else if (source.equals(HandlerType.INTERNAL.name(), ignoreCase = true)) {
+        } else if (source.equals(ControllerType.INTERNAL.name(), ignoreCase = true)) {
             internalController.receiveResponse(response)
-        } else if (source.equals(HandlerType.BITBUCKET.name(), ignoreCase = true)) {
+        } else if (source.equals(ControllerType.BITBUCKET.name(), ignoreCase = true)) {
             // Do nothing, end of the line
         } else {
             LOGGER.warning(String.format("%s.handleResponse: Unknown destination - %s, ignored", CLSS, source))
@@ -281,7 +282,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
         ) {
             val msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
             msg.setProperty(PropertyType.PROPERTY_NAME, JointProperty.POSITION.name())
-            msg.assignSource(HandlerType.BITBUCKET.name())
+            msg.assignSource(ControllerType.BITBUCKET.name())
             var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
             internalController.receiveRequest(holder)
             holder = InternalMessageHolder(request, QueueName.GLOBAL)
@@ -297,7 +298,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
                 BottleConstants.LIMB_NAME,
                 request.getProperty(BottleConstants.LIMB_NAME, InvocationKind.UNKNOWN.name())
             )
-            msg.assignSource(HandlerType.BITBUCKET.name())
+            msg.assignSource(ControllerType.BITBUCKET.name())
             var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
             internalController.receiveRequest(holder)
             holder = InternalMessageHolder(request, QueueName.GLOBAL)
@@ -313,7 +314,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
                 BottleConstants.JOINT_NAME,
                 request.getProperty(BottleConstants.JOINT_NAME, InvocationKind.UNKNOWN.name())
             )
-            msg.assignSource(HandlerType.BITBUCKET.name())
+            msg.assignSource(ControllerType.BITBUCKET.name())
             var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
             internalController.receiveRequest(holder)
             holder = InternalMessageHolder(request, QueueName.GLOBAL)
@@ -436,7 +437,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
     //      and save (in memory) current motor positions.
     private fun isInternalRequest(request: MessageBottle): Boolean {
         // Never send a request launched by the internal controller back to it. That would be an infinite loop
-        if (request.fetchSource().equalsIgnoreCase(HandlerType.INTERNAL.name())) return false
+        if (request.fetchSource().equalsIgnoreCase(ControllerType.INTERNAL.name())) return false
         val properties: Map<String, String> = request.getProperties()
         if (request.type.equals(RequestType.COMMAND) &&
             properties[BottleConstants.COMMAND_NAME].equals(BottleConstants.COMMAND_FREEZE, ignoreCase = true)
@@ -480,7 +481,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
             }
         }
         else if (request.type.equals(RequestType.NOTIFICATION)) {
-            request.assignSource(HandlerType.DISPATCHER.name()) // Setup to broadcast
+            request.assignSource(ControllerType.DISPATCHER.name()) // Setup to broadcast
             return true
         }
         return false

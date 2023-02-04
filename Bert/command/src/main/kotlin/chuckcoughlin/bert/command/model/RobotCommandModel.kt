@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.command.model
 
-import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.model.AbstractRobotModel
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.util.XMLUtility
@@ -54,7 +54,7 @@ class RobotCommandModel(configPath: Path) : AbstractRobotModel(configPath) {
                 controllerName = XMLUtility.attributeValue(controllerElement, "name")
                 val type: String = XMLUtility.attributeValue(controllerElement, "type")
                 if (type != null && !type.isEmpty() &&
-                    type.equals(HandlerType.COMMAND.name, ignoreCase = true)
+                    type.equals(ControllerType.COMMAND.name, ignoreCase = true)
                 ) {
                     // Configure the socket - there should only be one.
                     val socketElements = controllerElement.getElementsByTagName("socket")

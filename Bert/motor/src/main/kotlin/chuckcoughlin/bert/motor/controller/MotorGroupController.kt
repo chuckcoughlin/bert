@@ -268,7 +268,7 @@ class MotorGroupController(m: RobotMotorModel,req: Channel<MessageBottle>,rsp: C
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val property = request.property
-            if (property.equals(JointDefinitionProperty.ID.) ||
+            if (property.equals(JointDefinitionProperty.ID) ||
                 property.equals(JointDefinitionProperty.MOTORTYPE) ||
                 property.equals(JointDefinitionProperty.OFFSET) ||
                 property.equals(JointDefinitionProperty.ORIENTATION)
@@ -287,7 +287,7 @@ class MotorGroupController(m: RobotMotorModel,req: Channel<MessageBottle>,rsp: C
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
         if (request.type.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val property = request.property
-            val joint: Joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"))
+            val joint request.joint
             LOGGER.info(
                 java.lang.String.format(
                     "%s.createResponseForLocalRequest: %s %s in %s",
@@ -335,13 +335,12 @@ class MotorGroupController(m: RobotMotorModel,req: Channel<MessageBottle>,rsp: C
 
                     else -> {
                         text = ""
-                        request.assignError(property.name() + " is not a property that I can look up")
+                        request.error = property.name() + " is not a property that I can look up"
                     }
                 }
             }
             else {
-                request.assignError(String.format("The configuration file does not include joint %s",
-                        joint.name ) )
+                request.error = String.format("The configuration file does not include joint %s",joint.name )
             }
             request.text = text
         }

@@ -4,7 +4,7 @@
  *
  */
 package chuckcoughlin.bert.dispatch
-import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
@@ -119,7 +119,7 @@ class InternalController(launcher: MessageHandler) {
      */
     @Synchronized
     fun dispatch(holder: InternalMessageHolder?) {
-        holder.message.source = HandlerType.INTERNAL.name
+        holder.message.source = ControllerType.INTERNAL.name
         dispatcher.handleRequest(holder.message)
     }
 

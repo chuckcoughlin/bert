@@ -5,10 +5,7 @@
 package chuckcoughlin.bert.command.controller
 
 import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.controller.NamedSocket
-import chuckcoughlin.bert.common.controller.SocketController
-import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.HandlerType
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
@@ -23,7 +20,7 @@ import java.util.logging.Logger
  * to and from the simple text messages recognized by the tablet.
  */
 class BluetoothController(launcher: MessageHandler?, port: Int) :
-    SocketController(launcher, HandlerType.TABLET.name, "localhost", port), Controller {
+    SocketController(launcher, ControllerType.TABLET.name, "localhost", port), Controller {
     private val LOGGER = Logger.getLogger(CLSS)
     private val parser: StatementParser
     private val translator: MessageTranslator
@@ -64,7 +61,7 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
     fun receiveResponse(response: MessageBottle) {
         var text: String = translator.messageToText(response)
         text = text.trim { it <= ' ' }
-        socket.write(java.lang.String.format("%s:%s", MessageType.ANS.name, text))
+        socket.write(String.format("%s:%s", MessageType.ANS.name, text))
     }
 
     /**
@@ -146,7 +143,7 @@ class BluetoothController(launcher: MessageHandler?, port: Int) :
                     msg.error = String.format("Received a short message from the tablet (%s)", text)
                 }
                 if (msg == null) break // This happens on shutdown - I don't know how
-                msg.assignSource(HandlerType.COMMAND.name())
+                msg.assignSource(ControllerType.COMMAND.name())
                 if (msg.type.equals(RequestType.NOTIFICATION) ||
                     msg.type.equals(RequestType.NONE) ||
                     msg.type.equals(RequestType.PARTIAL) || msg.error != null ) {

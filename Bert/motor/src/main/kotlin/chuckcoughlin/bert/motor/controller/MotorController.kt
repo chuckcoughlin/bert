@@ -64,8 +64,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             : LinkedList<MessageWrapper>
     private var timeOfLastWrite: Long
 
-
-
     val configurations: Map<Joint, MotorConfiguration>
         get() = configurationsByJoint
 

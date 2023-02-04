@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.message
 
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
@@ -34,7 +35,7 @@ data class MessageBottle (var type:RequestType) : Serializable {
     var command : CommandType
     var controller: String
     var error : String       // Error message if not blank
-    var handler: HandlerType // The subsystem to handle this message
+    var handler: ControllerType // The subsystem to handle this message
     var joint : Joint        // Request applies to this joint (if one)
     var limb: Limb           // Message applies to this limb
     var metric: MetricType
@@ -99,7 +100,7 @@ data class MessageBottle (var type:RequestType) : Serializable {
         command     = CommandType.NONE
         controller  = BottleConstants.NO_CONTROLLER
         error   =  BottleConstants.NO_ERROR   // No error
-        handler = HandlerType.UNDEFINED
+        handler = ControllerType.UNDEFINED
         joint = Joint.NONE                  // Name of relavant joint
         limb  = Limb.NONE
         metric = MetricType.NAME
