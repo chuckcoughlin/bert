@@ -16,7 +16,7 @@ import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotMotorModel
+import chuckcoughlin.bert.common.model.RobotModel
 import jssc.SerialPort
 import jssc.SerialPortException
 import kotlinx.coroutines.Dispatchers
@@ -40,8 +40,8 @@ import kotlin.collections.HashMap
  * development, then responses are simulated without any direct serial
  * requests being made.
  */
-class MotorGroupController(m: RobotMotorModel,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) : Controller,MotorManager {
-    private val model: RobotMotorModel = m
+class MotorGroupController(m: RobotModel, req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
+    private val model: RobotModel = m
     private val motorControllers: MutableMap<String, MotorController>
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp

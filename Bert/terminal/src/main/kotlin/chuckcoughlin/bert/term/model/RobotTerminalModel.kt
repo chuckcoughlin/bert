@@ -7,6 +7,7 @@ package chuckcoughlin.bert.term.model
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.model.AbstractRobotModel
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.XMLUtility
 import org.w3c.dom.Element
 import java.nio.file.Path
@@ -16,7 +17,7 @@ import java.util.*
  * Read the XML configuration file to extract information needed by
  * the Terminal application. The name is the only attribute of interest.
  */
-class RobotTerminalModel(configPath: Path) : AbstractRobotModel(configPath) {
+class RobotTerminalModel(configPath: Path) : RobotModel(configPath) {
     /**
      * Analyze the document and populate the model.
      */
@@ -59,7 +60,6 @@ class RobotTerminalModel(configPath: Path) : AbstractRobotModel(configPath) {
         }
     }
 
-    companion object {
-        private const val CLSS = "RobotTerminalModel"
-    }
+    private val CLSS = "RobotTerminalModel"
+
 }

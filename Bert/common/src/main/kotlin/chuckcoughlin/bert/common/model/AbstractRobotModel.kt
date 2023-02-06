@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.util.XMLUtility
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -22,8 +23,11 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 abstract class AbstractRobotModel(configPath: Path) {
     protected val document: Document
-    protected val properties: Properties
-    protected val handlerTypes : MutableMap<String, String>   // Map of type names for each message handler used by this
+    val coreControllers:  MutableList<String>  // Names of the internal controllers
+    val motorControllers: MutableList<String>  // Names of the serial controllers
+    val properties: Properties   // These are the generic properties
+    val propertiesByController:   MutableMap<String,Properties>
+    val controllerTypes : MutableMap<String, ControllerType>   // Map of type for each controller by name
     val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
 
     /**
@@ -139,7 +143,10 @@ abstract class AbstractRobotModel(configPath: Path) {
     init {
         document = analyzePath(configPath)
         properties = Properties()
-        handlerTypes              = mutableMapOf<String,String>()
+        coreControllers           = mutableListOf<String>()
+        motorControllers          = mutableListOf<String>()
+        propertiesByController    = mutableMapOf<String,Properties>()
+        controllerTypes           = mutableMapOf<String,ControllerType>()
         motors                    = mutableMapOf<Joint, MotorConfiguration>()
     }
 }

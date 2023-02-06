@@ -40,9 +40,9 @@ import kotlin.contracts.InvocationKind
  * For the peripheral controllers, the dispatcher presents itself as a controller, but different
  * channels apply to the different peripherals.
  */
-class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Controller {
+class Dispatcher(m: RobotModel, s: Solver, mgc: MotorGroupController) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
-    private val model: RobotMotorModel
+    private val model: RobotModel
     private var commandController: Controller
     private var terminalController: Controller
     private var internalController: Controller
@@ -554,7 +554,7 @@ class Dispatcher(m: RobotMotorModel, s: Solver, mgc: MotorGroupController) : Con
         PathConstants.setHome(path)
         // Setup logging to use only a file appender to our logging directory
         LoggerUtility.configureRootLogger(LOG_ROOT)
-        val model = RobotMotorModel(PathConstants.CONFIG_PATH)
+        val model = RobotModel(PathConstants.CONFIG_PATH)
         model.populate() // Analyze the xml for motors and motor groups
         Database.startup(PathConstants.DB_PATH)
         val mgc = MotorGroupController(model)

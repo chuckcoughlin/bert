@@ -18,7 +18,7 @@ import java.util.logging.Logger
  * plus a hand-full of properties. It also reads the configuration file creating
  * for motor configuration objects which are the single place to obtain joint state.
  */
-open class RobotMotorModel(configPath: Path) : AbstractRobotModel(configPath) {
+open class RobotModel(configPath: Path) : AbstractRobotModel(configPath) {
     private val jointsByController : MutableMap<String, List<Joint>>    // List of joints by controller name
     private val ports : MutableMap<String, SerialPort>                  // Port objects by controller
     private val controllers: MutableList<String>
