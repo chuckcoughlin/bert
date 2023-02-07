@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.control.model
 
-import chuckcoughlin.bert.common.model.AbstractRobotModel
+import chuckcoughlin.bert.common.model.BaseRobotModel
 import chuckcoughlin.bert.common.model.Joint
 import java.nio.file.Path
 import java.util.logging.Logger
@@ -12,7 +12,7 @@ import java.util.logging.Logger
 /**
  * This class is used exclusively for testing.
  */
-class TestRobotModel(configPath: Path) : AbstractRobotModel(configPath) {
+class TestRobotModel(configPath: Path) : BaseRobotModel(configPath) {
     /**
      * No need for controllers in our test
      */

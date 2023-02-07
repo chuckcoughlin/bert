@@ -6,10 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/AbstractRobotModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/AbstractRobotModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotMotorModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/model/RobotCommandModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/model/RobotCommandModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/AbstractRobotModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/BaseRobotModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/model/TestRobotModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/model/TestRobotModel.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/model/RobotTerminalModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/model/RobotTerminalModel.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -92,35 +93,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "jdk.selected.JAVA_MODULE": "18",
-    "last_opened_file_path": "/Users/chuckc/robotics/bert/Bert/common/src/main/kotlin/chuckcoughlin/bert/common/controller",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.51724136",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "preferences.sourceCode.Kotlin"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;18&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/lib&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.51724136&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode.Kotlin&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/controller" />
       <recent name="$PROJECT_DIR$/lib" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/library" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
-      <recent name="chuckcoughlin.bert.common.controller" />
       <recent name="chuckcoughlin.bert.dispatch" />
       <recent name="chuckcoughlin.bert.common.message" />
       <recent name="chuckcoughlin.bert.control.model" />
       <recent name="chuckcoughlin.bert.common.util" />
+      <recent name="chuckcoughlin.bert.common" />
     </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
       <recent name="chuckcoughlin.bert.common.controller" />
@@ -248,12 +248,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt</url>
-          <line>341</line>
+          <line>343</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt</url>
-          <line>369</line>
+          <line>370</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">

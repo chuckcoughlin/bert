@@ -5,7 +5,7 @@
 package chuckcoughlin.bert.command.model
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.model.AbstractRobotModel
+import chuckcoughlin.bert.common.model.BaseRobotModel
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.util.XMLUtility
 import org.w3c.dom.Element
@@ -18,7 +18,7 @@ import java.util.logging.Logger
  * This is the base class for a collection of models that keep basic configuration
  * information, all reading from the same files. The information
  */
-class RobotCommandModel(configPath: Path) : AbstractRobotModel(configPath) {
+class RobotCommandModel(configPath: Path) : BaseRobotModel(configPath) {
     var blueserverPort = 11046
         private set
 

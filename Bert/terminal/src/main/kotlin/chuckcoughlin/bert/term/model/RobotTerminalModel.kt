@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.term.model
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.model.AbstractRobotModel
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.XMLUtility
