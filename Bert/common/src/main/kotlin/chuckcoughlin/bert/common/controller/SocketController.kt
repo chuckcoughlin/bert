@@ -1,11 +1,13 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.share.controller
 
-import bert.share.message.MessageBottle
-import bert.share.message.MessageHandler
+import chuckcoughlin.bert.common.controller.Controller
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
 
 /**
@@ -14,10 +16,9 @@ import java.util.logging.Logger
  * Depending on which constructor is used, the connection can be configured
  * for either a server or client.
  */
-class SocketController : chuckcoughlin.bert.share.controller.Controller {
-    private val LOGGER = Logger.getLogger(CLSS)
+class SocketController : Controller {
+    private val model: RobotModel
     protected val socket: chuckcoughlin.bert.share.controller.NamedSocket
-    protected val launcher: MessageHandler
     protected var runner: Thread? = null
     private val server // True of this is created by the server process.
             : Boolean
@@ -92,7 +93,8 @@ class SocketController : chuckcoughlin.bert.share.controller.Controller {
     override fun receiveResponse(response: MessageBottle?) {
         if (server) {
             socket.write(response)
-        } else {
+        }
+        else {
             launcher.handleResponse(response)
         }
     }
@@ -144,8 +146,13 @@ class SocketController : chuckcoughlin.bert.share.controller.Controller {
         thread.start()
     }
 
-    companion object {
-        private const val CLSS = "SocketController"
-        protected const val CLIENT_READ_ATTEMPT_INTERVAL: Long = 15000 // 15 secs
+    private val CLSS = "SocketController"
+    protected val CLIENT_READ_ATTEMPT_INTERVAL: Long = 15000 // 15 secs
+    private val LOGGER = Logger.getLogger(CLSS)
+    override var controllerName = CLSS
+
+    init {
+        model = RobotTModel(configPath)
+        controllerName = model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, CLSS)
     }
 }

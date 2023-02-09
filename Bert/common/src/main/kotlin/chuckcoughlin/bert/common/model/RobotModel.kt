@@ -13,9 +13,6 @@ import java.util.logging.Logger
  * without worrying about nulls.
  */
 open class RobotModel(configPath: Path) : BaseRobotModel(configPath) {
-    private val jointsByController : MutableMap<String, List<Joint>>    // List of joints by controller name
-    private val ports : MutableMap<String, SerialPort>                  // Port objects by controller
-    private val controllers: MutableList<String>
 
     /**
      * @return a named String property. If the requested property is not defined,
@@ -36,8 +33,6 @@ open class RobotModel(configPath: Path) : BaseRobotModel(configPath) {
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        controllers        = mutableListOf<String>()
-        jointsByController = mutableMapOf<String, List<Joint>>()
-        ports              = mutableMapOf<String, SerialPort>()
+
     }
 }

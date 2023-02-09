@@ -20,9 +20,11 @@
 	<property name="prompt">bert: </property>
 
 	<!-- The following section defines controller objects that make up the application.
-		These objects communicate asynchronously via Kotlin Channels.
-		 Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
-		 the well-known UUID for RFCOMM.
+		These objects communicate asynchronously via Kotlin Channels. The Dispatcher
+		is the core communitations hub and contains the "main" entry point. Within
+		the following set the controller "type" is unique.
+		Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
+		the well-known UUID for RFCOMM.
 	-->
 	<controller name="dispatcher" type="DISPATCHER" >
 	</controller>

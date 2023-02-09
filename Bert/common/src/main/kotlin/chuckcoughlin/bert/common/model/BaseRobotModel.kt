@@ -29,9 +29,10 @@ open class BaseRobotModel(configPath: Path) {
     val coreControllers:  MutableList<String>  // Names of the internal controllers
     val motorControllers: MutableList<String>  // Names of the serial controllers
     val properties: Properties   // These are the generic properties
-    val propertiesByController:   MutableMap<String,Properties>
-    val controllerByPort:        MutableMap<SerialPort,String>
-    val controllerBySocket:      MutableMap<NamedSocket,String>
+    val propertiesByController:  MutableMap<String,Properties>
+    val controllerByPort:        MutableMap<Int,String>          // Serial port
+    val controllerBySocket:      MutableMap<String,String>       // NamedSocket
+    val jointsByController:      MutableMap<String,List<Joint>>
     val controllerTypes : MutableMap<String, ControllerType>   // Map of type for each con<troller by name
     val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
 
@@ -40,8 +41,7 @@ open class BaseRobotModel(configPath: Path) {
      */
     fun populate() {
         analyzeProperties()
-        analyzeCoreControllers()
-        analyzeSerialControllers()
+        analyzeControllers()
         analyzeMotors()
     }
 
@@ -63,7 +63,7 @@ open class BaseRobotModel(configPath: Path) {
     /**
      * Search the configuration file for property elements. These values refer to the robot
      * as a whole. The results are saved in the properties member,
-     * always lower case.
+     * always lower case to allow for a case-insensitive compare.
      */
      fun analyzeProperties() {
         val elements = document.getElementsByTagName("property")
@@ -82,85 +82,80 @@ open class BaseRobotModel(configPath: Path) {
     /**
      * Search the XML for named controllers. These have specific functions (i.e. types).
      */
-     fun analyzeCoreControllers() {
+    fun analyzeControllers() {
         val elements = document.getElementsByTagName("controller")
         val count = elements.length
         var index = 0
         while (index < count) {
             val controllerElement = elements.item(index) as Element
-            val name: String = XMLUtility.attributeValue(controllerElement, "name")
-            val type: String = XMLUtility.attributeValue(controllerElement, "type").uppercase()
-            if( type== ControllerType.COMMAND.name )  {
-                val socketElements = controllerElement.getElementsByTagName("socket")
-                if (socketElements.length > 0) {
-                    handlerTypes.put(name,type)
-                    val socketElement = socketElements.item(0) as Element
-                    val portName: String = XMLUtility.attributeValue(socketElement, "port")
-                    sockets.put(name,portName.toInt())
+            val name = XMLUtility.attributeValue(controllerElement, "name")
+            val type = XMLUtility.attributeValue(controllerElement, "type")
+            if( !name.isEmpty() ) {
+                try {
+                    val ctype = ControllerType.valueOf(type)
+                    controllerTypes[name] = ctype
+                    when(ctype) {
+                        ControllerType.COMMAND -> {
+                            val socketElements = controllerElement.getElementsByTagName("socket")
+                            if (socketElements.length > 0) {
+                                handlerTypes.put(name, type)
+                                val socketElement = socketElements.item(0) as Elementth
+                                val portName: String = XMLUtility.attributeValue(socketElement, "port")
+                                sockets.put(name, portName.toInt())
+                            }
+                        }
+                        ControllerType.SERIAL -> {
+                            analyzeSerialController()
+                        }
+                        ControllerType.TERMINAL -> {
+                            terminalProperties = Properties()
+                            val prompt = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PROMPT)
+                            terminalProperties[ConfigurationConstants.PROPERTY_PROMPT] = prompt
+                        }
+                    }
                 }
-            }
-            else if( type== ControllerType.TERMINAL.name ) {
-                terminalProperties = Properties()
-                val socketElements: NodeList = controllerElement.getElementsByTagName("socket")
-                if (socketElements.length > 0) {
-                    handlerTypes[name] = type.uppercase(Locale.getDefault())
-                    val socketElement = socketElements.item(0) as Element
-                    val portName: String = XMLUtility.attributeValue(socketElement, "port")
-                    sockets[name] = portName.toInt()
+                catch(jIllegalArgumentException iae) {
                 }
             }
             index++
         }
-        properties[ConfigurationConstants.PROPERTY_CONTROLLER_NAME] =
-            CONTROLLER_NAME // Name not in XML configuration
-
     }
 
     /**
-     * Search the XML for the SERIAL controllers. Create a map of joints by controller.
+     * Handle the extra XML for a SERIAL controllers. This includes creating a map of joints.
      */
-    fun analyzeSerialControllers() {
-        val elements = document.getElementsByTagName("controller")
-        val count = elements.length
-        var index = 0
-        while (index < count) {
-            val controllerElement = elements.item(index) as Element
-            val controller: String = XMLUtility.attributeValue(controllerElement, "name")
-            val type: String = XMLUtility.attributeValue(controllerElement, "type")
-            if( type == ControllerType.SERIAL.name ) {
-                // Configure the port - there should only be one per motor controller.
-                val portElements = controllerElement.getElementsByTagName("port")
-                if (portElements.length > 0) {
-                    handlerTypes[controller] = type.uppercase(Locale.getDefault())
-                    val portElement = portElements.item(0) as Element
-                    val device: String = XMLUtility.attributeValue(portElement, "device")
-                    val port = SerialPort(device)
-                    ports[controller] = port
-                }
-                // Create a map of joints for the controller
-                val jointElements = controllerElement.getElementsByTagName("joint")
-                val jcount = jointElements.length
-                var jindex = 0
-                val joints: MutableList<Joint> = ArrayList()
-                while (jindex < jcount) {
-                    val jointElement = jointElements.item(jindex) as Element
-                    val jname: String =
-                        XMLUtility.attributeValue(jointElement, "name").uppercase(Locale.getDefault())
-                    try {
-                        val joint = Joint.valueOf(jname)
-                        joints.add(joint)
-                        //LOGGER.info(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
-                    }
-                    catch (iae: IllegalArgumentException) {
-                        LOGGER.warning(String.format("%s.analyzeControllers: %s is not a legal joint name ",
-                            CLSS,jname ))
-                    }
-                    jindex++
-                }
-                jointsByController[controller] = joints
-            }
-            index++
+    fun analyzeSerialController(controllerElement:Element) {
+        val controller = XMLUtility.attributeValue(controllerElement, "name")
+        // Configure the port - there should only be one per motor controller.
+        val portElements = controllerElement.getElementsByTagName("port")
+        if (portElements.length > 0) {
+            handlerTypes[controller] = type.uppercase(Locale.getDefault())
+            val portElement = portElements.item(0) as Element
+            val device: String = XMLUtility.attributeValue(portElement, "device")
+            val port = SerialPort(device)
+            ports[controller] = port
         }
+        // Create a map of joints for the controller
+        val jointElements = controllerElement.getElementsByTagName("joint")
+        val jcount = jointElements.length
+        var jindex = 0
+        val joints: MutableList<Joint> = ArrayList()
+        while (jindex < jcount) {
+            val jointElement = jointElements.item(jindex) as Element
+            val jname: String =
+                XMLUtility.attributeValue(jointElement, "name").uppercase(Locale.getDefault())
+            try {
+                val joint = Joint.valueOf(jname)
+                joints.add(joint)
+                //LOGGER.info(String.format("%s.analyzeControllers: Added %s to %s",CLSS,jname,group));
+            }
+            catch (iae: IllegalArgumentException) {
+                LOGGER.warning(String.format("%s.analyzeControllers: %s is not a legal joint name ",
+                    CLSS,jname ))
+            }
+            jindex++
+        }
+        jointsByController[controller] = joints
     }
     /**
      * Search the XML description for controller elements with joint sub-elements. The results form a list
@@ -228,9 +223,12 @@ open class BaseRobotModel(configPath: Path) {
         properties = Properties()
         coreControllers           = mutableListOf<String>()
         motorControllers          = mutableListOf<String>()
+        jointsByController        = mutableMapOf<String, List<Joint>>()
         propertiesByController    = mutableMapOf<String,Properties>()
         controllerTypes           = mutableMapOf<String,ControllerType>()
         motors                    = mutableMapOf<Joint, MotorConfiguration>()
+        controllerByPort:         = mutableMapOf<Int,String>()          // Serial port
+        controllerBySocket:       = mutableMapOf<String,String>()
         populate()
     }
 }

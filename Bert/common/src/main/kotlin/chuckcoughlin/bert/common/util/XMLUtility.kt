@@ -49,11 +49,15 @@ object XMLUtility {
     }
 
     // =========================  Helper Functions ==============================
-    fun attributeValue(element: Node, name: String?): String {
-        var value = ""
+    fun attributeValue(element: Node, name: String): String {
+        var value:String  = ""
         val attributes = element.attributes
         val node = attributes.getNamedItem(name)
-        if (node != null) value = node.nodeValue
+        if (node != null) {
+            if( node.nodeValue!=null) {
+                value = node.nodeValue
+            }
+        }
         return value
     }
 }

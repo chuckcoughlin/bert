@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.share.controller
 
-import bert.share.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageBottle
 import java.io.*
 import java.net.ServerSocket
@@ -237,10 +236,10 @@ class NamedSocket {
                 }
                 chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.read: %s got %s",
                     chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, json))
-                if (json != null) bottle = MessageBottle.Companion.fromJSON(json)
-            } else {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.warning(
-                    String.format(
+                if (json != null) bottle = MessageBottle.fromJSON(json)
+            }
+            else {
+                LOGGER.warning(String.format(
                         "%s.read: Attempt to read from %s before port is open (ignored)",
                         chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
                         name

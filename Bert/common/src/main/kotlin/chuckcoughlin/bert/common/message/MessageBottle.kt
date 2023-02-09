@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * MIT License
  */
 package chuckcoughlin.bert.common.message
@@ -9,7 +9,11 @@ import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
+import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.module.kotlin.*
+import java.io.IOException
 import java.io.Serializable
 import java.util.logging.Logger
 
@@ -87,9 +91,54 @@ data class MessageBottle (var type:RequestType) : Serializable {
     fun getPropertyValueIterator() : MutableListIterator<JointPropertyValue> {
         return jointValues.listIterator()
     }
+    // =================================== JSON ======================================
+    fun toJSON(): String {
+        val mapper = jacksonObjectMapper()
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        var json = ""
+        try {
+            json = mapper.writeValueAsString(this)
+            LOGGER.info(String.format("%s.toJSON: [%s]", CLSS, json))
+        }
+        catch (ex: Exception) {
+            LOGGER.severe(String.format("%s.toJSON: Exception (%s)", CLSS, ex.localizedMessage))
+        }
+        return json
+    }
 
-    private val CLSS = "MessageBottle"
-    protected val LOGGER = Logger.getLogger(CLSS)
+    companion object {
+        private const val serialVersionUID = 4356286171135500644L
+        protected const val CLSS = "MessageBottle"
+        protected val LOGGER = Logger.getLogger(CLSS)
+
+        // =================================== JSON ======================================
+        fun fromJSON(json: String): MessageBottle? {
+            var bottle: MessageBottle? = null
+            val mapper = jacksonObjectMapper()
+            try {
+                bottle = mapper.readValue(json)
+            }
+            catch (jpe: JsonParseException) {
+                LOGGER.severe(String.format("%s.fromJSON: Parse exception (%s) from %s",
+                        CLSS, jpe.getLocalizedMessage(), json
+                    )
+                )
+            }
+            catch (jme: JsonMappingException) {
+                LOGGER.severe(String.format("%s.fromJSON: Mapping exception (%s) from %s",
+                        CLSS, jme.getLocalizedMessage(), json
+                    )
+                )
+            }
+            catch (ioe: IOException) {
+                LOGGER.severe(String.format("%s.fromJSON: IO exception (%s)", CLSS, ioe.getLocalizedMessage()))
+            }
+            return bottle
+        }
+    }
+
+    //val CLSS = "MessageBottle"
+     //val LOGGER = Logger.getLogger(CLSS)
 
     /**
      * Set initiial values for all message parameters

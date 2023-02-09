@@ -124,13 +124,6 @@ class Terminal(configPath: Path,parent: Controller,req : Channel<MessageBottle>,
         }
     }
 
-
-
-
-    // Shutdown the entire application right here?
-
-
-
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
         if (request.type.equals(RequestType.COMMAND)) {
