@@ -2,7 +2,7 @@
  * Copyright 2019. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.share.controller
+package chuckcoughlin.bert.common.controller
 
 import java.util.*
 

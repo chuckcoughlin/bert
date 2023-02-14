@@ -26,13 +26,12 @@
 		Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
 		the well-known UUID for RFCOMM.
 	-->
-	<controller name="dispatcher" type="DISPATCHER" >
+	<controller name="dispatcher" type="DISPATCHER" />
+	<controller name="command" type="COMMAND"
+		socket="bluetooth"  uuid="33001101-0000-2000-8080-00815FAB34FF">
 	</controller>
-	<controller name="terminal" type="TERMINAL" prompt="bert:">
-	</controller>
-	<controller name="command" type="COMMAND">
-		<socket  type="bluetooth"  uuid="33001101-0000-2000-8080-00815FAB34FF"/>
-	</controller>
+	<controller name="motors" type="MOTORGROUP" />
+	<controller name="terminal" type="TERMINAL" prompt="bert:"/>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
 	     a serial connection. The names must exist in the enumeration chuckcoughlin.bert.common.model.Joint.
@@ -42,8 +41,7 @@
 	     Loads and speeds are software-enforced limits and are used to compute percents of maximum.
 	     Spec loads are: 6.0,2.5,1.2; spec speeds are: 700,700,684 for MX-64, MX-28,AT-12, respectively.
     -->
-	<controller name="lower" type="SERIAL">
-		<port  name="lower" device="/dev/ttyACM1" />
+	<controller name="lower" type="MOTOR" port="lower" device="/dev/ttyACM1" >
 		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="-91" min="60" max="135" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="-8" min="155" max="205" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="-18" min="75" max="225" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
@@ -55,8 +53,7 @@
 		<joint name="RIGHT_HIP_Z"      type="MX28" id="22" offset="-160" min="-20" max="45" orientation="direct" speed="660" load="1.9" limb="RIGHT_LEG"/>
 		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="15" min="50" max="180" orientation="direct" speed="660" load="1.9" limb="RIGHT_LEG"/>
 	</controller>
-	<controller name="upper" type="SERIAL">
-		<port  name="upper" device="/dev/ttyACM0" />
+	<controller name="upper" type="MOTOR" port="upper" device="/dev/ttyACM0" >
 		<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="-198" min="-45" max="90" orientation="indirect" speed="660" load="1.9" limb="LEFT_ARM"/>
 		<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="17" min="45" max="180" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>
 		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="-70" min="90" max="215" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>

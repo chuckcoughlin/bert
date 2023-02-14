@@ -1,8 +1,8 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.share.controller
+package chuckcoughlin.bert.common.controller
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import java.io.*
@@ -26,11 +26,10 @@ class NamedSocket {
     val name: String
     private val host: String
     private val port: Int
-    val isServer // True if this instance is owned by the server.
-            : Boolean
+    val isServer : Boolean   // True if this instance is owned by the server.
     private var serverSocket: ServerSocket?
     private var socket: Socket?
-    private var `in`: BufferedReader? = null
+    private var input: BufferedReader? = null
     private var out: PrintWriter? = null
 
     /**
@@ -73,87 +72,50 @@ class NamedSocket {
             while (true) {
                 try {
                     serverSocket = ServerSocket(port)
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.create: %s as server listening on port %d",
-                        chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, port))
+                    LOGGER.info(String.format("%s.create: %s as server listening on port %d",
+                        CLSS, name, port))
                     socket = serverSocket!!.accept()
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(
-                        String.format(
-                            "%s.create: %s accepted connection on port %d after %d attempts",
-                            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
-                            name,
-                            port,
-                            attempts
-                        )
-                    )
+                    LOGGER.info(String.format("%s.create: %s accepted connection on port %d after %d attempts",
+                            CLSS,name,port,attempts))
                     success = true
                     break
-                } catch (ex: Exception) {
+                } 
+                catch (ex: Exception) {
                     success = false
                     socket = null
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.severe(
-                        String.format(
-                            "%s.create: ERROR creating server socket %s (%s)",
-                            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
-                            name,
-                            ex.message
-                        )
-                    )
+                    LOGGER.severe(String.format("%s.create: ERROR creating server socket %s (%s)",
+                            CLSS,name,ex.message))
                     try {
-                        Thread.sleep(chuckcoughlin.bert.share.controller.NamedSocket.Companion.SERVER_ATTEMPT_INTERVAL) // Something bad has happened, we don't want a hard loop
-                    } catch (ignore: InterruptedException) {
+                        Thread.sleep(SERVER_ATTEMPT_INTERVAL) // Something bad has happened, we don't want a hard loop
                     }
+                    catch (ignore: InterruptedException) {}
                 }
                 attempts++
             }
-        } else {
+        }
+        else {
             // Keep attempting a connection until the server is ready
             while (true) {
                 try {
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(
-                        String.format(
-                            "%s.create: %s attempting to connect to server %s on %d ...",
-                            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
-                            name,
-                            host,
-                            port
-                        )
-                    )
+                    LOGGER.info(String.format("%s.create: %s attempting to connect to server %s on %d ...",
+                            CLSS,name,host,port))
                     socket = Socket(host, port)
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(
-                        String.format(
-                            "%s.create: new %s connection from %s on %d after %d attempts",
-                            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
-                            name,
-                            host,
-                            port,
-                            attempts
-                        )
-                    )
+                    LOGGER.info(String.format("%s.create: new %s connection from %s on %d after %d attempts",
+                            CLSS,name,host,port,attempts))
                     success = true
                     break
-                } catch (ioe: IOException) {
+                } 
+                catch (ioe: IOException) {
                     // Get a "connection refused" when remote party is not running yet.
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(
-                        String.format(
-                            "%s.create: ERROR connecting to server socket %s:%d (%s)",
-                            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
-                            host,
-                            port,
-                            ioe.message
-                        )
-                    )
+                    LOGGER.info(String.format("%s.create: ERROR connecting to server socket %s:%d (%s)",
+                            CLSS,host,port,ioe.message))
                     try {
-                        Thread.sleep(chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLIENT_ATTEMPT_INTERVAL)
-                    } catch (ie: InterruptedException) {
-                        if (attempts % chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLIENT_LOG_INTERVAL == 0) {
-                            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.warning(
-                                String.format(
-                                    "%s.create: ERROR creating client socket %s (%s)",
-                                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
-                                    name,
-                                    ioe.message
-                                )
-                            )
+                        Thread.sleep(CLIENT_ATTEMPT_INTERVAL)
+                    } 
+                    catch (ie: InterruptedException) {
+                        if (attempts % CLIENT_LOG_INTERVAL == 0) {
+                            LOGGER.warning( String.format("%s.create: ERROR creating client socket %s (%s)",
+                                    CLSS,name,ioe.message))
                         }
                     }
                 }
@@ -170,20 +132,21 @@ class NamedSocket {
     fun startup() {
         if (socket != null) {
             try {
-                `in` = BufferedReader(InputStreamReader(socket!!.getInputStream()))
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.startup: opened %s for read",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
+                input = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+                LOGGER.info(String.format("%s.startup: opened %s for read",
+                    CLSS, name))
             } catch (ex: Exception) {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.startup: ERROR opening %s for read (%s)",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, ex.message))
+                LOGGER.info(String.format("%s.startup: ERROR opening %s for read (%s)",
+                    CLSS, name, ex.message))
             }
             try {
                 out = PrintWriter(socket!!.getOutputStream(), true)
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.startup: opened %s for write",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
-            } catch (ex: Exception) {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.startup: ERROR opening %s for write (%s)",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, ex.message))
+                LOGGER.info(String.format("%s.startup: opened %s for write",
+                    CLSS, name))
+            } 
+            catch (ex: Exception) {
+                LOGGER.info(String.format("%s.startup: ERROR opening %s for write (%s)",
+                    CLSS, name, ex.message))
             }
         }
     }
@@ -192,30 +155,30 @@ class NamedSocket {
      * Close IO streams. Closing the socket should interrupt any read.
      */
     fun shutdown() {
-        chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.shutdown: %s closing sockets ...",
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
+        LOGGER.info(String.format("%s.shutdown: %s closing sockets ...",
+            CLSS, name))
         try {
             if (socket != null) socket!!.close()
             if (serverSocket != null) serverSocket!!.close()
-        } catch (ioe: IOException) {
-        }
-        chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.shutdown: %s closing in ...",
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
-        if (`in` != null) {
+        } 
+        catch (ioe: IOException) {}
+        LOGGER.info(String.format("%s.shutdown: %s closing in ...",
+            CLSS, name))
+        if (input != null) {
             try {
-                `in`!!.close()
+                input!!.close()
             } catch (ignore: IOException) {
             }
-            `in` = null
+            input = null
         }
-        chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.shutdown: %s closing out ...",
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
+        LOGGER.info(String.format("%s.shutdown: %s closing out ...",
+            CLSS, name))
         if (out != null) {
             out!!.close()
             out = null
         }
-        chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.shutdown: %s complete.",
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
+        LOGGER.info(String.format("%s.shutdown: %s complete.",
+            CLSS, name))
     }
 
     /**
@@ -228,30 +191,30 @@ class NamedSocket {
     fun read(): MessageBottle? {
         var bottle: MessageBottle? = null
         try {
-            if (`in` != null) {
+            if (input != null) {
                 //LOGGER.info(String.format("%s.read: reading %s ... ",CLSS,name));
-                var json = `in`!!.readLine()
+                var json = input!!.readLine()
                 while (json == null) {
                     json = reread()
                 }
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.read: %s got %s",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, json))
+                LOGGER.info(String.format("%s.read: %s got %s",
+                    CLSS, name, json))
                 if (json != null) bottle = MessageBottle.fromJSON(json)
             }
             else {
                 LOGGER.warning(String.format(
                         "%s.read: Attempt to read from %s before port is open (ignored)",
-                        chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
+                        CLSS,
                         name
                     )
                 )
             }
         } catch (npe: NullPointerException) {
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, npe.localizedMessage))
+            LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
+                CLSS, name, npe.localizedMessage))
         } catch (ioe: IOException) {
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, ioe.localizedMessage))
+            LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
+                CLSS, name, ioe.localizedMessage))
         }
         return bottle
     }
@@ -266,37 +229,37 @@ class NamedSocket {
     fun readLine(): String? {
         var text: String? = null
         try {
-            if (`in` != null) {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.readLine: reading %s ... ",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
-                text = `in`!!.readLine()
+            if (input != null) {
+                LOGGER.info(String.format("%s.readLine: reading %s ... ",
+                    CLSS, name))
+                text = input!!.readLine()
                 while (text == null) {
                     try {
                         Thread.sleep(10000L)
                     } catch (ignore: InterruptedException) {
                     }
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.readLine: got null, retrying",
-                        chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS
+                    LOGGER.info(String.format("%s.readLine: got null, retrying",
+                        CLSS
                     ))
                     //text = reread();  // May not need
-                    text = `in`!!.readLine()
+                    text = input!!.readLine()
                 }
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.readLine: got %s",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, text))
+                LOGGER.info(String.format("%s.readLine: got %s",
+                    CLSS, text))
             } else {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.warning(
+                LOGGER.warning(
                     String.format(
                         "%s.readLine: Attempt to read from %s before port is open )ignored)",
-                        chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
+                        CLSS,
                         name
                     )
                 )
             }
         } catch (ioe: IOException) {
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.severe(
+            LOGGER.severe(
                 String.format(
                     "%s.readLine: Exception reading from %s (%s)",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
+                    CLSS,
                     name,
                     ioe.localizedMessage
                 )
@@ -316,22 +279,22 @@ class NamedSocket {
             if (out != null) {
                 out!!.println(json)
                 out!!.flush()
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, json!!.length))
+                LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",
+                    CLSS, name, json!!.length))
             } else {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.warning(
+                LOGGER.warning(
                     String.format(
                         "%s.write: Attempt to write to %s before port is open (ignored)",
-                        chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
+                        CLSS,
                         name
                     )
                 )
             }
         } catch (ioe: Exception) {
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.severe(
+            LOGGER.severe(
                 String.format(
                     "%s.write: Exception writing %d bytes (%s)",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
+                    CLSS,
                     json!!.length,
                     ioe.localizedMessage
                 )
@@ -345,19 +308,19 @@ class NamedSocket {
     fun write(text: String) {
         try {
             if (out != null) {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.write: wrote %s %d bytes (%s)",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, text.length, text))
+                LOGGER.info(String.format("%s.write: wrote %s %d bytes (%s)",
+                    CLSS, name, text.length, text))
                 out!!.println(text) // Appends new-line
                 out!!.flush()
             } else {
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.write: Attempt to write to %s before port is open (ignored)",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
+                LOGGER.info(String.format("%s.write: Attempt to write to %s before port is open (ignored)",
+                    CLSS, name))
             }
         } catch (ioe: Exception) {
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.severe(
+            LOGGER.severe(
                 String.format(
                     "%s.write: Exception writing %d bytes (%s)",
-                    chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS,
+                    CLSS,
                     text.length,
                     ioe.localizedMessage
                 )
@@ -372,10 +335,9 @@ class NamedSocket {
      */
     private fun reread(): String? {
         var json: String? = null
-        chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.reread: on port %s",
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
-        if (`in` != null) try {
-            `in`!!.close()
+        LOGGER.info(String.format("%s.reread: on port %s",CLSS, name))
+        if (input != null) try {
+            input!!.close()
         } catch (ignore: IOException) {
         }
         if (socket != null) try {
@@ -384,28 +346,26 @@ class NamedSocket {
         }
         if (serverSocket != null) try {
             serverSocket!!.close()
-        } catch (ignore: IOException) {
         }
+        catch (ignore: IOException) {}
         create()
         try {
-            `in` = BufferedReader(InputStreamReader(socket!!.getInputStream()))
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.reread: reopened %s for read",
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name))
-            json = `in`!!.readLine()
-        } catch (ex: Exception) {
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.reread: ERROR opening %s for read (%s)",
-                chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, name, ex.message))
+            input = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+            LOGGER.info(String.format("%s.reread: reopened %s for read",
+                CLSS, name))
+            json = input!!.readLine()
         }
-        chuckcoughlin.bert.share.controller.NamedSocket.Companion.LOGGER.info(String.format("%s.reread: got %s",
-            chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS, json))
+        catch (ex: Exception) {
+            LOGGER.info(String.format("%s.reread: ERROR opening %s for read (%s)",
+                CLSS, name, ex.message))
+        }
+        LOGGER.info(String.format("%s.reread: got %s", CLSS, json))
         return json
     }
 
-    companion object {
-        private const val CLSS = "NamedSocket"
-        private val LOGGER = Logger.getLogger(chuckcoughlin.bert.share.controller.NamedSocket.Companion.CLSS)
-        private const val CLIENT_ATTEMPT_INTERVAL: Long = 5000 // 5 secs
-        private const val CLIENT_LOG_INTERVAL = 10
-        private const val SERVER_ATTEMPT_INTERVAL: Long = 15000 // 15 secs
-    }
+    private val CLSS = "NamedSocket"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val CLIENT_ATTEMPT_INTERVAL: Long = 5000 // 5 secs
+    private val CLIENT_LOG_INTERVAL = 10
+    private val SERVER_ATTEMPT_INTERVAL: Long = 15000 // 15 secs
 }

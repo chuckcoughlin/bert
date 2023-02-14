@@ -1,24 +1,25 @@
 /**
- * Copyright 2022 Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023 Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command.controller
 
-
-import chuckcoughlin.bert.command.model.RobotCommandModel
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.PathConstants
+import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.SocketController
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageHandler
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.sql.db.Database
+import kotlinx.coroutines.channels.Channel
+import java.lang.Thread.sleep
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.locks.Condition
@@ -27,12 +28,11 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 
 /**
- * This is the main client class that handles spoken commands and forwards
+ * This is the class that handles spoken commands and forwards
  * them on to the central launcher. It also handles database actions
  * involving playback and record.
  */
-class Command(m: RobotCommandModel) : Thread(), MessageHandler {
-    private val model: RobotCommandModel
+class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) : Controller {
     private var tabletController: BluetoothController? = null
     private val messageTranslator: MessageTranslator
     private var dispatchController: SocketController? = null
@@ -48,17 +48,14 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
      * destinations involve socket controllers.
      */
     override fun createControllers() {
-        tabletController = BluetoothController(this, model.blueserverPort)
-        val hostName: String = model.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost")
-        val sockets: Map<String, Int> = model.sockets
+        tabletController = BluetoothController(this, RobotModel.blueserverPort)
+        val hostName: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost")
+        val sockets: Map<String, Int> = RobotModel.sockets
         val walker = sockets.keys.iterator()
         val key = walker.next()
         val port = sockets[key]!!
         dispatchController = SocketController(this, ControllerType.COMMAND.name, hostName, port)
     }
-
-    override val controllerName: String
-        get() = model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "command")
 
     /**
      * Loop forever reading from the bluetooth daemon (representing the tablet) and forwarding the resulting requests
@@ -104,12 +101,12 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
         System.exit(0)
     }
 
-    fun startup() {
+    override suspend fun startup() {
         dispatchController.start()
         tabletController!!.start()
     }
 
-    fun shutdown() {
+    override suspend fun shutdown() {
         dispatchController.stop()
         tabletController.stop()
     }
@@ -212,7 +209,6 @@ class Command(m: RobotCommandModel) : Thread(), MessageHandler {
     }
 
     init {
-        model = m
         lock = ReentrantLock()
         busy = lock.newCondition()
         ignoring = false

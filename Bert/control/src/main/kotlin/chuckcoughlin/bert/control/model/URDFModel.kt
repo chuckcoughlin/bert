@@ -56,7 +56,7 @@ class URDFModel {
                 val childNodes = imuNode.childNodes
                 val childCount = childNodes.length
                 var childIndex = 0
-                var text: String? = null
+                var text: String?
                 while (childIndex < childCount) {
                     val cNode = childNodes.item(childIndex)
                     if ("origin".equals(cNode.localName, ignoreCase = true)) {
@@ -93,8 +93,8 @@ class URDFModel {
                             val childNodes = node.childNodes
                             val childCount = childNodes.length
                             var childIndex = 0
-                            var xyz = DoubleArray(3, { i->0.0 })
-                            var ijk = DoubleArray(3, { i->0.0 })
+                            var xyz = DoubleArray(3, { 0.0 })
+                            var ijk = DoubleArray(3, { 0.0 })
                             while (childIndex < childCount) {
                                 val cNode = childNodes.item(childIndex)
                                 if ("origin".equals(cNode.localName, ignoreCase = true)) {
@@ -144,15 +144,9 @@ class URDFModel {
                         val childNode = childNodes.item(childIndex)
                         if ("parent" == childNode.localName) {
                             parent = XMLUtility.attributeValue(childNode, "link")
-                            if (parent == null) {
-                                LOGGER.warning(String.format( "%s.analyzeChain: joint %s has no parent, ignored",
-                                        CLSS,joint.name))
-                            }
                         }
                         else if ("child" == childNode.localName) {
                             child = XMLUtility.attributeValue(childNode, "link")
-                            if (child == null) {
-                            }
                         }
                         else if ("origin".equals(childNode.localName, ignoreCase = true)) xyz =
                             doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz")) else if ("axis".equals(

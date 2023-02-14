@@ -4,6 +4,7 @@ package chuckcoughlin.bert.control.model
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.control.solver.Solver
 import java.nio.file.Paths
@@ -33,10 +34,11 @@ class TestChain {
         val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
         LoggerUtility.configureTestLogger(LOG_ROOT)
         // Analyze the xml for motor configurations. Initialize the motor configurations.
-        val model = TestRobotModel(PathConstants.CONFIG_PATH!!)
-        model.populate() //
+        RobotModel.startup(PathConstants.CONFIG_PATH)
+        RobotModel.populate() //
+        setMotorPositions()
         val solver = Solver()
-        solver.configure(model.motors, PathConstants.URDF_PATH!!)
+        solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
         val chain: Chain = solver.getModel().chain
         val root = chain.root
         println(String.format("%s: root = %s ", CLSS, root!!.name))
@@ -65,7 +67,42 @@ class TestChain {
 
     private val CLSS = "TestChain"
 
-    init {
-
+    /**
+     * Set the initial positions of the motors to "home"!
+     */
+    fun setMotorPositions() {
+        for (joint in RobotModel.motors.keys) {
+            val mc = RobotModel.motors.get(joint)
+            // Set some reasonable values from the "home" pose.
+            when (joint) {
+                Joint.ABS_X -> mc!!.position = 180.0
+                Joint.ABS_Y -> mc!!.position = 180.0
+                Joint.ABS_Z -> mc!!.position = 0.0
+                Joint.BUST_X -> mc!!.position = 180.0
+                Joint.BUST_Y -> mc!!.position = 180.0
+                Joint.NECK_Y -> mc!!.position = 0.0
+                Joint.NECK_Z -> mc!!.position = 0.0
+                Joint.LEFT_ANKLE_Y -> mc!!.position = 90.0
+                Joint.LEFT_ARM_Z -> mc!!.position = 0.0
+                Joint.LEFT_ELBOW_Y -> mc!!.position = 180.0
+                Joint.LEFT_HIP_X -> mc!!.position = 180.0
+                Joint.LEFT_HIP_Y -> mc!!.position = 180.0
+                Joint.LEFT_HIP_Z -> mc!!.position = 0.0
+                Joint.LEFT_KNEE_Y -> mc!!.position = 180.0
+                Joint.LEFT_SHOULDER_X -> mc!!.position = 180.0
+                Joint.LEFT_SHOULDER_Y -> mc!!.position = 180.0
+                Joint.RIGHT_ANKLE_Y -> mc!!.position = 90.0
+                Joint.RIGHT_ARM_Z -> mc!!.position = 0.0
+                Joint.RIGHT_ELBOW_Y -> mc!!.position = 180.0
+                Joint.RIGHT_HIP_X -> mc!!.position = 180.0
+                Joint.RIGHT_HIP_Y -> mc!!.position = 180.0
+                Joint.RIGHT_HIP_Z -> mc!!.position = 0.0
+                Joint.RIGHT_KNEE_Y -> mc!!.position = 180.0
+                Joint.RIGHT_SHOULDER_X -> mc!!.position = 180.0
+                Joint.RIGHT_SHOULDER_Y -> mc!!.position = 180.0
+                Joint.NONE -> mc!!.position = 0.0
+            }
+        }
     }
+
 }

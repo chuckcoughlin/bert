@@ -18,7 +18,10 @@ import chuckcoughlin.bert.control.controller.QueueName
 import chuckcoughlin.bert.control.message.InternalMessageHolder
 import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
+import chuckcoughlin.bert.share.controller.SocketController
+import chuckcoughlin.bert.share.controller.SocketStateChangeEvent
 import chuckcoughlin.bert.sql.db.Database
+import kotlinx.coroutines.channels.Channel
 import java.io.IOException
 import java.nio.file.Paths
 import java.time.LocalDate
@@ -40,9 +43,8 @@ import kotlin.contracts.InvocationKind
  * For the peripheral controllers, the dispatcher presents itself as a controller, but different
  * channels apply to the different peripherals.
  */
-class Dispatcher(m: RobotModel, s: Solver, mgc: MotorGroupController) : Controller {
+class Dispatcher(s: Solver) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
-    private val model: RobotModel
     private var commandController: Controller
     private var terminalController: Controller
     private var internalController: Controller
@@ -56,26 +58,14 @@ class Dispatcher(m: RobotModel, s: Solver, mgc: MotorGroupController) : Controll
     private var cycleTime = 0.0 // msecs,    EWMA
     private var dutyCycle = 0.0 // fraction, EWMA
 
+    // These are the communication channels
+    private var mgcRequestChannel: Channel<MessageBottle>
+    private var mgcResponseChannel: Channel<MessageBottle>
     /**
      * Constructor:
      * @param m the server model
      */
-    init {
-        model = m
-        lock = ReentrantLock()
-        busy = lock.newCondition()
-        motorGroupController = mgc
-        solver = s
-        name = model.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME, "Bert")
-        val cadenceString: String = model.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs
-        try {
-            cadence = cadenceString.toInt()
-        }
-        catch (nfe: NumberFormatException) {
-            LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)", CLSS, nfe.localizedMessage))
-        }
-        LOGGER.info(String.format("%s: started with cadence %d msecs", CLSS, cadence))
-    }
+
 
     /**
      * The server creates controllers for the Terminal and Command sockets, and a controller
@@ -105,9 +95,6 @@ class Dispatcher(m: RobotModel, s: Solver, mgc: MotorGroupController) : Controll
         }
         internalController = InternalController(this)
     }
-
-    val controllerName: String
-        get() = model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, "launcher")
 
     /**
      * On startup, initiate a short message sequence to bring the robot into a sane state.
@@ -514,8 +501,7 @@ class Dispatcher(m: RobotModel, s: Solver, mgc: MotorGroupController) : Controll
         }
     }
 
-    private const val CLSS = "Dispatcher"
-    private const val USAGE = "Usage: launcher <robot_root>"
+
 
     // Phrases to choose from ...
     private val mittenPhrases = arrayOf(
@@ -529,6 +515,9 @@ class Dispatcher(m: RobotModel, s: Solver, mgc: MotorGroupController) : Controll
         "I'm listening",
         "Speak your wishes"
     )
+    private val CLSS = "Dispatcher"
+    private val USAGE = "Usage: launcher <robot_root>"
+    override var controllerName = CLSS
     private val LOGGER = Logger.getLogger(CLSS)
     private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
 
@@ -554,17 +543,44 @@ class Dispatcher(m: RobotModel, s: Solver, mgc: MotorGroupController) : Controll
         PathConstants.setHome(path)
         // Setup logging to use only a file appender to our logging directory
         LoggerUtility.configureRootLogger(LOG_ROOT)
-        val model = RobotModel(PathConstants.CONFIG_PATH)
-        model.populate() // Analyze the xml for motors and motor groups
+        // The RobotModel is a singleton that describes
+        // any configurable robot parameters.
+        RobotModel.startup(PathConstants.CONFIG_PATH)
+        RobotModel.populate() // Analyze the xml for controllers and motors
+        controllerName = RobotModel.getControllerForType(ControllerType.DISPATCHER)
         Database.startup(PathConstants.DB_PATH)
-        val mgc = MotorGroupController(model)
         val solver = Solver()
-        solver.configure(model.getMotors(), PathConstants.URDF_PATH)
-        val runner = Dispatcher(model, solver, mgc)
+        solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
+        val runner = Dispatcher(solver, mgc)
         mgc.setResponseHandler(runner)
         runner.createControllers()
         Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(runner)))
         runner.startup()
         runner.start()
+    }
+
+    /**
+     * Initialize the communication channels, among other things.
+     * Create the controllers
+     */
+    init {
+        mgcRequestChannel = Channel<MessageBottle>()
+        mgcResponseChannel = Channel<MessageBottle>()
+
+        motorGroupController = MotorGroupController(mgcRequestChannel,mgcResponseChannel)
+
+        lock = ReentrantLock()
+        busy = lock.newCondition()
+
+        solver = s
+        val name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
+        val cadenceString: String = model.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs
+        try {
+            cadence = cadenceString.toInt()
+        }
+        catch (nfe: NumberFormatException) {
+            LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)", CLSS, nfe.localizedMessage))
+        }
+        LOGGER.info(String.format("%s: started with cadence %d msecs", CLSS, cadence))
     }
 }

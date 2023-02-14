@@ -5,11 +5,13 @@
 package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageHandler
 import chuckcoughlin.bert.common.message.PropertyType
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
@@ -17,6 +19,7 @@ import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.RobotModel.motorControllerNames
 import jssc.SerialPort
 import jssc.SerialPortException
 import kotlinx.coroutines.Dispatchers
@@ -40,14 +43,14 @@ import kotlin.collections.HashMap
  * development, then responses are simulated without any direct serial
  * requests being made.
  */
-class MotorGroupController(m: RobotModel, req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
-    private val model: RobotModel = m
+class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
     private val motorControllers: MutableMap<String, MotorController>
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
     private val motorNameById: MutableMap<Int, String>
-    var development: Boolean = false
-    override var controllerCount:Int
+    var development: Boolean
+    var running: Boolean
+    val controllerCount:Int
 
     /**
      * Start a motor controller for each port.
@@ -287,14 +290,14 @@ class MotorGroupController(m: RobotModel, req: Channel<MessageBottle>, rsp: Chan
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
         if (request.type.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val property = request.property
-            val joint request.joint
+            val joint = request.joint
             LOGGER.info(
                 java.lang.String.format(
                     "%s.createResponseForLocalRequest: %s %s in %s",
                     CLSS,request.type.name,property.name,joint.name))
             var text: String? = ""
             val jointName: String = Joint.toText(joint)
-            val mc: MotorConfiguration = model.getMotors().get(joint)
+            val mc: MotorConfiguration = RobotModel.motors.get(joint)
             if (mc != null) {
                 when (property) {
                     ID -> {
@@ -368,7 +371,7 @@ class MotorGroupController(m: RobotModel, req: Channel<MessageBottle>, rsp: Chan
             LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
                     CLSS,request.type.name,property.name()))
             var text: String? = ""
-            val mcs: Map<Joint, MotorConfiguration> = model.motors
+            val mcs: Map<Joint, MotorConfiguration> = RobotModel.motors
             for (joint in mcs.keys) {
                 val mc: MotorConfiguration = mcs[joint]!!
                 when (property) {
@@ -413,11 +416,11 @@ class MotorGroupController(m: RobotModel, req: Channel<MessageBottle>, rsp: Chan
             request.text =  text
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
-            val property = request.property
+            val property = request.property.toString()
             request.error = "I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb")
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-            val property = request.property
+            val property = request.property.toString()
             request.error = "I cannot change a motor " + property.lowercase(Locale.getDefault())
         }
         return request
@@ -454,29 +457,31 @@ class MotorGroupController(m: RobotModel, req: Channel<MessageBottle>, rsp: Chan
 
     private val CLSS = "MotorGroupController"
     private val LOGGER = Logger.getLogger(CLSS)
-
+    override var controllerName = CLSS
     /**
      * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
      * instances each running in its own thread. Each controller handles a group of
      * motors all communicating on the same serial port.
      */
-    fun init {
-        motorControllers = HashMap<MotorController>()
-        motorNameById = MutableMap<Int, String>()
+    fun init () {
+        controllerName = RobotModel.getControllerForType(ControllerType.MOTORGROUP)
+        motorControllers = mutableMapOf<String,MotorController>()
+        motorNameById    = mutableMapOf<Int, String>()
+        running = false
         LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
         LOGGER.info(String.format("%s: os.name = %s", CLSS, System.getProperty("os.name"))) // Mac OS X
         development = System.getProperty("os.arch").startsWith("x86")
         if (!development) {
-            val controllerNames: Set<String> = model.handlerTypes.keys
-            val motors: Map<Joint, MotorConfiguration> = model.motors
-            for (cname in controllerNames) {
-                val port: SerialPort = model.getPortForController(cname) ?: continue
+            val motors: Map<Joint, MotorConfiguration> = RobotModel.motors
+            for(cname in RobotModel.motorControllerNames) {
+                val port: SerialPort = RobotModel.getPortForController(cname)
+                if( port==ConfigurationConstants.NO_PORT ) continue
                 // Controller is not a motor controller
                 val controller = MotorController(cname, port, this)
                 motorControllers[cname] = controller
 
                 // Add configurations to the controller for each motor in the group
-                val joints: List<Joint> = model.getJointsForController(cname)
+                val joints: List<Joint> = RobotModel.getJointsForController(cname)
                 LOGGER.info(String.format("%s.initialize: getting joints for %s", CLSS, cname))
                 LOGGER.info(String.format("%s.initialize: %d joints for %s", CLSS, joints.size, cname))
                 for (joint in joints) {
@@ -491,12 +496,13 @@ class MotorGroupController(m: RobotModel, req: Channel<MessageBottle>, rsp: Chan
                             CLSS,joint.name, cname))
                     }
                 }
-                controllerCount += 1
+
                 LOGGER.info(String.format("%s.initialize: Created motor controller %s",
                     CLSS,controller.controllerName
                 )
                 )
             }
+            controllerCount = motorControllers.size
         }
     }
 }

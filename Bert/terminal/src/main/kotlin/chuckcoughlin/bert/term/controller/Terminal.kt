@@ -5,20 +5,20 @@
 package chuckcoughlin.bert.term.controller
 
 import chuckcoughlin.bert.common.controller.Controller
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
 import chuckcoughlin.bert.sql.db.Database
-import chuckcoughlin.bert.term.model.RobotTerminalModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.nio.file.Path
 import java.util.*
 import java.util.logging.Logger
 
@@ -28,15 +28,13 @@ import java.util.logging.Logger
  * controller in spoken form. Requests originate from stdIn and responses
  * sent to stdOut.
  *
- * @param configPath - path to the configuration file
  * @param parent - the dispatcher
  * @param req - channel for requests from the parent (Dispatcher)
  * @param rsp - channel for responses sent to the parent (Dispatcher)
  */
-class Terminal(configPath: Path,parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) : Controller {
+class Terminal(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) : Controller {
     private val parser: StatementParser
     private val translator: MessageTranslator
-    private val model: RobotTerminalModel
     private val dispatcher = parent
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
@@ -145,17 +143,15 @@ class Terminal(configPath: Path,parent: Controller,req : Channel<MessageBottle>,
     }
 
     private val CLSS = "Terminal"
-    private val USAGE = "Usage: terminal <robot_root>"
     private val LOGGER = Logger.getLogger(CLSS)
-    private val PROMPT = "Bert:"
+    private val PROMPT = "Bert:"    // Default prompt
     override var controllerName = CLSS
 
     init {
         parser = StatementParser()
         translator = MessageTranslator()
-        model = RobotTerminalModel(configPath)
-        controllerName = model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, CLSS)
-        prompt = model.getProperty(ConfigurationConstants.PROPERTY_PROMPT, PROMPT)
+        controllerName = RobotModel.getControllerForType(ControllerType.TERMINAL)
+        prompt = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_PROMPT,PROMPT)
         running = false
         ignoring = false
     }

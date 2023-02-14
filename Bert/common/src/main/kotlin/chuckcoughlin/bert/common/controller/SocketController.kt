@@ -2,50 +2,48 @@
  * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.share.controller
+package chuckcoughlin.bert.common.controller
 
-import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
 /**
  * The socket controller handles two-way communication across a NamedSocket.
  *
- * Depending on which constructor is used, the connection can be configured
- * for either a server or client.
+ * Depending on the presence of a hostname in the configuration, the connection is
+ * be configured for either a server or client (hostname exists).
  */
-class SocketController : Controller {
-    private val model: RobotModel
-    protected val socket: chuckcoughlin.bert.share.controller.NamedSocket
-    protected var runner: Thread? = null
-    private val server // True of this is created by the server process.
-            : Boolean
+open class SocketController : Controller {
+    private val socket: NamedSocket
+    private val server : Boolean  // True of this is created by the Dispatcher.
     protected val changeListeners: MutableList<SocketStateChangeListener> = ArrayList()
+    private val dispatcher:Controller
+    private var parentRequestChannel: Channel<MessageBottle>
+    private var parentResponseChannel: Channel<MessageBottle>
+    val scope = MainScope() // Uses Dispatchers.Main
+    var ignoring : Boolean
+    var running:Boolean
+    var runner:Thread? = null
 
     /**
-     * Constructor: Use this constructor from the server process.
-     * @param launcher the parent application, one of the independent processes
-     * @param name the socket name
-     * @param port communication port number
+     * Constructor: Use this constructor from either server or client processes.
+     * @param parent - the dispatcher
+     * @param req - channel for requests from the parent (Dispatcher)
+     * @param rsp - channel for responses sent to the parent (Dispatcher)
      */
-    constructor(launcher: MessageHandler, name: String, port: Int) {
-        this.launcher = launcher
-        server = true
-        socket = chuckcoughlin.bert.share.controller.NamedSocket(name, port)
-    }
-
-    /**
-     * Constructor: Use this version for processes that are clients
-     * @param launcher the parent application
-     * @param hostname of the server process.
-     * @param port communication port number
-     */
-    constructor(launcher: MessageHandler, name: String, hostname: String, port: Int) {
-        this.launcher = launcher
-        server = false
-        socket = chuckcoughlin.bert.share.controller.NamedSocket(name, hostname, port)
+    constructor(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>,name:String,port: Int) {
+        dispatcher = parent
+        parentRequestChannel = req
+        parentResponseChannel = rsp
     }
 
     fun addChangeListener(c: SocketStateChangeListener) {
@@ -56,13 +54,39 @@ class SocketController : Controller {
         changeListeners.remove(c)
     }
 
-    override fun start() {
+    /**
+     * When running, this controller processes messages between the Dispatcher
+     * and the user. A few messages are intercepted that cause a
+     * quick shutdown. These are direct responses to user input, like "shutdown".
+     */
+    override suspend fun start() {
+        running = true
         val rdr = BackgroundReader(socket)
         runner = Thread(rdr)
         runner!!.start()
+        runBlocking<Unit> {
+            launch {
+                Dispatchers.IO
+                while(running) {
+                    select<Unit> {
+                        /**
+                         * These are responses coming from the Dispatcher
+                         * Simply display them.
+                         */
+                        parentResponseChannel.onReceive() {
+                            receiveResponse(it)
+                        }
+                        parentRequestChannel.onReceive() {
+                            receiveRequest(it)
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    override fun stop() {
+    override suspend fun stop() {
+        scope.cancel()
         if (runner != null) {
             LOGGER.info(String.format("%s.stopping ... %s", CLSS, socket.name))
             runner!!.interrupt()
@@ -76,10 +100,10 @@ class SocketController : Controller {
      * else it comes from the parent using a direct call.
      * @param request
      */
-    override fun receiveRequest(request: MessageBottle?) {
+    fun receiveRequest(request: MessageBottle?) {
         if (request == null) return  // Can happen if socket closed (e.g. shutdown)
         if (server) {
-            launcher.handleRequest(request)
+            //launcher.handleRequest(request)
         } else {
             socket.write(request)
         }
@@ -90,19 +114,19 @@ class SocketController : Controller {
      * Otherwise we are on the receiving end. Handle it.
      * @param response
      */
-    override fun receiveResponse(response: MessageBottle?) {
+    fun receiveResponse(response: MessageBottle?) {
         if (server) {
             socket.write(response)
         }
         else {
-            launcher.handleResponse(response)
+            //launcher.handleResponse(response)
         }
     }
     // ===================================== Background Reader ==================================================
     /**
      * Perform a blocking read as a background thread.
      */
-    inner class BackgroundReader(private val sock: chuckcoughlin.bert.share.controller.NamedSocket) : Runnable {
+    inner class BackgroundReader(private val sock: NamedSocket) : Runnable {
         /**
          * Forever ...
          * 1) Read request/response from socket
@@ -124,7 +148,8 @@ class SocketController : Controller {
                 }
                 if (sock.isServer) {
                     receiveRequest(msg)
-                } else {
+                }
+                else {
                     receiveResponse(msg)
                 }
             }
@@ -152,7 +177,19 @@ class SocketController : Controller {
     override var controllerName = CLSS
 
     init {
-        model = RobotTModel(configPath)
-        controllerName = model.getProperty(ConfigurationConstants.PROPERTY_CONTROLLER_NAME, CLSS)
+        controllerName = RobotModel.getControllerForType(ControllerType.TERMINAL)
+        val socketName = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_SOCKET)
+        val hostName = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_HOSTNAME)
+        val port = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_PORT).toInt()
+        if( hostName.equals(ConfigurationConstants.NO_VALUE)) {
+            server = true
+            socket = NamedSocket(socketName,port)
+        }
+        else {
+            server = false
+            socket = NamedSocket(socketName,hostName,port)
+        }
+        running = false
+        ignoring = false
     }
 }

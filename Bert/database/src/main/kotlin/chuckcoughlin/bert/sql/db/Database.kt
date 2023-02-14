@@ -24,7 +24,6 @@ import java.util.logging.Logger
  * Call shutdown() when database access is no longer required.
  */
 object Database  {
-
     /**
      * @param command user entered string
      * @return the corresponding pose name if it exists, otherwise NULL

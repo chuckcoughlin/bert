@@ -1,13 +1,13 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.control.solver
 
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.LoggerUtility
-import chuckcoughlin.bert.control.model.TestRobotModel
 import java.nio.file.Paths
 import java.util.*
 import java.util.logging.Logger
@@ -16,8 +16,6 @@ import java.util.logging.Logger
  * This class solves a fixed configuration.
  */
 class TestSolver {
-
-
 
     private val CLSS = "Solver"
     private val LOGGER = Logger.getLogger(CLSS)
@@ -36,10 +34,10 @@ class TestSolver {
         val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
         LoggerUtility.configureTestLogger(LOG_ROOT)
         // Analyze the xml for motor configurations. Initialize the motor configurations.
-        val model = TestRobotModel(PathConstants.CONFIG_PATH!!)
-        model.populate() //
+        RobotModel.startup(PathConstants.CONFIG_PATH)
+        RobotModel.populate() //
         val solver = Solver()
-        solver.configure(model.motors, PathConstants.URDF_PATH!!)
+        solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
 
         //solver.setJointPosition(Joint.ABS_Y,90.);
         val xyz = solver.getPosition(Joint.ABS_Y) // Just to top of pelvis

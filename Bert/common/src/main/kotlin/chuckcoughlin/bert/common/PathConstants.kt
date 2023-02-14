@@ -13,14 +13,12 @@ import java.nio.file.Paths
  */
 object PathConstants {
     var ROBOT_HOME = Paths.get(System.getProperty("user.dir")).root
-    var CONFIG_PATH: Path? = null
-    var DB_PATH: Path? = null
-    var LOG_DIR: Path? = null
-    var URDF_PATH: Path? = null
+    lateinit var CONFIG_PATH: Path
+    lateinit var DB_PATH: Path
+    lateinit var LOG_DIR: Path
+    lateinit var URDF_PATH: Path
 
-    init {
-        setHome(ROBOT_HOME)
-    }
+
 
     fun setHome(home: Path) {
         ROBOT_HOME = home
@@ -28,5 +26,9 @@ object PathConstants {
         DB_PATH = Paths.get(ROBOT_HOME.toFile().absolutePath, "etc", "bert.db")
         LOG_DIR = Paths.get(ROBOT_HOME.toFile().absolutePath, "logs")
         URDF_PATH = Paths.get(ROBOT_HOME.toFile().absolutePath, "etc", "urdf.xml")
+    }
+
+    init {
+        setHome(ROBOT_HOME)
     }
 }

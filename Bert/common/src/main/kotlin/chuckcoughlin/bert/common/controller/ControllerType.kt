@@ -14,8 +14,9 @@ enum class ControllerType {
     COMMAND,
     DISPATCHER,
     INTERNAL,
-    REQUEST,
-    SERIAL,
+    MOTOR,      // Serial
+    MOTORGROUP, // Controls the collection of motors
+    SOCKET,
     TABLET,
     TERMINAL,
     UNDEFINED;
