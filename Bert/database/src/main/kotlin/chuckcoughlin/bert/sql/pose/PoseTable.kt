@@ -77,8 +77,7 @@ class PoseTable {
      * @param parameter, e.g. "position","speed","torque"
      * @return list of upper-case joint names.
      */
-    fun getPoseJointValuesForParameter(cxn: Connection?,mcmap: Map<Joint, MotorConfiguration>,
-                                        p: String,parameter: JointDynamicProperty
+    fun getPoseJointValuesForParameter(cxn: Connection?,p: String,parameter: JointDynamicProperty
     ): Map<Joint, Double> {
 
         val map: MutableMap<Joint, Double> = HashMap()

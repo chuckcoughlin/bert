@@ -34,6 +34,7 @@ enum class CommandType {
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"
                 WAKE     -> text = "wake"
+                NONE     -> text = "none"
             }
             return text
         }

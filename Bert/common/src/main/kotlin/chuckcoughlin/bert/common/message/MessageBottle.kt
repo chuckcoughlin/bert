@@ -5,10 +5,7 @@
 package chuckcoughlin.bert.common.message
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.common.model.*
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonMappingException
@@ -37,14 +34,15 @@ data class MessageBottle (var type:RequestType) : Serializable {
     private var jointValues : MutableList<JointPropertyValue>   // Property values for one or more motors
     var appendage: Appendage // Message applies to this appendage
     var command : CommandType
-    var controller: String
+    var controller: String   // Name of controller to handle request. Important for serial controllers
     var error : String       // Error message if not blank
     var handler: ControllerType // The subsystem to handle this message
     var joint : Joint        // Request applies to this joint (if one)
     var limb: Limb           // Message applies to this limb
     var metric: MetricType
     var pose: String
-    var property: JointDynamicProperty   // Subject of the original request
+    var jointDefinitionProperty: JointDefinitionProperty   // Possible subject of the original request
+    var jointDynamicProperty: JointDynamicProperty         // Possible subject of the original request
     var source: String       // Origin of message
     var text : String        // Pronounceable text of a response
 
@@ -80,7 +78,7 @@ data class MessageBottle (var type:RequestType) : Serializable {
     fun addJointValue(j: Joint,prop: JointDynamicProperty, value: Number) {
         jointValues.add(JointPropertyValue(j,prop,value))
     }
-    // Use this version where the request is a query for values
+    // Use this version where the request is a query for multiple values
     fun addJointValue(j: Joint,prop: JointDynamicProperty) {
         jointValues.add(JointPropertyValue(j,prop,Double.NaN))
     }
@@ -88,7 +86,7 @@ data class MessageBottle (var type:RequestType) : Serializable {
         jointValues.clear()
     }
 
-    fun getPropertyValueIterator() : MutableListIterator<JointPropertyValue> {
+    fun getJointValueIterator() : MutableListIterator<JointPropertyValue> {
         return jointValues.listIterator()
     }
     // =================================== JSON ======================================
@@ -137,9 +135,6 @@ data class MessageBottle (var type:RequestType) : Serializable {
         }
     }
 
-    //val CLSS = "MessageBottle"
-     //val LOGGER = Logger.getLogger(CLSS)
-
     /**
      * Set initiial values for all message parameters
      */
@@ -154,7 +149,8 @@ data class MessageBottle (var type:RequestType) : Serializable {
         limb  = Limb.NONE
         metric = MetricType.NAME
         pose   = BottleConstants.NO_POSE
-        property = JointDynamicProperty.NONE
+        jointDefinitionProperty = JointDefinitionProperty.NONE
+        jointDynamicProperty = JointDynamicProperty.NONE
         source = BottleConstants.NO_SOURCE
         text  = ""   // Text is the printable response
     }

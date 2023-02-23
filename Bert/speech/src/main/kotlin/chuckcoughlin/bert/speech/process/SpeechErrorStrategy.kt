@@ -10,12 +10,7 @@ package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import org.antlr.v4.runtime.DefaultErrorStrategy
-import org.antlr.v4.runtime.InputMismatchException
-import org.antlr.v4.runtime.Parser
-import org.antlr.v4.runtime.RecognitionException
-import org.antlr.v4.runtime.Recognizer
-import org.antlr.v4.runtime.Token
+import org.antlr.v4.runtime.*
 import java.util.logging.Logger
 
 /** Instead of recovering from exceptions, log the information to
@@ -49,7 +44,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
      */
     override fun recoverInline(recognizer: Parser): Token {
         // LOGGER.warning(CLSS+": RECOVER-INLINE");
-        recordError(recognizer, InputMismatchException(recognizer))
+        recordError(InputMismatchException(recognizer))
         return super.recoverInline(recognizer)
     }
 
@@ -58,16 +53,17 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
      */
     override fun reportError(recognizer: Parser, e: RecognitionException) {
         //LOGGER.warning(CLSS+":reportError ...");
-        recordError(recognizer, e)
+        recordError(e)
     }
 
     /** Make sure we don't attempt to recover from problems in sub-rules.  */
     override fun sync(recognizer: Parser) {}
-    protected fun recordError(recognizer: Recognizer<*, *>?, re: RecognitionException) {
+
+    protected fun recordError(re: RecognitionException) {
         // In each case the expected tokens are an expression. Don't bother to list
         val offender: Token = re.getOffendingToken()
         var msg: String = ""
-        if (offender != null && offender.getText() != null && !offender.getText().isEmpty()) {
+        if (offender.getText() != null && !offender.getText().isEmpty()) {
             msg = String.format("I don't understand the word \"%s\"", offender.getText())
         }
         else if (offender.getText() != null && offender.getText().startsWith("<EOF>")) {  // EOF

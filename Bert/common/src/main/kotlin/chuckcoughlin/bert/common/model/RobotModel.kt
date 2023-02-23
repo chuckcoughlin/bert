@@ -250,13 +250,13 @@ object RobotModel {
      * @return a named String property. If the requested property is not defined,
      *         return the string PROPERTY_NONE.
      */
-    fun getPortForController(name:String): Int {
+    fun getPortForController(name:String): String {
         var port = ConfigurationConstants.NO_PORT
         val properties = propertiesByController[name]
         if( properties!=null ) {
             val pval = properties[ConfigurationConstants.PROPERTY_PORT]
-            if( pval!=null && !pval.toString().isBlank())
-                port = pval.toString().toInt()
+            if( pval!=null && pval.toString().isNotBlank())
+                port = pval.toString()
         }
         return port
     }

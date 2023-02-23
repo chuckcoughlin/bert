@@ -15,7 +15,6 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CodePointCharStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
-import java.io.ByteArrayInputStream
 
 /**
  * Parse spoken text using ANTLR classes. A context dictionary is passed
@@ -61,7 +60,6 @@ class StatementParser {
                 text = String.format("%s %s", context[SharedKey.PARTIAL], text)
                 context.remove(SharedKey.PARTIAL)
             }
-            val bais = ByteArrayInputStream(text.toByteArray())
             val stream: CodePointCharStream = CharStreams.fromString(text)
             val lexer: SpeechSyntaxLexer = QuietLexer(stream)
             lexer.removeErrorListeners() // Quiet lexer gripes

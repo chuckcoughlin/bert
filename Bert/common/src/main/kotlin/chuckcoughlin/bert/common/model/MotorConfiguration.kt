@@ -81,7 +81,7 @@ class MotorConfiguration : Serializable {
             JointDynamicProperty.TEMPERATURE -> temperature = value
             JointDynamicProperty.TORQUE -> torque = value
             JointDynamicProperty.VOLTAGE -> voltage = value
-            JointDynamicProperty.NONE-> value
+            JointDynamicProperty.NONE-> {}
         }
     }
 

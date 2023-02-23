@@ -69,9 +69,9 @@ class MessageTranslator {
                     "Motor metrics have been written to log files"
                 }
                 else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-                    val property: JointDynamicProperty = msg.property
+                    val property: JointDynamicProperty = msg.jointDynamicProperty
                     val joint: Joint = msg.joint
-                    val iterator:MutableListIterator<JointPropertyValue> = msg.getPropertyValueIterator()
+                    val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                     if( iterator.hasNext() ) {
                         val value: Double = iterator.next().value.toDouble()
                         String.format("The %s of my %s is %.02f", property.name, Joint.toText(joint), value)
@@ -82,7 +82,7 @@ class MessageTranslator {
                 }
                 else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
                     val controllerName: String = msg.controller
-                    val iterator:MutableListIterator<JointPropertyValue> = msg.getPropertyValueIterator()
+                    val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                     if( iterator.hasNext() ) {
                         val propertyName: String = iterator.next().property.name
                         String.format("%s motor %s have been written to log files",
@@ -98,7 +98,7 @@ class MessageTranslator {
                 // A limb has a state of being rigid or not
                 else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
                     val limb: Limb = msg.limb
-                    val iterator:MutableListIterator<JointPropertyValue> = msg.getPropertyValueIterator()
+                    val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                     if( iterator.hasNext() ) {
                         val jpv: JointPropertyValue = iterator.next()
                         val propertyName: String = jpv.property.name
@@ -126,7 +126,7 @@ class MessageTranslator {
                     String.format("I am %s", msg.pose.lowercase(Locale.getDefault()))
                 }
             else {
-                val iterator:MutableListIterator<JointPropertyValue> = msg.getPropertyValueIterator()
+                val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                 if( iterator.hasNext() ) {
                     val jpv: JointPropertyValue = iterator.next()
                     val property: String = jpv.property.name

@@ -7,12 +7,8 @@ package chuckcoughlin.bert.common.controller
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -36,11 +32,13 @@ open class SocketController : Controller {
 
     /**
      * Constructor: Use this constructor from either server or client processes.
+     *    "socket" and "port" are required parameters. If the socket is from a
+     *    client then "hostname" is also required.
      * @param parent - the dispatcher
      * @param req - channel for requests from the parent (Dispatcher)
      * @param rsp - channel for responses sent to the parent (Dispatcher)
      */
-    constructor(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>,name:String,port: Int) {
+    constructor(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) {
         dispatcher = parent
         parentRequestChannel = req
         parentResponseChannel = rsp

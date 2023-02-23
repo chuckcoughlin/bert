@@ -41,13 +41,12 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
     private val lock: Lock
     private var ignoring: Boolean
 
-
-
     /**
-     * This application routes requests/responses between the Dispatcher and "blueserverd" daemon. Both
-     * destinations involve socket controllers.
+     * This class routes requests/responses between the Dispatcher and "blueserverd" daemon.
+     * Communication with the Dispatcher is via Kotlin channels and communication with
+     * Bluetooth is via a socket..
      */
-    override fun createControllers() {
+    fun createControllers() {
         tabletController = BluetoothController(this, RobotModel.blueserverPort)
         val hostName: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_HOSTNAME, "localhost")
         val sockets: Map<String, Int> = RobotModel.sockets
@@ -62,7 +61,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
      * via socket to the server (launcher). We accept its responses and forward back to the tablet.
      * Communication with the tablet consists of simple strings, plus a 4-character header.
      */
-    override fun run() {
+     fun run() {
         try {
             while (true) {
                 lock.lock()
@@ -87,26 +86,28 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
                         dispatchController.receiveRequest(currentRequest)
                     }
                 }
-                catch (ie: InterruptedException) { }
+                catch (ie: InterruptedException) {}
                 finally {
                     lock.unlock()
                 }
             }
-        } catch (ex: Exception) {
+        }
+        catch (ex: Exception) {
             ex.printStackTrace()
-        } finally {
+        }
+        finally {
             shutdown()
         }
         Database.shutdown()
         System.exit(0)
     }
 
-    override suspend fun startup() {
+    override suspend fun start() {
         dispatchController.start()
         tabletController!!.start()
     }
 
-    override suspend fun shutdown() {
+    override suspend fun stop() {
         dispatchController.stop()
         tabletController.stop()
     }
@@ -156,59 +157,21 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
     // Local requests are those that can be handled immediately without forwarding to the dispatcher.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.COMMAND)) {
-            val properties: Map<String, String> = request.getProperties()
-            val cmd = properties[BottleConstants.COMMAND_NAME]
-            if (cmd.equals(BottleConstants.COMMAND_SLEEP, ignoreCase = true) ||
-                cmd.equals(BottleConstants.COMMAND_WAKE, ignoreCase = true)
-            ) {
+            val cmd = request.command
+            if (cmd == CommandType.SLEEP || cmd == CommandType.WAKE) {
                 return true
             }
         }
         return false
     }
 
-    companion object {
-        private const val CLSS = "Command"
-        private const val USAGE = "Usage: command <config-file>"
-        private val LOGGER = Logger.getLogger(CLSS)
-        private const val EXIT_WAIT_INTERVAL: Long = 1000
-        private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
-
-        /**
-         * Entry point for the application that contains the robot Java
-         * code for control of the appendages, among other things.
-         *
-         * Usage: bert <config>
-         *
-         * @param args command-line arguments
-        </config> */
-        @JvmStatic
-        fun main(args: Array<String>) {
-
-            // Make sure there is command-line argument
-            if (args.size < 1) {
-                println(USAGE)
-                System.exit(1)
-            }
-
-            // Analyze command-line argument to obtain the configuration file path.
-            val arg = args[0]
-            val path = Paths.get(arg)
-            PathConstants.setHome(path)
-            // Setup logging to use only a file appender to our logging directory
-            LoggerUtility.configureRootLogger(LOG_ROOT)
-            val model = RobotCommandModel(PathConstants.CONFIG_PATH)
-            model.populate()
-            Database.startup(PathConstants.DB_PATH)
-            val runner = Command(model)
-            runner.createControllers()
-            Runtime.getRuntime().addShutdownHook(ShutdownHook(runner))
-            runner.startup()
-            runner.start()
-        }
-    }
+    private val CLSS = "Command"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val EXIT_WAIT_INTERVAL: Long = 1000
+    override var controllerName = CLSS
 
     init {
+        controllerName = RobotModel.getControllerForType(ControllerType.COMMAND)
         lock = ReentrantLock()
         busy = lock.newCondition()
         ignoring = false

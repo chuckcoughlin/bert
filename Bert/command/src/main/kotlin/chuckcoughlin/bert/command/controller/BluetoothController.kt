@@ -31,7 +31,7 @@ class BluetoothController(parent: Controller,req : Channel<MessageBottle>,rsp: C
     private var suppressingErrors: Boolean
 
 
-    fun start() {
+    override suspend fun start() {
         val rdr = BluetoothBackgroundReader(socket)
         runner = Thread(rdr)
         runner.start()
@@ -116,28 +116,25 @@ class BluetoothController(parent: Controller,req : Channel<MessageBottle>,rsp: C
                         // Strip header then translate the rest.
                         try {
                             text = text.substring(BottleConstants.HEADER_LENGTH)
-                            LOGGER.info(java.lang.String.format("%s parsing: %s", sock.getName(), text))
+                            LOGGER.info(java.lang.String.format("%s parsing: %s", sock.name, text))
                             msg = parser.parseStatement(text)
                         }
                         catch (ex: Exception) {
-                            msg = MessageBottle()
-                            msg.type = RequestType.NOTIFICATION
-                            msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, text)
+                            msg = MessageBottle(RequestType.NOTIFICATION)
+                            msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, msg.type.name)
                         }
                     }
-                    else if (hdr.equals(MessageType.LOG.name(), ignoreCase = true)) {
-                        LOGGER.info(java.lang.String.format("%s: %s", sock.getName(), text))
+                    else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
+                        LOGGER.info(java.lang.String.format("%s: %s", sock.name, text))
                         continue
                     }
                     else {
-                        msg = MessageBottle()
-                        msg.type = RequestType.NOTIFICATION
+                        msg = MessageBottle(RequestType.NOTIFICATION)
                         msg.error = String.format("Message has an unrecognized prefix (%s)", text)
                     }
                 }
                 else {
-                    msg = MessageBottle()
-                    msg.type = RequestType.NOTIFICATION
+                    msg = MessageBottle(RequestType.NOTIFICATION)
                     msg.error = String.format("Received a short message from the tablet (%s)", text)
                 }
                 if (msg == null) break // This happens on shutdown - I don't know how

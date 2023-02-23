@@ -65,7 +65,7 @@ class NamedSocket {
      * If we are a server, create a listener and wait to accept a connection.
      * There is no action for a client.
      */
-    fun create(): Boolean {
+    fun create():Boolean {
         var success = true
         var attempts = 1
         if (isServer) {
@@ -77,11 +77,9 @@ class NamedSocket {
                     socket = serverSocket!!.accept()
                     LOGGER.info(String.format("%s.create: %s accepted connection on port %d after %d attempts",
                             CLSS,name,port,attempts))
-                    success = true
                     break
                 } 
                 catch (ex: Exception) {
-                    success = false
                     socket = null
                     LOGGER.severe(String.format("%s.create: ERROR creating server socket %s (%s)",
                             CLSS,name,ex.message))
@@ -102,7 +100,6 @@ class NamedSocket {
                     socket = Socket(host, port)
                     LOGGER.info(String.format("%s.create: new %s connection from %s on %d after %d attempts",
                             CLSS,name,host,port,attempts))
-                    success = true
                     break
                 } 
                 catch (ioe: IOException) {
@@ -116,6 +113,7 @@ class NamedSocket {
                         if (attempts % CLIENT_LOG_INTERVAL == 0) {
                             LOGGER.warning( String.format("%s.create: ERROR creating client socket %s (%s)",
                                     CLSS,name,ioe.message))
+                            success = false
                         }
                     }
                 }
@@ -199,20 +197,19 @@ class NamedSocket {
                 }
                 LOGGER.info(String.format("%s.read: %s got %s",
                     CLSS, name, json))
-                if (json != null) bottle = MessageBottle.fromJSON(json)
+                bottle = MessageBottle.fromJSON(json)
             }
             else {
                 LOGGER.warning(String.format(
                         "%s.read: Attempt to read from %s before port is open (ignored)",
-                        CLSS,
-                        name
-                    )
-                )
+                        CLSS,name))
             }
-        } catch (npe: NullPointerException) {
+        }
+        catch (npe: NullPointerException) {
             LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
                 CLSS, name, npe.localizedMessage))
-        } catch (ioe: IOException) {
+        }
+        catch (ioe: IOException) {
             LOGGER.severe(String.format("%s.read: Exception reading from %s (%s)",
                 CLSS, name, ioe.localizedMessage))
         }
@@ -280,25 +277,16 @@ class NamedSocket {
                 out!!.println(json)
                 out!!.flush()
                 LOGGER.info(String.format("%s.write: wrote %s %d bytes. ",
-                    CLSS, name, json!!.length))
-            } else {
-                LOGGER.warning(
-                    String.format(
-                        "%s.write: Attempt to write to %s before port is open (ignored)",
-                        CLSS,
-                        name
-                    )
-                )
+                    CLSS, name, json.length))
             }
-        } catch (ioe: Exception) {
-            LOGGER.severe(
-                String.format(
-                    "%s.write: Exception writing %d bytes (%s)",
-                    CLSS,
-                    json!!.length,
-                    ioe.localizedMessage
-                )
-            )
+            else {
+                LOGGER.warning(String.format("%s.write: Attempt to write to %s before port is open (ignored)",
+                        CLSS,name))
+            }
+        }
+        catch (ioe: Exception) {
+            LOGGER.severe(String.format("%s.write: Exception writing %d bytes (%s)",
+                    CLSS,json.length,ioe.localizedMessage))
         }
     }
 
@@ -312,19 +300,15 @@ class NamedSocket {
                     CLSS, name, text.length, text))
                 out!!.println(text) // Appends new-line
                 out!!.flush()
-            } else {
+            }
+            else {
                 LOGGER.info(String.format("%s.write: Attempt to write to %s before port is open (ignored)",
                     CLSS, name))
             }
-        } catch (ioe: Exception) {
-            LOGGER.severe(
-                String.format(
-                    "%s.write: Exception writing %d bytes (%s)",
-                    CLSS,
-                    text.length,
-                    ioe.localizedMessage
-                )
-            )
+        }
+        catch (ioe: Exception) {
+            LOGGER.severe(String.format("%s.write: Exception writing %d bytes (%s)",
+                    CLSS, text.length,ioe.localizedMessage))
         }
     }
 
@@ -338,12 +322,12 @@ class NamedSocket {
         LOGGER.info(String.format("%s.reread: on port %s",CLSS, name))
         if (input != null) try {
             input!!.close()
-        } catch (ignore: IOException) {
         }
+        catch (ignore: IOException) {}
         if (socket != null) try {
             socket!!.close()
-        } catch (ignore: IOException) {
         }
+        catch (ignore: IOException) {}
         if (serverSocket != null) try {
             serverSocket!!.close()
         }

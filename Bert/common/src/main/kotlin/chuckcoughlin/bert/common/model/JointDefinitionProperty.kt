@@ -13,7 +13,8 @@ enum class JointDefinitionProperty {
     ID,
     MOTORTYPE,
     OFFSET,
-    ORIENTATION;
+    ORIENTATION,
+    NONE;
 
     companion object {
         /**

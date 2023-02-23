@@ -8,18 +8,14 @@ import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageHandler
-import chuckcoughlin.bert.common.message.PropertyType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.JointProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.RobotModel.motorControllerNames
 import jssc.SerialPort
 import jssc.SerialPortException
 import kotlinx.coroutines.Dispatchers
@@ -28,13 +24,13 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
-import kotlin.collections.HashMap
 
 /**
  * The MotorGroupController receives requests from the server having to do with
- * the Dynamixel motors. This controller dispenses the request to the multiple
+ * the Dynamixel motors. This c ontroller dispenses the request to the multiple
  * MotorControllers receiving results via a call-back. An await-signal scheme
  * is used to present a synchronized method interface to the server.
  *
@@ -43,21 +39,23 @@ import kotlin.collections.HashMap
  * development, then responses are simulated without any direct serial
  * requests being made.
  */
-class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
-    private val motorControllers: MutableMap<String, MotorController>
+class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
+    private val motorControllers: MutableList<MotorController>   // One controller per serial port
+    private val dispatcher = parent
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
+    private val requestChannel  = Channel<MessageBottle>()
+    private val responseChannel = Channel<MessageBottle>()
     private val motorNameById: MutableMap<Int, String>
     var development: Boolean
     var running: Boolean
-    val controllerCount:Int
+    override var controllerCount: Int
 
     /**
      * Start a motor controller for each port.
      */
     override suspend fun start() {
-        LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
-            CLSS, controllerName, port.getPortName()))
+        LOGGER.info(String.format("%s(%s).start: Initializing ...",CLSS, controllerName))
 
         // Port is open, now use it.
         runBlocking<Unit> {
@@ -65,18 +63,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 Dispatchers.IO
                 while (running) {
                     select<Unit> {
-                        /**
-                         * On receipt of a message from the SerialPort,
-                         * decypher and forward to the MotorManager.
-                         */
-                        /**
-                         * On receipt of a message from the SerialPort,
-                         * decypher and forward to the MotorManager.
-                         */
-                        /**
-                         * On receipt of a message from the SerialPort,
-                         * decypher and forward to the MotorManager.
-                         */
+
 
                         /**
                          * On receipt of a message from the SerialPort,
@@ -102,7 +89,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                          * into a message for the SerialPort amd write.
                          */
                         parentRequestChannel.onReceive() {
-                            receiveRequest(it)   // stdOut
+                            processRequest(it)   // stdOut
                         }
                     }
                 }
@@ -111,52 +98,11 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     }
 
     override suspend fun stop() {
-        try {
-            port.closePort()
-        }
-        catch (spe: SerialPortException) {
-            LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",
-                CLSS,controllerName,spe.getLocalizedMessage()))
-        }
         running = false
     }
 
 
-    override fun getControllerCount(): Int {
-        return motorControllers.size
-    }
-
-    fun setResponseHandler(mh: MessageHandler) {
-        responseHandler = mh
-    }
-
-    fun start() {
-        if (!development) {
-            for (key in motorControllers.keys) {
-                val controller = motorControllers[key]
-                controller!!.setStopped(false)
-                controller.initialize()
-                motorControllerThreads[key]!!.start()
-            }
-        }
-    }
-
     /**
-     * Called by Dispatcher when it is stopped.
-     */
-    fun stop() {
-        if (!development) {
-            for (key in motorControllers.keys) {
-                val controller = motorControllers[key]
-                controller!!.setStopped(true)
-                controller.stop()
-                motorControllerThreads[key]!!.interrupt()
-            }
-        }
-    }
-
-    /**
-     * Called by the Dispatcher when confronted with Motor requests.
      * There are 3 kinds of messages that we process:
      * 1) Requests that can be satisfied from information in our static
      * configuration. Compose results and return immediately.
@@ -176,21 +122,22 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     fun processRequest(request: MessageBottle) {
         if (canHandleImmediately(request)) {
             responseHandler.handleResponse(createResponseForLocalRequest(request))
-        } else if (development) {
+        }
+        else if (development) {
             responseHandler.handleResponse(simulateResponseForRequest(request))
         } else {
             LOGGER.info(String.format(
-                    "%s.processRequest: processing %s",
-                    CLSS,
-                    request.type.name()
-                )
+                "%s.processRequest: processing %s",
+                CLSS,
+                request.type.name()
             )
-            for (controller in motorControllers.values) {
+            )
+            for (controller in motorControllers) {
                 controller.receiveRequest(request)
             }
         }
     }
-    // =========================== Motor Manager Interface ====================================
+// =========================== Motor Manager Interface ====================================
     /**
      * When the one of the controllers has detected the response is complete, it calls
      * this method. When all controllers have responded the response will be sent off.
@@ -201,10 +148,10 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     override fun handleAggregatedResponse(rsp: MessageBottle) {
         val count: Int = rsp.incrementResponderCount()
         LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
-                CLSS,rsp.type.name,count,controllerCount))
+            CLSS,rsp.type.name,count,controllerCount))
         if (count >= controllerCount) {
             LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",
-                    CLSS ))
+                CLSS ))
             responseHandler.handleResponse(rsp)
         }
     }
@@ -219,11 +166,10 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     override fun handleSynthesizedResponse(rsp: MessageBottle) {
         val count: Int = rsp.incrementResponderCount()
         LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",
-                CLSS,rsp.type.name,count,controllerCount)
-        )
+            CLSS,rsp.type.name,count,controllerCount) )
         if (count >= controllerCount) {
             LOGGER.info(String.format("%s.handleSynthesizedResponse: all controllers accounted for: responding ...",
-                    CLSS) )
+                CLSS) )
             responseHandler.handleResponse(rsp)
         }
     }
@@ -238,39 +184,31 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     }
 
     // =========================== Private Helper Methods =====================================
-    // Queries of fixed properties of the motors are the kinds of requests that can be handled
-    // immediately. Results are created from the original configuration file
+// Queries of fixed properties of the motors are the kinds of requests that can be handled
+// immediately. Results are created from the original configuration file
     private fun canHandleImmediately(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            request.type.equals(RequestType.LIST_MOTOR_PROPERTY)
-        ) {
+            request.type.equals(RequestType.LIST_MOTOR_PROPERTY) ) {
             // Certain properties are constants available from the configuration file.
-            val property: String = request.getProperty(PropertyType.PROPERTY_NAME, "")
-            if (property.equals(JointDefinitionProperty.ID.name, ignoreCase = true) ||
-                property.equals(JointDynamicProperty.MINIMUMANGLE.name, ignoreCase = true) ||
-                property.equals(JointDynamicProperty.MAXIMUMANGLE.name, ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.MOTORTYPE.name, ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.OFFSET.name, ignoreCase = true) ||
-                property.equals(JointDefinitionProperty.ORIENTATION.name, ignoreCase = true)
-            ) {
+            val defProp= request.jointDefinitionProperty
+            if( defProp==JointDefinitionProperty.ID         ||
+                defProp==JointDefinitionProperty.MOTORTYPE  ||
+                defProp==JointDefinitionProperty.OFFSET     ||
+                defProp==JointDefinitionProperty.ORIENTATION  ) {
                 return true
             }
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
-            val property = request.property
-            if (property.equals(JointDefinitionProperty.ID) ||
-                property.equals(JointDefinitionProperty.MOTORTYPE) ||
-                property.equals(JointDefinitionProperty.OFFSET) ||
-                property.equals(JointDefinitionProperty.ORIENTATION) ||
-                property.equals(JointDynamicProperty.POSITION)
-            ) {
+            val prop = request.jointDynamicProperty
+            if (prop==JointDynamicProperty.MAXIMUMANGLE ||
+                prop== JointDynamicProperty.MINIMUMANGLE ) {
                 return true
             }
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
-            val property = request.property
+            val property = request.jointDynamicProperty
             if (property.equals(JointDefinitionProperty.ID) ||
                 property.equals(JointDefinitionProperty.MOTORTYPE) ||
                 property.equals(JointDefinitionProperty.OFFSET) ||
@@ -286,90 +224,93 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     }
 
     // The "local" response is simply the original request with some text
-    // to return directly to the user. These jointValues are obtained from the initial configuration.
+// to return directly to the user. These jointValues are obtained from the initial configuration.
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
         if (request.type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val property = request.property
             val joint = request.joint
-            LOGGER.info(
-                java.lang.String.format(
-                    "%s.createResponseForLocalRequest: %s %s in %s",
-                    CLSS,request.type.name,property.name,joint.name))
-            var text: String? = ""
             val jointName: String = Joint.toText(joint)
-            val mc: MotorConfiguration = RobotModel.motors.get(joint)
+            var text: String = ""
+            val mc: MotorConfiguration? = RobotModel.motors.get(joint)
             if (mc != null) {
-                when (property) {
-                    ID -> {
-                        val id: Int = mc.getId()
-                        text = "The id of my $jointName is $id"
-                    }
+                // The request can be for either a definition or dynamic property
+                if (request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
+                    // Dynamic property
+                    val property = request.jointDynamicProperty
+                    LOGGER.info(
+                        String.format("%s.createResponseForLocalRequest: %s %s in %s",
+                            CLSS, request.type.name, property.name, joint.name) )
 
-                    JointProperty.MAXIMUMANGLE -> text = java.lang.String.format(
-                        "The maximum angle of my %s is %.0f degrees",
-                        jointName,
-                        mc.getMaxAngle()
-                    )
+                    when (property) {
+                        JointDynamicProperty.MAXIMUMANGLE -> {
+                            text = String.format("The maximum angle of my %s is %.0f degrees",
+                                jointName, mc.maxAngle)
+                        }
 
-                    JointProperty.MINIMUMANGLE -> text = java.lang.String.format(
-                        "The minimum angle of my %s is %.0f degrees",
-                        jointName,
-                        mc.getMinAngle()
-                    )
-
-                    JointProperty.MOTORTYPE -> {
-                        var modelName = "A X 12"
-                        if (mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28" else if (mc.getType()
-                                .equals(DynamixelType.MX64)
-                        ) modelName = "M X 64"
-                        text = "My $jointName is a dynamixel $modelName"
-                    }
-
-                    JointProperty.OFFSET -> {
-                        val offset: Double = mc.getOffset()
-                        text = "The offset of my $jointName is $offset"
-                    }
-
-                    JointProperty.ORIENTATION -> {
-                        var orientation = "indirect"
-                        if (mc.isDirect()) orientation = "direct"
-                        text = "The orientation of my $jointName is $orientation"
-                    }
-
-                    else -> {
-                        text = ""
-                        request.error = property.name() + " is not a property that I can look up"
+                        JointDynamicProperty.MINIMUMANGLE -> {
+                            text = String.format( "The minimum angle of my %s is %.0f degrees",
+                                jointName, mc.minAngle)
+                        }
                     }
                 }
-            }
-            else {
-                request.error = String.format("The configuration file does not include joint %s",joint.name )
+                else {
+                    // Configuration property
+                    val property = request.jointDefinitionProperty
+                    LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
+                        CLSS, request.type.name, property.name, joint.name))
+                    when (property) {
+                        JointDefinitionProperty.ID -> {
+                            val id: Int = mc.id
+                            text = "The id of my $jointName is $id"
+                        }
+
+                        JointDefinitionProperty.MOTORTYPE -> {
+                            var modelName = "A X 12"
+                            if (mc.type.equals(DynamixelType.MX28)) modelName = "M X 28"
+                            else if (mc.type.equals(DynamixelType.MX64)) {
+                                modelName = "M X 64"
+                            }
+                            text = "My $jointName is a dynamixel $modelName"
+                        }
+
+                        JointDefinitionProperty.OFFSET -> {
+                            val offset: Double = mc.offset
+                            text = "The offset of my $jointName is $offset"
+                        }
+
+                        JointDefinitionProperty.ORIENTATION -> {
+                            val orientation: String = if(mc.isDirect) "direct" else "indirect"
+                            text = "The orientation of my $jointName is $orientation"
+                        }
+
+                        JointDefinitionProperty.NONE -> {
+                            // Neither type of property is set
+                            request.error = String.format("The message does not specify a parameter (%s)", property.name)
+                        }
+                    }
+                }
             }
             request.text = text
         }
         else if (request.type.equals(RequestType.GET_CONFIGURATION)) {
             val text = "Motor configuration parameters have been logged"
             request.text = text
-            for (group in motorControllers.keys) {
-                val controller = motorControllers[group]
+            for (controller in motorControllers) {
                 val map: Map<String?, MotorConfiguration?>? = controller.getConfigurations()
                 for (joint in map!!.keys) {
                     val mc: MotorConfiguration? = map[joint]
                     LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
-                            joint,mc.id,mc.type.name,mc.minAngle,mc.maxAngle,
-                            mc.offset,
-                            if (mc.isDirect()) "" else "(indirect)"
-                        )
-                    )
+                        joint, mc.id, mc.type.name, mc.minAngle, mc.maxAngle,mc.offset,
+                        if (mc.isDirect()) "" else "(indirect)"))
                     request.setProperty(PropertyType.PROPERTY_NAME, JointProperty.MOTORTYPE.name())
-                    request.setJointValue(JointProperty.MOTORTYPE.name(), mc.getType().name())
+                    request.setJointValue(JointProperty.MOTORTYPE.name, mc.type.name)
                 }
             }
         }
         else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
-            val property = request.property
+            val property = request.jointDynamicProperty
             LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
-                    CLSS,request.type.name,property.name()))
+                    CLSS, request.type.name, property.name())
+            )
             var text: String? = ""
             val mcs: Map<Joint, MotorConfiguration> = RobotModel.motors
             for (joint in mcs.keys) {
@@ -388,14 +329,14 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
 
                     JointProperty.MOTORTYPE -> {
                         var modelName = "A X 12"
-                        if (mc.getType().equals(DynamixelType.MX28)) modelName = "M X 28" else if (mc.getType()
+                        if (mc.type.equals(DynamixelType.MX28)) modelName = "M X 28" else if (mc.getType()
                                 .equals(DynamixelType.MX64)
                         ) modelName = "M X 64"
                         text = joint.toString() + " is a dynamixel " + modelName
                     }
 
-                    JointProperty.OFFSET -> {
-                        val offset: Double = mc.getOffset()
+                    JointDefinitionProperty.OFFSET -> {
+                        val offset: Double = mc.offset
                         text = "The offset of $joint is $offset"
                     }
 
@@ -413,44 +354,50 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 LOGGER.info(text)
             }
             text = String.format("The %ss of all motors have been logged", property.name().toLowerCase())
-            request.text =  text
-        }
-        else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
-            val property = request.property.toString()
-            request.error = "I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb")
-        }
-        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-            val property = request.property.toString()
+            request.text = text
+        } else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
+            val property = request.jointDynamicProperty.toString()
+            request.error = "I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb"
+        } else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+            val property = request.jointDynamicProperty.toString()
             request.error = "I cannot change a motor " + property.lowercase(Locale.getDefault())
         }
         return request
     }
 
+
     // When in development mode, simulate something reasonable as a response.
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {
         val requestType = request.type
         if (requestType.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val property: JointProperty = JointProperty.valueOf(request.getProperty(BottleConstants.PROPERTY_NAME, ""))
-            val joint: Joint = Joint.valueOf(request.getProperty(BottleConstants.JOINT_NAME, "UNKNOWN"))
+
+            val joint: Joint = request.joint
             var text = ""
             val jointName: String = Joint.toText(joint)
-            val mc: MotorConfiguration = model.motors.get(joint)
-            when (property) {
-                JointProperty.POSITION -> {
-                    val position = 0
-                    text = "The position of my $jointName is $position"
+            val mc: MotorConfiguration = RobotModel.motors[joint]
+            if( request.jointDynamicProperty==JointDynamicProperty.NONE ) {
+                val property = request.jointDefinitionProperty
+                when(property) {
+                    JointDefinitionProperty.ID -> {
+                        val id = mc.id
+                        text = "The id of my $jointName is $id"
+                    }
                 }
-
-                else -> {
-                    text = ""
-                    request.error = property.name() + " is not a property that I can read")
+            }
+            else {
+                val property = request.jointDynamicProperty
+                when (property) {
+                    JointDynamicProperty.POSITION -> {
+                        val position = 0
+                        text = "The position of my $jointName is $position"
+                    }
                 }
             }
             request.text = text
         }
         else {
             LOGGER.warning(String.format("%s.simulateResponseForRequest: Request type %s not handled",
-                    CLSS,requestType.name))
+                CLSS,requestType.name))
         }
         return request
     }
@@ -463,9 +410,9 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * instances each running in its own thread. Each controller handles a group of
      * motors all communicating on the same serial port.
      */
-    fun init () {
+    init  {
         controllerName = RobotModel.getControllerForType(ControllerType.MOTORGROUP)
-        motorControllers = mutableMapOf<String,MotorController>()
+        motorControllers = mutableListOf<MotorController>()
         motorNameById    = mutableMapOf<Int, String>()
         running = false
         LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
@@ -474,11 +421,12 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         if (!development) {
             val motors: Map<Joint, MotorConfiguration> = RobotModel.motors
             for(cname in RobotModel.motorControllerNames) {
-                val port: SerialPort = RobotModel.getPortForController(cname)
-                if( port==ConfigurationConstants.NO_PORT ) continue
-                // Controller is not a motor controller
-                val controller = MotorController(cname, port, this)
-                motorControllers[cname] = controller
+                val portName : String = RobotModel.getPortForController(cname)
+                if( portName==ConfigurationConstants.NO_PORT ) continue   // Controller is not a motor controller
+
+                val port:SerialPort = SerialPort(portName)
+                val controller = MotorController(port, requestChannel,responseChannel,this)
+                motorControllers.add(controller)
 
                 // Add configurations to the controller for each motor in the group
                 val joints: List<Joint> = RobotModel.getJointsForController(cname)
@@ -498,9 +446,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 }
 
                 LOGGER.info(String.format("%s.initialize: Created motor controller %s",
-                    CLSS,controller.controllerName
-                )
-                )
+                    CLSS,controller.controllerName))
             }
             controllerCount = motorControllers.size
         }

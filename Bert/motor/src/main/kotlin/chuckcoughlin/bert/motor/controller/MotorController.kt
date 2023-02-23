@@ -184,7 +184,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                     }
                 }
                 else {
-                    val property: JointDynamicProperty = request.property
+                    val property: JointDynamicProperty = request.jointDynamicProperty
                     LOGGER.info(String.format("%s(%s).receiveRequest: %s (%s)",
                             CLSS,controllerName,request.type.name,property.name))
                 }
@@ -351,7 +351,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         if (type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.FREEZE) ) {
 
-            val propertyValues = request.getPropertyValueIterator()
+            val propertyValues = request.getJointValueIterator()
             if( propertyValues.hasNext() ) {             // There should be only one entry
                 val pv = propertyValues.next()
                 val joint = pv.joint // This is the one we want to freeze
@@ -368,7 +368,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
         else if (type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.RELAX) ) {
-            val propertyValues = request.getPropertyValueIterator()
+            val propertyValues = request.getJointValueIterator()
             if( propertyValues.hasNext() ) {             // There should be only one entry
                 val pv = propertyValues.next()
                 val joint = pv.joint // This is the one we want to freeze
@@ -403,7 +403,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             }
         }
         else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val propertyValues = request.getPropertyValueIterator()
+            val propertyValues = request.getJointValueIterator()
             if( propertyValues.hasNext() ) {             // There should be only one entry
                 val pv = propertyValues.next()
                 val joint = pv.joint // This is the one we want to freeze
@@ -419,7 +419,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
         else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
             val limb = request.limb
-            val propertyValues = request.getPropertyValueIterator()
+            val propertyValues = request.getJointValueIterator()
             if (propertyValues.hasNext()) {             // There should be only one entry
                 val pv = propertyValues.next()
                 val prop = pv.property
@@ -435,7 +435,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             }
         }
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-            val propertyValues = request.getPropertyValueIterator()
+            val propertyValues = request.getJointValueIterator()
             if (propertyValues.hasNext()) {             // There should be only one entry
                 val pv = propertyValues.next()
                 val joint = pv.joint
@@ -501,7 +501,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
         else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
             val limb = request.limb
-            val prop = request.property
+            val prop = request.jointDynamicProperty
             if( limb.equals(Limb.NONE) ) {
                 list = DxlMessage.byteArrayListToListProperty(prop, configurationsByJoint.values)
                 wrapper.responseCount = configurationsByJoint.size // Status packet for each motor
@@ -579,7 +579,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val joint = request.joint
             val mc: MotorConfiguration? = getMotorConfiguration(joint)
-            val property = request.property
+            val property = request.jointDynamicProperty
             DxlMessage.updateParameterFromBytes(property, mc!!, request, bytes)
             val partial = request.text
             if (partial != null && !partial.isEmpty()) {
@@ -692,7 +692,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                             if (nbytes < bytes.size) {
                                 bytes = truncateByteArray(bytes, nbytes)
                             }
-                            val prop= req.property
+                            val prop= req.jointDynamicProperty
                             val map = updateStatusFromBytes(prop, bytes)
                             for (key in map.keys) {
                                 val param = map[key]

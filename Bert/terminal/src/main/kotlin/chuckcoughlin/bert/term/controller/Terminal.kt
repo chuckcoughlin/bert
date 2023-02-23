@@ -108,10 +108,10 @@ class Terminal(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Mess
         if( input!=null) {
             val text = input
             System.out.println(prompt)
-            if (!text.isEmpty()) {
+            if( text.isNotEmpty() ) {
                 LOGGER.info(String.format("%s:parsing %s", CLSS, text))
                 val request = parser.parseStatement(text)
-                if( !request.error.isEmpty() ||
+                if( request.error.isNotEmpty() ||
                     request.type.equals(RequestType.NOTIFICATION) ) {
                     displayMessage(request)   // Take care of locally to stdOut
                 }
@@ -124,7 +124,7 @@ class Terminal(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Mess
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.type.equals(RequestType.COMMAND)) {
+        if (request.type==RequestType.COMMAND) {
             val command: CommandType = request.command
             //LOGGER.warning(String.format("%s.handleLocalRequest: command=%s",CLSS,command));
             if( command.equals(CommandType.SLEEP) ){

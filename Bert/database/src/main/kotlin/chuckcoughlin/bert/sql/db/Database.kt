@@ -41,7 +41,7 @@ object Database  {
      */
     fun getPoseJointValuesForParameter(mcmap: Map<Joint, MotorConfiguration>,poseName: String,
                                        parameter: JointDynamicProperty): Map<Joint, Double> {
-        return pose.getPoseJointValuesForParameter(connection, mcmap, poseName, parameter)
+        return pose.getPoseJointValuesForParameter(connection, poseName, parameter)
     }
 
     /**

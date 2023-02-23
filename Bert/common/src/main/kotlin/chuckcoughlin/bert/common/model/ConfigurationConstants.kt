@@ -13,7 +13,6 @@ object ConfigurationConstants {
 
 
     // Keys for properties found in the main configuration file
-    const val PROPERTY_BLUESERVER_PORT = "blueserver"
     const val PROPERTY_CADENCE = "cadence"
     const val PROPERTY_CONTROLLER_NAME = "controller"
     const val PROPERTY_DEVICE = "device"
@@ -28,6 +27,6 @@ object ConfigurationConstants {
 
     // Error values
     const val NO_CONTROLLER  = "Not Defined"
-    const val NO_PORT        = -1
+    const val NO_PORT        = "No Port"
     const val NO_VALUE       = "No Value"
 }
