@@ -34,15 +34,15 @@ class BluetoothController(parent: Controller,req : Channel<MessageBottle>,rsp: C
     override suspend fun start() {
         val rdr = BluetoothBackgroundReader(socket)
         runner = Thread(rdr)
-        runner.start()
+        runner!!.start()
     }
 
     /**
      * Format a request from the spoken text arriving from the tablet.
-     * Forward on to the launcher.
+     * Forward on to the dispatcher.
      */
-    fun receiveRequest(request: MessageBottle) {
-        launcher.handleRequest(request)
+    suspend fun receiveRequest(request: MessageBottle) {
+        parentRequestChannel.send(request)
     }
 
     /**
@@ -139,9 +139,10 @@ class BluetoothController(parent: Controller,req : Channel<MessageBottle>,rsp: C
                 }
                 if (msg == null) break // This happens on shutdown - I don't know how
                 msg.source = ControllerType.COMMAND.name
-                if (msg.type.equals(RequestType.NOTIFICATION) ||
-                    msg.type.equals(RequestType.NONE) ||
-                    msg.type.equals(RequestType.PARTIAL) || msg.error != null) {
+                if( msg.type == RequestType.NOTIFICATION ||
+                    msg.type == RequestType.NONE ||
+                    msg.type == RequestType.PARTIAL ||
+                    msg.error != null ) {
                     handleImmediateResponse(msg)
                 }
                 else {
@@ -149,7 +150,7 @@ class BluetoothController(parent: Controller,req : Channel<MessageBottle>,rsp: C
                     receiveRequest(msg)
                 }
             }
-            LOGGER.info(java.lang.String.format("BluetoothBackgroundReader,%s stopped", sock.name))
+            LOGGER.info(String.format("BluetoothBackgroundReader,%s stopped", sock.name))
         }
     }
 

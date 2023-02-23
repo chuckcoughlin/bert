@@ -49,7 +49,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     private val motorNameById: MutableMap<Int, String>
     var development: Boolean
     var running: Boolean
-    override var controllerCount: Int
+    override var controllerCount: Int = 0
 
     /**
      * Start a motor controller for each port.
@@ -64,26 +64,16 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 while (running) {
                     select<Unit> {
 
-
                         /**
                          * On receipt of a message from the SerialPort,
                          * decypher and forward to the MotorManager.
                          */
                         async {
-                            receiveSerialResponse()
+                            for (controller in motorControllers) {
+                                controller.receiveSerialResponse()
+                            }
+
                         }
-                        /**
-                         * The parent request is a motor command. Convert it
-                         * into a message for the SerialPort amd write.
-                         */
-                        /**
-                         * The parent request is a motor command. Convert it
-                         * into a message for the SerialPort amd write.
-                         */
-                        /**
-                         * The parent request is a motor command. Convert it
-                         * into a message for the SerialPort amd write.
-                         */
                         /**
                          * The parent request is a motor command. Convert it
                          * into a message for the SerialPort amd write.
@@ -125,13 +115,10 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         }
         else if (development) {
             responseHandler.handleResponse(simulateResponseForRequest(request))
-        } else {
-            LOGGER.info(String.format(
-                "%s.processRequest: processing %s",
-                CLSS,
-                request.type.name()
-            )
-            )
+        }
+        else {
+            LOGGER.info(String.format("%s.processRequest: processing %s",
+                CLSS,request.type.name))
             for (controller in motorControllers) {
                 controller.receiveRequest(request)
             }
@@ -212,8 +199,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
             if (property.equals(JointDefinitionProperty.ID) ||
                 property.equals(JointDefinitionProperty.MOTORTYPE) ||
                 property.equals(JointDefinitionProperty.OFFSET) ||
-                property.equals(JointDefinitionProperty.ORIENTATION)
-            ) {
+                property.equals(JointDefinitionProperty.ORIENTATION)) {
                 return true
             }
         }
@@ -370,11 +356,10 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {
         val requestType = request.type
         if (requestType.equals(RequestType.GET_MOTOR_PROPERTY)) {
-
             val joint: Joint = request.joint
             var text = ""
             val jointName: String = Joint.toText(joint)
-            val mc: MotorConfiguration = RobotModel.motors[joint]
+            val mc: MotorConfiguration = RobotModel.motors[jointName]
             if( request.jointDynamicProperty==JointDynamicProperty.NONE ) {
                 val property = request.jointDefinitionProperty
                 when(property) {
@@ -425,7 +410,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 if( portName==ConfigurationConstants.NO_PORT ) continue   // Controller is not a motor controller
 
                 val port:SerialPort = SerialPort(portName)
-                val controller = MotorController(port, requestChannel,responseChannel,this)
+                val controller = MotorController(port,this,requestChannel,responseChannel)
                 motorControllers.add(controller)
 
                 // Add configurations to the controller for each motor in the group
@@ -436,7 +421,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                     val motor: MotorConfiguration? = motors[joint]
                     if (motor != null) {
                         //LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name(),controller.getGroupName()));
-                        controller.putMotorConfiguration(joint.name, motor)
+                        controller.putMotorConfiguration(joint, motor)
                         motorNameById[motor.id] = joint.name
                     }
                     else {

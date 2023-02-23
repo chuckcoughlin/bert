@@ -214,9 +214,9 @@ object DxlMessage {
      * @return up to 3 byte arrays as required by the pose
      */
     fun byteArrayListToSetPose(map: Map<Joint, MotorConfiguration>, pose: String): List<ByteArray> {
-        val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.TORQUE)
-        val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.SPEED)
-        val positions: Map<Joint, Double> = Database.getPoseJointValuesForParameter(map, pose, JointDynamicProperty.POSITION)
+        val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter( pose, JointDynamicProperty.TORQUE)
+        val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.SPEED)
+        val positions: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.POSITION)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
         val tc = torques.size

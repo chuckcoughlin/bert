@@ -7,8 +7,13 @@ package chuckcoughlin.bert.common.controller
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -19,12 +24,12 @@ import java.util.logging.Logger
  * be configured for either a server or client (hostname exists).
  */
 open class SocketController : Controller {
-    private val socket: NamedSocket
+    protected val socket: NamedSocket
     private val server : Boolean  // True of this is created by the Dispatcher.
     protected val changeListeners: MutableList<SocketStateChangeListener> = ArrayList()
     private val dispatcher:Controller
-    private var parentRequestChannel: Channel<MessageBottle>
-    private var parentResponseChannel: Channel<MessageBottle>
+    protected var parentRequestChannel: Channel<MessageBottle>
+    protected var parentResponseChannel: Channel<MessageBottle>
     val scope = MainScope() // Uses Dispatchers.Main
     var ignoring : Boolean
     var running:Boolean

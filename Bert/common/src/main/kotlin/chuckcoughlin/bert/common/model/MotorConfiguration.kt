@@ -76,6 +76,8 @@ class MotorConfiguration : Serializable {
     fun setDynamicProperty(jp: JointDynamicProperty, value: Double) {
         when (jp) {
             JointDynamicProperty.POSITION -> position = value
+            JointDynamicProperty.MAXIMUMANGLE -> maxAngle = value
+            JointDynamicProperty.MINIMUMANGLE -> minAngle = value
             JointDynamicProperty.SPEED -> speed = value
             JointDynamicProperty.STATE -> setState(value)
             JointDynamicProperty.TEMPERATURE -> temperature = value
