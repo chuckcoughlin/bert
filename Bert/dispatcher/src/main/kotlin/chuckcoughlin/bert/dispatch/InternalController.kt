@@ -18,9 +18,9 @@ import java.util.logging.Logger
  * Dispatcher on a clocked basis. The initial implementation handles only a
  * single request.
  */
-class InternalController(launcher: MessageHandler) {
+class InternalController(dis : Dispatcher) {
     private val LOGGER = Logger.getLogger(CLSS)
-    private val dispatcher: MessageHandler
+    private val dispatcher = dis
     private val timedQueue: TimedQueue
     private val sequentialQueues: MutableMap<QueueName, SequentialQueue>
     private val pendingMessages: MutableMap<Long, InternalMessageHolder>
@@ -41,15 +41,15 @@ class InternalController(launcher: MessageHandler) {
         if (qn != null) queue = sequentialQueues[qn]
         if (queue != null) {
             LOGGER.info(
-                String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.getMessage().type,
+                String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.message.type,
                     holder.queue.name, if (queue.inProgress) "IN PROGRESS" else "IDLE"
                 )
             )
             queue.addLast(holder)
             if (!queue.inProgress) {
-                holder = queue.removeFirst()
+                val newholder = queue.removeFirst()
                 queue.inProgress = true
-                sendToTimerQueue(queue, holder) // Just in case there's a required delay
+                sendToTimerQueue(queue, newholder) // Just in case there's a required delay
             }
         }
         else {
@@ -67,7 +67,7 @@ class InternalController(launcher: MessageHandler) {
     fun receiveResponse(msg: MessageBottle) {
         var holder: InternalMessageHolder? = pendingMessages[msg.id]
         if (holder != null) {
-            pendingMessages.remove(JointDefinitionProperty.ID.id)
+            pendingMessages.remove(JointDefinitionProperty.ID)
             // Reinstate the original source in the message so the dispatcher can route appropriately	
             holder.reinstateOriginalSource()
 
@@ -79,7 +79,7 @@ class InternalController(launcher: MessageHandler) {
             if (queue != null) {
                 if (queue.isEmpty()) {
                     LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (empty)",
-                        CLSS, holder.ID.id,holder.message.type.name, qn.name
+                        CLSS, JointDefinitionProperty.ID,holder.message.type.name, qn.name
                         )
                     )
                     queue.inProgress = false
@@ -87,7 +87,7 @@ class InternalController(launcher: MessageHandler) {
                 else {
                     queue.inProgress = true
                     LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (%d queued)",
-                            CLSS, holder.ID.id,holder.message.type.name, qn.name, queue.size
+                            CLSS, JointDefinitionProperty.ID,holder.message.type.name, qn.name, queue.size
                         )
                     )
                     holder = queue.removeFirst()
@@ -140,7 +140,7 @@ class InternalController(launcher: MessageHandler) {
      */
     private fun sendToTimerQueue(queue: SequentialQueue?, holder: InternalMessageHolder?) {
         if (queue != null) {
-            pendingMessages[holder.ID.id] = holder
+            pendingMessages[JointDefinitionProperty.ID.id] = holder
             // LOGGER.info(String.format("%s.sendToTimerQueue: %d from %s",CLSS,holder.getMessage().getId(),holder.getQueue().name()));
             queue.inProgress = true
         }

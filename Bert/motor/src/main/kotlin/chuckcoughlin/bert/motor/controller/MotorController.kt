@@ -64,8 +64,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             : LinkedList<MessageWrapper>
     private var timeOfLastWrite: Long
 
-    val configurations: Map<Joint, MotorConfiguration>
-        get() = configurationsByJoint
+    val configurations: MutableCollection<MotorConfiguration>
+        get() = configurationsByJoint.values
 
     fun getMotorConfiguration(joint: Joint): MotorConfiguration? {
         return configurationsByJoint[joint]
@@ -251,7 +251,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
 
     // ============================= Private Helper Methods =============================
     // Create a response for a request that can be handled immediately. There aren't many of them.
-    private fun handleLocalRequest(request: MessageBottle): MessageBottle {
+    private suspend fun handleLocalRequest(request: MessageBottle): MessageBottle {
         // The following two requests simply use the current positions of the motors, whatever they are
         if (request.type.equals(RequestType.COMMAND)) {
             val command: CommandType = request.command
@@ -537,7 +537,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * a response from each controller.
      * @param msg the request
      */
-    private fun synthesizeResponse(msg: MessageBottle) {
+    private suspend fun synthesizeResponse(msg: MessageBottle) {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.SET_POSE)) {
             motorManager.handleSynthesizedResponse(msg)
@@ -649,7 +649,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      *
      * Unless an error is returned, the response queue must have at least one response for associating results.
      */
-    @Synchronized
     override fun serialEvent(event: SerialPortEvent) {
         LOGGER.info(String.format("%s(%s).serialEvent queue is %d", CLSS, controllerName, responseQueue.size))
         if (event.isRXCHAR()) {
@@ -708,10 +707,14 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                             responseQueue.removeFirst()
                             if (isSingleControllerRequest(req)) {
                                 updateRequestFromBytes(req, bytes)
-                                motorManager.handleSingleControllerResponse(req)
+                                runBlocking {
+                                    motorManager.handleSingleControllerResponse(req)
+                                }
                             }
                             else {
-                                motorManager.handleAggregatedResponse(req)
+                                runBlocking {
+                                    motorManager.handleAggregatedResponse(req)
+                                }
                             }
                         }
                     }

@@ -133,7 +133,8 @@ class NamedSocket {
                 input = BufferedReader(InputStreamReader(socket!!.getInputStream()))
                 LOGGER.info(String.format("%s.startup: opened %s for read",
                     CLSS, name))
-            } catch (ex: Exception) {
+            }
+            catch (ex: Exception) {
                 LOGGER.info(String.format("%s.startup: ERROR opening %s for read (%s)",
                     CLSS, name, ex.message))
             }
@@ -165,7 +166,8 @@ class NamedSocket {
         if (input != null) {
             try {
                 input!!.close()
-            } catch (ignore: IOException) {
+            }
+            catch (ignore: IOException) {
             }
             input = null
         }
@@ -233,34 +235,22 @@ class NamedSocket {
                 while (text == null) {
                     try {
                         Thread.sleep(10000L)
-                    } catch (ignore: InterruptedException) {
                     }
-                    LOGGER.info(String.format("%s.readLine: got null, retrying",
-                        CLSS
-                    ))
+                    catch (ignore: InterruptedException) {
+                    }
+                    LOGGER.info(String.format("%s.readLine: got null, retrying",CLSS))
                     //text = reread();  // May not need
                     text = input!!.readLine()
                 }
-                LOGGER.info(String.format("%s.readLine: got %s",
-                    CLSS, text))
-            } else {
-                LOGGER.warning(
-                    String.format(
-                        "%s.readLine: Attempt to read from %s before port is open )ignored)",
-                        CLSS,
-                        name
-                    )
-                )
+                LOGGER.info(String.format("%s.readLine: got %s",CLSS, text))
+            }
+            else {
+                LOGGER.warning(String.format("%s.readLine: Attempt to read from %s before port is open )ignored)",
+                        CLSS,name))
             }
         } catch (ioe: IOException) {
-            LOGGER.severe(
-                String.format(
-                    "%s.readLine: Exception reading from %s (%s)",
-                    CLSS,
-                    name,
-                    ioe.localizedMessage
-                )
-            )
+            LOGGER.severe(String.format("%s.readLine: Exception reading from %s (%s)",
+                    CLSS,name,ioe.localizedMessage))
         }
         return text
     }

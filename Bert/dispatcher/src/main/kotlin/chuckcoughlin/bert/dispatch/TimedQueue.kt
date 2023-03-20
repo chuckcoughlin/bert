@@ -1,9 +1,10 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch
 
+import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.control.message.InternalMessageHolder
 import java.util.*
 import java.util.logging.Level
@@ -45,10 +46,9 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
             if (im.executionTime > holder.executionTime) {
                 add(index, holder)
                 val now = System.nanoTime() / 1000000
-                LOGGER.info(
-                    java.lang.String.format(
+                LOGGER.info(String.format(
                         "%s.insertMessage(%d): %s scheduled in %d msecs position %d",
-                        CLSS, InternalMessageHolder.ID.id, holder.message.type.name,
+                        CLSS, holder.id, holder.message.type.name,
                         holder.executionTime - now, index
                     )
                 )
@@ -75,7 +75,7 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
         }
         else {
             LOGGER.info(String.format("%s.fireExecutor: dispatching(%d) %s ...",
-                    CLSS,holder.ID.id,holder.message.type.name))
+                    CLSS, JointDefinitionProperty.ID,holder.message.type.name))
             controller.dispatch(holder)
         }
         timerThread!!.interrupt()
@@ -94,11 +94,7 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
             timerThread!!.isDaemon = true
             timerThread!!.start()
             LOGGER.info(String.format("%s.START timer thread %s (%d)",
-                    name,
-                    timerThread!!.name,
-                    timerThread.hashCode()
-                )
-            )
+                    CLSS,timerThread!!.name,timerThread.hashCode()) )
         }
     }
 
@@ -126,29 +122,25 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
             val waitTime = (head.executionTime - now) as Long
             try {
                 if (waitTime > 0) {
-                    wait(waitTime)
+                    Thread.sleep(waitTime)
                 }
                 currentTime = head.executionTime
                 if (!stopped) fireExecutor()
             } // An interruption allows a recognition of re-ordering the queue
             catch (e: InterruptedException) {
                 //LOGGER.info(String.format("%s.run: wait interrupted ---",getName()));
-            } catch (ex: Exception) {
-                LOGGER.log(
-                    Level.SEVERE,
-                    String.format("%s.Exception during timeout processing (%s)", CLSS, ex.localizedMessage),
-                    ex
-                )
+            }
+            catch (ex: Exception) {
+                LOGGER.log(Level.SEVERE,String.format("%s.Exception during timeout processing (%s)",
+                    CLSS, ex.localizedMessage), ex)
             }
         }
     }
 
-    companion object {
-        private const val serialVersionUID = -5509446352724816963L
-        private const val CLSS = "TimedQueue"
-        private const val IDLE_DELAY = 60000 // One minute
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "TimedQueue"
+    private val IDLE_DELAY = 60000 // One minute
+    private val LOGGER = Logger.getLogger(CLSS)
+
     init {
         idleMessage = InternalMessageHolder()
         idleMessage.shouldRepeat = true

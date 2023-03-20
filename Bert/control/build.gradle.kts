@@ -15,6 +15,7 @@ repositories {
 dependencies {
     implementation("org.apache.commons:commons-text")
     implementation(project(":common"))
+    implementation(project(":terminal"))
     implementation("org.hipparchus:hipparchus-core-1.5")
     implementation(files("hipparchus-core-1.5.jar"))
     testImplementation(files("hipparchus-core-1.5.jar"))

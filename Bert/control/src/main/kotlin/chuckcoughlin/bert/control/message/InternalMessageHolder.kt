@@ -43,7 +43,7 @@ class InternalMessageHolder {
     }
 
     /**
-     * Constructor for a message that is timed, but is not restricted to
+     * Constructor for a message that is delayed, but is not restricted to
      * executing sequentially.
      * @param msg the ultimate message to execute
      * @param interval delay time ~msecs
@@ -76,14 +76,12 @@ class InternalMessageHolder {
             CLSS,message.type.name,executionTime - System.nanoTime() / 1000000 )
     }
 
-    companion object ID {
-        const val serialVersionUID = 4356286171135500677L
-        const val CLSS = "InternalMessageHolder"
-        var id: Long = 0 // Sequential id for messages
-        @get:Synchronized
-        val nextId: Long
-            get() = ++id
-    }
+    private val CLSS = "InternalMessageHolder"
+    var id: Long = 0 // Sequential id for messages
+    @get:Synchronized
+    private val nextId: Long
+        get() = ++id
+
     init {
         delay = 0
         executionTime  = 0

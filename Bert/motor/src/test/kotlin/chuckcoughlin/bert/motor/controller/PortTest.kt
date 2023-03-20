@@ -4,26 +4,29 @@
  */
 package chuckcoughlin.bert.motor.controller
 
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import jssc.SerialPort
+import jssc.SerialPortEvent
+import jssc.SerialPortEventListener
+import jssc.SerialPortException
 
 /**
  * Exercise a port connected to the Dynamixels.
  */
 class PortTest : Runnable, SerialPortEventListener {
     private val port: SerialPort
-    private val dxl: DxlMessage
 
     init {
         port = SerialPort(DEVICE)
-        dxl = DxlMessage()
     }
 
     override fun run() {
-        var success = true
+        var success:Boolean  // Initially true
         try {
             success = port.closePort()
             println(String.format("PortTest.close: Success = %s", if (success) "true" else "false"))
-        } catch (ignore: SerialPortException) {
+        }
+        catch (ignore: SerialPortException) {
         }
         try {
             // Open the port
@@ -63,7 +66,7 @@ class PortTest : Runnable, SerialPortEventListener {
         }
         // Write
         delay()
-        var bytes: ByteArray = dxl.bytesToBroadcastPing()
+        var bytes: ByteArray = DxlMessage.bytesToBroadcastPing()
         try {
             // Write the buffer
             success = port.writeBytes(bytes)
@@ -78,7 +81,7 @@ class PortTest : Runnable, SerialPortEventListener {
             println(
                 java.lang.String.format(
                     "PortTest: Error writing %s (%s)",
-                    dxl.dump(bytes),
+                    DxlMessage.dump(bytes),
                     spe.getLocalizedMessage()
                 )
             )
@@ -100,7 +103,7 @@ class PortTest : Runnable, SerialPortEventListener {
             if (incount > 0) {
                 bytes = port.readBytes()
                 if (bytes != null) println(String.format("PortTest.readBytes: Got %d bytes", bytes.size))
-                println(String.format("PortTest.readBytes: %s", dxl.dump(bytes)))
+                println(String.format("PortTest.readBytes: %s", DxlMessage.dump(bytes)))
             }
         } catch (spe: SerialPortException) {
             println(java.lang.String.format("PortTest: Error reading (%s)", spe.getLocalizedMessage()))
@@ -129,7 +132,7 @@ class PortTest : Runnable, SerialPortEventListener {
     /**
      * Handle the response from the serial request.
      */
-    fun serialEvent(event: SerialPortEvent?) {
+    override fun serialEvent(event: SerialPortEvent?) {
         println("PotTest: Got a serial event ")
     }
 

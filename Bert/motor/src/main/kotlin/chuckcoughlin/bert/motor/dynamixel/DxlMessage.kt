@@ -636,7 +636,7 @@ object DxlMessage {
      */
     fun updateParameterArrayFromBytes(property: JointDynamicProperty,configurations: Map<Int, MotorConfiguration>,
             bytes: ByteArray, parameters: MutableMap<Int, String> ) {
-        var msg = ""
+        var msg: String
         var length = 7
         var index = 0
         while (index < bytes.size) {
@@ -721,7 +721,7 @@ object DxlMessage {
 
     // Set the header up until the length field. The header includes the device ID.
     // Protocol 1. 3 bytes
-    private fun setHeader(bytes: ByteArray, id: Int) {
+    public fun setHeader(bytes: ByteArray, id: Int) {
         bytes[0] = 0xFF.toByte()
         bytes[1] = 0xFF.toByte()
         bytes[2] = id.toByte()

@@ -18,9 +18,9 @@ import chuckcoughlin.bert.control.controller.QueueName
 import chuckcoughlin.bert.control.message.InternalMessageHolder
 import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
-import chuckcoughlin.bert.share.controller.SocketController
-import chuckcoughlin.bert.share.controller.SocketStateChangeEvent
 import chuckcoughlin.bert.sql.db.Database
+import jdk.internal.org.jline.terminal.Terminal
+
 import kotlinx.coroutines.channels.Channel
 import java.io.IOException
 import java.nio.file.Paths
@@ -40,15 +40,23 @@ import kotlin.contracts.InvocationKind
  * For complicated requests it may invoke the services of the "Solver" and insert
  * internal intermediate requests.
  *
- * For the peripheral controllers, the dispatcher presents itself as a controller, but different
- * channels apply to the different peripherals.
+ * For the peripheral controllers, the dispatcher presents itself as a parent controller, using ifferent
+ * channels to communicate with the different peripherals.
  */
 class Dispatcher(s: Solver) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
-    private var commandController: Controller
-    private var terminalController: Controller
-    private var internalController: Controller
-    private var motorGroupController: Controller
+    // Communication channels
+    private val commandRequestChannel  : Channel<MessageBottle>
+    private val commandResponseChannel : Channel<MessageBottle>
+    private val mgcRequestChannel      : Channel<MessageBottle>
+    private val mgcResponseChannel     : Channel<MessageBottle>
+    // Controllers
+    private val commandController   : Controller
+    private var internalController  : InternalController
+    private val motorGroupController: MotorGroupController
+    private var terminalController: Terminal
+
+
     private val busy: Condition
     private var currentRequest: MessageBottle
     private val lock: Lock
@@ -58,46 +66,13 @@ class Dispatcher(s: Solver) : Controller {
     private var cycleTime = 0.0 // msecs,    EWMA
     private var dutyCycle = 0.0 // fraction, EWMA
 
-    // These are the communication channels
-    private var mgcRequestChannel: Channel<MessageBottle>
-    private var mgcResponseChannel: Channel<MessageBottle>
-    /**
-     * Constructor:
-     * @param m the server model
-     */
 
 
-    /**
-     * The server creates controllers for the Terminal and Command sockets, and a controller
-     * for repeating requests (on a timer). The motor group controller has its own model and is already
-     * instantiated at this point..
-     *
-     * The internal controller is used for those instances where multiple or repeating messages are
-     * required for a single user request.
-     */
-    fun createControllers() {
-        val sockets: Map<String, Int> = model.getSockets()
-        val walker = sockets.keys.iterator()
-        while (walker.hasNext()) {
-            val key = walker.next()
-            val type: ControllerType = ControllerType.valueOf(model.getHandlerTypes().get(key))
-            val port = sockets[key]!!
-            if (type.equals(ControllerType.COMMAND)) {
-                commandController = SocketController(this, type.name(), port)
-                commandController.addChangeListener(this)
-                LOGGER.info(String.format("%s: created command controller", CLSS))
-            }
-            else if (type.equals(ControllerType.TERMINAL)) {
-                terminalController = SocketController(this, type.name, port)
-                terminalController.addChangeListener(this)
-                LOGGER.info(String.format("%s: created terminal controller", CLSS))
-            }
-        }
-        internalController = InternalController(this)
-    }
+
 
     /**
      * On startup, initiate a short message sequence to bring the robot into a sane state.
+     * The init{} block takes care of controller creation
      */
     fun startup() {
         if (commandController != null) commandController.start()
@@ -521,6 +496,36 @@ class Dispatcher(s: Solver) : Controller {
     private val LOGGER = Logger.getLogger(CLSS)
     private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
 
+    /**
+     * The dispatcher creates all controllers and communitaion channels for the application.
+     *    Command - bluetooth connection to the tablet
+     *    Internal - where multiple or repeating messages are required for a single user request.
+     *    MotorController - make serial requests to the motors
+     *    Terminal - communicate directly with the user console
+    */
+    init {
+        commandRequestChannel = Channel<MessageBottle>()
+        commandResponseChannel= Channel<MessageBottle>()
+        mgcRequestChannel  = Channel<MessageBottle>()
+        mgcResponseChannel = Channel<MessageBottle>()
+
+        commandController    = Controller(this,commandRequestChannel,commandResponseChannel)
+        motorGroupController = MotorGroupController(this,mgcRequestChannel,mgcResponseChannel)
+
+        lock = ReentrantLock()
+        busy = lock.newCondition()
+
+        solver = s
+        val name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
+        val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs
+        try {
+            cadence = cadenceString.toInt()
+        }
+        catch (nfe: NumberFormatException) {
+            LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)", CLSS, nfe.localizedMessage))
+        }
+        LOGGER.info(String.format("%s: started with cadence %d msecs", CLSS, cadence))
+    }
     // ==================================== Main =================================================
     /**
      * Entry point for the launcher application that receives commands, processes
@@ -551,36 +556,9 @@ class Dispatcher(s: Solver) : Controller {
         Database.startup(PathConstants.DB_PATH)
         val solver = Solver()
         solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
-        val runner = Dispatcher(solver, mgc)
-        mgc.setResponseHandler(runner)
-        runner.createControllers()
-        Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(runner)))
-        runner.startup()
-        runner.start()
-    }
-
-    /**
-     * Initialize the communication channels, among other things.
-     * Create the controllers
-     */
-    init {
-        mgcRequestChannel = Channel<MessageBottle>()
-        mgcResponseChannel = Channel<MessageBottle>()
-
-        motorGroupController = MotorGroupController(mgcRequestChannel,mgcResponseChannel)
-
-        lock = ReentrantLock()
-        busy = lock.newCondition()
-
-        solver = s
-        val name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
-        val cadenceString: String = model.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs
-        try {
-            cadence = cadenceString.toInt()
-        }
-        catch (nfe: NumberFormatException) {
-            LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)", CLSS, nfe.localizedMessage))
-        }
-        LOGGER.info(String.format("%s: started with cadence %d msecs", CLSS, cadence))
+        val dispatcher = Dispatcher(solver)
+        dispatcher.createControllers()
+        Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
+        dispatcher.startup()
     }
 }

@@ -6,33 +6,27 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.DynamixelType
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDefinitionProperty
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 import jssc.SerialPort
-import jssc.SerialPortException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 
 /**
  * The MotorGroupController receives requests from the server having to do with
- * the Dynamixel motors. This c ontroller dispenses the request to the multiple
+ * the Dynamixel motors. This controller then dispenses the request to the multiple
  * MotorControllers receiving results via a call-back. An await-signal scheme
  * is used to present a synchronized method interface to the server.
+ *
+ * The same channel is used for each of the MotorControllers. On receipt of a
+ * message it is the responsibility of the controller to ignore inappropriate
+ * requests.
  *
  * On initialization, the system architecture is checked to determine if
  * this is being run in a development or production environment. If
@@ -44,7 +38,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     private val dispatcher = parent
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
-    private val requestChannel  = Channel<MessageBottle>()
+    private val requestChannel  = Channel<MessageBottle>()   // Same channel for each controller
     private val responseChannel = Channel<MessageBottle>()
     private val motorNameById: MutableMap<Int, String>
     var development: Boolean
@@ -66,15 +60,12 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
 
                         /**
                          * On receipt of a message from the SerialPort,
-                         * decypher and forward to the MotorManager.
+                         * decypher, forward to the MotorManager.
                          */
-                        async {
-                            for (controller in motorControllers) {
-                                controller.receiveSerialResponse()
-                            }
-
+                        responseChannel.onReceive() {
+                            handleAggregatedResponse(it)
                         }
-                        /**
+                        /*
                          * The parent request is a motor command. Convert it
                          * into a message for the SerialPort amd write.
                          */
@@ -109,19 +100,17 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * @param request
      * @return the response, usually containing current joint positions.
      */
-    fun processRequest(request: MessageBottle) {
+    suspend fun processRequest(request: MessageBottle) {
         if (canHandleImmediately(request)) {
-            responseHandler.handleResponse(createResponseForLocalRequest(request))
+            parentResponseChannel.send(createResponseForLocalRequest(request))
         }
         else if (development) {
-            responseHandler.handleResponse(simulateResponseForRequest(request))
+            parentResponseChannel.send(simulateResponseForRequest(request))
         }
         else {
             LOGGER.info(String.format("%s.processRequest: processing %s",
                 CLSS,request.type.name))
-            for (controller in motorControllers) {
-                controller.receiveRequest(request)
-            }
+            requestChannel.send(request)     // All motor controllers receive
         }
     }
 // =========================== Motor Manager Interface ====================================
@@ -132,14 +121,14 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * by synchronized.
      * @param rsp the original request
      */
-    override fun handleAggregatedResponse(rsp: MessageBottle) {
+    override suspend fun handleAggregatedResponse(rsp: MessageBottle) {
         val count: Int = rsp.incrementResponderCount()
         LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
             CLSS,rsp.type.name,count,controllerCount))
         if (count >= controllerCount) {
             LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",
                 CLSS ))
-            responseHandler.handleResponse(rsp)
+            parentResponseChannel.send(rsp)
         }
     }
 
@@ -149,15 +138,14 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * result to the dispatcher.
      * @param rsp the response
      */
-    @Synchronized
-    override fun handleSynthesizedResponse(rsp: MessageBottle) {
+    override suspend fun handleSynthesizedResponse(rsp: MessageBottle) {
         val count: Int = rsp.incrementResponderCount()
         LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",
             CLSS,rsp.type.name,count,controllerCount) )
         if (count >= controllerCount) {
             LOGGER.info(String.format("%s.handleSynthesizedResponse: all controllers accounted for: responding ...",
                 CLSS) )
-            responseHandler.handleResponse(rsp)
+            parentResponseChannel.send(rsp)
         }
     }
 
@@ -166,8 +154,8 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * alone. It has modified the request directly. Forward result to the Dispatcher.
      * @param response the message to be forwarded.
      */
-    override fun handleSingleControllerResponse(response: MessageBottle) {
-        responseHandler.handleResponse(response)
+    override suspend fun handleSingleControllerResponse(response: MessageBottle) {
+        parentResponseChannel.send(response)
     }
 
     // =========================== Private Helper Methods =====================================
@@ -195,11 +183,11 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
-            val property = request.jointDynamicProperty
-            if (property.equals(JointDefinitionProperty.ID) ||
-                property.equals(JointDefinitionProperty.MOTORTYPE) ||
-                property.equals(JointDefinitionProperty.OFFSET) ||
-                property.equals(JointDefinitionProperty.ORIENTATION)) {
+            val prop = request.jointDefinitionProperty
+            if( prop == JointDefinitionProperty.ID ||
+                prop == JointDefinitionProperty.MOTORTYPE ||
+                prop == JointDefinitionProperty.OFFSET ||
+                prop == JointDefinitionProperty.ORIENTATION ) {
                 return true
             }
         }
@@ -210,20 +198,19 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     }
 
     // The "local" response is simply the original request with some text
-// to return directly to the user. These jointValues are obtained from the initial configuration.
+    // to return directly to the user. These jointValues are obtained from the initial configuration.
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY)) {
+        if( request.type == RequestType.GET_MOTOR_PROPERTY ) {
             val joint = request.joint
             val jointName: String = Joint.toText(joint)
             var text: String = ""
-            val mc: MotorConfiguration? = RobotModel.motors.get(joint)
+            val mc: MotorConfiguration? = RobotModel.motors[joint]
             if (mc != null) {
                 // The request can be for either a definition or dynamic property
-                if (request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
+                if( request.jointDefinitionProperty == JointDefinitionProperty.NONE ) {
                     // Dynamic property
                     val property = request.jointDynamicProperty
-                    LOGGER.info(
-                        String.format("%s.createResponseForLocalRequest: %s %s in %s",
+                    LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
                             CLSS, request.type.name, property.name, joint.name) )
 
                     when (property) {
@@ -275,76 +262,82 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                     }
                 }
             }
+            else {
+                request.error = "There is no information definied for my " + jointName
+            }
             request.text = text
         }
         else if (request.type.equals(RequestType.GET_CONFIGURATION)) {
             val text = "Motor configuration parameters have been logged"
             request.text = text
             for (controller in motorControllers) {
-                val map: Map<String?, MotorConfiguration?>? = controller.getConfigurations()
-                for (joint in map!!.keys) {
-                    val mc: MotorConfiguration? = map[joint]
+                val list: MutableCollection<MotorConfiguration> = controller.configurations
+                for (mc in list) {
                     LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
-                        joint, mc.id, mc.type.name, mc.minAngle, mc.maxAngle,mc.offset,
-                        if (mc.isDirect()) "" else "(indirect)"))
-                    request.setProperty(PropertyType.PROPERTY_NAME, JointProperty.MOTORTYPE.name())
-                    request.setJointValue(JointProperty.MOTORTYPE.name, mc.type.name)
+                        mc.joint, mc.id, mc.type.name, mc.minAngle, mc.maxAngle,mc.offset,
+                        if( mc.isDirect ) "" else "(indirect)"))
                 }
             }
         }
         else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+            // Either a definition property or dynamic property
             val property = request.jointDynamicProperty
             LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
-                    CLSS, request.type.name, property.name())
-            )
+                    CLSS, request.type.name, property.name))
             var text: String? = ""
             val mcs: Map<Joint, MotorConfiguration> = RobotModel.motors
             for (joint in mcs.keys) {
                 val mc: MotorConfiguration = mcs[joint]!!
+
                 when (property) {
-                    ID -> {
-                        val id: Int = mc.id
-                        text = "The id of $joint is $id"
-                    }
 
-                    JointProperty.MAXIMUMANGLE -> text =
-                        java.lang.String.format("The maximum angle for %s is %.0f degrees", joint, mc.getMaxAngle())
 
-                    JointProperty.MINIMUMANGLE -> text =
-                        java.lang.String.format("The minimum angle for %s is %.0f degrees", joint, mc.getMinAngle())
+                    JointDynamicProperty.MAXIMUMANGLE -> text =
+                        String.format("The maximum angle for %s is %.0f degrees", joint, mc.maxAngle)
 
-                    JointProperty.MOTORTYPE -> {
-                        var modelName = "A X 12"
-                        if (mc.type.equals(DynamixelType.MX28)) modelName = "M X 28" else if (mc.getType()
-                                .equals(DynamixelType.MX64)
-                        ) modelName = "M X 64"
-                        text = joint.toString() + " is a dynamixel " + modelName
-                    }
+                    JointDynamicProperty.MINIMUMANGLE -> text =
+                        String.format("The minimum angle for %s is %.0f degrees", joint, mc.minAngle)
 
-                    JointDefinitionProperty.OFFSET -> {
-                        val offset: Double = mc.offset
-                        text = "The offset of $joint is $offset"
-                    }
-
-                    JointProperty.ORIENTATION -> {
-                        var orientation = "indirect"
-                        if (mc.isDirect()) orientation = "direct"
-                        text = "The orientation of $joint is $orientation"
-                    }
-
-                    else -> {
-                        text = ""
-                        request.error = property.name() + " is not a property that I can look up"
+                    // Not a dynamic property, try definitions
+                    JointDynamicProperty.NONE -> {
+                        val definition = request.jointDefinitionProperty
+                        when (definition) {
+                            JointDefinitionProperty.ID -> {
+                                val id: Int = mc.id
+                                text = "The id of $joint is $id"
+                            }
+                            JointDefinitionProperty.MOTORTYPE -> {
+                                var modelName = "A X 12"
+                                if (mc.type.equals(DynamixelType.MX28))      modelName = "M X 28"
+                                else if (mc.type.equals(DynamixelType.MX64)) modelName = "M X 64"
+                                text = joint.toString() + " is a dynamixel " + modelName
+                            }
+                            JointDefinitionProperty.OFFSET -> {
+                                val offset: Double = mc.offset
+                                text = "The offset of $joint is $offset"
+                            }
+                            JointDefinitionProperty.ORIENTATION -> {
+                                var orientation = "indirect"
+                                if( mc.isDirect ) orientation = "direct"
+                                text = "The orientation of $joint is $orientation"
+                            }
+                            JointDefinitionProperty.NONE -> {
+                                text = ""
+                                request.error = definition.name + " is not a property that I can look up"
+                            }
+                        }
                     }
                 }
                 LOGGER.info(text)
             }
-            text = String.format("The %ss of all motors have been logged", property.name().toLowerCase())
+            text = String.format("The %ss of all motors have been logged", property.name.lowercase())
             request.text = text
-        } else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
+        }
+        else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             val property = request.jointDynamicProperty.toString()
             request.error = "I cannot change " + property.lowercase(Locale.getDefault()) + " for all joints in the limb"
-        } else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+        }
+        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             val property = request.jointDynamicProperty.toString()
             request.error = "I cannot change a motor " + property.lowercase(Locale.getDefault())
         }
@@ -359,8 +352,10 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
             val joint: Joint = request.joint
             var text = ""
             val jointName: String = Joint.toText(joint)
-            val mc: MotorConfiguration = RobotModel.motors[jointName]
+            val mcmaybe: MotorConfiguration? = RobotModel.motors[joint]
+            val mc:MotorConfiguration = mcmaybe!!
             if( request.jointDynamicProperty==JointDynamicProperty.NONE ) {
+                // Definition property
                 val property = request.jointDefinitionProperty
                 when(property) {
                     JointDefinitionProperty.ID -> {

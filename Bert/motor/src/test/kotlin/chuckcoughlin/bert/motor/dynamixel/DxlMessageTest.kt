@@ -21,21 +21,20 @@ class DxlMessageTest {
      */
     fun main(args: Array<String>) {
         // Protocol 1
-        val dxl = DxlMessage()
         var bytes = ByteArray(8)
-        dxl.setHeader(bytes, 0x01)
+        DxlMessage.setHeader(bytes, 0x01)
         bytes[3] = 4 // Bytes past this field.
         bytes[4] = READ
         bytes[5] = 0x2B
         bytes[6] = 0x1
-        dxl.setChecksum(bytes)
+        DxlMessage.setChecksum(bytes)
         // Should be CC
-        println("READ  with checksum: " + dxl.dump(bytes))
+        println("READ  with checksum: " + DxlMessage.dump(bytes))
 
         // Protocol 1
-        bytes = dxl.bytesToBroadcastPing()
+        bytes = DxlMessage.bytesToBroadcastPing()
         // Checksum should be FE
-        println("PING (1)  with checksum: " + dxl.dump(bytes))
+        println("PING (1)  with checksum: " + DxlMessage.dump(bytes))
 
         // Protocol 1
         // Sync write
@@ -57,8 +56,8 @@ class DxlMessageTest {
         bytes[14] = 0x02.toByte()
         bytes[15] = 0x60.toByte()
         bytes[16] = 0x03.toByte()
-        dxl.setChecksum(bytes)
+        DxlMessage.setChecksum(bytes)
         // Checksum should be 67
-        println("SYNC WRITE  with checksum: " + dxl.dump(bytes))
+        println("SYNC WRITE  with checksum: " + DxlMessage.dump(bytes))
     }
 }
