@@ -1,11 +1,10 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
-package chuckcoughlin.bert.control.controller
+package chuckcoughlin.bert.dispatch
 
-import chuckcoughlin.bert.control.message.InternalMessageHolder
 import java.util.*
 import java.util.logging.Logger
 

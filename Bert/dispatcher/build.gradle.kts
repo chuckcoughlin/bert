@@ -15,10 +15,12 @@ repositories {
 
 dependencies {
     implementation("org.apache.commons:commons-text")
+    implementation(project(":command"))
     implementation(project(":common"))
     implementation(project(":control"))
     implementation(project(":motor"))
     implementation(project(":database"))
+    implementation(project(":terminal"))
 }
 
 application {

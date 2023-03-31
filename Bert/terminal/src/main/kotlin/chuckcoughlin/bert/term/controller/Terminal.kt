@@ -36,13 +36,13 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
     private val parser: StatementParser
     private val translator: MessageTranslator
     private val dispatcher = parent
-    private var parentRequestChannel  = req    // Terminal->Dispatcher  (user requests)
-    private var parentResponseChannel = rsp    // Dispatcher->Terminal  (dispatcher results)
+    private var requestChannel  = req    // Dispatcher->Terminal  (dispatcher results)
+    private var responseChannel = rsp    // Terminal->Dispatcher  (user requests)
     private var prompt:String
 
-    val scope = MainScope() // Uses Dispatchers.Main
-    var ignoring : Boolean
-    var running:Boolean
+    private val scope = MainScope() // Uses Dispatchers.Main
+    private var ignoring : Boolean
+    private var running:Boolean
 
     /**
      * While running, this controller processes messages between the Dispatcher
@@ -50,39 +50,43 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
      * quick shutdown. These are direct responses to user input, like "shutdown".
      */
     override suspend fun start() {
-        running = true
-        val br = BufferedReader(InputStreamReader(System.`in`))
-        runBlocking<Unit> {
-            launch {
-                Dispatchers.IO
-                while(running) {
-                    select<Unit> {
-                        /**
-                         * These are responses coming from the Dispatcher
-                         * Simply display them.
-                         */
-                        parentResponseChannel.onReceive() {
-                            displayMessage(it)   // stdOut
-                        }
-                        /**
-                         * Read from stdin, blocked. Use ANTLR to convert text into requests.
-                         * Forward requests to the dispatcher.
-                         */
-                        async {
-                            handleUserInput(br)
+        if( !running ) {
+            running = true
+            val br = BufferedReader(InputStreamReader(System.`in`))
+            runBlocking<Unit> {
+                launch {Dispatchers.IO
+                    while(running) {
+                        select<Unit> {
+                            /**
+                             * These are responses coming from the Dispatcher
+                             * Simply display them.
+                             */
+                            responseChannel.onReceive() {
+                                displayMessage(it)   // stdOut
+                            }
+                            /**
+                             * Read from stdin, blocked. Use ANTLR to convert text into requests.
+                             * Forward requests to the dispatcher.
+                             */
+                            async {
+                                handleUserInput(br)
+                            }
                         }
                     }
                 }
             }
         }
+        else {
+            LOGGER.warning(String.format("%s: attempted to start, but already running...", CLSS))
+        }
     }
 
     override suspend fun stop() {
         if( running ) {
-            running = false
             scope.cancel()
             Database.shutdown()
             LOGGER.warning(String.format("%s: exiting...", CLSS))
+            running = false
             System.exit(0)
         }
     }
@@ -117,10 +121,10 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
                 }
                 else if(isLocalRequest(request)) {
                     val msg = handleLocalRequest(request)
-                    parentRequestChannel.send(msg)
+                    requestChannel.send(msg)
                 }
                 else {
-                    parentRequestChannel.send(request)
+                    requestChannel.send(request)
                 }
             }
         }

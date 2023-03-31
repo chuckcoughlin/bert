@@ -39,7 +39,7 @@ class Solver {
         for (link in links) {
             link.setDirty()
             val joint: Joint = link.linkPoint.joint
-            val mc: MotorConfiguration? = motorConfigurations!![joint]
+            val mc: MotorConfiguration? = motorConfigurations[joint]
             link.jointAngle = mc!!.position
         }
     }
@@ -60,7 +60,7 @@ class Solver {
      * Return the position of a specified appendage in x,y,z coordinates in meters from the
      * robot origin in the pelvis.
      */
-    fun getPosition(appendage: Appendage): DoubleArray? {
+    fun getPosition(appendage: Appendage): DoubleArray {
         val subchain: List<Link> = model.chain.partialChainToAppendage(appendage)
         return if (subchain.size > 0) subchain[0].coordinates else ERROR_POSITION
     }
@@ -69,7 +69,7 @@ class Solver {
      * Return the position of a specified joint in x,y,z coordinates in meters from the
      * robot origin in the pelvis in the inertial reference frame.
      */
-    fun getPosition(joint: Joint): DoubleArray? {
+    fun getPosition(joint: Joint): DoubleArray {
         val subchain: List<Link> = model.chain.partialChainToJoint(joint)
         return if (subchain.size > 0) subchain[0].coordinates else ERROR_POSITION
     }

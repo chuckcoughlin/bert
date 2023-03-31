@@ -2,7 +2,7 @@
  * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.controller
+package chuckcoughlin.bert.control.model
 
 /**
  * Recognized names of SequentialQueues managed by the InternalController. These correspond to

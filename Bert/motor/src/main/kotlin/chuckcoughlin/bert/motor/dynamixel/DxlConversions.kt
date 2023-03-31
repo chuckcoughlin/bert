@@ -130,7 +130,7 @@ object DxlConversions {
     // Convert the named property to a control table address for the present state
     // of that property. These are independent of motor type.
     fun addressForGoalProperty(property: JointDynamicProperty): Byte {
-        var address: Byte = 0
+        var address: Byte
         when (property) {
             JointDynamicProperty.POSITION -> address = GOAL_POSITION
             JointDynamicProperty.SPEED    -> address = GOAL_SPEED
@@ -157,6 +157,7 @@ object DxlConversions {
             JointDynamicProperty.TORQUE          -> address = PRESENT_LOAD
             JointDynamicProperty.STATE           -> address = GOAL_TORQUE_ENABLE
             JointDynamicProperty.VOLTAGE         -> address = PRESENT_VOLTAGE
+            JointDynamicProperty.NONE            -> address = 0
         }
         return address
     }
@@ -175,6 +176,7 @@ object DxlConversions {
             JointDynamicProperty.TORQUE           -> length = 2
             JointDynamicProperty.STATE            -> length = 1
             JointDynamicProperty.VOLTAGE          -> length = 1
+            JointDynamicProperty.NONE             -> length = 0
         }
         return length
     }
@@ -216,6 +218,7 @@ object DxlConversions {
             JointDynamicProperty.TORQUE        -> text = String.format("%.1f newton-meters", value)
             JointDynamicProperty.STATE         -> text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
             JointDynamicProperty.VOLTAGE       -> text = String.format("%.1f volts", value)
+            JointDynamicProperty.NONE          -> text = ""
         }
         return text
     }
@@ -234,6 +237,7 @@ object DxlConversions {
             JointDynamicProperty.TORQUE         -> value = dxlToTorque(mc, b1, b2)
             JointDynamicProperty.STATE          -> value = dxlToTorqueEnable(mc, b1)
             JointDynamicProperty.VOLTAGE        -> value = dxlToVoltage(b1)
+            JointDynamicProperty.NONE           -> value = 0.0
         }
         return value
     }

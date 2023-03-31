@@ -14,8 +14,13 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.sql.db.Database
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -36,12 +41,12 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
     private var tabletSocket: BluetoothSocket
     private val messageTranslator: MessageTranslator
     private val dispatcher = parent
-    private var parentRequestChannel  = req    // Command->Dispatcher  (user requests)
-    private var parentResponseChannel = rsp    // Dispatcher->Command  (dispatcher results)
+    private var requestChannel  = req    // Dispatcher->Command  (results of user requests)
+    private var responseChannel = rsp    // Command->Dispatcher  (requests initiated by user)
 
-    val scope = MainScope() // Uses Dispatchers.Main
-    var ignoring : Boolean
-    var running:Boolean
+    private val scope = MainScope() // Uses Dispatchers.Main
+    private var ignoring : Boolean
+    private var running:Boolean
 
     /**
      * While running, read from the bluetooth daemon (representing the tablet) and forward
@@ -52,35 +57,40 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
      * to user input, like "shutdown".
      */
     override suspend fun start() {
-        running = true
-        runBlocking<Unit> {
-            launch {
-                Dispatchers.IO
-                while(running) {
-                    select<Unit> {
-                        /**
-                         * These are responses coming from the Dispatcher
-                         * Send them to the Bluetooth socket
-                         */
-                        parentResponseChannel.onReceive() {
-                            tabletSocket.receiveResponse(it)   // stdOut
-                        }
-                        /**
-                         * Read from bluetooth, blocked. Use ANTLR to convert text into requests.
-                         * Forward requests to the Terminal launcher.
-                         */
-                        async {
-                            val msg = tabletSocket.receiveRequest()
-                            if( isLocalRequest(msg) ) {
-                                handleLocalRequest(msg)
+        if( !running ) {
+            running = true
+            runBlocking<Unit> {
+                launch {
+                    Dispatchers.IO
+                    while (running) {
+                        select<Unit> {
+                            /**
+                             * These are responses coming from the Dispatcher
+                             * Send them to the Bluetooth socket
+                             */
+                            responseChannel.onReceive() {
+                                tabletSocket.receiveResponse(it)   // stdOut
                             }
-                            else {
-                                parentRequestChannel.send(msg)
+                            /**
+                             * Read from bluetooth, blocked. Use ANTLR to convert text into requests.
+                             * Forward requests to the Terminal launcher.
+                             */
+                            async {
+                                val msg = tabletSocket.receiveRequest()
+                                if (isLocalRequest(msg)) {
+                                    handleLocalRequest(msg)
+                                }
+                                else {
+                                    requestChannel.send(msg)
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+        else {
+            LOGGER.warning(String.format("%s: attempted to start, but already running...", CLSS))
         }
     }
 

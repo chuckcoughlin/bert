@@ -5,7 +5,7 @@
 package chuckcoughlin.bert.dispatch
 
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
-import chuckcoughlin.bert.control.message.InternalMessageHolder
+import kotlinx.coroutines.runBlocking
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -18,7 +18,7 @@ import java.util.logging.Logger
  * method is invoked. There is always, at least one dog present in
  * the list, the IDLE dog.
  */
-class TimedQueue(private val controller: InternalController) : LinkedList<InternalMessageHolder>(), Runnable {
+class TimedQueue(private val ic: InternalController) : LinkedList<InternalMessageHolder>(), Runnable {
     protected var stopped = true
     protected var timerThread: Thread? = null
     protected val idleMessage: InternalMessageHolder
@@ -65,10 +65,9 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
      * holder is distinguished by a null message.
      * Otherwise pop the top holder and inform the launcher to execute.
      */
-    @Synchronized
-    private fun fireExecutor() {
+    suspend private fun fireExecutor() {
         val holder = removeFirst()
-        if (holder!!.message == null) {
+        if (holder.message == null) {
             val now = System.nanoTime() / 1000000
             holder.executionTime = now + holder.repeatInterval
             add(holder)
@@ -76,7 +75,7 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
         else {
             LOGGER.info(String.format("%s.fireExecutor: dispatching(%d) %s ...",
                     CLSS, JointDefinitionProperty.ID,holder.message.type.name))
-            controller.dispatch(holder)
+            ic.dispatchMessage(holder)
         }
         timerThread!!.interrupt()
     }
@@ -114,18 +113,17 @@ class TimedQueue(private val controller: InternalController) : LinkedList<Intern
     /**
      * A timeout causes the head to be notified, then pops up the next dog.
      */
-    @Synchronized
     override fun run() {
         while (!stopped) {
             val now = System.nanoTime() / 1000000 // Work in milliseconds
             val head = first
-            val waitTime = (head.executionTime - now) as Long
+            val waitTime = head.executionTime - now
             try {
                 if (waitTime > 0) {
                     Thread.sleep(waitTime)
                 }
                 currentTime = head.executionTime
-                if (!stopped) fireExecutor()
+                if (!stopped) runBlocking{ fireExecutor() }
             } // An interruption allows a recognition of re-ordering the queue
             catch (e: InterruptedException) {
                 //LOGGER.info(String.format("%s.run: wait interrupted ---",getName()));
