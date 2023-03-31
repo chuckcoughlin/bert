@@ -20,7 +20,7 @@ The bulk of this document addresses various design issues and approaches to thei
     * [Messaging](#messages)
     * [Poses](#poses)
   * [Appendices](#appendices)
-    * [Rationale for Java](#whyjava)
+    * [Rationale for Kotlin](#whykotlin)
     * [Failures](#failures)
 
 
@@ -460,18 +460,25 @@ the pose, torques are automatically set to 100% whenever a joint is moved.
 
 ## Appendices <a id="appendices"></a>
 [toc](#table-of-contents)
-#### Why Java?<a id="whyjava"></a>
+#### Why Kotlin?<a id="whykotlin"></a>
 In the "Poppy" [thesis](https://hal.inria.fr/tel-01104641v1/document) (section 7.4.1 and following), the author considers use of the Robot Operating System (ROS) for the core software and concludes that it is overly complex and inefficient. This coincides with my own experience with [sarah-bella](https://github.com/chuckcoughlin/sarah-bella). Moreover, I discovered that, at least with Android, ROS messaging was not reliable. Messages were dropped under high load, a situation not acceptable for control applications.
 
 This same author noted that the "Pypot" software developed in Python for Poppy had severe performance limitations that placed strict limits on its design.
 
-While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) used by the "iCub" project seemed closest to my perceived needs. It is written in C++ and is loaded with features that I'll never use. Given my failure to create a cross-compilation environment, I've decided to let a simplified *YARP* serve as an inspiration for a Java-based solution. For simplicity, the ancillary code will be Java also.
+While I can't simply try all the designs, [YARP](http://www.yarp.it/index.html) used by the "iCub" project seemed closest to my perceived needs. It is written in C++ and is loaded with features that I'll never use. Given my failure to create a cross-compilation environment, I've decided to let a simplified *YARP* serve as an inspiration for a Kotlin-based solution. For simplicity, the ancillary code will be Kotlin also.
 
-Why did I select Java for this code when the iCub project chose Python?
+The previous version was written entirely in Java. However I decided to
+write the current iteration of the project in Kotlin for the following reasons:
+  * The Android platform identifies Kotlin as a core language
+  * The threading model seems much more straightforward
+  * It is possible to automatically convert Java to Kotlin
+  * It was time for me to learn something new
+
+Why did I select Java for the original project when the iCub project chose Python?
   * Familiarity - over 2 decades of working with Java
-  * Refactoring - the refactoring capabilities of Eclipse are unparalleled, in my opinion, and make code re-structuring quick, easy and accurate
+  * Refactoring - the refactoring capabilities of IntelliJ are unparalleled, in my opinion, and make code re-structuring quick, easy and accurate
   * Code-Debug-Cycle - problems are more likely to be discovered by the compiler rather than run-time as with Python
-  * Debugging - via Eclipse we can set breakpoints and inspect run-state not only locally, but on the target robot
+  * Debugging - via IntelliJ we can set breakpoints and inspect run-state not only locally, but on the target robot
   * Performance - Java executes an order of magnitude faster than Python
   * Threading - the Java threading model is more straightforward (IMHO)
   * Cross-compiling - difficulties creating Odroid executables precluded my use of C++.
