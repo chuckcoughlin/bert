@@ -31,13 +31,25 @@ module side(x,z) {
 module ac_wire_opening() {
     screw_separation = 40; // center-center between screws
     screw_radius = 2.5;    // screw hole in socket
-    socket_height = 20;
-    socket_width  = 26;
-    socket_top_edge=16;
+    // Dimension C-13 female plug
+    plug_height = 20;  // Socket height
+    plug_width  = 26;  // Socket width
+    plug_top_edge=16;
+    plug_cut = (plug_width-plug_top_edge)/2; // diagonal
     
-    linear_extrude(thickness,center=true,convexity=10) {
-       polygon([[0,0]]); 
+    
+    linear_extrude(thickness+1,center=true,convexity=10) {
+       polygon([[-plug_width/2,plug_height/2],
+                [plug_width/2,plug_height/2],
+                [plug_width/2,plug_cut-plug_height/2],
+                [plug_width/2-plug_cut,-plug_height/2],
+                [-plug_width/2+plug_cut,-plug_height/2],
+                [-plug_width/2,plug_cut-plug_height/2]]); 
     } 
+    translate([screw_separation/2,0,0])
+    cylinder(thickness+1,screw_radius,screw_radius,true);
+    translate([-screw_separation/2,0,0])
+    cylinder(thickness+1,screw_radius,screw_radius,true);
 }
 
 module bottom_screw_holes(x) {
@@ -90,6 +102,7 @@ module final_assembly(x,y,z) {
     translate([0,(z+thickness)/2,(x+thickness)/2])
     difference() {
         end(y+2*thickness,z+thickness);
+        ac_wire_opening()
         rotate([0,90,0])
         translate([thickness/4,z/2+thickness/4,0])
         rim_indentation(y);
