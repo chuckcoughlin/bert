@@ -8,7 +8,7 @@ length    =240;        // Inside length
 thickness =  4;        // Wall and bottom thickness
 width     = 70;        // Inside width
 
-// Bottom plate. 
+// Top plate. 
 // x = length
 // y = width
 module base(x,y) {
@@ -28,9 +28,14 @@ module side(x,z) {
        square([x,z],center=true); 
     } 
 }
-
-// Material to be subtracted from upper rim so cover fits
-module rim_indentation(x) {
+// Half circle opening
+module dc_wire_opening(z) {
+    wr  = 5;    // Washer radius for 12V wires
+    translate([0,z/2,0])
+    cylinder(thickness+1,wr,wr,true);
+}
+// Material to be added to edge so cover fits. Outside edge.
+module rim(x) {
     z = thickness/2;
     linear_extrude(height=x,center=true,convexity=10) {
         square([z,z],center=true); 
@@ -45,47 +50,54 @@ module final_assembly(x,y,z) {
     base(x,y);
     
     // DC End
-    color("lightgreen")
     rotate([90,0,90])
     translate([0,(z+thickness)/2,-(x+thickness)/2])
     difference() {
-        end(y+2*thickness,z+thickness);
-        rotate([0,90,0])
-        translate([thickness/4,z/2+thickness/4,0])
-        rim_indentation(y);
+        union() {
+            color("red")
+            rotate([0,90,0])
+            translate([thickness/4,z/2+thickness/2,0])
+            rim(y+2*thickness);
+            color("lightgreen")
+            end(y+2*thickness,z+thickness/2);
+        }
+        dc_wire_opening(z);
     }
     
     // AC End
-    color("green")
     rotate([90,0,90])
     translate([0,(z+thickness)/2,(x+thickness)/2])
-    difference() {
-        end(y+2*thickness,z+thickness);
+    union() {
+        color("green")
+        end(y+2*thickness,z+thickness/2);
         rotate([0,90,0])
         translate([-thickness/4,z/2+thickness/4,0])
-        rim_indentation(y);
+        color("red")
+        rim(y+2*thickness);
     }
     
     // Side
-    color("green")
     rotate([90,0,0])
     translate([0,(z+thickness)/2,(y+thickness)/2])
-    difference() {
-        side(x,z+thickness);
+    union() {
+        color("green")
+        side(x,z+thickness/2);
+        color("red")
         rotate([0,90,0])
         translate([-thickness/4,z/2+thickness/4,0])
-        rim_indentation(x+thickness);
+        rim(x+thickness);
     }
     
     // Side
-    color("green")
     rotate([90,0,0])
     translate([0,(z+thickness)/2,-(y+thickness)/2])
-        difference() {
-        side(x,z+thickness);
+    union() {
+        color("green")
+        side(x,z+thickness/2);
+        color("red")
         rotate([0,90,0])
         translate([thickness/4,z/2+thickness/4,0])
-        rim_indentation(x+thickness);
+        rim(x+thickness);
     }
     
 }
