@@ -168,8 +168,7 @@ class DispatchService : Service(), BluetoothHandler {
         builder.setStyle(bigTextStyle)
         builder.setWhen(System.currentTimeMillis())
         builder.setSmallIcon(R.mipmap.ic_launcher)
-        val largeIconBitmap: Bitmap =
-            BitmapFactory.decodeResource(resources, R.drawable.rounded_button)
+        val largeIconBitmap: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.rounded_button)
         builder.setLargeIcon(largeIconBitmap)
         // Make the notification max priority.
         builder.setPriority(NotificationManager.IMPORTANCE_DEFAULT)
