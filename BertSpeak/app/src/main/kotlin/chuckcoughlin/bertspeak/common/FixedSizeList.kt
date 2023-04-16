@@ -17,13 +17,11 @@ class FixedSizeList<E>(length: Int) : LinkedList<E>() {
     }
 
     @Synchronized
-    fun setBufferSize(size: Int) {
+    fun setBufferSize(sz: Int) {
         // Whittle down the list, if necessary
-        var size = size
+        var size = sz
         if (size < 1) size = 0
-        while (this.size > size) {
-            remove()
-        }
+        while (this.size > sz) remove()
         bufferSize = size
     }
 
@@ -32,9 +30,9 @@ class FixedSizeList<E>(length: Int) : LinkedList<E>() {
     }
 
     @Synchronized
-    override fun add(o: E): Boolean {
+    override fun add(element: E): Boolean {
         if (bufferSize > 0) {
-            super.add(o)
+            super.add(element)
             while (size > bufferSize) {
                 remove()
             }

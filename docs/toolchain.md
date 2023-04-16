@@ -19,7 +19,7 @@ This document describes the setup and tools used to develop "Bert" and summarize
   * [System Setup](#system)
     * [Odroid](#odroid)
   * [Software Development](#software)
-    * [Eclipse](#eclipse)
+    * [IntelliJ(#intellij)
     * [Android Studio](#android)
     * [Other Tools](#other)
 ***
@@ -130,7 +130,7 @@ In order to correct for a consistent user-view of position, joints may be correc
 ### Tablet <a id="tablet"></a>
 [toc](#table-of-contents)
 
-The tablet is a 10" Samsung Galaxy S3 running Android 7.0 (Nougat), API level 24. Android was chosen for its
+The tablet is a 12" Samsung Galaxy S8 running Android 13.0, API level 33. Android was chosen for its
 speech capabilities. All speech analysis is done on the tablet hosting both text-to-speech and a speech
 recognizer. Unfortunately,the tablet has become stuck in headset mode. We've bought an external speaker
 to be ultimately located in the head.
@@ -283,7 +283,7 @@ Code is compiled and downloaded onto the robot target over a WiFi connection usi
 
 The iMac requires the same Java version as the Odroid (Java 10). It is downloadable from [here](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase10-4425482.html). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area. Avoid the temptation to download "the latest" as we need Java 10 for compatibility with the Odroid.
 
-### Eclipse <a id="eclipse"></a>
+### IntelliJ <a id="intellij"></a>
 [toc](#table-of-contents)
 
 *** Installation *** <br/>
