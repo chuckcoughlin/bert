@@ -1,17 +1,21 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak
 
 
-import android.content.Context
 import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import chuckcoughlin.bertspeak.tab.*
+import chuckcoughlin.bertspeak.tab.AssistantFragment
+import chuckcoughlin.bertspeak.tab.CoverFragment
+import chuckcoughlin.bertspeak.tab.RobotLogsFragment
+import chuckcoughlin.bertspeak.tab.SettingsFragment
+import chuckcoughlin.bertspeak.tab.TablesTabFragment
+import chuckcoughlin.bertspeak.tab.TranscriptFragment
 
 /**
  * This is a specialized page fragment for each tab position.
