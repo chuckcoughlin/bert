@@ -16,6 +16,7 @@ import android.speech.tts.Voice
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.FragmentPageTransformer
 import chuckcoughlin.bertspeak.common.MessageType

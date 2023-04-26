@@ -31,6 +31,7 @@ class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) 
     private lateinit var binding: FragmentSettingsBinding
     private lateinit var dbManager: DatabaseManager
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         dbManager = DatabaseManager(requireContext())
         val nvpairs = dbManager.getSettings()
