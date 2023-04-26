@@ -39,7 +39,7 @@ class DispatchService : Service(), BluetoothHandler {
     private val binder: DispatchServiceBinder
     private lateinit var dbManager: DatabaseManager
     val statusManager: StatusManager
-    private lateinit var textManager: TextManager
+    private var textManager: TextManager
     private var isMuted = false
     private var simulatedConnectionMode: Boolean
 
@@ -65,8 +65,7 @@ class DispatchService : Service(), BluetoothHandler {
      * @return
      */
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        var action: String? = null
-        if (intent != null) action = intent.getAction()
+        var action: String? = intent.action
         Log.i(CLSS, String.format("onStartCommand: %s flags = %d, id = %d", action, flags, startId))
         if (!simulatedConnectionMode) bluetoothConnection = BluetoothConnection(this)
         if (action == null) {
@@ -100,7 +99,7 @@ class DispatchService : Service(), BluetoothHandler {
         }
         else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
             if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
-            statusManager!!.reportState(TieredFacility.SOCKET, FacilityState.IDLE)
+            statusManager.reportState(TieredFacility.SOCKET, FacilityState.IDLE)
             determineNextAction(TieredFacility.BLUETOOTH)
         }
         else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
@@ -111,7 +110,7 @@ class DispatchService : Service(), BluetoothHandler {
 
     // A client is binding to the service with bindService(). This appears to
     // be called only once no matter how many clients.
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         return binder
     }
 
@@ -131,8 +130,8 @@ class DispatchService : Service(), BluetoothHandler {
         super.onDestroy()
         notificationManager!!.cancelAll()
         if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
-        statusManager!!.stop()
-        textManager!!.stop()
+        statusManager.stop()
+        textManager.stop()
         stopForegroundService()
     }
 
@@ -168,17 +167,18 @@ class DispatchService : Service(), BluetoothHandler {
         builder.setStyle(bigTextStyle)
         builder.setWhen(System.currentTimeMillis())
         builder.setSmallIcon(R.mipmap.ic_launcher)
-        val largeIconBitmap: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.rounded_button)
+        //val largeIconBitmap: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.rounded_button)
+        val largeIconBitmap: Bitmap = BitmapFactory.decodeResource( resources,R.drawable.rounded_button)
         builder.setLargeIcon(largeIconBitmap)
         // Make the notification max priority.
-        builder.setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+        builder.priority = NotificationManager.IMPORTANCE_DEFAULT
         // Make head-up notification.
         builder.setFullScreenIntent(pendingIntent, true)
 
         //  Reset Button
         val startIntent = Intent(this, NotificationActionReceiver::class.java)
         var action = getString(R.string.notificationReset)
-        startIntent.setAction(action)
+        startIntent.action = action
         val pendingStartIntent: PendingIntent = PendingIntent.getBroadcast(this, 1, startIntent, 0)
         val resetAction: NotificationCompat.Action =
             NotificationCompat.Action(android.R.drawable.ic_media_play, action, pendingStartIntent)
@@ -188,7 +188,7 @@ class DispatchService : Service(), BluetoothHandler {
         // Mute button
         val muteIntent = Intent(this, NotificationActionReceiver::class.java)
         action = getString(R.string.notificationMute)
-        muteIntent.setAction(action)
+        muteIntent.action = action
         val pendingMuteIntent: PendingIntent = PendingIntent.getBroadcast(this, 2, muteIntent, 0)
         val muteAction: NotificationCompat.Action =
             NotificationCompat.Action(android.R.drawable.ic_media_pause, action, pendingMuteIntent)
@@ -198,7 +198,7 @@ class DispatchService : Service(), BluetoothHandler {
         // Stop button
         val stopIntent = Intent(this, NotificationActionReceiver::class.java)
         action = getString(R.string.notificationStop)
-        stopIntent.setAction(action)
+        stopIntent.action = action
         val pendingStopIntent: PendingIntent = PendingIntent.getBroadcast(this, 3, stopIntent, 0)
         val stopAction: NotificationCompat.Action =
             NotificationCompat.Action(android.R.drawable.ic_lock_power_off, action, pendingStopIntent)
@@ -211,7 +211,7 @@ class DispatchService : Service(), BluetoothHandler {
 
     // Start the 3 stages in order
     private fun determineNextAction(currentFacility: TieredFacility) {
-        val currentState = statusManager!!.getStateForFacility(currentFacility)
+        val currentState = statusManager.getStateForFacility(currentFacility)
         if (currentFacility == TieredFacility.BLUETOOTH) {
             if (currentState != FacilityState.ACTIVE) {
                 var name: String? = dbManager.getSetting(BertConstants.BERT_PAIRED_DEVICE)
@@ -234,9 +234,9 @@ class DispatchService : Service(), BluetoothHandler {
                     bluetoothConnection!!.openConnections(bluetoothDevice)
                 }
                 Log.i(CLSS,String.format("%s: Set connection to %s (%s %s)", CLSS,
-                        bluetoothDevice!!.getName(),
-                        bluetoothDevice!!.getType(),
-                        bluetoothDevice!!.getAddress()
+                        bluetoothDevice!!.name,
+                        bluetoothDevice!!.type,
+                        bluetoothDevice!!.address
                     )
                 )
             }
@@ -272,16 +272,14 @@ class DispatchService : Service(), BluetoothHandler {
         // Stop foreground service and remove the notification.
         stopForeground(true)
         val bmgr: BluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
-        if (bmgr != null) {
-            bmgr.getAdapter().cancelDiscovery()
-        }
+        bmgr.adapter.cancelDiscovery()
         // Stop the foreground service.
         stopSelf()
     }
 
     private fun toggleMute() {
         isMuted = !isMuted
-        if (statusManager!!.getStateForFacility(TieredFacility.VOICE) != FacilityState.IDLE) {
+        if (statusManager.getStateForFacility(TieredFacility.VOICE) != FacilityState.IDLE) {
             determineNextAction(TieredFacility.VOICE)
         }
     }
@@ -310,8 +308,8 @@ class DispatchService : Service(), BluetoothHandler {
     override fun reportConnectionState(fac: TieredFacility, state: FacilityState) {
         Log.i(CLSS, String.format("reportConnectionState: %s %s", fac.name, state.name))
         val msg = String.format("Connection state: %s %s", fac.name, state.name)
-        statusManager!!.reportState(fac, state)
-        textManager!!.processText(MessageType.LOG, msg)
+        statusManager.reportState(fac, state)
+        textManager.processText(MessageType.LOG, msg)
     }
 
     /**
@@ -337,19 +335,21 @@ class DispatchService : Service(), BluetoothHandler {
      * MessageType header.
      */
     override fun receiveText(text: String) {
-        var text = text
-        if (text.length > 4) {
-            Log.i(CLSS, String.format("receiveText: (%s)", text))
+        var txt = text
+        if (txt.length > 4) {
+            Log.i(CLSS, String.format("receiveText: (%s)", txt))
             try {
-                val hdr = text.substring(0, BertConstants.HEADER_LENGTH)
+                val hdr = txt.substring(0, BertConstants.HEADER_LENGTH)
                 val type = MessageType.valueOf(hdr.uppercase(Locale.getDefault()))
-                text = text.substring(BertConstants.HEADER_LENGTH + 1)
-                textManager!!.processText(type, text)
-            } catch (iae: IllegalArgumentException) {
-                Log.w(CLSS, String.format("receiveText: (%s) has unrecognizedd header", text))
+                txt = txt.substring(BertConstants.HEADER_LENGTH + 1)
+                textManager.processText(type, txt)
             }
-        } else {
-            Log.w(CLSS, String.format("receiveText: (%s) is too short", text))
+            catch (iae: IllegalArgumentException) {
+                Log.w(CLSS, String.format("receiveText: (%s) has unrecognized header", txt))
+            }
+        }
+        else {
+            Log.w(CLSS, String.format("receiveText: (%s) is too short", txt))
         }
     }
 
@@ -370,7 +370,7 @@ class DispatchService : Service(), BluetoothHandler {
      */
     override fun receiveSpokenText(text: String) {
         Log.i(CLSS, String.format("receiveSpokenText: %s", text))
-        textManager!!.processText(MessageType.MSG, text)
+        textManager.processText(MessageType.MSG, text)
         if (bluetoothConnection != null) {
             bluetoothConnection!!.write(String.format("%s:%s", MessageType.MSG.name, text))
         }
@@ -383,14 +383,15 @@ class DispatchService : Service(), BluetoothHandler {
     inner class ProcessDelay
     /**
      * Constructor:
-     * @param delay millisecs to wait before going to the next state (or more
+     * @param sleepInterval milliseconds to wait before going to the next state (or more
      * likely retrying the current).
      */(private val facility: TieredFacility, private val sleepInterval: Long) : Runnable {
         override fun run() {
             try {
                 Thread.sleep(sleepInterval)
                 determineNextAction(facility)
-            } catch (ignore: InterruptedException) {
+            }
+            catch (ignore: InterruptedException) {
             }
         }
     }
@@ -402,7 +403,7 @@ class DispatchService : Service(), BluetoothHandler {
     }
     */
 
-    fun getTextManager(): TextManager? {
+    fun getTextManager(): TextManager {
         return textManager
     }
 

@@ -36,7 +36,7 @@ class TranscriptFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), S
     private lateinit var adapter: TextMessageAdapter
     private lateinit var binding: FragmentTranscriptBinding
 
-    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
         binding = FragmentTranscriptBinding.inflate(inflater,container,false)
@@ -59,8 +59,8 @@ class TranscriptFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), S
     // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
-        val intent = Intent(requireContext().getApplicationContext(), DispatchService::class.java)
-        requireContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
+        val intent = Intent(requireContext().applicationContext, DispatchService::class.java)
+        requireContext().applicationContext.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
     override fun onResume() {
@@ -81,7 +81,7 @@ class TranscriptFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), S
 
     override fun onStop() {
         super.onStop()
-        requireContext().getApplicationContext().unbindService(this)
+        requireContext().applicationContext.unbindService(this)
     }
 
     override fun onDestroyView() {
@@ -152,7 +152,7 @@ class TranscriptFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), S
     override fun update(msg: TextMessage) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen || frozen) {
-            if (getActivity() != null) {
+            if (activity != null) {
                 requireActivity().runOnUiThread(Runnable {
                     adapter.notifyItemInserted(0)
                     binding.transcriptRecyclerView.scrollToPosition(0)

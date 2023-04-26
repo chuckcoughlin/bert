@@ -38,8 +38,8 @@ class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) 
         val nvarray = nvpairs.toTypedArray()
         Log.i(CLSS, String.format("onActivityCreated: will display %d name-values", nvarray.size))
         val adapter = SettingsListAdapter(requireContext(), nvarray)
-        setListAdapter(adapter)
-        getListView().setItemsCanFocus(true)
+        listAdapter = adapter
+        listView.itemsCanFocus = true
     }
 
     // Called to have the fragment instantiate its user interface view.
@@ -89,7 +89,7 @@ class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) 
                     Log.i(CLSS,String.format("SettingsListAdapter.getView.onFocusChange %d = %s",position,
                             (v as EditText).text.toString()))
                     nv.value = v.text.toString()
-                    dbManager!!.updateSetting(nv)
+                    dbManager.updateSetting(nv)
                 }
             }
 

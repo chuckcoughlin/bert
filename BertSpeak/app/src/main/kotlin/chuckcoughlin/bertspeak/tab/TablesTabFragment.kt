@@ -46,16 +46,16 @@ class TablesTabFragment( pageNumber:Int) : BasicAssistantFragment(pageNumber), S
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentTablesTabBinding
 
-    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
         binding = FragmentTablesTabBinding.inflate(inflater,container,false)
         binding.fragmentTablesText.setText(R.string.fragmentTableTabLabel)
         logMessageView = binding.root.findViewById(R.id.logs_recycler_view)
         logMessageView!!.setHasFixedSize(true) // Refers to the size of the layout.
-        val layoutManager = LinearLayoutManager(logMessageView!!.getContext())
-        logMessageView!!.setLayoutManager(layoutManager)
+        val layoutManager = LinearLayoutManager(logMessageView!!.context)
+        logMessageView!!.layoutManager = layoutManager
         adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
-        logMessageView!!.setAdapter(adapter)
+        logMessageView!!.adapter = adapter
         val scrollPosition: Int = layoutManager.findFirstCompletelyVisibleItemPosition()
         logMessageView!!.scrollToPosition(scrollPosition)
         return binding.root
@@ -64,9 +64,9 @@ class TablesTabFragment( pageNumber:Int) : BasicAssistantFragment(pageNumber), S
     // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
-        if (getContext() != null) {
-            val intent = Intent(getContext()?.getApplicationContext(), DispatchService::class.java)
-            requireContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
+        if (context != null) {
+            val intent = Intent(context?.applicationContext, DispatchService::class.java)
+            requireContext().applicationContext.bindService(intent, this, Context.BIND_AUTO_CREATE)
         }
     }
 
@@ -86,7 +86,7 @@ class TablesTabFragment( pageNumber:Int) : BasicAssistantFragment(pageNumber), S
 
     override fun onStop() {
         super.onStop()
-        requireContext().getApplicationContext().unbindService(this)
+        requireContext().applicationContext.unbindService(this)
     }
 
     override fun onDestroyView() {

@@ -15,26 +15,19 @@ open class BasicAssistantListFragment(page:Int) : ListFragment(), AssistantFragm
     override val pageNumber = page
     override var title: String?
         get() {
-            assert(getArguments() != null)
-            return getArguments()?.getString(AssistantFragment.Companion.TITLE_ARG)
+            assert(arguments != null)
+            return arguments?.getString(AssistantFragment.Companion.TITLE_ARG)
         }
         set(title) {
-            assert(getArguments() != null)
-            getArguments()?.putString(AssistantFragment.Companion.TITLE_ARG, title)
+            assert(arguments != null)
+            arguments?.putString(AssistantFragment.Companion.TITLE_ARG, title)
         }
-
-    /**
-     * The saved state becomes the fragment's state.
-     */
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     /**
      * A no-arg constructor is required.
      */
     init {
         val bundle = Bundle()
-        setArguments(bundle)
+        arguments = bundle
     }
 }

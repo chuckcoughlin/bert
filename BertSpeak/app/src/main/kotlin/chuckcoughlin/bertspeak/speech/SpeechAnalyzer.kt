@@ -88,12 +88,12 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
 
     // ========================================= RecognitionListener ============================
     override fun onReadyForSpeech(params: Bundle) {
-        Log.i(CLSS, "onReadyForSpeech");
+        Log.i(CLSS, "onReadyForSpeech")
     }
 
     override fun onBeginningOfSpeech() {
         //Log.i(CLSS, "onBeginningOfSpeech");
-        handler!!.reportConnectionState(TieredFacility.VOICE, FacilityState.ACTIVE)
+        handler.reportConnectionState(TieredFacility.VOICE, FacilityState.ACTIVE)
     }
 
     // Background level changed ...
@@ -103,7 +103,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     }
 
     override fun onEndOfSpeech() {
-        Log.i(CLSS, "onEndofSpeech");
+        Log.i(CLSS, "onEndofSpeech")
     }
 
     override fun onError(error: Int) {
@@ -147,7 +147,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
         }
         var text = matches[0]
         text = scrubText(text)
-        handler!!.receiveSpokenText(text)
+        handler.receiveSpokenText(text)
         handler.reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING)
         startListening() // Repeat forever
     }

@@ -67,8 +67,8 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
      */
     override fun onStart() {
         super.onStart()
-        val intent = Intent(getActivity(), DispatchService::class.java)
-        getActivity()?.getApplicationContext()?.bindService(intent, this, Context.BIND_AUTO_CREATE)
+        val intent = Intent(activity, DispatchService::class.java)
+        activity?.applicationContext?.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
     override fun onResume() {
@@ -91,7 +91,7 @@ class CoverFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), Intent
 
     override fun onStop() {
         super.onStop()
-        getActivity()?.getApplicationContext()?.unbindService(this)
+        activity?.applicationContext?.unbindService(this)
     }
 
     override fun onDestroyView() {

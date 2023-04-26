@@ -25,7 +25,8 @@ class BluetoothChecker(private val handler: BluetoothHandler, private val device
         if (errMsg.isEmpty()) {
             checkerThread = CheckerThread(bmgr)
             checkerThread!!.start()
-        } else {
+        }
+        else {
             handler.handleBluetoothError(errMsg)
         }
     }
@@ -42,10 +43,11 @@ class BluetoothChecker(private val handler: BluetoothHandler, private val device
         var errorMsg = ""
         if (adapter == null) {
             errorMsg = "There is no bluetooth network"
-        } else if (deviceName == null || deviceName.isEmpty()) {
+        }
+        else if (deviceName.isNullOrEmpty()) {
             errorMsg = "No bluetooth device has been specified"
-        } else {
-            if (!adapter.isEnabled) adapter.enable()
+        }
+        else {
             if (!adapter.isEnabled) {
                 errorMsg = "The bluetooth network is not enabled"
             }
@@ -98,12 +100,15 @@ class BluetoothChecker(private val handler: BluetoothHandler, private val device
                     cycle++
                 }
                 adapter.cancelDiscovery()
-            } catch (ex: Throwable) {
-                errorMsg = String.format(
-                    "%s while searching Bluetooth devices for %s",
-                    ex.localizedMessage,
-                    deviceName
-                )
+            }
+            catch( se: SecurityException) {
+                errorMsg = String.format("%s user has rejected permission for %s",
+                    se.localizedMessage,deviceName)
+                Log.e(CLSS, errorMsg, se)
+            }
+            catch (ex: Throwable) {
+                errorMsg = String.format("%s while searching Bluetooth devices for %s",
+                    ex.localizedMessage,deviceName)
                 Log.e(CLSS, errorMsg, ex)
             }
             if (success) {
@@ -119,7 +124,7 @@ class BluetoothChecker(private val handler: BluetoothHandler, private val device
             pairedDevices = HashSet()
             isDaemon = true
             // don't require callers to explicitly kill all the old checker threads.
-            uncaughtExceptionHandler = UncaughtExceptionHandler { thread, ex ->
+            uncaughtExceptionHandler = UncaughtExceptionHandler { _, ex ->
                 val msg = String.format(
                     "There was an uncaught exception checking bluetooth: %s",
                     ex.localizedMessage

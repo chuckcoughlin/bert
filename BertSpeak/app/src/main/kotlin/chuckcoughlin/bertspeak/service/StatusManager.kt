@@ -68,7 +68,7 @@ class StatusManager {
      */
     private fun notifyObservers(intent: Intent) {
         for (observer in observers.values) {
-            observer?.update(intent)
+            observer.update(intent)
         }
     }
 

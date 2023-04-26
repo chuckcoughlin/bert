@@ -40,7 +40,7 @@ class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), Se
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentRobotLogsBinding
 
-    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
         binding = FragmentRobotLogsBinding.inflate(inflater,container,false)
@@ -63,8 +63,8 @@ class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), Se
     // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
-        val intent = Intent(requireContext().getApplicationContext(), DispatchService::class.java)
-        requireContext().getApplicationContext().bindService(intent, this, Context.BIND_AUTO_CREATE)
+        val intent = Intent(requireContext().applicationContext, DispatchService::class.java)
+        requireContext().applicationContext.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
     override fun onResume() {
@@ -85,7 +85,7 @@ class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), Se
 
     override fun onStop() {
         super.onStop()
-        if (getContext() != null) requireContext().getApplicationContext().unbindService(this)
+        if (context != null) requireContext().applicationContext.unbindService(this)
     }
 
     override fun onDestroyView() {

@@ -37,7 +37,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
      * Create a new view holder. Inflate the row layout, set the item height.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
-        val inflater: LayoutInflater = LayoutInflater.from(parent.getContext())
+        val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val shouldAttachToParent = false
         val layout: LinearLayout =
             inflater.inflate(R.layout.log_item, parent, shouldAttachToParent) as LinearLayout
@@ -55,56 +55,52 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
         val expand = position == expandedPosition
         val msg: TextMessage = messages[position]
-        if (msg == null) {
-            Log.w(CLSS, String.format("Null log holder at %d", position))
-            return
-        }
         val type: MessageType = msg.messageType
         // The timestamp is always the same
         val timestampView: TextView = holder.timestampView
         val tstamp: Date = msg.getTimestamp()
         val dt = dateFormatter.format(tstamp)
-        timestampView.setText(dt)
+        timestampView.text = dt
 
         // In expanded mode the source is the type
         val sourceView: TextView = holder.sourceView
         var source: String = msg.messageType.name
         if (expand) {
-            sourceView.setText(source)
+            sourceView.text = source
             if (type == MessageType.ANS) {
                 sourceView.setTextColor(Color.BLUE)
             }
         } else {
             // Truncate source to 16 char
             if (source.length > SOURCE_LEN) source = source.substring(0, SOURCE_LEN)
-            sourceView.setText(source)
+            sourceView.text = source
         }
 
         // In expanded mode, the message is the source (node-name).
         val messageView: TextView = holder.messageView
         var msgText: String = msg.message.trim { it <= ' ' }
         if (expand) {
-            messageView.setText(source)
+            messageView.text = source
         } else {
             if (msgText.length > MESSAGE_LEN) msgText = msgText.substring(0, MESSAGE_LEN)
-            messageView.setText(msgText)
+            messageView.text = msgText
             if (type == MessageType.ANS) {
                 messageView.setTextColor(Color.BLUE)
             }
         }
         val detailView: TextView = holder.detailView
-        val params: ViewGroup.LayoutParams = holder.itemView.getLayoutParams()
+        val params: ViewGroup.LayoutParams = holder.itemView.layoutParams
         if (expand) {
-            detailView.setText(msgText)
-            detailView.setVisibility(View.VISIBLE)
-            holder.itemView.setActivated(false)
+            detailView.text = msgText
+            detailView.visibility = View.VISIBLE
+            holder.itemView.isActivated = false
             params.height = LOG_MSG_HEIGHT_EXPANDED
         } else {
-            detailView.setVisibility(View.GONE)
-            holder.itemView.setActivated(true)
+            detailView.visibility = View.GONE
+            holder.itemView.isActivated = true
             params.height = LOG_MSG_HEIGHT
         }
-        holder.itemView.setLayoutParams(params)
+        holder.itemView.layoutParams = params
         holder.itemView.setOnClickListener(View.OnClickListener {
             expandedPosition = if (expand) -1 else position
             TransitionManager.beginDelayedTransition(recyclerView)
@@ -131,7 +127,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
             messages = listOf<TextMessage>()
         }
         else {
-            messages = msgs!!
+            messages = msgs
         }
         notifyDataSetChanged()
     }

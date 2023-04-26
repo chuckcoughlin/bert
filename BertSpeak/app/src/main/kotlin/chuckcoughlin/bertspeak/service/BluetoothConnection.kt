@@ -184,7 +184,7 @@ class BluetoothConnection(handler: BluetoothHandler) {
         shutdown()
         openConnections(device)
         try {
-            input = BufferedReader(InputStreamReader(socket!!.inputStream))
+            input = BufferedReader(InputStreamReader(socket.inputStream))
             Log.i(CLSS, String.format("reread: reopened %s for read", device!!.name))
             text = input!!.readLine()
         }
@@ -223,7 +223,8 @@ class BluetoothConnection(handler: BluetoothHandler) {
                         )
                         for (id in uuids) {
                             uuid = id.uuid
-                            if (!logged) Log.i(CLSS,String.format("run: %s: service UUID = %s",device!!.name,uuid.toString())
+                            if (!logged) Log.i(CLSS,String.format("run: %s: service UUID = %s",
+                                device.name,uuid.toString())
                             )
                         }
                         if (uuid == null) {
@@ -291,10 +292,10 @@ class BluetoothConnection(handler: BluetoothHandler) {
             var reason: String? = null
             if (socket != null) {
                 try {
-                    input = BufferedReader(InputStreamReader(socket!!.inputStream))
+                    input = BufferedReader(InputStreamReader(socket.inputStream))
                     Log.i(CLSS, String.format("openPorts: opened %s for read", device!!.name))
                     try {
-                        output = PrintWriter(socket!!.outputStream, true)
+                        output = PrintWriter(socket.outputStream, true)
                         Log.i(CLSS, String.format("openPorts: opened %s for write", device.name))
                         write(String.format("%s:the tablet is connected", MessageType.LOG.name))
                     }

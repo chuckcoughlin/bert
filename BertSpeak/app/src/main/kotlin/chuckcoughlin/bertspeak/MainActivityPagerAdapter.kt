@@ -43,7 +43,7 @@ class MainActivityPagerAdapter(fragManager: FragmentManager, lifecycle: Lifecycl
                 frag = CoverFragment(pos)
         }
 
-        Log.i(CLSS, "getItem: " + position + ": fragment=" + frag.javaClass.getCanonicalName())
+        Log.i(CLSS, "getItem: " + position + ": fragment=" + frag.javaClass.canonicalName)
         frag.title = getPageTitle(position)
         return frag as Fragment
     }
