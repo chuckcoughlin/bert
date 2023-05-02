@@ -4,6 +4,8 @@
  */
 package chuckcoughlin.bertspeak.service
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -11,23 +13,28 @@ import android.app.Service
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.content.res.ResourcesCompat
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import java.util.*
 
+
 /**
  * This is a foreground service and may be turned on/off with a notifications interface.
  * The voice service manages connections between the robot as and speech/logging facilities.
- * It accepts voice commands from the socket connection from the robot and updates listeners with
- * the resulting text. The listeners handle text enunciation and logging.
+ * It accepts voice commands from the socket connection from the robot and updates listeners
+ * with the resulting text. The listeners handle text enunciation and logging.
  *
  * The service relies on a Bluetooth connection, socket communication and the
  * Android speech recognition classes.
@@ -36,7 +43,7 @@ class DispatchService : Service(), BluetoothHandler {
     private var notificationManager: NotificationManager? = null
     private var bluetoothConnection: BluetoothConnection? = null // Stays null when simulated
     private var bluetoothDevice: BluetoothDevice? = null
-    private val binder: DispatchServiceBinder
+    private val binder: DispatchServiceBinder = DispatchServiceBinder(this)
     private lateinit var dbManager: DatabaseManager
     val statusManager: StatusManager
     private var textManager: TextManager
@@ -65,7 +72,7 @@ class DispatchService : Service(), BluetoothHandler {
      * @return
      */
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        var action: String? = intent.action
+        val action: String? = intent.action
         Log.i(CLSS, String.format("onStartCommand: %s flags = %d, id = %d", action, flags, startId))
         if (!simulatedConnectionMode) bluetoothConnection = BluetoothConnection(this)
         if (action == null) {
@@ -135,10 +142,6 @@ class DispatchService : Service(), BluetoothHandler {
         stopForegroundService()
     }
 
-    fun isSimulatedConnectionMode(): Boolean {
-        return simulatedConnectionMode
-    }
-
     override fun setBluetoothDevice(device: BluetoothDevice?) {
         bluetoothDevice = device
     }
@@ -167,8 +170,8 @@ class DispatchService : Service(), BluetoothHandler {
         builder.setStyle(bigTextStyle)
         builder.setWhen(System.currentTimeMillis())
         builder.setSmallIcon(R.mipmap.ic_launcher)
-        //val largeIconBitmap: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.rounded_button)
-        val largeIconBitmap: Bitmap = BitmapFactory.decodeResource( resources,R.drawable.rounded_button)
+        val drawable = ResourcesCompat.getDrawable(resources,R.drawable.rounded_button,null)
+        val largeIconBitmap: Bitmap = createBitmapFromDrawable(drawable!!)
         builder.setLargeIcon(largeIconBitmap)
         // Make the notification max priority.
         builder.priority = NotificationManager.IMPORTANCE_DEFAULT
@@ -179,7 +182,7 @@ class DispatchService : Service(), BluetoothHandler {
         val startIntent = Intent(this, NotificationActionReceiver::class.java)
         var action = getString(R.string.notificationReset)
         startIntent.action = action
-        val pendingStartIntent: PendingIntent = PendingIntent.getBroadcast(this, 1, startIntent, 0)
+        val pendingStartIntent: PendingIntent = PendingIntent.getBroadcast(this, 1, startIntent, PendingIntent.FLAG_IMMUTABLE)
         val resetAction: NotificationCompat.Action =
             NotificationCompat.Action(android.R.drawable.ic_media_play, action, pendingStartIntent)
         builder.addAction(resetAction)
@@ -189,7 +192,7 @@ class DispatchService : Service(), BluetoothHandler {
         val muteIntent = Intent(this, NotificationActionReceiver::class.java)
         action = getString(R.string.notificationMute)
         muteIntent.action = action
-        val pendingMuteIntent: PendingIntent = PendingIntent.getBroadcast(this, 2, muteIntent, 0)
+        val pendingMuteIntent: PendingIntent = PendingIntent.getBroadcast(this, 2, muteIntent, PendingIntent.FLAG_IMMUTABLE)
         val muteAction: NotificationCompat.Action =
             NotificationCompat.Action(android.R.drawable.ic_media_pause, action, pendingMuteIntent)
         builder.addAction(muteAction)
@@ -199,7 +202,7 @@ class DispatchService : Service(), BluetoothHandler {
         val stopIntent = Intent(this, NotificationActionReceiver::class.java)
         action = getString(R.string.notificationStop)
         stopIntent.action = action
-        val pendingStopIntent: PendingIntent = PendingIntent.getBroadcast(this, 3, stopIntent, 0)
+        val pendingStopIntent: PendingIntent = PendingIntent.getBroadcast(this, 3, stopIntent, PendingIntent.FLAG_IMMUTABLE)
         val stopAction: NotificationCompat.Action =
             NotificationCompat.Action(android.R.drawable.ic_lock_power_off, action, pendingStopIntent)
         builder.addAction(stopAction)
@@ -208,8 +211,18 @@ class DispatchService : Service(), BluetoothHandler {
         // Build the notification.
         return builder.build()
     }
+    // With a vector image, work with the bitmap
+    private fun createBitmapFromDrawable(drawable: Drawable) : Bitmap {
+        //val bitmap = Bitmap.createBitmap(drawable.minimumWidth,drawable.minimumHeight,                                   Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(40,40,                                   Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
 
+        return bitmap
+    }
     // Start the 3 stages in order
+    @SuppressLint("MissingPermission")
     private fun determineNextAction(currentFacility: TieredFacility) {
         val currentState = statusManager.getStateForFacility(currentFacility)
         if (currentFacility == TieredFacility.BLUETOOTH) {
@@ -272,6 +285,20 @@ class DispatchService : Service(), BluetoothHandler {
         // Stop foreground service and remove the notification.
         stopForeground(true)
         val bmgr: BluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_SCAN
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
         bmgr.adapter.cancelDiscovery()
         // Stop the foreground service.
         stopSelf()
@@ -417,7 +444,6 @@ class DispatchService : Service(), BluetoothHandler {
     //private static final boolean IS_EMULATOR = Build.HARDWARE.contains("goldfish");
     //private static final boolean IS_EMULATOR Build.IS_EMULATOR;
     init {
-        binder = DispatchServiceBinder(this)
         simulatedConnectionMode = false
         statusManager = StatusManager()
         textManager = TextManager()
