@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="Theme">
+        <!-- These allow lookup of the theme colors -->
+        <attr name="colorOnPrimary" format="color|reference" />
+        <attr name="colorOnSecondary" format="color|reference" />
+        <attr name="colorPrimary" format="color|reference" />
+        <attr name="colorPrimaryVariant" format="color|reference" />
+        <attr name="colorSecondary" format="color|reference" />
+        <attr name="colorSecondaryVariant" format="color|reference" />
+    </declare-styleable>
+</resources>
