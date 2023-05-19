@@ -16,9 +16,8 @@ import android.speech.tts.Voice
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.coordinatorlayout.widget.CoordinatorLayout
-import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.FragmentPageTransformer
+import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.ActivityMainBinding
 import chuckcoughlin.bertspeak.service.*
@@ -27,7 +26,6 @@ import chuckcoughlin.bertspeak.speech.SpeechAnalyzer
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
 import com.google.android.material.tabs.TabLayoutMediator
-
 import java.util.*
 
 /**
@@ -61,7 +59,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         // Close the soft keyboard - it will still open on an EditText
         this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         // Get the ViewPager2 and set it's PagerAdapter so that it can display items
-        val viewPager = binding.pager
+        val viewPager = binding.fragmentViewPager
         viewPager.setPageTransformer(FragmentPageTransformer())
         val pagerAdapter = MainActivityPagerAdapter(supportFragmentManager, lifecycle, getTabTitles())
         viewPager.adapter = pagerAdapter
@@ -182,7 +180,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     override fun onServiceDisconnected(name: ComponentName) {
         if (service != null) {
             service!!.statusManager.unregister(this)
-            service!!.getTextManager()!!.unregisterTranscriptViewer(this)
+            service!!.getTextManager().unregisterTranscriptViewer(this)
         }
         service = null
         analyzer!!.shutdown()
@@ -195,7 +193,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         service = binder.getService()
         activateSpeechAnalyzer()
         service!!.statusManager.register(this)
-        service!!.getTextManager()!!.registerTranscriptViewer(this)
+        service!!.getTextManager().registerTranscriptViewer(this)
     }
 
     // Turn off the audio to mute the annoying beeping

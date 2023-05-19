@@ -89,7 +89,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         index = index++
         val qn: QueueName = holder.queue
         var queue: SequentialQueue? = null
-        if (qn != null) queue = sequentialQueues[qn]
+        ueue = sequentialQueues[qn]
         if (queue != null) {
             LOGGER.info(
                 String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.message.type,

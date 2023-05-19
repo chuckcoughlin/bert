@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/appbar_padding_top"
         android:theme="@style/AppTheme.AppBarOverlay">
-
+        <!-- Toolbar at the top of the screen -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -35,35 +35,22 @@
                 android:textSize = "48sp"
                 />
         </androidx.appcompat.widget.Toolbar>
-        <!-- Tab Layout for creating tabs -->
+        <!-- Tab Layout for fragment tabs -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|enterAlways"/>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- This is the tab-strip -->
+
+    <!-- Handle the Fragments for each Tab -->
     <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/pager"
+        android:id="@+id/fragment_viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
-        <androidx.viewpager.widget.PagerTabStrip
-            android:id="@+id/pager_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:paddingBottom="4dp"
-            android:background="@color/navigationBarColor"
-            android:textSize = "24sp"
-            android:paddingTop="4dp" />
-    </androidx.viewpager2.widget.ViewPager2>
-
-
-    <!-- Helps handing the Fragments for each Tab -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        android:orientation="horizontal"
+        android:animateLayoutChanges="true"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$Behavior"
+        />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

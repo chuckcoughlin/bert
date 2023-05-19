@@ -37,6 +37,9 @@ object BertConstants {
     // For saved UI state in a bundle
     const val BUNDLE_FROZEN = "Frozen"
 
+    // Undefined
+    const val NO_DEVICE = "UNDEFINED_DEVICE"
+
     // Notifications
     const val NOTIFICATION_CHANNEL_ID = "speechServiceChannel"
     const val NOTIFICATION_CHANNEL_NAME = "Spoken Text Channel"

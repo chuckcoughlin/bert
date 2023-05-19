@@ -283,13 +283,10 @@ class DispatchService : Service(), BluetoothHandler {
         Log.i(CLSS, "Stop foreground service.")
 
         // Stop foreground service and remove the notification.
-        stopForeground(true)
+        stopForegroundService()
         val bmgr: BluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+                this,Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
