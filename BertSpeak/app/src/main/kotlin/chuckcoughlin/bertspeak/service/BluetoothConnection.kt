@@ -156,7 +156,7 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
             }
             else {
                 Log.e(CLSS, String.format(
-                        "write: Error writing to %s before connection",
+                        "write: Device(%s) output is undefined  before connection",
                         deviceName))
             }
         }

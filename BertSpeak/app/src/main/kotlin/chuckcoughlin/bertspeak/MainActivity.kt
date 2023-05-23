@@ -16,6 +16,8 @@ import android.speech.tts.Voice
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.get
+import androidx.viewpager2.widget.ViewPager2
 import chuckcoughlin.bertspeak.common.FragmentPageTransformer
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
@@ -50,20 +52,23 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         val intent = Intent(this, DispatchService::class.java)
         applicationContext.startForegroundService(intent)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
-        Log.i(CLSS, "onCreate ...")
+        Log.i(CLSS, "onCreate: ... inflating binding")
         // If we absolutely have to start over again with the database ...
         //this.deleteDatabase(BertConstants.DB_NAME);
         val binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        val layout = binding.root
+        val view = layout.findViewById<ViewPager2>(R.id.fragment_viewPager)
+        Log.i(CLSS,String.format("onCreate: ... view is a %s",view.javaClass.canonicalName))
         // Close the soft keyboard - it will still open on an EditText
         this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         // Get the ViewPager2 and set it's PagerAdapter so that it can display items
+        Log.i(CLSS, "onCreate: ... getting viewPager")
         val viewPager = binding.fragmentViewPager
         viewPager.setPageTransformer(FragmentPageTransformer())
         val pagerAdapter = MainActivityPagerAdapter(supportFragmentManager, lifecycle, getTabTitles())
         viewPager.adapter = pagerAdapter
 
+        Log.i(CLSS, "onCreate: ... getting tabLayout")
         val tabLayout = binding.tabLayout
         TabLayoutMediator(tabLayout,viewPager) {
             tab,position -> tab.text = pagerAdapter.getPageTitle(position)
@@ -75,6 +80,7 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
      */
     override fun onStart() {
         super.onStart()
+        Log.i(CLSS, "onStart")
         activateSpeechAnalyzer()
         annunciator = Annunciator(applicationContext, this)
         annunciator!!.setOnUtteranceProgressListener(UtteranceListener())

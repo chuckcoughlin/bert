@@ -71,48 +71,49 @@ class DispatchService : Service(), BluetoothHandler {
      * @param startId
      * @return
      */
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val action: String? = intent.action
-        Log.i(CLSS, String.format("onStartCommand: %s flags = %d, id = %d", action, flags, startId))
-        if (!simulatedConnectionMode) bluetoothConnection = BluetoothConnection(this)
-        if (action == null) {
-            if (simulatedConnectionMode) {
-                reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.ACTIVE)
-                reportConnectionState(
-                    TieredFacility.SOCKET,
-                    FacilityState.ACTIVE
-                ) // Just to initialize
-                reportConnectionState(
-                    TieredFacility.VOICE,
-                    FacilityState.IDLE
-                ) // Just to initialize
-                determineNextAction(TieredFacility.VOICE)
-            }
-            else {
-                reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE)
-                reportConnectionState(
-                    TieredFacility.SOCKET,
-                    FacilityState.IDLE
-                ) // Just to initialize
-                reportConnectionState(
-                    TieredFacility.VOICE,
-                    FacilityState.IDLE
-                ) // Just to initialize
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if( intent!=null ) {
+            val action: String? = intent.action
+            Log.i(
+                CLSS,String.format("onStartCommand: %s flags = %d, id = %d",
+                    action, flags, startId)
+            )
+            if (!simulatedConnectionMode) bluetoothConnection = BluetoothConnection(this)
+            if (action == null) {
+                if (simulatedConnectionMode) {
+                    reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.ACTIVE)
+                    reportConnectionState(
+                        TieredFacility.SOCKET,
+                        FacilityState.ACTIVE
+                    ) // Just to initialize
+                    reportConnectionState(
+                        TieredFacility.VOICE,
+                        FacilityState.IDLE
+                    ) // Just to initialize
+                    determineNextAction(TieredFacility.VOICE)
+                } else {
+                    reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE)
+                    reportConnectionState(
+                        TieredFacility.SOCKET,
+                        FacilityState.IDLE
+                    ) // Just to initialize
+                    reportConnectionState(
+                        TieredFacility.VOICE,
+                        FacilityState.IDLE
+                    ) // Just to initialize
+                    determineNextAction(TieredFacility.BLUETOOTH)
+                }
+            } else if (action.equals(getString(R.string.notificationMute), ignoreCase = true)) {
+                toggleMute()
+            } else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
+                if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
+                statusManager.reportState(TieredFacility.SOCKET, FacilityState.IDLE)
                 determineNextAction(TieredFacility.BLUETOOTH)
+            } else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
+                stopSelf()
             }
         }
-        else if (action.equals(getString(R.string.notificationMute), ignoreCase = true)) {
-            toggleMute()
-        }
-        else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
-            if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
-            statusManager.reportState(TieredFacility.SOCKET, FacilityState.IDLE)
-            determineNextAction(TieredFacility.BLUETOOTH)
-        }
-        else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
-            stopSelf()
-        }
-        return START_STICKY
+        return START_REDELIVER_INTENT
     }
 
     // A client is binding to the service with bindService(). This appears to
@@ -153,7 +154,6 @@ class DispatchService : Service(), BluetoothHandler {
      * ---- mute
      */
     private fun buildNotification(): Notification {
-
         // Create notification default intent.
         val intent = Intent()
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -307,7 +307,7 @@ class DispatchService : Service(), BluetoothHandler {
             determineNextAction(TieredFacility.VOICE)
         }
     }
-    //=================================== BluetoothHandler ==============================================
+    //=========================== BluetoothHandler ===============================
     /**
      * There was an error in the bluetooth connection attempt.
      * @param reason error description
@@ -399,7 +399,7 @@ class DispatchService : Service(), BluetoothHandler {
             bluetoothConnection!!.write(String.format("%s:%s", MessageType.MSG.name, text))
         }
     }
-    //=================================== ProcessDelay ==============================================
+    //=========================== ProcessDelay =====================================
     /**
      * Use this class to delay the transition to the next step. When we find
      * an error, we need to avoid a hard loop.
@@ -420,7 +420,7 @@ class DispatchService : Service(), BluetoothHandler {
         }
     }
 
-    // ===================================== Methods Exposed thru Service Binder ====================================
+    // ================= Methods Exposed thru Service Binder ==========================
     /*
     fun getStatusManager(): StatusManager? {
         return statusManager
