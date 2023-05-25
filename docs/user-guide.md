@@ -139,15 +139,13 @@ Additionally, under Settings->General Management, choose the preferred text-spee
  ```                        BertSpeak - Cover Page ```</br>
   The **cover** panel shows the current state of connection with the main robot
   processor.   
-  *********************************************************
+  ********************************************************
    ![BertSpeak](/images/bertspeak_settings.png)
  ```                        BertSpeak - Settings Page ```</br>
     It is important that the settings be filled in before attempting to use the tablet
     for robot control. The **Settings** page should show the following values:
 
   ```
-    Server                192.168.1.20
-    Port                  11046
     Paired Device         bert_humanoid
     Simulated Connection  false  (true is used with the Android simulator during development)
   ```

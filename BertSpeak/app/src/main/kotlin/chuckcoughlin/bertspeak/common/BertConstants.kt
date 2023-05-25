@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Chuck Coughlin
+ * Copyright (C) 2022-2023 Chuck Coughlin
  *  (MIT License)
  */
 package chuckcoughlin.bertspeak.common
@@ -26,7 +26,7 @@ object BertConstants {
 
     // These are the default values for the settings
     const val BERT_SERVER_HINT = "192.168.1.20"
-    const val BERT_PORT_HINT = "1-30"
+    const val BERT_PORT_HINT = "11046"
     const val BERT_PAIRED_DEVICE_HINT = "bert_humanoid"
     const val BERT_SERVICE_UUID_HINT = "33001101-0000-2000-8080-00815FAB34FF"
     const val BERT_SIMULATED_CONNECTION_HINT = "false"
@@ -49,9 +49,6 @@ object BertConstants {
 
     // Number of log messages to store/display
     const val NUM_LOG_MESSAGES = 40
-
-    // Dialog transaction key
-    const val DIALOG_TRANSACTION_KEY = "dialog"
 
     // For messages from robot (Does not include semi-colon)
     const val HEADER_LENGTH = 3

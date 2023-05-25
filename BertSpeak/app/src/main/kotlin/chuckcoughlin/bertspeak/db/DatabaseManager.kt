@@ -1,21 +1,31 @@
+/**
+ * Copyright 2023 Charles Coughlin. All rights reserved.
+ * (MIT License)
+ */
 package chuckcoughlin.bertspeak.db
 
-import android.content.*
+import android.content.Context
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import chuckcoughlin.bertspeak.common.*
+import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.NameValue
+
 
 /**
  * Persistent application parameters are stored in a SQLite database. The SQLiteOpenHelper
  * checks for existence and version when the database is first opened. Beyond that the
  * checks are ignored. Create a separate instance of this class wherever needed.
  * The database is closed after each transaction.
- */
+ *
+ * Constructor requires the activity context.
+ * @param context main activity
+*/
+
 class DatabaseManager(ctx: Context) :
     SQLiteOpenHelper(ctx, BertConstants.DB_NAME, null, BertConstants.DB_VERSION) {
-    private var context: Context = ctx
+    private var context: Context
 
     /**
      * Called when the database connection is being configured.
@@ -41,24 +51,35 @@ class DatabaseManager(ctx: Context) :
         sqLiteDatabase.execSQL(SQL.toString())
 
 
-        // Add initial rows - fail silently if they exist. Use default for value.
+        // Add initial settings - fail silently if they exist. The default values make sense
+        // for development.
         var statement =
-            "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_SERVER + "','" + BertConstants.BERT_SERVER_HINT + "')"
+            /*
+            "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.
+            BERT_SERVER + "','" + BertConstants.BERT_SERVER_HINT + "')"
         execLenient(sqLiteDatabase, statement)
         statement =
             "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_PORT + "','" + BertConstants.BERT_PORT_HINT + "')"
         execLenient(sqLiteDatabase, statement)
         statement =
-            "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_PAIRED_DEVICE + "','" + BertConstants.BERT_PAIRED_DEVICE_HINT + "')"
+             */
+            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                    BertConstants.BERT_PAIRED_DEVICE,
+                    BertConstants.BERT_PAIRED_DEVICE_HINT,
+                    BertConstants.BERT_PAIRED_DEVICE_HINT)
         execLenient(sqLiteDatabase, statement)
+        /*
         statement =
             "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_SERVICE_UUID + "','" + BertConstants.BERT_SERVICE_UUID_HINT + "')"
         execLenient(sqLiteDatabase, statement)
         statement =
-            "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_SIMULATED_CONNECTION + "','" + BertConstants.BERT_SIMULATED_CONNECTION_HINT + "')"
+         */
+            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                BertConstants.BERT_SIMULATED_CONNECTION,"true",
+                BertConstants.BERT_SIMULATED_CONNECTION_HINT)
         execLenient(sqLiteDatabase, statement)
-        Log.i(CLSS,String.format("onCreate: Created %s at %s",BertConstants.DB_NAME,
-            context.getDatabasePath(BertConstants.DB_NAME)))
+        Log.i(CLSS,String.format("onCreate: Guarantee setting exist in %s at %s",
+            BertConstants.DB_NAME,context.getDatabasePath(BertConstants.DB_NAME)))
     }
 
     /**
@@ -71,7 +92,8 @@ class DatabaseManager(ctx: Context) :
             database.execSQL(sql)
         }
         catch (sqle: SQLException) {
-            Log.e(CLSS,String.format("execSQL:%s; SQLException ignored (%s)",sql, sqle.localizedMessage))
+            Log.e(CLSS,String.format("execSQL:%s: SQLException ignored (%s)",
+                sql, sqle.localizedMessage))
         }
     }
 
@@ -85,7 +107,8 @@ class DatabaseManager(ctx: Context) :
             sqLiteDatabase.execSQL(sql)
         }
         catch (sqle: SQLException) {
-            Log.i(CLSS, String.format("SQLException ignored (%s)", sqle.localizedMessage))
+            Log.i(CLSS, String.format("execLenient:%s: SQLException ignored (%s)",
+                sql,sqle.localizedMessage))
         }
     }
 
@@ -102,7 +125,8 @@ class DatabaseManager(ctx: Context) :
             onCreate(sqLiteDatabase)
         }
         catch (sqle: SQLException) {
-            Log.e(CLSS, String.format("onUpgrade: SQLError: %s",sqle.localizedMessage))
+            Log.e(CLSS, String.format("onUpgrade: version %d->%d SQLError: %s",
+                oldVersion,newVersion,sqle.localizedMessage))
         }
     }
     // ================================================ Settings =============================
@@ -187,11 +211,7 @@ class DatabaseManager(ctx: Context) :
         private const val CLSS = "DatabaseManager"
     }
 
-    /**
-     * Constructor requires the activity context.
-     * @param context main activity
-     */
     init {
-        this.context = context.applicationContext
+        this.context = ctx.applicationContext
     }
 }

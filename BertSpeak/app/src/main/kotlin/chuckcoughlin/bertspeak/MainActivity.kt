@@ -16,7 +16,6 @@ import android.speech.tts.Voice
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.get
 import androidx.viewpager2.widget.ViewPager2
 import chuckcoughlin.bertspeak.common.FragmentPageTransformer
 import chuckcoughlin.bertspeak.common.IntentObserver

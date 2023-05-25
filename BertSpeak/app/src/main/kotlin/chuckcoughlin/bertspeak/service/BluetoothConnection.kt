@@ -67,7 +67,8 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
         if (input != null) {
             try {
                 input!!.close()
-            } catch (ignore: IOException) {
+            }
+            catch (ignore: IOException) {
             }
             input = null
         }
@@ -80,7 +81,8 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
                 _socket = null
                 socket.close()
             }
-        } catch (_: IOException) {
+        }
+        catch (_: IOException) {
         }
     }
 
@@ -100,12 +102,13 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
                 Log.i(CLSS, String.format("read: returning: %s", text))
             }
             else {
-                Log.e(CLSS, String.format("read: Error reading from %s before connection", deviceName))
+                Log.e(CLSS,
+                    String.format("read: Error reading from %s before connection",
+                    deviceName))
             }
         }
         catch (ioe: IOException) {
-            Log.e(CLSS, String.format(
-                    "read: Error reading from %s (%s)",
+            Log.e(CLSS, String.format("read: Error reading from %s (%s)",
                     deviceName, ioe.localizedMessage))
             // Close and attempt to reopen port
             text = reread()
