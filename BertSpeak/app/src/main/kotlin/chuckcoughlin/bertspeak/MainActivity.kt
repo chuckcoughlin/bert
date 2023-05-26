@@ -55,13 +55,13 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         // If we absolutely have to start over again with the database ...
         //this.deleteDatabase(BertConstants.DB_NAME);
         val binding = ActivityMainBinding.inflate(layoutInflater)
-        val layout = binding.root
-        val view = layout.findViewById<ViewPager2>(R.id.fragment_viewPager)
-        Log.i(CLSS,String.format("onCreate: ... view is a %s",view.javaClass.canonicalName))
+        Log.i(CLSS,String.format("onCreate: binding is a %s",
+            binding.javaClass.canonicalName))
         // Close the soft keyboard - it will still open on an EditText
         this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         // Get the ViewPager2 and set it's PagerAdapter so that it can display items
-        Log.i(CLSS, "onCreate: ... getting viewPager")
+        Log.i(CLSS,String.format("onCreate: viewPager is a %s",
+            binding.fragmentViewPager.javaClass.canonicalName))
         val viewPager = binding.fragmentViewPager
         viewPager.setPageTransformer(FragmentPageTransformer())
         val pagerAdapter = MainActivityPagerAdapter(supportFragmentManager, lifecycle, getTabTitles())

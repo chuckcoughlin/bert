@@ -4,90 +4,28 @@
  */
 package chuckcoughlin.bertspeak.db
 
-import android.content.Context
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.NameValue
+import java.io.File
 
 
 /**
- * Persistent application parameters are stored in a SQLite database. The SQLiteOpenHelper
- * checks for existence and version when the database is first opened. Beyond that the
+ * Persistent application parameters are stored in a SQLite database. We check for
+ * existence and version when the database is first opened. Beyond that the
  * checks are ignored. Create a separate instance of this class wherever needed.
- * The database is closed after each transaction.
- *
- * Constructor requires the activity context.
- * @param context main activity
+ * The database is a Singleton (object) and is closed after each transaction.
 */
 
-class DatabaseManager(ctx: Context) :
-    SQLiteOpenHelper(ctx, BertConstants.DB_NAME, null, BertConstants.DB_VERSION) {
-    private var context: Context
-
-    /**
-     * Called when the database connection is being configured.
-     * Configure database settings for things like foreign key support, write-ahead logging, etc.
-     */
-    override fun onConfigure(db: SQLiteDatabase) {
-        super.onConfigure(db)
-        db.setForeignKeyConstraintsEnabled(true)
-    }
-
-    /**
-     * Called when the database is created for the FIRST time.
-     * If a database already exists on disk with the same DATABASE_NAME, this method will NOT be called.
-     * @param sqLiteDatabase
-     */
-    override fun onCreate(sqLiteDatabase: SQLiteDatabase) {
-        val SQL = StringBuilder()
-        SQL.append("CREATE TABLE IF NOT EXISTS Settings (")
-        SQL.append("  name TEXT PRIMARY KEY,")
-        SQL.append("  value TEXT DEFAULT '',")
-        SQL.append("  hint TEXT DEFAULT 'hint'")
-        SQL.append(")")
-        sqLiteDatabase.execSQL(SQL.toString())
-
-
-        // Add initial settings - fail silently if they exist. The default values make sense
-        // for development.
-        var statement =
-            /*
-            "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.
-            BERT_SERVER + "','" + BertConstants.BERT_SERVER_HINT + "')"
-        execLenient(sqLiteDatabase, statement)
-        statement =
-            "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_PORT + "','" + BertConstants.BERT_PORT_HINT + "')"
-        execLenient(sqLiteDatabase, statement)
-        statement =
-             */
-            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_PAIRED_DEVICE,
-                    BertConstants.BERT_PAIRED_DEVICE_HINT,
-                    BertConstants.BERT_PAIRED_DEVICE_HINT)
-        execLenient(sqLiteDatabase, statement)
-        /*
-        statement =
-            "INSERT INTO Settings(Name,Hint) VALUES('" + BertConstants.BERT_SERVICE_UUID + "','" + BertConstants.BERT_SERVICE_UUID_HINT + "')"
-        execLenient(sqLiteDatabase, statement)
-        statement =
-         */
-            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                BertConstants.BERT_SIMULATED_CONNECTION,"true",
-                BertConstants.BERT_SIMULATED_CONNECTION_HINT)
-        execLenient(sqLiteDatabase, statement)
-        Log.i(CLSS,String.format("onCreate: Guarantee setting exist in %s at %s",
-            BertConstants.DB_NAME,context.getDatabasePath(BertConstants.DB_NAME)))
-    }
-
+class DatabaseManager() {
     /**
      * Trap and log any errors.
      * @param sql
      */
     fun execSQL(sql: String?) {
-        val database = this.writableDatabase
+        val database = getwritableDatabase()
         try {
             database.execSQL(sql)
         }
@@ -102,7 +40,7 @@ class DatabaseManager(ctx: Context) :
      * @param sqLiteDatabase
      * @param sql
      */
-    fun execLenient(sqLiteDatabase: SQLiteDatabase, sql: String?) {
+     fun execLenient(sqLiteDatabase: SQLiteDatabase, sql: String?) {
         try {
             sqLiteDatabase.execSQL(sql)
         }
@@ -112,56 +50,42 @@ class DatabaseManager(ctx: Context) :
         }
     }
 
-    /**
-     * Alter an existing database to account for changes as time goes on. This is called if the
-     * database is accessed with a newer version than exists on disk.
-     * @param sqLiteDatabase the database
-     * @param oldVersion version number of the existing installation
-     * @param newVersion current version number
-     */
-    override fun onUpgrade(sqLiteDatabase: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion == BertConstants.DB_VERSION) return  // Already at latest version
-        try {
-            onCreate(sqLiteDatabase)
-        }
-        catch (sqle: SQLException) {
-            Log.e(CLSS, String.format("onUpgrade: version %d->%d SQLError: %s",
-                oldVersion,newVersion,sqle.localizedMessage))
-        }
-    }
     // ================================================ Settings =============================
     /**
      * Read name/value pairs from the database.
      */
     fun getSetting(name: String): String? {
-        var result: String? = null
-        val database = this.readableDatabase
-        val args = arrayOfNulls<String>(1) // Use for PreparedStatement
-        args[0] = name
-        val SQL = "SELECT value FROM Settings WHERE Name=?"
-        val cursor = database.rawQuery(SQL, args)
-        cursor.moveToFirst()
-        if (!cursor.isAfterLast) {
-            result = cursor.getString(0)
-            Log.i(CLSS, String.format("getSetting: %s = %s", name, result))
+        synchronized(DB) {
+            var result: String? = null
+            val database = getreadableDatabase()
+            val args = arrayOfNulls<String>(1) // Use for PreparedStatement
+            args[0] = name
+            val SQL = "SELECT value FROM Settings WHERE Name=?"
+            val cursor = database.rawQuery(SQL, args)
+            cursor.moveToFirst()
+            if (!cursor.isAfterLast) {
+                result = cursor.getString(0)
+                Log.i(CLSS, String.format("getSetting: %s = %s", name, result))
+            }
+            cursor.close()
+            database.close()
+            return result
         }
-        cursor.close()
-        database.close()
-        return result
-    }// Use for PreparedStatement
+    }
 
     /**
      * Read name/value pairs from the database.
      */
     fun getSettings (): List<NameValue> {
+        synchronized(DB) {
             val list: MutableList<NameValue> = ArrayList()
-            val database = this.readableDatabase
+            val database = getreadableDatabase()
             val args = arrayOfNulls<String>(0) // Use for PreparedStatement
             val SQL = "SELECT name,value,hint FROM Settings ORDER BY Name"
             val cursor = database.rawQuery(SQL, args)
             cursor.moveToFirst()
             while (!cursor.isAfterLast) {
-                val nv = NameValue(cursor.getString(0),cursor.getString(1),cursor.getString(2))
+                val nv = NameValue(cursor.getString(0), cursor.getString(1), cursor.getString(2))
                 Log.i(CLSS, String.format("getSettings: %s = %s (%s)", nv.name, nv.value, nv.hint))
                 list.add(nv)
                 cursor.moveToNext()
@@ -170,20 +94,23 @@ class DatabaseManager(ctx: Context) :
             database.close()
             return list
         }
+    }
 
     /**
      * Save a single setting to the database.
      * @param nv the subject name-value pair
      */
     fun updateSetting(nv: NameValue?) {
-        val database = this.writableDatabase
-        val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
-        val bindArgs = arrayOfNulls<String>(3)
-        bindArgs[0] = nv!!.value
-        bindArgs[1] = nv.hint
-        bindArgs[2] = nv.name
-        database.execSQL(SQL, bindArgs)
-        database.close()
+        synchronized(DB) {
+            val database = getwritableDatabase()
+            val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
+            val bindArgs = arrayOfNulls<String>(3)
+            bindArgs[0] = nv!!.value
+            bindArgs[1] = nv.hint
+            bindArgs[2] = nv.name
+            database.execSQL(SQL, bindArgs)
+            database.close()
+        }
     }
 
     /**
@@ -191,27 +118,97 @@ class DatabaseManager(ctx: Context) :
      * @param items a list of name-value pairs
      */
     fun updateSettings(items: List<NameValue>) {
-        val database = this.writableDatabase
-        val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
-        val bindArgs = arrayOfNulls<String>(3)
-        val count = items.size
-        var index = 0
-        while (index < count) {
-            val nv = items[index]
-            bindArgs[0] = nv.value
-            bindArgs[1] = nv.hint
-            bindArgs[2] = nv.name
-            database.execSQL(SQL, bindArgs)
-            index++
+        synchronized(DB) {
+            val database = DB.getwritableDatabase()
+            val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
+            val bindArgs = arrayOfNulls<String>(3)
+            val count = items.size
+            var index = 0
+            while (index < count) {
+                val nv = items[index]
+                bindArgs[0] = nv.value
+                bindArgs[1] = nv.hint
+                bindArgs[2] = nv.name
+                database.execSQL(SQL, bindArgs)
+                index++
+            }
+            database.close()
         }
-        database.close()
     }
 
-    companion object {
+    companion object DB {
         private const val CLSS = "DatabaseManager"
-    }
+        @Volatile
+        private var dbobject: SQLiteDatabase? = null;
 
+        fun getDatabase(canWrite:Boolean) : SQLiteDatabase {
+            if( dbobject!=null && dbobject!!.isOpen) dbobject!!.close()
+            val OS = System.getProperty("os.name", "generic")!!.lowercase()
+            // For Linux-like systems (simulation/test mode), use a fixed path
+            if (OS.indexOf("mac") >= 0 ||
+                OS.indexOf("nix") >= 0   ) {
+                val path = File(BertConstants.DB_FILE_PATH)
+                path.createNewFile() // Guarantee file exists
+
+                val builder = SQLiteDatabase.OpenParams.Builder()
+                builder.addOpenFlags(SQLiteDatabase.CREATE_IF_NECESSARY)
+                if( canWrite )  builder.addOpenFlags(SQLiteDatabase.OPEN_READWRITE)
+                else            builder.addOpenFlags(SQLiteDatabase.OPEN_READONLY)
+                var params = builder.build()
+                dbobject = SQLiteDatabase.openDatabase(path,params)
+            }
+            // For Android, just use the database name
+            else {
+                var flags = SQLiteDatabase.CREATE_IF_NECESSARY
+                if( canWrite )  flags = flags or SQLiteDatabase.OPEN_READWRITE
+                else flags = flags or SQLiteDatabase.OPEN_READONLY
+                dbobject = SQLiteDatabase.openDatabase(
+                    BertConstants.DB_NAME, null,flags)
+            }
+            configureDatabase(dbobject!!)
+
+            return dbobject!!
+        }
+        fun getreadableDatabase() : SQLiteDatabase {
+            return getDatabase(false)
+        }
+        fun getwritableDatabase() : SQLiteDatabase {
+            return getDatabase(true)
+        }
+        fun configureDatabase(db:SQLiteDatabase) {
+            db.setForeignKeyConstraintsEnabled(true)
+        }
+    }
+    // ================= End of DB =======================
+    /**
+     * Called when the manager is first created. If the database already exists on disk
+     * with the same name, this method will have no effect.
+     */
     init {
-        this.context = ctx.applicationContext
+        val SQL = StringBuilder()
+        SQL.append("CREATE TABLE IF NOT EXISTS Settings (")
+        SQL.append("  name TEXT PRIMARY KEY,")
+        SQL.append("  value TEXT DEFAULT '',")
+        SQL.append("  hint TEXT DEFAULT 'hint'")
+        SQL.append(")")
+        val db = getwritableDatabase()
+        db.execSQL(SQL.toString())
+
+        // Add initial settings - fail silently if they exist. The default values make sense
+        // for development.
+        var statement =
+            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                BertConstants.BERT_PAIRED_DEVICE,
+                BertConstants.BERT_PAIRED_DEVICE_HINT,
+                BertConstants.BERT_PAIRED_DEVICE_HINT)
+        execLenient(db, statement)
+
+        statement =
+            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                BertConstants.BERT_SIMULATED_CONNECTION,"true",
+                BertConstants.BERT_SIMULATED_CONNECTION_HINT)
+        execLenient(db, statement)
+        Log.i(CLSS,String.format("onCreate: Guarantee settings exist in %s at %s",
+            BertConstants.DB_NAME,db.path.toString()))
     }
 }

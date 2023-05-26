@@ -10,8 +10,9 @@ package chuckcoughlin.bertspeak.common
  */
 object BertConstants {
     // Database configuration
+    const val DB_FILE_PATH = "/Users/chuckc/robot/db/BertSpeak.db"
     const val DB_NAME = "BertSpeak.db"
-    const val DB_VERSION = 1
+    const val DB_VERSION = 2
 
     // These are the Settings table columns
     const val SETTINGS_NAME = "name"

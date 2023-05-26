@@ -58,7 +58,7 @@ class DispatchService : Service(), BluetoothHandler {
         Log.i(CLSS, "onCreate: Starting foreground service ...")
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val notification = buildNotification()
-        dbManager = DatabaseManager(applicationContext)
+        dbManager = DatabaseManager()
         val flag: String? = dbManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION)
         if ("true".equals(flag, ignoreCase = true)) simulatedConnectionMode = true
         startForeground(DISPATCH_NOTIFICATION, notification)
