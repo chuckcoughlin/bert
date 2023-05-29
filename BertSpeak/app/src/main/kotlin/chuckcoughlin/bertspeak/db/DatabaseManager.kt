@@ -8,8 +8,8 @@ import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.FileUtils
 import chuckcoughlin.bertspeak.common.NameValue
-import java.io.File
 
 
 /**
@@ -19,13 +19,9 @@ import java.io.File
  * The database is a Singleton (object) and is closed after each transaction.
 */
 
-class DatabaseManager() {
-    /**
-     * Trap and log any errors.
-     * @param sql
-     */
+class DatabaseManager {
     fun execSQL(sql: String?) {
-        val database = getwritableDatabase()
+        val database = getWritableDatabase()
         try {
             database.execSQL(sql)
         }
@@ -57,7 +53,7 @@ class DatabaseManager() {
     fun getSetting(name: String): String? {
         synchronized(DB) {
             var result: String? = null
-            val database = getreadableDatabase()
+            val database = getReadableDatabase()
             val args = arrayOfNulls<String>(1) // Use for PreparedStatement
             args[0] = name
             val SQL = "SELECT value FROM Settings WHERE Name=?"
@@ -79,7 +75,7 @@ class DatabaseManager() {
     fun getSettings (): List<NameValue> {
         synchronized(DB) {
             val list: MutableList<NameValue> = ArrayList()
-            val database = getreadableDatabase()
+            val database = getReadableDatabase()
             val args = arrayOfNulls<String>(0) // Use for PreparedStatement
             val SQL = "SELECT name,value,hint FROM Settings ORDER BY Name"
             val cursor = database.rawQuery(SQL, args)
@@ -102,7 +98,7 @@ class DatabaseManager() {
      */
     fun updateSetting(nv: NameValue?) {
         synchronized(DB) {
-            val database = getwritableDatabase()
+            val database = getWritableDatabase()
             val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
             val bindArgs = arrayOfNulls<String>(3)
             bindArgs[0] = nv!!.value
@@ -119,7 +115,7 @@ class DatabaseManager() {
      */
     fun updateSettings(items: List<NameValue>) {
         synchronized(DB) {
-            val database = DB.getwritableDatabase()
+            val database = getWritableDatabase()
             val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
             val bindArgs = arrayOfNulls<String>(3)
             val count = items.size
@@ -139,29 +135,28 @@ class DatabaseManager() {
     companion object DB {
         private const val CLSS = "DatabaseManager"
         @Volatile
-        private var dbobject: SQLiteDatabase? = null;
+        private var dbobject: SQLiteDatabase? = null
 
-        fun getDatabase(canWrite:Boolean) : SQLiteDatabase {
+        private fun getDatabase(canWrite:Boolean) : SQLiteDatabase {
             if( dbobject!=null && dbobject!!.isOpen) dbobject!!.close()
             val OS = System.getProperty("os.name", "generic")!!.lowercase()
             // For Linux-like systems (simulation/test mode), use a fixed path
-            if (OS.indexOf("mac") >= 0 ||
-                OS.indexOf("nix") >= 0   ) {
-                val path = File(BertConstants.DB_FILE_PATH)
-                path.createNewFile() // Guarantee file exists
+            if (OS.contains("mac") ||
+                OS.contains("nux")   ) {
+                val path = FileUtils.ensureFileExists(BertConstants.DB_FILE_PATH)
 
                 val builder = SQLiteDatabase.OpenParams.Builder()
                 builder.addOpenFlags(SQLiteDatabase.CREATE_IF_NECESSARY)
                 if( canWrite )  builder.addOpenFlags(SQLiteDatabase.OPEN_READWRITE)
                 else            builder.addOpenFlags(SQLiteDatabase.OPEN_READONLY)
-                var params = builder.build()
+                val params = builder.build()
                 dbobject = SQLiteDatabase.openDatabase(path,params)
             }
             // For Android, just use the database name
             else {
                 var flags = SQLiteDatabase.CREATE_IF_NECESSARY
-                if( canWrite )  flags = flags or SQLiteDatabase.OPEN_READWRITE
-                else flags = flags or SQLiteDatabase.OPEN_READONLY
+                flags = if( canWrite ) flags or SQLiteDatabase.OPEN_READWRITE
+                else flags or SQLiteDatabase.OPEN_READONLY
                 dbobject = SQLiteDatabase.openDatabase(
                     BertConstants.DB_NAME, null,flags)
             }
@@ -169,13 +164,13 @@ class DatabaseManager() {
 
             return dbobject!!
         }
-        fun getreadableDatabase() : SQLiteDatabase {
+        fun getReadableDatabase() : SQLiteDatabase {
             return getDatabase(false)
         }
-        fun getwritableDatabase() : SQLiteDatabase {
+        fun getWritableDatabase() : SQLiteDatabase {
             return getDatabase(true)
         }
-        fun configureDatabase(db:SQLiteDatabase) {
+        private fun configureDatabase(db:SQLiteDatabase) {
             db.setForeignKeyConstraintsEnabled(true)
         }
     }
@@ -191,7 +186,7 @@ class DatabaseManager() {
         SQL.append("  value TEXT DEFAULT '',")
         SQL.append("  hint TEXT DEFAULT 'hint'")
         SQL.append(")")
-        val db = getwritableDatabase()
+        val db = getWritableDatabase()
         db.execSQL(SQL.toString())
 
         // Add initial settings - fail silently if they exist. The default values make sense

@@ -1,14 +1,19 @@
 package chuckcoughlin.bertspeak
 
 import android.app.Application
-import chuckcoughlin.bertspeak.common.BertConstants
-import android.app.NotificationManager
-import android.os.Build
 import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.graphics.Color
+import android.os.Build
+import android.os.StrictMode
 import android.util.Log
+import chuckcoughlin.bertspeak.common.BertConstants
+
 
 class App : Application() {
+    fun App() {
+        StrictMode.enableDefaults()  // Helps with dangling resource detection
+    }
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
