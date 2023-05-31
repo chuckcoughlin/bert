@@ -17,6 +17,7 @@ This document describes the setup and tools used to develop "Bert" and summarize
     * [Joints](#joints)
     * [Tablet](#tablet)
   * [System Setup](#system)
+    * [Android](#androidprep)
     * [Odroid](#odroid)
   * [Software Development](#software)
     * [IntelliJ(#intellij)
@@ -136,6 +137,18 @@ recognizer. Unfortunately,the tablet has become stuck in headset mode. We've bou
 to be ultimately located in the head.
 
 ## System Setup <a id="system"/>
+### Android <a id="androidprep"></a>
+[toc](#table-of-contents)
+*** Database ***<br/>
+Run the following scripts in order to prepare a SQLite database on the MacOSX development system to be accessible when running the Android Studio simulator with Android production code. In the
+source ``install`` directory:
+
+``./android_dev_data_dir.sh``
+``./android_dev_db_setup.sh``
+
+Note that the system must be restarted after the 
+first script.
+
 ### Odroid <a id="odroid"></a>
 [toc](#table-of-contents)
 
@@ -275,7 +288,7 @@ Once the build has been executed on the Development system (and deployed), edit 
 
 ***
 ## Software Development <a id="software"/>
-The development host is an iMac running OSX Mohave (10.14). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection. Here is a diagram that summarizes the flow of the build and major tools used:
+The development host is an iMac running OSX Ventura (13.3). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection. Here is a diagram that summarizes the flow of the build and major tools used:
   ![Build Plan](/images/development_layoutsvg)
   ````                        Development Tools ````
 

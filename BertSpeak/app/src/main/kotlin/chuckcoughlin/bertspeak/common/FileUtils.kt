@@ -18,10 +18,10 @@ object FileUtils {
      * the final file.
      *
      * @param pathString the complete path, an absolute path
-     * @return the File object for the path
+     * @return true if the supplied path exists
      */
-    fun ensureFileExists(pathString: String): File {
-        var file:File? = null
+    fun ensureFileExists(pathString: String): Boolean {
+        var result = false
         Log.i(CLSS,"ensureFileExists: "+pathString)
         var mark = 1 // Keep track of position in path
         try {
@@ -29,14 +29,15 @@ object FileUtils {
                 mark = pathString.indexOf(File.separatorChar,mark,false)
                 if( mark<0 ) break
                 val dir = File(pathString.substring(0,mark))
-                Log.i(CLSS,"checking: "+dir.absolutePath.toString())
+                Log.i(CLSS,"checking directory path: "+dir.absolutePath.toString())
                 if( !dir.exists()) dir.mkdir()
                 mark++
             }
             // Finally create the file
-            file = File(pathString)
+            val file = File(pathString)
             Log.i(CLSS,"checking the file: "+file.absolutePath.toString())
             if(!file.exists()) file.createNewFile()
+            result = true
         }
         catch (uoe: UnsupportedOperationException) {
             Log.e(CLSS, String.format("ensureFileExists: %s: UnsupportedOperation (%s)",
@@ -54,6 +55,6 @@ object FileUtils {
             Log.e(CLSS, String.format("ensureFileExists: %s SecurityException (%s)",
                 pathString,se.localizedMessage))
         }
-        return file!!
+        return result
     }
 }

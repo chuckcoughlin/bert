@@ -10,6 +10,7 @@ import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FileUtils
 import chuckcoughlin.bertspeak.common.NameValue
+import java.io.File
 
 
 /**
@@ -22,13 +23,7 @@ import chuckcoughlin.bertspeak.common.NameValue
 class DatabaseManager {
     fun execSQL(sql: String?) {
         val database = getWritableDatabase()
-        try {
-            database.execSQL(sql)
-        }
-        catch (sqle: SQLException) {
-            Log.e(CLSS,String.format("execSQL:%s: SQLException ignored (%s)",
-                sql, sqle.localizedMessage))
-        }
+        database.execSQL(sql)
     }
 
     /**
@@ -36,16 +31,44 @@ class DatabaseManager {
      * @param sqLiteDatabase
      * @param sql
      */
-     fun execLenient(sqLiteDatabase: SQLiteDatabase, sql: String?) {
+     fun execLenient(sql: String?) {
         try {
-            sqLiteDatabase.execSQL(sql)
+            execSQL(sql)
         }
         catch (sqle: SQLException) {
             Log.i(CLSS, String.format("execLenient:%s: SQLException ignored (%s)",
                 sql,sqle.localizedMessage))
         }
     }
+    /**
+     * Must be called when the manager is first created. If the database already exists on disk
+     * with the same name, this method will have no effect.
+     */
+    fun initialize() {
+        val SQL = StringBuilder()
+        SQL.append("CREATE TABLE IF NOT EXISTS Settings (")
+        SQL.append("  name TEXT PRIMARY KEY,")
+        SQL.append("  value TEXT DEFAULT '',")
+        SQL.append("  hint TEXT DEFAULT 'hint'")
+        SQL.append(")")
+        execSQL(SQL.toString())
+        // Add initial settings - fail silently if they exist. The default values make sense
+        // for development.
+        var statement =
+            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                BertConstants.BERT_PAIRED_DEVICE,
+                BertConstants.BERT_PAIRED_DEVICE_HINT,
+                BertConstants.BERT_PAIRED_DEVICE_HINT)
+        execLenient(statement)
 
+        statement =
+            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                BertConstants.BERT_SIMULATED_CONNECTION,"true",
+                BertConstants.BERT_SIMULATED_CONNECTION_HINT)
+        execLenient(statement)
+        Log.i(CLSS,String.format("onCreate: Guarantee settings exist in %s at %s",
+            BertConstants.DB_NAME,BertConstants.DB_FILE_PATH))
+    }
     // ================================================ Settings =============================
     /**
      * Read name/value pairs from the database.
@@ -137,19 +160,20 @@ class DatabaseManager {
         @Volatile
         private var dbobject: SQLiteDatabase? = null
 
+        // If the database is open, close it to ensure correct writable flags
         private fun getDatabase(canWrite:Boolean) : SQLiteDatabase {
             if( dbobject!=null && dbobject!!.isOpen) dbobject!!.close()
             val OS = System.getProperty("os.name", "generic")!!.lowercase()
             // For Linux-like systems (simulation/test mode), use a fixed path
-            if (OS.contains("mac") ||
+            if (OS.contains("mac") &&
                 OS.contains("nux")   ) {
-                val path = FileUtils.ensureFileExists(BertConstants.DB_FILE_PATH)
-
+                val success = FileUtils.ensureFileExists(BertConstants.DB_FILE_PATH)
                 val builder = SQLiteDatabase.OpenParams.Builder()
                 builder.addOpenFlags(SQLiteDatabase.CREATE_IF_NECESSARY)
                 if( canWrite )  builder.addOpenFlags(SQLiteDatabase.OPEN_READWRITE)
                 else            builder.addOpenFlags(SQLiteDatabase.OPEN_READONLY)
                 val params = builder.build()
+                val path = File(BertConstants.DB_FILE_PATH)
                 dbobject = SQLiteDatabase.openDatabase(path,params)
             }
             // For Android, just use the database name
@@ -158,52 +182,22 @@ class DatabaseManager {
                 flags = if( canWrite ) flags or SQLiteDatabase.OPEN_READWRITE
                 else flags or SQLiteDatabase.OPEN_READONLY
                 dbobject = SQLiteDatabase.openDatabase(
-                    BertConstants.DB_NAME, null,flags)
+                    BertConstants.DB_FILE_PATH, null,flags)
             }
             configureDatabase(dbobject!!)
 
             return dbobject!!
         }
         fun getReadableDatabase() : SQLiteDatabase {
-            return getDatabase(false)
-        }
-        fun getWritableDatabase() : SQLiteDatabase {
-            return getDatabase(true)
-        }
-        private fun configureDatabase(db:SQLiteDatabase) {
-            db.setForeignKeyConstraintsEnabled(true)
-        }
+        return getDatabase(false)
     }
-    // ================= End of DB =======================
-    /**
-     * Called when the manager is first created. If the database already exists on disk
-     * with the same name, this method will have no effect.
-     */
-    init {
-        val SQL = StringBuilder()
-        SQL.append("CREATE TABLE IF NOT EXISTS Settings (")
-        SQL.append("  name TEXT PRIMARY KEY,")
-        SQL.append("  value TEXT DEFAULT '',")
-        SQL.append("  hint TEXT DEFAULT 'hint'")
-        SQL.append(")")
-        val db = getWritableDatabase()
-        db.execSQL(SQL.toString())
-
-        // Add initial settings - fail silently if they exist. The default values make sense
-        // for development.
-        var statement =
-            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                BertConstants.BERT_PAIRED_DEVICE,
-                BertConstants.BERT_PAIRED_DEVICE_HINT,
-                BertConstants.BERT_PAIRED_DEVICE_HINT)
-        execLenient(db, statement)
-
-        statement =
-            String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                BertConstants.BERT_SIMULATED_CONNECTION,"true",
-                BertConstants.BERT_SIMULATED_CONNECTION_HINT)
-        execLenient(db, statement)
-        Log.i(CLSS,String.format("onCreate: Guarantee settings exist in %s at %s",
-            BertConstants.DB_NAME,db.path.toString()))
+    fun getWritableDatabase() : SQLiteDatabase {
+        return getDatabase(true)
     }
+    private fun configureDatabase(db:SQLiteDatabase) {
+        db.setForeignKeyConstraintsEnabled(true)
+    }
+}
+// ================= End of DB =======================
+
 }
