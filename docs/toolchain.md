@@ -519,6 +519,4 @@ keyboard shortcuts that not at all obvious from the interface. Here are a few:
 
   *** Useful Commands I Always Forget ***
 
-  In *atom*, generate a preview with cntrl-shift-m.
-
   To query the module in a jar file: `jar --file="<file>" --describe-module`

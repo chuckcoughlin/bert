@@ -5,20 +5,20 @@
 package chuckcoughlin.bertspeak.tab
 
 import android.content.Context
-import chuckcoughlin.bertspeak.db.DatabaseManager
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import android.os.Bundle
-import chuckcoughlin.bertspeak.R
 import android.text.InputType
-import android.view.View.OnFocusChangeListener
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnFocusChangeListener
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.TextView
+import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.databinding.FragmentSettingsBinding
+import chuckcoughlin.bertspeak.db.DatabaseManager
 import java.util.Locale
 
 /**
@@ -30,13 +30,11 @@ class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) 
 
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentSettingsBinding
-    private lateinit var dbManager: DatabaseManager
 
     @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        dbManager = DatabaseManager()
-        val nvpairs = dbManager.getSettings()
+        val nvpairs = DatabaseManager.getSettings()
         val nvarray = nvpairs.toTypedArray()
         Log.i(CLSS, String.format("onActivityCreated: will display %d name-values", nvarray.size))
         val adapter = SettingsListAdapter(requireContext(), nvarray)
@@ -90,7 +88,7 @@ class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) 
                 if (!hasFocus) {
                     Log.i(CLSS,String.format("SettingsListAdapter.getView.onFocusChange %d = %s",position,(v as EditText).text.toString()))
                     nv.value = v.text.toString()
-                    dbManager.updateSetting(nv)
+                    DatabaseManager.updateSetting(nv)
                 }
             }
 

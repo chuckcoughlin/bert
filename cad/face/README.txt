@@ -17,3 +17,6 @@ Steps to create the face model.
    Delete the part of the hull that is on the backside. From the "vertex" menu
    select "bevel", in turn, for each of the two nodes that radiate a large number
    of edges. Save as "face-mesh'.
+
+Alternate
+Files named cartoon_head have been purchased from TurboSquid under their 3D Model License (https://blog.turbosquid.com/turbosquid-3d-model-license). Product ID: 1912829. "You can use the model for both non-commercial and commercial purposes. You can use it for multiple projects, forever(more informations under license)."

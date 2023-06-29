@@ -22,20 +22,22 @@ object FileUtils {
      */
     fun ensureFileExists(pathString: String): Boolean {
         var result = false
-        Log.i(CLSS,"ensureFileExists: "+pathString)
+        val file = File(pathString)
+        Log.i(CLSS,"ensureFileExists: "+file.absolutePath.toString())
+        if(!file.exists()) return true
+
         var mark = 1 // Keep track of position in path
         try {
             while(mark>0) {
                 mark = pathString.indexOf(File.separatorChar,mark,false)
                 if( mark<0 ) break
                 val dir = File(pathString.substring(0,mark))
-                Log.i(CLSS,"checking directory path: "+dir.absolutePath.toString())
+                // Log.i(CLSS,"checking directory path: "+dir.absolutePath.toString())
                 if( !dir.exists()) dir.mkdir()
                 mark++
             }
             // Finally create the file
-            val file = File(pathString)
-            Log.i(CLSS,"checking the file: "+file.absolutePath.toString())
+
             if(!file.exists()) file.createNewFile()
             result = true
         }

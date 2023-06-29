@@ -44,7 +44,6 @@ class DispatchService : Service(), BluetoothHandler {
     private var bluetoothConnection: BluetoothConnection? = null // Stays null when simulated
     private var bluetoothDevice: BluetoothDevice? = null
     private val binder: DispatchServiceBinder = DispatchServiceBinder(this)
-    private lateinit var dbManager: DatabaseManager
     val statusManager: StatusManager
     private var textManager: TextManager
     private var isMuted = false
@@ -58,9 +57,7 @@ class DispatchService : Service(), BluetoothHandler {
         Log.i(CLSS, "onCreate: Starting foreground service ...")
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val notification = buildNotification()
-        dbManager = DatabaseManager()
-        dbManager.initialize()
-        val flag: String? = dbManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION)
+        val flag: String? = DatabaseManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION)
         if ("true".equals(flag, ignoreCase = true)) simulatedConnectionMode = true
         startForeground(DISPATCH_NOTIFICATION, notification)
     }
@@ -228,7 +225,7 @@ class DispatchService : Service(), BluetoothHandler {
         val currentState = statusManager.getStateForFacility(currentFacility)
         if (currentFacility == TieredFacility.BLUETOOTH) {
             if (currentState != FacilityState.ACTIVE) {
-                var name: String? = dbManager.getSetting(BertConstants.BERT_PAIRED_DEVICE)
+                var name: String? = DatabaseManager.getSetting(BertConstants.BERT_PAIRED_DEVICE)
                 if (name == null) name = "UNKNOWN"
                 val checker = BluetoothChecker(this, name)
                 reportConnectionState(currentFacility, FacilityState.WAITING)
