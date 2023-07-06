@@ -139,7 +139,9 @@ to be ultimately located in the head.
 ## System Setup <a id="system"/>
 ### Android <a id="androidprep"></a>
 [toc](#table-of-contents)
-*** Database ***<br/>
+
+*** Persistent Storage ***<br/>
+Configuration parameters, vocabulary and other data that are meant to be stored long-term reside in a SQLite database accessible through the tablet application.
 Run the following scripts in order to prepare a SQLite database on the MacOSX development system to be accessible when running the Android Studio simulator with Android production code. In the
 source ``install`` directory:
 
@@ -148,6 +150,14 @@ source ``install`` directory:
 
 Note that the system must be restarted after the 
 first script.
+
+
+*** Transfer to Tablet ***<br/>
+In order for the application to be transferred to the tablet from the build system, the tablet must be connected via USB. Use the same USB that is used to charge the device.
+
+The tablet must also be set in "developer" mode. This is accomplished under Settings->About Tablet->Software Information. Tap on "Build number" 7 times. (Yes, really). Under Settings->Developer options, enable USB debugging. Once the cable is connected a dialog should popup asking you to allow file transfer. (If this does not appear, you may have to fiddle with Developer options->USB Configuration).
+
+On the build system, configure Android Studio (Tools->Run>Edit Configurations) to target the build output directly to a USB device. After a successful build, merely select the "run" button to transfer the **apk** executable to the tablet.
 
 ### Odroid <a id="odroid"></a>
 [toc](#table-of-contents)
@@ -469,6 +479,8 @@ The tablet application, ***BertSpeak*** is the only Human Machine Interface (HMI
 
 The control application is a standard Android application built using Android Studio 3.4. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
     ```ANDROID_HOME=~/Library/Androd/sdk```
+    
+The password to the application keystore is: ```Andr0id```
 
 *** Voice Commands ***<br/>
 Voice commands are implemented purely via the Android tablet using the builtin speech-to-text features of Android. On the tablet, the ***BertSpeak*** app must be given microphone permissions.
@@ -481,16 +493,6 @@ Communication between the tablet and main robot processor is over Bluetooth. On 
 Pairing with the robot must be completed before the ***BertSpeak*** application is started. Pairing may be initiated either from the robot or the tablet.
 
 Note that the emulator does not support Bluetooth and is, therefore, not available as a test tool.
-
-*** Persistent Storage ***<br/>
-Configuration parameters, vocabulary and other data that are meant to be stored long-term reside in a SQLite database accessible through the tablet application.
-
-*** Transfer to Tablet ***<br/>
-In order for the application to be transferred to the tablet from the build system, the tablet must be connected via USB. Use the same USB that is used to charge the device.
-
-The tablet must also be set in "developer" mode. This is accomplished under Settings->About Tablet. Tap on "Build number" 7 times. (Yes, really). Under Settings->Developer options, enable USB debugging. Once the cable is connected a dialog should popup asking you to allow file transfer. (If this does not appear, you may have to fiddle with Developer options->USB Configuration).
-
-On the build system, configure Android Studio (Tools->Run>Edit Configurations) to target the build output directly to a USB device. After a successful build, merely select the "run" button to transfer the **apk** executable to the tablet.
 
 ***
 ### Other Tools <a id="other"/>
