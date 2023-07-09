@@ -22,8 +22,10 @@ class NotificationActionReceiver : BroadcastReceiver() {
         context.startService(intent)
 
         //This is used to close the notification tray
-        val it = Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
+        /*
+        val it = Intent(Intent.)
         context.sendBroadcast(it)
+        */
         assert(action != null)
         if (action.equals(
                 context.getString(R.string.notificationStop),

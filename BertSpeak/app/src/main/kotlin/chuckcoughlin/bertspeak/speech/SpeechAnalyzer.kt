@@ -139,17 +139,19 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     }
 
     override fun onResults(results: Bundle) {
-        Log.i(CLSS, "onResults \n$results")
-        // Fill the list view with the strings the recognizer thought it could have heard, there should be 5, based on the call
-        val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
-        for (i in matches.indices) {
-            Log.i(CLSS, "result " + matches[i])
+        if( !results.isEmpty ) {
+            Log.i(CLSS, "onResults \n$results")
+            // Fill the list view with the strings the recognizer thought it could have heard, there should be 5, based on the call
+            val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
+            for (i in matches.indices) {
+                Log.i(CLSS, "result " + matches[i])
+            }
+            var text = matches[0]
+            text = scrubText(text)
+            handler.receiveSpokenText(text)
+            handler.reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING)
+            startListening() // Repeat forever
         }
-        var text = matches[0]
-        text = scrubText(text)
-        handler.receiveSpokenText(text)
-        handler.reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING)
-        startListening() // Repeat forever
     }
 
     override fun onPartialResults(partialResults: Bundle) {

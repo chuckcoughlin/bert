@@ -57,7 +57,7 @@ class TextManager {
      */
     @Synchronized
     fun processText(type: MessageType, text: String) {
-        Log.i(CLSS, String.format("processText: %s: %s", type.name, text))
+        Log.i(CLSS, String.format("processText (%s): %s", type.name, text))
         when (type) {
             MessageType.ANS -> {
                 var msg = TextMessage(text,type)
@@ -81,7 +81,7 @@ class TextManager {
             }
             MessageType.TBL -> {
                 columnList.add(text)
-                initializeTableObservers(this)
+                initializeTableObservers()
             }
         }
     }
@@ -147,7 +147,7 @@ class TextManager {
         }
     }
 
-    private fun initializeTableObservers(mgr: TextManager) {
+    private fun initializeTableObservers() {
         for (observer in tableObservers.values) {
             observer.initialize()
         }

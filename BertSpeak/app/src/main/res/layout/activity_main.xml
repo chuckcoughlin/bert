@@ -35,13 +35,14 @@
                 android:textSize = "48sp"
                 />
         </androidx.appcompat.widget.Toolbar>
-        <!-- Tab Layout for fragment tabs -->
+        <!-- Tab Layout for fragment tabs
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll|enterAlways"/>
-    </com.google.android.material.appbar.AppBarLayout>
+            -->
+
 
 
     <!-- Handle the Fragments for each Tab -->
@@ -51,6 +52,8 @@
         android:layout_height="match_parent"
         android:orientation="horizontal"
         android:animateLayoutChanges="true"
+        android:layoutDirection="rtl"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$Behavior"
         />
+    </com.google.android.material.appbar.AppBarLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

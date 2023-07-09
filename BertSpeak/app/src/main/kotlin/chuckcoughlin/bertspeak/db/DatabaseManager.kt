@@ -54,7 +54,7 @@ object DatabaseManager {
                 SQL.append("  hint TEXT DEFAULT 'hint'")
                 SQL.append(")")
                 db.execSQL(SQL.toString())
-                Log.i(CLSS, String.format("initialize: Create settings table in %s \n%s",
+                Log.i(CLSS, String.format("initialize: Created settings table in %s \n%s",
                     BertConstants.DB_NAME, SQL.toString()))
             }
             catch (sqle: SQLException) {
@@ -81,6 +81,8 @@ object DatabaseManager {
             Log.i(CLSS, String.format("initialize: Guarantee %s settings exist in %s at %s",
                 BertConstants.BERT_SIMULATED_CONNECTION,BertConstants.DB_NAME, statement))
         }
+        Log.i(CLSS,"initialize: Listing settings -")
+        getSettings()
     }
 
     // ================================================ Settings =============================

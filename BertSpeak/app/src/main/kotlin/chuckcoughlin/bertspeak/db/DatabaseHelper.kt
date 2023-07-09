@@ -9,11 +9,14 @@ import chuckcoughlin.bertspeak.common.BertConstants
 class DatabaseHelper(context:Context):
 		SQLiteOpenHelper (context,BertConstants.DB_NAME,null,BertConstants.DB_VERSION) {
 
+	override fun onCreate() {
+
+	}
+
 	override fun onCreate(db: SQLiteDatabase?) {
-		Log.i(CLSS, String.format("onCreate: ...."))
 		if( db!=null ) {
-			Log.i(CLSS, String.format("onCreate: database path = %s",db!!.path))
-			DatabaseManager.initialize(db!!)
+			Log.i(CLSS, String.format("onCreate: database path = %s", db.path))
+			DatabaseManager.initialize(db)
 		}
 		else {
 			Log.e(CLSS, String.format("onCreate: database is null"))

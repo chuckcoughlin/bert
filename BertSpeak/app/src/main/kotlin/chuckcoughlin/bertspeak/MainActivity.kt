@@ -16,18 +16,24 @@ import android.speech.tts.Voice
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import chuckcoughlin.bertspeak.common.FragmentPageTransformer
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.ActivityMainBinding
 import chuckcoughlin.bertspeak.db.DatabaseHelper
-import chuckcoughlin.bertspeak.service.*
+import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.service.DispatchServiceBinder
+import chuckcoughlin.bertspeak.service.FacilityState
+import chuckcoughlin.bertspeak.service.TieredFacility
+import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.speech.Annunciator
 import chuckcoughlin.bertspeak.speech.SpeechAnalyzer
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
 import com.google.android.material.tabs.TabLayoutMediator
-import java.util.*
+import java.util.Locale
+
 
 /**
  * The main activity "owns" the page tab UI fragments. It also contains
@@ -66,12 +72,36 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         viewPager.setPageTransformer(FragmentPageTransformer())
         val pagerAdapter = MainActivityPagerAdapter(supportFragmentManager, lifecycle, getTabTitles())
         viewPager.adapter = pagerAdapter
+        pagerAdapter.createFragment(0)
 
+        /*
         Log.i(CLSS, "onCreate: ... getting tabLayout")
         val tabLayout = binding.tabLayout
         TabLayoutMediator(tabLayout,viewPager) {
             tab,position -> tab.text = pagerAdapter.getPageTitle(position)
         }.attach()
+*/
+        // To get swipe event of viewpager2
+        viewPager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
+            // This method is triggered when there is any scrolling activity for the current page
+            override fun onPageScrolled(position: Int,positionOffset: Float,positionOffsetPixels: Int) {
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
+                Log.i(CLSS, "OnPageChangeCallback: ... page scrolled")
+            }
+
+            // triggered when you select a new page
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                Log.i(CLSS, "OnPageChangeCallback: ... page selected")
+            }
+
+            // triggered when there is
+            // scroll state will be changed
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+                Log.i(CLSS, "OnPageChangeCallback: ... page scroll state changed")
+            }
+        })
 
         // Initialize the database
         val helper = DatabaseHelper(this)

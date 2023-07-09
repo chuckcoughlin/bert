@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * @See: https://developer.android.com/develop/ui/views/animations/screen-slide-2
  * (MIT License)
  */
@@ -7,11 +7,16 @@ package chuckcoughlin.bertspeak.common
 
 import android.view.View
 import androidx.viewpager2.widget.ViewPager2
-
-
-
 class FragmentPageTransformer : ViewPager2.PageTransformer {
 
+    /**
+     * @param page Apply the transformation to this page
+     * @param position Position of page relative to the current front-and-center
+     *                 position of the pager. 0 is front and center. 1 is one full
+     *                 page position to the right, and -2 is two pages to the left.
+     *                 Minimum / maximum observed values depend on how many pages we keep
+     *                 attached, which depends on offscreenPageLimi
+     */
     override fun transformPage(view: View, position: Float) {
         view.apply {
             val pageWidth = width
@@ -28,7 +33,8 @@ class FragmentPageTransformer : ViewPager2.PageTransformer {
                     val horzMargin = pageWidth * (1 - scaleFactor) / 2
                     translationX = if (position < 0) {
                         horzMargin - vertMargin / 2
-                    } else {
+                    }
+                    else {
                         horzMargin + vertMargin / 2
                     }
 
