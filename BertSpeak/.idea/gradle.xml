@@ -12,7 +12,9 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/empty" />
+            <option value="$PROJECT_DIR$/navview" />
+            <option value="$PROJECT_DIR$/root" />
           </set>
         </option>
       </GradleProjectSettings>
