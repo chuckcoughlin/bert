@@ -10,7 +10,10 @@ The bulk of this document addresses various design issues and approaches to thei
 
 ***
 ## Table of Contents <a id="table-of-contents"/>
-  * [Software Architecture](#architecture)
+  *  [Target Hardware](#hardware)
+  	*  [Odroid](#odroid)
+  	*  [Android](#android)
+  *  [Software Architecture](#architecture)
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
     * [Dynamixel Servos](#dynamixel)
@@ -25,6 +28,16 @@ The bulk of this document addresses various design issues and approaches to thei
 
 
 ***
+## Target Hardware <a id="hardware"></a>
+[toc](#table-of-contents)
+
+#### Odroid  <a id="odroid"></a>
+The robot's central processor is a single-board Linux computer, an Odroid N2+.
+
+#### Android <a id="android"></a>
+
+A Samsung Galaxy Tablet S8+, model SM-X800 is used as the speech processor, converting spoken input into command strings used to control the robot. It also converts textual responses from tne robot into audible speech. The tablet is Android version 13, SDK version 33.
+
 ## Software Architecture <a id="architecture"></a>
 [toc](#table-of-contents)
 

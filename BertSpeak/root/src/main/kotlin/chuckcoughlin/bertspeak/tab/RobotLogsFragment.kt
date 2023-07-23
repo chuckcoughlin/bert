@@ -14,20 +14,16 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
-import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import chuckcoughlin.bertspeak.databinding.FragmentRobotLogsBinding
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import java.security.AccessController.getContext
 
 /**
  * This fragment shows log messages originating in the robot.
@@ -93,9 +89,9 @@ class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), Se
         super.onDestroyView()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putBoolean(BertConstants.BUNDLE_FROZEN, frozen)
+    override fun onSaveInstanceState(stateToSave: Bundle) {
+        super.onSaveInstanceState(stateToSave)
+        stateToSave.putBoolean(BertConstants.BUNDLE_FROZEN, frozen)
     }
 
     //======================================== Button Callbacks ======================================

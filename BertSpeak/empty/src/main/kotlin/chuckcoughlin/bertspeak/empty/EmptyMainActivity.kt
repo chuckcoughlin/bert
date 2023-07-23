@@ -20,9 +20,8 @@ class EmptyMainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
+                    color = MaterialTheme.colorScheme.background) {
+                    Greeting("Empty test of Compose")
                 }
             }
         }
@@ -30,9 +29,9 @@ class EmptyMainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting(txt: String, modifier: Modifier = Modifier) {
     Text(
-        text = "Hello $name!",
+        text = "Hello: $txt!",
         modifier = modifier
     )
 }
@@ -41,6 +40,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     BertSpeakTheme {
-        Greeting("Android")
+        Greeting("Empty test of Compose")
     }
 }
