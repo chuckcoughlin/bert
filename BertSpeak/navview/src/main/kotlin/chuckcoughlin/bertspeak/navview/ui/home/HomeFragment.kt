@@ -17,11 +17,8 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView( inflater: LayoutInflater,container: ViewGroup?,
+                               savedInstanceState: Bundle?): View {
         val homeViewModel =
             ViewModelProvider(this).get(HomeViewModel::class.java)
 
@@ -31,6 +28,7 @@ class HomeFragment : Fragment() {
         val textView: TextView = binding.textHome
         homeViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
+            textView.text = "HOME"
         }
         return root
     }

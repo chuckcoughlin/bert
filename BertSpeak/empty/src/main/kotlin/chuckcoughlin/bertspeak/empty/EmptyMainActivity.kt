@@ -12,6 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import chuckcoughlin.bertspeak.empty.ui.theme.BertSpeakTheme
 
+/**
+ * This activity simply makes sure the build system can be configured for
+ * Compose UI widgets,
+ */
 class EmptyMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
