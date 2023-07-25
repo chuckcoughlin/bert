@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/empty" />
             <option value="$PROJECT_DIR$/navview" />
             <option value="$PROJECT_DIR$/root" />
+            <option value="$PROJECT_DIR$/tabview" />
           </set>
         </option>
       </GradleProjectSettings>

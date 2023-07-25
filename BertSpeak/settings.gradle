@@ -16,3 +16,4 @@ rootProject.name = "BertSpeak"
 include ':root'
 include ':empty'
 include ':navview'
+include ':tabview'
