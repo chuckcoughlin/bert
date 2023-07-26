@@ -1,35 +1,40 @@
 package chuckcoughlin.bertspeak.sandbox.ui.main
 
-import android.content.Context
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentPagerAdapter
-import chuckcoughlin.bertspeak.sandbox.R
+import androidx.fragment.app.FragmentActivity
+import androidx.viewpager2.adapter.FragmentStateAdapter
 
-private val TAB_TITLES = arrayOf(
-    R.string.tab_text_1,
-    R.string.tab_text_2
-)
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-class SectionsPagerAdapter(private val context: Context, fm: FragmentManager) :
-    FragmentPagerAdapter(fm,BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+class SectionsPagerAdapter(activity:FragmentActivity) : FragmentStateAdapter(activity) {
+    val fragments: MutableList<Fragment>
+    val titles: MutableList<String>
 
-    override fun getItem(position: Int): Fragment {
+    fun addFragment(pos:Int,title: String) {
+        fragments.add(createFragment(pos))
+        titles.add(title)
+    }
+    public fun getTabTitle(position : Int): String {
+        return titles[position]
+    }
+
+    override fun createFragment(position: Int): Fragment {
         // getItem is called to instantiate the fragment for the given page.
         // Return a PlaceholderFragment.
         return PlaceholderFragment.newInstance(position + 1)
     }
 
-    override fun getPageTitle(position: Int): CharSequence? {
-        return context.resources.getString(TAB_TITLES[position])
+
+
+    override fun getItemCount(): Int {
+        return fragments.size
     }
 
-    override fun getCount(): Int {
-        // Show 2 total pages.
-        return TAB_TITLES.size
+    init {
+        fragments = ArrayList()
+        titles = ArrayList()
     }
 }

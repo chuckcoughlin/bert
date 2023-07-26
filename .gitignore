@@ -7,3 +7,6 @@ jdks/
 kotlin-profile/
 native/
 wrapper/
+BertSpeak/java*.hprof
+android/
+android.lock

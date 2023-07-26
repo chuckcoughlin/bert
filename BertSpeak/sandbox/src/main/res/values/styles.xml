@@ -3,5 +3,4 @@
     <style name="TextTabAppearance" parent="TextAppearance.AppCompat.Widget.ActionBar.Title.Inverse">
         <item name="android:textSize">18pt</item>
     </style>
-
 </resources>
