@@ -3,7 +3,7 @@ package chuckcoughlin.bertspeak
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import chuckcoughlin.bertspeak.databinding.ActivityTabViewBinding
+import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -15,12 +15,12 @@ class BertSpeakActivity : AppCompatActivity() {
         "Tab 1",
         "Tab 2"
     )
-    private lateinit var binding: ActivityTabViewBinding
+    private lateinit var binding: BertspeakMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityTabViewBinding.inflate(layoutInflater)
+        binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val adapter = SectionsPagerAdapter(this)
