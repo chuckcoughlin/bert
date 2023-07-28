@@ -16,7 +16,7 @@
         android:layout_marginStart="@dimen/activity_horizontal_margin"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:gravity="center"
-        android:textAppearance="@style/TabTitle"
+        android:textAppearance="@style/TablesTextAppearance"
      />
 
     <androidx.recyclerview.widget.RecyclerView

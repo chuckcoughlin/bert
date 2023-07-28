@@ -28,7 +28,7 @@ import chuckcoughlin.bertspeak.speech.TextMessageObserver
 /**
  * This fragment allows perusal of the robot's spoken interactions..
  */
-class TranscriptFragment (pageNumber:Int): BasicAssistantFragment(pageNumber), ServiceConnection, TextMessageObserver {
+class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name : String
     private var service: DispatchService? = null
     private var frozen = false

@@ -28,7 +28,7 @@ import chuckcoughlin.bertspeak.speech.TextMessageObserver
 /**
  * This fragment shows log messages originating in the robot.
  */
-class RobotLogsFragment(pageNumber:Int) : BasicAssistantFragment(pageNumber), ServiceConnection, TextMessageObserver {
+class RobotLogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name = CLSS
     private var adapter: TextMessageAdapter? = null
     private var service: DispatchService? = null

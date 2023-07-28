@@ -3,6 +3,7 @@
     <!-- SYstem-level variables -->
     <string name="appbar_scrolling_view_behavior">true</string>
     <!-- Labels in the navigation bar -->
+    <string name="animation_tab_label">Animation</string>
     <string name="cover_tab_label">Cover</string>
     <string name="robot_log_tab_label">Logs</string>
     <string name="settings_tab_label">Settings</string>
@@ -10,11 +11,13 @@
     <string name="transcript_tab_label">Transcript</string>
     <!-- Titles as they appear at the top of each page -->
     <string name="action_settings">Settings</string>
+    <string name="fragmentAnimationLabel">Animation"</string>
     <string name="fragmentCoverLabel">Bert"</string>
     <string name="fragmentLogsLabel">Robot Logs</string>
     <string name="fragmentSettingsLabel">Configuration Settings</string>
-    <string name="fragmentTableTabLabel">Table</string>
+    <string name="fragmentTableLabel">Table</string>
     <string name="fragmentTranscriptLabel">Transcript</string>
+
     <!-- Strings for Cover tab-->
     <string name="coverParameterBluetooth">Bluetooth</string>
     <string name="coverParameterSocket">Socket</string>

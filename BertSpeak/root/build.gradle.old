@@ -1,0 +1,64 @@
+// Module build file: use gradle syntax
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdk 33
+    namespace 'chuckcoughlin.bertspeak'
+
+    defaultConfig {
+        applicationId "chuckcoughlin.bertspeak"
+        minSdk 33
+        targetSdk 33
+        versionCode 1
+        versionName '2.0'
+        versionNameSuffix 'Kotlin'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    buildToolsVersion '30.0.3'
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable true
+            signingConfig signingConfigs.debug
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Note: This isn't really working
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Android Design Support Library dependency is included in com.google.android.material
+    // but we have chosen to specify the various UI widget dependencies individually.
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.recyclerview:recyclerview:1.3.0'
+    implementation 'androidx.recyclerview:recyclerview-selection:1.1.0'
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+    implementation 'androidx.collection:collection-ktx:1.2.0'
+    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+
+    // These dependencies came from the project migration
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // Necessary for the Theme
+    implementation 'com.google.android.material:material:1.9.0'
+}

@@ -22,7 +22,7 @@ import android.widget.ToggleButton
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
-import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
+import chuckcoughlin.bertspeak.databinding.FragmentAnimationBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.FacilityState
@@ -34,19 +34,19 @@ import chuckcoughlin.bertspeak.waveform.WaveformView
 /**
  * This fragment presents a static "cover" with no dynamic content.
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,ServiceConnection {
+class AnimationFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,ServiceConnection {
     override val name = CLSS
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null
 
     // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentCoverBinding
+    private lateinit var binding: FragmentAnimationBinding
     private lateinit var waveformView: WaveformView
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
-        binding = FragmentCoverBinding.inflate(inflater, container, false)
+        binding = FragmentAnimationBinding.inflate(inflater, container, false)
         binding.fragmentCoverText.text = getString(R.string.fragmentCoverLabel)
         binding.fragmentCoverText.textSize = 36f
         binding.fragmentCoverImage.setImageResource(R.drawable.recliner)

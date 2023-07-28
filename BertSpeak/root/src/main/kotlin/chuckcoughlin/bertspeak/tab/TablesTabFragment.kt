@@ -15,27 +15,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.annotation.NonNull
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
-import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
-import chuckcoughlin.bertspeak.databinding.FragmentTablesTabBinding
+import chuckcoughlin.bertspeak.databinding.FragmentTablesBinding
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import java.security.AccessController.getContext
 
 /**
  * This fragment displays data from the robot in tabular form. Only
  * one table is displayed at a time and is completely replaced when the
  * next table is read. The table is dynamically sized to fit the data.
  */
-class TablesTabFragment( pageNumber:Int) : BasicAssistantFragment(pageNumber), ServiceConnection, TextMessageObserver {
+class TablesTabFragment( pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name : String
     private val layoutManager: RecyclerView.LayoutManager? = null
     private var adapter: TextMessageAdapter? = null
@@ -44,12 +41,12 @@ class TablesTabFragment( pageNumber:Int) : BasicAssistantFragment(pageNumber), S
     private val logView: TextView? = null
     private var service: DispatchService? = null
     // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentTablesTabBinding
+    private lateinit var binding: FragmentTablesBinding
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
-        binding = FragmentTablesTabBinding.inflate(inflater,container,false)
-        binding.fragmentTablesText.setText(R.string.fragmentTableTabLabel)
+        binding = FragmentTablesBinding.inflate(inflater,container,false)
+        binding.fragmentTablesText.setText(R.string.fragmentTableLabel)
         logMessageView = binding.root.findViewById(R.id.logs_recycler_view)
         logMessageView!!.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(logMessageView!!.context)

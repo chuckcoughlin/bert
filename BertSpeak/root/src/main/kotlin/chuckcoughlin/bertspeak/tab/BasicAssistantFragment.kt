@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -11,17 +11,9 @@ import androidx.fragment.app.Fragment
 /**
  * This is a base class for all the page fragments, except lists. "open" implies extendable.
  */
-open class BasicAssistantFragment(page:Int): Fragment(), AssistantFragment {
-    override val pageNumber = page
-    override var title: String?
-        get() {
-            assert(arguments != null)
-            return arguments?.getString(AssistantFragment.Companion.TITLE_ARG)
-        }
-        set(title) {
-            assert(arguments != null)
-            arguments?.putString(AssistantFragment.Companion.TITLE_ARG, title)
-        }
+open class BasicAssistantFragment(pos:Int): Fragment(), AssistantFragment {
+    override val position: Int = pos
+
 
     /**
      * Everything that matters is in the bundle.

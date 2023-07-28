@@ -14,15 +14,12 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
-import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
-import chuckcoughlin.bertspeak.common.FragmentPageTransformer
+import androidx.viewpager2.widget.ViewPager2
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.ActivityMainBinding
-import chuckcoughlin.bertspeak.db.DatabaseHelper
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.FacilityState
@@ -42,7 +39,7 @@ import java.util.Locale
  * the speech components, since they must execute on the main thread
  * (and not in the service). AppCompatActivity is a FragmentActivity.
  */
-class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, TextToSpeech.OnInitListener, ServiceConnection {
+class MainActivityOLD : AppCompatActivity(), IntentObserver, TextMessageObserver, TextToSpeech.OnInitListener, ServiceConnection {
     private var analyzer: SpeechAnalyzer? = null
     private var annunciator: Annunciator? = null
     private var service: DispatchService? = null
@@ -63,30 +60,26 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         // If we absolutely have to start over again with the database ...
         //this.deleteDatabase(BertConstants.DB_NAME);
         val binding = ActivityMainBinding.inflate(layoutInflater)
-        Log.i(CLSS,String.format("onCreate: binding is a %s",
-            binding.javaClass.canonicalName))
+        Log.i(CLSS,String.format("onCreate: binding is a %s",binding.javaClass.canonicalName))
         // Close the soft keyboard - it will still open on an EditText
         this.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         // Get the ViewPager2 and set it's PagerAdapter so that it can display items
+        val pager:ViewPager2 = binding.viewPager
         Log.i(CLSS,String.format("onCreate: viewPager is a %s",
-            binding.fragmentViewPager.javaClass.canonicalName))
-        val viewPager = binding.fragmentViewPager
-        viewPager.setPageTransformer(FragmentPageTransformer())
-        val pagerAdapter = MainActivityPagerAdapter(this, getTabTitles())
-        viewPager.adapter = pagerAdapter
-        for(i:Int in getTabTitles().indices) {
-            pagerAdapter.createFragment(i)
-        }
+            binding.viewPager.javaClass.canonicalName))
+        pager.currentItem = 0
+        //pager.setPageTransformer(FragmentPageTransformer())
+        val adapter = MainActivityPagerAdapter(this)
+        pager.adapter = adapter
+        val tabs: TabLayout = binding.tabs
+        TabLayoutMediator(tabs, pager) { tab, position ->
+            tab.text = adapter.getTabTitle(position)
+        }.attach()
 
         /*
-        Log.i(CLSS, "onCreate: ... getting tabLayout")
-        val tabLayout = binding.tabLayout
-        TabLayoutMediator(tabLayout,viewPager) {
-            tab,position -> tab.text = pagerAdapter.getPageTitle(position)
-        }.attach()
-*/
+
         // To get swipe event of viewpager2
-        viewPager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
+        pager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
             // This method is triggered when there is any scrolling activity for the current page
             override fun onPageScrolled(position: Int,positionOffset: Float,positionOffsetPixels: Int) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
@@ -111,6 +104,8 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
         val helper = DatabaseHelper(this)
         helper.onCreate(helper.writableDatabase)
         helper.close()
+
+         */
     }
 
     /**
@@ -119,18 +114,22 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
     override fun onStart() {
         super.onStart()
         Log.i(CLSS, "onStart")
+        /*
         activateSpeechAnalyzer()
         annunciator = Annunciator(applicationContext, this)
         annunciator!!.setOnUtteranceProgressListener(UtteranceListener())
+         */
     }
 
     override fun onStop() {
         super.onStop()
+        /*
         if (service==null) {
             unbindService(this)
         }
         annunciator!!.stop()
         deactivateSpeechAnalyzer()
+         */
     }
 
     /**
@@ -138,22 +137,15 @@ class MainActivity : AppCompatActivity(), IntentObserver, TextMessageObserver, T
      */
     override fun onDestroy() {
         super.onDestroy()
+        /*
         deactivateSpeechAnalyzer()
         val intent = Intent(this, DispatchService::class.java)
         stopService(intent)
         annunciator!!.shutdown()
         annunciator = null
+         */
     }
 
-    private fun getTabTitles(): Array<String> {
-        return arrayOf(
-            getString(R.string.cover_tab_label),
-            getString(R.string.transcript_tab_label),
-            getString(R.string.robot_log_tab_label),
-            getString(R.string.tables_tab_label),
-            getString(R.string.settings_tab_label)
-        )
-    }
     /**
      * Select a random startup phrase from the list.
      *

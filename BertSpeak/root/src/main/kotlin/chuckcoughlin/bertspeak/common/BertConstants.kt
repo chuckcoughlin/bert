@@ -40,6 +40,7 @@ object BertConstants {
 
     // Undefined
     const val NO_DEVICE = "UNDEFINED_DEVICE"
+    const val NO_TITLE  = "NO_TITLE"
 
     // Notifications
     const val NOTIFICATION_CHANNEL_ID = "speechServiceChannel"

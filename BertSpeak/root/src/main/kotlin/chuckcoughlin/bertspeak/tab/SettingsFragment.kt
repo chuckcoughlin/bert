@@ -25,7 +25,7 @@ import java.util.Locale
  * Display the current values of global application settings and allow
  * editing.
  */
-class SettingsFragment (pageNumber:Int): BasicAssistantListFragment(pageNumber) {
+class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
     val name : String = CLSS
 
     // This property is only valid between onCreateView and onDestroyView

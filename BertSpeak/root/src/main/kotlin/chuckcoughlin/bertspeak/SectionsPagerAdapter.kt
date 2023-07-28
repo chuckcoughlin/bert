@@ -1,9 +1,10 @@
-package chuckcoughlin.bertspeak.sandbox.ui.main
+package chuckcoughlin.bertspeak
 
 import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import chuckcoughlin.bertspeak.tab.PlaceholderFragment
 
 
 /**
