@@ -35,8 +35,5 @@ class BertSpeakActivity : AppCompatActivity() {
         TabLayoutMediator(tabs, pager) { tab, position ->
             tab.text = adapter.getTabTitle(position)
         }.attach()
-
-
-        //tabs.setupWithViewPager(pager)
     }
 }

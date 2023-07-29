@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="checked">#DDEEFF</color>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorPrimaryLight">#0091ea</color>
+    <color name="colorPrimary">#3B50C6</color>
+    <color name="colorPrimaryDark">#374493</color>
+    <color name="colorPrimaryLight">#039AF6</color>
     <color name="logBackground">#DDEEFF</color>
     <color name="logSelectedBackground">#FFFFFF</color>
     <color name="textColorPrimary">#FFFFFF</color>
