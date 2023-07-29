@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
+import chuckcoughlin.bertspeak.tab.FragmentPagerAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -11,10 +12,6 @@ import com.google.android.material.tabs.TabLayoutMediator
  * This application is simply a sandbox for experimentation with the UI.
  */
 class BertSpeakActivity : AppCompatActivity() {
-    private val TAB_TITLES = arrayOf<String>(
-        "Tab 1",
-        "Tab 2"
-    )
     private lateinit var binding: BertspeakMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,9 +20,7 @@ class BertSpeakActivity : AppCompatActivity() {
         binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val adapter = SectionsPagerAdapter(this)
-        adapter.addFragment(0,TAB_TITLES[0])
-        adapter.addFragment(1,TAB_TITLES[1])
+        val adapter = FragmentPagerAdapter(this)
 
         val pager: ViewPager2 = binding.viewPager
         pager.currentItem = 0
