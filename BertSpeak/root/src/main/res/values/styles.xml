@@ -1,4 +1,14 @@
+<!-- Use the styles file to hold sttyles that apply to a specific widget -->
 <resources>
+    <!-- The main border and tab bar -->
+    <style name="BertSpeak.AppBarOverlayTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar" >
+    <item name="colorPrimary">@color/colorPrimary</item>
+    <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+    <item name="colorAccent">@color/colorAccent</item>
+
+    <item name="windowActionBar">false</item>
+    <item name="actionMenuTextColor">@android:color/white</item>
+    </style>
 
     <!-- Base application theme. -->
     <style name="BertSpeak" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -18,10 +28,6 @@
     <style name="BertSpeak.NoActionBarTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-    </style>
-
-
-    <style name="BertSpeak.AppBarOverlayTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar" >
     </style>
 
     <style name="BertSpeak.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />

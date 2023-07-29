@@ -10,7 +10,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.BertSpeak.AppBarOverlay">
+        android:theme="@style/BertSpeak.AppBarOverlayTheme">
         <!-- This is the text that appears left-justified in the title bar -->
         <TextView
             android:id="@+id/title"

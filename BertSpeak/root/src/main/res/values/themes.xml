@@ -1,4 +1,8 @@
+<!-- Use the themes file to hold styles that generally apply to multiple widgets
+     and define the overall look and feel -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+
     <!-- Base application theme. -->
     <style name="Theme.BertSpeak" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
@@ -19,7 +23,6 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="Theme.BertSpeak.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.BertSpeak.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
