@@ -44,7 +44,8 @@
 
     <!-- Text style for the tab titles - textAppearance attribute -->
     <style name="TabTextAppearance" parent="@android:style/TextAppearance">
-        <item name="android:textSize">28sp</item>
+        <item name="android:background">@color/colorPrimaryLight</item>
+        <item name="android:textSize">18pt</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">#8080FF</item>
     </style>
