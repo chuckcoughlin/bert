@@ -1,7 +1,9 @@
 package chuckcoughlin.bertspeak.db
 
 import android.content.Context
+import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteDatabaseLockedException
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
@@ -11,8 +13,22 @@ class DatabaseHelper(context:Context):
 
 	override fun onCreate(db: SQLiteDatabase?) {
 		if( db!=null ) {
-			Log.i(CLSS, String.format("onCreate: database path = %s", db.path))
-			DatabaseManager.initialize(db)
+			try {
+				if(db.isOpen) {
+
+					//db.close()
+				}
+				Log.i(CLSS, String.format("onCreate: database path = %s", db.path))
+				DatabaseManager.initialize(db)
+			}
+			catch(sqle: SQLiteDatabaseLockedException) {
+				Log.e(CLSS, String.format("onCreate: Database locked exception %s",
+					sqle.localizedMessage))
+			}
+			catch(sqle: SQLException) {
+				Log.e(CLSS, String.format("onCreate: Exception opening database %s",
+				sqle.localizedMessage))
+			}
 		}
 		else {
 			Log.e(CLSS, String.format("onCreate: database is null"))

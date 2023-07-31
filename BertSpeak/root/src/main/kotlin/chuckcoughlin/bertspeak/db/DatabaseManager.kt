@@ -20,6 +20,8 @@ import chuckcoughlin.bertspeak.common.NameValue
  */
 
 object DatabaseManager {
+    private val errorHandler :DbErrorHandler
+
     @Throws(SQLException::class)
     fun execSQL(sql: String?)  {
         val database = getDatabase(true)
@@ -41,8 +43,8 @@ object DatabaseManager {
         }
     }
     /**
-     * Must be called when the manager is first created. If the database already exists on disk
-     * with the same name, this method will have no effect.
+     * Must be called when the manager is first created. If the database already exists on disk with the same name, this method will have no effect.
+     * If it exists and is open, we close it first.
      */
     fun initialize(db:SQLiteDatabase) {
         synchronized(this) {
@@ -187,7 +189,11 @@ object DatabaseManager {
 
 
     private const val CLSS = "DatabaseManager"
-    private val errorHandler = DbErrorHandler()
+
+
+    init {
+       errorHandler = DbErrorHandler()
+    }
 
     /**
      * Check for the network in a separate thread.

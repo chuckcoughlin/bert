@@ -46,13 +46,6 @@ class FragmentPagerAdapter(activity:FragmentActivity) : FragmentStateAdapter(act
         return frag
     }
 
-    fun createFragmentOLD(position: Int): Fragment {
-        // getItem is called to instantiate the fragment for the given page.
-        // Return a PlaceholderFragment.
-        Log.i(CLSS, "createFragment: at " + position)
-        return PlaceholderFragment.newInstance(position + 1)
-    }
-
     override fun getItemCount(): Int {
         return fragments.size
     }
