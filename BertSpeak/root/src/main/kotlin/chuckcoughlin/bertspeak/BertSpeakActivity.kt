@@ -14,6 +14,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
+import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
@@ -53,7 +54,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         bindService(intent, this, Context.BIND_AUTO_CREATE)
         Log.i(CLSS, "onCreate: ... inflating binding")
         // If we absolutely have to start over again with the database ...
-        //this.deleteDatabase(BertConstants.DB_NAME);
+        //deleteDatabase(BertConstants.DB_NAME);
 
         binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

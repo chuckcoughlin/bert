@@ -17,6 +17,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import android.os.Build.VERSION_CODES.N
 import android.os.Handler
 import android.os.IBinder
 import android.util.Log
@@ -27,7 +28,7 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
-import java.util.*
+import java.util.Locale
 
 
 /**
@@ -277,11 +278,10 @@ class DispatchService : Service(), BluetoothHandler {
         }
     }
 
+    // Stop foreground service and remove the notification.
     private fun stopForegroundService() {
         Log.i(CLSS, "Stop foreground service.")
-
-        // Stop foreground service and remove the notification.
-        stopForegroundService()
+        stopForeground(STOP_FOREGROUND_DETACH)  // Notification remains showing
         val bmgr: BluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         if (ActivityCompat.checkSelfPermission(
                 this,Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
@@ -397,7 +397,7 @@ class DispatchService : Service(), BluetoothHandler {
             bluetoothConnection!!.write(String.format("%s:%s", MessageType.MSG.name, text))
         }
     }
-    //=========================== ProcessDelay =====================================
+    //================= ProcessDelay ==========================
     /**
      * Use this class to delay the transition to the next step. When we find
      * an error, we need to avoid a hard loop.
