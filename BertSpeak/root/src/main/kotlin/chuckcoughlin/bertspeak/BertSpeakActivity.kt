@@ -108,10 +108,11 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
 
     override fun onStop() {
         super.onStop()
-        if(service == null) {
+        if(service != null) {
             unbindService(this)
+            service = null
         }
-        annunciator!!.stop()
+        annunciator?.stop()
         deactivateSpeechAnalyzer()
     }
 

@@ -7,6 +7,7 @@ package chuckcoughlin.bertspeak.service
 import android.Manifest.permission
 import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
@@ -413,6 +414,11 @@ class DispatchService : Service(), BluetoothHandler {
             val message: String = context.getString(R.string.dispatchStartMessage)
             startIntent.putExtra(context.getString(R.string.dispatchStartIntent), message)
             ContextCompat.startForegroundService(context, startIntent)
+            val channel = NotificationChannel(BertConstants.NOTIFICATION_CHANNEL_ID,
+                context.getString(R.string.dispatchChannelName),
+                NotificationManager.IMPORTANCE_HIGH)
+            channel.description = context.getString(R.string.dispatchChannelDesc)
+            notificationManager!!.createNotificationChannel(channel)
         }
 
         // Stop foreground service and remove the notification.

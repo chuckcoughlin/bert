@@ -33,6 +33,9 @@
     <string name="notificationKey">DispatchServiceRunning</string>
 
     <!-- DispatchService -->
+    <string name="dispatchChannelID">DispatchServiceChannelID</string>
+    <string name="dispatchChannelDesc">Channel for the messaging dispatch service</string>
+    <string name="dispatchChannelName">Dispatch Service Channel</string>
     <string name="dispatchStartMessage">Starting Dispatch Service</string>
     <string name="dispatchStartIntent">inputExtra</string>
     <string name="notificationMute">Mute</string>
