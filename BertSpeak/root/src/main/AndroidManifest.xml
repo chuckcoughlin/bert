@@ -44,6 +44,7 @@
         <service
             android:name="chuckcoughlin.bertspeak.service.DispatchService"
             android:enabled="true"
+            android:foregroundServiceType="connectedDevice"
             android:label="@string/notificationLabel">
         </service>
 

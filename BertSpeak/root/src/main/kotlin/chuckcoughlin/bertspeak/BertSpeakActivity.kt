@@ -1,7 +1,6 @@
 package chuckcoughlin.bertspeak
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
@@ -14,7 +13,6 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
-import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
@@ -48,13 +46,11 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Create the comprehensive dispatch connection service
-        val intent = Intent(this, DispatchService::class.java)
-        applicationContext.startForegroundService(intent)
-        bindService(intent, this, Context.BIND_AUTO_CREATE)
         Log.i(CLSS, "onCreate: ... inflating binding")
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
+        // Create the comprehensive dispatch connection service
+        DispatchService.startForegroundService(this)
 
         binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -125,8 +121,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
     override fun onDestroy() {
         super.onDestroy()
         deactivateSpeechAnalyzer()
-        val intent = Intent(this, DispatchService::class.java)
-        stopService(intent)
+        DispatchService.stopForegroundService(this)
         annunciator!!.shutdown()
         annunciator = null
     }
@@ -283,7 +278,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
     }
 
     companion object {
-        private const val CLSS = "MainActivity"
+        private const val CLSS = "BertSpeakActivity"
         private const val UTTERANCE_ID = CLSS
 
         // Start phrases to choose from ...

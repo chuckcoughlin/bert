@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.Manifest
+import android.Manifest.permission
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
@@ -12,17 +12,19 @@ import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
-import android.os.Build.VERSION_CODES.N
 import android.os.Handler
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
@@ -41,7 +43,6 @@ import java.util.Locale
  * Android speech recognition classes.
  */
 class DispatchService : Service(), BluetoothHandler {
-    private var notificationManager: NotificationManager? = null
     private var bluetoothConnection: BluetoothConnection? = null // Stays null when simulated
     private var bluetoothDevice: BluetoothDevice? = null
     private val binder: DispatchServiceBinder = DispatchServiceBinder(this)
@@ -56,7 +57,6 @@ class DispatchService : Service(), BluetoothHandler {
      */
     override fun onCreate() {
         Log.i(CLSS, "onCreate: Starting foreground service ...")
-        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val notification = buildNotification()
         val flag: String? = DatabaseManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION)
         if ("true".equals(flag, ignoreCase = true)) simulatedConnectionMode = true
@@ -73,61 +73,42 @@ class DispatchService : Service(), BluetoothHandler {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if( intent!=null ) {
             val action: String? = intent.action
-            Log.i(
-                CLSS,String.format("onStartCommand: %s flags = %d, id = %d",
-                    action, flags, startId)
-            )
+            Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",
+                    action, flags, startId))
             if (!simulatedConnectionMode) bluetoothConnection = BluetoothConnection(this)
             if (action == null) {
                 if (simulatedConnectionMode) {
                     reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.ACTIVE)
-                    reportConnectionState(
-                        TieredFacility.SOCKET,
-                        FacilityState.ACTIVE
-                    ) // Just to initialize
-                    reportConnectionState(
-                        TieredFacility.VOICE,
-                        FacilityState.IDLE
-                    ) // Just to initialize
+                    reportConnectionState(TieredFacility.SOCKET,FacilityState.ACTIVE) // Just to initialize
+                    reportConnectionState(TieredFacility.VOICE,FacilityState.IDLE)    // Just to initialize
                     determineNextAction(TieredFacility.VOICE)
-                } else {
+                }
+                else {
                     reportConnectionState(TieredFacility.BLUETOOTH, FacilityState.IDLE)
-                    reportConnectionState(
-                        TieredFacility.SOCKET,
-                        FacilityState.IDLE
-                    ) // Just to initialize
-                    reportConnectionState(
-                        TieredFacility.VOICE,
-                        FacilityState.IDLE
-                    ) // Just to initialize
+                    reportConnectionState(TieredFacility.SOCKET, FacilityState.IDLE)   // Just to initialize
+                    reportConnectionState(TieredFacility.VOICE,FacilityState.IDLE)    // Just to initialize
                     determineNextAction(TieredFacility.BLUETOOTH)
                 }
-            } else if (action.equals(getString(R.string.notificationMute), ignoreCase = true)) {
+            }
+            else if (action.equals(getString(R.string.notificationMute), ignoreCase = true)) {
                 toggleMute()
-            } else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
+            }
+            else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
                 if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
                 statusManager.reportState(TieredFacility.SOCKET, FacilityState.IDLE)
                 determineNextAction(TieredFacility.BLUETOOTH)
-            } else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
+            }
+            else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
                 stopSelf()
             }
         }
         return START_REDELIVER_INTENT
     }
 
-    // A client is binding to the service with bindService(). This appears to
-    // be called only once no matter how many clients.
-    override fun onBind(intent: Intent): IBinder {
+    // A client is binding to the service with bindService().
+    // There should be no binding, but this does get called.
+    override fun onBind(intent: Intent?): IBinder {
         return binder
-    }
-
-    override fun onUnbind(intent: Intent): Boolean {
-        return true
-    }
-
-    // A client has called bindService after calling unBind()
-    override fun onRebind(intent: Intent) {
-        super.onRebind(intent)
     }
 
     /**
@@ -135,11 +116,16 @@ class DispatchService : Service(), BluetoothHandler {
      */
     override fun onDestroy() {
         super.onDestroy()
-        notificationManager!!.cancelAll()
-        if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)  // Notification remains showing
+
+        if(ActivityCompat.checkSelfPermission(this, permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
+            bluetoothManager?.adapter?.cancelDiscovery()
+            if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
+        }
+        notificationManager?.cancelAll()
         statusManager.stop()
         textManager.stop()
-        stopForegroundService()
+        stopSelf()
     }
 
     override fun setBluetoothDevice(device: BluetoothDevice?) {
@@ -278,26 +264,7 @@ class DispatchService : Service(), BluetoothHandler {
         }
     }
 
-    // Stop foreground service and remove the notification.
-    private fun stopForegroundService() {
-        Log.i(CLSS, "Stop foreground service.")
-        stopForeground(STOP_FOREGROUND_DETACH)  // Notification remains showing
-        val bmgr: BluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
-        if (ActivityCompat.checkSelfPermission(
-                this,Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return
-        }
-        bmgr.adapter.cancelDiscovery()
-        // Stop the foreground service.
-        stopSelf()
-    }
+
 
     private fun toggleMute() {
         isMuted = !isMuted
@@ -429,15 +396,33 @@ class DispatchService : Service(), BluetoothHandler {
         return textManager
     }
 
+    /**
+     *  The service operates as a Singleton, so we place our startup code here
+     */
     companion object {
         private const val CLSS = "DispatchService"
         private const val ERROR_CYCLE_DELAY: Long = 15000 // Wait interval for retry after error
-        private val DISPATCH_NOTIFICATION: Int =
-            R.string.notificationKey // Unique id for the Notification.
+        private val DISPATCH_NOTIFICATION: Int = R.string.notificationKey // Unique id for the Notification.
+        private var bluetoothManager :BluetoothManager? = null
+        private var notificationManager:NotificationManager? = null
+        // Start foreground service
+        fun startForegroundService(context: Context) {
+            bluetoothManager = context.getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+            notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            val startIntent = Intent(context, DispatchService::class.java)
+            val message: String = context.getString(R.string.dispatchStartMessage)
+            startIntent.putExtra(context.getString(R.string.dispatchStartIntent), message)
+            ContextCompat.startForegroundService(context, startIntent)
+        }
+
+        // Stop foreground service and remove the notification.
+        fun stopForegroundService(context: Context) {
+            Log.i(CLSS, "Stop foreground service.")
+            val stopIntent = Intent(context, DispatchService::class.java)
+            context.stopService(stopIntent)
+        }
     }
 
-    //private static final boolean IS_EMULATOR = Build.HARDWARE.contains("goldfish");
-    //private static final boolean IS_EMULATOR Build.IS_EMULATOR;
     init {
         simulatedConnectionMode = false
         statusManager = StatusManager()
