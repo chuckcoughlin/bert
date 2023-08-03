@@ -18,6 +18,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
+import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.ToggleButton
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.R
@@ -28,27 +30,28 @@ import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.FacilityState
 import chuckcoughlin.bertspeak.service.TieredFacility
 import chuckcoughlin.bertspeak.service.VoiceConstants
+import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.waveform.RendererFactory
 import chuckcoughlin.bertspeak.waveform.WaveformView
+
 
 /**
  * This fragment presents a static "cover" with no dynamic content.
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,ServiceConnection {
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
     override val name = CLSS
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null
 
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentCoverBinding
+    private lateinit var seekBar: VerticalSeekBar
     private lateinit var waveformView: WaveformView
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
         binding = FragmentCoverBinding.inflate(inflater, container, false)
-        binding.fragmentCoverText.text = getString(R.string.fragmentCoverLabel)
-        binding.fragmentCoverText.textSize = 36f
         binding.fragmentCoverImage.setImageResource(R.drawable.recliner)
         val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
         val socketStatus = binding.socketStatus
@@ -64,6 +67,8 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         waveformView.setRenderer(
             rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY)
         )
+        seekBar = binding.root.findViewById(R.id.verticalSeekbar)
+        seekBar.setOnSeekBarChangeListener(this)
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -204,7 +209,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         }
     }
 
-    // =================================== OnDataCaptureListener ===============================
+    // ================== OnDataCaptureListener ===============
     // This is valid only between view-create and destroy
     override fun onWaveFormDataCapture(thisVisualiser: Visualizer,waveform: ByteArray,samplingRate: Int) {
        if( lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
@@ -216,7 +221,17 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         // NO-OP
     }
 
-    // =================================== ServiceConnection ===============================
+    // =================================OnSeekBarChangeListener =========================
+    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+
+
+    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+
+    override fun onProgressChanged(seekBar: SeekBar?, progress: Int,fromUser: Boolean) {
+        //sliderText.setText("" + progress)
+    }
+    // ================================ ServiceConnection ===============================
     override fun onServiceDisconnected(name: ComponentName) {
         if (service != null) service!!.statusManager.unregister(this)
         service = null

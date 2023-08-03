@@ -1,3 +1,8 @@
+/**
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * (MIT License)
+ */
+
 package chuckcoughlin.bertspeak
 
 import android.content.ComponentName
@@ -240,7 +245,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     }
 
-    // =================================== TextMessageObserver ===============================
+    // ================= TextMessageObserver ==================
     override fun initialize() {}
 
     /**
@@ -256,7 +261,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         }
     }
 
-    // =================================== UtteranceProgressListener ===============================
+    // ================= UtteranceProgressListener ========================
     // Use this to suppress feedback with analyzer while we're speaking
     inner class UtteranceListener: UtteranceProgressListener() {
         @Synchronized
@@ -287,7 +292,9 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
             "My speech module is ready",
             "The speech connection is enabled",
             "I am ready for voice commands",
-            "The speech controller is ready"
+            "The speech controller is ready",
+            "Marj I am ready",
+            "Marj speak to me"
         )
     }
 

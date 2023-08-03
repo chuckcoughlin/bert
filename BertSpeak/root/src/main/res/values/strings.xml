@@ -22,6 +22,8 @@
     <string name="coverParameterBluetooth">Bluetooth</string>
     <string name="coverParameterSocket">Socket</string>
     <string name="coverParameterVoice">Voice</string>
+    <string name="coverSeekbarTitle">Vol</string>
+    <string name="coverWaveformTitle">Voice Waveform</string>
 
     <!-- Strings for Button Labels-->
     <string name="buttonClear">Clear</string>

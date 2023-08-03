@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The is a text label above the wave-form meter -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/fragmentCoverRightPanel">
+
+    <TextView
+        android:id="@+id/waveform_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/border_gray"
+        android:text="@string/coverSeekbarTitle"
+        android:textAlignment="center"
+        android:textSize="@dimen/cover_waveform_text_size" />
+<chuckcoughlin.bertspeak.ui.VerticalSeekBar
+    android:id="@+id/verticalSeekbar"
+    android:max="100"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:layout_marginEnd="5dp"
+    android:background="@color/lightGray"
+    android:progress="50"
+    android:progressDrawable="@drawable/seekbar_progress"
+    android:thumb="@drawable/seekbar_thumb" />
+</LinearLayout>

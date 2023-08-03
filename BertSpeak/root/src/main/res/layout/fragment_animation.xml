@@ -100,7 +100,7 @@
                 android:textOff=""
                 android:textOn="" />
 
-              <include layout="@layout/meter_main"/>
+              <include layout="@layout/waveform_meter"/>
         </LinearLayout>
     </LinearLayout>
 
