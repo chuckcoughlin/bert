@@ -27,8 +27,8 @@ import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.FacilityState
 import chuckcoughlin.bertspeak.service.TieredFacility
 import chuckcoughlin.bertspeak.service.VoiceConstants
-import chuckcoughlin.bertspeak.waveform.RendererFactory
-import chuckcoughlin.bertspeak.waveform.WaveformView
+import chuckcoughlin.bertspeak.ui.RendererFactory
+import chuckcoughlin.bertspeak.ui.waveform.WaveformView
 
 /**
  * This fragment displays the robot position right/front/left and allows the uesr to

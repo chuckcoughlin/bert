@@ -1,7 +1,7 @@
 /**
  * @See: Mark Allison @ https://github.com/StylingAndroid/Visualizer
  */
-package chuckcoughlin.bertspeak.waveform
+package chuckcoughlin.bertspeak.ui.waveform
 
 import android.graphics.Canvas
 import android.graphics.Paint

@@ -5,6 +5,6 @@ package chuckcoughlin.bertspeak.waveform
 
 import android.graphics.Canvas
 
-interface WaveformRenderer {
+interface FacialRecognitionRenderer {
     fun render(canvas: Canvas, waveform: ByteArray?)
 }
