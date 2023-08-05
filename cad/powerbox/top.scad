@@ -3,9 +3,10 @@
 //          Origin = center, bottom of top plate
 //          Orientation is upside down
 
-height    = 35;        // Inside height (1/2 high)
+height    = 37;        // Inside height (1/2 high)
 length    =240;        // Inside length
-thickness =  4;        // Wall and bottom thickness
+rib_thickness = 3;      // Thickness of ribs and other supports
+thickness =  3;        // Wall and bottom thickness
 width     = 70;        // Inside width
 
 // Top plate. 
@@ -28,16 +29,32 @@ module side(x,z) {
        square([x,z],center=true); 
     } 
 }
+// Material to be added to top edge so cover fits. Outside edge.
+// Arguments are the length and with of the band.
+module band(x,w) {
+    z = rib_thickness;
+    linear_extrude(height=x,center=true,convexity=10) {
+        square([z,w],center=true); 
+    }
+}
+// Half circle opening
+module dc_grommet_opening(z) {
+    wr  = 12;    // Grommet radius for 12V wires
+    translate([0,z/2,0])
+    cylinder(thickness+1,wr,wr,true);
+}
 // Half circle opening
 module dc_wire_opening(z) {
     wr  = 5;    // Washer radius for 12V wires
     translate([0,z/2,0])
     cylinder(thickness+1,wr,wr,true);
 }
-// Material to be added to edge so cover fits. Outside edge.
-module rim(x) {
-    z = thickness/2;
-    linear_extrude(height=x,center=true,convexity=10) {
+// The ribs help stiffen the sides and 
+// hold the transformer in place. The argument is
+// the length of the rib
+module rib(h) {
+    z = rib_thickness;
+    linear_extrude(height=h,center=false,convexity=10) {
         square([z,z],center=true); 
     }
 }
@@ -56,12 +73,16 @@ module final_assembly(x,y,z) {
         union() {
             color("red")
             rotate([0,90,0])
-            translate([thickness/4,z/2+thickness/2,0])
-            rim(y+2*thickness);
+            translate([thickness,z-30,0])
+            band(y+2*thickness,10);
             color("lightgreen")
             end(y+2*thickness,z+thickness/2);
         }
-        dc_wire_opening(z);
+        union() {
+            dc_wire_opening(z);
+            translate([0,0,-thickness])  // Only the "band"
+            dc_grommet_opening(z);
+        }
     }
     
     // AC End
@@ -71,9 +92,9 @@ module final_assembly(x,y,z) {
         color("green")
         end(y+2*thickness,z+thickness/2);
         rotate([0,90,0])
-        translate([-thickness/4,z/2+thickness/4,0])
+        translate([-thickness,z-30,0])
         color("red")
-        rim(y+2*thickness);
+        band(y+2*thickness,10);
     }
     
     // Side
@@ -83,11 +104,13 @@ module final_assembly(x,y,z) {
         color("green")
         side(x,z+thickness/2);
         color("red")
+        rotate([90,0,0])
+        translate([0,thickness/2,5])
+        band(y/2-5,5);
         rotate([0,90,0])
-        translate([-thickness/4,z/2+thickness/4,0])
-        rim(x+thickness);
+        translate([-thickness,z/2-10-thickness/2,0])
+        band(x+4*thickness,10);
     }
-    
     // Side
     rotate([90,0,0])
     translate([0,(z+thickness)/2,-(y+thickness)/2])
@@ -95,9 +118,36 @@ module final_assembly(x,y,z) {
         color("green")
         side(x,z+thickness/2);
         color("red")
+        rotate([90,0,0])
+        translate([0,-thickness/2,5])
+        band(y/2-5,5);
         rotate([0,90,0])
-        translate([thickness/4,z/2+thickness/4,0])
-        rim(x+thickness);
+        translate([thickness,z/2-10-thickness/2,0])
+        band(x+4*thickness,10);
+    }
+    // Interior support
+    union() { 
+        color("black");
+        offset = 30-length/2;
+        translate([offset,width/2,thickness/2])
+        rib(height);
+        translate([offset,-width/2,thickness/2])
+        rib(height);
+        rotate([90,0,0])
+        translate([offset,thickness,-width/2])
+        rib(width);
+        
+    }
+    union() { 
+        color("red");
+        offset = length/2-75;
+        translate([offset,width/2,thickness/2])
+        rib(height);
+        translate([offset,-width/2,thickness/2])
+        rib(height);
+        rotate([90,0,0])
+        translate([offset,thickness,-width/2])
+        rib(width);  
     }
     
 }

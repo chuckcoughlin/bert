@@ -3,19 +3,13 @@
     <!-- SYstem-level variables -->
     <string name="appbar_scrolling_view_behavior">true</string>
     <!-- Labels in the navigation bar -->
-    <string name="animation_tab_label">Animation</string>
-    <string name="cover_tab_label">Cover</string>
-    <string name="robot_log_tab_label">Logs</string>
-    <string name="settings_tab_label">Settings</string>
-    <string name="tables_tab_label">Tables</string>
-    <string name="transcript_tab_label">Transcript</string>
-    <!-- Titles as they appear at the top of each page -->
-    <string name="action_settings">Settings</string>
-    <string name="fragmentAnimationLabel">Animation"</string>
-    <string name="fragmentCoverLabel">Cover"</string>
+    <string name="fragmentAnimationLabel">Animation</string>
+    <string name="fragmentCoverLabel">Cover</string>
+    <string name="fragmentFacesLabel">FaceRec</string>
     <string name="fragmentLogsLabel">Logs</string>
+    <string name="fragmentPosesLabel">Poses</string>
     <string name="fragmentSettingsLabel">Settings</string>
-    <string name="fragmentTableLabel">Table</string>
+    <string name="fragmentStatusLabel">Status</string>
     <string name="fragmentTranscriptLabel">Transcript</string>
 
     <!-- Strings for Cover tab-->

@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="chuckcoughlin.bertspeak.tab.TablesTabFragment"
+    tools:context="chuckcoughlin.bertspeak.tab.StatusFragment"
     android:id="@+id/fragmentTable">
 
     <TextView

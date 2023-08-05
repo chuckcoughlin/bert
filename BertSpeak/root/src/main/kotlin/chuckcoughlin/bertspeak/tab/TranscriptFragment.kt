@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -26,7 +26,8 @@ import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
 
 /**
- * This fragment allows perusal of the robot's spoken interactions..
+ * This fragment allows perusal of the robot's spoken interactions. Blue implies
+ * text from the robot, pink is text from the user..
  */
 class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name : String

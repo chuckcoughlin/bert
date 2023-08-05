@@ -1,7 +1,7 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2023 Charles Coughlin. All rights reserved.
  * (MIT License)
- */
+*/
 package chuckcoughlin.bertspeak.tab
 
 import android.content.ComponentName
@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
-import chuckcoughlin.bertspeak.databinding.FragmentRobotLogsBinding
+import chuckcoughlin.bertspeak.databinding.FragmentLogsBinding
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
@@ -28,18 +28,18 @@ import chuckcoughlin.bertspeak.speech.TextMessageObserver
 /**
  * This fragment shows log messages originating in the robot.
  */
-class RobotLogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
+class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name = CLSS
     private var adapter: TextMessageAdapter? = null
     private var service: DispatchService? = null
     private var frozen = false
     // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentRobotLogsBinding
+    private lateinit var binding: FragmentLogsBinding
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
-        binding = FragmentRobotLogsBinding.inflate(inflater,container,false)
+        binding = FragmentLogsBinding.inflate(inflater,container,false)
         adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
         var logMessageView = binding.logsRecyclerView   // RecyclerView
         logMessageView.setHasFixedSize(true) // Refers to the size of the layout.

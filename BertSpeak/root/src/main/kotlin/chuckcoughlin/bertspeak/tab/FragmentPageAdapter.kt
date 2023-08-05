@@ -8,10 +8,10 @@ import chuckcoughlin.bertspeak.R
 
 
 /**
- * A [FragmentPagerAdapter] that returns a fragment corresponding to
+ * A [FragmentPageAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-class FragmentPagerAdapter(activity:FragmentActivity) : FragmentStateAdapter(activity) {
+class FragmentPageAdapter(activity:FragmentActivity) : FragmentStateAdapter(activity) {
     val fragments: MutableList<Fragment>
     val titles: MutableList<String>
 
@@ -34,10 +34,12 @@ class FragmentPagerAdapter(activity:FragmentActivity) : FragmentStateAdapter(act
         when (pos) {
             0 -> frag = CoverFragment(pos)
             1 -> frag = AnimationFragment(pos)
-            2 -> frag = TranscriptFragment(pos)
-            3 -> frag = RobotLogsFragment(pos)
-            4 -> frag = TablesTabFragment(pos)
+            2 -> frag = FacesFragment(pos)
+            3 -> frag = LogsFragment(pos)
+            4 -> frag = PosesFragment(pos)
             5 -> frag = SettingsFragment(pos)
+            6 -> frag = StatusFragment(pos)
+            7 -> frag = TranscriptFragment(pos)
             else ->
                 frag = CoverFragment(pos)
         }
@@ -60,9 +62,11 @@ class FragmentPagerAdapter(activity:FragmentActivity) : FragmentStateAdapter(act
         // Populate the array
         addFragment(0,activity.getString(R.string.fragmentCoverLabel))
         addFragment(1,activity.getString(R.string.fragmentAnimationLabel))
-        addFragment(2,activity.getString(R.string.fragmentTranscriptLabel))
+        addFragment(2,activity.getString(R.string.fragmentFacesLabel))
         addFragment(3,activity.getString(R.string.fragmentLogsLabel))
-        addFragment(4,activity.getString(R.string.fragmentTableLabel))
+        addFragment(4,activity.getString(R.string.fragmentPosesLabel))
         addFragment(5,activity.getString(R.string.fragmentSettingsLabel))
+        addFragment(6,activity.getString(R.string.fragmentStatusLabel))
+        addFragment(7,activity.getString(R.string.fragmentTranscriptLabel))
     }
 }

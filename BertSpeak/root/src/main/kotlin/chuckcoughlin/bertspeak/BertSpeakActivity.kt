@@ -31,7 +31,7 @@ import chuckcoughlin.bertspeak.speech.Annunciator
 import chuckcoughlin.bertspeak.speech.SpeechAnalyzer
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.tab.FragmentPagerAdapter
+import chuckcoughlin.bertspeak.tab.FragmentPageAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import java.util.Locale
@@ -59,7 +59,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
 
         binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val adapter = FragmentPagerAdapter(this)
+        val adapter = FragmentPageAdapter(this)
         val pager: ViewPager2 = binding.viewPager
         pager.currentItem = 0
         pager.adapter = adapter

@@ -1,7 +1,6 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2023 Charles Coughlin. All rights reserved.
  * (MIT License)
- * For visualizer code see: https://github.com/StylingAndroid/
  */
 package chuckcoughlin.bertspeak.tab
 
@@ -32,7 +31,8 @@ import chuckcoughlin.bertspeak.waveform.RendererFactory
 import chuckcoughlin.bertspeak.waveform.WaveformView
 
 /**
- * This fragment presents a static "cover" with no dynamic content.
+ * This fragment displays the robot position right/front/left and allows the uesr to
+ * interactively move the limbs via touch gestures.
  */
 class AnimationFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,ServiceConnection {
     override val name = CLSS

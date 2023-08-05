@@ -2,9 +2,10 @@
 //          110V 60hz to 12V conversion for Bert
 //          Origin = center, bottom of bottom plate
 
-height    = 35;        // Inside height (1/2 high)
+height    = 37;        // Inside height (1/2 high)
 length    =240;        // Inside length
-thickness =  4;        // Wall and bottom thickness
+rib_thickness = 2;     // Thickness of ribs and other supports
+thickness =  3;        // Wall and bottom thickness
 width     = 70;        // Inside width
 
 // Bottom plate. 
@@ -31,27 +32,31 @@ module side(x,z) {
 module ac_wire_opening() {
     screw_separation = 40; // center-center between screws
     screw_radius = 2.5;    // screw hole in socket
-    // Dimension C-13 female plug
-    plug_height = 20;  // Socket height
-    plug_width  = 26;  // Socket width
+    // Dimension C-13 female plug socket
+    plug_height = 22;  // Socket height
+    plug_width  = 30;  // Socket width
     plug_top_edge=16;
-    plug_cut = (plug_width-plug_top_edge)/2; // diagonal
     
-    
+    // Rectangle
     linear_extrude(thickness+1,center=true,convexity=10) {
        polygon([[-plug_width/2,plug_height/2],
                 [plug_width/2,plug_height/2],
-                [plug_width/2,plug_cut-plug_height/2],
-                [plug_width/2-plug_cut,-plug_height/2],
-                [-plug_width/2+plug_cut,-plug_height/2],
-                [-plug_width/2,plug_cut-plug_height/2]]); 
+                [plug_width/2,-plug_height/2],
+                [-plug_width/2,-plug_height/2]]); 
     } 
     translate([screw_separation/2,0,0])
     cylinder(thickness+1,screw_radius,screw_radius,true);
     translate([-screw_separation/2,0,0])
     cylinder(thickness+1,screw_radius,screw_radius,true);
 }
-
+// Material to be added to top edge so cover fits. Outside edge.
+// Arguments are the length and with of the band.
+module band(x,w) {
+    z = rib_thickness;
+    linear_extrude(height=x,center=true,convexity=10) {
+        square([z,w],center=true); 
+    }
+}
 module bottom_screw_holes(x) {
     dx = 15;           // Screw hole offset from end
     sr = 2.5;          // Radius for screw hole
@@ -61,18 +66,27 @@ module bottom_screw_holes(x) {
     cylinder(thickness+1,sr,sr,true,$fn=6);
 }
 // Half circle opening
+module dc_grommet_opening(z) {
+    wr  = 12;    // Grommet radius for 12V wires
+    translate([0,z/2,0])
+    cylinder(thickness+1,wr,wr,true);
+}
+// Half circle opening
 module dc_wire_opening(z) {
     wr  = 5;    // Washer radius for 12V wires
     translate([0,z/2,0])
     cylinder(thickness+1,wr,wr,true);
 }
-// Edge on upper inside to for slide-on fit. Inside edge
-module rim(x) {
-    z = thickness/2;
-    linear_extrude(height=x,center=true,convexity=10) {
+// The ribs help stiffen the sides and 
+// hold the transformer in place. The argument is
+// the length of the rib
+module rib(h) {
+    z = rib_thickness;
+    linear_extrude(height=h,center=false,convexity=10) {
         square([z,z],center=true); 
     }
 }
+
   
 // -------- Final Assembly --------
 module final_assembly(x,y,z) {
@@ -91,12 +105,16 @@ module final_assembly(x,y,z) {
         union() {
             color("red")
             rotate([0,90,0])
-            translate([-thickness/4,z/2+thickness/4,0])
-            rim(y);
+            translate([thickness,z-15,0])
+            band(y+2*thickness,10);
             color("lightgreen")
             end(y+2*thickness,z+thickness/2);
         }
-        dc_wire_opening(z);
+        union() {
+            dc_wire_opening(z);
+            translate([0,0,-thickness])  // Only the "band"
+            dc_grommet_opening(z);
+        }
     }
     
     // AC End
@@ -110,8 +128,8 @@ module final_assembly(x,y,z) {
         }
         color("red")
         rotate([0,90,0])
-        translate([thickness/4,z/2+thickness/4,0])
-        rim(y);
+        translate([-thickness,z-15,0])
+        band(y+2*thickness,10);
     }
     
     // Side
@@ -120,10 +138,12 @@ module final_assembly(x,y,z) {
     union() {
         color("green")
         side(x,z+thickness/2);
+        rotate([90,0,0])
+        translate([0,thickness/2,thickness/2])
+        band(y/2,5);
         rotate([0,90,0])
-        translate([thickness/4,z/2+thickness/4,0])
-        color("red")
-        rim(x+thickness);
+        translate([-thickness,z/2+5-thickness/2,0])
+        band(x+4*thickness,10);
     }
     
     // Side
@@ -132,12 +152,37 @@ module final_assembly(x,y,z) {
     union() {
         color("green")
         side(x,z+thickness/2);
+        rotate([90,0,0])
+        translate([0,-thickness/2,thickness/2])
+        band(y/2,5);
         rotate([0,90,0])
-        translate([-thickness/4,z/2+thickness/4,0])
-        color("red")
-        rim(x+thickness);
+        translate([thickness,z/2+5-thickness/2,0])
+        band(x+4*thickness,10);
     }
-    
+    // Interior support
+    union() { 
+        color("black");
+        offset = 30-length/2;
+        translate([offset,width/2,thickness/2])
+        rib(height);
+        translate([offset,-width/2,thickness/2])
+        rib(height);
+        rotate([90,0,0])
+        translate([offset,thickness,-width/2])
+        rib(width);
+        
+    }
+    union() { 
+        color("red");
+        offset = length/2-75;
+        translate([offset,width/2,thickness/2])
+        rib(height);
+        translate([offset,-width/2,thickness/2])
+        rib(height);
+        rotate([90,0,0])
+        translate([offset,thickness,-width/2])
+        rib(width);  
+    }
 }
 
 final_assembly(length,width,height);

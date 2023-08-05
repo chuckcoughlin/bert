@@ -35,10 +35,10 @@ import chuckcoughlin.bertspeak.waveform.WaveformView
 
 
 /**
- * This fragment presents a static "cover" with a waveform view of the voice signal
- * plus a volume bar.
+ * This fragment presents shows the front camera output and attempts to identify the primary face
+ * association it with "the operator".
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
+class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
     override val name = CLSS
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null

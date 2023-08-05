@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
+import chuckcoughlin.bertspeak.databinding.FragmentPosesBinding
 import chuckcoughlin.bertspeak.databinding.FragmentTablesBinding
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
@@ -28,11 +29,10 @@ import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
 
 /**
- * This fragment displays data from the robot in tabular form. Only
- * one table is displayed at a time and is completely replaced when the
- * next table is read. The table is dynamically sized to fit the data.
+ * This fragment allows the user to select a pose stored in the robot, then
+ * displays all the position settings in that pose.
  */
-class TablesTabFragment( pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
+class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name : String
     private val layoutManager: RecyclerView.LayoutManager? = null
     private var adapter: TextMessageAdapter? = null
@@ -41,11 +41,11 @@ class TablesTabFragment( pos:Int) : BasicAssistantFragment(pos), ServiceConnecti
     private val logView: TextView? = null
     private var service: DispatchService? = null
     // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentTablesBinding
+    private lateinit var binding: FragmentPosesBinding
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
-        binding = FragmentTablesBinding.inflate(inflater,container,false)
+        binding = FragmentPosesBinding.inflate(inflater,container,false)
         binding.fragmentTablesText.setText(R.string.fragmentTableLabel)
         logMessageView = binding.root.findViewById(R.id.logs_recycler_view)
         logMessageView!!.setHasFixedSize(true) // Refers to the size of the layout.

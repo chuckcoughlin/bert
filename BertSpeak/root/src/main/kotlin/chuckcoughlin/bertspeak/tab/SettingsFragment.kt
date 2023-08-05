@@ -22,7 +22,7 @@ import chuckcoughlin.bertspeak.db.DatabaseManager
 import java.util.Locale
 
 /**
- * Display the current values of global application settings and allow
+ * Display the current values of settings table and allow
  * editing.
  */
 class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
