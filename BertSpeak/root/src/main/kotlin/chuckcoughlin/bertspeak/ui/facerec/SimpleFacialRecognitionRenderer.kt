@@ -1,5 +1,6 @@
 /**
- * @See: Mark Allison @ https://github.com/StylingAndroid/Visualizer
+ * Copyright 2023 Charles Coughlin. All rights reserved.
+ * (MIT License)
  */
 package chuckcoughlin.bertspeak.waveform
 
@@ -12,23 +13,21 @@ import chuckcoughlin.bertspeak.ui.waveform.WaveformRenderer
 
 internal class SimpleFacialRecognitionRenderer(
     @field:ColorInt @param:ColorInt private val backgroundColour: Int,
-    private val foregroundPaint: Paint,
-    private val waveformPath: Path
-) : WaveformRenderer {
+    private val foregroundPaint: Paint,private val waveformPath: Path) : FacialRecognitionRenderer {
     override fun render(canvas: Canvas, waveform: ByteArray?) {
         canvas.drawColor(backgroundColour)
         val width = canvas.width.toFloat()
         val height = canvas.height.toFloat()
         waveformPath.reset()
         if (waveform != null) {
-            renderWaveform(waveform, width, height)
+            renderFacialRecognition(waveform, width, height)
         } else {
             renderBlank(width, height)
         }
         canvas.drawPath(waveformPath, foregroundPaint)
     }
 
-    private fun renderWaveform(waveform: ByteArray, width: Float, height: Float) {
+    private fun renderFacialRecognition(waveform: ByteArray, width: Float, height: Float) {
         val xIncrement = width / waveform.size.toFloat()
         val yIncrement = height / Y_FACTOR
         val halfHeight = (height * HALF_FACTOR).toInt()
@@ -53,13 +52,13 @@ internal class SimpleFacialRecognitionRenderer(
         fun newInstance(
             @ColorInt backgroundColour: Int,
             @ColorInt foregroundColour: Int
-        ): SimpleWaveformRenderer {
+        ): SimpleFacialRecognitionRenderer {
             val paint = Paint()
             paint.color = foregroundColour
             paint.isAntiAlias = true
             paint.style = Paint.Style.STROKE
             val waveformPath = Path()
-            return SimpleWaveformRenderer(backgroundColour, paint, waveformPath)
+            return SimpleFacialRecognitionRenderer(backgroundColour, paint, waveformPath)
         }
     }
 }

@@ -24,14 +24,15 @@ import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
+import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.FacilityState
 import chuckcoughlin.bertspeak.service.TieredFacility
 import chuckcoughlin.bertspeak.service.VoiceConstants
+import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
-import chuckcoughlin.bertspeak.waveform.RendererFactory
-import chuckcoughlin.bertspeak.waveform.WaveformView
+import chuckcoughlin.bertspeak.waveform.FacialRecognitionView
 
 
 /**
@@ -44,14 +45,14 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     private var visualizer: Visualizer? = null
 
     // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentCoverBinding
+    private lateinit var binding: FragmentFacesBinding
     private lateinit var seekBar: VerticalSeekBar
-    private lateinit var waveformView: WaveformView
+    private lateinit var facialRecognitionView: FacialRecognitionView
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
-        binding = FragmentCoverBinding.inflate(inflater, container, false)
+        binding = FragmentFacesBinding.inflate(inflater, container, false)
         binding.fragmentCoverImage.setImageResource(R.drawable.recliner)
         val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
         val socketStatus = binding.socketStatus
@@ -63,9 +64,9 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         updateToggleButton(socketStatus, FacilityState.IDLE)
         updateToggleButton(voiceStatus, FacilityState.IDLE)
         val rendererFactory = RendererFactory()
-        waveformView = binding.root.findViewById(R.id.waveform_view)
-        waveformView.setRenderer(
-            rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY)
+        facialRecognitionView = binding.root.findViewById(R.id.waveform_view)
+        facialRecognitionView.setRenderer(
+            rendererFactory.createSimpleFacialRecognitionRenderer(Color.GREEN, Color.DKGRAY)
         )
         seekBar = binding.root.findViewById(R.id.verticalSeekbar)
         seekBar.setOnSeekBarChangeListener(this)
@@ -213,7 +214,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     // This is valid only between view-create and destroy
     override fun onWaveFormDataCapture(thisVisualiser: Visualizer,waveform: ByteArray,samplingRate: Int) {
        if( lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            waveformView.setWaveform(waveform)
+            facialRecognitionView.setWaveform(waveform)
         }
     }
 

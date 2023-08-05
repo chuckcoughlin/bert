@@ -1,5 +1,6 @@
 /**
- * @See: Mark Allison @ https://github.com/StylingAndroid/Visualizer
+ * Copyright 2023 Charles Coughlin. All rights reserved.
+ * (MIT License)
  */
 package chuckcoughlin.bertspeak.waveform
 
@@ -10,9 +11,9 @@ import android.view.View
 import chuckcoughlin.bertspeak.ui.waveform.WaveformRenderer
 import java.util.Arrays
 
-class WaveformView : View {
+class FacialRecognitionView : View {
     private var waveform: ByteArray = ByteArray(120)
-    private var renderer: WaveformRenderer? = null
+    private var renderer: FacialRecognitionRenderer? = null
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
@@ -22,7 +23,7 @@ class WaveformView : View {
         defStyleAttr
     )
 
-    fun setRenderer(renderer: WaveformRenderer?) {
+    fun setRenderer(renderer: FacialRecognitionRenderer?) {
         this.renderer = renderer
     }
 

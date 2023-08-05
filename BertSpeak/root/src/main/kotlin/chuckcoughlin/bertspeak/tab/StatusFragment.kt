@@ -21,7 +21,6 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentStatusBinding
-import chuckcoughlin.bertspeak.databinding.FragmentTablesBinding
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
@@ -47,7 +46,7 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
         binding = FragmentStatusBinding.inflate(inflater,container,false)
-        binding.fragmentTablesText.setText(R.string.fragmentTableLabel)
+        binding.fragmentTablesText.setText(R.string.fragmentStatusLabel)
         logMessageView = binding.root.findViewById(R.id.logs_recycler_view)
         logMessageView!!.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(logMessageView!!.context)

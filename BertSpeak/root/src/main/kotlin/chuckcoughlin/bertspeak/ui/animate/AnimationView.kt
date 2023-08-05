@@ -1,5 +1,6 @@
 /**
- * @See: Mark Allison @ https://github.com/StylingAndroid/Visualizer
+ * Copyright 2023 Charles Coughlin. All rights reserved.
+ * (MIT License)
  */
 package chuckcoughlin.bertspeak.waveform
 
@@ -12,7 +13,7 @@ import java.util.Arrays
 
 class AnimationView : View {
     private var waveform: ByteArray = ByteArray(120)
-    private var renderer: WaveformRenderer? = null
+    private var renderer: AnimationRenderer? = null
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
@@ -22,7 +23,7 @@ class AnimationView : View {
         defStyleAttr
     )
 
-    fun setRenderer(renderer: WaveformRenderer?) {
+    fun setRenderer(renderer: AnimationRenderer?) {
         this.renderer = renderer
     }
 
