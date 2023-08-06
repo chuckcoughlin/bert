@@ -8,7 +8,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
 import android.os.Bundle
@@ -19,20 +18,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.ToggleButton
 import androidx.lifecycle.Lifecycle
-import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
-import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.FacilityState
-import chuckcoughlin.bertspeak.service.TieredFacility
 import chuckcoughlin.bertspeak.service.VoiceConstants
-import chuckcoughlin.bertspeak.ui.RendererFactory
-import chuckcoughlin.bertspeak.ui.VerticalSeekBar
-import chuckcoughlin.bertspeak.waveform.FacialRecognitionView
+import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
 
 
 /**
@@ -46,30 +39,13 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
 
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentFacesBinding
-    private lateinit var seekBar: VerticalSeekBar
     private lateinit var facialRecognitionView: FacialRecognitionView
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
         binding = FragmentFacesBinding.inflate(inflater, container, false)
-        binding.fragmentCoverImage.setImageResource(R.drawable.recliner)
-        val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
-        val socketStatus = binding.socketStatus
-        val voiceStatus = binding.voiceStatus
-        bluetoothStatus.setClickable(false) // Not really buttons, just indicators
-        socketStatus.isClickable = false
-        voiceStatus.isClickable = false
-        updateToggleButton(bluetoothStatus, FacilityState.IDLE)
-        updateToggleButton(socketStatus, FacilityState.IDLE)
-        updateToggleButton(voiceStatus, FacilityState.IDLE)
-        val rendererFactory = RendererFactory()
-        facialRecognitionView = binding.root.findViewById(R.id.waveform_view)
-        facialRecognitionView.setRenderer(
-            rendererFactory.createSimpleFacialRecognitionRenderer(Color.GREEN, Color.DKGRAY)
-        )
-        seekBar = binding.root.findViewById(R.id.verticalSeekbar)
-        seekBar.setOnSeekBarChangeListener(this)
+        facialRecognitionView = binding.facerecView
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -133,39 +109,6 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         }
     }
 
-    /**
-     * Map current bluetooth action state to ToggleButton icon. Checked in this order ...
-     * gray - active = false
-     * green- checked = true
-     * yellow - checked = false
-     * red - enabled = false
-     * @param state
-     */
-    private fun updateToggleButton(btn: ToggleButton, state: FacilityState) {
-        Log.i(name, String.format("updateToggleButton:%s %s", btn.text, state.name))
-        activity?.runOnUiThread(Runnable {
-            btn.visibility = View.INVISIBLE
-            when (state) {
-                FacilityState.IDLE -> {
-                    btn.isChecked = false
-                    btn.isSelected = false
-                }
-                FacilityState.WAITING -> {
-                    btn.isChecked = true
-                    btn.isSelected = false
-                }
-                FacilityState.ACTIVE -> {
-                    btn.isChecked = true
-                    btn.isSelected = true
-                }
-                FacilityState.ERROR -> {
-                    btn.isChecked = false
-                    btn.isSelected = true
-                }
-            }
-            btn.visibility = View.VISIBLE
-        })
-    }
 
     override fun initialize(list: List<Intent>) {
         for (intent in list) {
@@ -173,40 +116,13 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
                 val actionState = FacilityState.valueOf(
                     intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE)!!
                 )
-                val tf =
-                    TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
-                when (tf) {
-                    TieredFacility.BLUETOOTH -> {
-                        updateToggleButton(binding.bluetoothStatus, actionState)
-                    }
-                    TieredFacility.SOCKET -> {
-                        updateToggleButton(binding.socketStatus, actionState)
-                    }
-                    else -> {
-                        updateToggleButton(binding.voiceStatus, actionState)
-                    }
-                }
             }
         }
     }
 
     override fun update(intent: Intent) {
         if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
-            val actionState =
-                FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE)!!)
-            val tf =
-                TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
-            when (tf) {
-                TieredFacility.BLUETOOTH -> {
-                    updateToggleButton(binding.bluetoothStatus, actionState)
-                }
-                TieredFacility.SOCKET -> {
-                    updateToggleButton(binding.socketStatus, actionState)
-                }
-                else -> {
-                    updateToggleButton(binding.voiceStatus, actionState)
-                }
-            }
+
         }
     }
 

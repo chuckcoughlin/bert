@@ -1,10 +1,10 @@
 # High-level Design and Software Architecture
 
-Control software embedded in the "Bert" project takes its inspiration from the [Poppy](https://www.poppy-project.org) project at
-[GenerationRobots](https://www.generationrobots.com/en/278-poppy-humanoid-robot). Our implementation deviates significantly, however. The core language is Kotlin instead of C++ and Python. The feature-set has been greatly simplified - and we have added natural-language speech processing with the integration of an Android tablet.
+Control software embedded in the "Bert" project takes its inspiration from the [Poppy Humanoid](https://www.poppy-project.org) project at
+[Generation Robots](https://www.generationrobots.com/en/278-poppy-humanoid-robot). Our implementation deviates significantly, however. The core language is Kotlin instead of C++ and Python. The feature-set has been greatly simplified - and we have added natural-language speech processing with the integration of an Android tablet.
 
-*Poppy* version 1.0.2 source is at: https://github.com/poppy-project/poppy-humanoid. The project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
-robotic platform for science, art and education"](https://hal.inria.fr/tel-01104641v1/document) by Matthieu Lapeyre. A full list of project authors may be found at: https://github.com/poppy-project/poppy-humanoid/doc/authors.md.
+The *Poppy*  project is described in detail in the thesis ["Poppy: open-source, 3D printed and fully-modular
+robotic platform for science, art and education"](https://hal.inria.fr/tel-01104641v1/document) by Matthieu Lapeyre. A full list of project authors may be found at: <https://github.com/poppy-project/poppy-humanoid/doc/authors.md>.
 
 The bulk of this document addresses various design issues and approaches to their solutions (or lack thereof)
 
@@ -36,7 +36,7 @@ The robot's central processor is a single-board Linux computer, an Odroid N2+.
 
 #### Android <a id="android"></a>
 
-A Samsung Galaxy Tablet S8+, model SM-X800 is used as the speech processor, converting spoken input into command strings used to control the robot. It also converts textual responses from tne robot into audible speech. The tablet is Android version 13, SDK version 33.
+A Samsung Galaxy Tablet S8+, model SM-X800 is used as the speech processor. It onverts spoken input into command strings used to control the robot. It also converts textual responses from tne robot into audible speech. The tablet is Android version 13, SDK version 33.
 
 ## Software Architecture <a id="architecture"></a>
 [toc](#table-of-contents)

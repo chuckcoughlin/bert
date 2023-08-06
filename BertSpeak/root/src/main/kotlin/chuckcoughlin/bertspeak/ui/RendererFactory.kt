@@ -8,10 +8,10 @@ package chuckcoughlin.bertspeak.ui
 import androidx.annotation.ColorInt
 import chuckcoughlin.bertspeak.ui.waveform.SimpleWaveformRenderer
 import chuckcoughlin.bertspeak.ui.waveform.WaveformRenderer
-import chuckcoughlin.bertspeak.waveform.AnimationRenderer
-import chuckcoughlin.bertspeak.waveform.FacialRecognitionRenderer
-import chuckcoughlin.bertspeak.waveform.SimpleAnimationRenderer
-import chuckcoughlin.bertspeak.waveform.SimpleFacialRecognitionRenderer
+import chuckcoughlin.bertspeak.animate.SimpleAnimationRenderer
+import chuckcoughlin.bertspeak.ui.animate.AnimationRenderer
+import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionRenderer
+import chuckcoughlin.bertspeak.ui.facerec.SimpleFacialRecognitionRenderer
 
 class RendererFactory {
     fun createSimpleAnimationRenderer(@ColorInt foreground: Int,@ColorInt background: Int): AnimationRenderer {

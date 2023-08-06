@@ -76,20 +76,20 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
             // This method is triggered when there is any scrolling activity for the current page
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-                Log.i(CLSS, "OnPageChangeCallback: ... page scrolled")
+                //Log.i(CLSS, "onPageScrolled: ... page scrolled")
             }
 
             // triggered when you select a new page
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                Log.i(CLSS, "OnPageChangeCallback: ... page selected")
+                Log.i(CLSS, "onPageSelected: ... page selected")
             }
 
             // triggered when there is
             // scroll state will be changed
             override fun onPageScrollStateChanged(state: Int) {
                 super.onPageScrollStateChanged(state)
-                Log.i(CLSS, "OnPageChangeCallback: ... page scroll state changed")
+                //Log.i(CLSS, "onPageScrollStateChanged: ... page scroll state changed")
             }
         })
 

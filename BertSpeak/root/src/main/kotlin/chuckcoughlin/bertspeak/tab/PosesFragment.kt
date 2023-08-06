@@ -15,11 +15,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import chuckcoughlin.bertspeak.R
-import chuckcoughlin.bertspeak.common.BertConstants
-import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentPosesBinding
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
@@ -45,15 +41,7 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, T
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
         binding = FragmentPosesBinding.inflate(inflater,container,false)
-        binding.fragmentPosesText.setText(R.string.fragmentPosesLabel)
-        logMessageView = binding.root.findViewById(R.id.logs_recycler_view)
-        logMessageView!!.setHasFixedSize(true) // Refers to the size of the layout.
-        val layoutManager = LinearLayoutManager(logMessageView!!.context)
-        logMessageView!!.layoutManager = layoutManager
-        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
-        logMessageView!!.adapter = adapter
-        val scrollPosition: Int = layoutManager.findFirstCompletelyVisibleItemPosition()
-        logMessageView!!.scrollToPosition(scrollPosition)
+
         return binding.root
     }
 

@@ -16,7 +16,7 @@ class FragmentPageAdapter(activity:FragmentActivity) : FragmentStateAdapter(acti
     val titles: MutableList<String>
 
     fun addFragment(pos:Int,title: String) {
-        Log.i(CLSS, "addFragment: "+title+" at " + pos)
+        //Log.i(CLSS, "addFragment: "+title+" at " + pos)
         fragments.add(createFragment(pos))
         titles.add(title)
     }

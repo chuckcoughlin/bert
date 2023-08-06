@@ -2,14 +2,13 @@
  * Copyright 2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.waveform
+package chuckcoughlin.bertspeak.ui.facerec
 
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.annotation.ColorInt
-import chuckcoughlin.bertspeak.ui.waveform.SimpleWaveformRenderer
-import chuckcoughlin.bertspeak.ui.waveform.WaveformRenderer
+import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionRenderer
 
 internal class SimpleFacialRecognitionRenderer(
     @field:ColorInt @param:ColorInt private val backgroundColour: Int,

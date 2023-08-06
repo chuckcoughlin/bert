@@ -14,7 +14,7 @@ import android.util.Log
 import chuckcoughlin.bertspeak.service.BluetoothHandler
 import chuckcoughlin.bertspeak.service.FacilityState
 import chuckcoughlin.bertspeak.service.TieredFacility
-import java.util.*
+import java.util.Locale
 
 /**
  * This class analyzes speech, converting it into text (lists of words).
@@ -165,7 +165,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     private fun createRecognizerIntent(): Intent {
         val locale = "us-UK"
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage().name)
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
         intent.putExtra(
             RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
@@ -188,8 +188,8 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
      * @param text
      * @return spiffy-clean text
      */
-    private fun scrubText(text: String): String {
-        var text = text
+    private fun scrubText(txt: String): String {
+        var text = txt
         text = text.replace("°", " degrees").lowercase(Locale.getDefault())
         text = text.replace("exposition", "x position")
         text = text.replace("fries", "freeze")

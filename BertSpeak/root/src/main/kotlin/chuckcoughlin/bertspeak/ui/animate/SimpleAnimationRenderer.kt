@@ -2,14 +2,13 @@
  * Copyright 2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.waveform
+package chuckcoughlin.bertspeak.animate
 
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.annotation.ColorInt
-import chuckcoughlin.bertspeak.ui.waveform.SimpleWaveformRenderer
-import chuckcoughlin.bertspeak.ui.waveform.WaveformRenderer
+import chuckcoughlin.bertspeak.ui.animate.AnimationRenderer
 
 internal class SimpleAnimationRenderer(
     @field:ColorInt @param:ColorInt private val backgroundColour: Int,private val foregroundPaint: Paint,

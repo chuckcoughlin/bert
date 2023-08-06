@@ -18,6 +18,10 @@
     <string name="coverParameterVoice">Voice</string>
     <string name="coverSeekbarTitle">Vol</string>
     <string name="coverWaveformTitle">Voice Waveform</string>
+    <!-- Strings for Cover tab-->
+    <string name="animationFrontTitle">Front</string>
+    <string name="animationLeftTitle">Left</string>
+    <string name="animationRightTitle">Right</string>
 
     <!-- Strings for Button Labels-->
     <string name="buttonClear">Clear</string>
