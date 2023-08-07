@@ -106,7 +106,7 @@ module final_assembly(x,y,z) {
         color("red")
         rotate([90,0,0])
         translate([0,thickness/2,5])
-        band(y/2-5,5);
+        band(y/2-2*thickness-1,5);
         rotate([0,90,0])
         translate([-thickness,z/2-10-thickness/2,0])
         band(x+4*thickness,10);
@@ -120,7 +120,7 @@ module final_assembly(x,y,z) {
         color("red")
         rotate([90,0,0])
         translate([0,-thickness/2,5])
-        band(y/2-5,5);
+        band(y/2-2*thickness-1,5);
         rotate([0,90,0])
         translate([thickness,z/2-10-thickness/2,0])
         band(x+4*thickness,10);

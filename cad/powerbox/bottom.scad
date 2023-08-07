@@ -4,7 +4,7 @@
 
 height    = 37;        // Inside height (1/2 high)
 length    =240;        // Inside length
-rib_thickness = 2;     // Thickness of ribs and other supports
+rib_thickness = 3;     // Thickness of ribs and other supports
 thickness =  3;        // Wall and bottom thickness
 width     = 70;        // Inside width
 
@@ -122,7 +122,7 @@ module final_assembly(x,y,z) {
     translate([0,(z+thickness)/2,(x+thickness)/2])
     union() {
         difference() {
-            color("green")
+                color("green")
             end(y+2*thickness,z+thickness/2);
             ac_wire_opening();
         }
