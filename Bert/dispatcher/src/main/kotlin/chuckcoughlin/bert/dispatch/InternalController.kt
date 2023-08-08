@@ -88,8 +88,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         holder.id = index
         index = index++
         val qn: QueueName = holder.queue
-        var queue: SequentialQueue? = null
-        ueue = sequentialQueues[qn]
+        var queue: SequentialQueue? = sequentialQueues[qn]
         if (queue != null) {
             LOGGER.info(
                 String.format("%s.receiveRequest %s on %s (%s)", CLSS, holder.message.type,
@@ -132,22 +131,17 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
             //LOGGER.info(String.format("%s.receiveResponse(%d) %s",CLSS,holder.getMessage().getId(),
             //		holder.getMessage().fetchRequestType().name()));
             val qn: QueueName = holder.queue
-            var queue: SequentialQueue? = null
-            if (qn != null) queue = sequentialQueues[qn]
+            var queue: SequentialQueue? = sequentialQueues[qn]
             if (queue != null) {
                 if (queue.isEmpty()) {
                     LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (empty)",
-                        CLSS, JointDefinitionProperty.ID,holder.message.type.name, qn.name
-                    )
-                    )
+                        CLSS, JointDefinitionProperty.ID,holder.message.type.name, qn.name))
                     queue.inProgress = false
                 }
                 else {
                     queue.inProgress = true
                     LOGGER.info(String.format("%s.receiveResponse(%d) %s on %s (%d queued)",
-                        CLSS, JointDefinitionProperty.ID,holder.message.type.name, qn.name, queue.size
-                    )
-                    )
+                        CLSS, JointDefinitionProperty.ID,holder.message.type.name, qn.name, queue.size))
                     holder = queue.removeFirst()
                     sendToTimerQueue(queue, holder) // Just in case there's a required delay
                 }
@@ -164,8 +158,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         else {
             LOGGER.info(
                 String.format("%s.receiveResponse(%d) %s: not on pending queue for %s",
-                    CLSS,index,msg.type.name,msg.source)
-            )
+                    CLSS,index,msg.type.name,msg.source))
         }
     }
 

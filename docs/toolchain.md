@@ -20,7 +20,7 @@ This document describes tools and their configuration used to develop "Bert" and
     * [Android](#androidprep)
     * [Odroid](#odroid)
   * [Software Development](#software)
-    * [IntelliJ(#intellij)
+    * [IntelliJ](#intellij)
     * [Android Studio](#android)
     * [Other Tools](#other)
 ***
@@ -81,11 +81,11 @@ python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist2/herborist.p
 
 Initially, the devices can be found with the following parameters:
 ```
-   Port:       /dev/tty/ACM0
-   Protocol:   MX
-   USB Device: USB2AX
-   Baud rate:  57600
-   ID       :  1
+    Port:       /dev/tty/ACM0
+    Protocol:   MX
+    USB Device: USB2AX
+    Baud rate:  57600
+    ID       :  1
 ```
 
 The Dynamixel setup for flashing EEPROM is shown below:
@@ -93,7 +93,7 @@ The Dynamixel setup for flashing EEPROM is shown below:
 ![poppy](/images/dynamixel_configuration.png)
 ```                        Dynamixel Flashing Setup```
 
-*Note: When the motors were fresh from the manufacturer ``herborist`` continually froze when flashing the EEPROM. I was forced to use Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings.  Once a motor was configured initially, ``herborist`` seems to work just fine.*
+<em> Note: When the motors were fresh from the manufacturer ``herborist`` continually froze when flashing the EEPROM. I was forced to use Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings.  Once a motor was configured initially, ``herborist`` seems to work just fine. </em>
 
 
 In the motor EEPROM and RAM configuration, angles are defined such that 0 deg is at the bottom when viewing the front of the motor, 180 deg is to the top. Values decrease going clock-wise. Thus, for our purposes, decreasing values of position, load and speed all refer to the clock-wise direction.
@@ -128,19 +128,12 @@ In order to correct for a consistent user-view of position, joints may be correc
 | Shoulder(y) | Angle between the upper arm and chest. 180 is straight down, 90 is forward, horizontal. | 0 | 225 |
 <center>``Angular Position Definitions``                     </center>
 
-### Tablet <a id="tablet"></a>
-[toc](#table-of-contents)
-
-The tablet is a 12" Samsung Galaxy S8 running Android 13.0, API level 33. Android was chosen for its
-speech capabilities. All speech analysis is done on the tablet hosting both text-to-speech and a speech
-recognizer. Unfortunately,the tablet has become stuck in headset mode. We've bought an external speaker
-to be ultimately located in the head.
 
 ## System Setup <a id="system"/>
 ### Android <a id="androidprep"></a>
 [toc](#table-of-contents)
 
-*** Persistent Storage ***<br/>
+##### Persistent Storage
 Configuration parameters, vocabulary and other data that are meant to be stored long-term reside in a SQLite database accessible through the tablet application.
 Run the following scripts in order to prepare a SQLite database on the MacOSX development system to be accessible when running the Android Studio simulator with Android production code. In the
 source ``install`` directory:
@@ -148,21 +141,28 @@ source ``install`` directory:
 ``./android_dev_data_dir.sh``
 ``./android_dev_db_setup.sh``
 
-Note that the system must be restarted after the 
+Note that the system must be restarted after the
 first script.
 
 
-*** Transfer to Tablet ***<br/>
-In order for the application to be transferred to the tablet from the build system, the tablet must be connected via USB. Use the same USB that is used to charge the device.
+##### Transfer to Tablet
+In order for the application to be transferred to the tablet from the build system, the tablet must be connected via USB. Use the same USB cable that is used to charge the device.
 
 The tablet must also be set in "developer" mode. This is accomplished under Settings->About Tablet->Software Information. Tap on "Build number" 7 times. (Yes, really). Under Settings->Developer options, enable USB debugging. Once the cable is connected a dialog should popup asking you to allow file transfer. (If this does not appear, you may have to fiddle with Developer options->USB Configuration).
 
 On the build system, configure Android Studio (Tools->Run>Edit Configurations) to target the build output directly to a USB device. After a successful build, merely select the "run" button to transfer the **apk** executable to the tablet.
 
+#### Tablet <a id="tablet"></a>
+
+The tablet is a 12" Samsung Galaxy S8 running Android 13.0, API level 33. Android was chosen for its
+speech capabilities. All speech analysis is done on the tablet hosting both text-to-speech and a speech
+recognizer. At one time the tablet become stuck in headset mode. As a workaround, we bought an external
+speaker that can ultimately be located in the head.
+
 ### Odroid <a id="odroid"></a>
 [toc](#table-of-contents)
 
-*** Initial Configuration ***<br/>
+##### Initial Configuration
 The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Ubuntu 16.04 Linux. The instructions below assume an initial board setup as described  [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf).
 
 A USB extension board is required as slots are used for:
@@ -232,7 +232,6 @@ Install some missing tools and update the system. We have found that the *apt* c
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
   sudo apt-get autoclean -y
-
   sudo chmod 666 /dev/ttyACM*
 ```
 
@@ -271,11 +270,11 @@ Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy
   <allow send_interface="org.bluez.GattDescriptor1"/>
 ```
 
-*** Java ***<br/>
-Download the latest Java Development (JDK) version using:
+##### Java
+The Java JVM is used to run the application even though it is written in Kotlin. Download the latest Java Development (JDK) version using:
 ```
   sudo apt install openjdk-11-jdk-headless
-````
+```
 Installing the JDK allows us to compile on the Odroid, if necessary. Of course,
 we also need the runtime. Unfortunately at the time of this writing, OpenJDK-11 installs Java 10.0.2.
 This means that the JDK on the development system also needs to be Java 10.
@@ -285,7 +284,7 @@ Once the build has been executed on the Development system (and deployed), edit 
    /usr/local/robot/bin
 ```
 
-*** PyPot <a id="pypot"></a>***<br/>
+#### PyPot <a id="pypot"></a>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
 ```
   sudo apt-get install python-pip
@@ -296,7 +295,6 @@ Once the build has been executed on the Development system (and deployed), edit 
   sudo pip install pypot
 ```
 
-***
 ## Software Development <a id="software"/>
 The development host is an iMac running OSX Ventura (13.3). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection. Here is a diagram that summarizes the flow of the build and major tools used:
   ![Build Plan](/images/development_layoutsvg)
@@ -309,13 +307,13 @@ The iMac requires the same Java version as the Odroid (Java 10). It is downloada
 ### IntelliJ <a id="intellij"></a>
 [toc](#table-of-contents)
 
-*** Installation *** <br/>
-_eclipse_ is an open-source Integrated Development Environment (IDE) for Java, C++ and Python. The available eclipse versions are listed at: http://www.eclipse.org/downloads/packages. At the time of this writing, the latest version is “2018-09”. Download the package “Eclipse IDE for Java Developers” and follow installation instructions.
+##### Installation
+*IntelliJ* (Community Edition) is a freely available Integrated Development Environment (IDE) for Java, and Kotlin. The available eclipse versions are listed at: http://www.eclipse.org/downloads/packages. At the time of this writing, the latest version is “2018-09”. Download the package “Eclipse IDE for Java Developers” and follow installation instructions.
 Start eclipse and point it to our initial workspace, ```workspace``` in the `git` repository. Add a ```/.metadata/``` entry in _.gitignore_ to avoid saving the workspace configuration in the repository.
 
 Under ```Preferences->Java->Installed JREs``` make sure that the only available JRE is Java 10.
 
-*** Projects *** <br/>
+##### Projects
 From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
   - Archive: Third party open-source libraries. In general, this area does not include source. Note that the _jar_ files in _mods_ have been modularized for Java10 usage.
   - Build: _ant_ scripts for compiling and installing the project build products onto the robot. There are separate scripts for the CommandLoop, Robot and Configuration projects.
@@ -344,7 +342,7 @@ When complete the project workspace should look like:
 
 Each java module has its own _eclipse_ project.
 
-*** Build Scripts *** <br/>
+##### Build Scripts
 Every project has a *build.xml* *ant* script that test-compiles code within the project. The _Build_ project contains additional *ant* scripts that build the main executables and copy them to the robot. These scripts are designed to be executed directly from ``eclipse``.
 NOTE: If the ant scripts fail to run, terminating immediately, the remedy is to edit their configuration to "run in the same JRE as the workspace".
 
@@ -353,7 +351,7 @@ In order to make environment variables accessible within *ant*, edit the run con
   -Dbert.home="${env_var:BERT_HOME}"
 ```
 
-This makes *BERT_HOME* accessible as *${bert.home)* inside the script. If ``eclipse`` does not recognize variables from the environment, then
+This makes <em>BERT_HOME</em> accessible as <em>${bert.home)</em> inside the script. If ``eclipse`` does not recognize variables from the environment, then
 * Edit `/Applications/Eclipse.app/Contents/Info.plist` and change the entry *eclipse* to *eclipse.sh*.
 * Add executable file `/Applications/Eclipse.app/Contents/MacOs/eclipse.sh` with contents:
 ```
@@ -419,13 +417,9 @@ The root directory of the *Archive* project is the starting point. The 3 origina
    ${ARCHIVE}
    rm -rf work classes
 ```
-*** ANTLR *** <br/>
+##### ANTLR
 *ANTLR* is a parsing framework used for understanding natural language. From the Eclipse marketplace install a plugin for *antlr4*. Use the one by *Edgar Espina*.
 
-*** C++ *** <br/>
-To add C++ support, under <u>Help->Install New Software</u>, in the _work with_ selector, enter http://download.eclipse.org/tools/cdt/releases/9.5. Then select "C++ Tools". Restart _eclipse_.
-
-We use C++ support to browse the original *iCub* and *YARP* code. There is no C++ in the final product.
 
 *** Python *** <br/>
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
@@ -435,7 +429,7 @@ Location: http://pydev.org/updates
 ```
 We use PyDev to browse the original *Poppy* and *iCub* code.
 
-*** Bluetooth *** <br/>
+##### Bluetooth
 
 Programmatic access to Bluetooth requires a interface to the Odroid's
 bluetooth library `libbluetooth.so` (BlueZ 5.48).
@@ -474,15 +468,15 @@ devices are in range leading to incorrect pairings. If so, the Odroid system may
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
 
-*** General *** <br/>
+##### General
 The tablet application, ***BertSpeak*** is the only Human Machine Interface (HMI) in normal operation.  Most importantly, it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
 
 The control application is a standard Android application built using Android Studio 3.4. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
     ```ANDROID_HOME=~/Library/Androd/sdk```
-    
+
 The password to the application keystore is: ```Andr0id```
 
-*** Voice Commands ***<br/>
+##### Voice Commands
 Voice commands are implemented purely via the Android tablet using the builtin speech-to-text features of Android. On the tablet, the ***BertSpeak*** app must be given microphone permissions.
 
 For production of speech from robot output,  text-to-speech can be configured in the settings under "Accessibility". Parameters include languages supported and characteristics of the speaker such as volume.
@@ -494,17 +488,17 @@ Pairing with the robot must be completed before the ***BertSpeak*** application 
 
 Note that the emulator does not support Bluetooth and is, therefore, not available as a test tool.
 
-***
-### Other Tools <a id="other"/>
+#### Other Tools <a id="other"/>
 We make use of the following freely-available applications:
+  * [Atom](https://atom.en.softonic.com/mac) - Text editor, handles markdown syntax
   * [OpenSCAD](http://www.openscad.org) - Construct 3D CAD drawings in script. Export in .stl format. This is useful where the parts are composed from simple geometric shapes.
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
   * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the
   original `poppy` design. Export in .obj format for printing.
   * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
-  * iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
+  * [iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
 
-*** Blender Cheat Sheet ***<br/>
+##### Blender Cheat Sheet
 *Blender* is a sophisticated (read complex)
 modeling application. There are numerous
 keyboard shortcuts that not at all obvious from the interface. Here are a few:
@@ -519,6 +513,7 @@ keyboard shortcuts that not at all obvious from the interface. Here are a few:
   * s - scale (after "g")
   * t - toggle left-side toolbar
 
-  *** Useful Commands I Always Forget ***
+
+##### Useful Commands I Always Forget
 
   To query the module in a jar file: `jar --file="<file>" --describe-module`

@@ -5,6 +5,12 @@ plugins {
     id("bert.library-conventions")
 }
 
+repositories {
+    flatDir {
+        dirs("../lib")
+    }
+}
+
 dependencies {
     implementation("org.apache.commons:commons-text")
     implementation(project(":common"))
