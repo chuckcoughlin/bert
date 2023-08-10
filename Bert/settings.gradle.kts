@@ -1,15 +1,18 @@
 /*
- * The settings file is used to specify which projects and modules to include in your build.
- * There is only a single project (Bert) with multiple modules.
+ * The settings file is used to specify which modules to include in your build.
+ * There is only a single project (Bert) with multiple modules. Build order is
+ * determined by dependencies.
  */
 
 rootProject.name = "Bert"
 include("common")
+include("database")
+include("syntax")
+include("speech")
+
 include("command")
 include("control")
-include("database")
-include("dispatcher")
 include("motor")
 include("terminal")
-include("speech")
-include("syntax")
+
+include("dispatcher")

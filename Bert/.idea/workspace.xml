@@ -5,28 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/antlr_runtime_4_7_2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/libs/antlr_runtime_4_7_2.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/sqlite_jdbc_3_23_1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/libs/sqlite_jdbc_3_23_1.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/kotlinc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Run_Application.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/Run_Application.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.application-conventions.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.application-conventions.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.library-conventions.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.library-conventions.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/command/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/command/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/common/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/antlr-runtime-4.7.2.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/hipparchus-core-1.5.jar" beforeDir="false" afterPath="$PROJECT_DIR$/libs/hipparchus-core-1.5.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/sqlite-jdbc-3.23.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.application-conventions.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.common-conventions.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/buildSrc/src/main/kotlin/bert.library-conventions.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/command/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/command/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/common/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/control/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/solver/TestSolver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/solver/TestSolver.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/database/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libs/hipparchus-core-1.5.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/motor/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/motor/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/speech/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/speech/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/terminal/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cad/powerbox/bottom.scad" beforeDir="false" afterPath="$PROJECT_DIR$/../cad/powerbox/bottom.scad" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cad/powerbox/bottom.stl" beforeDir="false" afterPath="$PROJECT_DIR$/../cad/powerbox/bottom.stl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cad/powerbox/top.scad" beforeDir="false" afterPath="$PROJECT_DIR$/../cad/powerbox/top.scad" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../cad/powerbox/top.stl" beforeDir="false" afterPath="$PROJECT_DIR$/../cad/powerbox/top.stl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../docs/toolchain.md" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/toolchain.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,21 +105,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "jdk.selected.JAVA_MODULE": "18",
-    "last_opened_file_path": "/Users/chuckc/robotics/bert/Bert/lib",
-    "project.structure.last.edited": "Libraries",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.51724136",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;18&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/lib&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.51724136&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.projectsettings.compiler.javacompiler&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/lib" />
@@ -148,7 +145,7 @@
       <recent name="chuckcoughlin.bert.sql.db" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.bert:syntax [jar]">
+  <component name="RunManager" selected="Gradle.bert [jar]">
     <configuration default="true" type="GradleRunConfiguration" factoryName="Gradle">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -168,7 +165,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="bert [jar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="bert [jar]" type="GradleRunConfiguration" factoryName="Gradle">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -260,9 +257,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.bert [run]" />
-        <item itemvalue="Gradle.bert [jar]" />
         <item itemvalue="Gradle.bert:syntax [jar]" />
+        <item itemvalue="Gradle.bert [run]" />
         <item itemvalue="Kotlin.AppKt" />
       </list>
     </recent_temporary>
@@ -271,6 +267,7 @@
   <component name="StandaloneScriptsStorage">
     <option name="files">
       <set>
+        <option value="$PROJECT_DIR$/app/build.gradle.kts" />
         <option value="$PROJECT_DIR$/command/build.gradle.kts" />
         <option value="$PROJECT_DIR$/common/build.gradle.kts" />
       </set>

@@ -1,6 +1,4 @@
-plugins {
-    id("bert.library-conventions")
-}
+// Gradle build script (Kotlin style) for the "speech" module
 
 // Make special reference to the compiled ANTLR classes
 repositories {
@@ -11,8 +9,8 @@ repositories {
 }
 
 dependencies {
-    api(project(":common"))
-    api(project(":database"))
-    api(project(":syntax"))
-    implementation(files("syntax.jar"))
+    project(":common")
+    project(":database")
+    project(":syntax")
+    files("syntax.jar")
 }

@@ -2,25 +2,18 @@
 // The dispatcher is the entry point for the entire application.
 
 plugins {
-    id("bert.application-conventions")
     application
 }
 
-repositories {
-    mavenCentral()
-    flatDir {
-        dirs("../lib")
-    }
-}
 
 dependencies {
-    implementation("org.apache.commons:commons-text")
-    implementation(project(":command"))
-    implementation(project(":common"))
-    implementation(project(":control"))
-    implementation(project(":motor"))
-    implementation(project(":database"))
-    implementation(project(":terminal"))
+    "org.apache.commons:commons-text"
+    project(":command")
+    project(":common")
+    project(":control")
+    project(":motor")
+    project(":database")
+    project(":terminal")
 }
 
 application {

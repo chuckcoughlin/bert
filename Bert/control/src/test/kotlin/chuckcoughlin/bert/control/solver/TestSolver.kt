@@ -42,7 +42,7 @@ class TestSolver {
         //solver.setJointPosition(Joint.ABS_Y,90.);
         val xyz = solver.getPosition(Joint.ABS_Y) // Just to top of pelvis
         println(String.format("%s (0.2,0,.114): xyz = %.2f,%.2f,%.2f ",
-            Joint.ABS_Y.name,xyz!![0],xyz[1],xyz[2]))
+            Joint.ABS_Y.name,xyz[0],xyz[1],xyz[2]))
     }
 
 }

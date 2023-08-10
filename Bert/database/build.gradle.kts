@@ -1,9 +1,5 @@
 // Kotlin Gradle build file for the SQLite database module
 
-plugins {
-    id("bert.library-conventions")
-}
-
 repositories {
     mavenCentral()
     flatDir {
@@ -12,6 +8,6 @@ repositories {
 }
 
 dependencies {
-    api(project(":common"))
-    implementation("org.sqlite:sqlite-jdbc:3.23.1")
+    project(":common")
+    "org.sqlite:sqlite-jdbc:3.23.1"
 }

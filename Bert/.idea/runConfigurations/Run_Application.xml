@@ -2,8 +2,8 @@
   <configuration default="false" name="Run Application" type="Application" factoryName="Application" activateToolWindowBeforeRun="false" singleton="false">
     <option name="ALTERNATIVE_JRE_PATH" value="Java-18" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-    <option name="MAIN_CLASS_NAME" value="Bert.app.main" />
-    <module name="Bert.app.main" />
+    <option name="MAIN_CLASS_NAME" value="chuckcoughlin.bert.dispatch.controller.Dispatcher" />
+    <module name="Bert" />
     <selectedOptions>
       <option name="environmentVariables" visible="false" />
     </selectedOptions>
