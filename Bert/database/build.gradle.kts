@@ -1,4 +1,7 @@
 // Kotlin Gradle build file for the SQLite database module
+plugins {
+    kotlin("jvm")
+}
 
 repositories {
     mavenCentral()
@@ -8,6 +11,6 @@ repositories {
 }
 
 dependencies {
-    project(":common")
-    "org.sqlite:sqlite-jdbc:3.23.1"
+    implementation(project(":common"))
+    implementation("org.xerial:sqlite-jdbc:3.36.0.1")
 }

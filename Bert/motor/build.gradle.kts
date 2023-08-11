@@ -1,13 +1,14 @@
 // Gradle build script (Kotlin style) for the "motor" module
-
+plugins {
+    kotlin("jvm")
+}
 repositories {
     mavenCentral()
-    flatDir {
-        dirs("../lib")
-    }
 }
 
 dependencies {
-    project(":common")
-    project(":database")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.0")
+    implementation("io.github.java-native:jssc:2.9.4")
+    implementation(project(":common"))
+    implementation(project(":database"))
 }

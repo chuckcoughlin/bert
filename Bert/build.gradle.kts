@@ -2,7 +2,6 @@
 
 // Allows gradle configuration with Kotlin
 plugins {
-    base
     `kotlin-dsl`
     kotlin("jvm") version "1.3.70" apply false
     application

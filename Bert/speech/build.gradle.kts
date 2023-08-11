@@ -1,4 +1,7 @@
 // Gradle build script (Kotlin style) for the "speech" module
+plugins {
+    kotlin("jvm")
+}
 
 // Make special reference to the compiled ANTLR classes
 repositories {
@@ -9,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    project(":common")
-    project(":database")
-    project(":syntax")
-    files("syntax.jar")
+    implementation(project(":common"))
+    implementation(project(":database"))
+    implementation(project(":syntax"))
+    implementation(files("syntax.jar"))
 }

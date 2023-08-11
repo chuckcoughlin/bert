@@ -9,10 +9,8 @@ include("common")
 include("database")
 include("syntax")
 include("speech")
-
 include("command")
 include("control")
 include("motor")
 include("terminal")
-
 include("dispatcher")
