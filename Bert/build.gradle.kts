@@ -14,9 +14,6 @@ allprojects {
 
     repositories {
         mavenCentral()
-        flatDir {
-            dirs("libs")
-        }
     }
 }
 
@@ -24,22 +21,14 @@ allprojects {
 application {
     mainClass.set( "chuckcoughlin.bert.dispatch.controller.Dispatcher")
 }
-
-/*
-dependencies {
-    constraints {
-        implementation("org.apache.commons:commons-text:1.9")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+tasks.jar {
+    doLast {
+        println("bert:jar task ....")
     }
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
-    implementation("io.github.java-native:jssc:2.9.4")
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
 }
- */
+
+
+
 
 
 

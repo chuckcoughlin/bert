@@ -12,5 +12,5 @@ repositories {
 
 dependencies {
     implementation(project(":common"))
-    implementation("org.xerial:sqlite-jdbc:3.36.0.1")
+    implementation("org.xerial:sqlite-jdbc:3.40.1.0")
 }

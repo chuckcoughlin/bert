@@ -883,8 +883,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // Determine the specific joint from the body part, side and axis. (The latter two are
     // not always needed).
-    private fun determineJoint(bodyPart: String, axis: String?, side: String?): Joint {
-        var axis = axis
+    private fun determineJoint(bodyPart: String, axs: String?, side: String?): Joint {
+        var axis = axs
         var result: Joint = Joint.NONE
 
         // Handle some synonyms

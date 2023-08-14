@@ -8,13 +8,14 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/command/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/command/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/common/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/control/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/control/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/database/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/libs/antlr_runtime_4_7_2.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/libs/sqlite_jdbc_3_23_1.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/motor/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/speech/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syntax/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/syntax/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/terminal/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,14 +105,6 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="common" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="compileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
-                <item name="org.apache.commons:commons-text:1.9" type="b3323d55:ExternalSystemViewDefaultContributor$DependencyExternalSystemNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
                 <item name="control" type="2d1252cf:ModuleNode" />
               </path>
               <path>
@@ -136,21 +129,7 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="Bert" type="f1a62948:ProjectNode" />
                 <item name="terminal" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="terminal" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="compileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="terminal" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="testCompileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
               </path>
             </expand>
             <select />
@@ -183,7 +162,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;18&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/lib&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/terminal&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.51724136&quot;,
@@ -193,6 +172,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/terminal" />
       <recent name="$PROJECT_DIR$/lib" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -369,11 +349,6 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/syntax/build.gradle.kts</url>
-          <line>9</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt</url>
           <line>61</line>
           <option name="timeStamp" value="2" />
@@ -400,7 +375,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/control/build.gradle.kts</url>
-          <line>2</line>
+          <line>16</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>

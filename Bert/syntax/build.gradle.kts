@@ -6,9 +6,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    flatDir {
-        dirs("../lib")
-    }
 }
 
 dependencies {
@@ -41,7 +38,7 @@ tasks.jar {
         // Put the jar file in a public place
         copy {
             from("${buildDir}/libs/syntax.jar")
-            into("${buildDir}/../lib/syntax.jar")
+            into("${buildDir}/../libs/syntax.jar")
         }
         println("syntax:jar task complete.")
     }
