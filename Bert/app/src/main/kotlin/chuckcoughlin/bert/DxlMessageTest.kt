@@ -2,8 +2,9 @@
  * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.motor.dynamixel
+package chuckcoughlin.bert
 
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage.READ
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage.SYNC_WRITE
 

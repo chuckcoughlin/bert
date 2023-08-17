@@ -2,24 +2,22 @@
  * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.solver
+package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.LoggerUtility
+import chuckcoughlin.bert.control.solver.Solver
 import java.nio.file.Paths
 import java.util.*
-import java.util.logging.Logger
 
 /**
  * This class solves a fixed configuration.
  */
 class TestSolver {
 
-    private val CLSS = "Solver"
-    private val LOGGER = Logger.getLogger(CLSS)
-    private val ERROR_POSITION = doubleArrayOf(0.0, 0.0, 0.0)
+    private val CLSS = "TestSolver"
 
     /**
      * Test forward kinematic calculations of various positions of the robot skeleton.

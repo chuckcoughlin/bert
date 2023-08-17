@@ -10,3 +10,4 @@ wrapper/
 BertSpeak/java*.hprof
 android/
 android.lock
+tmp/

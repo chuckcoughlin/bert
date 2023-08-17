@@ -1,4 +1,4 @@
-package chuckcoughlin.bert.control.model
+package chuckcoughlin.bert
 
 
 import chuckcoughlin.bert.common.PathConstants
@@ -6,6 +6,7 @@ import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.LoggerUtility
+import chuckcoughlin.bert.control.model.Chain
 import chuckcoughlin.bert.control.solver.Solver
 import java.nio.file.Paths
 import java.util.*

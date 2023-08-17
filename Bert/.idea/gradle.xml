@@ -11,8 +11,11 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/command" />
             <option value="$PROJECT_DIR$/common" />
+            <option value="$PROJECT_DIR$/configuration" />
             <option value="$PROJECT_DIR$/control" />
             <option value="$PROJECT_DIR$/database" />
             <option value="$PROJECT_DIR$/dispatcher" />

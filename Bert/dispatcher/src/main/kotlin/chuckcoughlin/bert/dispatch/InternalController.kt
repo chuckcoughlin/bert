@@ -1,10 +1,8 @@
 /**
  * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
- *
  */
 package chuckcoughlin.bert.dispatch
-import Dispatcher
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle

@@ -1,9 +1,6 @@
 // Gradle build script (Kotlin style) for the "motor" module
 plugins {
-    kotlin("jvm")
-}
-repositories {
-    mavenCentral()
+    id("bert.kotlin-common-conventions")
 }
 
 dependencies {

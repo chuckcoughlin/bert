@@ -5,7 +5,9 @@
  */
 
 rootProject.name = "Bert"
+include("app")
 include("common")
+include("configuration")
 include("database")
 include("syntax")
 include("speech")

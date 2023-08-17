@@ -976,8 +976,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // Determine a joint property from the supplied string. Take care of recognized
     // aliases in one place. The name may be plural in some settings.
-    private fun determineJointProperty(pname: String): JointDynamicProperty {
-        var pname = pname
+    private fun determineJointProperty(name: String): JointDynamicProperty {
+        var pname = name
         var result: JointDynamicProperty = JointDynamicProperty.NONE
         if (pname.endsWith("s") || pname.endsWith("S")) {
             pname = pname.substring(0, pname.length - 1).uppercase(Locale.getDefault())
@@ -985,22 +985,17 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if (pname.equals("angle", ignoreCase = true)) {
             pname = "POSITION"
         }
-        else if (pname.equals(
-                "load",
-                ignoreCase = true
-            )
-        ) pname = "TORQUE" else if (pname.equals("max angle", ignoreCase = true)) pname =
-            "MAXIMUMANGLE" else if (pname.equals("min angle", ignoreCase = true)) pname =
-            "MINIMUMANGLE" else if (pname.equals("maximum angle", ignoreCase = true)) pname =
-            "MAXIMUMANGLE" else if (pname.equals("minimum angle", ignoreCase = true)) pname =
-            "MINIMUMANGLE" else if (pname.equals("motor type", ignoreCase = true)) pname =
-            "MOTORTYPE" else if (pname.equals("speed", ignoreCase = true)) pname =
-            "SPEED" else if (pname.equals("state", ignoreCase = true)) pname = "STATE" else if (pname.equals(
-                "torque",
-                ignoreCase = true
-            )
-        ) pname = "TORQUE" else if (pname.equals("velocity", ignoreCase = true)) pname =
-            "SPEED" else if (pname.equals("velocitie", ignoreCase = true)) pname = "SPEED"
+        else if (pname.equals("load", ignoreCase = true ))         pname = "TORQUE"
+        else if (pname.equals("max angle", ignoreCase = true))     pname ="MAXIMUMANGLE"
+        else if (pname.equals("min angle", ignoreCase = true))     pname ="MINIMUMANGLE"
+        else if (pname.equals("maximum angle", ignoreCase = true)) pname ="MAXIMUMANGLE"
+        else if (pname.equals("minimum angle", ignoreCase = true)) pname ="MINIMUMANGLE"
+        else if (pname.equals("motor type", ignoreCase = true))    pname ="MOTORTYPE"
+        else if (pname.equals("speed", ignoreCase = true))         pname ="SPEED"
+        else if (pname.equals("state", ignoreCase = true))         pname = "STATE"
+        else if (pname.equals("torque", ignoreCase = true))        pname = "TORQUE"
+        else if (pname.equals("velocity", ignoreCase = true))      pname = "SPEED"
+        else if (pname.equals("velocitie", ignoreCase = true))     pname = "SPEED"
         result = JointDynamicProperty.valueOf(pname.uppercase(Locale.getDefault()))
         return result
     }
@@ -1036,9 +1031,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // the side different from the last used.
     private fun determineSide(text: String, dict: MutableMap<SharedKey, Any>): String {
         var side = "right"
-        if (text.equals("left", ignoreCase = true)) {
-            side = "left"
-        }
+        if (text.equals("left", ignoreCase = true)) side = "left"
         else if (text.equals("other", ignoreCase = true)) {
             val former = dict[SharedKey.SIDE].toString()
             side = if (former.equals("left", ignoreCase = true)) "right" else "left"

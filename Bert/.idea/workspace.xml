@@ -5,18 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Run_Application.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/command/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/command/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/common/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/control/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/control/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/model/TestChain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/TestChain.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/solver/TestSolver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/TestSolver.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/database/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dispatcher/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/motor/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/motor/src/test/kotlin/chuckcoughlin/bert/motor/controller/PortTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/PortTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/motor/src/test/kotlin/chuckcoughlin/bert/motor/dynamixel/DxlMessageTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/DxlMessageTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/speech/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/syntax/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/syntax/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/terminal/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +36,9 @@
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/configuration">
       <ProjectState />
     </projectState>
     <projectState path="$PROJECT_DIR$/syntax">
@@ -74,63 +85,6 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="Bert" type="f1a62948:ProjectNode" />
               </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="command" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="common" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="common" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="common" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="compileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="control" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="control" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="control" type="2d1252cf:ModuleNode" />
-                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
-                <item name="compileClasspath" type="62daadca:ExternalSystemViewDefaultContributor$DependencyScopeExternalSystemNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="terminal" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="Bert" type="f1a62948:ProjectNode" />
-                <item name="terminal" type="2d1252cf:ModuleNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-              </path>
             </expand>
             <select />
           </tree_state>
@@ -162,31 +116,32 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;18&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/terminal&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/app&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.51724136&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.projectsettings.compiler.javacompiler&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/terminal" />
+      <recent name="$PROJECT_DIR$/app" />
       <recent name="$PROJECT_DIR$/lib" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/buildSrc" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/.idea/libraries" />
       <recent name="$PROJECT_DIR$/app" />
       <recent name="$PROJECT_DIR$/library" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
+      <recent name="chuckcoughlin.bert" />
       <recent name="chuckcoughlin.bert.dispatch" />
       <recent name="chuckcoughlin.bert.control.model" />
       <recent name="chuckcoughlin.bert.common.message" />
       <recent name="chuckcoughlin.bert.common.util" />
-      <recent name="chuckcoughlin.bert.common" />
     </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
       <recent name="chuckcoughlin.bert.common.controller" />
@@ -196,7 +151,13 @@
       <recent name="chuckcoughlin.bert.sql.db" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.bert [jar]">
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="gradle --build-cache" />
+      <command value="gradle build" />
+    </option>
+  </component>
+  <component name="RunManager" selected="Gradle.bert [build]">
     <configuration default="true" type="GradleRunConfiguration" factoryName="Gradle">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -216,7 +177,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="bert [jar]" type="GradleRunConfiguration" factoryName="Gradle">
+    <configuration name="bert [build]" type="GradleRunConfiguration" factoryName="Gradle">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -227,7 +188,7 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value="jar" />
+            <option value="build" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -237,19 +198,17 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="bert [run]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="bert" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
+        <option name="scriptParameters" value="--build-cache" />
         <option name="taskDescriptions">
           <list />
         </option>
         <option name="taskNames">
-          <list>
-            <option value="run" />
-          </list>
+          <list />
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
@@ -257,37 +216,6 @@
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
-    </configuration>
-    <configuration name="bert:syntax [jar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$/syntax" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="jar" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <method v="2" />
-    </configuration>
-    <configuration name="AppKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
-      <option name="ALTERNATIVE_JRE_PATH" value="18" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-      <option name="MAIN_CLASS_NAME" value="chuckcoughlin.bert.AppKt" />
-      <module name="Bert.app.main" />
-      <shortenClasspath name="NONE" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
     </configuration>
     <configuration default="true" type="JetRunConfigurationType">
       <option name="ALTERNATIVE_JRE_PATH" value="Kotlin SDK" />
@@ -299,18 +227,23 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Bert " type="KotlinStandaloneScriptRunConfigurationType">
+      <option name="ALTERNATIVE_JRE_PATH" value="18" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <module name="Bert.command.main" />
+      <option name="PROGRAM_PARAMETERS" value="build" />
+      <shortenClasspath name="NONE" />
+      <option name="filePath" value="$PROJECT_DIR$/app/build.gradle.kts" />
+      <method v="2" />
+    </configuration>
     <list>
-      <item itemvalue="Application.Run Application" />
-      <item itemvalue="Gradle.bert [jar]" />
-      <item itemvalue="Gradle.bert [run]" />
-      <item itemvalue="Gradle.bert:syntax [jar]" />
-      <item itemvalue="Kotlin.AppKt" />
+      <item itemvalue="Gradle.bert [build]" />
+      <item itemvalue="Gradle.bert" />
+      <item itemvalue="Kotlin script (Beta).Bert " />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.bert:syntax [jar]" />
-        <item itemvalue="Gradle.bert [run]" />
-        <item itemvalue="Kotlin.AppKt" />
+        <item itemvalue="Gradle.bert" />
       </list>
     </recent_temporary>
   </component>
@@ -318,7 +251,6 @@
   <component name="StandaloneScriptsStorage">
     <option name="files">
       <set>
-        <option value="$PROJECT_DIR$/app/build.gradle.kts" />
         <option value="$PROJECT_DIR$/command/build.gradle.kts" />
         <option value="$PROJECT_DIR$/common/build.gradle.kts" />
       </set>
@@ -349,6 +281,11 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/syntax/build.gradle.kts</url>
+          <line>9</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt</url>
           <line>61</line>
           <option name="timeStamp" value="2" />
@@ -372,11 +309,6 @@
           <url>file://$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/BluetoothSocket</url>
           <line>44</line>
           <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/control/build.gradle.kts</url>
-          <line>16</line>
-          <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

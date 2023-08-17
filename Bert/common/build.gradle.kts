@@ -1,6 +1,6 @@
 // Gradle build script (Kotlin style) for the "common" module
 plugins {
-    kotlin("jvm")
+    id("bert.kotlin-common-conventions")
 }
 dependencies {
     implementation("org.apache.commons:commons-text:1.10.0")

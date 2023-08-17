@@ -2,7 +2,7 @@
  * Copyright 2022. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.motor.controller
+package chuckcoughlin.bert
 
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import jssc.SerialPort

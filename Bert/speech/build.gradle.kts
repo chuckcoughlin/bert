@@ -1,7 +1,8 @@
 // Gradle build script (Kotlin style) for the "speech" module
 plugins {
-    kotlin("jvm")
+    id("bert.kotlin-common-conventions")
 }
+
 
 // Make special reference to the compiled ANTLR classes
 repositories {

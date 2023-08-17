@@ -1,31 +1,33 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
+// Copy build scripts into external bin
+import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
-    id("java")
-    kotlin("jvm") version "1.7.20-RC"
+    id("bert.kotlin-common-conventions")
+}
+//for including in the copy task
+val dataContent = copySpec {
+    from("src/data")
+    include("*.data")
 }
 
-group = "org.example"
-version = "unspecified"
+tasks {
+    register("initConfig", Copy::class) {
 
-repositories {
-    mavenCentral()
-}
+        val tokens = mapOf("version" to "2.3.1")
+        inputs.properties(tokens)
 
-dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
-    implementation(kotlin("stdlib-jdk8"))
-}
+        from("src/main/") {
+            include("**/*.properties")
+            include("**/*.xml")
+            filter<ReplaceTokens>("tokens" to tokens)
+        }
 
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
+        from("src/main/languages") {
+            rename("EN_US_(.*)", "$1")
+        }
+
+        into("build/target/config")
+        exclude("**/*.bak")
+        includeEmptyDirs = false
+        with(dataContent)
+    }
 }

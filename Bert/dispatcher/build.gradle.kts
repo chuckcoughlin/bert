@@ -1,12 +1,8 @@
 // Gradle build script (Kotlin style) for the "dispatcher" module
 // The dispatcher is the entry point for the entire application.
 plugins {
-    kotlin("jvm")
+    id("bert.kotlin-common-conventions")
 }
-repositories {
-    mavenCentral()
-}
-
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
@@ -18,5 +14,3 @@ dependencies {
     implementation(project(":database"))
     implementation(project(":terminal"))
 }
-
-

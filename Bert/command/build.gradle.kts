@@ -1,6 +1,6 @@
 // Command Module
 plugins {
-    kotlin("jvm")
+    id("bert.kotlin-common-conventions")
 }
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
