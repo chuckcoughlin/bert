@@ -3,16 +3,21 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id("bert.kotlin-common-conventions")
 }
+// We would like this to run at the very end
+// --- doesn't quite
 dependencies {
-    implementation(project(":app"))
+    testImplementation(project(":app"))
+    testImplementation(project(":dispatcher"))
 }
 
-//for including in the copy task
+//Files includeg in the copy
 val dataContent = copySpec {
     from("src/main")
     include("*")
 }
-tasks.named("classes") { finalizedBy("install") }
+
+// Execute this at the very end of configuration project
+tasks.named("testClasses") { finalizedBy("install") }
 
 tasks {
     register("install", Copy::class) {

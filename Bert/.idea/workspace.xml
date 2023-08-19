@@ -6,8 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/toolchain.md" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/toolchain.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,9 +59,6 @@
           <activation />
         </task>
         <task path="$PROJECT_DIR$/syntax">
-          <activation />
-        </task>
-        <task path="$PROJECT_DIR$/configuration">
           <activation />
         </task>
         <task path="$PROJECT_DIR$/configuration">
