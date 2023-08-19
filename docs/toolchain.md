@@ -1,6 +1,6 @@
 # Toolchain
 
-This document describes tools and their configuration used to develop "Bert" and summarizes the construction process, both hardware and software.
+This document describes the software tools used to develop "Bert", describing their procurement and configuration. It also gives a step-by-step guide to the construction process, including a full visual guild to assembly of the skeleton.
 
 "Bert" is a based on the [Poppy](https://www.poppy-project.org) platform from
 [Generation Robots](https://www.generationrobots.com/en/278-poppy-humanoid-robot).  *Poppy* is supplied in open-source format, both hardware and software. Version 1.0.2 source is at: <https://github.com/poppy-project/poppy-humanoid>. The repository contains both hardware and software components plus full assembly instructions.
@@ -69,7 +69,7 @@ The face originates from a photo of Dick van Dyke, converted into a 3D image onl
 
 The main power pack, shown below, is constructed from a 3D-printed box (source code included). Inside it contains 2 AC/12V DC converters. The 12V connectors plug directly into the back of the robot.
 
-![Power Supply](/images/power_supply.jpg)
+![Power Supply](/images/power_supply.png)
 ```                  12V DC Power     ```
 
 ![Power Supply Mounted](/images/power_supply_mounted.png)
