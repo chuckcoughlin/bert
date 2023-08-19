@@ -67,10 +67,14 @@ The face originates from a photo of Dick van Dyke, converted into a 3D image onl
 ![5V Power Supply](/images/5volt_step_down.jpg)
 ```                  5V DC Power     ```
 
-The main power pack, shown below, was constructed from a decorative tin that my wife had saved. Inside it contains 2 AC/12V DC converters. The connectors plug directly into the back of the robot.
+The main power pack, shown below, is constructed from a 3D-printed box (source code included). Inside it contains 2 AC/12V DC converters. The 12V connectors plug directly into the back of the robot.
 
 ![Power Supply](/images/power_supply.jpg)
 ```                  12V DC Power     ```
+
+![Power Supply Mounted](/images/power_supply_mounted.png)
+```                  Power Supply Mount     ```
+
 ### Joints <a id="joints"></a>
 [toc](#table-of-contents)
 
