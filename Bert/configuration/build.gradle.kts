@@ -3,31 +3,40 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id("bert.kotlin-common-conventions")
 }
-//for including in the copy task
-val dataContent = copySpec {
-    from("src/data")
-    include("*.data")
+dependencies {
+    implementation(project(":app"))
 }
 
-tasks {
-    register("initConfig", Copy::class) {
+//for including in the copy task
+val dataContent = copySpec {
+    from("src/main")
+    include("*")
+}
+tasks.named("classes") { finalizedBy("install") }
 
+tasks {
+    register("install", Copy::class) {
+        println("Configuration: Install registered")
+        println(System.getenv("BERT_HOME"))
         val tokens = mapOf("version" to "2.3.1")
         inputs.properties(tokens)
 
         from("src/main/") {
-            include("**/*.properties")
+            include("**/*.csv")
+            include("**/*.py")
+            include("bin/*")
+            include("**/*.sql")
             include("**/*.xml")
             filter<ReplaceTokens>("tokens" to tokens)
         }
 
-        from("src/main/languages") {
-            rename("EN_US_(.*)", "$1")
-        }
-
-        into("build/target/config")
+        into(System.getenv("BERT_HOME"))
         exclude("**/*.bak")
-        includeEmptyDirs = false
+        includeEmptyDirs = true
         with(dataContent)
+
+        doLast {
+            println("Configuration: Install complete")
+        }
     }
 }

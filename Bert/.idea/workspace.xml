@@ -5,26 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Run_Application.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/command/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/command/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/common/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/control/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/control/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/model/TestChain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/TestChain.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/control/src/test/kotlin/chuckcoughlin/bert/control/solver/TestSolver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/TestSolver.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/database/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/motor/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/test/kotlin/chuckcoughlin/bert/motor/controller/PortTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/PortTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/test/kotlin/chuckcoughlin/bert/motor/dynamixel/DxlMessageTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/kotlin/chuckcoughlin/bert/DxlMessageTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/speech/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/speech/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,6 +59,12 @@
           <activation />
         </task>
         <task path="$PROJECT_DIR$/syntax">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/configuration">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/configuration">
           <activation />
         </task>
         <projects_view>
@@ -198,25 +187,6 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="bert" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="--build-cache" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list />
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <method v="2" />
-    </configuration>
     <configuration default="true" type="JetRunConfigurationType">
       <option name="ALTERNATIVE_JRE_PATH" value="Kotlin SDK" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
@@ -238,14 +208,8 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.bert [build]" />
-      <item itemvalue="Gradle.bert" />
       <item itemvalue="Kotlin script (Beta).Bert " />
     </list>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Gradle.bert" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="StandaloneScriptsStorage">
