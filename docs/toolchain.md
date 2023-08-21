@@ -312,19 +312,19 @@ The iMac requires the same Java version as the Odroid (Java 10). It is downloada
 [toc](#table-of-contents)
 
 ##### Installation
-*IntelliJ* (Community Edition) is a freely available Integrated Development Environment (IDE) for Java, and Kotlin. The available eclipse versions are listed at: http://www.eclipse.org/downloads/packages. At the time of this writing, the latest version is “2018-09”. Download the package “Eclipse IDE for Java Developers” and follow installation instructions.
-Start eclipse and point it to our initial workspace, ```workspace``` in the `git` repository. Add a ```/.metadata/``` entry in _.gitignore_ to avoid saving the workspace configuration in the repository.
+*IntelliJ* is a powerful Integrated Development Environment (IDE) for Java, and Kotlin from Jet Brains. It can be downloaded [here]( https://www.jetbrains.com/idea/download/?section=mac). Make sure to download the community edition which is completely free. At the time of this writing, the latest version is “2022.2.1”.
+Start *IntelliJ* and point it to the root of the `git` repository. Once started choose `File/Upload All From Disk` to synchronize with the repository. An internet connection is required as all third party libraries will be downloaded directly from public repositories during the build.
 
-Under ```Preferences->Java->Installed JREs``` make sure that the only available JRE is Java 10.
+Our *IntelliJ* environment does make use of the `ANTLR` and `Python` plugins. See the menu page `IntelliJ Idea/Settings` to load.
 
 ##### Projects
-From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Workspace", import the following projects.
+`Bert` is a multi-module project. Each code group is its own project as follows:
   - Archive: Third party open-source libraries. In general, this area does not include source. Note that the _jar_ files in _mods_ have been modularized for Java10 usage.
   - Build: _ant_ scripts for compiling and installing the project build products onto the robot. There are separate scripts for the CommandLoop, Robot and Configuration projects.
   - Command: _command_ is the application that interfaces with the tablet to
   acquire command and request strings. It communicates these to the _dispatcher_
   and obtains responses.
-  - Configuration: This area is a collection of files that configure the robot. These include: scripts for installing and running, the SQL database for poses and actions.
+  - Configuration: This area is a collection of files that configure the robot. These include: scripts for installing and running the SQL database for poses and actions.
   storage and XML hardware definition.
   - Control: Parse the URDF file and apply various control algorithms.
   - Database: Java code for interaction with the SQLite database.
@@ -332,7 +332,6 @@ From the _eclipse_ <u>File->Import</u> menu,"General","Existing Projects into Wo
   passing them along to the _Motor_ controllers and then forwarding results
   to the original requestor.
   - Motor: Java code for control of the various servo motors on the robot. These are executed by the _dispatcher_ application.
-  - Poppy: The _Poppy_ python source code from _GenerationRobots_. This code is for reference only and is not installed on the robot. It consists largely of sample applications. Set to disabled.
   - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors. Set to disabled.
   - Share: Common java code used by one or more of the other projects.
   - Speech: This project holds the _ANTLR_ code which interprets the "natural
@@ -344,94 +343,28 @@ When complete the project workspace should look like:
 ![Eclipse Setup](/images/eclipse_setup.png)
 ```                  Eclipse Projects     ```
 
-Each java module has its own _eclipse_ project.
 
-##### Build Scripts
-Every project has a *build.xml* *ant* script that test-compiles code within the project. The _Build_ project contains additional *ant* scripts that build the main executables and copy them to the robot. These scripts are designed to be executed directly from ``eclipse``.
-NOTE: If the ant scripts fail to run, terminating immediately, the remedy is to edit their configuration to "run in the same JRE as the workspace".
+##### Gradle Scripts
+`Gradle` is a build system which follows a "convention over configuration" style. Each project has its own Kotlin build script named `gradle-build.kts`.
 
-In order to make environment variables accessible within *ant*, edit the run configuration for the script and add in the argument section something similar to:
+
+##### Execution Scripts
+The `Configuration` project has a collection of *bash* scripts and other configuration files as described below. When the project is built these files will be properly placed into `$BERT_HOME`.
 ```
-  -Dbert.home="${env_var:BERT_HOME}"
-```
+bin
+ * clear_logs.sh -          Remove current log files in preparation for the next test sequence.
+ * unpack_distribution.sh - This script is executed as a final step by the build. It unpacks the
+                            distribution package from the build into bin and lib directories in
+                            robot home on the build machine.
+````
 
-This makes <em>BERT_HOME</em> accessible as <em>${bert.home)</em> inside the script. If ``eclipse`` does not recognize variables from the environment, then
-* Edit `/Applications/Eclipse.app/Contents/Info.plist` and change the entry *eclipse* to *eclipse.sh*.
-* Add executable file `/Applications/Eclipse.app/Contents/MacOs/eclipse.sh` with contents:
-```
-  #!/bin/sh
-  logger "`dirname \"$0\"`/eclipse"
-  exec "`dirname \"$0\"`/eclipse" $@
-```
-
-In addition to the *ant* scripts, there are a few shell scripts. To execute from ``eclipse``, in the Project browser, right-click on the script and select ``Run As->Run Shell Script``.
-
-To execute a build, from the *Build* project:
-```
-  build_all.xml
-  deploy.sh
-```
-
-*** Archive *** <br/>
-The *Archive* project is a collection of open-source library modules.
-* https://www.antlr.org/download.html antlr-runtime-4.7.2.jar antlr-4.7.2-complete.jar
-* http://central.maven.org/maven2/com/ibm/icu/icu4j/63.1 com.ibm.icu4f-63.1.jar
-* http://repo1.maven.org/maven2/com/fasterxml/jackson/core jackson-core-2.9.8.jar jackson-databind-2.9.8.jar java-annotations-2.9.8.jar
-* https://bitbucket.org/xerial/sqlite-jdbc/downloads sqlite-jdbc-3.23.1.jar
-* https://code.google.com/archive/p/java-simple-serial-connector/downloads jssc.jar, plus C++ source for shared library
-
-*** Modularized Jar Files ***<br/>
-Most of the open source jar files listed above had not been updated for Java10 module compatibility. However all have been manually updated prior to storage in the repository.
-
-Thanks to [Michael Easter](https://github.com/codetojoy/easter_eggs_for_java_9/blob/master/egg_34_stack_overflow_47727869/run.sh) for the following example that shows how to modularize the ``Jackson`` jar files.
-The root directory of the *Archive* project is the starting point. The 3 original non-modularized *Jackson* jar files have been downloaded into ``jars``. The modularized results will be stored into ``mods``. In this particular example the modules are inter-dependent. In simpler cases only the first third of these steps are applicable.
-```
-   ARCHIVE=`pwd`
-   jdeps --generate-module-info work jars/jackson-core-2.9.7.jar
-   cp jars/jackson-core-2.9.7.jar mods/jackson-core.jar
-   rm -rf classes
-   mkdir classes
-   cd classes
-   jar -xf ${ARCHIVE}/jars/jackson-core-2.9.7.jar
-   cd ${ARCHIVE}/work/com.fasterxml.jackson.core
-   javac -p jackson.core -d ${ARCHIVE}/classes module-info.java
-   jar -uf ${ARCHIVE}/mods/jackson-core.jar -C ${ARCHIVE}/classes module-info.class
-
-   cd $ARCHIVE
-   jdeps --generate-module-info work jars/jackson-annotations-2.9.7.jar
-   cp jars/jackson-annotations-2.9.7.jar mods/jackson-annotations.jar
-   rm -rf classes
-   mkdir classes
-   cd classes
-   jar -xf ${ARCHIVE}/jars/jackson-annotations-2.9.7.jar
-   cd ${ARCHIVE}/work/com.fasterxml.jackson.annotation
-   javac -p jackson.annotations -d ${ARCHIVE}/classes module-info.java
-   jar -uf ${ARCHIVE}/mods/jackson-annotations.jar -C ${ARCHIVE}/classes module-info.class
-
-   cd $ARCHIVE
-   jdeps --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotation,com.fasterxml.jackson.core --generate-module-info work jars/jackson-databind-2.9.7.jar
-   cp jars/jackson-databind-2.9.7.jar mods/jackson-databind.jar
-   rm -rf classes
-   mkdir classes
-   cd classes
-   jar -xf ${ARCHIVE}/jars/jackson-databind-2.9.7.jar
-   cd ${ARCHIVE}/work/com.fasterxml.jackson.databin
-   javac --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotation,com.fasterxml.jackson.core -d ${ARCHIVE}/classes module-info.java
-   jar -uf ${ARCHIVE}/mods/jackson-databind.jar -C ${ARCHIVE}/classes module-info.class
-   ${ARCHIVE}
-   rm -rf work classes
-```
 ##### ANTLR
 *ANTLR* is a parsing framework used for understanding natural language. From the Eclipse marketplace install a plugin for *antlr4*. Use the one by *Edgar Espina*.
 
 
-*** Python *** <br/>
+##### Python
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
-```
-Name: PyDev
-Location: http://pydev.org/updates
-```
-We use PyDev to browse the original *Poppy* and *iCub* code.
+
 
 ##### Bluetooth
 
