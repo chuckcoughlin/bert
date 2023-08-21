@@ -6,11 +6,11 @@ plugins {
 // We would like this to run at the very end
 // --- doesn't quite
 dependencies {
-    testImplementation(project(":app"))
+    testImplementation(project(":bertApp"))
     testImplementation(project(":dispatcher"))
 }
 
-//Files includeg in the copy
+//Files included in the copy
 val dataContent = copySpec {
     from("src/main")
     include("*")

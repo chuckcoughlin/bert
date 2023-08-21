@@ -5,7 +5,7 @@
  */
 
 rootProject.name = "Bert"
-include("app")
+include("bertApp")
 include("common")
 include("configuration")
 include("database")
