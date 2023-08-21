@@ -6,8 +6,8 @@ plugins {
 // We would like this to run at the very end
 // --- doesn't quite
 dependencies {
-    testImplementation(project(":bertApp"))
-    testImplementation(project(":dispatcher"))
+    implementation(project(":bertApp"))
+    implementation(project(":dispatcher"))
 }
 
 //Files included in the copy
@@ -17,7 +17,7 @@ val dataContent = copySpec {
 }
 
 // Execute this at the very end of configuration project
-tasks.named("testClasses") { finalizedBy("install") }
+tasks.named("build") { finalizedBy("install") }
 
 tasks {
     register("install", Copy::class) {
