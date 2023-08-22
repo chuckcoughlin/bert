@@ -313,35 +313,35 @@ The iMac requires the same Java version as the Odroid (Java 10). It is downloada
 
 ##### Installation
 *IntelliJ* is a powerful Integrated Development Environment (IDE) for Java, and Kotlin from Jet Brains. It can be downloaded [here]( https://www.jetbrains.com/idea/download/?section=mac). Make sure to download the community edition which is completely free. At the time of this writing, the latest version is “2022.2.1”.
-Start *IntelliJ* and point it to the root of the `git` repository. Once started choose `File/Upload All From Disk` to synchronize with the repository. An internet connection is required as all third party libraries will be downloaded directly from public repositories during the build.
+Start *IntelliJ* and point it to the root of the `git` repository. Once started choose `File/Upload All From Disk` to synchronize with the repository. An internet connection is required as all third party libraries will be downloaded directly from public repositories during the build. Use the build configuration `install` to perform a complete build.
 
-Our *IntelliJ* environment does make use of the `ANTLR` and `Python` plugins. See the menu page `IntelliJ Idea/Settings` to load.
+Our *IntelliJ* environment makes use of the `ANTLR` and `Python` plugins. See the menu page `IntelliJ Idea/Settings` to load.
 
 ##### Projects
 `Bert` is a multi-module project. Each code group is its own project as follows:
-  - Archive: Third party open-source libraries. In general, this area does not include source. Note that the _jar_ files in _mods_ have been modularized for Java10 usage.
-  - Build: _ant_ scripts for compiling and installing the project build products onto the robot. There are separate scripts for the CommandLoop, Robot and Configuration projects.
-  - Command: _command_ is the application that interfaces with the tablet to
-  acquire command and request strings. It communicates these to the _dispatcher_
+  - `bertApp`: This contains the main class for the "Bert" application. It also contains entry classes for stand-alone tests.
+  - `buildSrc`: _IntelliJ_ executes this project first. It is used to define plugins with dependencies and repositories that are common to the remaining source modules.
+  - `common`: _common_ code contains utility functions and constant definitions used throughout the application.
+  - `command`: _command_ is the module that interfaces with the tablet to
+  acquire command and request strings. It communicates these to the _Dispatcher_
   and obtains responses.
-  - Configuration: This area is a collection of files that configure the robot. These include: scripts for installing and running the SQL database for poses and actions.
-  storage and XML hardware definition.
-  - Control: Parse the URDF file and apply various control algorithms.
-  - Database: Java code for interaction with the SQLite database.
-  - Dispatcher: The _dispatcher_ is a separate application for handling commands,
+  - `configuration`: This area is a collection of files that configure the robot. These include: scripts for installing and running the SQL database for poses and actions.
+  It contains XML hardware definitions with dimensions and connectivity information.
+  - `control`: Parse the URDF file and apply various control algorithms.
+  - `database`: This is a common area for interaction with the SQLite database.
+  - `dispatcher`: The _dispatcher_ is the central module for handling commands,
   passing them along to the _Motor_ controllers and then forwarding results
   to the original requestor.
-  - Motor: Java code for control of the various servo motors on the robot. These are executed by the _dispatcher_ application.
-  - PyPot: _Poppy_ code for controlling the Dynamixel motors. This is primarily for viewing. We do use the *herborist* tool for configuring the Dynamixel stepper motors. Set to disabled.
-  - Share: Common java code used by one or more of the other projects.
-  - Speech: This project holds the _ANTLR_ code which interprets the "natural
-   language" request strings.
-  - Terminal: _terminal_ is a separate application for command-line control of the robot. It provides the same interface as the Android tablet except in a typed instead of spoken form.
-  - YARP: C++ source code from the _iCub_ project. This code is for provided for ease of browsing and is not compiled. Set to disabled.
+  - `motor`: Java code for control of the various servo motors on the robot. These are executed by the _dispatcher_ application.
+  - `speech`: This project is the interface between the _command_ module and syntax parser.
+  - `syntax`: This project holds the _ANTLR_ code which defines the recognized syntax of "natural
+    language" request strings.
+  - `terminal`: _terminal_ is a separate application for command-line control of the robot. It provides the same interface as the Android tablet except in a typed instead of spoken form.
+
 
 When complete the project workspace should look like:
-![Eclipse Setup](/images/eclipse_setup.png)
-```                  Eclipse Projects     ```
+![Eclipse Setup](/images/intellij_setup.png)
+```                  IntelliJ Projects     ```
 
 
 ##### Gradle Scripts
@@ -350,16 +350,19 @@ When complete the project workspace should look like:
 
 ##### Execution Scripts
 The `Configuration` project has a collection of *bash* scripts and other configuration files as described below. When the project is built these files will be properly placed into `$BERT_HOME`.
-```
-bin
- * clear_logs.sh -          Remove current log files in preparation for the next test sequence.
- * unpack_distribution.sh - This script is executed as a final step by the build. It unpacks the
-                            distribution package from the build into bin and lib directories in
-                            robot home on the build machine.
-````
+
+`bin`
+ - clear_logs.sh -          Remove current log files in preparation for the next test sequence.
+ - run_bert.sh -            Execute the "bertApp" application on the build system
+ - unpack_distribution.sh - This script is executed as a final step by the build. It unpacks the distribution package from the build into bin and lib directories in the distribution directory of ROBOT_HOME on the build machine.
+
+`csv`
+
+`etc`
 
 ##### ANTLR
-*ANTLR* is a parsing framework used for understanding natural language. From the Eclipse marketplace install a plugin for *antlr4*. Use the one by *Edgar Espina*.
+*ANTLR* is a parsing framework used for understanding natural language. Use the plugin available from the
+*IntelliJ* settings page.
 
 
 ##### Python

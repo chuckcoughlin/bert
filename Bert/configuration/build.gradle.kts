@@ -1,5 +1,6 @@
 // Copy build scripts into external bin
 import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id("bert.kotlin-common-conventions")
 }
@@ -39,6 +40,10 @@ tasks {
         exclude("**/*.bak")
         includeEmptyDirs = true
         with(dataContent)
+
+        exec {
+            commandLine("./src/main/bin/unpack_distribution.sh")
+        }
 
         doLast {
             println("Configuration: Install complete")

@@ -23,5 +23,5 @@ dependencies {
 
 // Define the main class for the application.
 application {
-    mainClass.set("chuckcoughlin.bert.dispatch.Dispatcher")
+    mainClass.set("chuckcoughlin.bert.Bert")
 }

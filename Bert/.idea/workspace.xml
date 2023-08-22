@@ -6,7 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bertApp/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/run_command.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/run_bert.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/run_dispatcher.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/run_terminal.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/unpack_distribution.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/unpack_distribution.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -251,6 +256,11 @@
           <url>file://$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/BluetoothSocket</url>
           <line>44</line>
           <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/configuration/build.gradle.kts</url>
+          <line>8</line>
+          <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
