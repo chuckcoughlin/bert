@@ -8,7 +8,6 @@ plugins {
 // --- doesn't quite
 dependencies {
     implementation(project(":bertApp"))
-    implementation(project(":dispatcher"))
 }
 
 //Files included in the copy
@@ -24,6 +23,7 @@ tasks {
     register("install", Copy::class) {
         println("Configuration: Install registered")
         println(System.getenv("BERT_HOME"))
+        outputs.upToDateWhen { false }  // Always run task
         val tokens = mapOf("version" to "2.3.1")
         inputs.properties(tokens)
 
@@ -46,6 +46,7 @@ tasks {
         }
 
         doLast {
+
             println("Configuration: Install complete")
         }
     }

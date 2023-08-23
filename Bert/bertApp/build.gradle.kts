@@ -1,8 +1,7 @@
 /*
- * Dispatcher is the main entry point, but this project contains
+ * Bert is the main entry point, but this project contains
  * several other main classes for test applications
  */
-
 plugins {
     id("bert.kotlin-application-conventions")
 }
@@ -21,7 +20,10 @@ dependencies {
     implementation(project(":dispatcher"))
 }
 
+// Execute this at the very end of configuration project
+tasks.named("jar") { finalizedBy("distTar") }
+
 // Define the main class for the application.
 application {
-    mainClass.set("chuckcoughlin.bert.Bert")
+    mainClass.set("chuckcoughlin.bert.BertKt")
 }
