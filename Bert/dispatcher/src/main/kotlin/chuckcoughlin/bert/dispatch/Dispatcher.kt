@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.dispatch
 
-import chuckcoughlin.bert.command.controller.Command
+import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent

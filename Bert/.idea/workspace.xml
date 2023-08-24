@@ -6,9 +6,26 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bertApp/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/Bert.kt" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/Bert.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/DxlMessageTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/DxlMessageTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/PortTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/PortTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/TestChain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/TestChain.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/TestSolver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/TestSolver.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/BluetoothSocket.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/BluetoothSocket.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/Command.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/controller/ControllerType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/controller/ControllerType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/controller/SocketController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/controller/SocketController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Joint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Joint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Limb.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Limb.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util/XMLUtility.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util/XMLUtility.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/clear_logs.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/clear_logs.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/run_bert.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/run_bert.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/unpack_distribution.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/unpack_distribution.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/etc/bert.xml" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/etc/bert.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -246,11 +263,6 @@
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/control/src/main/kotlin/chuckcoughlin/bert/control/model/LinkPoint.kt</url>
-          <line>61</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt</url>
           <line>343</line>
           <option name="timeStamp" value="3" />
@@ -269,6 +281,11 @@
           <url>file://$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/BluetoothSocket</url>
           <line>44</line>
           <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt</url>
+          <line>150</line>
+          <option name="timeStamp" value="10" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

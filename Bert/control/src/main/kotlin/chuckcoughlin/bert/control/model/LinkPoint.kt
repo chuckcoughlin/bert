@@ -25,7 +25,6 @@ class LinkPoint {
     var offset : DoubleArray // Joint offset
         private set
     var orientation: DoubleArray
-    var origin : LinkPoint
     val type: LinkPointType
     val appendage: Appendage
     val joint: Joint
@@ -68,8 +67,5 @@ class LinkPoint {
 
     companion object {
         private const val CLSS = "LinkPoint"
-    }
-    init {
-        origin = LinkPoint()
     }
 }

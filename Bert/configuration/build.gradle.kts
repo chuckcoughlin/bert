@@ -21,8 +21,7 @@ tasks.named("build") { finalizedBy("install") }
 
 tasks {
     register("install", Copy::class) {
-        println("Configuration: Install registered")
-        println(System.getenv("BERT_HOME"))
+        println("Configuration: Install registered for " + System.getenv("BERT_HOME"))
         outputs.upToDateWhen { false }  // Always run task
         val tokens = mapOf("version" to "2.3.1")
         inputs.properties(tokens)
@@ -41,12 +40,12 @@ tasks {
         includeEmptyDirs = true
         with(dataContent)
 
-        exec {
-            commandLine("./src/main/bin/unpack_distribution.sh")
-        }
-
         doLast {
 
+
+            exec {
+                commandLine("./src/main/bin/unpack_distribution.sh")
+            }
             println("Configuration: Install complete")
         }
     }

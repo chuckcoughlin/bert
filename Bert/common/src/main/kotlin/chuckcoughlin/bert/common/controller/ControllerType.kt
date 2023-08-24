@@ -32,5 +32,17 @@ enum class ControllerType {
             }
             return names.substring(0, names.length - 2)
         }
+
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement. It is case-insensitive,
+         */
+        fun fromString(arg: String): ControllerType {
+            val type: ControllerType
+            for (type in ControllerType.values()) {
+                if (type.name.equals(arg, true)) return type
+            }
+            return ControllerType.UNDEFINED
+        }
     }
 }

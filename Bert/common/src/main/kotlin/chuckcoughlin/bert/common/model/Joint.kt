@@ -21,7 +21,7 @@ enum class Joint {
          * @return user-recognizable text
          */
         fun toText(joint: Joint): String {
-            var text = ""
+            val text:String
             when (joint) {
                 ABS_X -> text = "abdomen x"
                 ABS_Y -> text = "abdomen y"
@@ -62,6 +62,18 @@ enum class Joint {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement. Case insensitive.
+         */
+        fun fromString(arg: String): Joint {
+            val j: Joint
+            for (j in values()) {
+                if (j.name.equals(arg, true)) return j
+            }
+            return NONE
         }
     }
 }

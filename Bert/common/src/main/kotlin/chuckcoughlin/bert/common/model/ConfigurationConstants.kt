@@ -18,7 +18,7 @@ object ConfigurationConstants {
     const val PROPERTY_DEVICE = "device"
     const val PROPERTY_HOSTNAME = "hostname"
     const val PROPERTY_PROCESS_NAME = "process"
-    const val PROPERTY_PORT = "port"
+    const val PROPERTY_BLUETOOTH_PORT = "blueserver"
     const val PROPERTY_PROMPT = "prompt"
     const val PROPERTY_ROBOT_NAME = "name"
     const val PROPERTY_SOCKET = "socket"

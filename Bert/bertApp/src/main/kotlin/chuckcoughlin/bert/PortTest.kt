@@ -55,7 +55,8 @@ class PortTest : Runnable, SerialPortEventListener {
             println(String.format("PortTest.purgePort: Success = %s", if (success) "true" else "false"))
             delay()
             port.addEventListener(this)
-        } catch (spe: SerialPortException) {
+        }
+        catch (spe: SerialPortException) {
             println(
                 java.lang.String.format(
                     "PortTest: Error opening/configuring port %s (%s)",
@@ -140,13 +141,13 @@ class PortTest : Runnable, SerialPortEventListener {
         private const val BAUD_RATE = 1000000
         private const val DEVICE = "/dev/ttyACM0"
 
-        /**
-         * Open a port. Write and read.
-         */
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val tester = Thread(PortTest())
-            tester.start()
-        }
+
     }
+}
+/**
+ * Open a port. Write and read.
+ */
+fun main(args: Array<String>) {
+    val tester = Thread(PortTest())
+    tester.start()
 }

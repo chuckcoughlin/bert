@@ -2,7 +2,7 @@
  * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.command.controller
+package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.NamedSocket

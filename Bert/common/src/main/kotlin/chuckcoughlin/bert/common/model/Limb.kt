@@ -73,5 +73,17 @@ enum class Limb {
             }
             return names.substring(0, names.length - 2)
         }
+
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement. Case insensitive.
+         */
+        fun fromString(arg: String): Limb {
+            val limb: Limb
+            for (limb in Limb.values()) {
+                if (limb.name.equals(arg, true)) return limb
+            }
+            return Limb.NONE
+        }
     }
 }

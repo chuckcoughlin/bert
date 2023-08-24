@@ -183,7 +183,7 @@ open class SocketController : Controller {
         controllerName = RobotModel.getControllerForType(ControllerType.TERMINAL)
         val socketName = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_SOCKET)
         val hostName = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_HOSTNAME)
-        val port = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_PORT).toInt()
+        val port = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_BLUETOOTH_PORT).toInt()
         if( hostName.equals(ConfigurationConstants.NO_VALUE)) {
             server = true
             socket = NamedSocket(socketName,port)

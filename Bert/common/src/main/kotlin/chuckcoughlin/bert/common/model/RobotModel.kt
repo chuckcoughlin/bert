@@ -19,16 +19,18 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * This generic robot model adds convenience methods for extracting specifics
- * without worrying about nulls.
+ * without worrying about nulls. The only type of controllers recognized are
+ * the serial MOTOR controllers. Keep track of which joints are controlled
+ * by each.
  */
 object RobotModel {
     private var document: Document? = null
     val coreControllers:  MutableList<String>  // Names of the internal controllers
+    val controllerTypes: MutableMap<String,ControllerType>
     val motorControllerNames: MutableList<String>  // Names of the serial controllers
     val properties: Properties   // These are the generic properties
     val propertiesByController:  MutableMap<String, Properties>
     val jointsByController:      MutableMap<String,List<Joint>>
-    val controllerTypes : MutableMap<String, ControllerType>   // Map of type for each con<troller by name
     val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
     /**
      * Expand the supplied path as the configuration XML file.
@@ -64,7 +66,7 @@ object RobotModel {
             val key = XMLUtility.attributeValue(propertyNode, "name")
             val value = propertyNode.textContent
             if (value != null && !value.isEmpty()) {
-                properties[key.lowercase(Locale.getDefault())] = value
+                properties[key.lowercase()] = value
             }
             index++
         }
@@ -81,8 +83,8 @@ object RobotModel {
             val controllerName = XMLUtility.attributeValue(controllerElement, "name")
             val type = XMLUtility.attributeValue(controllerElement, "type")
             if( !controllerName.isEmpty() ) {
-                try {
-                    val ctype = ControllerType.valueOf(type)
+                val ctype = ControllerType.fromString(type)
+                if( ctype!=ControllerType.UNDEFINED) {
                     controllerTypes[controllerName] = ctype
                     when(ctype) {
                         ControllerType.BITBUCKET -> {}
@@ -101,8 +103,8 @@ object RobotModel {
                             val serialProperties = Properties()
                             val device = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_DEVICE)
                             serialProperties[ConfigurationConstants.PROPERTY_DEVICE] = device
-                            val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
-                            serialProperties[ConfigurationConstants.PROPERTY_PORT] = port
+                            val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_BLUETOOTH_PORT)
+                            serialProperties[ConfigurationConstants.PROPERTY_BLUETOOTH_PORT] = port
                             propertiesByController[controllerName] = serialProperties
                             analyzeSerialController(controllerElement)
                         }
@@ -113,8 +115,8 @@ object RobotModel {
                             socketProperties[ConfigurationConstants.PROPERTY_SOCKET] = socket
                             val hostName = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_HOSTNAME)
                             socketProperties[ConfigurationConstants.PROPERTY_HOSTNAME] = hostName
-                            val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
-                            socketProperties[ConfigurationConstants.PROPERTY_PORT] = port
+                            val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_BLUETOOTH_PORT)
+                            socketProperties[ConfigurationConstants.PROPERTY_BLUETOOTH_PORT] = port
                             propertiesByController[controllerName] = socketProperties
                         }
                         ControllerType.TABLET -> {}
@@ -127,7 +129,7 @@ object RobotModel {
                         ControllerType.UNDEFINED -> {}
                     }
                 }
-                catch(iae:IllegalArgumentException) {
+                else{
                     LOGGER.warning(String.format("%s.analyzeControllers: %s is not a legal controller type ",
                         CLSS,type ))
                 }
@@ -150,16 +152,15 @@ object RobotModel {
         val joints: MutableList<Joint> = ArrayList()
         while (jindex < jcount) {
             val jointElement = jointElements.item(jindex) as Element
-            val jname: String =
-                XMLUtility.attributeValue(jointElement, "name").uppercase(Locale.getDefault())
-            try {
-                val joint = Joint.valueOf(jname)
+            val jname = XMLUtility.attributeValue(jointElement, "name")
+            val joint = Joint.fromString(jname)  // Case insensitive
+            if( joint!=Joint.NONE ) {
                 joints.add(joint)
-                //LOGGER.info(String.format("%s.analyzeSerialController: Added %s to %s",CLSS,jname,group));
+                LOGGER.fine(String.format("%s.analyzeSerialController: %s added %s",CLSS,controller,jname));
             }
-            catch (iae: IllegalArgumentException) {
+            else {
                 LOGGER.warning(String.format("%s.analyzeSerialController: %s is not a legal joint name ",
-                    CLSS,jname ))
+                                CLSS,jname ))
             }
             jindex++
         }
@@ -207,9 +208,8 @@ object RobotModel {
                                     motor.limb = limb
                                 }
                                 catch (iae: IllegalArgumentException) {
-                                    LOGGER.warning( String.format(
-                                        "%s.analyzeMotors: %s has unknown limb %s",
-                                        CLSS,motor.joint.name, value ))
+                                    LOGGER.warning( String.format("%s.analyzeMotors: %s has unknown limb %s",
+                                                    CLSS,motor.joint.name, value ))
                                 }
                             }
                             motors[motor.joint] = motor
@@ -254,7 +254,7 @@ object RobotModel {
         var port = ConfigurationConstants.NO_PORT
         val properties = propertiesByController[name]
         if( properties!=null ) {
-            val pval = properties[ConfigurationConstants.PROPERTY_PORT]
+            val pval = properties[ConfigurationConstants.PROPERTY_BLUETOOTH_PORT]
             if( pval!=null && pval.toString().isNotBlank())
                 port = pval.toString()
         }
@@ -293,7 +293,7 @@ object RobotModel {
     }
 
 
-    private val CLSS = "RobotMotorModel"
+    private val CLSS = "RobotModel"
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {

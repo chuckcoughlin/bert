@@ -2,7 +2,7 @@
  * Copyright 2022-2023 Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.command.controller
+package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
@@ -147,8 +147,10 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         running = false
         messageTranslator = MessageTranslator()
         val socketName = RobotModel.getPropertyForController(controllerName, ConfigurationConstants.PROPERTY_SOCKET)
-        val port = RobotModel.getPropertyForController(controllerName, ConfigurationConstants.PROPERTY_PORT).toInt()
-        val socket = NamedSocket(socketName,port)
+        LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_SOCKET,socketName))
+        val port = RobotModel.getPropertyForController(controllerName, ConfigurationConstants.PROPERTY_BLUETOOTH_PORT)
+        LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_BLUETOOTH_PORT,port))
+        val socket = NamedSocket(socketName,port.toInt())
         tabletSocket = BluetoothSocket(socket)
     }
 }

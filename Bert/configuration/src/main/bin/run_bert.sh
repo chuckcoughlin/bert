@@ -5,4 +5,4 @@ mkdir -p logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
-./bertApp
+./bertApp ${BERT_HOME}

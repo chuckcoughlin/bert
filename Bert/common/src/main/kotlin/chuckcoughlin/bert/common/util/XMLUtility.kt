@@ -33,13 +33,8 @@ object XMLUtility {
                     CLSS,pce.localizedMessage))
         }
         catch (saxe: SAXException) {
-            LOGGER.warning(
-                String.format(
-                    "%s.documentFromBytes: Illegal XML document (%s)",
-                    CLSS,
-                    saxe.localizedMessage
-                )
-            )
+            LOGGER.warning(String.format("%s.documentFromBytes: Illegal XML document (%s)",
+                    CLSS,saxe.localizedMessage))
         }
         catch (ioe: IOException) {
             LOGGER.warning(String.format("%s.documentFromBytes: IOException parsing XML (%s)",
