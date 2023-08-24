@@ -8,11 +8,7 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
@@ -461,11 +457,10 @@ class Dispatcher(s: Solver) : Controller {
     )
 
     private val CLSS = "Dispatcher"
-    private val USAGE = "Usage: dispatcher <robot_root>"
-    override var controllerName = CLSS
     private val LOGGER = Logger.getLogger(CLSS)
     private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
-
+    override val controllerName = CLSS
+    override val controllerType = ControllerType.DISPATCHER
     /**
      * The dispatcher creates all controllers and communitaion channels for the application. Request/response
      * naming is from the point of view of the Dispatcher.
@@ -475,7 +470,6 @@ class Dispatcher(s: Solver) : Controller {
      *    Terminal - communicate directly with the user console
     */
     init {
-        controllerName = RobotModel.getControllerForType(ControllerType.DISPATCHER)
         commandRequestChannel = Channel<MessageBottle>()
         commandResponseChannel= Channel<MessageBottle>()
         internalRequestChannel  = Channel<MessageBottle>()

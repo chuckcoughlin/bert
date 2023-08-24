@@ -25,11 +25,11 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 object RobotModel {
     private var document: Document? = null
-    val coreControllers:  MutableList<String>  // Names of the internal controllers
-    val controllerTypes: MutableMap<String,ControllerType>
-    val motorControllerNames: MutableList<String>  // Names of the serial controllers
+    val motorControllerNames:   MutableList<String>  // Names of the serial controllers
+    val motorControllerDevices: MutableMap<String,String>
+    val motorControllerPorts: MutableMap<String,String>
     val properties: Properties   // These are the generic properties
-    val propertiesByController:  MutableMap<String, Properties>
+    val propertiesByController:  MutableMap<ControllerType, Properties>
     val jointsByController:      MutableMap<String,List<Joint>>
     val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
     /**
@@ -72,7 +72,8 @@ object RobotModel {
         }
     }
     /**
-     * Search the XML for named controllers. These have specific functions (i.e. types).
+     * Search the XML for named controllers. These have specific functions (i.e. types)
+     * to the Dispatcher.
      */
     fun analyzeControllers() {
         val elements = document!!.getElementsByTagName("controller")
@@ -84,54 +85,54 @@ object RobotModel {
             val type = XMLUtility.attributeValue(controllerElement, "type")
             if( !controllerName.isEmpty() ) {
                 val ctype = ControllerType.fromString(type)
-                if( ctype!=ControllerType.UNDEFINED) {
-                    controllerTypes[controllerName] = ctype
-                    when(ctype) {
-                        ControllerType.BITBUCKET -> {}
-                        ControllerType.COMMAND -> {
-                            val commandProperties = Properties()
-                            val socket = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_SOCKET)
-                            commandProperties[ConfigurationConstants.PROPERTY_SOCKET] = socket
-                            val uuid = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_UUID)
-                            commandProperties[ConfigurationConstants.PROPERTY_UUID] = uuid
-                            propertiesByController[controllerName] = commandProperties
-                        }
-                        ControllerType.DISPATCHER -> {}
-                        ControllerType.INTERNAL -> {}
-                        // A motor controller controls motor devices associated with a single serial port
-                        ControllerType.MOTOR -> {
-                            val serialProperties = Properties()
-                            val device = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_DEVICE)
-                            serialProperties[ConfigurationConstants.PROPERTY_DEVICE] = device
-                            val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_BLUETOOTH_PORT)
-                            serialProperties[ConfigurationConstants.PROPERTY_BLUETOOTH_PORT] = port
-                            propertiesByController[controllerName] = serialProperties
-                            analyzeSerialController(controllerElement)
-                        }
-                        ControllerType.MOTORGROUP -> {}
-                        ControllerType.SOCKET -> {
-                            val socketProperties = Properties()
-                            val socket = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_SOCKET)
-                            socketProperties[ConfigurationConstants.PROPERTY_SOCKET] = socket
-                            val hostName = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_HOSTNAME)
-                            socketProperties[ConfigurationConstants.PROPERTY_HOSTNAME] = hostName
-                            val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_BLUETOOTH_PORT)
-                            socketProperties[ConfigurationConstants.PROPERTY_BLUETOOTH_PORT] = port
-                            propertiesByController[controllerName] = socketProperties
-                        }
-                        ControllerType.TABLET -> {}
-                        ControllerType.TERMINAL -> {
-                            val terminalProperties = Properties()
-                            val prompt = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PROMPT)
-                            if(!prompt.isEmpty())terminalProperties[ConfigurationConstants.PROPERTY_PROMPT] = prompt
-                            propertiesByController[controllerName] = terminalProperties
-                        }
-                        ControllerType.UNDEFINED -> {}
+                when(ctype) {
+                    ControllerType.BITBUCKET -> {}
+                    ControllerType.COMMAND -> {     // The command controller connects to Bluetooth
+                        val commandProperties = Properties()
+                        val socket = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_SOCKET)
+                        commandProperties[ConfigurationConstants.PROPERTY_SOCKET] = socket
+                        val hostname = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_HOSTNAME)
+                        commandProperties[ConfigurationConstants.PROPERTY_HOSTNAME] = hostname
+                        val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
+                        commandProperties[ConfigurationConstants.PROPERTY_PORT] = port  // Integer
+                        val uuid = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_UUID)
+                        commandProperties[ConfigurationConstants.PROPERTY_UUID] = uuid
+                        propertiesByController[ctype] = commandProperties
                     }
-                }
-                else{
-                    LOGGER.warning(String.format("%s.analyzeControllers: %s is not a legal controller type ",
-                        CLSS,type ))
+                    ControllerType.DISPATCHER -> {}
+                    ControllerType.INTERNAL -> {}
+                    // A motor controller controls motor devices associated with a single serial port
+                    ControllerType.MOTOR -> {
+                        val device = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_DEVICE)
+                        motorControllerDevices[controllerName] = device
+                        val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
+                        motorControllerPorts[controllerName] = port  // Name
+                        analyzeSerialController(controllerElement)
+                    }
+                    ControllerType.MOTORGROUP -> {}
+                    ControllerType.SOCKET -> {     // A socket connection
+                        val commandProperties = Properties()
+                        val socket = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_SOCKET)
+                        commandProperties[ConfigurationConstants.PROPERTY_SOCKET] = socket
+                        val hostname = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_HOSTNAME)
+                        commandProperties[ConfigurationConstants.PROPERTY_HOSTNAME] = hostname
+                        val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
+                        commandProperties[ConfigurationConstants.PROPERTY_PORT] = port  // Integer
+                        val uuid = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_UUID)
+                        commandProperties[ConfigurationConstants.PROPERTY_UUID] = uuid
+                        propertiesByController[ctype] = commandProperties
+                    }
+                    ControllerType.TABLET -> {}
+                    ControllerType.TERMINAL -> {
+                        val terminalProperties = Properties()
+                        val prompt = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PROMPT)
+                        if(!prompt.isEmpty())terminalProperties[ConfigurationConstants.PROPERTY_PROMPT] = prompt
+                        propertiesByController[ctype] = terminalProperties
+                    }
+                    ControllerType.UNDEFINED -> {
+                        LOGGER.warning(String.format("%s.analyzeControllers: %s is not a legal controller type ",
+                            CLSS,type ))
+                    }
                 }
             }
             index++
@@ -139,8 +140,8 @@ object RobotModel {
     }
 
     /**
-     * Handle the extra XML for a SERIAL controllers. This includes creating a map of joints
-     * associated with the controller. We've already the simple attributes. The simple
+     * Handle the extra XML for a MOTOR controller. This includes creating a map of joints
+     * associated with the controller. We already have the simple attributes. The simple
      * attributes contain enough information to define the SerialPort.
      */
     fun analyzeSerialController(controllerElement: Element) {
@@ -160,7 +161,7 @@ object RobotModel {
             }
             else {
                 LOGGER.warning(String.format("%s.analyzeSerialController: %s is not a legal joint name ",
-                                CLSS,jname ))
+                    CLSS,jname ))
             }
             jindex++
         }
@@ -209,7 +210,7 @@ object RobotModel {
                                 }
                                 catch (iae: IllegalArgumentException) {
                                     LOGGER.warning( String.format("%s.analyzeMotors: %s has unknown limb %s",
-                                                    CLSS,motor.joint.name, value ))
+                                        CLSS,motor.joint.name, value ))
                                 }
                             }
                             motors[motor.joint] = motor
@@ -226,21 +227,7 @@ object RobotModel {
     /** ******************************** GETTERS ************************************
      *  The following are guaranteed to return non-null values
      */
-    /* @return the name of the first controller in the list of controllers
-     *         that matches the desired type. If none match, CONTROLLER_NOT_FOUND
-     *          is returned.
-     */
-    fun getControllerForType(key: ControllerType) : String {
-        var result = ConfigurationConstants.NO_CONTROLLER
-        for( name in controllerTypes.keys ) {
-            if( controllerTypes[name]!!.equals(key) ) {
-                result = name
-                break
-            }
-        }
-        return result
-    }
-    fun getJointsForController(controller: String): List<Joint> {
+    fun getJointsForMotorController(controller: String): List<Joint> {
         var joints = listOf<Joint>()
         val list = jointsByController[controller]
         if( list!=null ) joints = list
@@ -250,19 +237,23 @@ object RobotModel {
      * @return a named String property. If the requested property is not defined,
      *         return the string PROPERTY_NONE.
      */
-    fun getPortForController(name:String): String {
-        var port = ConfigurationConstants.NO_PORT
-        val properties = propertiesByController[name]
-        if( properties!=null ) {
-            val pval = properties[ConfigurationConstants.PROPERTY_BLUETOOTH_PORT]
-            if( pval!=null && pval.toString().isNotBlank())
-                port = pval.toString()
+    fun getDeviceForMotorController(name:String): String {
+        var device =  motorControllerDevices[name]
+        if( device==null ) {
+            device = ConfigurationConstants.NO_DEVICE
+        }
+        return device
+    }
+    fun getPortForMotorController(name:String): String {
+        var port = motorControllerPorts[name]
+        if( port==null ) {
+            port = ConfigurationConstants.NO_PORT
         }
         return port
     }
     /**
-     * @return a named String property. If the requested property is not defined,
-     *         return the string NO_VALUE.
+     * @return a named String property of the robot as a whole. If the requested
+     * property is not defined, return the string NO_VALUE.
      */
     fun getProperty(key: String, defaultValue: String): String {
         var value = defaultValue
@@ -276,20 +267,19 @@ object RobotModel {
         return getProperty(key, ConfigurationConstants.NO_VALUE)
     }
     /**
-     * @return a named String property. If the requested property is not defined,
-     *         return the string PROPERTY_NONE.
+     * @return a named String property that is special to a controller type.
      */
-    fun getPropertyForController(name:String, key:String,defaultValue: String): String {
+    fun getPropertyForController(ctype:ControllerType, key:String,defaultValue: String): String {
         var value = defaultValue
-        val properties = propertiesByController[name]
+        val properties = propertiesByController[ctype]
         if( properties!=null ) {
             val pval = properties[key]
             if( pval!=null && !pval.toString().isBlank()) value = pval.toString()
         }
         return value
     }
-    fun getPropertyForController(name:String,key:String): String {
-        return getPropertyForController(name,key,ConfigurationConstants.NO_VALUE)
+    fun getPropertyForController(ctype:ControllerType,key:String): String {
+        return getPropertyForController(ctype,key,ConfigurationConstants.NO_VALUE)
     }
 
 
@@ -298,11 +288,11 @@ object RobotModel {
 
     init {
         properties = Properties()
-        coreControllers           = mutableListOf<String>()
+        motorControllerDevices    = mutableMapOf<String, String>()
+        motorControllerPorts      = mutableMapOf<String, String>()
         motorControllerNames      = mutableListOf<String>()
         jointsByController        = mutableMapOf<String, List<Joint>>()
-        propertiesByController    = mutableMapOf<String,Properties>()
-        controllerTypes           = mutableMapOf<String,ControllerType>()
+        propertiesByController    = mutableMapOf<ControllerType,Properties>()
         motors                    = mutableMapOf<Joint, MotorConfiguration>()
     }
 }

@@ -7,14 +7,9 @@ import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
-import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.control.model.QueueName
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -204,10 +199,10 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
 
     private val CLSS = "InternalController"
     private val LOGGER = Logger.getLogger(CLSS)
-    override var controllerName = CLSS
+    override val controllerName = CLSS
+    override val controllerType = ControllerType.INTERNAL
 
     init {
-        controllerName = RobotModel.getControllerForType(ControllerType.INTERNAL)
         running = false
         index = 0
         timedQueue = TimedQueue(this)

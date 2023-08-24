@@ -167,13 +167,13 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
     private val CLSS = "Terminal"
     private val LOGGER = Logger.getLogger(CLSS)
     private val PROMPT = "Bert:"    // Default prompt
-    override var controllerName = CLSS
+    override val controllerName = CLSS
+    override val controllerType = ControllerType.TERMINAL
 
     init {
         parser = StatementParser()
         translator = MessageTranslator()
-        controllerName = RobotModel.getControllerForType(ControllerType.TERMINAL)
-        prompt = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_PROMPT,PROMPT)
+        prompt = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_PROMPT,PROMPT)
         running = false
         ignoring = false
     }

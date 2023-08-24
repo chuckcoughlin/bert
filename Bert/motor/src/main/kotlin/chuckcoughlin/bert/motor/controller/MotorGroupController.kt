@@ -8,13 +8,7 @@ import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.DynamixelType
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDefinitionProperty
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 import jssc.SerialPort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -453,14 +447,14 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
 
     private val CLSS = "MotorGroupController"
     private val LOGGER = Logger.getLogger(CLSS)
-    override var controllerName = CLSS
+    override val controllerName = CLSS
+    override val controllerType = ControllerType.MOTORGROUP
     /**
      * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
      * instances each running in its own thread. Each controller handles a group of
      * motors all communicating on the same serial port.
      */
     init  {
-        controllerName = RobotModel.getControllerForType(ControllerType.MOTORGROUP)
         motorControllers = mutableListOf<MotorController>()
         motorNameById    = mutableMapOf<Int, String>()
         running = false
@@ -470,7 +464,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         if (!development) {
             val motors: Map<Joint, MotorConfiguration> = RobotModel.motors
             for(cname in RobotModel.motorControllerNames) {
-                val portName : String = RobotModel.getPortForController(cname)
+                val portName : String = RobotModel.getPortForMotorController(cname)
                 if( portName==ConfigurationConstants.NO_PORT ) continue   // Controller is not a motor controller
 
                 val port:SerialPort = SerialPort(portName)
@@ -478,7 +472,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 motorControllers.add(controller)
 
                 // Add configurations to the controller for each motor in the group
-                val joints: List<Joint> = RobotModel.getJointsForController(cname)
+                val joints: List<Joint> = RobotModel.getJointsForMotorController(cname)
                 LOGGER.info(String.format("%s.initialize: getting joints for %s", CLSS, cname))
                 LOGGER.info(String.format("%s.initialize: %d joints for %s", CLSS, joints.size, cname))
                 for (joint in joints) {

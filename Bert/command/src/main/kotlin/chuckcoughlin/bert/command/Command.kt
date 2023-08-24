@@ -14,13 +14,8 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.sql.db.Database
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -139,17 +134,17 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
     private val CLSS = "Command"
     private val LOGGER = Logger.getLogger(CLSS)
     private val EXIT_WAIT_INTERVAL: Long = 1000
-    override var controllerName = CLSS
+    override val controllerName = CLSS
+    override val controllerType = ControllerType.COMMAND
 
     init {
-        controllerName = RobotModel.getControllerForType(ControllerType.COMMAND)
         ignoring = false
         running = false
         messageTranslator = MessageTranslator()
-        val socketName = RobotModel.getPropertyForController(controllerName, ConfigurationConstants.PROPERTY_SOCKET)
+        val socketName = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_SOCKET)
         LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_SOCKET,socketName))
-        val port = RobotModel.getPropertyForController(controllerName, ConfigurationConstants.PROPERTY_BLUETOOTH_PORT)
-        LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_BLUETOOTH_PORT,port))
+        val port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT)
+        LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_PORT,port))
         val socket = NamedSocket(socketName,port.toInt())
         tabletSocket = BluetoothSocket(socket)
     }

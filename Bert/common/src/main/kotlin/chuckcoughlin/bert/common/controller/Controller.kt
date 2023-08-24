@@ -11,6 +11,7 @@ package chuckcoughlin.bert.common.controller
  */
 interface Controller {
     val controllerName: String
+    val controllerType: ControllerType
 
     suspend fun start()
     // Closes all resources including channels

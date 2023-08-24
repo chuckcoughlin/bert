@@ -7,13 +7,8 @@ package chuckcoughlin.bert.common.controller
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -21,7 +16,7 @@ import java.util.logging.Logger
  * The socket controller handles two-way communication across a NamedSocket.
  *
  * Depending on the presence of a hostname in the configuration, the connection is
- * be configured for either a server or client (hostname exists).
+ * configured for either a server or client (hostname exists).
  */
 open class SocketController : Controller {
     protected val socket: NamedSocket
@@ -177,13 +172,13 @@ open class SocketController : Controller {
     private val CLSS = "SocketController"
     protected val CLIENT_READ_ATTEMPT_INTERVAL: Long = 15000 // 15 secs
     private val LOGGER = Logger.getLogger(CLSS)
-    override var controllerName = CLSS
+    override val controllerName = CLSS
+    override val controllerType = ControllerType.SOCKET
 
     init {
-        controllerName = RobotModel.getControllerForType(ControllerType.TERMINAL)
-        val socketName = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_SOCKET)
-        val hostName = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_HOSTNAME)
-        val port = RobotModel.getPropertyForController(controllerName,ConfigurationConstants.PROPERTY_BLUETOOTH_PORT).toInt()
+        val socketName = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_SOCKET)
+        val hostName = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_HOSTNAME)
+        val port = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_PORT).toInt()
         if( hostName.equals(ConfigurationConstants.NO_VALUE)) {
             server = true
             socket = NamedSocket(socketName,port)

@@ -10,27 +10,18 @@
 	<property name="name">bert</property>
 	<property name="release">2.0</property>
 	<property name="date">@DATE@</property>
-	<!--  Socket port used by the bluetooth RFCOMM server  -->
-	<property name="blueserver">11046</property>
 	<!--  Cadence in msecs refers to the record frequency  -->
 	<property name="cadence">1000</property>
-	<!--  Name of machine hosting the server process  -->
-	<property name="hostname">localhost</property>
-	<!--  Used by the terminal  -->
-	<property name="prompt">bert: </property>
 
-	<!-- The following section defines controller objects that make up the application.
-		These objects communicate asynchronously via Kotlin Channels. The Dispatcher
-		is the core communitacions hub and contains the "main" entry point. Within
-		the following set the controller "type" is unique.
-		Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
-		the well-known UUID for RFCOMM.
+	<!-- Controllers are objects that handle communication between various parts
+	     of the application. The controllers defined here have special attributes.
 	-->
-	<controller name="dispatcher" type="DISPATCHER" />
+	<!-- For the "Command" controller, define the bluetooth socket. The device UUID
+	     must match the hardcoded value in tablet code, the well-known bluetooth UUID
+	     for RFCOMM. -->
 	<controller name="command" type="COMMAND"
-		socket="bluetooth"  uuid="33001101-0000-2000-8080-00815FAB34FF">
+		socket="blueserver" hostname="localhost"  port="11046" uuid="33001101-0000-2000-8080-00815FAB34FF">
 	</controller>
-	<controller name="motors" type="MOTORGROUP" />
 	<controller name="terminal" type="TERMINAL" prompt="bert:"/>
 	
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across

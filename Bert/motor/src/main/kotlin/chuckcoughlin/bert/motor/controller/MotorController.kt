@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -88,7 +89,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
     override suspend fun start() {
         LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
-            CLSS, controllerName, port.getPortName()))
+                    CLSS, controllerName, port.getPortName()))
         if (!port.isOpened()) {
             try {
                 val success: Boolean = port.openPort()
@@ -772,11 +773,12 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private val BAUD_RATE = 1000000
     private val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
     private val STATUS_RESPONSE_LENGTH = 8 // byte count
-    override var controllerName = CLSS
+
+    override val controllerName = String.format("%s:%s",CLSS,p.portName)
+    override val controllerType = ControllerType.MOTOR
 
     init {
         port = p
-        controllerName = String.format("%s:%s",CLSS,port.portName)
         motorManager = parent
         lock = ReentrantLock()
         condition = lock.newCondition()
