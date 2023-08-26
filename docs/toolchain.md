@@ -9,7 +9,6 @@ This document describes the software tools used to develop "Bert", including the
 ```                        Bert Supported by Scaffolding```
 
 
-
 ***
 ## Table of Contents <a id="table-of-contents"></a>
   * [Hardware](#hardware)
@@ -167,15 +166,17 @@ speaker that can ultimately be located in the head.
 [toc](#table-of-contents)
 
 ##### Initial Configuration
-The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Ubuntu 16.04 Linux. The instructions below assume an initial board setup as described  [here](https://magazine.odroid.com/wp-content/uploads/odroid-xu4-user-manual.pdf).
+The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Linux, described [here](https://wiki.odroid.com/odroid-n2/odroid-n2). The instructions below assume an initial board setup using an eMMC preloaded with Ubuntu Mate 20.04.
 
-A USB extension board is required as slots are used for:
+The N2 has 4 USB slots that are used for:
  * Keyboard/Mouse
  * WiFi
  * Bluetooth
  * USB2AX (2)
 
-The filesystem appeared to be properly configured on initial startup. There was no need to extend the root partition.
+A keyboard/mouse combination is useful for development and debugging, but not required for operation of the robot.
+
+The initial root password is `root/odroid` or `odroid/odroid`. Change passwords to provide minimal security. Check initial filesystem sizes. Ours seemed to be okay. There seemed to be no need to extend the root partition.
 
 Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
 Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
@@ -340,7 +341,7 @@ Our *IntelliJ* environment makes use of the `ANTLR` and `Python` plugins. See th
 
 
 When complete the project workspace should look like:
-![Eclipse Setup](/images/intellij_setup.png)
+![IntelliJ Setup](/images/intellij_setup.png)
 ```                  IntelliJ Projects     ```
 
 
@@ -359,6 +360,12 @@ The `Configuration` project has a collection of *bash* scripts and other configu
 `csv`
 
 `etc`
+ - bert.xml -                Robot properties including a list of all controllable joints.
+ - urdf.xml -                A complete description of the skeletal connectivity.
+
+`pylib`
+
+`sql`
 
 ##### ANTLR
 *ANTLR* is a parsing framework used for understanding natural language. Use the plugin available from the
@@ -370,7 +377,6 @@ PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <
 
 
 ##### Bluetooth
-
 Programmatic access to Bluetooth requires a interface to the Odroid's
 bluetooth library `libbluetooth.so` (BlueZ 5.48).
 An excellent introduction is a book by Albert Huang
