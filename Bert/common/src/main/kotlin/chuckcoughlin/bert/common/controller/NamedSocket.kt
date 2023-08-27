@@ -131,8 +131,7 @@ class NamedSocket {
         if (socket != null) {
             try {
                 input = BufferedReader(InputStreamReader(socket!!.getInputStream()))
-                LOGGER.info(String.format("%s.startup: opened %s for read",
-                    CLSS, name))
+                LOGGER.info(String.format("%s.startup: opened %s for read",CLSS, name))
             }
             catch (ex: Exception) {
                 LOGGER.info(String.format("%s.startup: ERROR opening %s for read (%s)",
@@ -202,9 +201,8 @@ class NamedSocket {
                 bottle = MessageBottle.fromJSON(json)
             }
             else {
-                LOGGER.warning(String.format(
-                        "%s.read: Attempt to read from %s before port is open (ignored)",
-                        CLSS,name))
+                LOGGER.warning(String.format("%s.read: Attempt to read from %s before port is open (ignored)",
+                            CLSS,name))
             }
         }
         catch (npe: NullPointerException) {
@@ -248,9 +246,10 @@ class NamedSocket {
                 LOGGER.warning(String.format("%s.readLine: Attempt to read from %s before port is open )ignored)",
                         CLSS,name))
             }
-        } catch (ioe: IOException) {
+        }
+        catch (ioe: IOException) {
             LOGGER.severe(String.format("%s.readLine: Exception reading from %s (%s)",
-                    CLSS,name,ioe.localizedMessage))
+                        CLSS,name,ioe.localizedMessage))
         }
         return text
     }

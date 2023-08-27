@@ -8,7 +8,11 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
@@ -38,7 +42,7 @@ import java.util.logging.Logger
  * For the peripheral controllers, the dispatcher presents itself as a parent controller, using ifferent
  * channels to communicate with the different peripherals.
  */
-class Dispatcher(s: Solver) : Controller {
+class Dispatcher(s:Solver) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
     // Communication channels
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from Bluetooth
@@ -58,7 +62,7 @@ class Dispatcher(s: Solver) : Controller {
     private val scope = MainScope() // Uses Dispatchers.Main
     private var running:Boolean
     private val name: String
-    private val solver: Solver
+    private val solver: Solver = s
     private var cadence = 1000 // msecs
     private var cycleCount = 0 // messages processed
     private var cycleTime = 0.0 // msecs,    EWMA
@@ -441,8 +445,6 @@ class Dispatcher(s: Solver) : Controller {
         }
     }
 
-
-
     // Phrases to choose from ... (randomly)
     private val mittenPhrases = arrayOf(
         "My hands cut easily",
@@ -485,7 +487,6 @@ class Dispatcher(s: Solver) : Controller {
         terminalController    = Terminal(this,terminalRequestChannel,terminalResponseChannel)
 
         running = false
-        solver = Solver()
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
         val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs
         try {
