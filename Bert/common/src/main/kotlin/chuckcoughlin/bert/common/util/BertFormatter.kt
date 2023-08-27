@@ -39,6 +39,16 @@ class BertFormatter() : Formatter() {
         return sb.toString()
     }
 
+     fun printStackTrace() {
+        kotlin.runCatching {
+            //any code that can throw an exception
+            throw Exception()
+        }.onFailure {
+            //print stack trace
+            it.printStackTrace()
+        }
+    }
+
     val DATE_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS "
     val LINE_SEPARATOR = System.getProperty("line.separator")
     val dateFormatter: SimpleDateFormat

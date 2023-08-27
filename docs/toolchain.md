@@ -348,6 +348,39 @@ When complete the project workspace should look like:
 ##### Gradle Scripts
 `Gradle` is a build system which follows a "convention over configuration" style. Each project has its own Kotlin build script named `gradle-build.kts`.
 
+#### Bluetooth
+Programmatic access to Bluetooth requires a interface to the Odroid's
+bluetooth library `libbluetooth.so` (BlueZ 5.48).
+An excellent introduction is a book by Albert Huang
+of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
+ Starting with Albert's examples and relying
+heavily on lessons learned trying to implement the various packages
+mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
+daemon using RFCOMM. It communicates with the Java application over sockets and
+the tablet via Bluetooth.
+Its sole purpose is to transfer strings between the tablet and Odroid.
+The tablet uses standard Android Bluetooth classes.
+
+On the development machine, in the _IntelliJ_ Configuration project, the ``install_odroid_source.sh`` script
+copies C source files onto the Odroid in preparation for building _blueserverd_, the
+daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
+the correct robot home directory on the Odroid).
+
+Then to build on the Odroid, from the directory containing the source projects -
+```
+  cd blueserver
+  make -e
+  make install
+  cd ${BERT_HOME}/bin
+  sudo ./install_blueserver_init_scripts.sh
+```
+
+Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
+
+The init script launches the Bluetooth Serial Port service which is a necessary
+prerequisite for running the daemon. Connection difficulties may arise if too many bluetooth-enabled
+devices are in range leading to incorrect pairings. If so, the Odroid system may report
+"DbusFailedError: host is down".
 
 ##### Execution Scripts
 The `Configuration` project has a collection of *bash* scripts and other configuration files as described below. When the project is built these files will be properly placed into `$BERT_HOME`.
@@ -374,41 +407,6 @@ The `Configuration` project has a collection of *bash* scripts and other configu
 
 ##### Python
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
-
-
-##### Bluetooth
-Programmatic access to Bluetooth requires a interface to the Odroid's
-bluetooth library `libbluetooth.so` (BlueZ 5.48).
-An excellent introduction is a book by Albert Huang
-of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
- Starting with Albert's examples and relying
-heavily on lessons learned trying to implement the various packages
-mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
-daemon using RFCOMM. It communicates with the Java application over sockets and
-the tablet via Bluetooth.
-Its sole purpose is to transfer strings between the tablet and Odroid.
-The tablet uses standard Android Bluetooth classes.
-
-On the development machine, in the _Eclipse_ Build project, the ``install_odroid_source.sh`` script
-copies C source files onto the Odroid in preparation for building _blueserverd_, the
-daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
-the correct robot home directory on the Odroid).
-
-Then to build on the Odroid, from the directory containing the source projects -
-```
-  cd blueserver
-  make -e
-  make install
-  cd ${BERT_HOME}/bin
-  sudo ./install_blueserver_init_scripts.sh
-```
-
-Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
-
-The init script launches the Bluetooth Serial Port service which is a necessary
-prerequisite for running the daemon. Connection difficulties may arise if too many bluetooth-enabled
-devices are in range leading to incorrect pairings. If so, the Odroid system may report
-"DbusFailedError: host is down".
 
 
 ### Android Studio <a id="android"></a>

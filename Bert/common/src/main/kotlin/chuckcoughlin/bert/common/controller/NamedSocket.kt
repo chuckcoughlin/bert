@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.common.controller
 
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.util.BertFormatter
 import java.io.*
 import java.net.ServerSocket
 import java.net.Socket
@@ -243,8 +244,14 @@ class NamedSocket {
                 LOGGER.info(String.format("%s.readLine: got %s",CLSS, text))
             }
             else {
-                LOGGER.warning(String.format("%s.readLine: Attempt to read from %s before port is open )ignored)",
+                LOGGER.warning(String.format("%s.readLine: Attempt to read from %s before port is open, waiting 10 secs)",
                         CLSS,name))
+                BertFormatter().printStackTrace()
+                try {
+                    Thread.sleep(10000L)
+                }
+                catch (ignore: InterruptedException) {
+                }
             }
         }
         catch (ioe: IOException) {
