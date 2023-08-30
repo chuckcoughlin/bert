@@ -3,15 +3,19 @@ plugins {
     java
     `java-library`
 }
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(18))
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    antlr("org.antlr:antlr4:4.7.1")
-    implementation(files("syntax.jar"))
-    //testImplementation("org.antlr:antlr-runtime-4.7.2")
+    implementation(files("../libs/antlr-runtime-4.7.2.jar"))
+    antlr("org.antlr:antlr4:4.11.1")
 }
 
 // Run ANTLR lexer/parser on the .g4 source file, generating Java.

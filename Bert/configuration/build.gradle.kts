@@ -23,7 +23,6 @@ tasks {
     register("install", Copy::class) {
         println("Configuration: Install registered for " + System.getenv("BERT_HOME"))
         outputs.upToDateWhen { false }  // Always run task
-        setDestinationDir(file(System.getenv("BERT_HOME")))
         val tokens = mapOf("version" to "2.3.1")
         inputs.properties(tokens)
 

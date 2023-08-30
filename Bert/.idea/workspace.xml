@@ -6,12 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Joint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Joint.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util/ShutdownHook.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util/ShutdownHook.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/speech/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/speech/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/syntax/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/syntax/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -109,16 +106,17 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;18&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/configuration/src/main/bin&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/bertApp/libs&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.51724136&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.kotlinCompiler&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/bertApp/libs" />
       <recent name="$PROJECT_DIR$/configuration/src/main/bin" />
       <recent name="$PROJECT_DIR$/app" />
       <recent name="$PROJECT_DIR$/lib" />
@@ -245,18 +243,13 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/syntax/build.gradle.kts</url>
-          <line>9</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt</url>
           <line>344</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt</url>
-          <line>332</line>
+          <line>333</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
