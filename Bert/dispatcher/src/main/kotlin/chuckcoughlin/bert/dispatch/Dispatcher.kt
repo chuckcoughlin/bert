@@ -146,7 +146,7 @@ class Dispatcher(s:Solver) : Controller {
         }
     }
 
-    override suspend fun stop() {
+     override fun stop() {
         if( running ) {
             running = false
             motorGroupController.stop()

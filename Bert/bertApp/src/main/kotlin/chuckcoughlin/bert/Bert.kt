@@ -5,6 +5,7 @@
 package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.PathConstants
+import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
@@ -18,7 +19,7 @@ import java.util.logging.Logger
 
 class Bert() {
     private val CLSS = "Bert"
-    val USAGE = "Usage: bert <robot_root>"
+    val USAGE = "Usage: bert [-o] <robot_root>"
     val LOGGER = Logger.getLogger(CLSS)
     val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
 }
@@ -26,7 +27,7 @@ class Bert() {
  * Entry point for the main application that receives commands, processes
  * them through the serial interfaces to the motors and returns results.
  *
- * Usage: Usage: bertApp <robot_root>
+ * Usage: Usage: bertApp [-o] <robot_root>
  *
  * @param args command-line arguments
  */
@@ -38,8 +39,28 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
 
+    var arg = ConfigurationConstants.NO_VALUE
+    var offline = true
+    var error = true
     // Analyze command-line argument to obtain the robot root directory.
-    val arg = args[0]
+    // -o implies "offline", no serial or bluetooth communication
+    for( a:String in args) {
+        if(a.startsWith("-")) {   // Option
+            if( a.equals("-o")) offline = true
+            else {
+               break
+            }
+        }
+        else {
+            arg = a
+            error = false
+            break
+        }
+    }
+    if( error) {
+        println(app.USAGE)
+        System.exit(1)
+    }
     val path = Paths.get(arg)
     PathConstants.setHome(path)
     // Setup logging to use only a file appender to our logging directory
@@ -48,6 +69,8 @@ fun main(args: Array<String>) {
     // any configurable robot parameters.
     RobotModel.startup(PathConstants.CONFIG_PATH)
     RobotModel.populate() // Analyze the xml for controllers and motors
+    RobotModel.online = !offline
+    //
     Database.startup(PathConstants.DB_PATH)
     val solver = Solver()
     solver.configure(RobotModel.motors, PathConstants.URDF_PATH)

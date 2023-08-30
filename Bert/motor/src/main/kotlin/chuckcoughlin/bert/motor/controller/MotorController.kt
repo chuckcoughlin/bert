@@ -14,6 +14,7 @@ import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.model.RobotModel.online
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import jssc.SerialPort
 import jssc.SerialPortEvent
@@ -56,7 +57,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private val configurationsById: MutableMap<Int, MotorConfiguration>
     private val configurationsByJoint: MutableMap<Joint, MotorConfiguration>
     private var parentRequestChannel = req
-    private var parentResponseChannel = rsp
     private val lock: Lock
     private var remainder: ByteArray? = null
     private val requestQueue // requests waiting to be processed
@@ -89,27 +89,27 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
     override suspend fun start() {
         LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
-                    CLSS, controllerName, port.getPortName()))
-        if (!port.isOpened()) {
+                    CLSS, controllerName, port.portName))
+        if (!port.isOpened) {
             try {
                 val success: Boolean = port.openPort()
-                if (success && port.isOpened()) {
+                if (success && port.isOpened) {
                     port.setParams(BAUD_RATE, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
-                    port.setEventsMask(SerialPort.MASK_RXCHAR)
+                    port.eventsMask = SerialPort.MASK_RXCHAR
                     port.purgePort(SerialPort.PURGE_RXCLEAR)
                     port.purgePort(SerialPort.PURGE_TXCLEAR)
-                    port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN or SerialPort.FLOWCONTROL_RTSCTS_OUT)
+                    port.flowControlMode = SerialPort.FLOWCONTROL_RTSCTS_IN or SerialPort.FLOWCONTROL_RTSCTS_OUT
                     port.addEventListener(this)
                 }
                 else {
                     LOGGER.severe(String.format(
                         "%s.initialize: Failed to open port %s for %s",
-                        CLSS, port.getPortName(), controllerName))
+                        CLSS, port.portName, controllerName))
                 }
             }
             catch (spe: SerialPortException) {
                 LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",
-                    CLSS, port.getPortName(), controllerName, spe.getLocalizedMessage()))
+                    CLSS, port.portName, controllerName, spe.getLocalizedMessage()))
                 return
             }
             LOGGER.info(String.format("%s.initialize: Initialized port %s)", CLSS, port.getPortName()))
@@ -141,13 +141,13 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
     }
 
-    override suspend fun stop() {
+    override fun stop() {
         try {
             port.closePort()
         }
         catch (spe: SerialPortException) {
             LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",
-                    CLSS,controllerName,spe.getLocalizedMessage()))
+                    CLSS,controllerName,spe.localizedMessage))
         }
         running = false
     }
@@ -500,7 +500,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             if (request.duration < duration) request.duration = duration
             wrapper.responseCount = 0 // No response
         }
-        else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+        else if (type==RequestType.LIST_MOTOR_PROPERTY) {
             val limb = request.limb
             val prop = request.jointDynamicProperty
             if( limb.equals(Limb.NONE) ) {
@@ -513,7 +513,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 wrapper.responseCount = configs.size // Status packet for each motor in limb
             }
         }
-        else if (type.equals(RequestType.SET_POSE)) {
+        else if (type==RequestType.SET_POSE) {
             val poseName: String = request.pose
             list = DxlMessage.byteArrayListToSetPose(configurationsByJoint, poseName)
             val duration: Long = DxlMessage.mostRecentTravelTime
@@ -539,21 +539,21 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * @param msg the request
      */
     private suspend fun synthesizeResponse(msg: MessageBottle) {
-        if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
-            msg.type.equals(RequestType.SET_POSE)) {
+        if (msg.type==RequestType.INITIALIZE_JOINTS ||
+            msg.type==RequestType.SET_POSE) {
             motorManager.handleSynthesizedResponse(msg)
         }
         else if (msg.type.equals(RequestType.COMMAND)) {
             val cmd: CommandType = msg.command
-            if (cmd.equals(CommandType.FREEZE) ||
-                cmd.equals(CommandType.RELAX) ) {
+            if (cmd==CommandType.FREEZE ||
+                cmd==CommandType.RELAX ) {
                 motorManager.handleSynthesizedResponse(msg) }
             else {
                 LOGGER.severe(String.format("%s.synthesizeResponse: Unhandled response for command %s", CLSS, cmd))
                 motorManager.handleSingleControllerResponse(msg) // Probably an error
             }
         }
-        else if (msg.type.equals(RequestType.SET_LIMB_PROPERTY)) {
+        else if (msg.type==RequestType.SET_LIMB_PROPERTY) {
             motorManager.handleSingleControllerResponse(msg)
         }
         else {
@@ -583,7 +583,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             val property = request.jointDynamicProperty
             DxlMessage.updateParameterFromBytes(property, mc!!, request, bytes)
             val partial = request.text
-            if (partial != null && !partial.isEmpty()) {
+            if (partial.isNotEmpty()) {
                 request.text = String.format("My %s %s is %s",
                     Joint.toText(joint),property.name.lowercase(Locale.getDefault()),partial)
             }
@@ -614,7 +614,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
 	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL
 	 */
     private fun writeBytesToSerial(bytes: ByteArray) {
-        if( bytes.size > 0 ) {
+        if( online and (bytes.size>0) ) {
             try {
                 val now = System.nanoTime() / 1000000
                 val interval = now - timeOfLastWrite
@@ -698,7 +698,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                                 val param = map[key]
                                 val joint = configurationsById[key]!!.joint
                                 req.addJointValue(joint,prop, param!!.toDouble())
-                                wrapper!!.decrementResponseCount()
+                                wrapper.decrementResponseCount()
                                 LOGGER.info(
                                     String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
                                         CLSS, controllerName, prop.name, wrapper.responseCount, param) )

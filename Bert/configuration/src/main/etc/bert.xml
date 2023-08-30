@@ -12,6 +12,8 @@
 	<property name="date">@DATE@</property>
 	<!--  Cadence in msecs refers to the record frequency  -->
 	<property name="cadence">1000</property>
+	<!--  When offline there is neither Bluetooth nor Serial communication  -->
+	<property name="online">true</property>
 
 	<!-- Controllers are objects that handle communication between various parts
 	     of the application. The controllers defined here have special attributes.

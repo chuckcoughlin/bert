@@ -56,7 +56,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         }
     }
 
-    override suspend fun stop() {
+    override fun stop() {
         if( running ) {
             timedQueue.stop()
             running = false

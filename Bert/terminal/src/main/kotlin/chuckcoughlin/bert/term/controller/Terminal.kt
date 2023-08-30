@@ -81,7 +81,7 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
         }
     }
 
-    override suspend fun stop() {
+    override fun stop() {
         if( running ) {
             scope.cancel()
             Database.shutdown()

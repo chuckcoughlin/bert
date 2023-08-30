@@ -1,8 +1,10 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
+
+import java.util.logging.Logger
 
 /**
  * These are the canonical names for the joints of the humanoid.
@@ -15,6 +17,8 @@ enum class Joint {
     RIGHT_KNEE_Y, RIGHT_SHOULDER_X, RIGHT_SHOULDER_Y, NONE;
 
     companion object {
+        private val CLSS = "Joint"
+        private val LOGGER = Logger.getLogger(CLSS)
         /**
          * Convert the Joint enumeration to text that can be pronounced.
          * @param joint the enumeration
@@ -66,13 +70,14 @@ enum class Joint {
 
         /**
          * The enumeration function valueOf appears to always throw an exception.
-         * This is the replacement. Case insensitive.
+         * This is the replacement and is case insensitive.
          */
         fun fromString(arg: String): Joint {
             val j: Joint
             for (j in values()) {
                 if (j.name.equals(arg, true)) return j
             }
+            LOGGER.warning(String.format("%s.fromString: no match for %s",CLSS,arg ))
             return NONE
         }
     }

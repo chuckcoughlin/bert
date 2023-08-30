@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  * Configures a java.util.logging Logger to use our log directory.
  */
@@ -37,6 +37,13 @@ class BertFormatter() : Formatter() {
             }
         }
         return sb.toString()
+    }
+    fun printStackTrace() {
+        kotlin.runCatching {
+            throw Exception()
+        }.onFailure {
+            it.printStackTrace()
+        }
     }
 
     val DATE_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS "

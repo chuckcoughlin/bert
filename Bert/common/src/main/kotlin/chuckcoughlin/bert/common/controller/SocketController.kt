@@ -7,8 +7,13 @@ package chuckcoughlin.bert.common.controller
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -83,7 +88,7 @@ open class SocketController : Controller {
         }
     }
 
-    override suspend fun stop() {
+    override fun stop() {
         scope.cancel()
         if (runner != null) {
             LOGGER.info(String.format("%s.stopping ... %s", CLSS, socket.name))

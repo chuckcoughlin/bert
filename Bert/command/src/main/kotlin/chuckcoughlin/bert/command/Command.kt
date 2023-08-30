@@ -14,8 +14,13 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.sql.db.Database
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -41,6 +46,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
 
     private val scope = MainScope() // Uses Dispatchers.Main
     private var ignoring : Boolean
+    private val online: Boolean
     private var running:Boolean
 
     /**
@@ -64,19 +70,21 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
                              * Send them to the Bluetooth socket
                              */
                             responseChannel.onReceive() {
-                                tabletSocket.receiveResponse(it)   // stdOut
+                                if(online) tabletSocket.receiveResponse(it)
                             }
                             /**
                              * Read from bluetooth, blocked. Use ANTLR to convert text into requests.
                              * Forward requests to the Terminal launcher.
                              */
                             async {
-                                val msg = tabletSocket.receiveRequest()
-                                if (isLocalRequest(msg)) {
-                                    handleLocalRequest(msg)
-                                }
-                                else {
-                                    requestChannel.send(msg)
+                                if( online ) {
+                                    val msg = tabletSocket.receiveRequest()
+                                    if (isLocalRequest(msg)) {
+                                        handleLocalRequest(msg)
+                                    }
+                                    else  {
+                                        requestChannel.send(msg)
+                                    }
                                 }
                             }
                         }
@@ -89,7 +97,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         }
     }
 
-    override suspend fun stop() {
+    override fun stop() {
         if( running ) {
             running = false
             scope.cancel()
@@ -147,5 +155,6 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_PORT,port))
         val socket = NamedSocket(socketName,port.toInt())
         tabletSocket = BluetoothSocket(socket)
+        online = RobotModel.online
     }
 }

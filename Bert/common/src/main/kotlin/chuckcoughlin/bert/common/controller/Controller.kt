@@ -15,5 +15,5 @@ interface Controller {
 
     suspend fun start()
     // Closes all resources including channels
-    suspend fun stop()
+    fun stop()
 }

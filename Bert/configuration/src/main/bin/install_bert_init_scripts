@@ -2,18 +2,11 @@
 # Update the system init scripts using those in ${BERT_HOME}/bin.
 # Run as super-user
 export BERT_HOME=/usr/local/robot
-if [ -e /etc/init.d/bert-command ]
+if [ -e /etc/init.d/bert-server ]
 then
-	/etc/init.d/bert-command stop
-fi
-if [ -e /etc/init.d/bert-dispatch ]
-then
-	/etc/init.d/bert-dispatch stop
+	/etc/init.d/bert-server stop
 fi
 cd ${BERT_HOME}/bin
-cp bert-command /etc/init.d
-cp bert-dispatch /etc/init.d
-chmod 755 /etc/init.d/bert-command
-chmod 755 /etc/init.d/bert-dispatch
-update-rc.d bert-command defaults
-update-rc.d bert-dispatch defaults
+cp bert-server /etc/init.d
+chmod 755 /etc/init.d/bert-server
+update-rc.d bert-server defaults

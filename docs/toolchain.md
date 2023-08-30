@@ -353,15 +353,18 @@ When complete the project workspace should look like:
 The `Configuration` project has a collection of *bash* scripts and other configuration files as described below. When the project is built these files will be properly placed into `$BERT_HOME`.
 
 `bin`
+ - bert-blueserver -        Init script for startup of the bluetooth server
+ - bert-server -            Init script for startup of the "bert" robot code
  - clear_logs.sh -          Remove current log files in preparation for the next test sequence.
- - run_bert.sh -            Execute the "bertApp" application on the build system
- - unpack_distribution.sh - This script is executed as a final step by the build. It unpacks the distribution package from the build into bin and lib directories in the distribution directory of ROBOT_HOME on the build machine.
+ - run_bert.sh -            Execute "bertApp" from the command line.
+ - test_bert.sh -           Execute "bertApp" in offline mode (no bluetooth nor serial) for testing.
+ - unpack_distribution.sh - This script is executed as a final step by the build. It unpacks the distribution package from the build area into bin and lib directories in the distribution directory of ROBOT_HOME on the build machine.
 
 `csv`
 
 `etc`
- - bert.xml -                Robot properties including a list of all controllable joints.
- - urdf.xml -                A complete description of the skeletal connectivity.
+ - bert.xml -                Robot properties including a list of all controllable joints
+ - urdf.xml -                A complete description of the skeletal connectivity
 
 `pylib`
 

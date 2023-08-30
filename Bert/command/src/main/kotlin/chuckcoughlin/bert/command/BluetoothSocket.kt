@@ -10,6 +10,7 @@ import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
 import java.util.logging.Logger
@@ -65,11 +66,11 @@ class BluetoothSocket(sock:NamedSocket)  {
      * 3) Parent sends to the dispatcher
      *
      * There is only one kind of message that we recognize. Anything
-     * else is an error.
+     * else is an error. We skip this altogether if we're in development mode.
      */
     fun receiveRequest() : MessageBottle {
         var msg: MessageBottle = MessageBottle(RequestType.NONE)
-        while(true) {
+        while(true and !RobotModel.online) {
             var text: String? = socket.readLine() // Strips trailing new-line
             if (text == null || text.isEmpty()) {
                 try {
