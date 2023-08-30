@@ -89,7 +89,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
     override suspend fun start() {
         LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
-                    CLSS, controllerName, port.portName))
+            CLSS, controllerName, port.portName))
         if (!port.isOpened) {
             try {
                 val success: Boolean = port.openPort()
@@ -147,7 +147,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
         catch (spe: SerialPortException) {
             LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",
-                    CLSS,controllerName,spe.localizedMessage))
+                CLSS,controllerName,spe.localizedMessage))
         }
         running = false
     }
@@ -187,12 +187,12 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 else {
                     val property: JointDynamicProperty = request.jointDynamicProperty
                     LOGGER.info(String.format("%s(%s).receiveRequest: %s (%s)",
-                            CLSS,controllerName,request.type.name,property.name))
+                        CLSS,controllerName,request.type.name,property.name))
                 }
             }
             else {
                 LOGGER.info(String.format("%s(%s).receiveRequest: multi-controller request (%s)",
-                        CLSS,controllerName,request.type.name))
+                    CLSS,controllerName,request.type.name))
             }
             requestQueue.addLast(request)
             // LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
@@ -210,7 +210,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      *
      * Integer.toHexString(this.hashCode())
      */
-     suspend fun receiveSerialResponse() {
+    suspend fun receiveSerialResponse() {
         while (running) {
             lock.lock()
             try {
@@ -257,8 +257,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         if (request.type.equals(RequestType.COMMAND)) {
             val command: CommandType = request.command
             LOGGER.warning(String.format(
-                    "%s(%s).createResponseForLocalRequest: command=%s",
-                    CLSS,controllerName,command.name) )
+                "%s(%s).createResponseForLocalRequest: command=%s",
+                CLSS,controllerName,command.name) )
             if (command.equals(CommandType.RESET)) {
                 remainder = null // Resync after dropped messages.
                 responseQueue.clear()
@@ -299,7 +299,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             return true
         }
         else if (msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) &&
-                (!msg.controller.isEmpty() || !msg.limb.equals(Limb.NONE))) {
+            (!msg.controller.isEmpty() || !msg.limb.equals(Limb.NONE))) {
             return true
         }
         return false
@@ -330,7 +330,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
     private fun returnsStatusArray(msg: MessageBottle): Boolean {
         return if (msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-                  msg.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
             true
         }
         else {
@@ -466,12 +466,12 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             }
             else {
                 LOGGER.warning(String.format("%s.messageToBytes: Empty property value - ignored (%s)",
-                            CLSS, type.name) )
+                    CLSS, type.name) )
             }
         }
         else if (type.equals(RequestType.NONE)) {
-                LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
-                        CLSS, type.name ) )
+            LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
+                CLSS, type.name ) )
         }
         else {
             LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",
@@ -558,7 +558,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
         else {
             LOGGER.severe(String.format("%s.synthesizeResponse: Unhandled response for %s",
-                    CLSS, msg.type.name))
+                CLSS, msg.type.name))
             motorManager.handleSingleControllerResponse(msg) // Probably an error
         }
     }
@@ -623,23 +623,23 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                     //LOGGER.info(String.format("%s(%s).writeBytesToSerial: Slept %d msecs",CLSS,controllerName,MIN_WRITE_INTERVAL-interval));
                 }
                 LOGGER.info(String.format("%s(%s).writeBytesToSerial: Write interval %d msecs",
-                        CLSS, controllerName,interval))
+                    CLSS, controllerName,interval))
                 val success: Boolean = port.writeBytes(bytes)
                 timeOfLastWrite = System.nanoTime() / 1000000
                 port.purgePort(SerialPort.PURGE_RXCLEAR or SerialPort.PURGE_TXCLEAR) // Force the write to complete
                 if (!success) {
                     LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Failed write of %d bytes to %s",
-                            CLSS,controllerName, bytes.size,port.getPortName()) )
+                        CLSS,controllerName, bytes.size,port.getPortName()) )
                 }
             }
             catch (ie: InterruptedException) {
                 LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Interruption writing to %s (%s)",
-                        CLSS,controllerName,
-                        port.getPortName(),ie.localizedMessage))
+                    CLSS,controllerName,
+                    port.getPortName(),ie.localizedMessage))
             }
             catch (spe: SerialPortException) {
                 LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Error writing to %s (%s)",
-                        CLSS,controllerName,port.getPortName(),spe.getLocalizedMessage() ) )
+                    CLSS,controllerName,port.getPortName(),spe.getLocalizedMessage() ) )
             }
         }
     }
@@ -662,63 +662,61 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             // The value is the number of bytes in the read buffer
             val byteCount: Int = event.getEventValue()
             LOGGER.info(String.format("%s(%s).serialEvent (%s) %s: expect %d msgs got %d bytes",
-                    CLSS,controllerName,event.getPortName(),
-                    if (req == null) "" else req.type.name,
-                    wrapper?.responseCount ?: 0, byteCount) )
+                CLSS,controllerName,event.portName,req.type.name,
+                wrapper?.responseCount ?: 0, byteCount) )
             if (byteCount > 0) {
                 try {
                     var bytes: ByteArray = port.readBytes(byteCount)
                     bytes = prependRemainder(bytes)
-                    bytes = DxlMessage.ensureLegalStart(bytes) // null if no start characters
-                    if (bytes != null) {
-                        var nbytes = bytes.size
-                        LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",
-                                CLSS,controllerName, DxlMessage.dump(bytes)))
-                        val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
-                        if (mlen < 0 || nbytes < mlen) {
-                            LOGGER.info( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
-                                    CLSS,controllerName,nbytes))
-                            return
+                    bytes = DxlMessage.ensureLegalStart(bytes) // never null
+                    var nbytes = bytes.size
+                    LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",
+                        CLSS,controllerName, DxlMessage.dump(bytes)))
+                    val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
+                    if (mlen < 0 || nbytes < mlen) {
+                        LOGGER.info( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
+                            CLSS,controllerName,nbytes))
+                        return
+                    }
+                    else if (DxlMessage.errorMessageFromStatus(bytes) != null) {
+                        LOGGER.severe( String.format("%s(%s).serialEvent: ERROR: %s",
+                            CLSS,DxlMessage.errorMessageFromStatus(bytes)) )
+                        if (req.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
+                    }
+                    if(returnsStatusArray(req)) {  // Some requests return a message for each motor
+                        var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
+                        if (nmsgs > wrapper!!.responseCount) nmsgs = wrapper.responseCount
+                        nbytes = nmsgs * STATUS_RESPONSE_LENGTH
+                        if (nbytes < bytes.size) {
+                            bytes = truncateByteArray(bytes, nbytes)
                         }
-                        else if (DxlMessage.errorMessageFromStatus(bytes) != null) {
-                            LOGGER.severe( String.format("%s(%s).serialEvent: ERROR: %s",
-                                    CLSS,DxlMessage.errorMessageFromStatus(bytes)) )
-                            if (req.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
+                        val prop= req.jointDynamicProperty
+                        val map = updateStatusFromBytes(prop, bytes)
+                        for (key in map.keys) {
+                            val param = map[key]
+                            val joint = configurationsById[key]!!.joint
+                            req.addJointValue(joint,prop, param!!.toDouble())
+                            wrapper.decrementResponseCount()
+                            LOGGER.info(
+                                String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
+                                    CLSS, controllerName, prop.name, wrapper.responseCount, param) )
                         }
-                        if(returnsStatusArray(req)) {  // Some requests return a message for each motor
-                            var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
-                            if (nmsgs > wrapper!!.responseCount) nmsgs = wrapper.responseCount
-                            nbytes = nmsgs * STATUS_RESPONSE_LENGTH
-                            if (nbytes < bytes.size) {
-                                bytes = truncateByteArray(bytes, nbytes)
-                            }
-                            val prop= req.jointDynamicProperty
-                            val map = updateStatusFromBytes(prop, bytes)
-                            for (key in map.keys) {
-                                val param = map[key]
-                                val joint = configurationsById[key]!!.joint
-                                req.addJointValue(joint,prop, param!!.toDouble())
-                                wrapper.decrementResponseCount()
-                                LOGGER.info(
-                                    String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
-                                        CLSS, controllerName, prop.name, wrapper.responseCount, param) )
+                    }
+                    if (wrapper!!.responseCount <= 0) {
+                        responseQueue.removeFirst()
+                        if (isSingleControllerRequest(req)) {
+                            updateRequestFromBytes(req, bytes)
+                            runBlocking {
+                                motorManager.handleSingleControllerResponse(req)
                             }
                         }
-                        if (wrapper!!.responseCount <= 0) {
-                            responseQueue.removeFirst()
-                            if (isSingleControllerRequest(req)) {
-                                updateRequestFromBytes(req, bytes)
-                                runBlocking {
-                                    motorManager.handleSingleControllerResponse(req)
-                                }
-                            }
-                            else {
-                                runBlocking {
-                                    motorManager.handleAggregatedResponse(req)
-                                }
+                        else {
+                            runBlocking {
+                                motorManager.handleAggregatedResponse(req)
                             }
                         }
                     }
+
                 }
                 catch (ex: SerialPortException) {
                     System.out.println(ex)
@@ -744,7 +742,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
     private fun prependRemainder(bytes: ByteArray): ByteArray {
         if(remainder == null) return bytes
-        val combination = ByteArray(remainder!!.size + bytes!!.size)
+        val combination = ByteArray(remainder!!.size + bytes.size)
         System.arraycopy(remainder!!, 0, combination, 0, remainder!!.size)
         System.arraycopy(bytes, 0, combination, remainder!!.size, bytes.size)
         remainder = null

@@ -13,12 +13,9 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
-import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.util.*
 import java.util.logging.Logger
 
@@ -51,8 +48,8 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
      */
     override suspend fun start() {
         if( !running ) {
+            LOGGER.info(String.format("%s: started...", CLSS))
             running = true
-            val br = BufferedReader(InputStreamReader(System.`in`))
             runBlocking<Unit> {
                 launch {Dispatchers.IO
                     while(running) {
@@ -69,7 +66,7 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
                              * Forward requests to the dispatcher.
                              */
                             async {
-                                handleUserInput(br)
+                                handleUserInput()
                             }
                         }
                     }
@@ -84,10 +81,7 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
     override fun stop() {
         if( running ) {
             scope.cancel()
-            Database.shutdown()
-            LOGGER.warning(String.format("%s: exiting...", CLSS))
             running = false
-            System.exit(0)
         }
     }
 
@@ -107,26 +101,24 @@ class Terminal(parent: Controller,req: Channel<MessageBottle>,rsp: Channel<Messa
      * Convert the text into a MessageBottle and forward
      * it to the dispatcher.
      */
-    suspend fun handleUserInput(br:BufferedReader) {
-        val input = br.readLine()
-        if( input!=null) {
-            val text = input
-            System.out.println(prompt)
-            if( text.isNotEmpty() ) {
-                LOGGER.info(String.format("%s:parsing %s", CLSS, text))
-                val request = parser.parseStatement(text)
-                if( request.error.isNotEmpty() ||
-                    request.type.equals(RequestType.NOTIFICATION) ) {
-                    displayMessage(request)   // Take care of locally to stdOut
-                }
-                else if(isLocalRequest(request)) {
-                    val msg = handleLocalRequest(request)
-                    requestChannel.send(msg)
-                }
-                else {
-                    requestChannel.send(request)
-                }
+    suspend fun handleUserInput() {
+        print(prompt)
+        val text = readln()
+        if( text.isNotEmpty() ) {
+            LOGGER.info(String.format("%s:parsing %s", CLSS, text))
+            val request = parser.parseStatement(text)
+            if( request.error.isNotEmpty() ||
+                request.type.equals(RequestType.NOTIFICATION) ) {
+                displayMessage(request)   // Take care of locally to stdOut
             }
+            else if(isLocalRequest(request)) {
+                val msg = handleLocalRequest(request)
+                requestChannel.send(msg)
+            }
+            else {
+                requestChannel.send(request)
+            }
+
         }
     }
 

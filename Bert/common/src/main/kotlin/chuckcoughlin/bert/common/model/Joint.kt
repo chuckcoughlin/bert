@@ -73,8 +73,7 @@ enum class Joint {
          * This is the replacement and is case insensitive.
          */
         fun fromString(arg: String): Joint {
-            val j: Joint
-            for (j in values()) {
+            for (j:Joint in values()) {
                 if (j.name.equals(arg, true)) return j
             }
             LOGGER.warning(String.format("%s.fromString: no match for %s",CLSS,arg ))

@@ -8,11 +8,7 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
@@ -146,17 +142,23 @@ class Dispatcher(s:Solver) : Controller {
         }
     }
 
-     override fun stop() {
+    /**
+     * Stop the entire application.
+      * The logger has no effect in the shutdown handler, this the use
+      * of println.
+     */
+    override fun stop() {
+        println("Dispatcher.stop()")
         if( running ) {
             running = false
             motorGroupController.stop()
-            LOGGER.info(String.format("%s.stop: Shutting down motors ...", CLSS))
+            println(String.format("%s.stop: Shut down motors ...", CLSS))
             commandController.stop()
-            LOGGER.info(String.format("%s.stop: Shutting down bluetooth connection ...", CLSS))
+            println(String.format("%s.stop: Shut down bluetooth connection ...", CLSS))
             terminalController.stop()
-            LOGGER.info(String.format("%s.stop: Shutting down termina ...", CLSS))
+            println(String.format("%s.stop: Shut down terminal ...", CLSS))
             internalController.stop()
-            LOGGER.info(String.format("%s.stop: Shutting down dispatcher ...", CLSS))
+            println(String.format("%s.stop: Shut down dispatcher ...", CLSS))
             commandRequestChannel.close()
             commandResponseChannel.close()
             internalRequestChannel.close()
@@ -165,11 +167,10 @@ class Dispatcher(s:Solver) : Controller {
             mgcResponseChannel.close()
             terminalRequestChannel.close()
             terminalResponseChannel.close()
-            LOGGER.info(String.format("%s.stop: complete.", CLSS))
+            Database.shutdown()
+            println(String.format("%s.stop: complete.", CLSS))
         }
     }
-
-
 
     // ========================================= Helper Methods =======================================
     /**
@@ -231,7 +232,7 @@ class Dispatcher(s:Solver) : Controller {
 
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
+            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
             val walker = request.getJointValueIterator()
             for( jpv in walker ) {
                 val value = jpv.value
@@ -355,7 +356,7 @@ class Dispatcher(s:Solver) : Controller {
             return true
         }
         else if( request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
+            request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
             val walker = request.getJointValueIterator()
             for( jpv in walker ) {
                 if( jpv.value.equals(BottleConstants.ON_VALUE )) return true
@@ -363,7 +364,7 @@ class Dispatcher(s:Solver) : Controller {
             return false
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
+            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
             val walker = request.getJointValueIterator()
             for( jpv in walker ) {
                 if( jpv.value.equals(BottleConstants.ON_VALUE )) return true
@@ -470,7 +471,7 @@ class Dispatcher(s:Solver) : Controller {
      *    Internal - where multiple or repeating messages are required for a single user request.
      *    MotorController - make serial requests to the motors
      *    Terminal - communicate directly with the user console
-    */
+     */
     init {
         commandRequestChannel = Channel<MessageBottle>()
         commandResponseChannel= Channel<MessageBottle>()
