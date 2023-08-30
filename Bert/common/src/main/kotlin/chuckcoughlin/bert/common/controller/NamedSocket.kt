@@ -245,12 +245,13 @@ class NamedSocket {
             }
             else {
                 LOGGER.warning(String.format("%s.readLine: Attempt to read from %s before port is open (waiting 10 secs)",
-                        CLSS,name))
+                    CLSS, name))
                 BertFormatter().printStackTrace()
                 try {
                     Thread.sleep(10000L)
                 }
-                catch(ignore:InterruptedException) {}
+                catch (ignore: InterruptedException) {
+                }
             }
         }
         catch (ioe: IOException) {
