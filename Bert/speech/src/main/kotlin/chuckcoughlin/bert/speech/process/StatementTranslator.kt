@@ -978,7 +978,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // aliases in one place. The name may be plural in some settings.
     private fun determineJointProperty(name: String): JointDynamicProperty {
         var pname = name
-        var result: JointDynamicProperty = JointDynamicProperty.NONE
         if (pname.endsWith("s") || pname.endsWith("S")) {
             pname = pname.substring(0, pname.length - 1).uppercase(Locale.getDefault())
         }
@@ -996,8 +995,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else if (pname.equals("torque", ignoreCase = true))        pname = "TORQUE"
         else if (pname.equals("velocity", ignoreCase = true))      pname = "SPEED"
         else if (pname.equals("velocitie", ignoreCase = true))     pname = "SPEED"
-        result = JointDynamicProperty.valueOf(pname.uppercase(Locale.getDefault()))
-        return result
+        return JointDynamicProperty.fromString(pname)
     }
 
     // Determine the specific limb from the body part and side. (Side is not always needed).

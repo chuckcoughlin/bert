@@ -4,6 +4,8 @@
  */
 package chuckcoughlin.bert.common.model
 
+import java.util.logging.Logger
+
 /**
  * These are properties of a stepper motor that are modifiable
  * at runtime. These all have numeric values.
@@ -19,7 +21,10 @@ enum class JointDynamicProperty {
     VOLTAGE,
     NONE;
 
+
     companion object {
+        private val CLSS = "JointDynamicProperty"
+        private val LOGGER = Logger.getLogger(CLSS)
         /**
          * @return  a comma-separated list of all property types in a single String.
          */
@@ -29,6 +34,18 @@ enum class JointDynamicProperty {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement and is case insensitive.
+         */
+        fun fromString(arg: String): JointDynamicProperty {
+            for (prop:JointDynamicProperty in JointDynamicProperty.values()) {
+                if (prop.name.equals(arg, true)) return prop
+            }
+            JointDynamicProperty.LOGGER.warning(String.format("%s.fromString: no match for %s", JointDynamicProperty.CLSS,arg ))
+            return JointDynamicProperty.NONE
         }
     }
 }

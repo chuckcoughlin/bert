@@ -407,6 +407,47 @@ The `Configuration` project has a collection of *bash* scripts and other configu
 *ANTLR* is a parsing framework used for understanding natural language. Use the plugin available from the
 *IntelliJ* settings page.
 
+##### Modularized Jar Files
+A few of the jar files were not available as `gradle` dependencies or were built using a too-old version of Java. These were updated manually for Java10 module compatibility.
+
+Thanks to [Michael Easter](https://github.com/codetojoy/easter_eggs_for_java_9/blob/master/egg_34_stack_overflow_47727869/run.sh) for the following example that shows how to modularize the ``Jackson`` jar files.
+A local directory holding the class files is taken as the root directory. This example uses 3 original non-modularized *Jackson* jar files have been downloaded into ``jars`as the starting point. Modularized results will be stored into ``mods``. In this particular example the modules are inter-dependent. In simpler cases only the first third of these steps are applicable.
+```
+   ROOT=`pwd`
+   jdeps --generate-module-info work jars/jackson-core-2.9.7.jar
+   cp jars/jackson-core-2.9.7.jar mods/jackson-core.jar
+   rm -rf classes
+   mkdir classes
+   cd classes
+   jar -xf ${ROOT}/jars/jackson-core-2.9.7.jar
+   cd ${ROOT}/work/com.fasterxml.jackson.core
+   javac -p jackson.core -d ${ARCHIVE}/classes module-info.java
+   jar -uf ${ROOT}/mods/jackson-core.jar -C ${ROOT}/classes module-info.class
+
+   cd $ROOT
+   jdeps --generate-module-info work jars/jackson-annotations-2.9.7.jar
+   cp jars/jackson-annotations-2.9.7.jar mods/jackson-annotations.jar
+   rm -rf classes
+   mkdir classes
+   cd classes
+   jar -xf ${ROOT}/jars/jackson-annotations-2.9.7.jar
+   cd ${ROOT}/work/com.fasterxml.jackson.annotation
+   javac -p jackson.annotations -d ${ROOT}/classes module-info.java
+   jar -uf ${ROOT}/mods/jackson-annotations.jar -C ${ROOT}/classes module-info.class
+
+   cd $ROOT
+   jdeps --module-path ${generationrobots}/mods --add-modules com.fasterxml.jackson.annotation,com.fasterxml.jackson.core --generate-module-info work jars/jackson-databind-2.9.7.jar
+   cp jars/jackson-databind-2.9.7.jar mods/jackson-databind.jar
+   rm -rf classes
+   mkdir classes
+   cd classes
+   jar -xf ${ROOT}/jars/jackson-databind-2.9.7.jar
+   cd ${ROOT}/work/com.fasterxml.jackson.databin
+   javac --module-path ${ARCHIVE}/mods --add-modules com.fasterxml.jackson.annotation,com.fasterxml.jackson.core -d ${ARCHIVE}/classes module-info.java
+   jar -uf ${ROOT}/mods/jackson-databind.jar -C ${ROOT}/classes module-info.class
+   ${ROOT}
+   rm -rf work classes
+```
 
 ##### Python
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:

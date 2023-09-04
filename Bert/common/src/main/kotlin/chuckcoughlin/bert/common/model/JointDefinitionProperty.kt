@@ -4,6 +4,8 @@
  */
 package chuckcoughlin.bert.common.model
 
+import java.util.logging.Logger
+
 /**
  * These are properties that define a stepper motor.
  * These are defined in the URDF file and are not
@@ -17,6 +19,8 @@ enum class JointDefinitionProperty {
     NONE;
 
     companion object {
+        private val CLSS = "JointDefinitionProperty"
+        private val LOGGER = Logger.getLogger(CLSS)
         /**
          * @return  a comma-separated list of all property types in a single String.
          */
@@ -26,6 +30,19 @@ enum class JointDefinitionProperty {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement and is case insensitive.
+         */
+        fun fromString(arg: String): JointDefinitionProperty {
+            for (prop:JointDefinitionProperty in JointDefinitionProperty.values()) {
+                if (prop.name.equals(arg, true)) return prop
+            }
+            JointDefinitionProperty.LOGGER.warning(String.format("%s.fromString: no match for %s",
+                JointDefinitionProperty.CLSS,arg ))
+            return JointDefinitionProperty.NONE
         }
     }
 }

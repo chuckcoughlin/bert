@@ -14,5 +14,5 @@ dependencies {
     implementation(project(":database"))
     implementation(project(":syntax"))
     implementation(files("../libs/antlr-runtime-4.7.2.jar"))
-    implementation(files("syntax.jar"))
+    //implementation(files("../libs/syntax.jar"))
 }

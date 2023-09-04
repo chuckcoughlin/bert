@@ -1,7 +1,8 @@
+import org.jetbrains.kotlin.js.translate.context.Namer.kotlin
+
 plugins {
     antlr
-    java
-    `java-library`
+    id("java-library")
 }
 java {
     toolchain {
@@ -14,8 +15,14 @@ repositories {
 }
 
 dependencies {
-    implementation(files("../libs/antlr-runtime-4.7.2.jar"))
     antlr("org.antlr:antlr4:4.11.1")
+}
+
+//kotlin {
+//    jvmToolchain {
+//        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(18))
+//   }
+
 }
 
 // Run ANTLR lexer/parser on the .g4 source file, generating Java.
@@ -34,6 +41,9 @@ tasks.generateGrammarSource {
     finalizedBy(listOf("jar"))
 }
 
+tasks.classes {
+
+}
 // Generates libs/syntax.jar after executing run-configuration bert:syntax[jar]
 tasks.jar {
     doLast {
@@ -42,7 +52,7 @@ tasks.jar {
         // Put the jar file in a public place
         copy {
             from("${buildDir}/libs/syntax.jar")
-            into("${buildDir}/../libs/syntax.jar")
+            into("${buildDir}/../../libs/syntax.jar")
         }
         println("syntax:jar task complete.")
     }
