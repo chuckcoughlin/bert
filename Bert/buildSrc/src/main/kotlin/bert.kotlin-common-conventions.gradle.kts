@@ -7,6 +7,11 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(18))
+    }
+}
 // Use Maven Central for resolving dependencies.
 repositories {
     mavenCentral()

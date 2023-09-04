@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.js.translate.context.Namer.kotlin
-
 plugins {
     antlr
     id("java-library")
@@ -18,19 +16,13 @@ dependencies {
     antlr("org.antlr:antlr4:4.11.1")
 }
 
-//kotlin {
-//    jvmToolchain {
-//        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(18))
-//   }
-
-}
-
 // Run ANTLR lexer/parser on the .g4 source file, generating Java.
 // Result is build/generated-src, then compiled into build/classes
 tasks.generateGrammarSource {
     maxHeapSize = "64m"
     arguments = arguments + listOf("-visitor", "-long-messages", "-package", "chuckcoughlin.bert.syntax")
     // Keep a copy of generated sources
+    /*
     doLast {
         println("Copying generated grammar lexer/parser files to main directory.")
         copy {
@@ -38,6 +30,7 @@ tasks.generateGrammarSource {
             into("generated-src/main/java")
         }
     }
+    */
     finalizedBy(listOf("jar"))
 }
 
@@ -48,12 +41,15 @@ tasks.classes {
 tasks.jar {
     doLast {
         println("syntax:jar task ....")
+        /*
         from(listOf("${buildDir}/classes/java/main"))
         // Put the jar file in a public place
         copy {
             from("${buildDir}/libs/syntax.jar")
             into("${buildDir}/../../libs/syntax.jar")
         }
+
+         */
         println("syntax:jar task complete.")
     }
 }
