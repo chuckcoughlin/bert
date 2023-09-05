@@ -176,7 +176,8 @@ The N2 has 4 USB slots that are used for:
 
 A keyboard/mouse combination is useful for development and debugging, but not required for operation of the robot.
 
-The initial root password is `root/odroid` or `odroid/odroid`. Change passwords to provide minimal security. Check initial filesystem sizes. Ours seemed to be okay. There seemed to be no need to extend the root partition.
+The initial root password is `root/odroid` or `odroid/odroid`. Change passwords to provide some minimal security. Check initial filesystem sizes. Ours seemed to be okay. There seemed to be no need to extend the root partition. Follow any system upgrade suggestion.
+We upgraded to Ubuntu 22.04.3 LTS.
 
 Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
 Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
@@ -190,14 +191,12 @@ Set the timezone:
   sudo dpkg-reconfigure tzdata
 ```
 
-Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Under the Preferences menu, Network Connections, edit the WiFi connection that is live. On the IPV4 Settings tab, change the Method: to "Manual". Add a static address, e.g. 192.168.1.20; 255.255.255.0; 192.168.1.1. Restart the machine. When running again,
-make sure you can ping the new address from a different machine.
-
-In the same dialog, set Domain Name Servers, comma-separated. These two will work, but there are others:
+Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Using the MATE desktop, under the main menu, Preferences/Network Configuration, edit the WiFi connection that is live. On the IPV4 tab, change the Method: to "Manual". Add a static address, e.g. 10.0.0.42; 255.255.255.0; 10.0.0.1. In the same dialog, set Domain Name Servers, comma-separated.
 ```
-  8.8.8.8
-  8.8.4.4
+  75.75.75.75
+  75.75.76.76
 ```
+Validate these setting by inspecting another machine on the same network.
 
 Set the hostname to "bert":
 ```
@@ -209,6 +208,13 @@ Make sure these lines exist in `/etc/ssh/sshd_config`.
 PubkeyAuthentication yes
 AuthorizedKeysFile .ssh/authorized_keys
 ```
+
+Restart the `odroid`. When running again,
+make sure you can ping the new address from a different machine.
+
+
+
+
 
 Next, on each remote, generate SSH keys (if not already done).
 ```
