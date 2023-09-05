@@ -1,4 +1,5 @@
 plugins {
+    base
     antlr
     id("java-library")
 }
@@ -21,6 +22,13 @@ dependencies {
 tasks.generateGrammarSource {
     maxHeapSize = "64m"
     arguments = arguments + listOf("-visitor", "-long-messages", "-package", "chuckcoughlin.bert.syntax")
+}
+
+
+tasks {
+    getByName<Delete>("clean") {
+        delete.add("generated-src") // add accepts argument with Any type
+    }
 }
 
 

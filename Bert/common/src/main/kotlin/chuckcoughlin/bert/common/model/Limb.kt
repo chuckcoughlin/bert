@@ -79,7 +79,6 @@ enum class Limb {
          * This is the replacement. Case insensitive.
          */
         fun fromString(arg: String): Limb {
-            val limb: Limb
             for (limb in Limb.values()) {
                 if (limb.name.equals(arg, true)) return limb
             }

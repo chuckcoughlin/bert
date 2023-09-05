@@ -19,3 +19,9 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
 }
+
+tasks {
+    getByName<Delete>("clean") {
+        delete.add("build") // add accepts argument with Any type
+    }
+}

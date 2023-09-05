@@ -38,7 +38,6 @@ enum class ControllerType {
          * This is the replacement. It is case-insensitive,
          */
         fun fromString(arg: String): ControllerType {
-            val type: ControllerType
             for (type in ControllerType.values()) {
                 if (type.name.equals(arg, true)) return type
             }

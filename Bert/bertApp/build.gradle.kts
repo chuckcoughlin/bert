@@ -27,3 +27,10 @@ tasks.named("jar") { finalizedBy("distTar") }
 application {
     mainClass.set("chuckcoughlin.bert.BertKt")
 }
+
+tasks {
+    getByName<Delete>("clean") {
+        delete.add("build") // add accepts argument with Any type
+        delete.add("../libs") // add accepts argument with Any type
+    }
+}
