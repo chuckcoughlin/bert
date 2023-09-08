@@ -191,7 +191,7 @@ Set the timezone:
   sudo dpkg-reconfigure tzdata
 ```
 
-Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Using the MATE desktop, under the main menu, Preferences/Network Configuration, edit the WiFi connection that is live. On the IPV4 tab, change the Method: to "Manual". Add a static address, e.g. 10.0.0.42; 255.255.255.0; 10.0.0.1. In the same dialog, set Domain Name Servers, comma-separated.
+Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Using the MATE desktop, under the main menu, Preferences/Network Configuration, edit the WiFi connection that is live. On the IPV4 tab, change the Method: to "Manual". Add a static address, e.g. 10.0.0.42; 255.255.255.0; 10.0.0.1. In the same dialog, set Domain Name Servers, comma-separated. Depending on the network, another common address choice might be: 192.168.1.42.
 ```
   75.75.75.75
   75.75.76.76
@@ -203,40 +203,36 @@ Set the hostname to "bert":
   sudo hostnamectl set-hostname bert
 ```
 
-Make sure these lines exist in `/etc/ssh/sshd_config`.
+Restart the `odroid`. When running again,
+make sure you can ping the new address from a different machine.
+
+Next, make sure these lines exist in `/etc/ssh/sshd_config`.
 ```
 PubkeyAuthentication yes
 AuthorizedKeysFile .ssh/authorized_keys
 ```
 
-Restart the `odroid`. When running again,
-make sure you can ping the new address from a different machine.
 
-
-
-
-
-Next, on each remote, generate SSH keys (if not already done).
+Then on each remote, generate SSH keys (if not already done).
 ```
   ssh-keygen  (use default location, no password)
 ```
 Also on each remote system, add to `/etc/hosts`:
 ```
-  192.168.1.20 bert
+  10.0.0.42 bert
 ```
-Then, also on each remote system (appropriately replacing the username),
+Also on each remote system (appropriately replacing the username),
 ```
   cd ~/.ssh
   ssh-copy-id -i id_rsa.pub chuckc@bert
 ```
 
-Install some missing tools and update the system. We have found that the *apt* commands repeatedly throw our wi-fi router off-line, so these commands were all executed using a direct ethernet connection.
+Install some missing tools and update the system (at the time of this writing the LTS version was 22.0.2). If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute these commands using a direct ethernet connection.
 ```
   sudo apt install rsync
   sudo apt install vsftpd
   sudo apt install firefox
   sudo apt install sqlite3
-  sudo apt install vsftp
   sudo apt install libjssc-java
   sudo apt-get install libbluetooth-dev
   sudo apt-get update
@@ -284,7 +280,8 @@ Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy
 ##### Java
 The Java JVM is used to run the application even though it is written in Kotlin. Download the latest Java Development (JDK) version using:
 ```
-  sudo apt install openjdk-11-jdk-headless
+  sudo apt update
+  sudo apt install openjdk-18-headless
 ```
 Installing the JDK allows us to compile on the Odroid, if necessary. Of course,
 we also need the runtime. Unfortunately at the time of this writing, OpenJDK-11 installs Java 10.0.2.
