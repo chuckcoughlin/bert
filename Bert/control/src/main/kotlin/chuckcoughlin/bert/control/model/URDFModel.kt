@@ -157,13 +157,8 @@ class URDFModel {
                         childIndex++
                     }
                     val rev = LinkPoint(joint, ijk!!, xyz!!)
-                    LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
-                            joint.name,
-                            xyz[0],
-                            xyz[1],
-                            xyz[2]
-                        )
-                    )
+                    if(DEBUG) LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
+                            joint.name,xyz[0],xyz[1],xyz[2]))
                     if (parent != null) {
                         val parentLink = chain.getLinkForLimbName(parent)
                         chain.setEndPoint(parentLink!!.name, rev)
@@ -217,8 +212,8 @@ class URDFModel {
                         CLSS,text,nfe.localizedMessage ) )
             }
         }
-        //LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]));
-        //LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]));
+        if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]));
+        if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]));
         return result
     }
 
@@ -244,6 +239,7 @@ class URDFModel {
 
 
     private val CLSS = "URDFModel"
+    private val DEBUG = false
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {

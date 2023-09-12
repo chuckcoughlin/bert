@@ -51,7 +51,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
      * A few messages are intercepted that cause a quick shutdown. These are direct responses
      * to user input, like "shutdown".
      */
-    override suspend fun start() {
+    override suspend fun execute() {
         if( !running ) {
             running = online
             runBlocking<Unit> {
@@ -91,7 +91,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         }
     }
 
-    override fun stop() {
+    override fun shutdown() {
         if( running ) {
             running = false
             scope.cancel()

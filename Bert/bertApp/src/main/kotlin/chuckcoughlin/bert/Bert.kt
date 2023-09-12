@@ -77,7 +77,7 @@ fun main(args: Array<String>) {
     val dispatcher = Dispatcher(solver)
     Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
     runBlocking {
-        dispatcher.start()
+        dispatcher.execute()
     }
 }
 

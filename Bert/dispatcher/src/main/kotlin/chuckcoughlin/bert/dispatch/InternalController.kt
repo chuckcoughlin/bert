@@ -29,7 +29,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
     private var running:Boolean
     private var index:Long          // Sequence of a message
 
-    override suspend fun start() {
+    override suspend fun execute() {
         if( !running ) {
             timedQueue.start()
             running = true
@@ -56,7 +56,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         }
     }
 
-    override fun stop() {
+    override fun shutdown() {
         if( running ) {
             timedQueue.stop()
             running = false

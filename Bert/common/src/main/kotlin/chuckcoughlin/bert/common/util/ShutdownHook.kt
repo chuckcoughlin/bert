@@ -17,7 +17,7 @@ class ShutdownHook(private val controller: Controller) : Thread() {
     override fun run() {
         println(String.format("\n%s: shutting down %s...", CLSS, controller.controllerName))
         try {
-            controller.stop()
+            controller.shutdown()
         }
         catch(e:Exception) {
             println(String.format("\n%s: ERROR in shutdown %s", CLSS, e.localizedMessage))

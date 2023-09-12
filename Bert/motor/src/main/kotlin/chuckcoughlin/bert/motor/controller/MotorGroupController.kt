@@ -47,7 +47,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     /**
      * Start a motor controller for each port.
      */
-    override suspend fun start() {
+    override suspend fun execute() {
         LOGGER.info(String.format("%s(%s).start: Initializing ...",CLSS, controllerName))
 
         // Port is open, now use it.
@@ -77,7 +77,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         }
     }
 
-    override fun stop() {
+    override fun shutdown() {
         running = false
     }
 

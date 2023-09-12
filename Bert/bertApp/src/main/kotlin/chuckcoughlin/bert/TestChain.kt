@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
     setMotorPositions()
     val solver = Solver()
     solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
-    val chain: Chain = solver.getModel().chain
+    val chain: Chain = solver.model.chain
     val root = chain.root
     println(String.format("%s: root = %s ", CLSS, root!!.name))
     // Test the links to some appendages

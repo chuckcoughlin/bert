@@ -62,7 +62,7 @@ open class SocketController : Controller {
      * and the user. A few messages are intercepted that cause a
      * quick shutdown. These are direct responses to user input, like "shutdown".
      */
-    override suspend fun start() {
+    override suspend fun execute() {
         running = true
         val rdr = BackgroundReader(socket)
         runner = Thread(rdr)
@@ -88,7 +88,7 @@ open class SocketController : Controller {
         }
     }
 
-    override fun stop() {
+    override fun shutdown() {
         scope.cancel()
         if (runner != null) {
             LOGGER.info(String.format("%s.stopping ... %s", CLSS, socket.name))

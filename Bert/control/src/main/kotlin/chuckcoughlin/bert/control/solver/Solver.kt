@@ -16,19 +16,12 @@ import java.util.logging.Logger
  * This class handles various computations pertaining to the robot,
  * including: trajectory planning. Note that the same link object
  * may belong to several chains.
+ *
+ * The URDFModel is the tree of links which describes the robot.
  */
 class Solver {
-    private val model: URDFModel
+    val model: URDFModel
     private var motorConfigurations: Map<Joint, MotorConfiguration>
-
-
-
-    /**
-     * @return the tree of links which describes the robot.
-     */
-    fun getModel(): URDFModel {
-        return model
-    }
 
     /**
      * Traverse the tree, setting the current angles from the

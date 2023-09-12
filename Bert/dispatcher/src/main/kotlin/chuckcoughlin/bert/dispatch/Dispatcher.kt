@@ -42,13 +42,13 @@ class Dispatcher(s:Solver) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
     // Communication channels
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from Bluetooth
-    private val commandResponseChannel     : Channel<MessageBottle>
+    private val commandResponseChannel     : Channel<MessageBottle>    // Response to Bluetooth
     private val internalRequestChannel     : Channel<MessageBottle>    // Internal (i.e. local)  controller
     private val internalResponseChannel    : Channel<MessageBottle>
     private val mgcRequestChannel          : Channel<MessageBottle>    // Motor group controller
     private val mgcResponseChannel         : Channel<MessageBottle>
-    private val terminalRequestChannel     : Channel<MessageBottle>    // Commands from stdin/stdout
-    private val terminalResponseChannel    : Channel<MessageBottle>
+    private val stdinChannel               : Channel<MessageBottle>    // Requests from stdin
+    private val stdoutChannel               : Channel<MessageBottle>    // Responses to stdout
     // Controllers
     private val commandController   : Controller
     private var internalController  : InternalController
@@ -68,15 +68,15 @@ class Dispatcher(s:Solver) : Controller {
      * On startup, initiate a short message sequence to bring the robot into a sane state.
      * The init{} block takes care of controller creation
      */
-    override suspend fun start()  {
+    override suspend fun execute()  {
         if( !running ) {
             running = true
-            commandController.start()
-            terminalController.start()
-            internalController.start()
+            commandController.execute()
+            terminalController.execute()
+            internalController.execute()
             // Motor Group Controller
-            LOGGER.info(String.format("%s.execute: starting motorGroupController", CLSS))
-            motorGroupController.start()
+            LOGGER.info(String.format("%s.strst: Dispatcher", CLSS))
+            motorGroupController.execute()
 
             // Set the speed to "normal" rate. Delay to all startup to complete
             var msg = MessageBottle(RequestType.SET_POSE)
@@ -117,28 +117,32 @@ class Dispatcher(s:Solver) : Controller {
                         select<Unit> {
                             // Reply to the original requestor when we get a result from the motor controller
                             mgcResponseChannel.onReceive() {     // Handle a serial response
+                                if(DEBUG) LOGGER.info(String.format("%s.start: from mcg = %s",CLSS,it.text));
                                 replyToSource(it)
                             }
                             // When we get a response from the internal controller, dispatch the original request.
                             internalResponseChannel.onReceive() {// The internal controller has completed
+                                if(DEBUG) LOGGER.info(String.format("%s.start: from internal = %s",CLSS,it.text));
                                 dispatchRequest(it)
                             }
                             // The Bluetooth response channel contains requests that originate on the connected app
                             commandResponseChannel.onReceive() {
+                                if(DEBUG) LOGGER.info(String.format("%s.start: from command = %s",CLSS,it.text));
                                 dispatchRequest(it)
                             }
-                            // The Terminal response channel contains requests from commands typed at the terminal
-                            terminalResponseChannel.onReceive() {
+                            // The Terminal stdin channel contains requests typed at the terminal
+                            stdinChannel.onReceive() {
+                                if(DEBUG) LOGGER.info(String.format("%s.start: from terminal = %s",CLSS,it.text));
                                 dispatchRequest(it)
                             }
                         }
                     }
                 }
             }
-            LOGGER.info(String.format("%s.start: startup complete.", CLSS))
+            LOGGER.info(String.format("%s.execute: execution complete.", CLSS))
         }
         else {
-            LOGGER.warning(String.format("%s.start: Attempted to start, but Dispatcher is already running.", CLSS))
+            LOGGER.warning(String.format("%s.execute: Attempted to start, but Dispatcher is already running.", CLSS))
         }
     }
 
@@ -147,17 +151,17 @@ class Dispatcher(s:Solver) : Controller {
       * The logger has no effect in the shutdown handler, this the use
       * of println.
      */
-    override fun stop() {
-        println("Dispatcher.stop()")
+    override fun shutdown() {
+        println("Dispatcher.shutdown()")
         if( running ) {
             running = false
-            motorGroupController.stop()
+            motorGroupController.shutdown()
             println(String.format("%s.stop: Shut down motors ...", CLSS))
-            commandController.stop()
+            commandController.shutdown()
             println(String.format("%s.stop: Shut down bluetooth connection ...", CLSS))
-            terminalController.stop()
+            terminalController.shutdown()
             println(String.format("%s.stop: Shut down terminal ...", CLSS))
-            internalController.stop()
+            internalController.shutdown()
             println(String.format("%s.stop: Shut down dispatcher ...", CLSS))
             commandRequestChannel.close()
             commandResponseChannel.close()
@@ -165,8 +169,8 @@ class Dispatcher(s:Solver) : Controller {
             internalResponseChannel.close()
             mgcRequestChannel.close()
             mgcResponseChannel.close()
-            terminalRequestChannel.close()
-            terminalResponseChannel.close()
+            stdinChannel.close()
+            stdoutChannel.close()
             Database.shutdown()
             println(String.format("%s.stop: complete.", CLSS))
         }
@@ -177,8 +181,9 @@ class Dispatcher(s:Solver) : Controller {
      * Analyze an incoming message and determine what to do with it. Ultimately it will be placed in
      * the appropriate response channel.
      */
+
     private suspend fun dispatchRequest(msg : MessageBottle) {
-        //LOGGER.info(String.format("%s: Starting run loop ...",CLSS));
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchRequest ...",CLSS));
         val startCycle = System.currentTimeMillis()
         LOGGER.info(String.format("%s: Cycle %d ...", CLSS, cycleCount))
         // "internal" requests are those that need to be queued on the internal controller
@@ -255,6 +260,7 @@ class Dispatcher(s:Solver) : Controller {
     // Create a response for a request that can be handled immediately. The response is simply the original request
     // with some text to return back to the user. 
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
+        LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
         // The following two requests simply use the current positions of the motors, whatever they are
         if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
             solver.setTreeState() // Forces new calculations
@@ -297,7 +303,7 @@ class Dispatcher(s:Solver) : Controller {
         }
         else if (request.type.equals(RequestType.COMMAND)) {
             val command = request.command
-            LOGGER.warning(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
+            LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
             if( command.equals(CommandType.HALT) ) {
                 System.exit(0) // Rely on ShutdownHandler cleanup connections
             }
@@ -411,7 +417,7 @@ class Dispatcher(s:Solver) : Controller {
             commandResponseChannel.send(response)
         }
         else if (source.equals(ControllerType.TERMINAL.name, ignoreCase = true)) {
-            terminalResponseChannel.send(response)
+            stdoutChannel.send(response)
         }
         else {
             // There should be no routings to Dispatcher, Internal or MotorController
@@ -426,7 +432,7 @@ class Dispatcher(s:Solver) : Controller {
         LOGGER.info(String.format("%s: Bert is ready ... (to %s)", CLSS, sourceName))
         startMessage.source = sourceName
         commandResponseChannel.send(startMessage)
-        terminalResponseChannel.send(startMessage)
+        stdoutChannel.send(startMessage)
     }
 
     /**
@@ -460,6 +466,7 @@ class Dispatcher(s:Solver) : Controller {
     )
 
     private val CLSS = "Dispatcher"
+    private val DEBUG = true
     private val LOGGER = Logger.getLogger(CLSS)
     private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
     override val controllerName = CLSS
@@ -479,13 +486,13 @@ class Dispatcher(s:Solver) : Controller {
         internalResponseChannel = Channel<MessageBottle>()
         mgcRequestChannel  = Channel<MessageBottle>()
         mgcResponseChannel = Channel<MessageBottle>()
-        terminalRequestChannel  = Channel<MessageBottle>()
-        terminalResponseChannel = Channel<MessageBottle>()
+        stdinChannel  = Channel<MessageBottle>()
+        stdoutChannel = Channel<MessageBottle>()
 
         commandController    = Command(this,commandRequestChannel,commandResponseChannel)
         internalController    = InternalController(this,internalRequestChannel,internalResponseChannel)
         motorGroupController = MotorGroupController(this,mgcRequestChannel,mgcResponseChannel)
-        terminalController    = Terminal(this,terminalRequestChannel,terminalResponseChannel)
+        terminalController    = Terminal(this,stdinChannel,stdoutChannel)
 
         running = false
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)

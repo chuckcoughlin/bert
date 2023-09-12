@@ -13,8 +13,10 @@ repositories {
     mavenCentral()
 }
 
+// Ran into an inconsistency in runtime when using ANTLR 4.11.1
+// The error manifested itself at runtime
 dependencies {
-    antlr("org.antlr:antlr4:4.11.1")
+    antlr("org.antlr:antlr4:4.7.2")
 }
 
 // Run ANTLR lexer/parser on the .g4 source file, generating Java.

@@ -13,7 +13,7 @@ interface Controller {
     val controllerName: String
     val controllerType: ControllerType
 
-    suspend fun start()
+    suspend fun execute()
     // Closes all resources including channels
-    fun stop()
+    fun shutdown()
 }

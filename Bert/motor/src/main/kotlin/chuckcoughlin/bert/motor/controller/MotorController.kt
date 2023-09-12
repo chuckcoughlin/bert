@@ -87,7 +87,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * 2) sets travel speeds to "normal"
      * 3) moves any limbs that are "out-of-bounds" back into range.
      */
-    override suspend fun start() {
+    override suspend fun execute() {
         LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
             CLSS, controllerName, port.portName))
         if (!port.isOpened) {
@@ -141,7 +141,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
     }
 
-    override fun stop() {
+    override fun shutdown() {
         try {
             port.closePort()
         }
