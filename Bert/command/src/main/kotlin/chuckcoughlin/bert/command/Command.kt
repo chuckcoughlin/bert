@@ -13,8 +13,13 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -91,7 +96,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         }
     }
 
-    override fun shutdown() {
+    override suspend fun shutdown() {
         if( running ) {
             running = false
             scope.cancel()

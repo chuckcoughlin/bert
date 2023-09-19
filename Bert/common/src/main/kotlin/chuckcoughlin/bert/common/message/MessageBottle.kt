@@ -34,7 +34,6 @@ data class MessageBottle (var type:RequestType) : Serializable {
     private var jointValues : MutableList<JointPropertyValue>   // Property values for one or more motors
     var appendage: Appendage // Message applies to this appendage
     var command : CommandType
-    var controller: String   // Name of controller to handle request. Important for serial controllers
     var error : String       // Error message if not blank
     var handler: ControllerType // The subsystem to handle this message
     var joint : Joint        // Request applies to this joint (if one)
@@ -45,6 +44,7 @@ data class MessageBottle (var type:RequestType) : Serializable {
     var jointDynamicProperty: JointDynamicProperty         // Possible subject of the original request
     var source: String       // Origin of message
     var text : String        // Pronounceable text of a response
+    var control : ExecutionControl  // Parameters dealing with execution of the message
 
     /**
      * Set the number of millisecs that the motion commanded by this
@@ -142,7 +142,6 @@ data class MessageBottle (var type:RequestType) : Serializable {
         appendage   = Appendage.NONE
         jointValues = mutableListOf<JointPropertyValue>()
         command     = CommandType.NONE
-        controller  = BottleConstants.NO_CONTROLLER
         error   =  BottleConstants.NO_ERROR   // No error
         handler = ControllerType.UNDEFINED
         joint = Joint.NONE                  // Name of relavant joint
@@ -153,5 +152,6 @@ data class MessageBottle (var type:RequestType) : Serializable {
         jointDynamicProperty = JointDynamicProperty.NONE
         source = BottleConstants.NO_SOURCE
         text  = ""   // Text is the printable response
+        control = ExecutionControl()
     }
 }

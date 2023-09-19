@@ -15,5 +15,5 @@ interface Controller {
 
     suspend fun execute()
     // Closes all resources including channels
-    fun shutdown()
+    suspend fun shutdown()
 }

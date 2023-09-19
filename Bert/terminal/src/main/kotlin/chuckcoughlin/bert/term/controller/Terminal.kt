@@ -16,7 +16,6 @@ import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.selects.select
 import java.util.*
 import java.util.logging.Logger
 
@@ -38,41 +37,35 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
     private var stdoutChannel = stdout   // Dispatcher->Terminal  (dispatcher response for display)
     private var prompt:String
 
-    private val scope = MainScope() // Uses Dispatchers.Main
+    private val scope = GlobalScope // For long-running coroutines
     private var ignoring : Boolean
     private var running:Boolean
 
     /**
      * While running, this controller processes messages between the Dispatcher
-     * and a user terminal. A few messages are intercepted that cause a
-     * quick shutdown. These are direct responses to user input, like "shutdown".
+     * and a user terminal. A few messages are intercepted that totally local
+     * in nature (SLEEP,WAKE).
      */
-    override suspend fun execute() {
+    override suspend fun execute() : Unit = coroutineScope{
         if( !running ) {
-            LOGGER.info(String.format("%s: started...", CLSS))
+            LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            runBlocking<Unit> {
-                launch {Dispatchers.IO
-                    while(running) {
-                        select<Unit> {
-                            /**
-                             * These are responses coming from the Dispatcher
-                             * Simply display them.
-                             */
-                            stdoutChannel.onReceive() {
-                                if(DEBUG) LOGGER.info(String.format("%s.execute received response: %s", CLSS,it.text))
-                                displayMessage(it)   // stdOut
-                            }
-                            /**
-                             * Read from stdin, blocked. Use ANTLR to convert text into requests.
-                             * Forward requests to the dispatcher.
-                             */
-                            async {
-                                if(DEBUG) LOGGER.info(String.format("%s.execute: waiting for user input", CLSS))
-                                handleUserInput()
-                            }
-                        }
-                    }
+            /* Coroutine to write responses from the Dispatcher to stdout
+             */
+            scope.launch(Dispatchers.IO) {
+                while( running ) {
+                    val msg = stdoutChannel.receive()
+                    if (DEBUG) LOGGER.info(String.format("%s.execute received response: %s", CLSS, msg.text))
+                    displayMessage(msg)   // stdOut
+                }
+            }
+            /* Read from stdin, blocked. Use ANTLR to convert text into requests.
+             * Forward requests to the dispatcher.
+             */
+            scope.launch(Dispatchers.IO) {
+                while(running) {
+                    if (DEBUG) LOGGER.info(String.format("%s.execute: waiting for user input", CLSS))
+                    handleUserInput()
                 }
             }
         }
@@ -81,10 +74,10 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         }
     }
 
-    override fun shutdown() {
+    override suspend fun shutdown() {
         if( running ) {
-            scope.cancel()
             running = false
+            scope.cancel()
         }
     }
 
@@ -101,8 +94,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
     }
     /**
      * Read directly from stdin.
-     * Convert the text into a MessageBottle and forward
-     * it to the dispatcher.
+     * Convert the text into a MessageBottle and forward to the dispatcher.
      */
     suspend fun handleUserInput() {
         print(prompt)

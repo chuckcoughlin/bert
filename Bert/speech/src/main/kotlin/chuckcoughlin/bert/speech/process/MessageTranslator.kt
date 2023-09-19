@@ -81,7 +81,7 @@ class MessageTranslator {
                     }
                 }
                 else if (type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
-                    val controllerName: String = msg.controller
+                    val controllerName: String = msg.control.controller
                     val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                     if( iterator.hasNext() ) {
                         val propertyName: String = iterator.next().property.name

@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.common.util
 
 import chuckcoughlin.bert.common.controller.Controller
+import kotlinx.coroutines.runBlocking
 
 /**
  * Register this class with the Runtime to cleanup sockets on a
@@ -16,15 +17,17 @@ import chuckcoughlin.bert.common.controller.Controller
 class ShutdownHook(private val controller: Controller) : Thread() {
     override fun run() {
         println(String.format("\n%s: shutting down %s...", CLSS, controller.controllerName))
-        try {
-            controller.shutdown()
-        }
-        catch(e:Exception) {
-            println(String.format("\n%s: ERROR in shutdown %s", CLSS, e.localizedMessage))
-        }
+        runBlocking {
+            try {
+                controller.shutdown()
+            }
+            catch (e: Exception) {
+                println(String.format("\n%s: ERROR in shutdown %s", CLSS, e.localizedMessage))
+            }
 
-        println(String.format("\n%s: shutdown complete.", CLSS))
-        Runtime.getRuntime().halt(0)
+            println(String.format("\n%s: shutdown complete.", CLSS))
+            Runtime.getRuntime().halt(0)
+        }
     }
 
     val CLSS = "ShutdownHook"

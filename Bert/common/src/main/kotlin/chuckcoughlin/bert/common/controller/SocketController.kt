@@ -88,7 +88,7 @@ open class SocketController : Controller {
         }
     }
 
-    override fun shutdown() {
+    override suspend fun shutdown() {
         scope.cancel()
         if (runner != null) {
             LOGGER.info(String.format("%s.stopping ... %s", CLSS, socket.name))

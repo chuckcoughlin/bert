@@ -4,6 +4,9 @@
  */
 package chuckcoughlin.bert.dispatch
 
+import chuckcoughlin.bert.common.message.ExecutionControl
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import kotlinx.coroutines.runBlocking
 import java.util.*
@@ -18,38 +21,38 @@ import java.util.logging.Logger
  * method is invoked. There is always, at least one dog present in
  * the list, the IDLE dog.
  */
-class TimedQueue(private val ic: InternalController) : LinkedList<InternalMessageHolder>(), Runnable {
+class TimedQueue(private val ic: InternalController) : LinkedList<MessageBottle>(), Runnable {
     protected var stopped = true
     protected var timerThread: Thread? = null
-    protected val idleMessage: InternalMessageHolder
+    protected val idleMessage: MessageBottle
     protected var currentTime: Long = 0
 
     /**
-     * Add a new message (in a holder) to the list ordered by its absolute
+     * Add a new message to the list ordered by its absolute
      * execution time which must be already set.
      * The list is never empty, there is at least the IDLE message.
      * @param msg message to be added
      */
-    fun addMessage(holder: InternalMessageHolder) {
-        insertMessage(holder)
+    fun addMessage(msg: MessageBottle) {
+        insertMessage(msg)
     }
 
     /**
      * Insert a new message into the list in execution order.
      * This list is assumed never to be empty
      */
-    private fun insertMessage(holder: InternalMessageHolder) {
+    private fun insertMessage(msg: MessageBottle) {
         var index = 0
-        val iter: Iterator<InternalMessageHolder> = iterator()
+        val iter: Iterator<MessageBottle> = iterator()
         while (iter.hasNext()) {
             val im = iter.next()
-            if (im.executionTime > holder.executionTime) {
-                add(index, holder)
+            if (im.control.executionTime > msg.control.executionTime) {
+                add(index, msg)
                 val now = System.nanoTime() / 1000000
                 LOGGER.info(String.format(
                         "%s.insertMessage(%d): %s scheduled in %d msecs position %d",
-                        CLSS, holder.id, holder.message.type.name,
-                        holder.executionTime - now, index
+                        CLSS, msg.control.id, msg.type.name,
+                        msg.control.executionTime - now, index
                     )
                 )
                 if (index == 0) timerThread!!.interrupt() // We've replaced the head
@@ -57,7 +60,7 @@ class TimedQueue(private val ic: InternalController) : LinkedList<InternalMessag
             }
             index++
         }
-        addLast(holder)
+        addLast(msg)
     }
 
     /**
@@ -66,16 +69,16 @@ class TimedQueue(private val ic: InternalController) : LinkedList<InternalMessag
      * Otherwise pop the top holder and inform the launcher to execute.
      */
     suspend private fun fireExecutor() {
-        val holder = removeFirst()
-        if (holder.message == null) {
+        val msg = removeFirst()
+        if (msg == null) {
             val now = System.nanoTime() / 1000000
-            holder.executionTime = now + holder.repeatInterval
-            add(holder)
+            msg.control.executionTime = now + msg.control.repeatInterval
+            add(msg)
         }
         else {
-            LOGGER.info(String.format("%s.fireExecutor: dispatching(%d) %s ...",
-                    CLSS, JointDefinitionProperty.ID,holder.message.type.name))
-            ic.dispatchMessage(holder)
+            LOGGER.info(String.format("%s.fireExecutor: dispatching(%s) %s ...",
+                    CLSS, JointDefinitionProperty.ID,msg.type.name))
+            ic.dispatchMessage(msg)
         }
         timerThread!!.interrupt()
     }
@@ -117,12 +120,12 @@ class TimedQueue(private val ic: InternalController) : LinkedList<InternalMessag
         while (!stopped) {
             val now = System.nanoTime() / 1000000 // Work in milliseconds
             val head = first
-            val waitTime = head.executionTime - now
+            val waitTime = head.control.executionTime - now
             try {
                 if (waitTime > 0) {
                     Thread.sleep(waitTime)
                 }
-                currentTime = head.executionTime
+                currentTime = head.control.executionTime
                 if (!stopped) runBlocking{ fireExecutor() }
             } // An interruption allows a recognition of re-ordering the queue
             catch (e: InterruptedException) {
@@ -136,12 +139,12 @@ class TimedQueue(private val ic: InternalController) : LinkedList<InternalMessag
     }
 
     private val CLSS = "TimedQueue"
-    private val IDLE_DELAY = 60000 // One minute
+    private val IDLE_DELAY = 250      // Millisecs
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        idleMessage = InternalMessageHolder()
-        idleMessage.shouldRepeat = true
-        idleMessage.repeatInterval = IDLE_DELAY.toLong()
+        idleMessage = MessageBottle(RequestType.IDLE)
+        idleMessage.control.shouldRepeat = true
+        idleMessage.control.repeatInterval = IDLE_DELAY.toLong()
     }
 }

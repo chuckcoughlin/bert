@@ -8,21 +8,24 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.control.model.QueueName
 import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -43,99 +46,86 @@ class Dispatcher(s:Solver) : Controller {
     // Communication channels
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from Bluetooth
     private val commandResponseChannel     : Channel<MessageBottle>    // Response to Bluetooth
-    private val internalRequestChannel     : Channel<MessageBottle>    // Internal (i.e. local)  controller
-    private val internalResponseChannel    : Channel<MessageBottle>
+    private val fromInternalController     : Channel<MessageBottle>    // Internal (i.e. local)  controller
+    private val toInternalController    : Channel<MessageBottle>
     private val mgcRequestChannel          : Channel<MessageBottle>    // Motor group controller
     private val mgcResponseChannel         : Channel<MessageBottle>
     private val stdinChannel               : Channel<MessageBottle>    // Requests from stdin
-    private val stdoutChannel               : Channel<MessageBottle>    // Responses to stdout
+    private val stdoutChannel              : Channel<MessageBottle>    // Responses to stdout
     // Controllers
     private val commandController   : Controller
     private var internalController  : InternalController
     private val motorGroupController: MotorGroupController
     private var terminalController: Terminal
 
-    private val scope = MainScope() // Uses Dispatchers.Main
+    private val scope = GlobalScope // For long-running coroutines
+    private val online: Boolean
     private var running:Boolean
     private val name: String
     private val solver: Solver = s
     private var cadence = 1000 // msecs
-    private var cycleCount = 0 // messages processed
+    private var cycleCount= 0   // messages processed
     private var cycleTime = 0.0 // msecs,    EWMA
     private var dutyCycle = 0.0 // fraction, EWMA
 
     /**
      * On startup, initiate a short message sequence to bring the robot into a sane state.
-     * The init{} block takes care of controller creation
+     * The init{} block takes care of controller creation, but we start them here.
      */
     override suspend fun execute()  {
+        if(DEBUG) LOGGER.info(String.format("%s.execute: startup ...", CLSS))
         if( !running ) {
             running = true
             commandController.execute()
+            if(DEBUG) LOGGER.info(String.format("%s.execute: command started", CLSS))
             terminalController.execute()
+            if(DEBUG) LOGGER.info(String.format("%s.execute: terminal started", CLSS))
             internalController.execute()
-            // Motor Group Controller
-            LOGGER.info(String.format("%s.strst: Dispatcher", CLSS))
+            if(DEBUG) LOGGER.info(String.format("%s.execute: internal started", CLSS))
             motorGroupController.execute()
+            if(DEBUG) LOGGER.info(String.format("%s.execute: motors started", CLSS))
+            if(DEBUG) LOGGER.info(String.format("%s.execute: controllers started", CLSS))
 
-            // Set the speed to "normal" rate. Delay to all startup to complete
-            var msg = MessageBottle(RequestType.SET_POSE)
-            msg.pose = BottleConstants.POSE_NORMAL_SPEED
-            msg.source = ControllerType.BITBUCKET.name
-            var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
-            holder.delay = 500 // 1/2 sec delay
-            internalController.receiveRequest(holder)
-            // Read all the joint positions, one controller at a time
-            msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.POSITION
-            msg.controller =  BottleConstants.CONTROLLER_LOWER
-            msg.source = ControllerType.BITBUCKET.name
-            holder = InternalMessageHolder(msg, QueueName.GLOBAL)
-            holder.delay = 1000 // 1 sec delay
-            internalController.receiveRequest(holder)
-            msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.POSITION
-            msg.controller = BottleConstants.CONTROLLER_UPPER
-            msg.source = ControllerType.BITBUCKET.name
-            holder = InternalMessageHolder(msg, QueueName.GLOBAL)
-            holder.delay = 1000 // 1 sec delay
-            internalController.receiveRequest(holder)
-            // Bring any joints that are outside sane limits into compliance
-            msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
-            msg.source = ControllerType.BITBUCKET.name
-            holder = InternalMessageHolder(msg, QueueName.GLOBAL)
-            holder.delay = 2000 // 2 sec delay
-            internalController.receiveRequest(holder)
-            // Inform the terminal and command controllers that we're running
-            reportStartup(ControllerType.DISPATCHER.name)
             // =================== Dispatch incoming messages and send to proper receivers =========================
-            runBlocking<Unit> {
-                launch {
-                    Dispatchers.IO
-                    while (running) {
-                        LOGGER.info(String.format("%s: Entering select for cycle %d ...", CLSS, cycleCount))
-                        select<Unit> {
-                            // Reply to the original requestor when we get a result from the motor controller
-                            mgcResponseChannel.onReceive() {     // Handle a serial response
-                                if(DEBUG) LOGGER.info(String.format("%s.start: from mcg = %s",CLSS,it.text));
-                                replyToSource(it)
-                            }
-                            // When we get a response from the internal controller, dispatch the original request.
-                            internalResponseChannel.onReceive() {// The internal controller has completed
-                                if(DEBUG) LOGGER.info(String.format("%s.start: from internal = %s",CLSS,it.text));
-                                dispatchRequest(it)
-                            }
-                            // The Bluetooth response channel contains requests that originate on the connected app
-                            commandResponseChannel.onReceive() {
-                                if(DEBUG) LOGGER.info(String.format("%s.start: from command = %s",CLSS,it.text));
-                                dispatchRequest(it)
-                            }
-                            // The Terminal stdin channel contains requests typed at the terminal
-                            stdinChannel.onReceive() {
-                                if(DEBUG) LOGGER.info(String.format("%s.start: from terminal = %s",CLSS,it.text));
-                                dispatchRequest(it)
+            if(online) {
+                // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
+                scope.launch(Dispatchers.IO) {
+                    withContext(Dispatchers.Default) {
+                        initialize()
+                        LOGGER.info(String.format("%s.execute: initialization complete", CLSS))
+                        // Inform the terminal and command controllers that we're running
+                        reportStartup(ControllerType.DISPATCHER.name)
+                    }
+                }
+
+                scope.launch { Dispatchers.IO
+                    withContext(Dispatchers.Default) {
+                        while (running) {
+                            LOGGER.info(String.format("%s: Entering select for cycle %d ...", CLSS, cycleCount))
+                            select<Unit> {
+                                // Reply to the original requestor when we get a result from the motor controller
+                                mgcResponseChannel.onReceive() {     // Handle a serial response
+                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from mcg = %s", CLSS, it.text));
+                                    replyToSource(it)
+                                }
+                                // When we get a response from the internal controller, dispatch the original request.
+                                fromInternalController.onReceive() { // The internal controller has completed
+                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from internal = %s", CLSS, it.text));
+                                    dispatchRequest(it)
+                                }
+                                // The Bluetooth response channel contains requests that originate on the connected app
+                                commandResponseChannel.onReceive() {
+                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from command = %s", CLSS, it.text));
+                                    dispatchRequest(it)
+                                }
+                                // The Terminal stdin channel contains requests typed at the terminal
+                                stdinChannel.onReceive() {
+                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from terminal = %s", CLSS, it.text));
+                                    dispatchRequest(it)
+                                }
                             }
                         }
+                        cycleCount = cycleCount + 1
                     }
                 }
             }
@@ -146,12 +136,41 @@ class Dispatcher(s:Solver) : Controller {
         }
     }
 
+    suspend fun initialize() {
+        // Set the speed to "normal" rate. Delay to all startup to complete
+        var msg = MessageBottle(RequestType.SET_POSE)
+        msg.pose = BottleConstants.POSE_NORMAL_SPEED
+        msg.source = ControllerType.BITBUCKET.name
+        msg.control.delay = 500 // 1/2 sec delay
+        toInternalController.send(msg)
+        // Read all the joint positions, one controller at a time
+        msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+        msg.jointDynamicProperty = JointDynamicProperty.POSITION
+        msg.control.controller =  BottleConstants.CONTROLLER_LOWER
+        msg.source = ControllerType.BITBUCKET.name
+        msg.control.delay = 1000 // 1 sec delay
+        toInternalController.send(msg)
+
+        msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+        msg.jointDynamicProperty = JointDynamicProperty.POSITION
+        msg.control.controller = BottleConstants.CONTROLLER_UPPER
+        msg.source = ControllerType.BITBUCKET.name
+        msg.control.delay = 1000 // 1 sec delay
+        toInternalController.send(msg)
+
+        // Bring any joints that are outside sane limits into compliance
+        msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
+        msg.source = ControllerType.BITBUCKET.name
+        msg.control.delay = 2000 // 2 sec delay
+        toInternalController.send(msg)
+    }
+
     /**
      * Stop the entire application.
       * The logger has no effect in the shutdown handler, this the use
       * of println.
      */
-    override fun shutdown() {
+    override suspend fun shutdown() {
         println("Dispatcher.shutdown()")
         if( running ) {
             running = false
@@ -165,12 +184,13 @@ class Dispatcher(s:Solver) : Controller {
             println(String.format("%s.stop: Shut down dispatcher ...", CLSS))
             commandRequestChannel.close()
             commandResponseChannel.close()
-            internalRequestChannel.close()
-            internalResponseChannel.close()
+            fromInternalController.close()
+            toInternalController.close()
             mgcRequestChannel.close()
             mgcResponseChannel.close()
-            stdinChannel.close()
-            stdoutChannel.close()
+            // Close the communication channels
+            if(!stdinChannel.isClosedForSend) stdinChannel.close()
+            if(!stdoutChannel.isClosedForReceive) stdoutChannel.close()
             Database.shutdown()
             println(String.format("%s.stop: complete.", CLSS))
         }
@@ -189,7 +209,7 @@ class Dispatcher(s:Solver) : Controller {
         // "internal" requests are those that need to be queued on the internal controller
         if (isInternalRequest(msg)) {
             val response: MessageBottle = handleInternalRequest(msg)
-            internalRequestChannel.send(response)
+            toInternalController.send(response)
         }
         else if (isLocalRequest(msg)) {
             // Handle local request -create response
@@ -204,18 +224,20 @@ class Dispatcher(s:Solver) : Controller {
 
     // The response is simply the request. A generic acknowledgement will be relayed to the user.
     // 1) Freezing a joint requires getting the motor position first to update the internal status dictionary
-    private fun handleInternalRequest(request: MessageBottle): MessageBottle {
+    private suspend fun handleInternalRequest(request: MessageBottle): MessageBottle {
         // Entire robot
         if (request.type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.FREEZE)) {
-            val msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+            var msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.POSITION
             msg.source = ControllerType.BITBUCKET.name
-            var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
-            internalController.receiveRequest(holder)
-            holder = InternalMessageHolder(request, QueueName.GLOBAL)
-            holder.delay =1000 // 1 sec delay
-            internalController.receiveRequest(holder)
+            toInternalController.send(request)
+
+            msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+            msg.jointDynamicProperty = JointDynamicProperty.POSITION
+            msg.source = ControllerType.BITBUCKET.name
+            msg.control.delay =1000 // 1 sec delay
+            toInternalController.send(msg)
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
@@ -223,15 +245,18 @@ class Dispatcher(s:Solver) : Controller {
             for( jpv in walker ) {
                 val value = jpv.value
                 if( value.equals(BottleConstants.ON_VALUE) ) {
-                    val msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+                    var msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
                     msg.jointDynamicProperty = JointDynamicProperty.POSITION
                     msg.limb = request.limb
                     msg.source = ControllerType.BITBUCKET.name
-                    var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
-                    internalController.receiveRequest(holder)
-                    holder = InternalMessageHolder(request, QueueName.GLOBAL)
-                    holder.delay = 500 // 1/2 sec delay
-                    internalController.receiveRequest(holder)
+                    toInternalController.send(msg)
+
+                    msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+                    msg.jointDynamicProperty = JointDynamicProperty.POSITION
+                    msg.limb = request.limb
+                    msg.source = ControllerType.BITBUCKET.name
+                    msg.control.delay = 500 // 1/2 sec delay
+                    toInternalController.send(msg)
                 }
             }
 
@@ -242,15 +267,18 @@ class Dispatcher(s:Solver) : Controller {
             for( jpv in walker ) {
                 val value = jpv.value
                 if( value.equals(BottleConstants.ON_VALUE) ) {
-                    val msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
+                    var msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
                     msg.jointDynamicProperty = JointDynamicProperty.POSITION
                     msg.joint = request.joint
                     msg.source = ControllerType.BITBUCKET.name
-                    var holder = InternalMessageHolder(msg, QueueName.GLOBAL)
-                    internalController.receiveRequest(holder)
-                    holder = InternalMessageHolder(request, QueueName.GLOBAL)
-                    holder.delay = 250 // 1/4 sec delay
-                    internalController.receiveRequest(holder)
+                    toInternalController.send(msg)
+
+                    msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
+                    msg.jointDynamicProperty = JointDynamicProperty.POSITION
+                    msg.joint = request.joint
+                    msg.source = ControllerType.BITBUCKET.name
+                    msg.control.delay = 250 // 1/4 sec delay
+                    toInternalController.send(msg)
                 }
             }
         }
@@ -351,9 +379,7 @@ class Dispatcher(s:Solver) : Controller {
     }
 
     // These are complex requests that require that several messages be created and processed
-    // on the internal controller. Categories include:
-    //   1) Anything that sets "torque enable" to true. This action requires that we read
-    //      and save (in memory) current motor positions.
+    // on the internal controller.
     private fun isInternalRequest(request: MessageBottle): Boolean {
         // Never send a request launched by the internal controller back to it. That would be an infinite loop
         if( request.source.equals(ControllerType.INTERNAL.name ) ) return false
@@ -369,6 +395,8 @@ class Dispatcher(s:Solver) : Controller {
             }
             return false
         }
+        // Anything that sets "torque enable" to true requires that we read
+        //  and save (in memory) current motor positions.
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
             val walker = request.getJointValueIterator()
@@ -461,6 +489,7 @@ class Dispatcher(s:Solver) : Controller {
     private val startPhrases = arrayOf(
         "Bert is ready",
         "At your command",
+        "Ready",
         "I'm listening",
         "Speak your wishes"
     )
@@ -482,18 +511,19 @@ class Dispatcher(s:Solver) : Controller {
     init {
         commandRequestChannel = Channel<MessageBottle>()
         commandResponseChannel= Channel<MessageBottle>()
-        internalRequestChannel  = Channel<MessageBottle>()
-        internalResponseChannel = Channel<MessageBottle>()
+        fromInternalController  = Channel<MessageBottle>()
+        toInternalController = Channel<MessageBottle>()
         mgcRequestChannel  = Channel<MessageBottle>()
         mgcResponseChannel = Channel<MessageBottle>()
         stdinChannel  = Channel<MessageBottle>()
         stdoutChannel = Channel<MessageBottle>()
 
-        commandController    = Command(this,commandRequestChannel,commandResponseChannel)
-        internalController    = InternalController(this,internalRequestChannel,internalResponseChannel)
-        motorGroupController = MotorGroupController(this,mgcRequestChannel,mgcResponseChannel)
+        commandController     = Command(this,commandRequestChannel,commandResponseChannel)
+        internalController    = InternalController(this,fromInternalController,toInternalController)
+        motorGroupController  = MotorGroupController(this,mgcRequestChannel,mgcResponseChannel)
         terminalController    = Terminal(this,stdinChannel,stdoutChannel)
 
+        online = RobotModel.online
         running = false
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
         val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs
@@ -503,7 +533,7 @@ class Dispatcher(s:Solver) : Controller {
         catch (nfe: NumberFormatException) {
             LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)", CLSS, nfe.localizedMessage))
         }
-        LOGGER.info(String.format("%s: started with cadence %d msecs", CLSS, cadence))
+        LOGGER.info(String.format("%s.init: cadence %d msecs", CLSS, cadence))
     }
 
 }

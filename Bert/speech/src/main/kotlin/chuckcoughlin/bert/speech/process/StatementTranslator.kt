@@ -262,7 +262,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             val jp: JointDynamicProperty = determineJointProperty(pname)
             bottle.addJointValue(Joint.NONE,jp)
             if (ctx.Controller() != null) {
-                bottle.controller = determineController(ctx.Controller().getText())
+                bottle.control.controller = determineController(ctx.Controller().getText())
             }
         }
         catch (iae: IllegalArgumentException) {
@@ -283,7 +283,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             val jp: JointDynamicProperty = determineJointProperty(pname)
             bottle.addJointValue(Joint.NONE,jp)
             if (ctx.Controller() != null) {
-                bottle.controller = determineController(ctx.Controller().getText())
+                bottle.control.controller = determineController(ctx.Controller().getText())
             }
         }
         catch (iae: IllegalArgumentException) {

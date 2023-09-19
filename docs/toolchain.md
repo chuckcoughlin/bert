@@ -177,7 +177,6 @@ The N2 has 4 USB slots that are used for:
 A keyboard/mouse combination is useful for development and debugging, but not required for operation of the robot.
 
 The initial root password is `root/odroid` or `odroid/odroid`. Change passwords to provide some minimal security. Check initial filesystem sizes. Ours seemed to be okay. There seemed to be no need to extend the root partition. Follow any system upgrade suggestion.
-We upgraded to Ubuntu 22.04.3 LTS.
 
 Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
 Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
@@ -226,11 +225,19 @@ Also on each remote system (appropriately replacing the username),
   cd ~/.ssh
   ssh-copy-id -i id_rsa.pub chuckc@bert
 ```
+When I purchased the EMMC card, it contained Ubuntu 20.04. At the time of this writing the latest LTS version was 22.0.2. Upgrade instructions can be found [here](https://jumpcloud.com/blog/how-to-upgrade-ubuntu-20-04-to-ubuntu-22-04#step1).
 
-Install some missing tools and update the system (at the time of this writing the LTS version was 22.0.2). If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute these commands using a direct ethernet connection.
+In order for the upgrade to succeed, you will need to upgrade any upgradable packages.
+```
+   sudo apt list --upgradable -a
+   sudo apt --only-upgrade install <pkg-name>  (for each upgradable package)
+```
+
+Install missing tools. If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute these commands using a direct ethernet connection.
 ```
   sudo apt install rsync
   sudo apt install vsftpd
+
   sudo apt install firefox
   sudo apt install sqlite3
   sudo apt install libjssc-java

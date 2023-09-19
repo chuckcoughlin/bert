@@ -77,7 +77,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         }
     }
 
-    override fun shutdown() {
+    override suspend fun shutdown() {
         running = false
     }
 
