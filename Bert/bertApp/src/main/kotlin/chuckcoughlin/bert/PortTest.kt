@@ -147,6 +147,7 @@ class PortTest : Runnable, SerialPortEventListener {
 /**
  * Open a port. Write and read.
  */
+@Suppress("UNUSED_PARAMETER")
 fun main(args: Array<String>) {
     val tester = Thread(PortTest())
     tester.start()

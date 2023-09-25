@@ -48,6 +48,7 @@ import java.util.logging.Logger
  * @param req - channel for requests from the parent (motor manager)
  * @param rsp - channel for responses sent to the parent (motor manager)
  */
+@Suppress("UNUSED_PARAMETER")
 class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
 
     private val port: SerialPort

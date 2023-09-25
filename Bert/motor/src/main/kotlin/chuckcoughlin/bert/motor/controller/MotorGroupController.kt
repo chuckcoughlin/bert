@@ -33,6 +33,7 @@ import java.util.logging.Logger
  * development, then responses are simulated without any direct serial
  * requests being made.
  */
+
 class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
     private val motorControllers: MutableList<MotorController>   // One controller per serial port
     private var parentRequestChannel  = req   // Dispatcher->MGC (serial commands)

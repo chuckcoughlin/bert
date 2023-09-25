@@ -22,7 +22,7 @@ class DxlMessageTest {
  * Test using example in Robotis documentation for WRITE command and status, 5.3.3.2 and 5.3.3.3.
   * http://emanual.robotis.com/docs/en/dxl/protocol2
  */
-@Suppress("unused")
+@Suppress("UNUSED_PARAMETER")
 fun main(args: Array<String>) {
     // Protocol 1
     var bytes = ByteArray(8)
