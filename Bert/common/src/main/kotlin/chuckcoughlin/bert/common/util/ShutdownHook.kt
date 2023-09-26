@@ -23,13 +23,13 @@ class ShutdownHook(private val controller: Controller) : Thread() {
             }
             catch (e: Exception) {
                 println(String.format("\n%s: ERROR in shutdown %s", CLSS, e.localizedMessage))
+                e.printStackTrace()
             }
 
             println(String.format("\n%s: shutdown complete.", CLSS))
-            Runtime.getRuntime().halt(0)
+            //Runtime.getRuntime().halt(0)
         }
     }
 
     val CLSS = "ShutdownHook"
-
 }

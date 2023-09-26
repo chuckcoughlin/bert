@@ -22,10 +22,9 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
     private var fromDispatcher = rsp    // Dispatcher->Internal
     private val timedQueue: TimedQueue
     private val sequentialQueues: MutableMap<Limb, SequentialQueue>
-    private val scope = MainScope() // Uses Dispatchers.Main
     private var running:Boolean
     private var index:Long          // Sequence of a message
-    private var job:Job
+    private val job:Job
 
     override suspend fun execute() {
         if (!running) {
@@ -33,7 +32,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
             running = true
             /* Coroutine to accept requests from the Dispatcher
              */
-            scope.launch(Dispatchers.IO) {
+            CoroutineScope(job).launch {
                 while (running) {
                     val msg = fromDispatcher.receive()
                     if (DEBUG) LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.text))
@@ -45,17 +44,19 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
              * is added to the timer queue, the job is cancelled to allow re-sorting of the
              * message by start time.
              */
-            job = scope.launch(Dispatchers.IO) {
-                while (running) {
-                    try {
-                            if (DEBUG) LOGGER.info(String.format("%s.execute : evaluating queues...", CLSS))
+            CoroutineScope(job).launch {
+                try {
+                    while (running) {
+                        if (DEBUG) LOGGER.info(String.format("%s.execute : evaluating queues...", CLSS))
+                         println(String.format("%s.execute : evaluating queues...", CLSS))
                             evaluateQueues()         // Are there any new messages in the sequential queues
                             val readyMessage = timedQueue.removeNextReady()  // Returns after delay time
                             dispatchMessage(readyMessage)
                     }
-                    catch (cex: CancellationException) {
-                        if (DEBUG) LOGGER.info(String.format("%s.execute: cancelled evaluation ", CLSS))
-                    }
+                }
+                catch (cex: CancellationException) {
+                    if (DEBUG) LOGGER.info(String.format("%s.execute: cancelled evaluation ", CLSS))
+                    println(String.format("%s.execute: cancelled evaluation ", CLSS))
                 }
             }
         }
@@ -65,10 +66,16 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
     }
 
     override suspend fun shutdown() {
+        if (DEBUG) println(String.format("%s.shutdown: shutting down ... ", CLSS))
         if( running ) {
-            timedQueue.stop()
-            job.cancelAndJoin()
             running = false
+            timedQueue.stop()
+            if (DEBUG) LOGGER.info(String.format("%s.shutdown: stopped timed queue ", CLSS))
+            if (DEBUG) println(String.format("%s.shutdown: cancel timed queue ", CLSS))
+            job.cancelAndJoin()
+            if (DEBUG) LOGGER.info(String.format("%s.shutdown: cancelled job ", CLSS))
+            if (DEBUG) println(String.format("%s.shutdown: cancelled job ", CLSS))
+
         }
     }
 
@@ -149,7 +156,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
     init {
         running = false
         index = 0
-        job = Job()
+        job = Job() // Parent job
         timedQueue = TimedQueue(this)
         sequentialQueues = HashMap<Limb,SequentialQueue>()
         // Create a queue for each limb

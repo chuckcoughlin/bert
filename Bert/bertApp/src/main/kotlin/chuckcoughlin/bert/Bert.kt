@@ -44,11 +44,11 @@ fun main(args: Array<String>) {
     var error = true
     // Analyze command-line argument to obtain the robot root directory.
     // -o implies "offline", no serial or bluetooth communication
-    for( a:String in args) {
-        if(a.startsWith("-")) {   // Option
-            if( a.equals("-o")) offline = true
+    for (a: String in args) {
+        if (a.startsWith("-")) {   // Option
+            if (a.equals("-o")) offline = true
             else {
-               break
+                break
             }
         }
         else {
@@ -57,7 +57,7 @@ fun main(args: Array<String>) {
             break
         }
     }
-    if( error) {
+    if (error) {
         println(app.USAGE)
         System.exit(1)
     }
@@ -78,6 +78,7 @@ fun main(args: Array<String>) {
     Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
     runBlocking {
         dispatcher.execute()
+        dispatcher.shutdown()
     }
 }
 

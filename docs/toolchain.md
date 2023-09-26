@@ -166,7 +166,9 @@ speaker that can ultimately be located in the head.
 [toc](#table-of-contents)
 
 ##### Initial Configuration
-The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Linux, described [here](https://wiki.odroid.com/odroid-n2/odroid-n2). The instructions below assume an initial board setup using an eMMC preloaded with Ubuntu Mate 20.04.
+The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Linux, described [here](https://wiki.odroid.com/odroid-n2/odroid-n2). The instructions below assume an initial board setup using an eMMC preloaded with Ubuntu Mate 22.04.
+
+The operating system, preloaded on an eMMC, can be purchased directly from [HardKernel](https://www.hardkernel.com/product-category/memories/) or dowloaded from [here](https://wiki.odroid.com/getting_started/os_installation_guide#operating_systems_we_re_providing) and flashed using `Etcher` and an eMMC Reader board per instructions [here](https://linuxhint.com/etcher-image-writer-ubuntu-burn-images/).
 
 The N2 has 4 USB slots that are used for:
  * Keyboard/Mouse
@@ -233,20 +235,28 @@ In order for the upgrade to succeed, you will need to upgrade any upgradable pac
    sudo apt --only-upgrade install <pkg-name>  (for each upgradable package)
 ```
 
-Install missing tools. If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute these commands using a direct ethernet connection.
+Upgrade the operating system for any changes since the image was posted and install missing tools. If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute them using a direct ethernet connection.
 ```
-  sudo apt install rsync
-  sudo apt install vsftpd
-
-  sudo apt install firefox
-  sudo apt install sqlite3
-  sudo apt install libjssc-java
-  sudo apt-get install libbluetooth-dev
   sudo apt-get update
   sudo apt-get upgrade -y
   sudo apt-get autoremove -y
   sudo apt-get autoclean -y
+  sudo apt install rsync
+  sudo apt install vsftpd
+  sudo apt install firefox
+  sudo apt install sqlite3
+  sudo apt install libjssc-java
+  sudo apt-get install libbluetooth-dev
+
+
   sudo chmod 666 /dev/ttyACM*
+```
+
+The Gnome Desktop is optional.
+```
+  sudo apt -y install gnome-shell ubuntu-gnome-desktop
+  sudo shutdown -r now
+  sudo apt purge mate-desktop --autoremove
 ```
 
 As super-user, set the serial port permissions by creating file `/etc/udev/rules.d/50-ttyusb.rules` with the following contents:

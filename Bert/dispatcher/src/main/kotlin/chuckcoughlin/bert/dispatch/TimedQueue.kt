@@ -62,12 +62,13 @@ class TimedQueue(private val ic: InternalController) : LinkedList<MessageBottle>
     suspend fun removeNextReady() : MessageBottle {
         runBlocking {
             if(DEBUG) LOGGER.info(String.format("%s.removeNextReady: waiting ...",CLSS))
-            while( isEmpty() || first.control.executionTime > System.currentTimeMillis()) {
+            while( !stopped && (isEmpty() || first.control.executionTime > System.currentTimeMillis())) {
                 delay(POLL_INTERVAL)
+                println("TimedQueue ----- delay")
             }
-            if (first.control.shouldRepeat) {
+            if( first!=null && first.control.shouldRepeat) {
                 val msg = first.copy()
-                msg.control.executionTime = System.nanoTime() + msg.control.repeatInterval
+                msg.control.executionTime = System.currentTimeMillis() + msg.control.repeatInterval
             }
         }
         if(DEBUG) LOGGER.info(String.format("%s.removeNextReady: returning",CLSS))
@@ -97,7 +98,7 @@ class TimedQueue(private val ic: InternalController) : LinkedList<MessageBottle>
 
     private val CLSS = "TimedQueue"
     private val DEBUG = true
-    private val POLL_INTERVAL = 100L
+    private val POLL_INTERVAL = 1000L
     private val LOGGER = Logger.getLogger(CLSS)
 
 }

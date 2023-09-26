@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -89,6 +90,7 @@ class Dispatcher(s:Solver) : Controller {
             // =================== Dispatch incoming messages and send to proper receivers =========================
             if(online) {
                 // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
+                if(DEBUG) LOGGER.info(String.format("%s: Launching startup sequence ...", CLSS))
                 scope.launch(Dispatchers.IO) {
                     withContext(Dispatchers.Default) {
                         initialize()
@@ -97,39 +99,37 @@ class Dispatcher(s:Solver) : Controller {
                         reportStartup(ControllerType.DISPATCHER.name)
                     }
                 }
-
-                scope.launch { Dispatchers.IO
-                    withContext(Dispatchers.Default) {
-                        while (running) {
-                            LOGGER.info(String.format("%s: Entering select for cycle %d ...", CLSS, cycleCount))
-                            select<Unit> {
-                                // Reply to the original requestor when we get a result from the motor controller
-                                mgcResponseChannel.onReceive() {     // Handle a serial response
-                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from mcg = %s", CLSS, it.text));
-                                    replyToSource(it)
-                                }
-                                // When we get a response from the internal controller, dispatch the original request.
-                                fromInternalController.onReceive() { // The internal controller has completed
-                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from internal = %s", CLSS, it.text));
-                                    dispatchRequest(it)
-                                }
-                                // The Bluetooth response channel contains requests that originate on the connected app
-                                commandResponseChannel.onReceive() {
-                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from command = %s", CLSS, it.text));
-                                    dispatchRequest(it)
-                                }
-                                // The Terminal stdin channel contains requests typed at the terminal
-                                stdinChannel.onReceive() {
-                                    if (DEBUG) LOGGER.info(String.format("%s.execute: from terminal = %s", CLSS, it.text));
-                                    dispatchRequest(it)
-                                }
-                            }
-                        }
-                        cycleCount = cycleCount + 1
-                    }
-                }
             }
-            LOGGER.info(String.format("%s.execute: execution complete.", CLSS))
+            runBlocking {
+                if(DEBUG) LOGGER.info(String.format("%s: Launching receive message co-routine ...", CLSS))
+                while (running) {
+                    if(DEBUG) LOGGER.info(String.format("%s: Entering select for cycle %d ...", CLSS, cycleCount))
+                    select<Unit> {
+                        // Reply to the original requestor when we get a result from the motor controller
+                        mgcResponseChannel.onReceive() {     // Handle a serial response
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: from mcg = %s", CLSS, it.text));
+                            replyToSource(it)
+                        }
+                        // When we get a response from the internal controller, dispatch the original request.
+                        fromInternalController.onReceive() { // The internal controller has completed
+                            if (DEBUG)LOGGER.info(String.format("%s.execute: from internal = %s", CLSS, it.text));
+                            dispatchRequest(it)
+                        }
+                        // The Bluetooth response channel contains requests that originate on the connected app
+                        commandResponseChannel.onReceive() {
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: from command = %s", CLSS, it.text));
+                            dispatchRequest(it)
+                        }
+                        // The Terminal stdin channel contains requests typed at the terminal
+                        stdinChannel.onReceive() {
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: from terminal = %s", CLSS, it.text));
+                            dispatchRequest(it)
+                        }
+                    }
+                    cycleCount = cycleCount + 1
+                }
+                LOGGER.info(String.format("%s.execute: execution complete.", CLSS))
+            }
         }
         else {
             LOGGER.warning(String.format("%s.execute: Attempted to start, but Dispatcher is already running.", CLSS))
@@ -165,34 +165,50 @@ class Dispatcher(s:Solver) : Controller {
         toInternalController.send(msg)
     }
 
-    /**
-     * Stop the entire application.
-      * The logger has no effect in the shutdown handler, this the use
-      * of println.
+    /*
+     * Stop the execute() method "naturally" with a HALT message.
      */
     override suspend fun shutdown() {
-        println("Dispatcher.shutdown()")
+        println("Dispatcher.shutdown")
+        val msg = MessageBottle(RequestType.COMMAND)
+        msg.command = CommandType.HALT
+        fromInternalController.send(msg)
+    }
+    /**
+     * Stop the entire application. This is run by the main() once the
+     * execute() method returns.
+     * Note: The logger seems to have no effect within the shutdown handler,
+     * thus the use of println.
+     */
+     suspend fun exit() {
+        println("Dispatcher.exit")
         if( running ) {
             running = false
-            motorGroupController.shutdown()
-            println(String.format("%s.stop: Shut down motors ...", CLSS))
-            commandController.shutdown()
-            println(String.format("%s.stop: Shut down bluetooth connection ...", CLSS))
-            terminalController.shutdown()
-            println(String.format("%s.stop: Shut down terminal ...", CLSS))
-            internalController.shutdown()
-            println(String.format("%s.stop: Shut down dispatcher ...", CLSS))
-            commandRequestChannel.close()
-            commandResponseChannel.close()
-            fromInternalController.close()
-            toInternalController.close()
-            mgcRequestChannel.close()
-            mgcResponseChannel.close()
-            // Close the communication channels
-            if(!stdinChannel.isClosedForSend) stdinChannel.close()
-            if(!stdoutChannel.isClosedForReceive) stdoutChannel.close()
-            Database.shutdown()
-            println(String.format("%s.stop: complete.", CLSS))
+            try {
+                motorGroupController.shutdown()
+                println(String.format("%s.exit: Shut down motors ...", CLSS))
+                commandController.shutdown()
+                println(String.format("%s.exit: Shut down bluetooth connection ...", CLSS))
+                terminalController.shutdown()
+                println(String.format("%s.exit: Shut down terminal ...", CLSS))
+                internalController.shutdown()
+                println(String.format("%s.exit: Shut down internal controller ...", CLSS))
+                if (!commandRequestChannel.isClosedForSend)commandRequestChannel.close()
+                if (!commandResponseChannel.isClosedForReceive)commandResponseChannel.close()
+                if (!fromInternalController.isClosedForReceive)fromInternalController.close()
+                if (!toInternalController.isClosedForSend)toInternalController.close()
+                if (!mgcRequestChannel.isClosedForSend)mgcRequestChannel.close()
+                if (!mgcResponseChannel.isClosedForReceive)mgcResponseChannel.close()
+                // Close the communication channels
+                if (!stdinChannel.isClosedForSend) stdinChannel.close()
+                if (!stdoutChannel.isClosedForReceive) stdoutChannel.close()
+                Database.shutdown()
+            }
+            catch (e: Exception) {
+                println(String.format("\n%s: ERROR in exit %s", CLSS, e.localizedMessage))
+                e.printStackTrace()
+            }
+            println(String.format("%s.exit: complete.", CLSS))
         }
     }
 
@@ -333,12 +349,14 @@ class Dispatcher(s:Solver) : Controller {
             val command = request.command
             LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
             if( command.equals(CommandType.HALT) ) {
-                System.exit(0) // Rely on ShutdownHandler cleanup connections
+                running = false
+                //System.exit(0) // Rely on ShutdownHandler
             }
             else if (command.equals(CommandType.SHUTDOWN) ) {
                 try {
+                    val commands = arrayOf("sudo poweroff")
                     val rt = Runtime.getRuntime()
-                    rt.exec("sudo poweroff")
+                    rt.exec(commands)
                 }
                 catch (ioe: IOException) {
                     LOGGER.warning(

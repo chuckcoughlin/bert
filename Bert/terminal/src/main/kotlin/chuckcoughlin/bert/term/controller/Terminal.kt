@@ -40,6 +40,8 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
     private val scope = GlobalScope // For long-running coroutines
     private var ignoring : Boolean
     private var running:Boolean
+    private var inJob:Job
+    private var outJob:Job
 
     /**
      * While running, this controller processes messages between the Dispatcher
@@ -52,7 +54,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             running = true
             /* Coroutine to write responses from the Dispatcher to stdout
              */
-            scope.launch(Dispatchers.IO) {
+            outJob = scope.launch(Dispatchers.IO) {
                 while( running ) {
                     val msg = stdoutChannel.receive()
                     if (DEBUG) LOGGER.info(String.format("%s.execute received response: %s", CLSS, msg.text))
@@ -62,7 +64,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             /* Read from stdin, blocked. Use ANTLR to convert text into requests.
              * Forward requests to the dispatcher.
              */
-            scope.launch(Dispatchers.IO) {
+            inJob = scope.launch(Dispatchers.IO) {
                 while(running) {
                     if (DEBUG) LOGGER.info(String.format("%s.execute: waiting for user input", CLSS))
                     handleUserInput()
@@ -77,7 +79,8 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
     override suspend fun shutdown() {
         if( running ) {
             running = false
-            scope.cancel()
+            inJob.cancel()
+            outJob.cancel()
         }
     }
 
@@ -176,5 +179,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         prompt = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_PROMPT,PROMPT)
         running = false
         ignoring = false
+        inJob = Job()
+        outJob = Job()
     }
 }
