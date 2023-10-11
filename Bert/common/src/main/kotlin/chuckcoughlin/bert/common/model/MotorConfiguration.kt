@@ -93,7 +93,7 @@ class MotorConfiguration : Serializable {
     }
 
     fun setType(typ: String) {
-        type = DynamixelType.valueOf(typ.uppercase(Locale.getDefault()))
+        type = DynamixelType.fromString(typ)
     }
 
 

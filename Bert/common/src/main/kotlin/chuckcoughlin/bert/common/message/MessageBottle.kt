@@ -30,7 +30,7 @@ import java.util.logging.Logger
  *
  *  Sets bottle type. The rest are settable
 */
-data class MessageBottle (var type:RequestType) : Serializable {
+data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     private var jointValues : MutableList<JointPropertyValue>   // Property values for one or more motors
     var appendage: Appendage // Message applies to this appendage
     var command : CommandType
@@ -86,6 +86,24 @@ data class MessageBottle (var type:RequestType) : Serializable {
         jointValues.clear()
     }
 
+    override public fun clone(): MessageBottle {
+        val copy = MessageBottle(type)
+        copy.jointValues = jointValues.toMutableList()
+        copy.appendage   = appendage
+        copy.command     = command
+        copy.error       = error
+        copy.handler     = handler
+        copy.joint       = joint
+        copy.limb        = limb
+        copy.metric      = metric
+        copy.pose        = pose
+        copy.jointDefinitionProperty = jointDefinitionProperty
+        copy.jointDynamicProperty    = jointDynamicProperty
+        copy.source      = source
+        copy.text        = text
+        copy.control     = control.clone()
+        return copy
+    }
     fun getJointValueIterator() : MutableListIterator<JointPropertyValue> {
         return jointValues.listIterator()
     }
@@ -152,6 +170,6 @@ data class MessageBottle (var type:RequestType) : Serializable {
         jointDynamicProperty = JointDynamicProperty.NONE
         source = BottleConstants.NO_SOURCE
         text  = ""   // Text is the printable response
-        control = ExecutionControl()
+        control = ExecutionControl(BottleConstants.NO_DELAY)
     }
 }

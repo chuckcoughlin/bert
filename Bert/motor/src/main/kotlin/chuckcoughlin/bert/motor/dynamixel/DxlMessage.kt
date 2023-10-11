@@ -101,7 +101,7 @@ object DxlMessage {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",
                         CLSS,mc.joint.name,mc.position))
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, mc.position)
-                bytes[index] = mc.id as Byte
+                bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
                 index = index + 3
@@ -149,7 +149,7 @@ object DxlMessage {
         for (mc in configurations) {
             if (mc.type.equals(DynamixelType.AX12)) continue
             bytes[addr] = DxlConversions.dataBytesForProperty(property)
-            bytes[addr + 1] = mc.id as Byte
+            bytes[addr + 1] = mc.id.toByte()
             bytes[addr + 2] = DxlConversions.addressForPresentProperty(property)
             addr += 3
         }
@@ -181,7 +181,7 @@ object DxlMessage {
             bytes[6] = DxlConversions.dataBytesForProperty(property)
             var index = 7
             for (mc in map.values) {
-                bytes[index] = mc.id as Byte
+                bytes[index] = mc.id.toByte()
                 if (property.equals(JointDynamicProperty.TORQUE)) {
                     dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -233,7 +233,7 @@ object DxlMessage {
             for (key in torques.keys) {
                 val mc: MotorConfiguration = map[key]!!
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
-                bytes[index] = mc.id as Byte
+                bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
                 mc.torque = torques[key]!! // percent of max
@@ -256,7 +256,7 @@ object DxlMessage {
             for (key in speeds.keys) {
                 val mc: MotorConfiguration = map[key]!!
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, speeds[key]!!)
-                bytes[index] = mc.id as Byte
+                bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
                 mc.speed = speeds[key]!! // percent of max
@@ -281,7 +281,7 @@ object DxlMessage {
                 val mc: MotorConfiguration = map[key]!!
                 //LOGGER.info(String.format("%s.bytesToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.getId(),key,positions.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, positions[key]!!)
-                bytes[index] = mc.id as Byte
+                bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
                 mc.position = positions[key]!!
@@ -658,6 +658,7 @@ object DxlMessage {
                         JointDynamicProperty.STATE        -> {}
                         JointDynamicProperty.TEMPERATURE  -> mc.temperature = param
                         JointDynamicProperty.VOLTAGE      -> mc.voltage = param
+                        JointDynamicProperty.NONE         -> {}
                     }
                     LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%.0f",
                             CLSS,mc.joint.name,property,param))

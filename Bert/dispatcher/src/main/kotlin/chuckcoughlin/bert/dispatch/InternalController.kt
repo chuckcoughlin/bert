@@ -3,8 +3,8 @@
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch
-import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Limb
@@ -16,7 +16,8 @@ import java.util.logging.Logger
  * A timer controller accepts a RequestBottle and submits it to the parent
  * Dispatcher on a clocked basis.
  */
-class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) : Controller {
+class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) :
+                                                        MessageController {
     private val dispatcher = parent
     private var toDispatcher   = req    // Internal->Dispatcher  (dispatcher gets results)
     private var fromDispatcher = rsp    // Dispatcher->Internal
@@ -26,37 +27,21 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
     private var index:Long          // Sequence of a message
     private val job:Job
 
+    @DelicateCoroutinesApi
     override suspend fun execute() {
         if (!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            /* Coroutine to accept requests from the Dispatcher
+            timedQueue.execute()
+            /* Coroutine to accept requests from the Dispatcher.
+             * New requests are either placed on one of the sequential queues
+             * or the timed queue
              */
             CoroutineScope(job).launch {
                 while (running) {
                     val msg = fromDispatcher.receive()
                     if (DEBUG) LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.text))
                     handleRequest(msg)
-                }
-            }
-            /*
-             * Coroutine to process the next request from the queues. Whenever a new message
-             * is added to the timer queue, the job is cancelled to allow re-sorting of the
-             * message by start time.
-             */
-            CoroutineScope(job).launch {
-                try {
-                    while (running) {
-                        if (DEBUG) LOGGER.info(String.format("%s.execute : evaluating queues...", CLSS))
-                         println(String.format("%s.execute : evaluating queues...", CLSS))
-                            evaluateQueues()         // Are there any new messages in the sequential queues
-                            val readyMessage = timedQueue.removeNextReady()  // Returns after delay time
-                            dispatchMessage(readyMessage)
-                    }
-                }
-                catch (cex: CancellationException) {
-                    if (DEBUG) LOGGER.info(String.format("%s.execute: cancelled evaluation ", CLSS))
-                    println(String.format("%s.execute: cancelled evaluation ", CLSS))
                 }
             }
         }
@@ -70,12 +55,9 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         if( running ) {
             running = false
             timedQueue.stop()
-            if (DEBUG) LOGGER.info(String.format("%s.shutdown: stopped timed queue ", CLSS))
             if (DEBUG) println(String.format("%s.shutdown: cancel timed queue ", CLSS))
             job.cancelAndJoin()
-            if (DEBUG) LOGGER.info(String.format("%s.shutdown: cancelled job ", CLSS))
             if (DEBUG) println(String.format("%s.shutdown: cancelled job ", CLSS))
-
         }
     }
 
@@ -87,7 +69,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         for (sq: SequentialQueue in sequentialQueues.values) {
             if (sq.locked == false && sq.isNotEmpty()) {
                 val msg = sq.removeFirst()
-                sendToTimerQueue(msg)
+                timedQueue.addMessage(msg,true)
             }
         }
     }
@@ -116,11 +98,10 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
                 queue.addLast(msg)
             }
             else {
-                    LOGGER.severe(String.format("%s.handleRequest No queue for limb", CLSS, limb.name))
+                LOGGER.severe(String.format("%s.handleRequest No queue for limb", CLSS, limb.name))
             }
         }
         evaluateQueues()
-        //job.cancelAndJoin()  // No need.
     }
 
 
@@ -130,21 +111,10 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
      * that the dispatcher knows to return the message here once processing is complete.
      * @param holder
      */
-    suspend fun dispatchMessage(message:MessageBottle) {
-        message.source = ControllerType.INTERNAL.name
-        toDispatcher.send(message)
-    }
-
-    /**
-     * As far as the sequential queue is concerned, a message is pending
-     * from the time it is placed on the timer queue until it returns
-     * as a response from the Dispatcher
-     * @param queue queue from which the message originated.
-     * @param holder container for the message to be sent
-     */
-    private fun sendToTimerQueue( msg: MessageBottle) {
-        msg.control.executionTime = System.currentTimeMillis()
-        timedQueue.addMessage(msg)
+    override suspend fun dispatchMessage(msg:MessageBottle) {
+        msg.source = ControllerType.INTERNAL.name
+        if (DEBUG) LOGGER.info(String.format("%s.dispatchMessage sending to dispatcher: %s", CLSS, msg.type.name))
+        toDispatcher.send(msg)
     }
 
     private val CLSS = "InternalController"

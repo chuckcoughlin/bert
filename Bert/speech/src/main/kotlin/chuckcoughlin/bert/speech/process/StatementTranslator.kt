@@ -375,7 +375,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
-    // What is your duty cycle?
+    // What is your duty cycle? Name, age
     override fun visitMetricsQuestion(ctx: SpeechSyntaxParser.MetricsQuestionContext): Any? {
         bottle.type = RequestType.GET_METRIC
         val metric: String = ctx.Metric().getText().lowercase()
@@ -386,11 +386,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.metric = MetricType.DUTYCYCLE
         }
         else {
-            try {
-                bottle.metric = MetricType.valueOf(metric)
-            }
-            catch (iae: IllegalArgumentException) {
-                val msg = String.format("I did't know that I had a %s measure", metric)
+            bottle.metric = MetricType.fromString(metric)
+            if(bottle.metric.equals(MetricType.UNDEFINED)) {
+                val msg = String.format("I did't know that I had a %s", metric)
                 bottle.error = msg
             }
         }
@@ -403,10 +401,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.type = RequestType.MAP_POSE
         if (ctx.phrase().size > 1) {
             val command:String = visit(ctx.phrase(0)).toString()
-            try {
-                bottle.command = CommandType.valueOf(command)
-            }
-            catch(iae: IllegalArgumentException) {
+            bottle.command = CommandType.fromString(command)
+            if(bottle.command.equals(CommandType.NONE)) {
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }
@@ -424,10 +420,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.type = RequestType.MAP_POSE
         if (ctx.phrase().size > 1) {
             val command:String = visit(ctx.phrase(0)).toString()
-            try {
-                bottle.command = CommandType.valueOf(command)
-            }
-            catch(iae: IllegalArgumentException) {
+            bottle.command = CommandType.fromString(command)
+            if(bottle.command.equals(CommandType.NONE)) {
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }
@@ -445,10 +439,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.type = RequestType.MAP_POSE
         if (ctx.phrase().size > 1) {
             val command:String = visit(ctx.phrase(0)).toString()
-            try {
-                bottle.command = CommandType.valueOf(command)
-            }
-            catch(iae: IllegalArgumentException) {
+            bottle.command = CommandType.fromString(command)
+            if(bottle.command.equals(CommandType.NONE)) {
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }
@@ -467,10 +459,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if (ctx.phrase().size > 1) {
             val command: String = visit(ctx.phrase(0)).toString()
             val pose: String = visit(ctx.phrase(1)).toString()
-            try {
-                bottle.command = CommandType.valueOf(command)
-            }
-            catch(iae: IllegalArgumentException) {
+            bottle.command = CommandType.fromString(command)
+            if(bottle.command.equals(CommandType.NONE)) {
                 val msg = String.format("what do you mean: %s?", command)
                 bottle.error = msg
             }
@@ -489,10 +479,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if (ctx.phrase().size > 1) {
             val command: String = visit(ctx.phrase(0)).toString()
             val pose: String = visit(ctx.phrase(1)).toString()
-            try {
-                bottle.command = CommandType.valueOf(command)
-            }
-            catch(iae: IllegalArgumentException) {
+            bottle.command = CommandType.fromString(command)
+            if(bottle.command.equals(CommandType.NONE)) {
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }

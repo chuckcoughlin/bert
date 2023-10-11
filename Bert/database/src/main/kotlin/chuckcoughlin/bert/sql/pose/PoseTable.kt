@@ -102,7 +102,7 @@ class PoseTable {
                         if (name.equals("name", ignoreCase = true)) continue
                         if (name.equals("parameter", ignoreCase = true)) continue
                         try {
-                            val joint = Joint.valueOf(name.uppercase(Locale.getDefault()))
+                            val joint = Joint.fromString(name)
                             val value = rs.getObject(col) ?: continue
                             if (value.toString().isEmpty()) continue
                             try {

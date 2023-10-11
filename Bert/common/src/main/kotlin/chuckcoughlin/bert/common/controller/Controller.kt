@@ -4,15 +4,18 @@
  */
 package chuckcoughlin.bert.common.controller
 
+import kotlinx.coroutines.DelicateCoroutinesApi
+
 /**
  * A common interface both for controllers that communicate with
- * the dispatcher (through channels) and also with external entities.
+  * the dispatcher (through channels) and also with external entities.
  * Channel naming is from the point of view of the current class.
  */
 interface Controller {
     val controllerName: String
     val controllerType: ControllerType
 
+    @DelicateCoroutinesApi
     suspend fun execute()
     // Closes all resources including channels
     suspend fun shutdown()

@@ -9,7 +9,7 @@ package chuckcoughlin.bert.common.message
  */
 enum class MetricType {
     AGE, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
-    HEIGHT, MITTENS, NAME;
+    HEIGHT, MITTENS, NAME, UNDEFINED;
 
     companion object {
         /**
@@ -21,6 +21,17 @@ enum class MetricType {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement. It is case-insensitive,
+         */
+        fun fromString(arg: String): MetricType {
+            for (type in MetricType.values()) {
+                if (type.name.equals(arg, true)) return type
+            }
+            return MetricType.UNDEFINED
         }
     }
 }

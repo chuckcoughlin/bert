@@ -10,10 +10,8 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import jssc.SerialPort
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.*
 import java.util.logging.Logger
@@ -35,6 +33,8 @@ import java.util.logging.Logger
  */
 
 class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
+    @DelicateCoroutinesApi
+    private val scope = GlobalScope // For long-running coroutines
     private val motorControllers: MutableList<MotorController>   // One controller per serial port
     private var parentRequestChannel  = req   // Dispatcher->MGC (serial commands)
     private var parentResponseChannel = rsp   // MGC->Dispatcher (results of serial commands)
@@ -52,26 +52,22 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         LOGGER.info(String.format("%s(%s).start: Initializing ...",CLSS, controllerName))
 
         // Port is open, now use it.
-        runBlocking<Unit> {
-            launch {
-                Dispatchers.IO
-                while (running) {
-                    select<Unit> {
-
-                        /**
-                         * On receipt of a message from the SerialPort,
-                         * decypher, forward to the MotorManager.
-                         */
-                        responseChannel.onReceive() {
-                            handleAggregatedResponse(it)
-                        }
-                        /*
-                         * The parent request is a motor command. Convert it
-                         * into a message for the SerialPort amd write.
-                         */
-                        parentRequestChannel.onReceive() {
-                            processRequest(it)   // stdOut
-                        }
+        scope.launch(Dispatchers.IO) {
+            while (running) {
+                select<Unit> {
+                    /**
+                     * On receipt of a message from the SerialPort,
+                     * decypher, forward to the MotorManager.
+                     */
+                    responseChannel.onReceive() {
+                        handleAggregatedResponse(it)
+                    }
+                    /*
+                     * The parent request is a motor command. Convert it
+                     * into a message for the SerialPort amd write.
+                     */
+                    parentRequestChannel.onReceive() {
+                        processRequest(it)   // stdOut
                     }
                 }
             }

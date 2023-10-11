@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert
@@ -30,13 +30,13 @@ class PortTest : Runnable, SerialPortEventListener {
         }
         try {
             // Open the port
-            delay()
+            pause()
             success = port.openPort()
             println(String.format("PortTest.open: Success = %s", if (success) "true" else "false"))
             println(String.format("PortTest.open: isOpened = %s", if (port.isOpened()) "true" else "false"))
 
             // Configure the port
-            delay()
+            pause()
             success = port.setParams(
                 BAUD_RATE,
                 SerialPort.DATABITS_8,
@@ -46,14 +46,14 @@ class PortTest : Runnable, SerialPortEventListener {
                 false
             )
             println(String.format("PortTest.setParams: Success = %s", if (success) "true" else "false"))
-            delay()
+            pause()
             success = port.setEventsMask(SerialPort.MASK_RXCHAR)
             println(String.format("PortTest.setEventsMask: Success = %s", if (success) "true" else "false"))
-            delay()
+            pause()
             success = port.purgePort(SerialPort.PURGE_RXCLEAR)
             success = success && port.purgePort(SerialPort.PURGE_TXCLEAR)
             println(String.format("PortTest.purgePort: Success = %s", if (success) "true" else "false"))
-            delay()
+            pause()
             port.addEventListener(this)
         }
         catch (spe: SerialPortException) {
@@ -66,7 +66,7 @@ class PortTest : Runnable, SerialPortEventListener {
             )
         }
         // Write
-        delay()
+        pause()
         var bytes: ByteArray = DxlMessage.bytesToBroadcastPing()
         try {
             // Write the buffer
@@ -89,7 +89,7 @@ class PortTest : Runnable, SerialPortEventListener {
         }
 
         // Read
-        delay()
+        pause()
         try {
             // Read the port
             val incount: Int = port.getInputBufferBytesCount()
@@ -111,7 +111,7 @@ class PortTest : Runnable, SerialPortEventListener {
         }
 
         // Close
-        delay()
+        pause()
         try {
             success = port.closePort()
             println(String.format("PortTest.close: Success = %s", if (success) "true" else "false"))
@@ -123,10 +123,11 @@ class PortTest : Runnable, SerialPortEventListener {
     /**
      * Provide some time spacing between test steps
      */
-    private fun delay() {
+    private fun pause() {
         try {
             Thread.sleep(1000)
-        } catch (ignore: InterruptedException) {
+        }
+        catch (ignore: InterruptedException) {
         }
     }
     // ============================== SerialPortEventListener ===============================

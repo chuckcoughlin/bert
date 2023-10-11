@@ -1,5 +1,6 @@
 #!/bin/sh
-# Execute the robot control code in "offline" mode on the test system
+# Execute the robot control code in "offline" mode on the test system.
+# Bluetooth and serial port features do not work.
 # Clear logs first
 cd ${BERT_HOME}
 bin/clear_logs.sh

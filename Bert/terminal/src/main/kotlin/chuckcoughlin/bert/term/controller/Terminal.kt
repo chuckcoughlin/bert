@@ -37,6 +37,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
     private var stdoutChannel = stdout   // Dispatcher->Terminal  (dispatcher response for display)
     private var prompt:String
 
+    @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
     private var ignoring : Boolean
     private var running:Boolean
@@ -48,6 +49,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * and a user terminal. A few messages are intercepted that totally local
      * in nature (SLEEP,WAKE).
      */
+    @DelicateCoroutinesApi
     override suspend fun execute() : Unit = coroutineScope{
         if( !running ) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
@@ -59,6 +61,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                     val msg = stdoutChannel.receive()
                     if (DEBUG) LOGGER.info(String.format("%s.execute received response: %s", CLSS, msg.text))
                     displayMessage(msg)   // stdOut
+                    print(prompt)
                 }
             }
             /* Read from stdin, blocked. Use ANTLR to convert text into requests.
@@ -93,7 +96,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
     fun displayMessage(msg: MessageBottle) {
         val text: String = translator.messageToText(msg)
         println(text)
-        print(prompt)
     }
     /**
      * Read directly from stdin.
@@ -105,6 +107,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         if( text.isNotEmpty() ) {
             if(DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsing %s", CLSS, text))
             val request = parser.parseStatement(text)
+            request.source = controllerName
             if( !request.error.equals(BottleConstants.NO_ERROR) ) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleUserInput ERROR = %s (%s)",
                     CLSS, request.error, request.text))
@@ -115,7 +118,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                     CLSS, request.text))
                 displayMessage(request)   // Take care of locally to stdOut
             }
-
             else if(isLocalRequest(request)) {
                 val msg = handleLocalRequest(request)
                 if(DEBUG) LOGGER.info(String.format("%s.handleUserInput  local = %s", CLSS, msg.text))
@@ -124,7 +126,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             else {
                 if(DEBUG) LOGGER.info(String.format("%s.handleUserInput request = %s", CLSS, request.type.name))
                 stdinChannel.send(request)
-                if(DEBUG) LOGGER.info("SENT")
             }
 
         }
@@ -168,7 +169,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
 
     private val CLSS = "Terminal"
     private val LOGGER = Logger.getLogger(CLSS)
-    private val DEBUG = true
+    private val DEBUG = false
     private val PROMPT = "Bert:"    // Default prompt
     override val controllerName = CLSS
     override val controllerType = ControllerType.TERMINAL

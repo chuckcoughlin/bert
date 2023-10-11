@@ -12,6 +12,7 @@ import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.dispatch.Dispatcher
 import chuckcoughlin.bert.sql.db.Database
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Paths
 import java.util.*
@@ -31,6 +32,7 @@ class Bert() {
  *
  * @param args command-line arguments
  */
+@DelicateCoroutinesApi
 fun main(args: Array<String>) {
     val app = Bert()
     // Make sure there is command-line argument
@@ -78,7 +80,7 @@ fun main(args: Array<String>) {
     Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
     runBlocking {
         dispatcher.execute()
-        dispatcher.shutdown()
+        //dispatcher.shutdown()
     }
 }
 

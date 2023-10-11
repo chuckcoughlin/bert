@@ -8,11 +8,7 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
@@ -20,13 +16,9 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -34,14 +26,15 @@ import java.time.Period
 import java.util.*
 import java.util.logging.Logger
 /**
- * The Dispatcher is the core compute hub of the application. It's job is to accept requests from
+ * The Dispatcher is the distribution hub of the application. Its' job is to accept requests from
  * the various peripheral controllers, distribute them to the motor manager channels and post the results.
  * For complicated requests it may invoke the services of the "Solver" and insert
  * internal intermediate requests.
  *
- * For the peripheral controllers, the dispatcher presents itself as a parent controller, using ifferent
- * channels to communicate with the different peripherals.
+ * For each peripheral controller, the dispatcher uses a pair of communication channels
+ * to send and receive message objects.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class Dispatcher(s:Solver) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
     // Communication channels
@@ -59,6 +52,7 @@ class Dispatcher(s:Solver) : Controller {
     private val motorGroupController: MotorGroupController
     private var terminalController: Terminal
 
+    @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
     private val online: Boolean
     private var running:Boolean
@@ -73,6 +67,7 @@ class Dispatcher(s:Solver) : Controller {
      * On startup, initiate a short message sequence to bring the robot into a sane state.
      * The init{} block takes care of controller creation, but we start them here.
      */
+    @DelicateCoroutinesApi
     override suspend fun execute()  {
         if(DEBUG) LOGGER.info(String.format("%s.execute: startup ...", CLSS))
         if( !running ) {
@@ -165,59 +160,41 @@ class Dispatcher(s:Solver) : Controller {
         toInternalController.send(msg)
     }
 
-    /*
-     * Stop the execute() method "naturally" with a HALT message.
-     */
-    override suspend fun shutdown() {
-        println("Dispatcher.shutdown")
-        val msg = MessageBottle(RequestType.COMMAND)
-        msg.command = CommandType.HALT
-        fromInternalController.send(msg)
-    }
     /**
      * Stop the entire application. This is run by the main() once the
      * execute() method returns.
      * Note: The logger seems to have no effect within the shutdown handler,
-     * thus the use of println.
+     *       thus the use of println.
+     * Note: We have attempted to close channels, but the keep getting exceptions
+     *       even though we test for already closed before calling close.
      */
-     suspend fun exit() {
-        println("Dispatcher.exit")
+    override suspend fun shutdown() {
+        if(DEBUG) println(String.format("%s.shutdown: running = %s.", CLSS,if(running) "TRUE" else "FALSE"))
         if( running ) {
-            running = false
             try {
                 motorGroupController.shutdown()
-                println(String.format("%s.exit: Shut down motors ...", CLSS))
+                if(DEBUG) println(String.format("%s.shutdown: motors ...", CLSS))
                 commandController.shutdown()
-                println(String.format("%s.exit: Shut down bluetooth connection ...", CLSS))
+                if(DEBUG) println(String.format("%s.shutdown: bluetooth connection ...", CLSS))
                 terminalController.shutdown()
-                println(String.format("%s.exit: Shut down terminal ...", CLSS))
+                if(DEBUG) println(String.format("%s.shutdown: terminal ...", CLSS))
                 internalController.shutdown()
-                println(String.format("%s.exit: Shut down internal controller ...", CLSS))
-                if (!commandRequestChannel.isClosedForSend)commandRequestChannel.close()
-                if (!commandResponseChannel.isClosedForReceive)commandResponseChannel.close()
-                if (!fromInternalController.isClosedForReceive)fromInternalController.close()
-                if (!toInternalController.isClosedForSend)toInternalController.close()
-                if (!mgcRequestChannel.isClosedForSend)mgcRequestChannel.close()
-                if (!mgcResponseChannel.isClosedForReceive)mgcResponseChannel.close()
-                // Close the communication channels
-                if (!stdinChannel.isClosedForSend) stdinChannel.close()
-                if (!stdoutChannel.isClosedForReceive) stdoutChannel.close()
+                if(DEBUG) println(String.format("%s.shutdown: internal controller ...", CLSS))
                 Database.shutdown()
             }
             catch (e: Exception) {
                 println(String.format("\n%s: ERROR in exit %s", CLSS, e.localizedMessage))
                 e.printStackTrace()
             }
-            println(String.format("%s.exit: complete.", CLSS))
+            running = false
         }
+        println(String.format("%s.shutdown: complete.", CLSS))
     }
-
     // ========================================= Helper Methods =======================================
     /**
      * Analyze an incoming message and determine what to do with it. Ultimately it will be placed in
      * the appropriate response channel.
      */
-
     private suspend fun dispatchRequest(msg : MessageBottle) {
         if(DEBUG) LOGGER.info(String.format("%s.dispatchRequest ...",CLSS));
         val startCycle = System.currentTimeMillis()
@@ -228,13 +205,15 @@ class Dispatcher(s:Solver) : Controller {
             toInternalController.send(response)
         }
         else if (isLocalRequest(msg)) {
-            // Handle local request -create response
+            // Handle local request -create response unless type set to NONE
             val response: MessageBottle = handleLocalRequest(msg)
-            replyToSource(response)
+            if(!response.type.equals(RequestType.NONE))replyToSource(response)
+        }
+        else if(msg.type.equals(RequestType.HEARTBEAT)) {
+            ; // Do nothing
         }
         else {
             // Handle motor request. The controller forwards response here via "handleResponse".
-
         }
     }
 
@@ -275,7 +254,6 @@ class Dispatcher(s:Solver) : Controller {
                     toInternalController.send(msg)
                 }
             }
-
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
@@ -349,8 +327,8 @@ class Dispatcher(s:Solver) : Controller {
             val command = request.command
             LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
             if( command.equals(CommandType.HALT) ) {
-                running = false
-                //System.exit(0) // Rely on ShutdownHandler
+                request.type = RequestType.NONE  // Suppress a response
+                System.exit(0) // Rely on ShutdownHandler
             }
             else if (command.equals(CommandType.SHUTDOWN) ) {
                 try {
@@ -502,7 +480,8 @@ class Dispatcher(s:Solver) : Controller {
     private val mittenPhrases = arrayOf(
         "My hands cut easily",
         "My hands are cold",
-        "Mittens are stylish"
+        "Mittens are stylish",
+        "My fingers don't fit into gloves"
     )
     private val startPhrases = arrayOf(
         "Bert is ready",

@@ -48,5 +48,15 @@ enum class CommandType {
             }
             return names.substring(0, names.length - 2)
         }
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement. It is case-insensitive,
+         */
+        fun fromString(arg: String): CommandType {
+            for (type in CommandType.values()) {
+                if (type.name.equals(arg, true)) return type
+            }
+            return CommandType.NONE
+        }
     }
 }

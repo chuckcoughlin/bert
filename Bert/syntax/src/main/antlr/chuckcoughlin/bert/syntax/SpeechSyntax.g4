@@ -40,7 +40,7 @@ question:
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
     | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
     | What Is Article? Property Of Article? Side? Joint Axis?   # motorPropertyQuestion2
-    | What Is Article? Metric   				    # metricsQuestion
+    | What Is Article? Metric   				                # metricsQuestion
     | What Is Article? Adjective? Pose                          # poseQuestion
     | Where Is Article? Side? (Appendage|Joint)	Axis?       	# limbLocationQuestion
     | Why Do You Have Mittens									# whyMittens

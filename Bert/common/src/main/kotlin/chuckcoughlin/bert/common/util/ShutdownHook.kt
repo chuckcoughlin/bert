@@ -27,9 +27,8 @@ class ShutdownHook(private val controller: Controller) : Thread() {
             }
 
             println(String.format("\n%s: shutdown complete.", CLSS))
-            //Runtime.getRuntime().halt(0)
+            Runtime.getRuntime().halt(0)
         }
     }
-
     val CLSS = "ShutdownHook"
 }

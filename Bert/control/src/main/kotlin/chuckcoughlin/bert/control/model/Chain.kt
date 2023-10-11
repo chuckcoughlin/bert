@@ -68,7 +68,7 @@ class Chain {
      * @return the parent link of the named joint. If not found, return null.
      */
     fun getParentLinkForJoint(jointName: String): Link? {
-        val joint: Joint = Joint.valueOf(jointName.uppercase(Locale.getDefault()))
+        val joint: Joint = Joint.fromString(jointName)
         return jointParent[joint]
     }
 

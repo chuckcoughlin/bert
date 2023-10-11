@@ -2,19 +2,17 @@ package chuckcoughlin.bert.common.message
 
 
 /**
- * This is a nested class for MessageBottles containing cortrol parameters as they are processed
+ * This is a nested class for MessageBottles that contains control parameters for processing
  * by an InternalController. The processing comes in two flavors - messages that wait on a queue and
  * those wait on a timer. The queued messages may optionally have a timed delay as well.
- */
-class ExecutionControl {
-    var controller: String   // Name of controller to handle request. Important for serial controllers
-    /*
-     * The delay interval is an idle interval between when this message is
-     * first placed on the timer queue and when actually executes. Any time
-     *  spent waiting on the sequential queue is counted toward the delay
-     * ("time served").
-    */
-    var delay: Long
+ *
+ * @param delay an idle interval between when this message is
+ * first placed on the timer queue and when actually executes. Any time
+ *  spent waiting on the sequential queue is counted toward the delay
+ * ("time served").
+*/
+data class ExecutionControl(var delay: Long) : Cloneable {
+    var controller: String // Name of the controller to handle the request
      /*
      * The execution time is the earliest time at which this message is allowed
      * to be sent to the Dispatcher. The time is calculated as the message
@@ -29,6 +27,17 @@ class ExecutionControl {
     var responseCount:Int
     var shouldRepeat: Boolean
 
+    override public fun clone(): ExecutionControl {
+        val copy = ExecutionControl(delay)
+        copy.controller     = controller
+        copy.executionTime  = executionTime
+        copy.repeatInterval = repeatInterval
+        copy.originalSource = originalSource
+        copy.responseCount  = responseCount
+        copy.shouldRepeat   = shouldRepeat
+        return copy
+    }
+
     override fun toString(): String {
         return String.format("%s: message from %s expires in %d ms",
             CLSS,originalSource,executionTime - System.nanoTime() / 1000000 )
@@ -41,8 +50,7 @@ class ExecutionControl {
         get() = ++id
 
     init {
-        controller  = BottleConstants.NO_CONTROLLER
-        delay   =  BottleConstants.NO_DELAY
+        controller = BottleConstants.NO_CONTROLLER
         executionTime  = 0
         repeatInterval = 0
         responseCount  = 0

@@ -198,9 +198,9 @@ object RobotModel {
                     if (node.nodeType == Node.ELEMENT_NODE) {
                         val joint = node as Element
                         if (joint.tagName == "joint") {
-                            val j = Joint.valueOf(XMLUtility.attributeValue(joint, "name"))
+                            val j = Joint.fromString(XMLUtility.attributeValue(joint, "name"))
                             val id = XMLUtility.attributeValue(joint, "id").toInt()
-                            val typ = DynamixelType.valueOf(type.uppercase(Locale.getDefault()))
+                            val typ = DynamixelType.fromString(type)
                             var value = XMLUtility.attributeValue(joint, "orientation")
                             val isDirect = value.equals("direct", ignoreCase = true)
 
@@ -218,7 +218,7 @@ object RobotModel {
                             value = XMLUtility.attributeValue(joint, "limb")
                             if( !value.isEmpty()) {
                                 try {
-                                    val limb = Limb.valueOf(value.uppercase(Locale.getDefault()))
+                                    val limb = Limb.fromString(value)
                                     motor.limb = limb
                                 }
                                 catch (iae: IllegalArgumentException) {

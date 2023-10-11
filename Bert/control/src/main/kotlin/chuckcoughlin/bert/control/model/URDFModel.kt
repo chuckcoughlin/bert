@@ -106,7 +106,7 @@ class URDFModel {
                                 }
                                 childIndex++
                             }
-                            val a: Appendage = Appendage.valueOf(aname.uppercase(Locale.getDefault()))
+                            val a: Appendage = Appendage.fromString(aname)
                             chain.createLink(a.name)
                             val end = LinkPoint(a, ijk, xyz)
                             chain.setEndPoint(a.name, end)
@@ -131,7 +131,7 @@ class URDFModel {
                 val name: String = XMLUtility.attributeValue(jointNode, "name")
                 //LOGGER.info(String.format("%s.analyzeChain: Joint %s ...",CLSS,name));
                 try {
-                    val joint: Joint = Joint.valueOf(name)
+                    val joint: Joint = Joint.fromString(name)
                     val childNodes = jointNode.childNodes
                     val childCount = childNodes.length
                     var childIndex = 0

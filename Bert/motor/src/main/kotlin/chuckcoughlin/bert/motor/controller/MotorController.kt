@@ -20,11 +20,8 @@ import jssc.SerialPort
 import jssc.SerialPortEvent
 import jssc.SerialPortEventListener
 import jssc.SerialPortException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.*
 import java.util.concurrent.locks.Condition
@@ -50,7 +47,8 @@ import java.util.logging.Logger
  */
 @Suppress("UNUSED_PARAMETER")
 class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
-
+    @DelicateCoroutinesApi
+    private val scope = GlobalScope // For long-running coroutines
     private val port: SerialPort
     private var running:Boolean
     private val motorManager: MotorManager
@@ -117,25 +115,23 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         }
         // Port is open, now use it.
         running = true
-        runBlocking<Unit> {
-            launch {
-                Dispatchers.IO
-                while (running) {
-                    select<Unit> {
-                        /**
-                         * On receipt of a message from the SerialPort,
-                         * decypher and forward to the MotorManager.
-                         */
-                        async {
-                            receiveSerialResponse()
-                        }
-                        /**
-                         * The parent request is a motor command. Convert it
-                         * into a message for the SerialPort amd write.
-                         */
-                        parentRequestChannel.onReceive() {
-                            receiveRequest(it)   // stdOut
-                        }
+        scope.launch(Dispatchers.IO) {
+
+            while (running) {
+                select<Unit> {
+                    /**
+                     * On receipt of a message from the SerialPort,
+                     * decypher and forward to the MotorManager.
+                     */
+                    async {
+                        receiveSerialResponse()
+                    }
+                    /**
+                     * The parent request is a motor command. Convert it
+                     * into a message for the SerialPort amd write.
+                     */
+                    parentRequestChannel.onReceive() {
+                        receiveRequest(it)   // stdOut
                     }
                 }
             }
