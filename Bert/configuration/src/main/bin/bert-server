@@ -1,19 +1,19 @@
 #!/bin/sh
-# This is the init script for startup of the dispatcher for "bert".
+# This is the init script for startup of the "bert" application.
 # Logs from this script will be found in /var/log/bert/
 #
 # This script starts the dispatcher for "bert". This is necessary to
 # operate either the bluetooth command or interactive terminal interfaces.
 
 ### BEGIN INIT INFO
-# Provides:          bert-dispatch
+# Provides:          bert
 # Required-Start:    $local_fs $syslog
 # Required-Stop:     $local_fs $syslog
 # Should-Start:      $named
 # Should-Stop:       $named
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start bert dispatcher and serial motor controller
+# Short-Description: Start the bert control application
 ### END INIT INFO
 
 set -e
@@ -49,17 +49,17 @@ case "$1" in
   ;;
 
   restart)
-    /etc/init.d/bert-dispatch stop
-    /etc/init.d/bert-dispatch start
+    /etc/init.d/bert-server stop
+    /etc/init.d/bert-server start
   ;;
 
   stop)
 	start-stop-daemon --stop --retry 5 --oknodo --pidfile ${PIDFILE} 
 	log_end_msg $?
-	echo "=============================== /etc/init.d/bert-dispatch stopped ===========================" >> ${BERTLOG}
+	echo "=============================== /etc/init.d/bert-server stopped ===========================" >> ${BERTLOG}
   ;;
   force-reload)
-    /etc/init.d/bert-disptch restart
+    /etc/init.d/bert-server restart
   ;;
 
   *)

@@ -1,0 +1,9 @@
+#!/bin/bash
+# Copy source code that must be compiled on the odroid
+# GIT_REPO is the root directory of our source tree.
+
+cd ${GIT_REPO}/odroid
+echo "Synchronizing source files for odroid ..."
+rsync -r * bert:/home/chuckc/src
+
+echo "Robot source update is complete."

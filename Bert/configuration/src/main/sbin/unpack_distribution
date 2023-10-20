@@ -1,6 +1,6 @@
 #!/bin/sh
-
 # Take the build product and unpack it
+# This is the last step during the build of "configuration"
 DIST=${PWD}/../bertApp/build/distributions
 echo "Unpack " $DIST
 mkdir -p ${BERT_HOME}/distribution

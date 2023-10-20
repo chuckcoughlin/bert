@@ -30,6 +30,7 @@ tasks {
             include("**/*.csv")
             include("**/*.py")
             include("bin/*")
+            include("sbin/*")
             include("**/*.sql")
             include("**/*.xml")
             filter<ReplaceTokens>("tokens" to tokens)
@@ -42,7 +43,7 @@ tasks {
 
         doLast {
             exec {
-                commandLine("./src/main/bin/unpack_distribution.sh")
+                commandLine("./src/main/sbin/unpack_distribution")
             }
             println("Configuration: Install complete")
         }

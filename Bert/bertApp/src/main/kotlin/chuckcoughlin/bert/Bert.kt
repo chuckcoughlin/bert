@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
     }
 
     var arg = ConfigurationConstants.NO_VALUE
-    var offline = true
+    var offline = false
     var error = true
     // Analyze command-line argument to obtain the robot root directory.
     // -o implies "offline", no serial or bluetooth communication
@@ -71,7 +71,8 @@ fun main(args: Array<String>) {
     // any configurable robot parameters.
     RobotModel.startup(PathConstants.CONFIG_PATH)
     RobotModel.populate() // Analyze the xml for controllers and motors
-    RobotModel.online = !offline
+    // "offline" on the command line overrides the configuration file.
+    if( offline ) RobotModel.online = false
     //
     Database.startup(PathConstants.DB_PATH)
     val solver = Solver()

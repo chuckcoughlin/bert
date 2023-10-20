@@ -168,7 +168,7 @@ speaker that can ultimately be located in the head.
 ##### Initial Configuration
 The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Linux, described [here](https://wiki.odroid.com/odroid-n2/odroid-n2). The instructions below assume an initial board setup using an eMMC preloaded with Ubuntu Mate 22.04.
 
-The operating system, preloaded on an eMMC, can be purchased directly from [HardKernel](https://www.hardkernel.com/product-category/memories/) or dowloaded from [here](https://wiki.odroid.com/getting_started/os_installation_guide#operating_systems_we_re_providing) and flashed using `Etcher` and an eMMC Reader board per instructions [here](https://linuxhint.com/etcher-image-writer-ubuntu-burn-images/).
+The operating system can be purchased directly from [HardKernel](https://www.hardkernel.com/product-category/memories/) preloaded on an eMMC or dowloaded from [here](https://wiki.odroid.com/getting_started/os_installation_guide#operating_systems_we_re_providing) to be flashed using `Etcher` and an eMMC Reader board per instructions [here](https://linuxhint.com/etcher-image-writer-ubuntu-burn-images/).
 
 The N2 has 4 USB slots that are used for:
  * Keyboard/Mouse
@@ -192,7 +192,7 @@ Set the timezone:
   sudo dpkg-reconfigure tzdata
 ```
 
-Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Using the MATE desktop, under the main menu, Preferences/Network Configuration, edit the WiFi connection that is live. On the IPV4 tab, change the Method: to "Manual". Add a static address, e.g. 10.0.0.42; 255.255.255.0; 10.0.0.1. In the same dialog, set Domain Name Servers, comma-separated. Depending on the network, another common address choice might be: 192.168.1.42.
+Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Using the MATE desktop, under the main menu, Preferences/Advanced Network Configuration, edit the WiFi connection that is live. On the IPV4 tab, change the Method: to "Manual". Add a static address, e.g. 10.0.0.42; 255.255.255.0; 10.0.0.1. In the same dialog, set Domain Name Servers, comma-separated. Depending on the network, another common address choice might be: 192.168.1.42.
 ```
   75.75.75.75
   75.75.76.76
@@ -227,13 +227,10 @@ Also on each remote system (appropriately replacing the username),
   cd ~/.ssh
   ssh-copy-id -i id_rsa.pub chuckc@bert
 ```
+If there are old references to `bert` in *known_hosts*, they must be deleted.
+
 When I purchased the EMMC card, it contained Ubuntu 20.04. At the time of this writing the latest LTS version was 22.0.2. Upgrade instructions can be found [here](https://jumpcloud.com/blog/how-to-upgrade-ubuntu-20-04-to-ubuntu-22-04#step1).
 
-In order for the upgrade to succeed, you will need to upgrade any upgradable packages.
-```
-   sudo apt list --upgradable -a
-   sudo apt --only-upgrade install <pkg-name>  (for each upgradable package)
-```
 
 Upgrade the operating system for any changes since the image was posted and install missing tools. If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute them using a direct ethernet connection.
 ```
@@ -243,13 +240,13 @@ Upgrade the operating system for any changes since the image was posted and inst
   sudo apt-get autoclean -y
   sudo apt install rsync
   sudo apt install vsftpd
+  sudo apt install ftp
   sudo apt install firefox
   sudo apt install sqlite3
   sudo apt install libjssc-java
   sudo apt-get install libbluetooth-dev
-
-
-  sudo chmod 666 /dev/ttyACM*
+  sudo apt install build-essential
+  sudo apt-get install manpages-dev
 ```
 
 The Gnome Desktop is optional.
@@ -261,8 +258,13 @@ The Gnome Desktop is optional.
 
 As super-user, set the serial port permissions by creating file `/etc/udev/rules.d/50-ttyusb.rules` with the following contents:
 ```
-KERNEL=="ttyACM*",MODE="0666"
+KERNEL="ttyACM*",MODE="0666"
 ```
+Reboot then
+```
+  sudo chmod 666 /dev/ttyACM*
+```
+
 The reason for ``firefox`` is that we were not able to properly configure the proxy server in ``chromium``, the default browser.
 
 In `/etc/ld.so.conf.d`, add a file named `robot.conf` containing the single line:
@@ -298,17 +300,49 @@ Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy
 The Java JVM is used to run the application even though it is written in Kotlin. Download the latest Java Development (JDK) version using:
 ```
   sudo apt update
-  sudo apt install openjdk-18-headless
+  sudo apt install openjdk-18-jre-headless
 ```
 Installing the JDK allows us to compile on the Odroid, if necessary. Of course,
-we also need the runtime. Unfortunately at the time of this writing, OpenJDK-11 installs Java 10.0.2.
-This means that the JDK on the development system also needs to be Java 10.
+we also need the runtime. The java version on the odroid (18) must match the JDK on the development system.
 
-Once the build has been executed on the Development system (and deployed), edit ``/etc/environment``, adding the following directories to the **PATH** variable (before  */usr/bin*):
+Once the build has been executed on the Development system (and deployed), edit ``/etc/environment``, adding JAVA_HOME and BERT_HOME/bin to the **PATH** variable (before  */usr/bin*):
 ```
+  /usr/lib/jvm/java-18-openjdk-arm64
    /usr/local/robot/bin
 ```
+#### Bluetooth
+Programmatic access to Bluetooth requires a interface to the Odroid's
+bluetooth library `libbluetooth.so` (BlueZ 5.48).
+An excellent introduction is a book by Albert Huang
+of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
+ Starting with Albert's examples and relying
+heavily on lessons learned trying to implement the various packages
+mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
+daemon using RFCOMM. It communicates with the Kotlin application over sockets and
+the tablet via Bluetooth.
+Its sole purpose is to transfer strings between the tablet and Odroid.
+The tablet uses standard Android Bluetooth classes.
 
+On the development machine, in the _IntelliJ_ Configuration project, the ``install_odroid_source.sh`` script
+copies C source files onto the Odroid in preparation for building _blueserverd_, the
+daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
+the correct robot home directory on the Odroid).
+
+Then to build on the Odroid, from the directory containing the source projects -
+```
+  cd blueserver
+  make -e
+  make install
+  cd ${BERT_HOME}/bin
+  sudo ./install_blueserver_init_scripts
+```
+
+Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
+
+The init script launches the Bluetooth Serial Port service which is a necessary
+prerequisite for running the daemon. Connection difficulties may arise if too many bluetooth-enabled
+devices are in range leading to incorrect pairings. If so, the Odroid system may report
+"DbusFailedError: host is down".
 #### PyPot <a id="pypot"></a>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
 ```
@@ -336,7 +370,7 @@ The iMac requires the same Java version as the Odroid (Java 10). It is downloada
 *IntelliJ* is a powerful Integrated Development Environment (IDE) for Java, and Kotlin from Jet Brains. It can be downloaded [here]( https://www.jetbrains.com/idea/download/?section=mac). Make sure to download the community edition which is completely free. At the time of this writing, the latest version is “2022.2.1”.
 Start *IntelliJ* and point it to the root of the `git` repository. Once started choose `File/Upload All From Disk` to synchronize with the repository. An internet connection is required as all third party libraries will be downloaded directly from public repositories during the build. Use the build configuration `install` to perform a complete build.
 
-Our *IntelliJ* environment makes use of the `ANTLR` and `Python` plugins. See the menu page `IntelliJ Idea/Settings` to load.
+Our *IntelliJ* environment makes use of the `ANTLR` and `Python` plugins. See the menu page *IntelliJ* `Idea/Settings` to load.
 
 ##### Projects
 `Bert` is a multi-module project. Each code group is its own project as follows:
@@ -368,60 +402,43 @@ When complete the project workspace should look like:
 ##### Gradle Scripts
 `Gradle` is a build system which follows a "convention over configuration" style. Each project has its own Kotlin build script named `gradle-build.kts`.
 
-#### Bluetooth
-Programmatic access to Bluetooth requires a interface to the Odroid's
-bluetooth library `libbluetooth.so` (BlueZ 5.48).
-An excellent introduction is a book by Albert Huang
-of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
- Starting with Albert's examples and relying
-heavily on lessons learned trying to implement the various packages
-mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
-daemon using RFCOMM. It communicates with the Java application over sockets and
-the tablet via Bluetooth.
-Its sole purpose is to transfer strings between the tablet and Odroid.
-The tablet uses standard Android Bluetooth classes.
 
-On the development machine, in the _IntelliJ_ Configuration project, the ``install_odroid_source.sh`` script
-copies C source files onto the Odroid in preparation for building _blueserverd_, the
-daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
-the correct robot home directory on the Odroid).
-
-Then to build on the Odroid, from the directory containing the source projects -
-```
-  cd blueserver
-  make -e
-  make install
-  cd ${BERT_HOME}/bin
-  sudo ./install_blueserver_init_scripts.sh
-```
-
-Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
-
-The init script launches the Bluetooth Serial Port service which is a necessary
-prerequisite for running the daemon. Connection difficulties may arise if too many bluetooth-enabled
-devices are in range leading to incorrect pairings. If so, the Odroid system may report
-"DbusFailedError: host is down".
-
-##### Execution Scripts
-The `Configuration` project has a collection of *bash* scripts and other configuration files as described below. When the project is built these files will be properly placed into `$BERT_HOME`.
+##### Scripts
+The *IntelliJ* `Configuration` project has a collection of *bash* scripts and other configuration files as described below. When the project is built these files will be properly placed into `$BERT_HOME` subdirectories. These scripts perform both installation and run-time functions.
 
 `bin`
- - bert-blueserver -        Init script for startup of the bluetooth server
- - bert-server -            Init script for startup of the "bert" robot code
- - clear_logs.sh -          Remove current log files in preparation for the next test sequence.
- - run_bert.sh -            Execute "bertApp" from the command line.
- - test_bert.sh -           Execute "bertApp" in offline mode (no bluetooth nor serial) for testing.
- - unpack_distribution.sh - This script is executed as a final step by the build. It unpacks the distribution package from the build area into bin and lib directories in the distribution directory of ROBOT_HOME on the build machine.
+ - bert - Execute *bertApp* from the command line. This is meant to be run on the Odroid target system
+ - bert-blueserver - Script to start and stop the bluetooth server
+ - bert-server - Script for starting and stopping the *bert* robot code
+ - clear_logs - Remove current log files in preparation for the next test sequence.
+ - install_blueserver_init_scripts - Configure the scripts that start and stop the bluetooth server. Thus
+ must be run as superuser
+ - install_blueserver_init_scripts - Configure the scripts that start and stop the robot. Thus
+ must be run as superuser
+ - mkdatabase - Create the SQLite *bert.db* database on either development or deployment system
+ - start_bert - Start the robot
+ - stop_bert - Stop the robot
+ - test_port - test the all the serial ports
 
 `csv`
+ - Pose.csv -
 
 `etc`
- - bert.xml -                Robot properties including a list of all controllable joints
- - urdf.xml -                A complete description of the skeletal connectivity
+ - bert.xml -      Robot properties including a list of all controllable joints
+ - urdf.xml -      A complete description of the skeletal connectivity
 
 `pylib`
+ - testport.py - Command-line tool to test serial ports based on the "herborist" tool
+
+`sbin`
+- bertdev - Execute *bertApp* in offline mode (no bluetooth nor serial) for testing.
+- deploy - copy executable and configuration files onto the Odroid target
+- install_odroid_source - copy code that must be compiled on the Odroid from the development source area
+- unpack_distribution - This script is executed as a final step by the build. It unpacks library *.jar* files from the build into a proper distribution directories development machine.
 
 `sql`
+- createTables.sql - SQL commands used by *mkdatabase* to create tables
+
 
 ##### ANTLR
 *ANTLR* is a parsing framework used for understanding natural language. Use the plugin available from the

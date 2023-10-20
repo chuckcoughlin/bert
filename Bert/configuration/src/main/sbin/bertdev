@@ -3,7 +3,7 @@
 # Bluetooth and serial port features do not work.
 # Clear logs first
 cd ${BERT_HOME}
-bin/clear_logs.sh
+bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin

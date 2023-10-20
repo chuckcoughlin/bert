@@ -5,16 +5,16 @@
 # The current directory is the build project.
 #
 #!/bin/sh
-#set -x
-DB=bert.db
-BUILD=`pwd`
-CONFIG=${BUILD}/../Configuration
-CSV=${CONFIG}/csv
-ETC=${CONFIG}/etc
-SQL=${CONFIG}/sql
 
+DB=bert.db
+CSV=${BERT_HOME}/csv
+ETC=${BERT_HOME}/etc
+SQL=${BERT_HOME}/sql
+
+mkdir -p $ETC
 cd ${ETC}
 rm -f $DB
+#set -x
 sqlite3 $DB < ${SQL}/createTables.sql
 
 # Change to CSV mode and load pose and action tables
@@ -29,5 +29,4 @@ sqlite3 $DB << EOF
 .import /tmp/posemap PoseMap
 EOF
 
-cp ${DB} ${BERT_HOME}/etc/${DB}
 echo "${DB} creation compete."

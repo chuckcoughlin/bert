@@ -1,9 +1,9 @@
 #!/bin/sh
 # Execute the robot control application standalone from the command line
-# Clear logs first
+# Clear logs first, then run in online mode per bert.xml
 cd ${BERT_HOME}
-bin/clear_logs.sh
+bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
-./bertApp -o ${BERT_HOME}
+./bertApp ${BERT_HOME}
