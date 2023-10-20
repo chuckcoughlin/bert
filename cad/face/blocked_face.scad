@@ -27,7 +27,7 @@ module neck() {
     }
 }
 union() {
-    //load_stl();
+    load_stl();
     base();
     prism();
     neck();
