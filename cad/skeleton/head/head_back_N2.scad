@@ -12,7 +12,7 @@ offset_z=0;
 // Offsets make origin in center of head
 module load_stl() {
     color("gray")
-    rotate([120,0,0])
+    rotate([125,0,0])
     translate([offset_x,offset_y,offset_z])
     import(file="head_back.STL",convexity=5);
 }
@@ -20,8 +20,8 @@ module load_stl() {
 // Use this box to clear back-side
 module back_opening() {
     color("green");
-    translate([0,50,15]) {
-        cube([board_width,20,board_height],true);
+    translate([10,50,13]) {
+        cube([board_width,25,board_height],true);
     }
 }
 
