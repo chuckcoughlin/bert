@@ -20,9 +20,22 @@ module load_stl() {
 // Use this box to clear back-side
 module back_opening() {
     color("green");
-    translate([10,50,13]) {
+    translate([0,50,13]) {   // x,  ,   
         cube([board_width,25,board_height],true);
     }
+}
+
+// Rack to hold the printed circuit board
+module rack(){
+}
+
+module screw hole() {
+}
+//   Replacement of spot missing from the font.
+module support_front() {
+}
+// Additional support to side for front of circuit board rack
+module support_side() {
 }
 
 // Back-side handle for wire tie
