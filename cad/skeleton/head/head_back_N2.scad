@@ -1,8 +1,8 @@
 // Modify the original Poppy head_back to accomodate
-// the Odroid-N2 computer board. The 
-board_length = 90;     // Circuit board length
-board_width  = 90;     // Circuit board length
-board_height = 25;     // Height of populated board
+// the Odroid-N2 computer board. 
+brd_height = 27; 
+brd_length = 90;     // Circuit board length
+brd_width  = 90;     // Circuit board length
 back_offset  = 500;    // Origin to back of head
 offset_x=-0;  
 offset_y=-320;
@@ -17,25 +17,82 @@ module load_stl() {
     import(file="head_back.STL",convexity=5);
 }
 
-// Use this box to clear back-side
+// Use this box to clear back-side and a grove along the rail
 module back_opening() {
     color("green");
-    translate([0,50,13]) {   // x,  ,   
-        cube([board_width,25,board_height],true);
+    union() {
+    translate([0,50,23]) {   // x,  ,   
+        cube([brd_width,25,brd_height],true);
     }
+    translate([brd_width/2+1,30,17]) { // right groove
+      cube([2,brd_length,20],true);     
+    }
+    translate([-brd_width/2-1,30,17]) { // left groove
+      cube([2,brd_length,20],true);
+    }
+    translate([brd_width/2+3,30,21]) { // tiny groove right
+      cube([2,brd_length,5],true);
+    }
+    translate([-brd_width/2-3,30,21]) { // tiny groove left
+      cube([2,brd_length,5],true);
+    }
+  }
 }
 
 // Rack to hold the printed circuit board
 module rack(){
+    w  = 10;   // Rail width
+    t1 = 6;    // Rail thickness
+    t2 = 4;    // Cross piece thickness
+    //color("blue")
+    union() {
+       // Left rail 
+       translate([brd_width/2-w/2,30,t1+t2]) {
+         cube([w,brd_length,6],true);
+       }
+       // Right rail 
+       translate([-brd_width/2+w/2,30,t1+t2]) {
+         cube([w,brd_length,6],true);
+       }
+       // Back rail 
+       translate([0,brd_length/2,t1+t2]) {
+         cube([brd_width,w,t2],true);
+       }
+       // Front rail
+       color("yellow")
+       translate([0,38-brd_length/2+w/2,t2-1]) {  // x,y,z
+         cube([brd_width,w,t2],true);
+       }
+    
+  }
+  // Screw holes are 71 mm apart, and 72mm front-to back
+  union() {
+    screw_hole(-35.5,36); 
+    screw_hole(35.5,-36);
+    screw_hole(-35.5,-36);
+    screw_hole(35.5,36);
+  }
 }
 
-module screw hole() {
+module screw_hole(x,y) {
+    sr = 2.5;          // Radius for screw hole
+    sl = 20;           // Length
+    translate([x,y,8])
+    cylinder(sl,sr,sr,true,$fn=128);
 }
 //   Replacement of spot missing from the font.
 module support_front() {
+    color("green");
 }
-// Additional support to side for front of circuit board rack
-module support_side() {
+// Additional support near servo mount
+module support_side(x,y,z) {
+    color("green")
+    rotate([90,0,270])
+     translate([x,y,z]) {
+    linear_extrude(height=4,center=true) {
+        polygon(points=[[0,0],[0,30],[5,30],[12,30]]);
+    }
+  }
 }
 
 // Back-side handle for wire tie
@@ -51,12 +108,16 @@ module tie_handle() {
          }
     }
 }
-
-difference() {
-//union() {
+union() {
+  difference() {
     union() {
         load_stl();
         tie_handle();
     }
     back_opening();
+  }
+  rack();
+  support_front();
+  support_side(20,0,0);
+  support_side(-20,0,0);
 }
