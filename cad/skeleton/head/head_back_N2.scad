@@ -47,30 +47,32 @@ module rack(){
     //color("blue")
     union() {
        // Left rail 
-       translate([brd_width/2-w/2,30,t1+t2]) {
+       translate([brd_width/2-w/2,22,t1+t2]) {
          cube([w,brd_length,6],true);
        }
        // Right rail 
-       translate([-brd_width/2+w/2,30,t1+t2]) {
+       translate([-brd_width/2+w/2,22,t1+t2]) {
          cube([w,brd_length,6],true);
        }
        // Back rail 
-       translate([0,brd_length/2,t1+t2]) {
+       translate([0,brd_length/2,t2+1]) {
          cube([brd_width,w,t2],true);
        }
        // Front rail
        color("yellow")
-       translate([0,38-brd_length/2+w/2,t2-1]) {  // x,y,z
-         cube([brd_width,w,t2],true);
+       translate([0,38-brd_length/2-w/2,t2+1]) {  // x,y,z
+         cube([brd_width+10,w,t2],true); // Extra width for support
        }
     
   }
   // Screw holes are 71 mm apart, and 72mm front-to back
   union() {
-    screw_hole(-35.5,36); 
-    screw_hole(35.5,-36);
-    screw_hole(-35.5,-36);
-    screw_hole(35.5,36);
+    translate([0,25,0]) {
+      screw_hole(-35.5,36); 
+      screw_hole(35.5,-36);
+      screw_hole(-35.5,-36);
+      screw_hole(35.5,36);
+    }
   }
 }
 
@@ -80,16 +82,13 @@ module screw_hole(x,y) {
     translate([x,y,8])
     cylinder(sl,sr,sr,true,$fn=128);
 }
-//   Replacement of spot missing from the font.
-module support_front() {
-    color("green");
-}
+
 // Additional support near servo mount
-module support_side(x,y,z) {
+module support_front(x,y,z) {
     color("green")
     rotate([90,0,270])
-     translate([x,y,z]) {
-    linear_extrude(height=4,center=true) {
+     translate([x,y,z-20]) {
+    linear_extrude(height=2,center=true) {
         polygon(points=[[0,0],[0,30],[5,30],[12,30]]);
     }
   }
@@ -117,7 +116,6 @@ union() {
     back_opening();
   }
   rack();
-  support_front();
-  support_side(20,0,0);
-  support_side(-20,0,0);
+  support_front(0,0,20);
+  support_front(0,0,-20);
 }
