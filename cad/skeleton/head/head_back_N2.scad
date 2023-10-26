@@ -1,6 +1,6 @@
 // Modify the original Poppy head_back to accomodate
 // the Odroid-N2 computer board. 
-brd_height = 27; 
+brd_height = 30; 
 brd_length = 90;     // Circuit board length
 brd_width  = 90;     // Circuit board length
 back_offset  = 500;    // Origin to back of head
@@ -13,27 +13,28 @@ offset_z=0;
 module load_stl() {
     color("gray")
     rotate([125,0,0])
-    translate([offset_x,offset_y,offset_z])
-    import(file="head_back.STL",convexity=5);
+    translate([offset_x,offset_y,offset_z]) {
+        import(file="head_back.STL",convexity=5);
+    }
 }
 
 // Use this box to clear back-side and a grove along the rail
 module back_opening() {
     color("green");
     union() {
-    translate([0,50,23]) {   // x,  ,   
-        cube([brd_width,25,brd_height],true);
+    translate([0,50,20]) {   // x,  ,   
+        cube([brd_width,40,brd_height],true);
     }
-    translate([brd_width/2+1,30,17]) { // right groove
-      cube([2,brd_length,20],true);     
+    translate([brd_width/2+2,30,17]) { // right groove
+      cube([4,brd_length,20],true);     
     }
-    translate([-brd_width/2-1,30,17]) { // left groove
-      cube([2,brd_length,20],true);
+    translate([-brd_width/2-2,30,17]) { // left groove
+      cube([4,brd_length,20],true);
     }
-    translate([brd_width/2+3,30,21]) { // tiny groove right
+    translate([brd_width/2+4,30,21]) { // tiny groove right
       cube([2,brd_length,5],true);
     }
-    translate([-brd_width/2-3,30,21]) { // tiny groove left
+    translate([-brd_width/2-4,30,21]) { // tiny groove left
       cube([2,brd_length,5],true);
     }
   }
@@ -44,18 +45,22 @@ module rack(){
     w  = 10;   // Rail width
     t1 = 6;    // Rail thickness
     t2 = 4;    // Cross piece thickness
-    //color("blue")
-    union() {
+    difference() {
+      union() {
        // Left rail 
-       translate([brd_width/2-w/2,22,t1+t2]) {
+       translate([brd_width/2-w/2,23,t1+t2]) {
          cube([w,brd_length,6],true);
        }
        // Right rail 
-       translate([-brd_width/2+w/2,22,t1+t2]) {
+       translate([-brd_width/2+w/2,23,t1+t2]) {
          cube([w,brd_length,6],true);
        }
        // Back rail 
        translate([0,brd_length/2,t2+1]) {
+         cube([brd_width,w,t2],true);
+       }
+       // Far back rail
+       translate([0,brd_length/2+14,t2+1]) {
          cube([brd_width,w,t2],true);
        }
        // Front rail
@@ -64,14 +69,15 @@ module rack(){
          cube([brd_width+10,w,t2],true); // Extra width for support
        }
     
-  }
-  // Screw holes are 71 mm apart, and 72mm front-to back
-  union() {
-    translate([0,25,0]) {
-      screw_hole(-35.5,36); 
-      screw_hole(35.5,-36);
-      screw_hole(-35.5,-36);
-      screw_hole(35.5,36);
+    }
+    // Screw holes are 71 mm apart, and 72mm front-to back
+    union() {
+      translate([0,23,0]) {
+        screw_hole(-35.5,36); 
+        screw_hole(35.5,-36);
+        screw_hole(-35.5,-36);
+        screw_hole(35.5,36);
+      }
     }
   }
 }
@@ -86,8 +92,8 @@ module screw_hole(x,y) {
 // Additional support near servo mount
 module support_front(x,y,z) {
     color("green")
-    rotate([90,0,270])
-     translate([x,y,z-20]) {
+     translate([x,y,z])
+     rotate([90,32,270]) {
     linear_extrude(height=2,center=true) {
         polygon(points=[[0,0],[0,30],[5,30],[12,30]]);
     }
@@ -116,6 +122,6 @@ union() {
     back_opening();
   }
   rack();
-  support_front(0,0,20);
-  support_front(0,0,-20);
+  support_front(20,19,-39);  
+  support_front(-20,19,-39);
 }
