@@ -93,9 +93,9 @@ module screw_hole(x,y) {
 module support_front(x,y,z) {
     color("green")
      translate([x,y,z])
-     rotate([90,32,270]) {
+     rotate([270,36,270]) {
     linear_extrude(height=2,center=true) {
-        polygon(points=[[0,0],[0,30],[5,30],[12,30]]);
+        polygon(points=[[0,0],[0,22],[5,22],[12,0]]);
     }
   }
 }
@@ -122,6 +122,6 @@ union() {
     back_opening();
   }
   rack();
-  support_front(20,19,-39);  
-  support_front(-20,19,-39);
+  support_front(20,3,-12);  
+  support_front(-20,3,-12);
 }
