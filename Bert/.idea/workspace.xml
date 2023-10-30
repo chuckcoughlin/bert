@@ -6,20 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/Bert.kt" beforeDir="false" afterPath="$PROJECT_DIR$/bertApp/src/main/kotlin/chuckcoughlin/bert/Bert.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/bert-server" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/bert-server" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/bert.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/bert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/bertdev.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/clear_logs.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/clear_logs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/deploy.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/install_odroid_source.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/mkdatabase.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/mkdatabase" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/start_bert" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/start_bert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/stop_bert" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/stop_bert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/test_port.sh" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/test_port" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/unpack_distribution.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../docs/toolchain.md" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/toolchain.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../odroid/blueserver/include/blueserver.h" beforeDir="false" afterPath="$PROJECT_DIR$/../odroid/blueserver/include/blueserver.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,21 +101,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "jdk.selected.JAVA_MODULE": "18",
-    "last_opened_file_path": "/Users/chuckc/robotics/bert/Bert/configuration/src/main",
-    "project.structure.last.edited": "Problems",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.51724136",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "project.kotlinCompiler"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;18&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/configuration/src/main&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Problems&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.51724136&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.kotlinCompiler&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/configuration/src/main" />

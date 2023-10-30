@@ -284,18 +284,6 @@ To shutdown,
 ```
 Wait until the blue LED has gone out, then unplug.
 
-Configure Bluetooth using the robot's pull-down menu. Configure the adapter so that it is always visible (discoverable) and give it a "friendly"
-name of "bert_humanoid". Pairing is based on the friendly name and can be initiated
-either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
-
-Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy context="default">``:
-
-```
-  <allow send_interface="org.bluez.GattService1"/>
-  <allow send_interface="org.bluez.GattCharacteristic1"/>
-  <allow send_interface="org.bluez.GattDescriptor1"/>
-```
-
 ##### Java
 The Java JVM is used to run the application even though it is written in Kotlin. Download the latest Java Development (JDK) version using:
 ```
@@ -310,6 +298,7 @@ Once the build has been executed on the Development system (and deployed), edit 
   /usr/lib/jvm/java-18-openjdk-arm64
    /usr/local/robot/bin
 ```
+
 #### Bluetooth
 Programmatic access to Bluetooth requires a interface to the Odroid's
 bluetooth library `libbluetooth.so` (BlueZ 5.48).
@@ -320,10 +309,10 @@ heavily on lessons learned trying to implement the various packages
 mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
 daemon using RFCOMM. It communicates with the Kotlin application over sockets and
 the tablet via Bluetooth.
-Its sole purpose is to transfer strings between the tablet and Odroid.
+Its sole purpose is to transfer strings between the tablet and the Odroid robot application.
 The tablet uses standard Android Bluetooth classes.
 
-On the development machine, in the _IntelliJ_ Configuration project, the ``install_odroid_source.sh`` script
+On the development machine, in the _IntelliJ_ Configuration project, the ``install_odroid_source`` script
 copies C source files onto the Odroid in preparation for building _blueserverd_, the
 daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
 the correct robot home directory on the Odroid).
@@ -337,12 +326,26 @@ Then to build on the Odroid, from the directory containing the source projects -
   sudo ./install_blueserver_init_scripts
 ```
 
-Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded.
+Configure Bluetooth using the robot's pull-down menu. Configure the adapter so that it is always visible (discoverable) and give it a "friendly"
+name of "bert_humanoid". Pairing is based on the friendly name and can be initiated
+either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
+
+Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy context="default">``:
+
+```
+  <allow send_interface="org.bluez.GattService1"/>
+  <allow send_interface="org.bluez.GattCharacteristic1"/>
+  <allow send_interface="org.bluez.GattDescriptor1"/>
+```
+
+Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded. On the tablet
+the device should be configured as ``bert_humanoid``. On the Odroid the adapter is known as ``bert``.
 
 The init script launches the Bluetooth Serial Port service which is a necessary
 prerequisite for running the daemon. Connection difficulties may arise if too many bluetooth-enabled
 devices are in range leading to incorrect pairings. If so, the Odroid system may report
 "DbusFailedError: host is down".
+
 #### PyPot <a id="pypot"></a>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
 ```
@@ -361,7 +364,7 @@ The development host is an iMac running OSX Ventura (13.3). The code repository 
 
 Code is compiled and downloaded onto the robot target over a WiFi connection using *rsync*.
 
-The iMac requires the same Java version as the Odroid (Java 10). It is downloadable from [here](https://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase10-4425482.html). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area. Avoid the temptation to download "the latest" as we need Java 10 for compatibility with the Odroid.
+The iMac requires the same Java version as the Odroid (Java 18). It is downloadable from [here](https://www.oracle.com/java/technologies/javase/jdk18-archive-downloads.html). Make sure to download the JDK and install the “Development tools” into the default location (e.g. /usr/local/bin). Extend the system path to include this area. Avoid the temptation to download "the latest" as we need Java 10 for compatibility with the Odroid.
 
 ### IntelliJ <a id="intellij"></a>
 [toc](#table-of-contents)
@@ -486,6 +489,7 @@ A local directory holding the class files is taken as the root directory. This e
    rm -rf work classes
 ```
 
+
 ##### Python
 PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
 
@@ -494,9 +498,10 @@ PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <
 [toc](#table-of-contents)
 
 ##### General
-The tablet application, ***BertSpeak*** is the only Human Machine Interface (HMI) in normal operation.  Most importantly, it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy S3, 10" Android 8.0.0 (SDK version 26).
+The tablet application, ***BertSpeak*** is the only Human Machine Interface (HMI) in normal operation.  Most importantly, it receives and analyzes voice commands, forming the only control interface. Additionally it maintains the voice transcript and displays results from the robot's internal health monitor. The tablet is a Samsung Galaxy Tab S8+, SM-X800, 10" Android 13 (SDK version 33).
 
-The control application is a standard Android application built using Android Studio 3.4. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc:
+The control application is a standard Android application built using Android Studio 3.4. (The studio may be downloaded from http://developer.android.com.) The studio requires a minor configuration of the host build system. Make the Android home environment variable available by adding to ~/.bashrc
+
     ```ANDROID_HOME=~/Library/Androd/sdk```
 
 The password to the application keystore is: ```Andr0id```
@@ -506,7 +511,7 @@ Voice commands are implemented purely via the Android tablet using the builtin s
 
 For production of speech from robot output,  text-to-speech can be configured in the settings under "Accessibility". Parameters include languages supported and characteristics of the speaker such as volume.
 
-*** Network Configuration ***<br/>
+##### Network Configuration
 Communication between the tablet and main robot processor is over Bluetooth. On the tablet's settings "Connections" page, make sure that bluetooth is enabled. Under "More Connection Settings", enable "Nearby device scanning". Network or device pairing selections are made from menus accessed from the main screen.
 
 Pairing with the robot must be completed before the ***BertSpeak*** application is started. Pairing may be initiated either from the robot or the tablet.
