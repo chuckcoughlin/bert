@@ -7,20 +7,25 @@
     android:id="@+id/fragmentCover">
 
     <!-- The left view is the image with a panel of status buttons underneath.-->
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="@dimen/cover_image_width"
-            android:layout_height="match_parent"
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_gravity="fill_horizontal"
+            android:layout_weight="1.0"
             android:id="@+id/fragmentCoverLeftPanel">
+
         <ImageView
             android:id="@+id/fragmentCoverImage"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/cover_image_width"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-20dp" />
+            android:layout_marginTop="-20dp"
+            android:src="@drawable/recliner"
+            android:contentDescription="@string/coverDescription"/>
 
-        <!-- Status panel -->
+        <!-- Status panel at bottom of image -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/cover_image_width"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="-10dp">
@@ -77,10 +82,13 @@
                     android:textOff=""
                     android:textOn="" />
             </LinearLayout>
+            <!-- Voice Connectionl -->
             <LinearLayout
                 android:layout_width="@dimen/cover_status_width"
                 android:layout_height="wrap_content"
                 android:background="@drawable/border_white"
+                android:layout_gravity="fill"
+                android:layout_weight="1.0"
                 android:orientation="vertical">
                 <TextView
                     android:id="@+id/voice_connection_label"

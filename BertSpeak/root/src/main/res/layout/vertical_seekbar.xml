@@ -4,13 +4,15 @@
     android:layout_width="fill_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:layout_gravity="fill"
+    android:layout_weight="1.0"
     android:id="@+id/fragmentCoverRightPanel">
 
     <TextView
         android:id="@+id/waveform_title"
-        android:layout_width="match_parent"
+        android:layout_width="@dimen/cover_status_width"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
+        android:layout_gravity="center"
         android:background="@drawable/border_gray"
         android:text="@string/coverSeekbarTitle"
         android:textAlignment="center"
@@ -18,7 +20,7 @@
 <chuckcoughlin.bertspeak.ui.VerticalSeekBar
     android:id="@+id/verticalSeekbar"
     android:max="100"
-    android:layout_width="fill_parent"
+    android:layout_width="@dimen/cover_status_width"
     android:layout_height="match_parent"
     android:layout_marginEnd="5dp"
     android:background="@color/lightGray"

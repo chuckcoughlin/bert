@@ -13,12 +13,13 @@
     <string name="fragmentTranscriptLabel">Transcript</string>
 
     <!-- Strings for Cover tab-->
+    <string name="coverDescription">"Bert Reclining"</string>
     <string name="coverParameterBluetooth">Bluetooth</string>
     <string name="coverParameterSocket">Socket</string>
     <string name="coverParameterVoice">Voice</string>
     <string name="coverSeekbarTitle">Vol</string>
     <string name="coverWaveformTitle">Voice Waveform</string>
-    <!-- Strings for Cover tab-->
+    <!-- Strings for Animation tab-->
     <string name="animationFrontTitle">Front</string>
     <string name="animationLeftTitle">Left</string>
     <string name="animationRightTitle">Right</string>

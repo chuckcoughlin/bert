@@ -4,7 +4,47 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_alignWithParentIfMissing="true"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentEnd="true"
+    android:layout_alignParentBottom="true"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:accessibilityHeading="false"
+    android:addStatesFromChildren="true"
+    android:allowClickWhenDisabled="false"
+    android:alwaysDrawnWithCache="true"
+    android:animateLayoutChanges="true"
+    android:animationCache="true"
+    android:autoHandwritingEnabled="true"
+    android:clickable="true"
+    android:clipChildren="true"
+    android:clipToOutline="true"
+    android:clipToPadding="true"
+    android:contextClickable="true"
+    android:defaultFocusHighlightEnabled="true"
+    android:duplicateParentState="true"
+    android:fadeScrollbars="false"
+    android:filterTouchesWhenObscured="true"
     android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true"
+    android:focusedByDefault="true"
+    android:forceHasOverlappingRendering="true"
+    android:hapticFeedbackEnabled="false"
+    android:isScrollContainer="true"
+    android:keepScreenOn="true"
+    android:keyboardNavigationCluster="true"
+    android:longClickable="true"
+    android:nestedScrollingEnabled="false"
+    android:preferKeepClear="true"
+    android:saveEnabled="true"
+    android:scrollbarAlwaysDrawHorizontalTrack="false"
+    android:scrollbarAlwaysDrawVerticalTrack="false"
+    android:soundEffectsEnabled="true"
+    android:splitMotionEvents="true"
+    app:guidelineUseRtl="true"
     tools:context="chuckcoughlin.bertspeak.BertSpeakActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -20,22 +60,21 @@
             android:minHeight="?actionBarSize"
             android:padding="@dimen/appbar_padding"
             android:text="@string/app_name"
-            android:textSize="24pt"
-            android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" />
+            android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title"
+            android:textSize="24pt" />
 
         <com.google.android.material.tabs.TabLayout
-            app:tabTextAppearance="@style/TabTextAppearance"
             android:id="@+id/tabs"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            app:tabTextAppearance="@style/TabTextAppearance" />
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            />
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     </com.google.android.material.appbar.AppBarLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

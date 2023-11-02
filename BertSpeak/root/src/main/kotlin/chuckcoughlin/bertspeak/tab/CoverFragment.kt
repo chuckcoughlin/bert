@@ -52,7 +52,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
         binding = FragmentCoverBinding.inflate(inflater, container, false)
-        binding.fragmentCoverImage.setImageResource(R.drawable.recliner)
         val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
         val socketStatus = binding.socketStatus
         val voiceStatus = binding.voiceStatus
