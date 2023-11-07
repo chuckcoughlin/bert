@@ -14,28 +14,31 @@
         android:id="@+id/vertical1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:barrierDirection="top"
-        app:constraint_referenced_ids="fragmentCoverImage,waveform_view"/>
+        android:orientation="vertical"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="fragmentCover"/>
     <!-- Define a vertical barrier between the waveform and volume control -->
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/vertical2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:barrierDirection="top"
-        app:constraint_referenced_ids="waveform_view,verticalSeekbar"/>
+        android:orientation="vertical"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="fragmentCover"/>
     <!-- The upper left view is the image with a panel of status buttons underneath.-->
     <ImageView
         android:id="@+id/fragmentCoverImage"
-        android:layout_width="450dp"
-        android:layout_height="220dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginStart="20dp"
+        android:layout_width="@dimen/cover_image_width"
+        android:layout_height="wrap_content"
         android:contentDescription="@string/coverDescription"
         android:src="@drawable/recliner"
-        app:layout_constraintEnd_toEndOf="@+id/vertical1"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintEnd_toStartOf="@+id/vertical1"
+        app:layout_constraintHorizontal_bias="0.3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/layout_bluetooth" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/layout_bluetooth"
+        android:layout_margin="0dp"
+        />
 
     <!-- Status panel at bottom of image - three linear layouts-->
     <LinearLayout
@@ -43,9 +46,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_margin="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/layout_socket"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -69,15 +73,15 @@
             android:textOff=""
             android:textOn="" />
     </LinearLayout>
-
+    <!-- Socket Connection -->
     <LinearLayout
         android:id="@+id/layout_socket"
-        android:layout_width="@dimen/cover_waveform_width"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintStart_toStartOf="@+id/layout_bluetooth"
+        app:layout_constraintStart_toEndOf="@+id/layout_bluetooth"
         app:layout_constraintEnd_toStartOf="@+id/layout_voice"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -104,12 +108,12 @@
     <!-- Voice Connectionl -->
     <LinearLayout
         android:id="@+id/layout_voice"
-        android:layout_width="@dimen/cover_waveform_width"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintStart_toStartOf="@+id/layout_socket"
+        app:layout_constraintStart_toEndOf="@+id/layout_socket"
         app:layout_constraintEnd_toStartOf="@+id/vertical1"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
