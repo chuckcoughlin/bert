@@ -6,38 +6,41 @@
     android:id="@+id/fragmentCover"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
+    android:adjustViewBounds="true"
     android:background="@drawable/border_white">
 
     <!-- Define a vertical barrier between the image and waveform -->
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/vertical1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         app:barrierDirection="end"
         app:constraint_referenced_ids="fragmentCover"/>
     <!-- Define a vertical barrier between the waveform and volume control -->
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/vertical2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         app:barrierDirection="end"
         app:constraint_referenced_ids="fragmentCover"/>
     <!-- The upper left view is the image with a panel of status buttons underneath.-->
     <ImageView
         android:id="@+id/fragmentCoverImage"
-        android:layout_width="@dimen/cover_image_width"
+        android:layout_width="700dp"
         android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:adjustViewBounds="true"
         android:contentDescription="@string/coverDescription"
         android:src="@drawable/recliner"
-        app:layout_constraintEnd_toStartOf="@+id/vertical1"
-        app:layout_constraintHorizontal_bias="0.3"
+        android:layout_marginLeft="@dimen/cover_topMargin"
+        android:layout_marginRight="0dp"
+        android:layout_marginTop="@dimen/cover_topMargin"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/layout_bluetooth"
-        android:layout_margin="0dp"
         />
 
     <!-- Status panel at bottom of image - three linear layouts-->
@@ -46,7 +49,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_margin="0dp"
+        android:layout_marginTop="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/layout_socket"
         app:layout_constraintHorizontal_bias="0.5"
@@ -141,7 +144,7 @@
     <!-- The is a text label above the wave-form meter -->
     <TextView
         android:id="@+id/waveform_title"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/border_gray"
         android:text="@string/coverWaveformTitle"
@@ -150,7 +153,7 @@
         app:layout_constraintStart_toEndOf="@+id/vertical1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/vertical2"
-        app:layout_constraintBottom_toTopOf="@+id/waveform_view"/>
+        />
     <chuckcoughlin.bertspeak.ui.waveform.WaveformView
         android:id="@+id/waveform_view"
         android:layout_width="680dp"
@@ -159,7 +162,6 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintStart_toEndOf="@+id/vertical1"
         app:layout_constraintTop_toBottomOf="@id/waveform_title"
-        app:layout_constraintEnd_toStartOf="@+id/vertical2"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:context="chuckcoughlin.bertspeak.BertSpeakActivity"
         tools:showIn="@layout/fragment_cover" />

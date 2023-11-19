@@ -8,6 +8,7 @@ package chuckcoughlin.bertspeak
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.res.Resources
 import android.os.Bundle
 import android.os.IBinder
 import android.speech.tts.TextToSpeech
@@ -51,14 +52,17 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.i(CLSS, "onCreate: ... inflating binding")
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
         // Create the comprehensive dispatch connection service
         DispatchService.startForegroundService(this)
-
+        // get device dimensions
+        var width = getScreenWidth()
+        var height = getScreenHeight()
+        Log.i(CLSS, String.format("onCreate: ... inflating binding (%d x %d",height,width ))
         binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         val adapter = FragmentPageAdapter(this)
         val pager: ViewPager2 = binding.viewPager
         pager.currentItem = 0
@@ -78,13 +82,11 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
                 //Log.i(CLSS, "onPageScrolled: ... page scrolled")
             }
-
             // triggered when you select a new page
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 Log.i(CLSS, "onPageSelected: ... page selected")
             }
-
             // triggered when there is
             // scroll state will be changed
             override fun onPageScrollStateChanged(state: Int) {
@@ -105,7 +107,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
      */
     override fun onStart() {
         super.onStart()
-        Log.i(CLSS, "onStart")
+        Log.i(CLSS, String.format("onStart: ..." ))
         activateSpeechAnalyzer()
         annunciator = Annunciator(applicationContext, this)
         annunciator!!.setOnUtteranceProgressListener(UtteranceListener())
@@ -281,6 +283,14 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
                 runOnUiThread { analyzer!!.cancel() }
             }
         }
+    }
+
+    fun getScreenWidth(): Int {
+        return Resources.getSystem().displayMetrics.widthPixels
+    }
+
+    fun getScreenHeight(): Int {
+        return Resources.getSystem().displayMetrics.heightPixels
     }
 
     companion object {

@@ -21,6 +21,7 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.ToggleButton
 import androidx.lifecycle.Lifecycle
+import chuckcoughlin.bertspeak.BertSpeakActivity
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
@@ -78,6 +79,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
      */
     override fun onStart() {
         super.onStart()
+        Log.i(CLSS, String.format("onStart: main view is %d x %d ...",binding.root.height,binding.root.width ))
         val intent = Intent(activity, DispatchService::class.java)
         activity?.applicationContext?.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }

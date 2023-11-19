@@ -1,3 +1,7 @@
+/**
+ * Copyright 2023 Charles Coughlin. All rights reserved.
+ * (MIT License)
+ */
 package chuckcoughlin.bertspeak.tab
 
 import android.util.Log
@@ -5,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import chuckcoughlin.bertspeak.R
-
 
 /**
  * A [FragmentPageAdapter] that returns a fragment corresponding to
@@ -53,7 +56,7 @@ class FragmentPageAdapter(activity:FragmentActivity) : FragmentStateAdapter(acti
     }
 
     companion object {
-        private const val CLSS = "SectionsPagerAdapter"
+        private const val CLSS = "FragmentPageAdapter"
     }
 
     init {
