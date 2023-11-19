@@ -9,6 +9,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Resources
+import android.media.AudioManager
 import android.os.Bundle
 import android.os.IBinder
 import android.speech.tts.TextToSpeech
@@ -37,6 +38,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import java.util.Locale
 
+
 /**
  * The main activity "owns" the page tab UI fragments. It also contains
  * the speech components, since they must execute on the main thread
@@ -57,9 +59,9 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         // Create the comprehensive dispatch connection service
         DispatchService.startForegroundService(this)
         // get device dimensions
-        var width = getScreenWidth()
-        var height = getScreenHeight()
-        Log.i(CLSS, String.format("onCreate: ... inflating binding (%d x %d",height,width ))
+        val width = getScreenWidth()
+        val height = getScreenHeight()
+        Log.i(CLSS, String.format("onCreate: ... inflating binding (%d x %d)",height,width ))
         binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -111,6 +113,8 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         activateSpeechAnalyzer()
         annunciator = Annunciator(applicationContext, this)
         annunciator!!.setOnUtteranceProgressListener(UtteranceListener())
+        //val audioManager = getSystemService(AUDIO_SERVICE)
+        //val volume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL)
     }
 
     override fun onStop() {

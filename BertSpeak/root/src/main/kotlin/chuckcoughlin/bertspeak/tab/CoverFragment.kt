@@ -120,7 +120,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
             visualizer!!.enabled = true
         }
         catch (ex: Exception) {  // This will fail in the emulator
-            Log.i(name,String.format("startVisualizer: FAILED to start (%s).",name,ex.localizedMessage))
+            Log.i(name,String.format("startVisualizer: %s FAILED to start (%s).",name,ex.localizedMessage))
         }
     }
 
