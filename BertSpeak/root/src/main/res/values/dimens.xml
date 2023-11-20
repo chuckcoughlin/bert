@@ -9,10 +9,6 @@
     <dimen name="row_padding_vertical">10dp</dimen>
     <dimen name="log_field_padding">1dp</dimen>
     <dimen name="log_transition_z">2dp</dimen>
-    <!-- Tablet dimensions, shouldn't have to use these -->
-    <dimen name="tablet_hidden_height">0dp</dimen>
-    <dimen name="tablet_screen_height">1752dp</dimen>
-    <dimen name="tablet_screen_width">2800dp</dimen>
     <!-- Sizes for Cover and status buttons -->
     <dimen name="cover_topMargin">2dp</dimen>
     <dimen name="cover_parameter_text_size">24sp</dimen>

@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   The actual screen dimensions do not match those
-   advertised for the Samsung tablet (1752x2800)
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   At one point we had a problem with physical screen dimensions
+   (1650x2800) not matching advertised ivalues for the Samsung tablet
+   (1752x2800). This issue has disappeared through use of LinearLayout
+   on the top level.
 -->
 <resources>
     <dimen name="fab_margin">48dp</dimen>
-    <dimen name="tablet_hidden_height">4dp</dimen>
-    <dimen name="tablet_screen_height">1650dp</dimen>
-    <dimen name="tablet_screen_width">2800dp</dimen>
 </resources>

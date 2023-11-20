@@ -11,65 +11,65 @@
     android:background="@drawable/border_white">
 
     <!-- Define a vertical barrier between the image and waveform -->
-    <androidx.constraintlayout.widget.Barrier
+    <androidx.constraintlayout.widget.Guideline
         android:id="@+id/vertical1"
-        android:layout_width="0dp"
+        android:layout_width="1dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        app:barrierDirection="end"
-        app:constraint_referenced_ids="fragmentCover"/>
-    <!-- Define a vertical barrier between the waveform and volume control -->
-    <androidx.constraintlayout.widget.Barrier
+        android:background="@color/black"
+        app:layout_constraintGuide_percent="0.6"/>
+    <!-- Define a vertical guideline between the waveform and volume control -->
+    <androidx.constraintlayout.widget.Guideline
         android:id="@+id/vertical2"
-        android:layout_width="0dp"
+        android:layout_width="1dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        app:barrierDirection="end"
-        app:constraint_referenced_ids="fragmentCover"/>
+        android:background="@color/red"
+        app:layout_constraintGuide_percent="0.9"/>
     <!-- The upper left view is the image with a panel of status buttons underneath.-->
     <ImageView
         android:id="@+id/fragmentCoverImage"
-        android:layout_width="700dp"
+        android:layout_width="@dimen/cover_image_width"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"
         android:adjustViewBounds="true"
         android:contentDescription="@string/coverDescription"
         android:src="@drawable/recliner"
-        android:layout_marginLeft="@dimen/cover_topMargin"
-        android:layout_marginRight="0dp"
+        android:layout_marginStart="@dimen/cover_topMargin"
+        android:layout_marginEnd="2dp"
         android:layout_marginTop="@dimen/cover_topMargin"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/vertical1"
         />
 
     <!-- Status panel at bottom of image - three linear layouts-->
     <LinearLayout
         android:id="@+id/layout_bluetooth"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginTop="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/layout_socket"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
             android:id="@+id/bluetooth_connection_label"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
             android:text="@string/coverParameterBluetooth"
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size"
          />
-
         <ToggleButton
             android:id="@+id/bluetooth_status"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="@null"
             android:button="@drawable/toggle"
             android:scaleType="fitCenter"
@@ -79,18 +79,17 @@
     <!-- Socket Connection -->
     <LinearLayout
         android:id="@+id/layout_socket"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintStart_toEndOf="@+id/layout_bluetooth"
         app:layout_constraintEnd_toStartOf="@+id/layout_voice"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
             android:id="@+id/socket_connection_label"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
             android:text="@string/coverParameterSocket"
@@ -98,8 +97,9 @@
             android:textSize="@dimen/cover_parameter_text_size"/>
         <ToggleButton
             android:id="@+id/socket_status"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:background="@null"
             android:button="@drawable/toggle"
             android:scaleType="fitCenter"
@@ -111,7 +111,7 @@
     <!-- Voice Connectionl -->
     <LinearLayout
         android:id="@+id/layout_voice"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintStart_toEndOf="@+id/layout_socket"
@@ -122,7 +122,7 @@
 
         <TextView
             android:id="@+id/voice_connection_label"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
             android:text="@string/coverParameterVoice"
@@ -130,7 +130,7 @@
             android:textSize="@dimen/cover_parameter_text_size" />
         <ToggleButton
             android:id="@+id/voice_status"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="@null"
@@ -144,7 +144,7 @@
     <!-- The is a text label above the wave-form meter -->
     <TextView
         android:id="@+id/waveform_title"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/cover_waveform_width"
         android:layout_height="wrap_content"
         android:background="@drawable/border_gray"
         android:text="@string/coverWaveformTitle"
@@ -154,22 +154,25 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/vertical2"
         />
+
+    <!-- The left-most panel is a slide control for the voice volume -->
     <chuckcoughlin.bertspeak.ui.waveform.WaveformView
         android:id="@+id/waveform_view"
-        android:layout_width="680dp"
-        android:layout_height="841dp"
-        android:layout_marginStart="32dp"
+        android:layout_width="@dimen/cover_waveform_width"
+        android:layout_height="0dp"
+        android:layout_marginStart="0dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintStart_toEndOf="@+id/vertical1"
+        app:layout_constraintEnd_toStartOf="@+id/vertical2"
         app:layout_constraintTop_toBottomOf="@id/waveform_title"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.5"
         tools:context="chuckcoughlin.bertspeak.BertSpeakActivity"
         tools:showIn="@layout/fragment_cover" />
 
-    <!-- The left-most panel is a slide control for the voice volume -->
     <TextView
         android:id="@+id/volume_adjust_title"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/border_gray"
         android:text="@string/coverSeekbarTitle"
@@ -177,13 +180,12 @@
         android:textSize="@dimen/cover_waveform_text_size"
         app:layout_constraintStart_toEndOf="@+id/vertical2"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/verticalSeekbar"/>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <chuckcoughlin.bertspeak.ui.VerticalSeekBar
         android:id="@+id/verticalSeekbar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:background="@color/lightGray"
         android:max="100"
         android:progress="50"

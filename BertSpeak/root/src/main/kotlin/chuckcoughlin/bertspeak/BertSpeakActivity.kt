@@ -9,7 +9,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Resources
-import android.media.AudioManager
 import android.os.Bundle
 import android.os.IBinder
 import android.speech.tts.TextToSpeech
@@ -113,8 +112,8 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         activateSpeechAnalyzer()
         annunciator = Annunciator(applicationContext, this)
         annunciator!!.setOnUtteranceProgressListener(UtteranceListener())
-        //val audioManager = getSystemService(AUDIO_SERVICE)
-        //val volume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL)
+        val audioManager = getSystemService(AUDIO_SERVICE)
+        suppressAudio() // TEMPORARY
     }
 
     override fun onStop() {
