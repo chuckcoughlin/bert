@@ -5,10 +5,9 @@
 package chuckcoughlin.bertspeak.service
 
 /**
- * These are the facilities supported by the DispatchService. These
- * are ordered in that each is dependent on the previous.
+ * These are the communication controllers embedded in this application.
  */
-enum class TieredFacility {
+enum class ControllerType {
     BLUETOOTH, SOCKET, VOICE;
 
     companion object {

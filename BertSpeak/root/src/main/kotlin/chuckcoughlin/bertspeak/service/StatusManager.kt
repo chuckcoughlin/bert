@@ -7,18 +7,18 @@ import java.util.ArrayList
 import java.util.HashMap
 
 /**
- * The status manager keeps track of the status of tiered facilities within the
- * Voice service. The DispatchService holds a single instance that is made available
+ * The status manager keeps track of the status of th4 controllers within the
+ * application. The DispatchService holds a single instance that is made available
  * to UI fragments through the binder interface.
  */
 class StatusManager {
-    private val map: MutableMap<TieredFacility, FacilityState>
+    private val map: MutableMap<ControllerType, ControllerState>
     private val observers: MutableMap<String?, IntentObserver>
-    fun getStateForFacility(fac: TieredFacility): FacilityState? {
+    fun getStateForController(fac: ControllerType): ControllerState? {
         return map[fac]
     }
 
-    fun reportState(fac: TieredFacility, state: FacilityState) {
+    fun reportState(fac: ControllerType, state: ControllerState) {
         map[fac] = state
         val intent = makeIntent(fac, state)
         notifyObservers(intent)
@@ -26,7 +26,7 @@ class StatusManager {
 
     /**
      * When a new observer is registered, update with states of all
-     * tiered facilities.
+     * controllers.
      * @param observer
      */
     fun register(observer: IntentObserver) {
@@ -51,15 +51,15 @@ class StatusManager {
      * @param fac tiered facility
      * @param state new facility state
      */
-    fun update(fac: TieredFacility, state: FacilityState) {
+    fun update(fac: ControllerType, state: ControllerState) {
         map[fac] = state
     }
 
-    private fun makeIntent(fac: TieredFacility, state: FacilityState?): Intent {
-        val intent = Intent(BertConstants.ACTION_FACILITY_STATE)
-        intent.addCategory(VoiceConstants.CATEGORY_FACILITY_STATE)
-        intent.putExtra(VoiceConstants.KEY_TIERED_FACILITY, fac.name)
-        intent.putExtra(VoiceConstants.KEY_FACILITY_STATE, state!!.name)
+    private fun makeIntent(fac: ControllerType, state: ControllerState?): Intent {
+        val intent = Intent(BertConstants.ACTION_CONTROLLER_STATE)
+        intent.addCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)
+        intent.putExtra(VoiceConstants.KEY_CONTROLLER, fac.name)
+        intent.putExtra(VoiceConstants.KEY_CONTROLLER_STATE, state!!.name)
         return intent
     }
 
@@ -81,9 +81,9 @@ class StatusManager {
      */
     init {
         map = HashMap()
-        map[TieredFacility.BLUETOOTH] = FacilityState.IDLE
-        map[TieredFacility.SOCKET] = FacilityState.IDLE
-        map[TieredFacility.VOICE] = FacilityState.IDLE
+        map[ControllerType.BLUETOOTH] = ControllerState.OFF
+        map[ControllerType.SOCKET] = ControllerState.OFF
+        map[ControllerType.VOICE] = ControllerState.OFF
         observers = HashMap()
     }
 }

@@ -64,15 +64,13 @@
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size"
          />
-        <ToggleButton
+        <chuckcoughlin.bertspeak.ui.StatusImageButton
             android:id="@+id/bluetooth_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_white"
-            android:button="@drawable/select_button"
-            android:gravity="center"
-            android:textOff=""
-            android:textOn="" />
+            android:src="@drawable/ball_gray"
+            />
     </LinearLayout>
     <!-- Socket Connection -->
     <LinearLayout
@@ -93,16 +91,13 @@
             android:text="@string/coverParameterSocket"
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size"/>
-        <ToggleButton
+        <chuckcoughlin.bertspeak.ui.StatusImageButton
             android:id="@+id/socket_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
             android:background="@drawable/border_white"
-            android:button="@drawable/select_button"
-            android:scaleType="fitCenter"
-            android:textOff=""
-            android:textOn=""
+            android:src="@drawable/ball_gray"
+            />
             />
     </LinearLayout>
 
@@ -127,16 +122,12 @@
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size" />
 
-        <ToggleButton
+        <chuckcoughlin.bertspeak.ui.StatusImageButton
             android:id="@+id/voice_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
             android:background="@drawable/border_white"
-            android:button="@drawable/select_button"
-            android:scaleType="fitCenter"
-            android:textOff=""
-            android:textOn=""
+            android:src="@drawable/ball_gray"
             />
     </LinearLayout>
 

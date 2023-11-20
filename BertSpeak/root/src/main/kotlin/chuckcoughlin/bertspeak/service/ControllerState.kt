@@ -1,15 +1,15 @@
 /**
- * (c) 2022  Charles Coughlin. All rights reserved.
+ * (c) 2022-2023  Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
 
 /**
- * This enumeration class represents the permissible states of tiered facilities
- * within the voice service.
+ * This enumeration class represents the permissible states of the communications
+ * controllers within this application.
  */
-enum class FacilityState {
-    IDLE, WAITING, ACTIVE, ERROR;
+enum class ControllerState {
+    OFF, PENDING, ACTIVE, ERROR;
 
     companion object {
         /**

@@ -46,7 +46,7 @@ interface BluetoothHandler {
     /**
      * Modify status screen
      */
-    fun reportConnectionState(fac: TieredFacility, state: FacilityState)
+    fun reportConnectionState(fac: ControllerType, state: ControllerState)
 
     /**
      * The speech recognizer recorded a result.

@@ -25,8 +25,8 @@ import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
 import chuckcoughlin.bertspeak.db.DatabaseHelper
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import chuckcoughlin.bertspeak.service.FacilityState
-import chuckcoughlin.bertspeak.service.TieredFacility
+import chuckcoughlin.bertspeak.service.ControllerState
+import chuckcoughlin.bertspeak.service.ControllerType
 import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.speech.Annunciator
 import chuckcoughlin.bertspeak.speech.SpeechAnalyzer
@@ -173,7 +173,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
     // Only turn on the speech recognizer if the action state is voice.
     override fun initialize(list: List<Intent>) {
         for(intent in list) {
-            if(intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
+            if(intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
                 update(intent)
             }
         }
@@ -182,18 +182,18 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
     // For the speech analyzer to be active, the bluetooth socket should be live.
     // The speed analyzer must run on the "main thread"
     override fun update(intent: Intent) {
-        if(intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
-            var value = intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE)
+        if(intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
+            var value = intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)
             if(value != null) {
-                val actionState: FacilityState = FacilityState.valueOf(value)
-                value = intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)
+                val actionState: ControllerState = ControllerState.valueOf(value)
+                value = intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)
                 if(value != null) {
-                    val tf: TieredFacility =
-                        TieredFacility.valueOf(value)
-                    if(tf == TieredFacility.SOCKET && actionState == FacilityState.ACTIVE) {
+                    val tf: ControllerType =
+                        ControllerType.valueOf(value)
+                    if(tf == ControllerType.SOCKET && actionState == ControllerState.ACTIVE) {
                         runOnUiThread { activateSpeechAnalyzer() }
                     }
-                    else if(tf == TieredFacility.SOCKET) {
+                    else if(tf == ControllerType.SOCKET) {
                         runOnUiThread { deactivateSpeechAnalyzer() }
                     }
                 }

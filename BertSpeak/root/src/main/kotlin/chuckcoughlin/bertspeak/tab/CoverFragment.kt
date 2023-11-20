@@ -19,17 +19,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.ToggleButton
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import chuckcoughlin.bertspeak.service.FacilityState
-import chuckcoughlin.bertspeak.service.TieredFacility
+import chuckcoughlin.bertspeak.service.ControllerState
+import chuckcoughlin.bertspeak.service.ControllerType
 import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.ui.RendererFactory
+import chuckcoughlin.bertspeak.ui.StatusImageButton
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.waveform.WaveformView
 
@@ -58,9 +58,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         bluetoothStatus.setClickable(false) // Not really buttons, just indicators
         socketStatus.isClickable = false
         voiceStatus.isClickable = false
-        updateToggleButton(bluetoothStatus, FacilityState.IDLE)
-        updateToggleButton(socketStatus, FacilityState.IDLE)
-        updateToggleButton(voiceStatus, FacilityState.IDLE)
+        updateStatusButton(bluetoothStatus, ControllerState.OFF)
+        updateStatusButton(socketStatus, ControllerState.OFF)
+        updateStatusButton(voiceStatus, ControllerState.OFF)
         val rendererFactory = RendererFactory()
         waveformView = binding.root.findViewById(R.id.waveform_view)
         waveformView.setRenderer(
@@ -133,56 +133,40 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     }
 
     /**
-     * Map current bluetooth action state to ToggleButton icon. Checked in this order ...
+     * Map current action state to StatusImageButton icon. Checked in this order ...
      * gray - active = false
      * green- checked = true
      * yellow - checked = false
      * red - enabled = false
      * @param state
      */
-    private fun updateToggleButton(btn: ToggleButton, state: FacilityState) {
-        Log.i(name, String.format("updateToggleButton:%s %s", btn.text, state.name))
+    private fun updateStatusButton(btn: StatusImageButton, state: ControllerState) {
+        Log.i(name, String.format("updateStatusButton:%s", state.name))
         activity?.runOnUiThread(Runnable {
+
             btn.visibility = View.INVISIBLE
-            when (state) {
-                FacilityState.IDLE -> {
-                    btn.isChecked = false
-                    btn.isSelected = false
-                }
-                FacilityState.WAITING -> {
-                    btn.isChecked = true
-                    btn.isSelected = false
-                }
-                FacilityState.ACTIVE -> {
-                    btn.isChecked = true
-                    btn.isSelected = true
-                }
-                FacilityState.ERROR -> {
-                    btn.isChecked = false
-                    btn.isSelected = true
-                }
-            }
+            btn.setButtonState(state)
             btn.visibility = View.VISIBLE
         })
     }
 
     override fun initialize(list: List<Intent>) {
         for (intent in list) {
-            if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
-                val actionState = FacilityState.valueOf(
-                    intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE)!!
+            if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
+                val actionState = ControllerState.valueOf(
+                    intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!
                 )
                 val tf =
-                    TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
+                    ControllerType.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)!!)
                 when (tf) {
-                    TieredFacility.BLUETOOTH -> {
-                        updateToggleButton(binding.bluetoothStatus, actionState)
+                    ControllerType.BLUETOOTH -> {
+                        updateStatusButton(binding.bluetoothStatus, actionState)
                     }
-                    TieredFacility.SOCKET -> {
-                        updateToggleButton(binding.socketStatus, actionState)
+                    ControllerType.SOCKET -> {
+                        updateStatusButton(binding.socketStatus, actionState)
                     }
                     else -> {
-                        updateToggleButton(binding.voiceStatus, actionState)
+                        updateStatusButton(binding.voiceStatus, actionState)
                     }
                 }
             }
@@ -190,20 +174,20 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     }
 
     override fun update(intent: Intent) {
-        if (intent.hasCategory(VoiceConstants.CATEGORY_FACILITY_STATE)) {
+        if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
             val actionState =
-                FacilityState.valueOf(intent.getStringExtra(VoiceConstants.KEY_FACILITY_STATE)!!)
+                ControllerState.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!)
             val tf =
-                TieredFacility.valueOf(intent.getStringExtra(VoiceConstants.KEY_TIERED_FACILITY)!!)
+                ControllerType.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)!!)
             when (tf) {
-                TieredFacility.BLUETOOTH -> {
-                    updateToggleButton(binding.bluetoothStatus, actionState)
+                ControllerType.BLUETOOTH -> {
+                    updateStatusButton(binding.bluetoothStatus, actionState)
                 }
-                TieredFacility.SOCKET -> {
-                    updateToggleButton(binding.socketStatus, actionState)
+                ControllerType.SOCKET -> {
+                    updateStatusButton(binding.socketStatus, actionState)
                 }
                 else -> {
-                    updateToggleButton(binding.voiceStatus, actionState)
+                    updateStatusButton(binding.voiceStatus, actionState)
                 }
             }
         }

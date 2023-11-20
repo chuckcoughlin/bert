@@ -10,11 +10,11 @@ package chuckcoughlin.bertspeak.service
  */
 object VoiceConstants {
     // Broadcast intent categories
-    const val CATEGORY_FACILITY_STATE = "FacilityState"
+    const val CATEGORY_CONTROLLER_STATE = "ControllerState"
     const val CATEGORY_SPOKEN_TEXT = "SpokenText"
 
     // "extra" data keys
-    const val KEY_TIERED_FACILITY = "TieredFacility"
-    const val KEY_FACILITY_STATE = "FacilityState"
+    const val KEY_CONTROLLER = "ControllerName"
+    const val KEY_CONTROLLER_STATE = "ControllerState"
     const val KEY_SPOKEN_TEXT = "SpokenText"
 }

@@ -12,8 +12,8 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
 import chuckcoughlin.bertspeak.service.BluetoothHandler
-import chuckcoughlin.bertspeak.service.FacilityState
-import chuckcoughlin.bertspeak.service.TieredFacility
+import chuckcoughlin.bertspeak.service.ControllerState
+import chuckcoughlin.bertspeak.service.ControllerType
 import java.util.Locale
 
 /**
@@ -93,7 +93,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
 
     override fun onBeginningOfSpeech() {
         //Log.i(CLSS, "onBeginningOfSpeech");
-        handler.reportConnectionState(TieredFacility.VOICE, FacilityState.ACTIVE)
+        handler.reportConnectionState(ControllerType.VOICE, ControllerState.ACTIVE)
     }
 
     // Background level changed ...
@@ -149,7 +149,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
             var text = matches[0]
             text = scrubText(text)
             handler.receiveSpokenText(text)
-            handler.reportConnectionState(TieredFacility.VOICE, FacilityState.WAITING)
+            handler.reportConnectionState(ControllerType.VOICE, ControllerState.PENDING)
             startListening() // Repeat forever
         }
     }
