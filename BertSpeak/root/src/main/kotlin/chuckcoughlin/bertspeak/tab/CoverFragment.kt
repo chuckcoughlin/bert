@@ -21,7 +21,6 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.ToggleButton
 import androidx.lifecycle.Lifecycle
-import chuckcoughlin.bertspeak.BertSpeakActivity
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
@@ -30,8 +29,8 @@ import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.FacilityState
 import chuckcoughlin.bertspeak.service.TieredFacility
 import chuckcoughlin.bertspeak.service.VoiceConstants
-import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.RendererFactory
+import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.waveform.WaveformView
 
 
