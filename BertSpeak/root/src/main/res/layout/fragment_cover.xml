@@ -21,24 +21,23 @@
     <!-- Define a vertical guideline between the waveform and volume control -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/vertical2"
-        android:layout_width="1dp"
+        android:layout_width="2dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@color/red"
-        app:layout_constraintGuide_percent="0.9"/>
+        app:layout_constraintGuide_percent="0.95"/>
     <!-- The upper left view is the image with a panel of status buttons underneath.-->
     <ImageView
         android:id="@+id/fragmentCoverImage"
         android:layout_width="@dimen/cover_image_width"
-        android:layout_height="wrap_content"
-        android:scaleType="fitXY"
-        android:adjustViewBounds="true"
+        android:layout_height="@dimen/cover_image_height"
         android:contentDescription="@string/coverDescription"
         android:src="@drawable/recliner"
-        android:layout_marginStart="@dimen/cover_topMargin"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:layout_marginStart="@dimen/button_image_left_margin"
         android:layout_marginEnd="2dp"
         android:layout_marginTop="@dimen/cover_topMargin"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@id/vertical1"

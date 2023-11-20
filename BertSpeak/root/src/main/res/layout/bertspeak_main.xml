@@ -50,6 +50,13 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
+        <!-- This text is a pad to account for an invisible area on the tablet
+             This may not be necessary-->
+        <TextView
+            android:id="@+id/invisible"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/hidden_height"
+            android:padding="@dimen/appbar_padding"
+            android:background="@color/black"/>
     </com.google.android.material.appbar.AppBarLayout>
 </LinearLayout>

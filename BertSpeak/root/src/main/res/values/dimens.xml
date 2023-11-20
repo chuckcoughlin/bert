@@ -9,18 +9,21 @@
     <dimen name="row_padding_vertical">10dp</dimen>
     <dimen name="log_field_padding">1dp</dimen>
     <dimen name="log_transition_z">2dp</dimen>
+    <!-- Kludge for mismatch between emulator and tablet -->
+    <dimen name="hidden_height">2dp</dimen>
     <!-- Sizes for Cover and status buttons -->
     <dimen name="cover_topMargin">2dp</dimen>
     <dimen name="cover_parameter_text_size">24sp</dimen>
     <dimen name="cover_parameter_top_margin">24dp</dimen>
     <dimen name="cover_image_top_margin">12dp</dimen>
-    <dimen name="cover_image_width">990dp</dimen>
-    <dimen name="cover_status_width">330dp</dimen>
+    <dimen name="cover_image_height">520dp</dimen>
+    <dimen name="cover_image_width">782dp</dimen>
+    <dimen name="cover_status_width">180dp</dimen>
     <dimen name="cover_waveform_text_size">32sp</dimen>
-    <dimen name="cover_waveform_width">800dp</dimen>
+    <dimen name="cover_waveform_width">460dp</dimen>
     <dimen name="button_image_height">32dp</dimen>
     <dimen name="button_image_width">64dp</dimen>
-    <dimen name="button_image_left_margin">20dp</dimen>
+    <dimen name="button_image_left_margin">2dp</dimen>
     <dimen name="button_text_field_height">20dp</dimen>
     <dimen name="button_text_field_width">120dp</dimen>
     <dimen name="button_text_field_margin">5dp</dimen>
