@@ -4,10 +4,12 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
@@ -16,9 +18,14 @@ import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.requestPermissions
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
@@ -38,7 +45,7 @@ import chuckcoughlin.bertspeak.ui.waveform.WaveformView
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar.
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
     override val name = CLSS
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null
@@ -48,6 +55,10 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     private lateinit var seekBar: VerticalSeekBar
     private lateinit var waveformView: WaveformView
 
+    private var bluetoothButtonId: Int
+    private var socketButtonId: Int
+    private var voiceButtonId: Int
+
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
@@ -55,9 +66,13 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
         val socketStatus = binding.socketStatus
         val voiceStatus = binding.voiceStatus
-        bluetoothStatus.setClickable(false) // Not really buttons, just indicators
-        socketStatus.isClickable = false
-        voiceStatus.isClickable = false
+        bluetoothStatus.isClickable = true // Not really buttons, just indicators
+        bluetoothStatus.setOnClickListener(this)
+        bluetoothButtonId = bluetoothStatus.id
+        socketStatus.isClickable = true
+        socketButtonId = socketStatus.id
+        voiceStatus.isClickable = true
+        voiceButtonId = voiceStatus.id
         updateStatusButton(bluetoothStatus, ControllerState.OFF)
         updateStatusButton(socketStatus, ControllerState.OFF)
         updateStatusButton(voiceStatus, ControllerState.OFF)
@@ -173,6 +188,23 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         }
     }
 
+    /**
+     * On start of the fragment, we've asked the user for any permissions that are not already set
+     */
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        Log.i(name, String.format("onRequestPermissionsResult:%d",requestCode))
+        if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            // Permission is granted
+        }
+        else {
+                    // Explain to the user that the feature is unavailable because
+                    // the feature requires a permission that the user has denied.
+                    // At the same time, respect the user's decision. Don't link to
+                    // system settings in an effort to convince the user to change
+                    // their decision.
+        }
+    }
     override fun update(intent: Intent) {
         if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
             val actionState =
@@ -191,6 +223,31 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
                 }
             }
         }
+    }
+
+    // ================== OnClickListener ===============
+    // One of the status buttons has been clicked
+    override fun onClick(v: View) {
+        when(v.id) {
+            bluetoothButtonId -> {
+                Log.i(name, String.format("onClick:%s",ControllerType.BLUETOOTH.name))
+                if(ContextCompat.checkSelfPermission(requireContext(),Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ) {
+                    // You can use the API that requires the permission.
+                }
+                else {
+                    requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_SCAN),bluetoothButtonId)
+                }
+
+            }
+            socketButtonId -> {
+                Log.i(name, String.format("onClick:%s",ControllerType.SOCKET.name))
+            }
+            voiceButtonId -> {
+                Log.i(name, String.format("onClick:%s",ControllerType.VOICE.name))
+            }
+
+        }
+
     }
 
     // ================== OnDataCaptureListener ===============
@@ -232,6 +289,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         const val CAPTURE_SIZE = 256
     }
 
-
-
+    init {
+        bluetoothButtonId= 0
+        socketButtonId= 0
+        voiceButtonId= 0
+    }
 }
