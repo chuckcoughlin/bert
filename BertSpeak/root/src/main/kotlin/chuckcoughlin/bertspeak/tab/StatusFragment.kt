@@ -108,7 +108,7 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, 
 
     override fun initialize() {}
     override fun update(msg: TextMessage) {
-        val text: String = msg.message
+        //val text: String = msg.message
     }
 
     companion object {

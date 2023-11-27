@@ -4,11 +4,11 @@
  */
 package chuckcoughlin.bertspeak.service
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothAdapter
 import android.util.Log
-import java.util.HashSet
+import java.lang.Thread.UncaughtExceptionHandler
 
 /**
  * Attempt to discover a Bluetooth network.
@@ -71,26 +71,14 @@ class BluetoothChecker(private val handler: BluetoothHandler, private val device
                     pairedDevices = adapter.bondedDevices
                     for (bluetoothDevice in pairedDevices) {
                         Log.i(
-                            CLSS,
-                            String.format(
-                                "%s: discovered %s (%s %s)",
-                                CLSS,
-                                bluetoothDevice.name,
-                                bluetoothDevice.type,
-                                bluetoothDevice.address
-                            )
+                            CLSS, String.format("%s: discovered %s (%s %s)",
+                                CLSS,bluetoothDevice.name, bluetoothDevice.type, bluetoothDevice.address )
                         )
                         if (bluetoothDevice.name.equals(deviceName, ignoreCase = true)) {
                             success = true
                             Log.i(
-                                CLSS,
-                                String.format(
-                                    "%s: Matched %s (%s %s)",
-                                    CLSS,
-                                    bluetoothDevice.name,
-                                    bluetoothDevice.type,
-                                    bluetoothDevice.address
-                                )
+                                CLSS,String.format("%s: Matched %s (%s %s)",CLSS,bluetoothDevice.name,bluetoothDevice.type,
+                                    bluetoothDevice.address)
                             )
                             handler.setBluetoothDevice(bluetoothDevice)
                             break

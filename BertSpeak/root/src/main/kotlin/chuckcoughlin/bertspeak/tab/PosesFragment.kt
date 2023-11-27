@@ -95,7 +95,7 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, T
 
     override fun initialize() {}
     override fun update(msg: TextMessage) {
-        val text: String = msg.message
+        //val text: String = msg.message
     }
 
     companion object {

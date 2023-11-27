@@ -163,7 +163,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     }
 
     private fun createRecognizerIntent(): Intent {
-        val locale = "us-UK"
+        //val locale = "us-UK"
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty

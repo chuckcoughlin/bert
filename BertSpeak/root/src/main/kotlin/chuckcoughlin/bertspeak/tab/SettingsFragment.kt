@@ -31,21 +31,16 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentSettingsBinding
 
-    @Deprecated("Deprecated in Java")
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        val nvpairs = DatabaseManager.getSettings()
-        val nvarray = nvpairs.toTypedArray()
-        Log.i(CLSS, String.format("onActivityCreated: will display %d name-values", nvarray.size))
-        val adapter = SettingsListAdapter(requireContext(), nvarray)
-        listAdapter = adapter
-        listView.itemsCanFocus = true
-    }
-
     // Called to have the fragment instantiate its user interface view.
     // Inflate the view for the fragment based on layout XML. Populate
     // the text fields from the database.
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
+        val nvpairs = DatabaseManager.getSettings()
+        val nvarray = nvpairs.toTypedArray()
+        Log.i(CLSS, String.format("onCreateView: will display %d name-values", nvarray.size))
+        val adapter = SettingsListAdapter(requireContext(), nvarray)
+        listAdapter = adapter
+        listView.itemsCanFocus = true
         binding = FragmentSettingsBinding.inflate(inflater,container,false)
         binding.fragmentSettingsText.setText(R.string.fragmentSettingsLabel)
         return binding.root

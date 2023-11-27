@@ -23,10 +23,10 @@ import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
 import chuckcoughlin.bertspeak.db.DatabaseHelper
-import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.ControllerState
 import chuckcoughlin.bertspeak.service.ControllerType
+import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.speech.Annunciator
 import chuckcoughlin.bertspeak.speech.SpeechAnalyzer
@@ -112,7 +112,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         activateSpeechAnalyzer()
         annunciator = Annunciator(applicationContext, this)
         annunciator!!.setOnUtteranceProgressListener(UtteranceListener())
-        val audioManager = getSystemService(AUDIO_SERVICE)
+        //val audioManager = getSystemService(AUDIO_SERVICE)
         suppressAudio() // TEMPORARY
     }
 

@@ -68,6 +68,24 @@ object DatabaseManager {
             // for development.
             var statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                    BertConstants.BERT_SERVER,
+                    BertConstants.BERT_SERVER_HINT,
+                    BertConstants.BERT_SERVER_HINT)
+            execLenient(statement)
+            Log.i(CLSS, String.format("initialize: Guarantee %s settings exist in %s at %s",
+                BertConstants.BERT_SERVER,BertConstants.DB_NAME, statement))
+
+            statement =
+                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                    BertConstants.BERT_PORT,
+                    BertConstants.BERT_PORT_HINT,
+                    BertConstants.BERT_PORT_HINT)
+            execLenient(statement)
+            Log.i(CLSS, String.format("initialize: Guarantee %s settings exist in %s at %s",
+                BertConstants.BERT_PORT,BertConstants.DB_NAME, statement))
+
+            statement =
+                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
                     BertConstants.BERT_PAIRED_DEVICE,
                     BertConstants.BERT_PAIRED_DEVICE_HINT,
                     BertConstants.BERT_PAIRED_DEVICE_HINT)

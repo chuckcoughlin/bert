@@ -23,7 +23,6 @@ import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import chuckcoughlin.bertspeak.service.ControllerState
 import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
 
@@ -113,9 +112,11 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     override fun initialize(list: List<Intent>) {
         for (intent in list) {
             if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
+                /*
                 val actionState = ControllerState.valueOf(
                     intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!
                 )
+                 */
             }
         }
     }

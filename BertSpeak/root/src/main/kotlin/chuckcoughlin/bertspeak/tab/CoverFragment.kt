@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -22,18 +21,14 @@ import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.requestPermissions
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
-import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.ControllerState
 import chuckcoughlin.bertspeak.service.ControllerType
+import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
@@ -95,7 +90,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         super.onStart()
         Log.i(CLSS, String.format("onStart: main view is %d x %d ...",binding.root.height,binding.root.width ))
         val intent = Intent(activity, DispatchService::class.java)
-        activity?.applicationContext?.bindService(intent, this, Context.BIND_AUTO_CREATE)
+        requireActivity().applicationContext?.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
     override fun onResume() {
@@ -118,7 +113,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
 
     override fun onStop() {
         super.onStop()
-        activity?.applicationContext?.unbindService(this)
+        requireActivity().applicationContext?.unbindService(this)
     }
 
     override fun onDestroyView() {
@@ -157,8 +152,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
      */
     private fun updateStatusButton(btn: StatusImageButton, state: ControllerState) {
         Log.i(name, String.format("updateStatusButton:%s", state.name))
-        activity?.runOnUiThread(Runnable {
-
+        requireActivity().runOnUiThread(Runnable {
             btn.visibility = View.INVISIBLE
             btn.setButtonState(state)
             btn.visibility = View.VISIBLE
@@ -171,9 +165,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
                 val actionState = ControllerState.valueOf(
                     intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!
                 )
-                val tf =
+                val type =
                     ControllerType.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)!!)
-                when (tf) {
+                when (type) {
                     ControllerType.BLUETOOTH -> {
                         updateStatusButton(binding.bluetoothStatus, actionState)
                     }
@@ -193,7 +187,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
      */
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
-        Log.i(name, String.format("onRequestPermissionsResult:%d",requestCode))
+        Log.i(CLSS, String.format("onRequestPermissionsResult:%d",requestCode))
         if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // Permission is granted
         }
@@ -231,13 +225,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         when(v.id) {
             bluetoothButtonId -> {
                 Log.i(name, String.format("onClick:%s",ControllerType.BLUETOOTH.name))
-                if(ContextCompat.checkSelfPermission(requireContext(),Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ) {
-                    // You can use the API that requires the permission.
-                }
-                else {
-                    requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_SCAN),bluetoothButtonId)
-                }
-
             }
             socketButtonId -> {
                 Log.i(name, String.format("onClick:%s",ControllerType.SOCKET.name))
@@ -283,6 +270,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         val binder = bndr as DispatchServiceBinder
         service = binder.getService()
         service!!.statusManager.register(this)
+        Log.i(CLSS,String.format("onServiceConnected: ...."))
     }
     companion object {
         const val CLSS = "CoverFragment"

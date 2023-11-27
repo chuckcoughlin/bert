@@ -19,8 +19,6 @@ import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentAnimationBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import chuckcoughlin.bertspeak.service.ControllerState
-import chuckcoughlin.bertspeak.service.ControllerType
 import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.ui.animate.AnimationView
 
@@ -113,21 +111,25 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, 
     override fun initialize(list: List<Intent>) {
         for (intent in list) {
             if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
+                /*
                 val actionState = ControllerState.valueOf(
                     intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!
                 )
                 val tf =
                     ControllerType.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)!!)
+                 */
             }
         }
     }
 
     override fun update(intent: Intent) {
         if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
+            /*
             val actionState =
                 ControllerState.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!)
             val tf =
                 ControllerType.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)!!)
+             */
 
         }
     }
