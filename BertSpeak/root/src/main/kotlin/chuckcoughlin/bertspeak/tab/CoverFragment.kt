@@ -22,6 +22,7 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.lifecycle.Lifecycle
+import chuckcoughlin.bertspeak.BertSpeakActivity
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
@@ -29,6 +30,7 @@ import chuckcoughlin.bertspeak.service.ControllerState
 import chuckcoughlin.bertspeak.service.ControllerType
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
+import chuckcoughlin.bertspeak.service.PermissionManager
 import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
@@ -78,6 +80,8 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         )
         seekBar = binding.root.findViewById(R.id.verticalSeekbar)
         seekBar.setOnSeekBarChangeListener(this)
+        val pm = PermissionManager(requireActivity())
+        pm.askForPermissions()
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
