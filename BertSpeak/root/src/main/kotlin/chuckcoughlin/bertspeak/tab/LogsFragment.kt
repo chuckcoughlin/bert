@@ -19,6 +19,7 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentLogsBinding
+import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
@@ -36,11 +37,17 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentLogsBinding
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val nvpairs = DatabaseManager.getSettings()
+        val nvarray = nvpairs.toTypedArray()
+        Log.i(CLSS, String.format("onCreate: will display %d messages", nvarray.size))
+        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
+    }
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
         binding = FragmentLogsBinding.inflate(inflater,container,false)
-        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
         var logMessageView = binding.logsRecyclerView   // RecyclerView
         logMessageView.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(logMessageView.getContext())
@@ -100,7 +107,9 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         Log.i(name, "Clear button clicked")
         if (service != null) {
             service?.getTextManager()?.getLogs()?.clear()
-            adapter?.notifyDataSetChanged()
+            activity?.runOnUiThread {
+                adapter?.notifyDataSetChanged()
+            }
         }
     }
 
@@ -108,7 +117,9 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         frozen = !frozen
         if (service != null) {
             if (!frozen) {
-                adapter?.notifyDataSetChanged()
+                activity?.runOnUiThread {
+                    adapter?.notifyDataSetChanged()
+                }
             }
         }
         updateUI()
@@ -118,7 +129,8 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         val button = binding.logFreezeButton
         if (frozen) {
             button.setText(R.string.buttonThaw)
-        } else {
+        }
+        else {
             button.setText(R.string.buttonFreeze)
         }
     }
@@ -143,18 +155,23 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         for (m in service?.getTextManager()?.getLogs()!!) {
             Log.i(name, String.format("initialize: \t%s", m.message))
         }
-        adapter?.notifyDataSetChanged()
+        activity?.runOnUiThread {
+            adapter?.notifyDataSetChanged()
+        }
     }
 
     override fun update(msg: TextMessage) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen) {
-            adapter?.notifyItemInserted(0)
-            binding.logsRecyclerView.scrollToPosition(0)
+            // This must take place on the UI thread
+            activity?.runOnUiThread {
+                adapter?.notifyItemInserted(0)
+                binding.logsRecyclerView.scrollToPosition(0)
+            }
         }
     }
 
     companion object {
-        val CLSS = "RobotLogsFragment"
+        val CLSS = "LogsFragment"
     }
 }

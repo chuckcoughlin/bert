@@ -15,7 +15,6 @@ import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.startActivity
 import androidx.fragment.app.FragmentActivity
 import chuckcoughlin.bertspeak.R
 
@@ -99,7 +98,8 @@ class PermissionManager(act:FragmentActivity)  {
 
 	init {
 		permissions = arrayOf<String>(
-			Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_SCAN,
 			Manifest.permission.RECORD_AUDIO
 		)
 	}

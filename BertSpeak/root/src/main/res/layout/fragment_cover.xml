@@ -15,6 +15,8 @@
         android:id="@+id/vertical1"
         android:layout_width="1dp"
         android:layout_height="match_parent"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
         android:orientation="vertical"
         android:background="@color/black"
         app:layout_constraintGuide_percent="0.6"/>
@@ -25,6 +27,8 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:background="@color/red"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
         app:layout_constraintGuide_percent="0.95"/>
     <!-- The upper left view is the image with a panel of status buttons underneath.-->
     <ImageView
@@ -107,6 +111,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_marginEnd="0dp"
         app:layout_constraintStart_toEndOf="@+id/layout_socket"
         app:layout_constraintEnd_toStartOf="@+id/vertical1"
         app:layout_constraintHorizontal_bias="0.5"
@@ -137,6 +142,8 @@
         android:id="@+id/waveform_title"
         android:layout_width="@dimen/cover_waveform_width"
         android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
         android:background="@drawable/border_gray"
         android:text="@string/coverWaveformTitle"
         android:textAlignment="center"
@@ -152,6 +159,7 @@
         android:layout_width="@dimen/cover_waveform_width"
         android:layout_height="0dp"
         android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintStart_toEndOf="@+id/vertical1"
         app:layout_constraintEnd_toStartOf="@+id/vertical2"

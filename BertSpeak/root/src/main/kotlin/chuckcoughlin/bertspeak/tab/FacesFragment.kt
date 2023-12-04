@@ -162,7 +162,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         service!!.statusManager.register(this)
     }
     companion object {
-        const val CLSS = "CoverFragment"
+        const val CLSS = "FacesFragment"
         const val CAPTURE_SIZE = 256
     }
 

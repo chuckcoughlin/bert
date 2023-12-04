@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.logs
@@ -37,6 +37,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
      * Create a new view holder. Inflate the row layout, set the item height.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
+        Log.i(CLSS, String.format("onCreateViewHolder count = %d", messages.size))
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val shouldAttachToParent = false
         val layout: LinearLayout =
@@ -51,8 +52,14 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
      * @param holder the viewholder that should be populated at the given position
      * @param position row that should be updated
      */
-    override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: LogViewHolder, pos: Int) {
+        var position = pos
         Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
+        if( messages.size == 0 ) {
+            Log.w(CLSS, String.format("onBindViewHolder no messsages to bind"))
+            return
+        }
+        if(position>=messages.size) position = messages.size - 1
         val expand = position == expandedPosition
         val msg: TextMessage = messages[position]
         val type: MessageType = msg.messageType
@@ -70,7 +77,8 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
             if (type == MessageType.ANS) {
                 sourceView.setTextColor(Color.BLUE)
             }
-        } else {
+        }
+        else {
             // Truncate source to 16 char
             if (source.length > SOURCE_LEN) source = source.substring(0, SOURCE_LEN)
             sourceView.text = source
@@ -81,7 +89,8 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         var msgText: String = msg.message.trim { it <= ' ' }
         if (expand) {
             messageView.text = source
-        } else {
+        }
+        else {
             if (msgText.length > MESSAGE_LEN) msgText = msgText.substring(0, MESSAGE_LEN)
             messageView.text = msgText
             if (type == MessageType.ANS) {
@@ -95,7 +104,8 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
             detailView.visibility = View.VISIBLE
             holder.itemView.isActivated = false
             params.height = LOG_MSG_HEIGHT_EXPANDED
-        } else {
+        }
+        else {
             detailView.visibility = View.GONE
             holder.itemView.isActivated = true
             params.height = LOG_MSG_HEIGHT
@@ -111,11 +121,12 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
     // It is important that the widget and backing manager be in synch
     // with respect to item count.
     override fun getItemCount(): Int {
+        Log.i(CLSS, String.format("getItemCount = %d", messages.size))
         return messages.size
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        //
+        Log.i(CLSS, String.format("onDetachedFromRecyclerView count = %d", messages.size))
     }
 
     /**
@@ -129,20 +140,19 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         else {
             messages = msgs
         }
+        Log.i(CLSS, String.format("resetList new count = %d", messages.size))
         notifyDataSetChanged()
     }
 
     companion object {
-        private val CLSS = TextMessageAdapter::class.java.simpleName
+        private val CLSS = "TextMessageAdapter"
         private const val MESSAGE_LEN = 45
         private const val SOURCE_LEN = 15
         private const val LOG_MSG_HEIGHT = 75
         private const val LOG_MSG_HEIGHT_EXPANDED = 225
     }
 
-    /**
-     * Adapter between the recycler and data source for log messages.
-     */
+
     init {
         messages = msgs
     }

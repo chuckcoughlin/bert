@@ -112,7 +112,7 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, 
     }
 
     companion object {
-        val CLSS = "TablesTabFragment"
+        val CLSS = "StatusFragment"
     }
     init {
         this.name = CLSS

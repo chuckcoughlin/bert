@@ -186,23 +186,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         }
     }
 
-    /**
-     * On start of the fragment, we've asked the user for any permissions that are not already set
-     */
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>, grantResults: IntArray) {
-        Log.i(CLSS, String.format("onRequestPermissionsResult:%d",requestCode))
-        if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            // Permission is granted
-        }
-        else {
-                    // Explain to the user that the feature is unavailable because
-                    // the feature requires a permission that the user has denied.
-                    // At the same time, respect the user's decision. Don't link to
-                    // system settings in an effort to convince the user to change
-                    // their decision.
-        }
-    }
+
     override fun update(intent: Intent) {
         if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
             val actionState =
@@ -236,7 +220,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
             voiceButtonId -> {
                 Log.i(name, String.format("onClick:%s",ControllerType.VOICE.name))
             }
-
         }
 
     }
@@ -276,6 +259,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         service!!.statusManager.register(this)
         Log.i(CLSS,String.format("onServiceConnected: ...."))
     }
+
     companion object {
         const val CLSS = "CoverFragment"
         const val CAPTURE_SIZE = 256
