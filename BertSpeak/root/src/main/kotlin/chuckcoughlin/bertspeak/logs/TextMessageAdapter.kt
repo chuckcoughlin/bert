@@ -23,14 +23,16 @@ import java.util.*
  * This class is a link between a RecyclerView and the data backstop.
  * Each element in the list is a string, a text message.
  */
-class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewHolder?>() {
+class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewHolder>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     private var expandedPosition = -1
-    private lateinit var recyclerView: RecyclerView
+    private var recyclerView :RecyclerView? = null
     private var messages: List<TextMessage> = msgs
 
      override fun onAttachedToRecyclerView(view: RecyclerView) {
-        recyclerView = view
+         super.onAttachedToRecyclerView(view)
+         Log.i(CLSS, String.format("onAttachedToRecyclerView"))
+         this.recyclerView = view
     }
 
     /**
@@ -42,6 +44,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         val shouldAttachToParent = false
         val layout: LinearLayout =
             inflater.inflate(R.layout.log_item, parent, shouldAttachToParent) as LinearLayout
+        Log.i(CLSS, String.format("onCreateViewHolder inflation complete"))
         return LogViewHolder(layout)
     }
 
@@ -65,7 +68,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         val type: MessageType = msg.messageType
         // The timestamp is always the same
         val timestampView: TextView = holder.timestampView
-        val tstamp: Date = msg.getTimestamp()
+        val tstamp: Date = msg.timestamp
         val dt = dateFormatter.format(tstamp)
         timestampView.text = dt
 
@@ -113,8 +116,10 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         holder.itemView.layoutParams = params
         holder.itemView.setOnClickListener(View.OnClickListener {
             expandedPosition = if (expand) -1 else position
-            TransitionManager.beginDelayedTransition(recyclerView)
-            notifyDataSetChanged()
+            if(recyclerView!=null ) {
+                TransitionManager.beginDelayedTransition(recyclerView)
+                reportDataSetChanged()
+            }
         })
     }
 
@@ -125,8 +130,10 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         return messages.size
     }
 
-    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+    override fun onDetachedFromRecyclerView(view: RecyclerView) {
+        super.onDetachedFromRecyclerView(view)
         Log.i(CLSS, String.format("onDetachedFromRecyclerView count = %d", messages.size))
+        this.recyclerView = null
     }
 
     /**
@@ -141,9 +148,14 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
             messages = msgs
         }
         Log.i(CLSS, String.format("resetList new count = %d", messages.size))
-        notifyDataSetChanged()
+        reportDataSetChanged()
     }
 
+    fun reportDataSetChanged() {
+        Log.i(CLSS, String.format("reportDataSetChanged count = %d", messages.size))
+        notifyDataSetChanged()
+        Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
+    }
     companion object {
         private val CLSS = "TextMessageAdapter"
         private const val MESSAGE_LEN = 45

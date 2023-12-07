@@ -11,6 +11,7 @@ import android.content.ServiceConnection
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.IBinder
+import android.os.StrictMode
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
@@ -53,6 +54,12 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Temporary code to throw errors when resource leaks encountered
+        StrictMode.setVmPolicy(
+            StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
+                .detectLeakedClosableObjects()
+                .build()
+        )
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
         // Create the comprehensive dispatch connection service

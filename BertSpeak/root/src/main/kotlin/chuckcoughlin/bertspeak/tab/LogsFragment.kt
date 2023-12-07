@@ -30,11 +30,11 @@ import chuckcoughlin.bertspeak.speech.TextMessageObserver
  * This fragment shows log messages originating in the robot.
  */
 class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
-    override val name = CLSS
-    private var adapter: TextMessageAdapter? = null
+    override val name:String
     private var service: DispatchService? = null
     private var frozen = false
-    // This property is only valid between onCreateView and onDestroyView
+    // These properties only valid between onCreateView and onDestroyView
+    private lateinit var adapter: TextMessageAdapter
     private lateinit var binding: FragmentLogsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +88,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
 
     override fun onStop() {
         super.onStop()
-        if (context != null) requireContext().applicationContext.unbindService(this)
+        requireContext().applicationContext.unbindService(this)
     }
 
     override fun onDestroyView() {
@@ -107,8 +107,8 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         Log.i(name, "Clear button clicked")
         if (service != null) {
             service?.getTextManager()?.getLogs()?.clear()
-            activity?.runOnUiThread {
-                adapter?.notifyDataSetChanged()
+            requireActivity().runOnUiThread {
+                adapter.notifyDataSetChanged()
             }
         }
     }
@@ -118,7 +118,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         if (service != null) {
             if (!frozen) {
                 activity?.runOnUiThread {
-                    adapter?.notifyDataSetChanged()
+                    adapter.notifyDataSetChanged()
                 }
             }
         }
@@ -146,7 +146,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
     override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
         val binder: DispatchServiceBinder = bndr as DispatchServiceBinder
         service = binder.getService()
-        adapter?.resetList(service?.getTextManager()?.getLogs()?.toList())
+        adapter.resetList(service?.getTextManager()?.getLogs()?.toList())
         service?.getTextManager()?.registerLogViewer(this)
     }
 
@@ -155,8 +155,8 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         for (m in service?.getTextManager()?.getLogs()!!) {
             Log.i(name, String.format("initialize: \t%s", m.message))
         }
-        activity?.runOnUiThread {
-            adapter?.notifyDataSetChanged()
+        requireActivity().runOnUiThread {
+            adapter.notifyDataSetChanged()
         }
     }
 
@@ -164,14 +164,15 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen) {
             // This must take place on the UI thread
-            activity?.runOnUiThread {
-                adapter?.notifyItemInserted(0)
+            requireActivity().runOnUiThread {
+                adapter.notifyItemInserted(0)
                 binding.logsRecyclerView.scrollToPosition(0)
             }
         }
     }
 
-    companion object {
-        val CLSS = "LogsFragment"
+    val CLSS = "LogsFragment"
+    init {
+        name = CLSS
     }
 }

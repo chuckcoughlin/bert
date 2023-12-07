@@ -1,31 +1,40 @@
-       <!-- Handle the listing of a large number of log messages by using a RecyclerView -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="chuckcoughlin.bertspeak.tab.LogsFragment"
-    android:id="@+id/fragmentRobotLogs">
+    <!-- Handle the listing of a large number of log messages by using a RecyclerView -->
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+           android:id="@+id/fragmentLogs"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:orientation="vertical"
+           android:background="@drawable/border_white">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/logs_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="475dp"
+        android:layout_height="0dp"
         android:layout_alignParentTop="true"
         android:layout_marginTop="5dp"
         android:animateLayoutChanges="false"
         android:focusableInTouchMode="false"
         android:scrollbars="vertical"
-        android:isScrollContainer="true"/>
+        android:isScrollContainer="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="35dip"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         android:paddingTop="0dp"
         android:gravity="center|bottom"
+        app:layout_constraintTop_toBottomOf="@id/logs_recycler_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/navigationBarColor"
         android:orientation="horizontal">
         <!-- change button color by setting android:backgroundTint -->
         <Button
@@ -45,4 +54,4 @@
             android:background="@drawable/rounded_button"
             android:text="@string/buttonFreeze" />
     </LinearLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

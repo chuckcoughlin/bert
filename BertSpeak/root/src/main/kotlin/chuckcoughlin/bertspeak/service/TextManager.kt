@@ -157,6 +157,7 @@ class TextManager {
      * Notify log observers regarding receipt of a new message.
      */
     private fun notifyLogObservers(msg: TextMessage) {
+        Log.i(CLSS, String.format("notifyLogObservers: %s", msg.message))
         for (observer in logObservers.values) {
             observer.update(msg)
         }
@@ -169,10 +170,11 @@ class TextManager {
     }
 
     private fun notifyTranscriptObservers(msg: TextMessage) {
+        Log.i(CLSS, String.format("notifyTranscriptObservers: %s", msg.message))
         for (observer in transcriptObservers.values) {
             Log.i(CLSS, String.format("notifyTranscript: %s", msg.message))
             Log.i(CLSS, String.format("notifyTranscript: updating for %s", msg.message))
-            observer.update(msg)
+            //observer.update(msg)
         }
     }
 

@@ -44,7 +44,7 @@ object DatabaseManager {
     }
     /**
      * Must be called when the manager is first created. If the database already exists on disk with the same name, this method will have no effect.
-     * If it exists and is open, we close it first.
+     * Can get an error trying to re-open a closed object..
      */
     fun initialize(db:SQLiteDatabase) {
         synchronized(this) {

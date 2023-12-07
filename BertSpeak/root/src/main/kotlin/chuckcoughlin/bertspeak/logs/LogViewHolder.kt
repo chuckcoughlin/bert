@@ -15,13 +15,10 @@ import androidx.recyclerview.widget.RecyclerView
 class LogViewHolder(v: View) : RecyclerView.ViewHolder(v) {
     private val rowParent: ViewGroup
     val timestampView: TextView
-        get() = rowParent.getChildAt(0) as TextView
-    val sourceView: TextView
-        get() = rowParent.getChildAt(1) as TextView
-    val messageView: TextView
-        get() = rowParent.getChildAt(2) as TextView
-    val detailView: TextView
-        get() = (itemView as ViewGroup).getChildAt(1) as TextView
+    val sourceView:    TextView
+    val messageView:   TextView
+    val detailView:    TextView
+
 
     /**
      * The ViewGroup is actually a nested LinearLayout holding text views
@@ -34,5 +31,9 @@ class LogViewHolder(v: View) : RecyclerView.ViewHolder(v) {
     init {
         this.setIsRecyclable(false)
         rowParent = (itemView as ViewGroup).getChildAt(0) as ViewGroup
+        timestampView = rowParent.getChildAt(0) as TextView
+        sourceView = rowParent.getChildAt(1) as TextView
+        messageView = rowParent.getChildAt(2) as TextView
+        detailView = (itemView as ViewGroup).getChildAt(1) as TextView
     }
 }

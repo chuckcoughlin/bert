@@ -19,7 +19,6 @@ class DatabaseHelper(context:Context):
 		if( db!=null ) {
 			try {
 				if(db.isOpen) {
-
 					//db.close()
 				}
 				Log.i(CLSS, String.format("onCreate: database path = %s", db.path))
@@ -44,7 +43,6 @@ class DatabaseHelper(context:Context):
 			Log.i(CLSS, String.format("onUpgrade: converting %d -> %d.",oldVersion,newVersion))
 		}
 	}
-
 	companion object {
 		private const val CLSS = "DatabaseHelper"
 	}
