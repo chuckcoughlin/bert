@@ -12,7 +12,7 @@
 
     <!-- Define a vertical barrier between the image and waveform -->
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/vertical1"
+        android:id="@+id/coverVertical1"
         android:layout_width="1dp"
         android:layout_height="match_parent"
         android:layout_marginStart="0dp"
@@ -22,7 +22,7 @@
         app:layout_constraintGuide_percent="0.6"/>
     <!-- Define a vertical guideline between the waveform and volume control -->
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/vertical2"
+        android:id="@+id/coverVertical2"
         android:layout_width="2dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -44,7 +44,7 @@
         android:layout_marginTop="@dimen/cover_topMargin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/vertical1"
+        app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         />
 
     <!-- Status panel at bottom of image - three linear layouts-->
@@ -102,7 +102,6 @@
             android:background="@drawable/border_white"
             android:src="@drawable/ball_gray"
             />
-            />
     </LinearLayout>
 
     <!-- Voice Connectionl -->
@@ -113,7 +112,7 @@
         android:orientation="vertical"
         android:layout_marginEnd="0dp"
         app:layout_constraintStart_toEndOf="@+id/layout_socket"
-        app:layout_constraintEnd_toStartOf="@+id/vertical1"
+        app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
@@ -148,9 +147,9 @@
         android:text="@string/coverWaveformTitle"
         android:textAlignment="center"
         android:textSize="@dimen/cover_waveform_text_size"
-        app:layout_constraintStart_toEndOf="@+id/vertical1"
+        app:layout_constraintStart_toEndOf="@+id/coverVertical1"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/vertical2"
+        app:layout_constraintEnd_toStartOf="@+id/coverVertical2"
         />
 
     <!-- The left-most panel is a slide control for the voice volume -->
@@ -161,8 +160,8 @@
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layout_constraintStart_toEndOf="@+id/vertical1"
-        app:layout_constraintEnd_toStartOf="@+id/vertical2"
+        app:layout_constraintStart_toEndOf="@+id/coverVertical1"
+        app:layout_constraintEnd_toStartOf="@+id/coverVertical2"
         app:layout_constraintTop_toBottomOf="@id/waveform_title"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.5"
@@ -177,7 +176,7 @@
         android:text="@string/coverSeekbarTitle"
         android:textAlignment="center"
         android:textSize="@dimen/cover_waveform_text_size"
-        app:layout_constraintStart_toEndOf="@+id/vertical2"
+        app:layout_constraintStart_toEndOf="@+id/coverVertical2"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -190,7 +189,7 @@
         android:progress="50"
         android:progressDrawable="@drawable/seekbar_progress"
         android:thumb="@drawable/seekbar_thumb"
-        app:layout_constraintStart_toEndOf="@+id/vertical2"
+        app:layout_constraintStart_toEndOf="@+id/coverVertical2"
         app:layout_constraintTop_toBottomOf="@+id/volume_adjust_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>

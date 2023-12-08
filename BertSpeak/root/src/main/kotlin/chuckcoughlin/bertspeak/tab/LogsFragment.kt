@@ -166,7 +166,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
             // This must take place on the UI thread
             requireActivity().runOnUiThread {
                 adapter.notifyItemInserted(0)
-                binding.logsRecyclerView.scrollToPosition(0)
+                //binding.logsRecyclerView.scrollToPosition(0)
             }
         }
     }

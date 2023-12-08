@@ -178,9 +178,7 @@ class TextManager {
         }
     }
 
-    companion object {
-        private const val CLSS = "TextManager"
-    }
+    private val CLSS = "TextManager"
 
     /**
      * There should only be one text manager. owned by the dispatch service.

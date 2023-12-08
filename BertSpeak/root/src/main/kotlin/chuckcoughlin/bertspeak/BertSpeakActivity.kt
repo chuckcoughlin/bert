@@ -23,7 +23,7 @@ import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import chuckcoughlin.bertspeak.common.IntentObserver
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
-import chuckcoughlin.bertspeak.db.DatabaseHelper
+import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.ControllerState
 import chuckcoughlin.bertspeak.service.ControllerType
 import chuckcoughlin.bertspeak.service.DispatchService
@@ -104,11 +104,8 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         })
 
         // Initialize the database
-        val helper = DatabaseHelper(this)
-        helper.onCreate(helper.writableDatabase)
-        helper.close()
+        DatabaseManager.initialize()
     }
-
 
     /**
      * Bind to the DispatchService, start speech analyzer and annunciator

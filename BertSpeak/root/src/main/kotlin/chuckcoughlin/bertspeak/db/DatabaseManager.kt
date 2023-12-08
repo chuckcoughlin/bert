@@ -46,8 +46,9 @@ object DatabaseManager {
      * Must be called when the manager is first created. If the database already exists on disk with the same name, this method will have no effect.
      * Can get an error trying to re-open a closed object..
      */
-    fun initialize(db:SQLiteDatabase) {
+    fun initialize() {
         synchronized(this) {
+            val db = getDatabase(true)
             val SQL = StringBuilder()
             try {
                 SQL.append("CREATE TABLE IF NOT EXISTS Settings (")
@@ -193,15 +194,13 @@ object DatabaseManager {
 
     // If the database is open, close it to ensure correct writable flags
     private fun getDatabase(canWrite:Boolean) : SQLiteDatabase {
-        var db: SQLiteDatabase?
         var flags = SQLiteDatabase.CREATE_IF_NECESSARY
         flags = if( canWrite ) flags or SQLiteDatabase.OPEN_READWRITE
         else flags or SQLiteDatabase.OPEN_READONLY
-        db = SQLiteDatabase.openDatabase(
+        val db = SQLiteDatabase.openDatabase(
             BertConstants.DB_FILE_PATH, null,flags, errorHandler)
 
-        db!!.setForeignKeyConstraintsEnabled(true)
-
+        db.setForeignKeyConstraintsEnabled(true)
         return db
     }
 
