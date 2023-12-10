@@ -151,19 +151,21 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         reportDataSetChanged()
     }
 
+    /*
+     * The parent class notifyDataSetChanged() method is final.
+     * This allows us to get a hook for debugging
+     */
     fun reportDataSetChanged() {
         Log.i(CLSS, String.format("reportDataSetChanged count = %d", messages.size))
-        notifyDataSetChanged()
+        //notifyDataSetChanged()
         Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
     }
-    companion object {
-        private val CLSS = "TextMessageAdapter"
-        private const val MESSAGE_LEN = 45
-        private const val SOURCE_LEN = 15
-        private const val LOG_MSG_HEIGHT = 75
-        private const val LOG_MSG_HEIGHT_EXPANDED = 225
-    }
 
+    private val CLSS = "TextMessageAdapter"
+    private val MESSAGE_LEN = 45
+    private val SOURCE_LEN = 15
+    private val LOG_MSG_HEIGHT = 75
+    private val LOG_MSG_HEIGHT_EXPANDED = 225
 
     init {
         messages = msgs

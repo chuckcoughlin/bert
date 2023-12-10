@@ -45,7 +45,6 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
     }
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
-        //super.onCreateView(inflater,container,savedInstanceState)
         Log.i(CLSS, String.format("onCreateView: "))
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
@@ -110,7 +109,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         if (service != null) {
             service?.getTextManager()?.getLogs()?.clear()
             requireActivity().runOnUiThread {
-                //adapter.notifyDataSetChanged()
+                adapter.notifyDataSetChanged()
             }
         }
     }
@@ -120,7 +119,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         if (service != null) {
             if (!frozen) {
                 activity?.runOnUiThread {
-                    //adapter.notifyDataSetChanged()
+                    adapter.notifyDataSetChanged()
                 }
             }
         }
@@ -158,7 +157,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
             Log.i(name, String.format("initialize: \t%s", m.message))
         }
         requireActivity().runOnUiThread {
-            //adapter.notifyDataSetChanged()
+            adapter.notifyDataSetChanged()
         }
     }
 
@@ -167,7 +166,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         if (!frozen) {
             // This must take place on the UI thread
             requireActivity().runOnUiThread {
-                //adapter.notifyItemInserted(0)
+                adapter.notifyItemInserted(0)
                 //binding.logsRecyclerView.scrollToPosition(0)
             }
         }

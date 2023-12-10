@@ -11,7 +11,10 @@
             <shape android:shape="rectangle">
                 <corners android:radius="10dp" />
                 <solid android:color="@color/colorPrimary" />
-                <padding android:bottom="6dp" />
+                <padding android:bottom="15dp" />
+                <padding android:left="15dp" />
+                <padding android:right="15dp" />
+                <padding android:top="15dp" />
             </shape>
         </item>
     </ripple>

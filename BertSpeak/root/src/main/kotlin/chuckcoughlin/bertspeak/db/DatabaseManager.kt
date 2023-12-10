@@ -14,26 +14,23 @@ import chuckcoughlin.bertspeak.common.NameValue
 
 /**
  * Persistent application parameters are stored in a SQLite database. We check for
- * existence and version when the database is first opened. Beyond that the
- * checks are ignored. Create a separate instance of this class wherever needed.
- * The database is a Singleton (object) and is closed after each transaction.
+ * version when the database is first opened within this statis class.
+ * The database is a Singleton (object) opened once and never closed.
  */
-
 object DatabaseManager {
     private val errorHandler :DbErrorHandler
+    private val database:SQLiteDatabase
 
     @Throws(SQLException::class)
-    fun execSQL(sql: String?)  {
-        val database = getDatabase(true)
+    fun execSQL(sql: String)  {
         database.execSQL(sql)
-        database.close()
     }
 
     /**
      * Trap and ignore any errors.
      * @param sql
      */
-    fun execLenient(sql: String?) {
+    fun execLenient(sql: String) {
         try {
             execSQL(sql)
         }
@@ -43,12 +40,11 @@ object DatabaseManager {
         }
     }
     /**
-     * Must be called when the manager is first created. If the database already exists on disk with the same name, this method will have no effect.
-     * Can get an error trying to re-open a closed object..
+     * Must be called when the manager is first created. If the database already exists on disk with the same name,
+     * this method will have no effect. It is simply a guarantee that tables will exist.
      */
     fun initialize() {
         synchronized(this) {
-            val db = getDatabase(true)
             val SQL = StringBuilder()
             try {
                 SQL.append("CREATE TABLE IF NOT EXISTS Settings (")
@@ -56,7 +52,7 @@ object DatabaseManager {
                 SQL.append("  value TEXT DEFAULT '',")
                 SQL.append("  hint TEXT DEFAULT 'hint'")
                 SQL.append(")")
-                db.execSQL(SQL.toString())
+                database.execSQL(SQL.toString())
                 Log.i(CLSS, String.format("initialize: Created settings table in %s \n%s",
                     BertConstants.DB_NAME, SQL.toString()))
             }
@@ -113,7 +109,6 @@ object DatabaseManager {
     fun getSetting(name: String): String? {
         synchronized(this) {
             var result: String? = null
-            val database = getDatabase(false)
             val args = arrayOfNulls<String>(1) // Use for PreparedStatement
             args[0] = name
             val SQL = "SELECT value FROM Settings WHERE Name=?"
@@ -124,7 +119,6 @@ object DatabaseManager {
                 Log.i(CLSS, String.format("getSetting: %s = %s", name, result))
             }
             cursor.close()
-            database.close()
             return result
         }
     }
@@ -135,7 +129,6 @@ object DatabaseManager {
     fun getSettings (): List<NameValue> {
         synchronized(this) {
             val list: MutableList<NameValue> = ArrayList()
-            val database = getDatabase(false)
             val args = arrayOfNulls<String>(0) // Use for PreparedStatement
             val SQL = "SELECT name,value,hint FROM Settings ORDER BY Name"
             val cursor = database.rawQuery(SQL, args)
@@ -147,7 +140,6 @@ object DatabaseManager {
                 cursor.moveToNext()
             }
             cursor.close()
-            database.close()
             return list
         }
     }
@@ -158,14 +150,12 @@ object DatabaseManager {
      */
     fun updateSetting(nv: NameValue?) {
         synchronized(this) {
-            val database = getDatabase(true)
             val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
             val bindArgs = arrayOfNulls<String>(3)
             bindArgs[0] = nv!!.value
             bindArgs[1] = nv.hint
             bindArgs[2] = nv.name
             database.execSQL(SQL, bindArgs)
-            database.close()
         }
     }
 
@@ -175,7 +165,6 @@ object DatabaseManager {
      */
     fun updateSettings(items: List<NameValue>) {
         synchronized(this) {
-            val database = getDatabase(true)
             val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
             val bindArgs = arrayOfNulls<String>(3)
             val count = items.size
@@ -188,7 +177,6 @@ object DatabaseManager {
                 database.execSQL(SQL, bindArgs)
                 index++
             }
-            database.close()
         }
     }
 
@@ -209,7 +197,8 @@ object DatabaseManager {
 
 
     init {
-       errorHandler = DbErrorHandler()
+        errorHandler = DbErrorHandler()
+        database = getDatabase(true)   // Writable
     }
 
     /**

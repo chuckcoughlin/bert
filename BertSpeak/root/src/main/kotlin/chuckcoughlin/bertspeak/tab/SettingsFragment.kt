@@ -26,7 +26,7 @@ import java.util.Locale
  * editing.
  */
 class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
-    val name : String = CLSS
+    val name : String
 
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var binding: FragmentSettingsBinding
@@ -80,10 +80,11 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
             } else {
                 editText.inputType = InputType.TYPE_CLASS_TEXT
             }
-            editText.onFocusChangeListener = OnFocusChangeListener { v, hasFocus -> /*
-                     * When focus is lost save the entered value both into the current array
-                     * and database.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                     */
+            editText.onFocusChangeListener = OnFocusChangeListener { v, hasFocus ->
+                /*
+                 * When focus is lost save the entered value both into the current array
+                 * and database.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                 */
                 if (!hasFocus) {
                     Log.i(CLSS,String.format("SettingsListAdapter.getView.onFocusChange %d = %s",position,(v as EditText).text.toString()))
                     nv.value = v.text.toString()
@@ -97,7 +98,9 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
         }
     }
 
-    companion object {
-        private const val CLSS = "SettingsFragment"
+    private val CLSS = "SettingsFragment"
+
+    init {
+        name = CLSS
     }
 }

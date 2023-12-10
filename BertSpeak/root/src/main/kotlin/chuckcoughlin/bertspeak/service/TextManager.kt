@@ -1,10 +1,11 @@
 package chuckcoughlin.bertspeak.service
 
-import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.speech.TextMessage
-import kotlin.jvm.Synchronized
 import android.util.Log
-import chuckcoughlin.bertspeak.common.*
+import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.FixedSizeList
+import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.speech.TextMessage
+import chuckcoughlin.bertspeak.speech.TextMessageObserver
 
 /**
  * The text manager is a repository of text messages destined to be
@@ -174,7 +175,7 @@ class TextManager {
         for (observer in transcriptObservers.values) {
             Log.i(CLSS, String.format("notifyTranscript: %s", msg.message))
             Log.i(CLSS, String.format("notifyTranscript: updating for %s", msg.message))
-            //observer.update(msg)
+            observer.update(msg)
         }
     }
 
