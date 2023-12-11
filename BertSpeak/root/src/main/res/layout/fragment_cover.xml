@@ -49,7 +49,7 @@
 
     <!-- Status panel at bottom of image - three linear layouts-->
     <LinearLayout
-        android:id="@+id/layout_bluetooth"
+        android:id="@+id/layout_bluetoothh"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"

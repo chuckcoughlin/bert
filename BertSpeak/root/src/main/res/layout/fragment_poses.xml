@@ -2,7 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    android:id="@+id/fragmentAnimation">
+    android:id="@+id/fragmentPoses">
 
     <TextView
         android:layout_width="match_parent"

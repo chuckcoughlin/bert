@@ -45,8 +45,6 @@
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size" />
         <chuckcoughlin.bertspeak.ui.animate.AnimationView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/animation_view_front"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

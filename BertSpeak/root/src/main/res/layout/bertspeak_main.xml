@@ -32,7 +32,7 @@
         android:theme="@style/BertSpeak.AppBarOverlayTheme">
         <!-- This is the text that appears left-justified in the title bar -->
         <TextView
-            android:id="@+id/title"
+            android:id="@+id/appTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -44,13 +44,13 @@
 
 
         <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabs"
+            android:id="@+id/main_tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
             <!-- app:tabTextAppearance="@style/TabTextAppearance" -->
 
         <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/view_pager"
+            android:id="@+id/main_view_pager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"

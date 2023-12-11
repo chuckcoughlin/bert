@@ -157,7 +157,7 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
      */
     fun reportDataSetChanged() {
         Log.i(CLSS, String.format("reportDataSetChanged count = %d", messages.size))
-        //notifyDataSetChanged()
+        notifyDataSetChanged()
         Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
     }
 
