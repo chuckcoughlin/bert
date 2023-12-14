@@ -6,6 +6,7 @@
 package chuckcoughlin.bertspeak
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Resources
@@ -15,7 +16,9 @@ import android.os.StrictMode
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
+import android.util.AttributeSet
 import android.util.Log
+import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
@@ -50,6 +53,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
     private var service: DispatchService? = null
 
     override val name: String = CLSS
+    private val phrases: Array<String>
     private lateinit var binding: BertspeakMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,8 +61,7 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         // Temporary code to throw errors when resource leaks encountered
         StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
-                .detectLeakedClosableObjects()
-                .build()
+                .detectLeakedClosableObjects().build()
         )
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
@@ -72,11 +75,11 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         setContentView(binding.root)
 
         val adapter = FragmentPageAdapter(this)
-        val pager: ViewPager2 = binding.viewPager
+        val pager: ViewPager2 = binding.mainViewPager
         pager.currentItem = 0
         pager.adapter = adapter
 
-        val tabs: TabLayout = binding.tabs
+        val tabs: TabLayout = binding.mainTabs
         TabLayoutMediator(tabs, pager) { tab, position->
             tab.text = adapter.getTabTitle(position)
         }.attach()
@@ -304,8 +307,13 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
         private const val CLSS = "BertSpeakActivity"
         private const val UTTERANCE_ID = CLSS
 
+
+    }
+
+    init {
+        Log.d(CLSS, "Main activity init ...")
         // Start phrases to choose from ...
-        private val phrases = arrayOf(
+        phrases = arrayOf(
             "My speech module is ready",
             "The speech connection is enabled",
             "I am ready for voice commands",
@@ -313,9 +321,5 @@ class BertSpeakActivity : AppCompatActivity() , IntentObserver, TextMessageObser
             "Marj I am ready",
             "Marj speak to me"
         )
-    }
-
-    init {
-        Log.d(CLSS, "Main Activity startup ...")
     }
 }

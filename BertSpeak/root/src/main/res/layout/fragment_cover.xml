@@ -49,18 +49,18 @@
 
     <!-- Status panel at bottom of image - three linear layouts-->
     <LinearLayout
-        android:id="@+id/layout_bluetoothh"
+        android:id="@+id/layoutBluetoothStatus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="0dp"
+        android:layout_margin="0dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/layout_socket"
+        app:layout_constraintEnd_toStartOf="@+id/layoutSocket"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
-            android:id="@+id/bluetooth_connection_label"
+            android:id="@+id/bluetoothConnectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
@@ -69,7 +69,7 @@
             android:textSize="@dimen/cover_parameter_text_size"
          />
         <chuckcoughlin.bertspeak.ui.StatusImageButton
-            android:id="@+id/bluetooth_status"
+            android:id="@+id/bluetoothStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_white"
@@ -78,17 +78,17 @@
     </LinearLayout>
     <!-- Socket Connection -->
     <LinearLayout
-        android:id="@+id/layout_socket"
+        android:id="@+id/layoutSocket"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintStart_toEndOf="@+id/layout_bluetooth"
-        app:layout_constraintEnd_toStartOf="@+id/layout_voice"
+        app:layout_constraintStart_toEndOf="@+id/layoutBluetoothStatus"
+        app:layout_constraintEnd_toStartOf="@+id/layoutVoice"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
-            android:id="@+id/socket_connection_label"
+            android:id="@+id/socketConnectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
@@ -96,7 +96,7 @@
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size"/>
         <chuckcoughlin.bertspeak.ui.StatusImageButton
-            android:id="@+id/socket_status"
+            android:id="@+id/socketStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_white"
@@ -106,19 +106,19 @@
 
     <!-- Voice Connectionl -->
     <LinearLayout
-        android:id="@+id/layout_voice"
+        android:id="@+id/layoutVoice"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginEnd="0dp"
-        app:layout_constraintStart_toEndOf="@+id/layout_socket"
+        app:layout_constraintStart_toEndOf="@+id/layoutSocket"
         app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
-            android:id="@+id/voice_connection_label"
+            android:id="@+id/voiceConnectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
@@ -127,7 +127,7 @@
             android:textSize="@dimen/cover_parameter_text_size" />
 
         <chuckcoughlin.bertspeak.ui.StatusImageButton
-            android:id="@+id/voice_status"
+            android:id="@+id/voiceStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_white"
@@ -138,7 +138,7 @@
     <!-- The middle panel is the voice waveform-->
     <!-- The is a text label above the wave-form meter -->
     <TextView
-        android:id="@+id/waveform_title"
+        android:id="@+id/waveformTitle"
         android:layout_width="@dimen/cover_waveform_width"
         android:layout_height="wrap_content"
         android:layout_marginStart="0dp"
@@ -154,7 +154,7 @@
 
     <!-- The left-most panel is a slide control for the voice volume -->
     <chuckcoughlin.bertspeak.ui.waveform.WaveformView
-        android:id="@+id/waveform_view"
+        android:id="@+id/waveformView"
         android:layout_width="@dimen/cover_waveform_width"
         android:layout_height="0dp"
         android:layout_marginStart="0dp"
@@ -162,14 +162,14 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintStart_toEndOf="@+id/coverVertical1"
         app:layout_constraintEnd_toStartOf="@+id/coverVertical2"
-        app:layout_constraintTop_toBottomOf="@id/waveform_title"
+        app:layout_constraintTop_toBottomOf="@id/waveformTitle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.5"
         tools:context="chuckcoughlin.bertspeak.BertSpeakActivity"
         tools:showIn="@layout/fragment_cover" />
 
     <TextView
-        android:id="@+id/volume_adjust_title"
+        android:id="@+id/volumeAdjustTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/border_gray"
@@ -190,7 +190,7 @@
         android:progressDrawable="@drawable/seekbar_progress"
         android:thumb="@drawable/seekbar_thumb"
         app:layout_constraintStart_toEndOf="@+id/coverVertical2"
-        app:layout_constraintTop_toBottomOf="@+id/volume_adjust_title"
+        app:layout_constraintTop_toBottomOf="@+id/volumeAdjustTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 

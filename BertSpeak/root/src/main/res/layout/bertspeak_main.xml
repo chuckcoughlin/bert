@@ -44,21 +44,23 @@
 
 
         <com.google.android.material.tabs.TabLayout
-            android:id="@+id/main_tabs"
+            android:id="@+id/mainTabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
             <!-- app:tabTextAppearance="@style/TabTextAppearance" -->
 
         <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/main_view_pager"
+            android:id="@+id/mainViewPager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            />
+            <!-- app:layout_behavior="@string/appbar_scrolling_view_behavior" -->
+
         <!-- This text is a pad to account for an invisible area on the tablet
              This may not be necessary-->
         <TextView
-            android:id="@+id/invisible"
+            android:id="@+id/invisibleText"
             android:layout_width="match_parent"
             android:layout_height="@dimen/hidden_height"
             android:padding="@dimen/appbar_padding"

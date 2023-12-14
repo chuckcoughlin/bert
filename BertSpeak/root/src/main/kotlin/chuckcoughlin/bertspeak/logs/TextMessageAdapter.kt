@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import chuckcoughlin.bertspeak.BertSpeakActivity
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.speech.TextMessage
@@ -152,13 +153,27 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
     }
 
     /*
-     * The parent class notifyDataSetChanged() method is final.
-     * This allows us to get a hook for debugging
-     */
+    * The parent class notifyDataSetChanged() method is final.
+    * This allows us to get a hook for debugging
+    */
     fun reportDataSetChanged() {
         Log.i(CLSS, String.format("reportDataSetChanged count = %d", messages.size))
-        notifyDataSetChanged()
+        recyclerView!!.post() {
+            notifyDataSetChanged()
+        }
         Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
+    }
+    /*
+     * The parent class notifyItemInserted() method is final.
+     * Always insert at the beginning of the list
+     */
+    fun reportItemInserted() {
+        Log.i(CLSS, String.format("reportItemInserted count = %d", messages.size))
+        recyclerView!!.post() {
+            //notifyItemInserted(0)
+            //recyclerView!!.scrollToPosition(0)
+        }
+        Log.i(CLSS, String.format("reportItemInserted SUCCESS"))
     }
 
     private val CLSS = "TextMessageAdapter"

@@ -37,15 +37,9 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
     private lateinit var adapter: TextMessageAdapter
     private lateinit var binding: FragmentLogsBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val nvpairs = DatabaseManager.getSettings()
-        val nvarray = nvpairs.toTypedArray()
-        Log.i(CLSS, String.format("onCreate: will display %d messages", nvarray.size))
-        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
-    }
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
-        Log.i(CLSS, String.format("onCreateView: "))
+        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
+        Log.i(CLSS, String.format("onCreateView: will display %d messages", adapter.itemCount))
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
         binding = FragmentLogsBinding.inflate(inflater,container,false)
@@ -64,6 +58,10 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        Log.i(name, "onViewCreated: ....")
+    }
     // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
@@ -108,9 +106,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         Log.i(name, "Clear button clicked")
         if (service != null) {
             service?.getTextManager()?.getLogs()?.clear()
-            requireActivity().runOnUiThread {
-                adapter.notifyDataSetChanged()
-            }
+            adapter.reportDataSetChanged()
         }
     }
 
@@ -118,9 +114,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         frozen = !frozen
         if (service != null) {
             if (!frozen) {
-                activity?.runOnUiThread {
-                    adapter.notifyDataSetChanged()
-                }
+                adapter.reportDataSetChanged()
             }
         }
         updateUI()
@@ -147,18 +141,16 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
     override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
         val binder: DispatchServiceBinder = bndr as DispatchServiceBinder
         service = binder.getService()
-        //adapter.resetList(service?.getTextManager()?.getLogs()?.toList())
+        adapter.resetList(service?.getTextManager()?.getLogs()?.toList())
         service?.getTextManager()?.registerLogViewer(this)
     }
 
     override fun initialize() {
-        Log.i(name, "initialize: message list is now ...")
+        Log.i(name, "initialize: message list ...")
         for (m in service?.getTextManager()?.getLogs()!!) {
             Log.i(name, String.format("initialize: \t%s", m.message))
         }
-        requireActivity().runOnUiThread {
-            adapter.notifyDataSetChanged()
-        }
+        adapter.reportDataSetChanged()
     }
 
     override fun update(msg: TextMessage) {
@@ -166,8 +158,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
         if (!frozen) {
             // This must take place on the UI thread
             requireActivity().runOnUiThread {
-                adapter.notifyItemInserted(0)
-                //binding.logsRecyclerView.scrollToPosition(0)
+                adapter.reportItemInserted()
             }
         }
     }

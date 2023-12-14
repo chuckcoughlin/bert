@@ -74,7 +74,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         updateStatusButton(socketStatus, ControllerState.OFF)
         updateStatusButton(voiceStatus, ControllerState.OFF)
         val rendererFactory = RendererFactory()
-        waveformView = binding.root.findViewById(R.id.waveform_view)
+        waveformView = binding.root.findViewById(R.id.waveformView)
         waveformView.setRenderer(
             rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY)
         )
@@ -85,6 +85,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         Log.i(name, "onViewCreated: ....")
     }
     /**

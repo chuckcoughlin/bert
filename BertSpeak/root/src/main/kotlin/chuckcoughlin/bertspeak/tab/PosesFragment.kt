@@ -98,9 +98,8 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, T
         //val text: String = msg.message
     }
 
-    companion object {
-        val CLSS = "PosesFragment"
-    }
+    val CLSS = "PosesFragment"
+
     init {
         this.name = CLSS
     }
