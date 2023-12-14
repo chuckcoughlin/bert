@@ -21,11 +21,11 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentStatusBinding
-import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
 
 /**
  * This fragment displays servo data from the robot in tabular form. Only

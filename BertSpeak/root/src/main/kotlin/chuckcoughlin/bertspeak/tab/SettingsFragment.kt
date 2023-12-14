@@ -35,15 +35,15 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
     // Inflate the view for the fragment based on layout XML. Populate
     // the text fields from the database.
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
-        Log.i(CLSS, String.format("onCreateView: will display %d name-values", listAdapter!!.count))
         val nvpairs = DatabaseManager.getSettings()
         val nvarray = nvpairs.toTypedArray()
-        Log.i(CLSS, String.format("onCreate: will display %d name-values", nvarray.size))
-        val adapter = SettingsListAdapter(requireContext(), nvarray)
-        listAdapter = adapter
-        listView.itemsCanFocus = true
+        val listAdapter = SettingsListAdapter(requireContext(), nvarray)
+        Log.i(CLSS, String.format("onCreateView: will display %d name-values", listAdapter.count))
+        setListAdapter(listAdapter)
+
         binding = FragmentSettingsBinding.inflate(inflater,container,false)
         binding.fragmentSettingsText.setText(R.string.fragmentSettingsLabel)
+        binding.list.itemsCanFocus = true
         return binding.root
     }
 
@@ -74,7 +74,8 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
                 editText.inputType =
                     InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                 editText.setSelection(editText.text.length)
-            } else {
+            }
+            else {
                 editText.inputType = InputType.TYPE_CLASS_TEXT
             }
             editText.onFocusChangeListener = OnFocusChangeListener { v, hasFocus ->

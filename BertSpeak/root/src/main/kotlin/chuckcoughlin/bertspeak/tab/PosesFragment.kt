@@ -17,11 +17,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.databinding.FragmentPosesBinding
-import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
 
 /**
  * This fragment allows the user to select a pose stored in the robot, then

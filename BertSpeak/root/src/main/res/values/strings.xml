@@ -23,6 +23,9 @@
     <string name="animationFrontTitle">Front</string>
     <string name="animationLeftTitle">Left</string>
     <string name="animationRightTitle">Right</string>
+    <!-- Strings for FaceRec tab-->
+    <string name="facesCameraTitle">Camera</string>
+
 
     <!-- Strings for Button Labels-->
     <string name="buttonCancel">Cancel</string>

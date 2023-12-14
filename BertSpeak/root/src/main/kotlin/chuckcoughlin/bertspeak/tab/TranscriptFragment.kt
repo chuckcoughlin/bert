@@ -19,11 +19,11 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentTranscriptBinding
-import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
 
 /**
  * This fragment allows perusal of the robot's spoken interactions. Blue implies
@@ -146,25 +146,19 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
         for (m in service?.getTextManager()?.getTranscript()!!) {
             Log.i(name, String.format("initialize: \t%s", m.message))
         }
-        adapter.notifyDataSetChanged()
+        adapter.reportDataSetChanged()
     }
 
     @Synchronized
     override fun update(msg: TextMessage) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen || frozen) {
-            if (activity != null) {
-                requireActivity().runOnUiThread(Runnable {
-                    adapter.notifyItemInserted(0)
-                    binding.transcriptRecyclerView.scrollToPosition(0)
-                })
-            }
+            adapter.reportDataSetChanged()
         }
     }
 
-    companion object {
-        val CLSS = "TranscriptFragment"
-    }
+    val CLSS = "TranscriptFragment"
+
     init {
         this.name = CLSS
     }

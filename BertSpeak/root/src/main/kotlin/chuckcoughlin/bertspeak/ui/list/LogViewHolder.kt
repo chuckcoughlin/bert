@@ -2,7 +2,7 @@
  * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.logs
+package chuckcoughlin.bertspeak.ui.list
 
 import android.view.View
 import android.view.ViewGroup

@@ -2,7 +2,7 @@
  * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.logs
+package chuckcoughlin.bertspeak.ui.list
 
 import android.graphics.Color
 import android.transition.TransitionManager
@@ -13,12 +13,11 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import chuckcoughlin.bertspeak.BertSpeakActivity
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.speech.TextMessage
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
 /**
  * This class is a link between a RecyclerView and the data backstop.
@@ -161,19 +160,20 @@ class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogView
         recyclerView!!.post() {
             notifyDataSetChanged()
         }
-        Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
+        //Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
     }
     /*
      * The parent class notifyItemInserted() method is final.
-     * Always insert at the beginning of the list
+     * Always scroll to the beginning of the list.
+     * Note: Calling notifyItemInserted causes a crash.
      */
     fun reportItemInserted() {
         Log.i(CLSS, String.format("reportItemInserted count = %d", messages.size))
         recyclerView!!.post() {
-            //notifyItemInserted(0)
-            //recyclerView!!.scrollToPosition(0)
+            notifyDataSetChanged()
+            recyclerView!!.scrollToPosition(0)
         }
-        Log.i(CLSS, String.format("reportItemInserted SUCCESS"))
+        //Log.i(CLSS, String.format("reportItemInserted SUCCESS"))
     }
 
     private val CLSS = "TextMessageAdapter"

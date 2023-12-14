@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/border_gray"
-            android:text="@string/animationLeftTitle"
+            android:text="@string/facesCameraTitle"
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size" />
         <chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView

@@ -19,12 +19,11 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentLogsBinding
-import chuckcoughlin.bertspeak.db.DatabaseManager
-import chuckcoughlin.bertspeak.logs.TextMessageAdapter
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
 
 /**
  * This fragment shows log messages originating in the robot.

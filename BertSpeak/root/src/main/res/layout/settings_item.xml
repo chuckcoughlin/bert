@@ -41,6 +41,3 @@
         android:clickable="false"
         android:textCursorDrawable="@drawable/edit_cursor"/>
 </LinearLayout>
-
-<!-- /chuckcoughlin.sb.assistant.utilities.CheckableLinearLayout -->
-
