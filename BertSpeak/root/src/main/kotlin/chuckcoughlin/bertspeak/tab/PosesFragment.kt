@@ -21,7 +21,7 @@ import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
+import chuckcoughlin.bertspeak.ui.list.LogMessageAdapter
 
 /**
  * This fragment allows the user to select a pose stored in the robot, then
@@ -30,7 +30,7 @@ import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
 class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name : String
     private val layoutManager: RecyclerView.LayoutManager? = null
-    private var adapter: TextMessageAdapter? = null
+    private var adapter: LogMessageAdapter? = null
     private var rootView: View? = null
     private var logMessageView: RecyclerView? = null
     private val logView: TextView? = null

@@ -34,10 +34,12 @@
         android:supportsRtl="true"
         android:theme="@style/BertSpeak"
         android:usesCleartextTraffic="true" >
+        <!-- Exported true required for launchable -->
         <activity
             android:name=".BertSpeakActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.BertSpeak.NoActionBar">
             <intent-filter>

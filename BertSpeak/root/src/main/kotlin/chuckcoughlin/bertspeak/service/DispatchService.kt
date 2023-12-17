@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
@@ -31,11 +31,19 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.DISPATCH_NOTIFICATION
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.ERROR_CYCLE_DELAY
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.bluetoothManager
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.notificationManager
+import chuckcoughlin.bertspeak.service.DispatchService.isMuted
+import chuckcoughlin.bertspeak.service.DispatchService.simulatedConnectionMode
+import chuckcoughlin.bertspeak.service.DispatchService.statusManager
+import chuckcoughlin.bertspeak.service.DispatchService.textManager
 import java.util.Locale
 
 
 /**
- * This is a foreground service and may be turned on/off with a notifications interface.
+ * This is the foreground service and may be turned on/off with a notifications interface.
  * The voice service manages connections between the robot as and speech/logging facilities.
  * It accepts voice commands from the socket connection from the robot and updates listeners
  * with the resulting text. The listeners handle text enunciation and logging.
@@ -43,14 +51,16 @@ import java.util.Locale
  * The service relies on a Bluetooth connection, socket communication and the
  * Android speech recognition classes.
  */
-class DispatchService : Service(), BluetoothHandler {
+object DispatchService : Service(), BluetoothHandler {
+    val binder: DispatchServiceBinder
+    val isMuted:Boolean
+    var simulatedConnectionMode: Boolean
+    val statusManager: StatusManager
+    val textManager: TextManager
+
+
     private var bluetoothConnection: BluetoothConnection? = null // Stays null when simulated
     private var bluetoothDevice: BluetoothDevice? = null
-    private val binder: DispatchServiceBinder = DispatchServiceBinder(this)
-    val statusManager: StatusManager
-    private var textManager: TextManager
-    private var isMuted = false
-    private var simulatedConnectionMode: Boolean
 
     /**
      * Display a notification about us starting.  We put an icon in the status bar.
@@ -107,7 +117,6 @@ class DispatchService : Service(), BluetoothHandler {
     }
 
     // A client is binding to the service with bindService().
-    // There should be no binding, but this does get called.
     override fun onBind(intent: Intent?): IBinder {
         return binder
     }
@@ -120,7 +129,7 @@ class DispatchService : Service(), BluetoothHandler {
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)  // Notification remains showing
 
         if(ActivityCompat.checkSelfPermission(this, permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
-            bluetoothManager?.adapter?.cancelDiscovery()
+            bluetoothManager.adapter?.cancelDiscovery()
             if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
         }
         notificationManager?.cancelAll()
@@ -370,12 +379,13 @@ class DispatchService : Service(), BluetoothHandler {
      * Use this class to delay the transition to the next step. When we find
      * an error, we need to avoid a hard loop.
      */
-    inner class ProcessDelay
+    inner class ProcessDelay {
     /**
      * Constructor:
      * @param sleepInterval milliseconds to wait before going to the next state (or more
      * likely retrying the current).
-     */(private val facility: ControllerType, private val sleepInterval: Long) : Runnable {
+     */
+    private val facility: ControllerType, private val sleepInterval: Long) : Runnable {
         override fun run() {
             try {
                 Thread.sleep(sleepInterval)
@@ -391,20 +401,14 @@ class DispatchService : Service(), BluetoothHandler {
     fun getStatusManager(): StatusManager? {
         return statusManager
     }
-    */
+
 
     fun getTextManager(): TextManager {
         return textManager
     }
+    */
 
-    /**
-     *  The service operates as a Singleton, so we place our startup code here
-     */
-    companion object {
-        private const val CLSS = "DispatchService"
-        private const val ERROR_CYCLE_DELAY: Long = 15000 // Wait interval for retry after error
-        private val DISPATCH_NOTIFICATION: Int = R.string.notificationKey // Unique id for the Notification.
-        private var bluetoothManager :BluetoothManager? = null
+        private var bluetoothManager :BluetoothManager
         private var notificationManager:NotificationManager? = null
         // Start foreground service
         fun startForegroundService(context: Context) {
@@ -427,9 +431,15 @@ class DispatchService : Service(), BluetoothHandler {
             val stopIntent = Intent(context, DispatchService::class.java)
             context.stopService(stopIntent)
         }
-    }
+
+
+    private const val CLSS = "DispatchService"
+    private const val ERROR_CYCLE_DELAY: Long = 15000 // Wait interval for retry after error
+    private val DISPATCH_NOTIFICATION: Int = R.string.notificationKey // Unique id for the Notification.
 
     init {
+        binder = DispatchServiceBinder(this)
+        isMuted = false
         simulatedConnectionMode = false
         statusManager = StatusManager()
         textManager = TextManager()

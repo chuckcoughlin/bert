@@ -25,7 +25,7 @@ import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
+import chuckcoughlin.bertspeak.ui.list.LogMessageAdapter
 
 /**
  * This fragment displays servo data from the robot in tabular form. Only
@@ -35,7 +35,7 @@ import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
 class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
     override val name : String
     private val layoutManager: RecyclerView.LayoutManager? = null
-    private var adapter: TextMessageAdapter? = null
+    private var adapter: LogMessageAdapter? = null
     private var rootView: View? = null
     private var logMessageView: RecyclerView? = null
     private val logView: TextView? = null
@@ -51,7 +51,7 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, 
         logMessageView!!.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(logMessageView!!.context)
         logMessageView!!.layoutManager = layoutManager
-        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
+        adapter = LogMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
         logMessageView!!.adapter = adapter
         val scrollPosition: Int = layoutManager.findFirstCompletelyVisibleItemPosition()
         logMessageView!!.scrollToPosition(scrollPosition)

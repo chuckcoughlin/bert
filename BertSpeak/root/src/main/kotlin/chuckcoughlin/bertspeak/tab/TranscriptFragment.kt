@@ -23,7 +23,7 @@ import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
+import chuckcoughlin.bertspeak.ui.list.LogMessageAdapter
 
 /**
  * This fragment allows perusal of the robot's spoken interactions. Blue implies
@@ -34,14 +34,14 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
     private var service: DispatchService? = null
     private var frozen = false
     // These property is only valid between onCreateView and onDestroyView
-    private lateinit var adapter: TextMessageAdapter
+    private lateinit var adapter: LogMessageAdapter
     private lateinit var binding: FragmentTranscriptBinding
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
         binding = FragmentTranscriptBinding.inflate(inflater,container,false)
-        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
+        adapter = LogMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
         var transcriptView = binding.transcriptRecyclerView
         transcriptView.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(transcriptView.getContext())

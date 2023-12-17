@@ -23,7 +23,7 @@ import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
 import chuckcoughlin.bertspeak.speech.TextMessage
 import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.ui.list.TextMessageAdapter
+import chuckcoughlin.bertspeak.ui.list.LogMessageAdapter
 
 /**
  * This fragment shows log messages originating in the robot.
@@ -33,11 +33,11 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
     private var service: DispatchService? = null
     private var frozen = false
     // These properties only valid between onCreateView and onDestroyView
-    private lateinit var adapter: TextMessageAdapter
+    private lateinit var adapter: LogMessageAdapter
     private lateinit var binding: FragmentLogsBinding
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
-        adapter = TextMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
+        adapter = LogMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
         Log.i(CLSS, String.format("onCreateView: will display %d messages", adapter.itemCount))
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
@@ -104,7 +104,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, Te
     fun clearButtonClicked() {
         Log.i(name, "Clear button clicked")
         if (service != null) {
-            service?.getTextManager()?.getLogs()?.clear()
+            service?.getTextManager().getLogs().clear()
             adapter.reportDataSetChanged()
         }
     }

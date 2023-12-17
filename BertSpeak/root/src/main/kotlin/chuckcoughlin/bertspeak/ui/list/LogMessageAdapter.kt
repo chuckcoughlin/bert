@@ -23,7 +23,7 @@ import java.util.Date
  * This class is a link between a RecyclerView and the data backstop.
  * Each element in the list is a string, a text message.
  */
-class TextMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewHolder>() {
+class LogMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewHolder>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     private var expandedPosition = -1
     private var recyclerView :RecyclerView? = null

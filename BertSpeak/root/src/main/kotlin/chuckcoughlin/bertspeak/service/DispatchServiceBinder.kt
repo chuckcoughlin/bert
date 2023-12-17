@@ -6,8 +6,6 @@ package chuckcoughlin.bertspeak.service
 
 import android.os.Binder
 
-class DispatchServiceBinder(private val service: DispatchService) : Binder() {
-    fun getService(): DispatchService {
-        return service
-    }
+class DispatchServiceBinder(private val dispatchService: DispatchService) : Binder() {
+    val service = dispatchService
 }
