@@ -19,18 +19,18 @@ import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.databinding.FragmentPosesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import chuckcoughlin.bertspeak.speech.TextMessage
-import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.ui.list.LogMessageAdapter
+import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 
 /**
  * This fragment allows the user to select a pose stored in the robot, then
  * displays all the position settings in that pose.
  */
-class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
+class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextDataObserver {
     override val name : String
     private val layoutManager: RecyclerView.LayoutManager? = null
-    private var adapter: LogMessageAdapter? = null
+    private var adapter: TextDataAdapter? = null
     private var rootView: View? = null
     private var logMessageView: RecyclerView? = null
     private val logView: TextView? = null
@@ -94,7 +94,7 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, T
     }
 
     override fun initialize() {}
-    override fun update(msg: TextMessage) {
+    override fun update(msg: TextData) {
         //val text: String = msg.message
     }
 

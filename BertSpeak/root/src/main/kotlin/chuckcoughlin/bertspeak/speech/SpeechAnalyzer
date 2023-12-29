@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.speech
@@ -11,30 +11,30 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.service.BluetoothHandler
-import chuckcoughlin.bertspeak.service.ControllerState
-import chuckcoughlin.bertspeak.service.ControllerType
+import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.service.ManagerState
+import chuckcoughlin.bertspeak.service.ManagerType
 import java.util.Locale
 
 /**
  * This class analyzes speech, converting it into text (lists of words).
  * The SpeechRecognizer methods must be executed on the main application thread (UI thread).
  */
-class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
-    private val context: Context
+class SpeechAnalyzer(service:DispatchService) : RecognitionListener {
+    private val dispatcher = service
+    private val type = ManagerType.SPEECH  // We are owned by the speech manager
     private var listening = false
-    private var sr: SpeechRecognizer? = null
-    private val handler: BluetoothHandler
-    private var recognizerIntent: Intent? = null
+    private var sr: SpeechRecognizer
+    private var recognizerIntent: Intent
 
     /**
      * Stop any recognition in progress.
      * Must be called from UI thread
      */
     fun cancel() {
-        if (sr != null) {
-            sr!!.cancel()
-        }
+        sr.cancel()
         listening = false
     }
 
@@ -49,40 +49,34 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     }
 
     fun start() {
-        recognizerIntent = createRecognizerIntent()
         resetSpeechRecognizer()
         startListening()
     }
 
     fun shutdown() {
-        if (sr != null) {
-            sr!!.stopListening()
+        sr.stopListening()
             try {
-                sr!!.destroy()
-            } catch (iae: IllegalArgumentException) {
+                sr.destroy()
+            }
+            catch (iae: IllegalArgumentException) {
                 Log.i(CLSS, String.format("%s:shutdown: (%s)", CLSS, iae.localizedMessage))
             } // Happens in emulator
         }
-        sr = null
     }
 
     // Delay before we start listening to avoid feedback loop
     // with spoken response. Note this will be cut short by
     // a listener on the text-to-speech component.
     private fun startListening() {
-        if (sr != null) {
-            Log.i(CLSS, "Start listening ...")
-            listening = true
-            sr!!.startListening(recognizerIntent)
-        }
+        Log.i(CLSS, "Start listening ...")
+        listening = true
+        sr.startListening(recognizerIntent)
     }
 
     private fun resetSpeechRecognizer() {
-        if (sr != null) {
-            sr!!.destroy()
-        }
-        sr = SpeechRecognizer.createSpeechRecognizer(context)
-        sr!!.setRecognitionListener(this)
+        sr.destroy()
+        sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.applicationContext)
+        sr.setRecognitionListener(this)
         listening = false
     }
 
@@ -92,8 +86,8 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     }
 
     override fun onBeginningOfSpeech() {
-        //Log.i(CLSS, "onBeginningOfSpeech");
-        handler.reportConnectionState(ControllerType.VOICE, ControllerState.ACTIVE)
+        Log.i(CLSS, "onBeginningOfSpeech");
+        dispatcher.reportManagerStatus(ManagerType.SPEECH, ManagerState.ACTIVE)
     }
 
     // Background level changed ...
@@ -107,7 +101,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
     }
 
     override fun onError(error: Int) {
-        var reason: String? = null
+        var reason = BertConstants.NO_ERROR
         when (error) {
             SpeechRecognizer.ERROR_AUDIO -> reason = String.format("Audio recording error")
             SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> reason =
@@ -129,10 +123,8 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
             SpeechRecognizer.ERROR_SERVER -> reason = String.format("Error - in server")
             else -> reason = String.format("ERROR (%d) ", error)
         }
-        if (reason != null) {
-            Log.e(CLSS, String.format("SpeechRecognizer: Error - %s", reason))
-            handler.handleVoiceError(reason)
-        }
+        Log.e(CLSS, String.format("SpeechRecognizer: Error - %s", reason))
+        dispatcher.logError(type,reason)
         // Try again
         resetSpeechRecognizer()
         startListening()
@@ -149,7 +141,7 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
             var text = matches[0]
             text = scrubText(text)
             handler.receiveSpokenText(text)
-            handler.reportConnectionState(ControllerType.VOICE, ControllerState.PENDING)
+            DispatchService.reportConnectionState(ManagerType.VOICE, ManagerState.PENDING)
             startListening() // Repeat forever
         }
     }
@@ -197,14 +189,12 @@ class SpeechAnalyzer(h: BluetoothHandler, c: Context) : RecognitionListener {
         return text
     }
 
-    companion object {
-        private const val CLSS = "SpeechAnalyzer"
-        private const val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
-    }
+    private const val CLSS = "SpeechAnalyzer"
+    private const val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
 
     init {
+        sr = SpeechRecognizer()
+        recognizerIntent = createRecognizerIntent()
         listening = false
-        context = c
-        handler = h
     }
 }

@@ -28,9 +28,6 @@ import java.util.Locale
 class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
     val name : String
 
-    // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentSettingsBinding
-
     // Called to have the fragment instantiate its user interface view.
     // Inflate the view for the fragment based on layout XML. Populate
     // the text fields from the database.
@@ -41,10 +38,9 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
         Log.i(CLSS, String.format("onCreateView: will display %d name-values", listAdapter.count))
         setListAdapter(listAdapter)
 
-        binding = FragmentSettingsBinding.inflate(inflater,container,false)
+        val binding = FragmentSettingsBinding.inflate(inflater,container,false)
         binding.fragmentSettingsText.setText(R.string.fragmentSettingsLabel)
         binding.list.itemsCanFocus = true
-        return binding.root
     }
 
     inner class SettingsListAdapter(context: Context, values: Array<NameValue>) :

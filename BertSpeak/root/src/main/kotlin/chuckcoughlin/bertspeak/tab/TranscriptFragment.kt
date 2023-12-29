@@ -20,28 +20,26 @@ import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentTranscriptBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import chuckcoughlin.bertspeak.speech.TextMessage
-import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.ui.list.LogMessageAdapter
+import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 
 /**
  * This fragment allows perusal of the robot's spoken interactions. Blue implies
  * text from the robot, pink is text from the user..
  */
-class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
+class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnection, TextDataObserver {
     override val name : String
     private var service: DispatchService? = null
     private var frozen = false
     // These property is only valid between onCreateView and onDestroyView
-    private lateinit var adapter: LogMessageAdapter
-    private lateinit var binding: FragmentTranscriptBinding
+    private lateinit var adapter: TextDataAdapter
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
-        binding = FragmentTranscriptBinding.inflate(inflater,container,false)
-        adapter = LogMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
+        val binding = FragmentTranscriptBinding.inflate(inflater,container,false)
+        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_LOG_MESSAGES))
         var transcriptView = binding.transcriptRecyclerView
         transcriptView.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(transcriptView.getContext())
@@ -146,11 +144,12 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
         for (m in service?.getTextManager()?.getTranscript()!!) {
             Log.i(name, String.format("initialize: \t%s", m.message))
         }
+        adapter.resetList(service?.getTextManager()?.getTranscript()?.toList())
         adapter.reportDataSetChanged()
     }
 
     @Synchronized
-    override fun update(msg: TextMessage) {
+    override fun update(msg: TextData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen || frozen) {
             adapter.reportDataSetChanged()

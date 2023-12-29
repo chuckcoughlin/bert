@@ -1,5 +1,5 @@
 /**
- * (c) 2022  Charles Coughlin. All rights reserved.
+ * (c) 2022-2023  Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
@@ -7,8 +7,8 @@ package chuckcoughlin.bertspeak.service
 /**
  * These are the communication controllers embedded in this application.
  */
-enum class ControllerType {
-    BLUETOOTH, SOCKET, VOICE;
+enum class ManagerType {
+    ANNUNCIATOR,BLUETOOTH, DISCOVERY, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
 
     companion object {
         /**

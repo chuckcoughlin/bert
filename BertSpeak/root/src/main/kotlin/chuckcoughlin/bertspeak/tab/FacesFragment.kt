@@ -19,7 +19,7 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.lifecycle.Lifecycle
-import chuckcoughlin.bertspeak.common.IntentObserver
+import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.DispatchServiceBinder
@@ -31,7 +31,7 @@ import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
  * This fragment presents shows the front camera output and attempts to identify the primary face
  * association it with "the operator".
  */
-class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
+class FacesFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
     override val name = CLSS
     private var service: DispatchService? = null
     private var visualizer: Visualizer? = null
@@ -63,7 +63,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         super.onResume()
         if (service != null) {
             Log.i(name, "onResume: registering as observer")
-            service!!.statusManager.register(this)
+            service!!.statusController.register(this)
         }
         startVisualizer()
     }
@@ -72,7 +72,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
         super.onPause()
         if (service != null) {
             Log.i(name, "onPause: unregistering as observer")
-            service!!.statusManager.unregister(this)
+            service!!.statusController.unregister(this)
         }
         stopVisualizer()
     }
@@ -151,7 +151,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     }
     // ================================ ServiceConnection ===============================
     override fun onServiceDisconnected(name: ComponentName) {
-        if (service != null) service!!.statusManager.unregister(this)
+        if (service != null) service!!.statusController.unregister(this)
         service = null
     }
 
@@ -159,7 +159,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnDa
     override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
         val binder = bndr as DispatchServiceBinder
         service = binder.getService()
-        service!!.statusManager.register(this)
+        service!!.statusController.register(this)
     }
     companion object {
         const val CLSS = "FacesFragment"

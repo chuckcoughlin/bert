@@ -2,7 +2,7 @@
  * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.ui.list
+package chuckcoughlin.bertspeak.ui.adapter
 
 import android.graphics.Color
 import android.transition.TransitionManager
@@ -15,7 +15,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.speech.TextMessage
+import chuckcoughlin.bertspeak.data.TextData
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -23,29 +23,28 @@ import java.util.Date
  * This class is a link between a RecyclerView and the data backstop.
  * Each element in the list is a string, a text message.
  */
-class LogMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewHolder>() {
+class TextDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataViewHolder>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     private var expandedPosition = -1
     private var recyclerView :RecyclerView? = null
-    private var messages: List<TextMessage> = msgs
+    private var messages: List<TextData> = msgs
 
      override fun onAttachedToRecyclerView(view: RecyclerView) {
          super.onAttachedToRecyclerView(view)
          Log.i(CLSS, String.format("onAttachedToRecyclerView"))
          this.recyclerView = view
     }
-
     /**
      * Create a new view holder. Inflate the row layout, set the item height.
      */
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TextDataViewHolder {
         Log.i(CLSS, String.format("onCreateViewHolder count = %d", messages.size))
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val shouldAttachToParent = false
         val layout: LinearLayout =
             inflater.inflate(R.layout.log_item, parent, shouldAttachToParent) as LinearLayout
         Log.i(CLSS, String.format("onCreateViewHolder inflation complete"))
-        return LogViewHolder(layout)
+        return TextDataViewHolder(layout)
     }
 
     /**
@@ -55,7 +54,7 @@ class LogMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewH
      * @param holder the viewholder that should be populated at the given position
      * @param position row that should be updated
      */
-    override fun onBindViewHolder(holder: LogViewHolder, pos: Int) {
+    override fun onBindViewHolder(holder: TextDataViewHolder, pos: Int) {
         var position = pos
         Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
         if( messages.size == 0 ) {
@@ -64,7 +63,7 @@ class LogMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewH
         }
         if(position>=messages.size) position = messages.size - 1
         val expand = position == expandedPosition
-        val msg: TextMessage = messages[position]
+        val msg: TextData = messages[position]
         val type: MessageType = msg.messageType
         // The timestamp is always the same
         val timestampView: TextView = holder.timestampView
@@ -140,9 +139,9 @@ class LogMessageAdapter(msgs: List<TextMessage>) : RecyclerView.Adapter<LogViewH
      * Replace the source of messages for this adapter.
      * @param msgs message list, managed externally
      */
-    fun resetList(msgs: List<TextMessage>?) {
+    fun resetList(msgs: List<TextData>?) {
         if(msgs == null ) {
-            messages = listOf<TextMessage>()
+            messages = listOf<TextData>()
         }
         else {
             messages = msgs

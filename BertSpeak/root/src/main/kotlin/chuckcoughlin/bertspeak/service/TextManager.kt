@@ -4,8 +4,8 @@ import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.speech.TextMessage
-import chuckcoughlin.bertspeak.speech.TextMessageObserver
+import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.data.TextDataObserver
 
 /**
  * The text manager is a repository of text messages destined to be
@@ -16,40 +16,62 @@ import chuckcoughlin.bertspeak.speech.TextMessageObserver
  * The column list must be sent before the rows as new columns clear out
  * existing rows. Column and row data consist of pipe-delimited strings.
  */
-class TextManager {
-    private val logList: FixedSizeList<TextMessage>
+class TextManager (service:DispatchService): CommunicationManager {
+    override val type = ManagerType.TEXT
+    override var state = ManagerState.OFF
+    private val logList: FixedSizeList<TextData>
     private val columnList : MutableList<String>   // Columns in the most recent table
-    private val rowList: MutableList<TextMessage>  // Text is tab-delimited
-    private val transcriptList: FixedSizeList<TextMessage>
-    private val logObservers: MutableMap<String, TextMessageObserver>
-    private val tableObservers: MutableMap<String, TextMessageObserver>
-    private val transcriptObservers: MutableMap<String, TextMessageObserver>
+    private val rowList: MutableList<TextData>  // Text is tab-delimited
+    private val transcriptList: FixedSizeList<TextData>
+    private val logObservers: MutableMap<String, TextDataObserver>
+    private val tableObservers: MutableMap<String, TextDataObserver>
+    private val transcriptObservers: MutableMap<String, TextDataObserver>
 
+    /**
+     *
+     */
+    override fun start() {
+    }
     /**
      * Called when main activity is stopped. Clean up any resources.
      * To use again requires re-initialization.
      */
-    fun stop() {
-        clear()
-        logObservers.clear()
-        tableObservers.clear()
-        transcriptObservers.clear()
+    override fun stop() {
+        clear(MessageType.ANS)
+        clear(MessageType.LOG)
+        clear(MessageType.MSG)
+        clear(MessageType.TBL)
     }
 
-    fun getLogs(): FixedSizeList<TextMessage> {
-        return logList
-    }
 
-    fun getTableColumns(): List<String> {
-        return columnList
-    }
-
-    fun getTableRows(): List<TextMessage> {
-        return rowList
-    }
-
-    fun getTranscript(): FixedSizeList<TextMessage> {
-        return transcriptList
+    /*
+     * Clear a queue of the specified type
+     */
+    @Synchronized
+    fun clear(type: MessageType) {
+        Log.i(CLSS, String.format("clear (%s): %s", type.name))
+        when (type) {
+            MessageType.ANS -> {
+                transcriptList.clear()
+                initializeTranscriptObservers()
+            }
+            MessageType.LOG -> {
+                logList.clear()
+                initializeLogObservers()
+            }
+            MessageType.MSG -> {
+                transcriptList.clear()
+                initializeTranscriptObservers()
+            }
+            MessageType.ROW -> {
+                rowList.clear()
+                initializeTableObservers()
+            }
+            MessageType.TBL -> {
+                columnList.clear()
+                initializeTableObservers()
+            }
+        }
     }
 
     /*
@@ -61,22 +83,22 @@ class TextManager {
         Log.i(CLSS, String.format("processText (%s): %s", type.name, text))
         when (type) {
             MessageType.ANS -> {
-                var msg = TextMessage(text,type)
+                var msg = TextData(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.LOG -> {
-                var msg = TextMessage(text,type)
+                var msg = TextData(text,type)
                 logList.addFirst(msg)
                 notifyLogObservers(msg)
             }
             MessageType.MSG -> {
-                var msg = TextMessage(text,type)
+                var msg = TextData(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.ROW -> {
-                var msg = TextMessage(text,type)
+                var msg = TextData(text,type)
                 rowList.add(msg)
                 notifyTableObservers(msg)
             }
@@ -86,29 +108,28 @@ class TextManager {
             }
         }
     }
-
     /**
      * When a new log observer is registered, send a link to this manager.
      * The observer can then initialize its list, if desired. The manager
      * reference should be cleared on "unregister".
      * @param observer
      */
-    fun registerLogViewer(observer: TextMessageObserver) {
+    fun registerLogViewer(observer: TextDataObserver) {
         logObservers[observer.name] = observer
-        observer.initialize()
+        observer.reset(logList)
     }
 
-    fun registerTableViewer(observer: TextMessageObserver) {
+    fun registerTableViewer(observer: TextDataObserver) {
         tableObservers[observer.name] = observer
-        observer.initialize()
+        observer.reset(rowList)
     }
 
-    fun registerTranscriptViewer(observer: TextMessageObserver) {
+    fun registerTranscriptViewer(observer: TextDataObserver) {
         transcriptObservers[observer.name] = observer
-        observer.initialize()
+        observer.reset(transcriptList)
     }
 
-    fun unregisterLogViewer(observer: TextMessageObserver) {
+    fun unregisterLogViewer(observer: TextDataObserver) {
         for( key in logObservers.keys ) {
             if( logObservers.get(key)!!.equals(observer) ) {
                 logObservers.remove(key,observer)
@@ -116,7 +137,7 @@ class TextManager {
         }
     }
 
-    fun unregisterTableViewer(observer: TextMessageObserver) {
+    fun unregisterTableViewer(observer: TextDataObserver) {
         for( key in tableObservers.keys ) {
             if( tableObservers.get(key)!!.equals(observer) ) {
                 tableObservers.remove(key,observer)
@@ -124,7 +145,7 @@ class TextManager {
         }
     }
 
-    fun unregisterTranscriptViewer(observer: TextMessageObserver) {
+    fun unregisterTranscriptViewer(observer: TextDataObserver) {
         for( key in transcriptObservers.keys ) {
             if( transcriptObservers.get(key)!!.equals(observer) ) {
                 transcriptObservers.remove(key,observer)
@@ -132,45 +153,40 @@ class TextManager {
         }
     }
 
-    /**
-     * Remove existing logs/transcript because the manager is being stopped.
-     * Leave the table alone.
-     */
-    fun clear() {
-        logList.clear()
-        transcriptList.clear()
+    private fun initializeLogObservers() {
         for (observer in logObservers.values) {
-            observer.initialize()
+            observer.reset(logList)
         }
-        transcriptList.clear()
-        for (observer in transcriptObservers.values) {
-            observer.initialize()
+    }
+    private fun initializeTableObservers() {
+        for (observer in tableObservers.values) {
+            observer.reset(rowList)
         }
     }
 
-    private fun initializeTableObservers() {
-        for (observer in tableObservers.values) {
-            observer.initialize()
+    private fun initializeTranscriptObservers() {
+        for (observer in transcriptObservers.values) {
+            observer.reset(transcriptList)
         }
     }
 
     /**
      * Notify log observers regarding receipt of a new message.
      */
-    private fun notifyLogObservers(msg: TextMessage) {
+    private fun notifyLogObservers(msg: TextData) {
         Log.i(CLSS, String.format("notifyLogObservers: %s", msg.message))
         for (observer in logObservers.values) {
             observer.update(msg)
         }
     }
 
-    private fun notifyTableObservers(msg: TextMessage) {
+    private fun notifyTableObservers(msg: TextData) {
         for (observer in tableObservers.values) {
             observer.update(msg)
         }
     }
 
-    private fun notifyTranscriptObservers(msg: TextMessage) {
+    private fun notifyTranscriptObservers(msg: TextData) {
         Log.i(CLSS, String.format("notifyTranscriptObservers: %s", msg.message))
         for (observer in transcriptObservers.values) {
             Log.i(CLSS, String.format("notifyTranscript: %s", msg.message))
@@ -193,10 +209,10 @@ class TextManager {
     init {
         logList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
         columnList     = mutableListOf<String>()
-        rowList        = mutableListOf<TextMessage>()
+        rowList        = mutableListOf<TextData>()
         transcriptList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
-        logObservers        = mutableMapOf<String, TextMessageObserver>()
-        tableObservers      = mutableMapOf<String, TextMessageObserver>()
-        transcriptObservers = mutableMapOf<String, TextMessageObserver>()
+        logObservers        = mutableMapOf<String, TextDataObserver>()
+        tableObservers      = mutableMapOf<String, TextDataObserver>()
+        transcriptObservers = mutableMapOf<String, TextDataObserver>()
     }
 }

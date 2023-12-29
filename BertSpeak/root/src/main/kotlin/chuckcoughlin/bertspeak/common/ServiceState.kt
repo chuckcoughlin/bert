@@ -6,7 +6,7 @@
 package chuckcoughlin.bertspeak.common
 
 /**
- * These are the possble states for a foreground service:'.
+ * These are the possble states for our dispatch service:'.
  */
 enum class ServiceState {
     RUNNING,        // Operable

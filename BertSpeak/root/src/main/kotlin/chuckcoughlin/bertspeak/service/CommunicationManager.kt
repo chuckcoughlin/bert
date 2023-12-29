@@ -1,0 +1,18 @@
+/**
+ * Copyright 2023 Charles Coughlin. All rights reserved.
+ * (MIT License)
+ */
+package chuckcoughlin.bertspeak.service
+
+/**
+ * Managers are sub-services started by the DispatchService.
+ * They may run in either the main UI thread or a background thread.
+ * The DispatcherService is passed in the constructor
+ */
+interface CommunicationManager {
+    val type: ManagerType   //
+    var state: ManagerState
+
+    fun start()
+    fun stop()
+}

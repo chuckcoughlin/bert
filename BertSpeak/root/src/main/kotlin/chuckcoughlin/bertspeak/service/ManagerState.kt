@@ -8,8 +8,8 @@ package chuckcoughlin.bertspeak.service
  * This enumeration class represents the permissible states of the communications
  * controllers within this application.
  */
-enum class ControllerState {
-    OFF, PENDING, ACTIVE, ERROR;
+enum class ManagerState {
+    OFF, PENDING, ACTIVE, ERROR, NONE;
 
     companion object {
         /**

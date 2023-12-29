@@ -4,16 +4,10 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -22,16 +16,15 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.lifecycle.Lifecycle
-import chuckcoughlin.bertspeak.BertSpeakActivity
 import chuckcoughlin.bertspeak.R
-import chuckcoughlin.bertspeak.common.IntentObserver
+import chuckcoughlin.bertspeak.common.DispatchConstants
+import chuckcoughlin.bertspeak.data.StatusData
+import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
-import chuckcoughlin.bertspeak.service.ControllerState
-import chuckcoughlin.bertspeak.service.ControllerType
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.service.DispatchServiceBinder
+import chuckcoughlin.bertspeak.service.ManagerState
+import chuckcoughlin.bertspeak.service.ManagerType
 import chuckcoughlin.bertspeak.service.PermissionManager
-import chuckcoughlin.bertspeak.service.VoiceConstants
 import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
@@ -42,96 +35,65 @@ import chuckcoughlin.bertspeak.ui.waveform.WaveformView
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar.
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener,ServiceConnection {
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
+    val CLSS = "CoverFragment"
     override val name = CLSS
-    private var service: DispatchService? = null
-    private var visualizer: Visualizer? = null
+    private var visualizer: Visualizer
 
     // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentCoverBinding
     private lateinit var seekBar: VerticalSeekBar
     private lateinit var waveformView: WaveformView
 
-    private var bluetoothButtonId: Int
-    private var socketButtonId: Int
-    private var voiceButtonId: Int
+    private lateinit var bluetoothStatusButton: StatusImageButton
+    private lateinit var socketStatusButton: StatusImageButton
+    private lateinit var voiceStatusButton: StatusImageButton
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
-        binding = FragmentCoverBinding.inflate(inflater, container, false)
-        val bluetoothStatus = binding.bluetoothStatus  // ToggleButton
-        val socketStatus = binding.socketStatus
-        val voiceStatus = binding.voiceStatus
-        bluetoothStatus.isClickable = true // Not really buttons, just indicators
-        bluetoothStatus.setOnClickListener(this)
-        bluetoothButtonId = bluetoothStatus.id
-        socketStatus.isClickable = true
-        socketButtonId = socketStatus.id
-        voiceStatus.isClickable = true
-        voiceButtonId = voiceStatus.id
-        updateStatusButton(bluetoothStatus, ControllerState.OFF)
-        updateStatusButton(socketStatus, ControllerState.OFF)
-        updateStatusButton(voiceStatus, ControllerState.OFF)
+        val binding = FragmentCoverBinding.inflate(inflater, container, false)
+        bluetoothStatusButton = binding.bluetoothStatus  // ToggleButton
+        socketStatusButton    = binding.socketStatus
+        voiceStatusButton     = binding.voiceStatus
+        bluetoothStatusButton.isClickable = true // Not really buttons, just indicators
+        bluetoothStatusButton.setOnClickListener(this)
+        socketStatusButton.isClickable = true
+        voiceStatusButton.isClickable = true
+        updateStatusButton(bluetoothStatusButton, ManagerState.OFF)
+        updateStatusButton(socketStatusButton, ManagerState.OFF)
+        updateStatusButton(voiceStatusButton, ManagerState.OFF)
         val rendererFactory = RendererFactory()
         waveformView = binding.root.findViewById(R.id.waveformView)
         waveformView.setRenderer(
             rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY)
         )
-        seekBar = binding.root.findViewById(R.id.verticalSeekbar)
+        seekBar = binding.verticalSeekbar
         seekBar.setOnSeekBarChangeListener(this)
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
         return binding.root
     }
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        Log.i(name, "onViewCreated: ....")
-    }
     /**
-     * Bind to the DispatchService, start speech analyzer and enunciator
+     * Start visualizer and register for status updates
      */
     override fun onStart() {
         super.onStart()
-        Log.i(CLSS, String.format("onStart: main view is %d x %d ...",binding.root.height,binding.root.width ))
-        val intent = Intent(activity, DispatchService::class.java)
-        requireActivity().applicationContext?.bindService(intent, this, Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (service != null) {
-            Log.i(name, "onResume: registering as observer")
-            service!!.statusManager.register(this)
-        }
+        Log.i(name, "onStart: registering as observer")
+        DispatchService.registerForStatus(this)
         startVisualizer()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (service != null) {
-            Log.i(name, "onPause: unregistering as observer")
-            service!!.statusManager.unregister(this)
-        }
-        stopVisualizer()
     }
 
     override fun onStop() {
         super.onStop()
-        requireActivity().applicationContext?.unbindService(this)
-    }
-
-    override fun onDestroyView() {
-        Log.i(name, "onDestroyView: ...")
-        super.onDestroyView()
+        DispatchService.unregisterForStatus(this)
+        stopVisualizer()
     }
 
     private fun startVisualizer() {
         try {
-            visualizer = Visualizer(0)
-            visualizer!!.setDataCaptureListener(this, Visualizer.getMaxCaptureRate(), true, false)
-            visualizer!!.captureSize = CAPTURE_SIZE
-            visualizer!!.enabled = true
+            visualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate(), true, false)
+            visualizer.captureSize = CAPTURE_SIZE
+            visualizer.enabled = true
         }
         catch (ex: Exception) {  // This will fail in the emulator
             Log.i(name,String.format("startVisualizer: %s FAILED to start (%s).",name,ex.localizedMessage))
@@ -139,12 +101,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
     }
 
     private fun stopVisualizer() {
-        if (visualizer != null) {
-            visualizer!!.enabled = false
-            visualizer!!.release()
-            visualizer!!.setDataCaptureListener(null, 0, false, false)
-            visualizer = null
-        }
+        visualizer.enabled = false
+        visualizer.release()
+        visualizer.setDataCaptureListener(null, 0, false, false)
     }
 
     /**
@@ -155,7 +114,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
      * red - enabled = false
      * @param state
      */
-    private fun updateStatusButton(btn: StatusImageButton, state: ControllerState) {
+    private fun updateStatusButton(btn: StatusImageButton, state: ManagerState) {
         Log.i(name, String.format("updateStatusButton:%s", state.name))
         requireActivity().runOnUiThread(Runnable {
             btn.visibility = View.INVISIBLE
@@ -164,45 +123,32 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
         })
     }
 
-    override fun initialize(list: List<Intent>) {
-        for (intent in list) {
-            if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
-                val actionState = ControllerState.valueOf(
-                    intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!
-                )
-                val type =
-                    ControllerType.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)!!)
-                when (type) {
-                    ControllerType.BLUETOOTH -> {
-                        updateStatusButton(binding.bluetoothStatus, actionState)
-                    }
-                    ControllerType.SOCKET -> {
-                        updateStatusButton(binding.socketStatus, actionState)
-                    }
-                    else -> {
-                        updateStatusButton(binding.voiceStatus, actionState)
-                    }
-                }
-            }
+    /**
+     * This is called when we first establish the observer.
+     */
+    override fun reset(list: List<StatusData>) {
+        for (ddata in list) {
+            update(ddata)
         }
     }
 
-
-    override fun update(intent: Intent) {
-        if (intent.hasCategory(VoiceConstants.CATEGORY_CONTROLLER_STATE)) {
-            val actionState =
-                ControllerState.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER_STATE)!!)
-            val tf =
-                ControllerType.valueOf(intent.getStringExtra(VoiceConstants.KEY_CONTROLLER)!!)
-            when (tf) {
-                ControllerType.BLUETOOTH -> {
-                    updateStatusButton(binding.bluetoothStatus, actionState)
+    /**
+     * We have received an update from one of the internal managers. Use the
+     * category to determine which.
+     */
+    override fun update(ddata: StatusData) {
+        if (ddata.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
+            val type = ddata.type
+            val state= ddata.state
+            when (type) {
+                ManagerType.BLUETOOTH-> {
+                    updateStatusButton(bluetoothStatusButton,state)
                 }
-                ControllerType.SOCKET -> {
-                    updateStatusButton(binding.socketStatus, actionState)
+                ManagerType.SOCKET   -> {
+                    updateStatusButton(socketStatusButton, state)
                 }
-                else -> {
-                    updateStatusButton(binding.voiceStatus, actionState)
+                else                 -> {
+                    updateStatusButton(voiceStatusButton, state)
                 }
             }
         }
@@ -211,15 +157,15 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
     // ================== OnClickListener ===============
     // One of the status buttons has been clicked
     override fun onClick(v: View) {
-        when(v.id) {
-            bluetoothButtonId -> {
-                Log.i(name, String.format("onClick:%s",ControllerType.BLUETOOTH.name))
+        when(v) {
+            bluetoothStatusButton -> {
+                Log.i(name, String.format("onClick:%s",ManagerType.BLUETOOTH.name))
             }
-            socketButtonId -> {
-                Log.i(name, String.format("onClick:%s",ControllerType.SOCKET.name))
+            socketStatusButton -> {
+                Log.i(name, String.format("onClick:%s",ManagerType.SOCKET.name))
             }
-            voiceButtonId -> {
-                Log.i(name, String.format("onClick:%s",ControllerType.VOICE.name))
+            voiceStatusButton -> {
+                Log.i(name, String.format("onClick:%s",ManagerType.STATUS.name))
             }
         }
 
@@ -247,28 +193,10 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), IntentObserver, OnCl
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int,fromUser: Boolean) {
         //sliderText.setText("" + progress)
     }
-    // ================================ ServiceConnection ===============================
-    override fun onServiceDisconnected(name: ComponentName) {
-        if (service != null) service!!.statusManager.unregister(this)
-        service = null
-    }
 
-    // name.getClassName() contains the class of the service.
-    override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
-        val binder = bndr as DispatchServiceBinder
-        service = binder.getService()
-        service!!.statusManager.register(this)
-        Log.i(CLSS,String.format("onServiceConnected: ...."))
-    }
-
-    companion object {
-        const val CLSS = "CoverFragment"
-        const val CAPTURE_SIZE = 256
-    }
+    val CAPTURE_SIZE = 256
 
     init {
-        bluetoothButtonId= 0
-        socketButtonId= 0
-        voiceButtonId= 0
+        visualizer = Visualizer(0)
     }
 }

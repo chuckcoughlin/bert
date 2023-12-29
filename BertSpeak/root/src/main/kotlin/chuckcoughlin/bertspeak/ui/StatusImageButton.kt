@@ -8,13 +8,13 @@ package chuckcoughlin.bertspeak.ui
 import android.content.Context
 import android.util.AttributeSet
 import chuckcoughlin.bertspeak.R
-import chuckcoughlin.bertspeak.service.ControllerState
+import chuckcoughlin.bertspeak.service.ManagerState
 
 /**
  * Image Button that appears on the Cover fragment. Image changes with state.
  */
 class StatusImageButton : androidx.appcompat.widget.AppCompatImageButton {
-    var state: ControllerState
+    var state: ManagerState
 
     constructor(context: Context) : super(context) {}
     constructor(context: Context, attrs: AttributeSet, defStyle: Int) :
@@ -23,26 +23,29 @@ class StatusImageButton : androidx.appcompat.widget.AppCompatImageButton {
     constructor(context: Context, attrs: AttributeSet?) :
             super(context, attrs) {}
 
-    fun setButtonState(status: ControllerState) {
+    fun setButtonState(status: ManagerState) {
         state = status
         when(state) {
-            ControllerState.OFF -> {
+            ManagerState.OFF    -> {
                 setImageResource(R.drawable.ball_gray)
             }
-            ControllerState.ACTIVE->{
+            ManagerState.ACTIVE ->{
                 setImageResource(R.drawable.ball_green)
             }
-            ControllerState.ERROR-> {
+            ManagerState.ERROR  -> {
                 setImageResource(R.drawable.ball_red)
             }
-            ControllerState.PENDING->{
+            ManagerState.PENDING->{
                 setImageResource(R.drawable.ball_yellow)
+            }
+            ManagerState.NONE->{
+                setImageResource(R.drawable.ball_blue)
             }
         }
 
     }
     init {
-        state = ControllerState.OFF
+        state = ManagerState.OFF
 
     }
 }

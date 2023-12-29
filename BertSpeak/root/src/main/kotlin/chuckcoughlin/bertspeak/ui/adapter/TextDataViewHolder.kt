@@ -2,7 +2,7 @@
  * Copyright 2022-2023 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.ui.list
+package chuckcoughlin.bertspeak.ui.adapter
 
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 /**
  * Facilitates data transfer by the Recycler view.
  */
-class LogViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+class TextDataViewHolder(v: View) : RecyclerView.ViewHolder(v) {
     private val rowParent: ViewGroup
     val timestampView: TextView
     val sourceView:    TextView

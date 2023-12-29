@@ -5,8 +5,6 @@
 package chuckcoughlin.bertspeak.tab
 
 import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
@@ -22,49 +20,43 @@ import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.databinding.FragmentStatusBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.service.DispatchServiceBinder
-import chuckcoughlin.bertspeak.speech.TextMessage
-import chuckcoughlin.bertspeak.speech.TextMessageObserver
-import chuckcoughlin.bertspeak.ui.list.LogMessageAdapter
+import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 
 /**
  * This fragment displays servo data from the robot in tabular form. Only
  * one table is displayed at a time and is completely replaced when the
  * next set of data are read. The table is dynamically sized to fit the list.
  */
-class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextMessageObserver {
+class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, TextDataObserver {
     override val name : String
     private val layoutManager: RecyclerView.LayoutManager? = null
-    private var adapter: LogMessageAdapter? = null
+    private var adapter: TextDataAdapter? = null
     private var rootView: View? = null
     private var logMessageView: RecyclerView? = null
     private val logView: TextView? = null
-    private var service: DispatchService? = null
-    // This property is only valid between onCreateView and onDestroyView
-    private lateinit var binding: FragmentStatusBinding
+
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
-        binding = FragmentStatusBinding.inflate(inflater,container,false)
+        val binding = FragmentStatusBinding.inflate(inflater,container,false)
         binding.fragmentTablesText.setText(R.string.fragmentStatusLabel)
         logMessageView = binding.root.findViewById(R.id.logs_recycler_view)
         logMessageView!!.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(logMessageView!!.context)
         logMessageView!!.layoutManager = layoutManager
-        adapter = LogMessageAdapter(FixedSizeList<TextMessage>(BertConstants.NUM_LOG_MESSAGES))
+        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_LOG_MESSAGES))
         logMessageView!!.adapter = adapter
         val scrollPosition: Int = layoutManager.findFirstCompletelyVisibleItemPosition()
         logMessageView!!.scrollToPosition(scrollPosition)
         return binding.root
     }
 
-    // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
-        if (context != null) {
-            val intent = Intent(context?.applicationContext, DispatchService::class.java)
-            requireContext().applicationContext.bindService(intent, this, Context.BIND_AUTO_CREATE)
-        }
+        DispatchService.registerForLogs
+
     }
 
     override fun onResume() {
@@ -107,7 +99,7 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), ServiceConnection, 
     }
 
     override fun initialize() {}
-    override fun update(msg: TextMessage) {
+    override fun update(msg: TextData) {
         //val text: String = msg.message
     }
 

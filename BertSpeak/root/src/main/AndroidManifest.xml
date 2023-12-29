@@ -50,7 +50,11 @@
         <service
             android:name="chuckcoughlin.bertspeak.service.DispatchService"
             android:enabled="true"
+            android:exported="false"
+            android:clearTaskOnLaunch="true"
+            android:excludeFromRecents="true"
             android:foregroundServiceType="connectedDevice"
+            android:launchMode="singleInstance"
             android:label="@string/notificationLabel">
         </service>
         <receiver android:name="chuckcoughlin.bertspeak.service.NotificationActionReceiver"/>

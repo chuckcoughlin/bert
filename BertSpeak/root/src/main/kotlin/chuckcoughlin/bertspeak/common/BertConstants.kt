@@ -32,15 +32,15 @@ object BertConstants {
     const val BERT_SERVICE_UUID_HINT = "33001101-0000-2000-8080-00815FAB34FF"
     const val BERT_SIMULATED_CONNECTION_HINT = "false"
 
-    // Intent observer recognizer
-    const val ACTION_CONTROLLER_STATE = "ControllerState"
-
     // For saved UI state in a bundle
     const val BUNDLE_FROZEN = "Frozen"
 
     // Undefined
     const val NO_DEVICE = "UNDEFINED_DEVICE"
+    const val NO_ERROR  = "NO ERROR"
+    const val NO_ID     = -1
     const val NO_TITLE  = "NO_TITLE"
+
 
     // Notifications
     const val NOTIFICATION_CHANNEL_ID = "speechServiceChannel"

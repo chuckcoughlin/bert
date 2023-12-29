@@ -4,42 +4,20 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.Manifest.permission
-import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.Drawable
-import android.os.Handler
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.ServiceCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
-import chuckcoughlin.bertspeak.R
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.db.DatabaseManager
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.DISPATCH_NOTIFICATION
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.ERROR_CYCLE_DELAY
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.bluetoothManager
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.notificationManager
-import chuckcoughlin.bertspeak.service.DispatchService.isMuted
-import chuckcoughlin.bertspeak.service.DispatchService.simulatedConnectionMode
-import chuckcoughlin.bertspeak.service.DispatchService.statusManager
-import chuckcoughlin.bertspeak.service.DispatchService.textManager
-import java.util.Locale
+import chuckcoughlin.bertspeak.common.MessageType.LOG
+import chuckcoughlin.bertspeak.data.GeometryDataObserver
+import chuckcoughlin.bertspeak.data.StatusDataObserver
+import chuckcoughlin.bertspeak.data.TextDataObserver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 /**
@@ -50,173 +28,97 @@ import java.util.Locale
  *
  * The service relies on a Bluetooth connection, socket communication and the
  * Android speech recognition classes.
+ *
+ * Use a delay the transition to the next step. When we find
+ * an error, we need to avoid a hard loop.
  */
-object DispatchService : Service(), BluetoothHandler {
-    val binder: DispatchServiceBinder
-    val isMuted:Boolean
-    var simulatedConnectionMode: Boolean
+class DispatchService : Service(){
+    val flag = false
+    val annunciationManager: AnnunciationManager
+    val geometryManager: GeometryManager
+    val speechManager: SpeechManager
     val statusManager: StatusManager
     val textManager: TextManager
 
 
-    private var bluetoothConnection: BluetoothConnection? = null // Stays null when simulated
-    private var bluetoothDevice: BluetoothDevice? = null
-
-    /**
-     * Display a notification about us starting.  We put an icon in the status bar.
-     * Initialize all the singletons.
-     */
-    override fun onCreate() {
-        Log.i(CLSS, "onCreate: Starting foreground service ...")
-        val notification = buildNotification()
-        val flag: String? = DatabaseManager.getSetting(BertConstants.BERT_SIMULATED_CONNECTION)
-        if ("true".equals(flag, ignoreCase = true)) simulatedConnectionMode = true
-        startForeground(DISPATCH_NOTIFICATION, notification)
+    // A client is binding to the service with bindService(). Not used.
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
     }
+
     /**
      * The initial intent action is null. Otherwise we receive values when the user clicks on the
      * notification buttons.
+     *  start speech analyzer and annunciator
      * @param intent
      * @param flags
      * @param startId
      * @return
      */
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if( intent!=null ) {
-            val action: String? = intent.action
-            Log.i(CLSS,String.format("onStartCommand: %s flags = %d, id = %d",
-                    action, flags, startId))
-            if (!simulatedConnectionMode) bluetoothConnection = BluetoothConnection(this)
-            if (action == null) {
-                if (simulatedConnectionMode) {
-                    reportConnectionState(ControllerType.BLUETOOTH, ControllerState.ACTIVE)
-                    reportConnectionState(ControllerType.SOCKET,ControllerState.ACTIVE) // Just to initialize
-                    reportConnectionState(ControllerType.VOICE,ControllerState.OFF)    // Just to initialize
-                    determineNextAction(ControllerType.VOICE)
-                }
-                else {
-                    reportConnectionState(ControllerType.BLUETOOTH, ControllerState.OFF)
-                    reportConnectionState(ControllerType.SOCKET, ControllerState.OFF)   // Just to initialize
-                    reportConnectionState(ControllerType.VOICE,ControllerState.OFF)    // Just to initialize
-                    determineNextAction(ControllerType.BLUETOOTH)
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        if( intent.action!=null ) {
+            if(intent.action.equals(DispatchConstants.ACTION_START_SERVICE)) {
+                Log.i(CLSS, "Received startup intent ");
+                DispatchService.instance = this
+                // Start those managers that run on the main (UI) thread
+                statusManager.start()
+                // Start those managers that run on a background thread (no UI)
+                // This includes especially network handlers
+                GlobalScope.launch(Dispatchers.IO) {
+                    withContext(Dispatchers.Main) {
+                        annunciationManager.start()
+                        geometryManager.start()
+                    }
                 }
             }
-            else if (action.equals(getString(R.string.notificationMute), ignoreCase = true)) {
-                toggleMute()
+            else if(intent.action.equals(DispatchConstants.ACTION_STOP_SERVICE)) {
+                Log.i(CLSS, String.format("Received shutdown intent ", intent.action!!))
+                stopSelf();
             }
-            else if (action.equals(getString(R.string.notificationReset), ignoreCase = true)) {
-                if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
-                statusManager.reportState(ControllerType.SOCKET, ControllerState.OFF)
-                determineNextAction(ControllerType.BLUETOOTH)
-            }
-            else if (action.equals(getString(R.string.notificationStop), ignoreCase = true)) {
-                stopSelf()
+            else {
+                Log.i(CLSS, String.format("Received unrecognized intent (%s)", intent.action!!))
+                stopSelf();
             }
         }
-        return START_REDELIVER_INTENT
+        else {
+            Log.e(CLSS, "Received null intent");
+        }
+        return START_STICKY;
     }
 
-    // A client is binding to the service with bindService().
-    override fun onBind(intent: Intent?): IBinder {
-        return binder
-    }
 
     /**
      * Shutdown the services and the singletons.
      */
     override fun onDestroy() {
         super.onDestroy()
-        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)  // Notification remains showing
-
-        if(ActivityCompat.checkSelfPermission(this, permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
-            bluetoothManager.adapter?.cancelDiscovery()
-            if (bluetoothConnection != null) bluetoothConnection!!.shutdown()
-        }
-        notificationManager?.cancelAll()
+        geometryManager.stop()
         statusManager.stop()
         textManager.stop()
         stopSelf()
     }
 
-    override fun setBluetoothDevice(device: BluetoothDevice?) {
-        bluetoothDevice = device
-    }
-
-    /**
-     * Build a notification with
-     * --- reset
-     * ---- stop
-     * ---- mute
+    /* ==============================================================================
+     * Methods callable by the various managers which are given the service instance
+     * ==============================================================================
      */
-    private fun buildNotification(): Notification {
-        // Create notification default intent.
-        val intent = Intent()
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+    // NOTE: This does not automatically set state to ERROR.
+    fun logError(type:ManagerType,text:String) {
+        textManager.processText(LOG,text)
 
-        // Create notification builder.
-        val builder: NotificationCompat.Builder =
-            NotificationCompat.Builder(this, BertConstants.NOTIFICATION_CHANNEL_ID)
-
-        // Make notification show big text.
-        val bigTextStyle: NotificationCompat.BigTextStyle = NotificationCompat.BigTextStyle()
-        bigTextStyle.setBigContentTitle(getString(R.string.notificationLabel))
-        bigTextStyle.bigText(getString(R.string.notificationDescription))
-        // Set big text style.
-        builder.setStyle(bigTextStyle)
-        builder.setWhen(System.currentTimeMillis())
-        builder.setSmallIcon(R.mipmap.ic_launcher)
-        val drawable = ResourcesCompat.getDrawable(resources,R.drawable.rounded_button,null)
-        val largeIconBitmap: Bitmap = createBitmapFromDrawable(drawable!!)
-        builder.setLargeIcon(largeIconBitmap)
-        // Make the notification max priority.
-        builder.priority = NotificationManager.IMPORTANCE_DEFAULT
-        // Make head-up notification.
-        builder.setFullScreenIntent(pendingIntent, true)
-
-        //  Reset Button
-        val startIntent = Intent(this, NotificationActionReceiver::class.java)
-        var action = getString(R.string.notificationReset)
-        startIntent.action = action
-        val pendingStartIntent: PendingIntent = PendingIntent.getBroadcast(this, 1, startIntent, PendingIntent.FLAG_IMMUTABLE)
-        val resetAction: NotificationCompat.Action =
-            NotificationCompat.Action(android.R.drawable.ic_media_play, action, pendingStartIntent)
-        builder.addAction(resetAction)
-        builder.setOngoing(true)
-
-        // Mute button
-        val muteIntent = Intent(this, NotificationActionReceiver::class.java)
-        action = getString(R.string.notificationMute)
-        muteIntent.action = action
-        val pendingMuteIntent: PendingIntent = PendingIntent.getBroadcast(this, 2, muteIntent, PendingIntent.FLAG_IMMUTABLE)
-        val muteAction: NotificationCompat.Action =
-            NotificationCompat.Action(android.R.drawable.ic_media_pause, action, pendingMuteIntent)
-        builder.addAction(muteAction)
-        builder.setOngoing(true)
-
-        // Stop button
-        val stopIntent = Intent(this, NotificationActionReceiver::class.java)
-        action = getString(R.string.notificationStop)
-        stopIntent.action = action
-        val pendingStopIntent: PendingIntent = PendingIntent.getBroadcast(this, 3, stopIntent, PendingIntent.FLAG_IMMUTABLE)
-        val stopAction: NotificationCompat.Action =
-            NotificationCompat.Action(android.R.drawable.ic_lock_power_off, action, pendingStopIntent)
-        builder.addAction(stopAction)
-        builder.setOngoing(true)
-
-        // Build the notification.
-        return builder.build()
     }
-    // With a vector image, work with the bitmap
-    private fun createBitmapFromDrawable(drawable: Drawable) : Bitmap {
-        //val bitmap = Bitmap.createBitmap(drawable.minimumWidth,drawable.minimumHeight,                                   Bitmap.Config.ARGB_8888)
-        val bitmap = Bitmap.createBitmap(40,40,                                   Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmap
+    fun reportManagerStatus(type:ManagerType, state:ManagerState) {
+        statusManager.updateState(type,state)
+    }
+    fun startSpeech() {
+        speechManager.activateSpeechAnalyzer()
+    }
+    fun stopSpeech() {
+        speechManager.deactivateSpeechAnalyzer()
     }
 
     // Start the 3 stages in order
+    /*
     @SuppressLint("MissingPermission")
     private fun determineNextAction(currentFacility: ControllerType) {
         val currentState = statusManager.getStateForController(currentFacility)
@@ -286,53 +188,53 @@ object DispatchService : Service(), BluetoothHandler {
     /**
      * There was an error in the bluetooth connection attempt.
      * @param reason error description
-     */
+
     override fun handleBluetoothError(reason: String) {
         reportConnectionState(ControllerType.BLUETOOTH, ControllerState.ERROR)
         receiveSpokenText(reason)
         Thread(ProcessDelay(ControllerType.BLUETOOTH, ERROR_CYCLE_DELAY)).start()
     }
-
+     */v
     /**
      * The bluetooth connection request succeeded.
-     */
+
     override fun receiveBluetoothConnection() {
         reportConnectionState(ControllerType.BLUETOOTH, ControllerState.ACTIVE)
         determineNextAction(ControllerType.BLUETOOTH)
     }
-
+     */
     /*
      * Update any observers with the current state. Additionally create a log entry.
-     */
+
     override fun reportConnectionState(fac: ControllerType, state: ControllerState) {
         Log.i(CLSS, String.format("reportConnectionState: %s %s", fac.name, state.name))
         val msg = String.format("Connection state: %s %s", fac.name, state.name)
         statusManager.reportState(fac, state)
         textManager.processText(MessageType.LOG, msg)
     }
-
+*/
     /**
      * There was an error in the attempt to create/open sockets.
      * @param reason error description
-     */
+
     override fun handleSocketError(reason: String) {
         reportConnectionState(ControllerType.SOCKET, ControllerState.ERROR)
         receiveSpokenText(reason)
         Thread(ProcessDelay(ControllerType.SOCKET, ERROR_CYCLE_DELAY)).start()
     }
-
+     */
     /**
      * The socket connection request succeeded.
-     */
+
     override fun receiveSocketConnection() {
         reportConnectionState(ControllerType.SOCKET, ControllerState.ACTIVE)
         determineNextAction(ControllerType.SOCKET)
     }
-
+     */
     /**
      * The bluetooth reader recorded a result. The text starts with a
      * MessageType header.
-     */
+
     override fun receiveText(text: String) {
         var txt = text
         if (txt.length > 4) {
@@ -351,22 +253,13 @@ object DispatchService : Service(), BluetoothHandler {
             Log.w(CLSS, String.format("receiveText: (%s) is too short", txt))
         }
     }
-
-    /**
-     * The speech recognizer reported an error.
-     * @param reason error description
      */
-    override fun handleVoiceError(reason: String) {
-        reportConnectionState(ControllerType.VOICE, ControllerState.ERROR)
-        receiveSpokenText(reason)
-        Thread(ProcessDelay(ControllerType.VOICE, ERROR_CYCLE_DELAY)).start()
-    }
-
+     */
     /**
      * Send text to the robot for processing. Inform the text manager for dissemination
      * to any observers.
      * The text originates from the speech recognizer on the tablet (or an error).
-     */
+
     override fun receiveSpokenText(text: String) {
         Log.i(CLSS, String.format("receiveSpokenText: %s", text))
         textManager.processText(MessageType.MSG, text)
@@ -374,74 +267,69 @@ object DispatchService : Service(), BluetoothHandler {
             bluetoothConnection!!.write(String.format("%s:%s", MessageType.MSG.name, text))
         }
     }
-    //================= ProcessDelay ==========================
-    /**
-     * Use this class to delay the transition to the next step. When we find
-     * an error, we need to avoid a hard loop.
+
      */
-    inner class ProcessDelay {
-    /**
-     * Constructor:
-     * @param sleepInterval milliseconds to wait before going to the next state (or more
-     * likely retrying the current).
+    /* ==============================================================================
+     * The companion object contains methods callable in a static way from components
+       throughout the application.
+     * ==============================================================================
      */
-    private val facility: ControllerType, private val sleepInterval: Long) : Runnable {
-        override fun run() {
-            try {
-                Thread.sleep(sleepInterval)
-                determineNextAction(facility)
-            }
-            catch (ignore: InterruptedException) {
-            }
+    companion object {
+        var instance:DispatchService
+
+        // Handle all the registrations
+        fun registerForGeometry(obs: GeometryDataObserver) {
+            instance.geometryManager.register(obs)
+        }
+        fun unregisterForGeometry(obs: GeometryDataObserver) {
+            instance.geometryManager.unregister(obs)
+        }
+        fun registerForStatus(obs: StatusDataObserver) {
+            instance.statusManager.register(obs)
+        }
+        fun unregisterForStatus(obs: StatusDataObserver) {
+            instance.statusManager.unregister(obs)
+        }
+        fun registerForLogs(obs: TextDataObserver) {
+            instance.textManager.registerLogViewer(obs)
+        }
+        fun unregisterForText(obs: TextDataObserver) {
+            instance.textManager.unregisterLogViewer(obs)
+        }
+        fun registerForTranscripts(obs: TextDataObserver) {
+            instance.textManager.registerTranscriptViewer(obs)
+        }
+        fun unregisterForLogs(obs: TextDataObserver) {
+            instance.textManager.unregisterTranscriptViewer(obs)
+        }
+        fun clear(type: MessageType) {
+            instance.textManager.clear(type)
+        }
+        fun restoreAudio() {
+            //AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
+        }
+
+        // Mute the beeps waiting for spoken input. At one point these methods were used to silence
+        // annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
+        fun suppressAudio() {
+            //AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        }
+        init {
+            instance = DispatchService()
         }
     }
+    val CLSS = "DispatchService"
 
-    // ================= Methods Exposed thru Service Binder ==========================
     /*
-    fun getStatusManager(): StatusManager? {
-        return statusManager
-    }
-
-
-    fun getTextManager(): TextManager {
-        return textManager
-    }
-    */
-
-        private var bluetoothManager :BluetoothManager
-        private var notificationManager:NotificationManager? = null
-        // Start foreground service
-        fun startForegroundService(context: Context) {
-            bluetoothManager = context.getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
-            notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            val startIntent = Intent(context, DispatchService::class.java)
-            val message: String = context.getString(R.string.dispatchStartMessage)
-            startIntent.putExtra(context.getString(R.string.dispatchStartIntent), message)
-            ContextCompat.startForegroundService(context, startIntent)
-            val channel = NotificationChannel(BertConstants.NOTIFICATION_CHANNEL_ID,
-                context.getString(R.string.dispatchChannelName),
-                NotificationManager.IMPORTANCE_HIGH)
-            channel.description = context.getString(R.string.dispatchChannelDesc)
-            notificationManager!!.createNotificationChannel(channel)
-        }
-
-        // Stop foreground service and remove the notification.
-        fun stopForegroundService(context: Context) {
-            Log.i(CLSS, "Stop foreground service.")
-            val stopIntent = Intent(context, DispatchService::class.java)
-            context.stopService(stopIntent)
-        }
-
-
-    private const val CLSS = "DispatchService"
-    private const val ERROR_CYCLE_DELAY: Long = 15000 // Wait interval for retry after error
-    private val DISPATCH_NOTIFICATION: Int = R.string.notificationKey // Unique id for the Notification.
-
+     * Initially we start a rudimentary version of each controller
+     */
     init {
-        binder = DispatchServiceBinder(this)
-        isMuted = false
-        simulatedConnectionMode = false
-        statusManager = StatusManager()
-        textManager = TextManager()
+        annunciationManager = AnnunciationManager(this)
+        geometryManager = GeometryManager(this)
+        speechManager = SpeechManager(this)
+        statusManager = StatusManager(this)
+        textManager = TextManager(this)
     }
 }
