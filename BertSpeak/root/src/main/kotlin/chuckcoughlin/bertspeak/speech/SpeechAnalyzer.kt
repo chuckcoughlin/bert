@@ -61,7 +61,6 @@ class SpeechAnalyzer(service:DispatchService) : RecognitionListener {
             catch (iae: IllegalArgumentException) {
                 Log.i(CLSS, String.format("%s:shutdown: (%s)", CLSS, iae.localizedMessage))
             } // Happens in emulator
-        }
     }
 
     // Delay before we start listening to avoid feedback loop
