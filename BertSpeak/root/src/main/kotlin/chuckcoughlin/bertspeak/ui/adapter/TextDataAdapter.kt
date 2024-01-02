@@ -14,6 +14,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
+import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.TextData
 import java.text.SimpleDateFormat
@@ -23,11 +24,11 @@ import java.util.Date
  * This class is a link between a RecyclerView and the data backstop.
  * Each element in the list is a string, a text message.
  */
-class TextDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataViewHolder>() {
+class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<TextDataViewHolder>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     private var expandedPosition = -1
     private var recyclerView :RecyclerView? = null
-    private var messages: List<TextData> = msgs
+    private var messages: FixedSizeList<TextData> = msgs
 
      override fun onAttachedToRecyclerView(view: RecyclerView) {
          super.onAttachedToRecyclerView(view)
@@ -134,20 +135,26 @@ class TextDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataViewH
         Log.i(CLSS, String.format("onDetachedFromRecyclerView count = %d", messages.size))
         this.recyclerView = null
     }
-
     /**
-     * Replace the source of messages for this adapter.
+     * Insert a message at the beginning  for this adapter.
      * @param msgs message list, managed externally
      */
-    fun resetList(msgs: List<TextData>?) {
-        if(msgs == null ) {
-            messages = listOf<TextData>()
-        }
-        else {
-            messages = msgs
+    fun insertMessage(msg: TextData) {
+        messages.add(msg)
+        Log.i(CLSS, String.format("insetMessage new count = %d", messages.size))
+    }
+    /**
+     * Replace the source of messages for this adapter.
+     * The caller should trigger reportDatasetChanged()
+     * @param msgs message list, managed externally
+     */
+    fun resetList(msgs: List<TextData>) {
+        val len = messages.bufferSize
+        messages = FixedSizeList<TextData>(len)
+        for(msg:TextData in msgs) {
+            messages.add(msg)
         }
         Log.i(CLSS, String.format("resetList new count = %d", messages.size))
-        reportDataSetChanged()
     }
 
     /*
@@ -182,6 +189,6 @@ class TextDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataViewH
     private val LOG_MSG_HEIGHT_EXPANDED = 225
 
     init {
-        messages = msgs
+        //messages = msgs
     }
 }

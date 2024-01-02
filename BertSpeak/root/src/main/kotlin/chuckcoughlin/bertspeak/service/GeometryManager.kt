@@ -1,20 +1,16 @@
 package chuckcoughlin.bertspeak.service
 
 import android.util.Log
-import chuckcoughlin.bertspeak.common.BertConstants
-import chuckcoughlin.bertspeak.common.FixedSizeList
-import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.GeometryData
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
 
 /**
  * The geometry manager is a repository of the positional status of joints.
  */
 class GeometryManager (service:DispatchService): CommunicationManager {
-    override val type = ManagerType.GEOMETRY
-    override var state = ManagerState.OFF
+    private val dispatcher = service
+    override val managerType = ManagerType.GEOMETRY
+    override var managerState = ManagerState.OFF
     private val jointList : MutableList<GeometryData>
     private val geometryObservers: MutableMap<String, GeometryDataObserver>
 

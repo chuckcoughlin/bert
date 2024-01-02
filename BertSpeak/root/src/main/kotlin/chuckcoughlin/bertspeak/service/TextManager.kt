@@ -17,8 +17,9 @@ import chuckcoughlin.bertspeak.data.TextDataObserver
  * existing rows. Column and row data consist of pipe-delimited strings.
  */
 class TextManager (service:DispatchService): CommunicationManager {
-    override val type = ManagerType.TEXT
-    override var state = ManagerState.OFF
+    val dispatcher = service
+    override val managerType = ManagerType.TEXT
+    override var managerState = ManagerState.OFF
     private val logList: FixedSizeList<TextData>
     private val columnList : MutableList<String>   // Columns in the most recent table
     private val rowList: MutableList<TextData>  // Text is tab-delimited
@@ -42,7 +43,6 @@ class TextManager (service:DispatchService): CommunicationManager {
         clear(MessageType.MSG)
         clear(MessageType.TBL)
     }
-
 
     /*
      * Clear a queue of the specified type

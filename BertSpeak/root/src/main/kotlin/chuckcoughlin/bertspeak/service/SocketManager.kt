@@ -9,6 +9,9 @@ import android.bluetooth.BluetoothSocket
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
+import chuckcoughlin.bertspeak.service.ManagerState.ERROR
+import kotlinx.coroutines.NonCancellable.start
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -29,28 +32,35 @@ import java.util.UUID
  * Constructor: Use this version for processes that are clients
  * @param handler the parent fragment
 */
-class BluetoothConnection(private val handler: BluetoothHandler) {
-    private val buffer: CharArray = CharArray(BUFFER_SIZE)
+class SocketManager(service:DispatchService): CommunicationManager {
+    override val managerType = ManagerType.SOCKET
+    override var managerState = ManagerState.OFF
+    private val buffer: CharArray
+    private val dispatcher = service
     private var connectionThread: ConnectionThread? = null
     private var readerThread: ReaderThread? = null
-    private var device: BluetoothDevice? = null
+    private lateinit var device: BluetoothDevice
     private var deviceName: String
     private var _socket: BluetoothSocket? = null
     private val socket get() = _socket!!        // Must always be protected by test for null
     private var input: BufferedReader? = null
     private var output: PrintWriter? = null
 
-
-    fun openConnections(dev: BluetoothDevice?) {
-        if (dev != null) {
-            device = dev
+    /**
+     * This is required before we can be started
+     */
+    @Synchronized
+    fun receivePairedDevice(dev:BluetoothDevice) {
+        device = dev
+        deviceName = device.name
+    }
+    override fun start() {
             if (connectionThread != null && connectionThread!!.isAlive && !connectionThread!!.isInterrupted) {
                 Log.i(CLSS, "socket connection already in progress ...")
                 return
             }
             connectionThread = ConnectionThread(device)
             connectionThread!!.start()
-        }
     }
 
     private fun stopChecking() {
@@ -62,7 +72,7 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
     /**
      * Close IO streams.
      */
-    fun shutdown() {
+    override fun stop() {
         stopChecking()
         if (input != null) {
             try {
@@ -177,8 +187,8 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
     private fun reread(): String? {
         var text: String? = null
         Log.i(CLSS, String.format("reread: on %s", deviceName))
-        shutdown()
-        openConnections(device)
+        stop()
+        start()
         try {
             input = BufferedReader(InputStreamReader(socket.inputStream))
             Log.i(CLSS, String.format("reread: reopened %s for read", deviceName))
@@ -192,24 +202,11 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
         return text
     }
 
-    companion object {
-        private const val CLSS = "BluetoothConnection"
-        private const val BUFFER_SIZE = 256
-        private const val CLIENT_ATTEMPT_INTERVAL: Long = 2000 // 2 secs
-        private const val CLIENT_LOG_INTERVAL = 10
-
-        // Well-known port for Bluetooth serial port service
-        private val SERIAL_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-    }
-    init {
-        this.deviceName = BertConstants.NO_DEVICE
-    }
-
     // =================== Connection Thread ==================
     /**
      * Check for the network in a separate thread.
      */
-    private inner class ConnectionThread(private val device: BluetoothDevice?) : Thread() {
+    private inner class ConnectionThread(val device: BluetoothDevice) : Thread() {
         /**
          * We are a client. Attempt to connect to the server.
          */
@@ -229,71 +226,48 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
                             deviceName, uuids.size))
                         for(id in uuids) {
                             uuid = id.uuid
-                            if(!logged) Log.i(
-                                CLSS, String.format(
-                                    "run: %s: service UUID = %s",
-                                    deviceName, uuid.toString()
-                                )
-                            )
+                            if(!logged) Log.i(CLSS, String.format(
+                                    "run: %s: service UUID = %s",deviceName, uuid.toString()))
                         }
                         if(uuid == null) {
                             reason =
                                 String.format("There were no service UUIDs found on %s", deviceName)
                             Log.w(CLSS, String.format("run: ERROR %s", reason))
-                            handler.handleSocketError(reason)
+                            dispatcher.logError(managerType,reason)
+                            managerState = ManagerState.ERROR
+                            dispatcher.reportManagerState(managerType,managerState)
                             break
                         }
                         logged = true
                     }
                     else {
                         reason = String.format(
-                            "The tablet failed to fetch service UUIDS to %s",
-                            deviceName
-                        )
+                            "The tablet failed to fetch service UUIDS to %s",deviceName)
                         Log.w(CLSS, String.format("run: ERROR %s", reason))
-                        handler.handleSocketError(reason)
+                        dispatcher.logError(managerType,reason)
+
                         break
                     }
-                    Log.i(
-                        CLSS,
-                        String.format(
-                            "run: creating insecure RFComm socket for %s ...",
-                            SERIAL_UUID
-                        )
-                    )
+                    Log.i(CLSS,String.format("run: creating insecure RFComm socket for %s ...",
+                            SERIAL_UUID))
                     _socket = device.createInsecureRfcommSocketToServiceRecord(SERIAL_UUID)
-                    Log.i(
-                        CLSS, String.format(
-                            "run: attempting to connect to %s ...",
-                            deviceName
-                        )
-                    )
+                    Log.i(CLSS, String.format( "run: attempting to connect to %s ...",
+                            deviceName) )
                     socket.connect()
-                    Log.i(
-                        CLSS,
-                        String.format(
-                            "run: connected to %s after %d attempts",
-                            deviceName,
-                            attempts
-                        )
-                    )
+                    Log.i(CLSS,String.format("run: connected to %s after %d attempts",
+                            deviceName,attempts))
                     reason = openPorts()
                     break
                 }
                 catch(se: SecurityException) {
-                    Log.w(
-                        CLSS, String.format(
+                    Log.w(CLSS, String.format(
                             "run: SecurityException connecting to socket (%s)",
-                            se.localizedMessage
-                        )
-                    )
+                            se.localizedMessage))
                 }
                 catch(ioe: IOException) {
                     Log.w(CLSS, String.format(
                         "run: IOException connecting to socket (%s)",
-                        ioe.localizedMessage
-                    )
-                    )
+                        ioe.localizedMessage ) )
                     // See: https://stackoverflow.com/questions/18657427/ioexception-read-failed-socket-might-closed-bluetooth-on-android-4-3
                     try {
                         sleep(CLIENT_ATTEMPT_INTERVAL)
@@ -305,18 +279,20 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
                                 deviceName, ioe.message
                             )
                             Log.w(CLSS, String.format("run: ERROR %s", reason))
-                            handler.handleSocketError(reason)
+                            dispatcher.logError(managerType,reason)
                         }
                     }
                 }
                 attempts++
             }
             if(reason == null) {
-                handler.receiveSocketConnection()
+                managerState = ACTIVE
             }
             else {
-                handler.handleBluetoothError(reason)
+                dispatcher.logError(managerType,reason)
+                managerState = ACTIVE
             }
+            dispatcher.reportManagerState(managerType,managerState)
         }
 
         /**
@@ -340,7 +316,7 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
                     )
                     Log.i( CLSS,String.format("openPorts: ERROR opening %s for write (%s)",
                         CLSS,deviceName,ex.message),ex)
-                    handler.handleSocketError(reason)
+                    dispatcher.logError(managerType,reason)
                 }
             }
             catch (ex: Exception) {
@@ -350,7 +326,7 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
                 )
                 Log.i(CLSS,String.format("openPorts: ERROR opening %s for read (%s)",CLSS,deviceName,ex.message),
                     ex)
-                handler.handleSocketError(reason)
+                dispatcher.logError(managerType,reason)
             }
             return reason
         }
@@ -361,7 +337,7 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
             uncaughtExceptionHandler = UncaughtExceptionHandler { _, ex ->
                 val msg = String.format("There was an uncaught exception creating socket connection: %s",ex.localizedMessage)
                 Log.e(CLSS, msg, ex)
-                handler.handleSocketError(msg)
+                dispatcher.logError(managerType,msg)
             }
         }
     }
@@ -379,11 +355,24 @@ class BluetoothConnection(private val handler: BluetoothHandler) {
             while (true) {
                 try {
                     val text = read() ?: break
-                    handler.receiveText(text)
+                    dispatcher.receiveText(text)
                     sleep(100)
                 }
                 catch (_: InterruptedException) {}
             }
         }
     }  // End of ReaderThread
+
+    val CLSS = "SocketManager"
+    val BUFFER_SIZE = 256
+    val CLIENT_ATTEMPT_INTERVAL: Long = 2000 // 2 secs
+    val CLIENT_LOG_INTERVAL = 10
+
+    // Well-known port for Bluetooth serial port service
+    val SERIAL_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+
+    init {
+        buffer = CharArray(BUFFER_SIZE)
+        deviceName = BertConstants.NO_DEVICE
+    }
 }

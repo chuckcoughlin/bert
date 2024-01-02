@@ -10,8 +10,9 @@ import chuckcoughlin.bertspeak.data.StatusDataObserver
  * to UI fragments through the binder interface.
  */
 class StatusManager(service:DispatchService): CommunicationManager {
-    override val type = ManagerType.STATUS
-    override var state = ManagerState.OFF
+    val dispatcher = service
+    override val managerType = ManagerType.STATUS
+    override var managerState = ManagerState.OFF
     private val map: MutableMap<ManagerType, ManagerState>
     private val observers: MutableMap<String, StatusDataObserver>
 

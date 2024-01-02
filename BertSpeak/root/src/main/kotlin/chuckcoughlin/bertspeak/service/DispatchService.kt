@@ -5,9 +5,11 @@
 package chuckcoughlin.bertspeak.service
 
 import android.app.Service
+import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
@@ -18,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 
 /**
@@ -35,8 +38,10 @@ import kotlinx.coroutines.withContext
 class DispatchService : Service(){
     val flag = false
     val annunciationManager: AnnunciationManager
+    val discoveryManager: DiscoveryManager
     val geometryManager: GeometryManager
     val speechManager: SpeechManager
+    val socketManager: SocketManager
     val statusManager: StatusManager
     val textManager: TextManager
 
@@ -68,6 +73,12 @@ class DispatchService : Service(){
                     withContext(Dispatchers.Main) {
                         annunciationManager.start()
                         geometryManager.start()
+                    }
+                }
+                // Start some managers in their own thread
+                GlobalScope.launch(Dispatchers.IO) {
+                    withContext(Dispatchers.Main) {
+                        discoveryManager.start()
                     }
                 }
             }
@@ -104,138 +115,28 @@ class DispatchService : Service(){
      */
     // NOTE: This does not automatically set state to ERROR.
     fun logError(type:ManagerType,text:String) {
+        val msg = type.name+":"+text
         textManager.processText(LOG,text)
 
     }
-    fun reportManagerStatus(type:ManagerType, state:ManagerState) {
+    fun receivePairedDevice(dev: BluetoothDevice) {
+        socketManager.receivePairedDevice(dev)
+    }
+    fun reportManagerState(type:ManagerType, state:ManagerState) {
         statusManager.updateState(type,state)
     }
     fun startSpeech() {
-        speechManager.activateSpeechAnalyzer()
+        speechManager.start()
     }
     fun stopSpeech() {
-        speechManager.deactivateSpeechAnalyzer()
+        speechManager.stop()
     }
 
-    // Start the 3 stages in order
-    /*
-    @SuppressLint("MissingPermission")
-    private fun determineNextAction(currentFacility: ControllerType) {
-        val currentState = statusManager.getStateForController(currentFacility)
-        if (currentFacility == ControllerType.BLUETOOTH) {
-            if (currentState != ControllerState.ACTIVE) {
-                var name: String? = DatabaseManager.getSetting(BertConstants.BERT_PAIRED_DEVICE)
-                if (name == null) name = "UNKNOWN"
-                val checker = BluetoothChecker(this, name)
-                reportConnectionState(currentFacility, ControllerState.PENDING)
-                checker.beginChecking(getSystemService(BLUETOOTH_SERVICE) as BluetoothManager)
-            }
-            else {
-                reportConnectionState(ControllerType.SOCKET, ControllerState.PENDING)
-                if (bluetoothConnection != null) bluetoothConnection!!.openConnections(
-                    bluetoothDevice
-                )
-            }
-        }
-        else if (currentFacility == ControllerType.SOCKET) {
-            if (currentState != ControllerState.ACTIVE) {
-                reportConnectionState(currentFacility, ControllerState.PENDING)
-                if (bluetoothConnection != null) {
-                    bluetoothConnection!!.openConnections(bluetoothDevice)
-                }
-                Log.i(CLSS,String.format("%s: Set connection to %s (%s %s)", CLSS,
-                        bluetoothDevice!!.name,
-                        bluetoothDevice!!.type,
-                        bluetoothDevice!!.address
-                    )
-                )
-            }
-            else {
-                val mainHandler = Handler(this.mainLooper)
-                mainHandler.post {
-                    if (bluetoothConnection != null) {
-                        bluetoothConnection!!.readInThread()
-                    }
-                    else {
-                        try {
-                            Thread.sleep(ERROR_CYCLE_DELAY)
-                        }
-                        catch (ignore: InterruptedException) {}
-                    }
-                }
-                reportConnectionState(ControllerType.VOICE, ControllerState.PENDING)
-            }
-        }
-        else if (currentFacility == ControllerType.VOICE) {
-            if (isMuted) {
-                reportConnectionState(currentFacility, ControllerState.PENDING)
-            }
-            else {
-                reportConnectionState(currentFacility, ControllerState.ACTIVE)
-            }
-        }
-    }
-
-
-
-    private fun toggleMute() {
-        isMuted = !isMuted
-        if (statusManager.getStateForController(ControllerType.VOICE) != ControllerState.OFF) {
-            determineNextAction(ControllerType.VOICE)
-        }
-    }
-    //=========================== BluetoothHandler ===============================
     /**
-     * There was an error in the bluetooth connection attempt.
-     * @param reason error description
-
-    override fun handleBluetoothError(reason: String) {
-        reportConnectionState(ControllerType.BLUETOOTH, ControllerState.ERROR)
-        receiveSpokenText(reason)
-        Thread(ProcessDelay(ControllerType.BLUETOOTH, ERROR_CYCLE_DELAY)).start()
-    }
-     */v
-    /**
-     * The bluetooth connection request succeeded.
-
-    override fun receiveBluetoothConnection() {
-        reportConnectionState(ControllerType.BLUETOOTH, ControllerState.ACTIVE)
-        determineNextAction(ControllerType.BLUETOOTH)
-    }
-     */
-    /*
-     * Update any observers with the current state. Additionally create a log entry.
-
-    override fun reportConnectionState(fac: ControllerType, state: ControllerState) {
-        Log.i(CLSS, String.format("reportConnectionState: %s %s", fac.name, state.name))
-        val msg = String.format("Connection state: %s %s", fac.name, state.name)
-        statusManager.reportState(fac, state)
-        textManager.processText(MessageType.LOG, msg)
-    }
-*/
-    /**
-     * There was an error in the attempt to create/open sockets.
-     * @param reason error description
-
-    override fun handleSocketError(reason: String) {
-        reportConnectionState(ControllerType.SOCKET, ControllerState.ERROR)
-        receiveSpokenText(reason)
-        Thread(ProcessDelay(ControllerType.SOCKET, ERROR_CYCLE_DELAY)).start()
-    }
-     */
-    /**
-     * The socket connection request succeeded.
-
-    override fun receiveSocketConnection() {
-        reportConnectionState(ControllerType.SOCKET, ControllerState.ACTIVE)
-        determineNextAction(ControllerType.SOCKET)
-    }
-     */
-    /**
-     * The bluetooth reader recorded a result. The text starts with a
+     * The bluetooth socket read a result from the robot. The text starts with a
      * MessageType header.
-
-    override fun receiveText(text: String) {
+     */
+     fun receiveText(text: String) {
         var txt = text
         if (txt.length > 4) {
             Log.i(CLSS, String.format("receiveText: (%s)", txt))
@@ -253,22 +154,19 @@ class DispatchService : Service(){
             Log.w(CLSS, String.format("receiveText: (%s) is too short", txt))
         }
     }
-     */
-     */
+
     /**
+     * Presumeably the text originates from the speech recognizer on the tablet (or an error).
      * Send text to the robot for processing. Inform the text manager for dissemination
      * to any observers.
-     * The text originates from the speech recognizer on the tablet (or an error).
-
-    override fun receiveSpokenText(text: String) {
+     */
+     fun receiveSpokenText(text: String) {
         Log.i(CLSS, String.format("receiveSpokenText: %s", text))
         textManager.processText(MessageType.MSG, text)
-        if (bluetoothConnection != null) {
-            bluetoothConnection!!.write(String.format("%s:%s", MessageType.MSG.name, text))
-        }
+        socketManager.write(String.format("%s:%s", MessageType.MSG.name, text))
     }
 
-     */
+
     /* ==============================================================================
      * The companion object contains methods callable in a static way from components
        throughout the application.
@@ -327,7 +225,9 @@ class DispatchService : Service(){
      */
     init {
         annunciationManager = AnnunciationManager(this)
+        discoveryManager = DiscoveryManager(this)
         geometryManager = GeometryManager(this)
+        socketManager = SocketManager(this)
         speechManager = SpeechManager(this)
         statusManager = StatusManager(this)
         textManager = TextManager(this)

@@ -50,7 +50,9 @@ object BertConstants {
     const val MAIN_NODE_NAME = "tablet_node_main"
 
     // Number of log messages to store/display
+    const val NUM_JOINTS = 30
     const val NUM_LOG_MESSAGES = 40
+    const val NUM_TRANSCRIPT_MESSAGES = 80
 
     // For messages from robot (Does not include semi-colon)
     const val HEADER_LENGTH = 3

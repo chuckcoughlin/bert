@@ -15,19 +15,19 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.databinding.FragmentLogsBinding
-import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.databinding.FragmentLogsBinding
+import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 
 /**
  * This fragment shows log messages originating in the robot.
  */
 class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
-    val CLSS = "LogsFragment"
-    override val name = CLSS
-    private var frozen = false
+
+    override val name: String
+    private var frozen: Boolean
     private val adapter: TextDataAdapter
     // These properties only valid between onCreateView and onDestroyView
     private lateinit var freezeButton: Button
@@ -36,7 +36,6 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
      * Save the frozen state in the bundle
      */
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
-
         Log.i(CLSS, String.format("onCreateView: will display %d messages", adapter.itemCount))
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
@@ -76,7 +75,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
         stateToSave.putBoolean(BertConstants.BUNDLE_FROZEN, frozen)
     }
 
-    //======================================== Button Callbacks ======================================
+    //============================= Button Callbacks ================================
     //
     fun clearButtonClicked() {
         Log.i(name, "Clear button clicked")
@@ -101,9 +100,9 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
         }
     }
 
-    override fun initialize() {
-        Log.i(name, "initialize: message list ...")
-        adapter.resetList(service?.getTextManager()?.getLogs()?.toList())
+    override fun reset(list:List<TextData>) {
+        Log.i(name, "reset: message list ...")
+        adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
@@ -111,12 +110,16 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen) {
             // This must take place on the UI thread
-            adapter.
-            adapter.reportItemInserted()
+            adapter.insertMessage(msg)
+            adapter.reportDataSetChanged()
         }
     }
 
+    val CLSS = "LogsFragment"
+
     init {
+        name = CLSS
         adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_LOG_MESSAGES))
+        frozen = false
     }
 }

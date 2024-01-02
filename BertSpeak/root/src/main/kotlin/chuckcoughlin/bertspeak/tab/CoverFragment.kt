@@ -36,8 +36,8 @@ import chuckcoughlin.bertspeak.ui.waveform.WaveformView
  * plus a volume bar.
  */
 class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
-    val CLSS = "CoverFragment"
-    override val name = CLSS
+
+    override val name : String
     private var visualizer: Visualizer
 
     // This property is only valid between onCreateView and onDestroyView
@@ -193,10 +193,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int,fromUser: Boolean) {
         //sliderText.setText("" + progress)
     }
-
+    val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
 
     init {
+        name = CLSS
         visualizer = Visualizer(0)
     }
 }

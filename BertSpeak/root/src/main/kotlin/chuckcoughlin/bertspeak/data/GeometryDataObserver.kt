@@ -18,15 +18,13 @@ interface GeometryDataObserver {
     /**
      * Call this method after an observer newly registers. This
      * allows the observer to "catch-up" with the
-     * current state of the message list. The manager should be
-     * retained and used to refresh the displayed list at will.
+     * current state of the joint list.
      */
     fun reset(list: List<GeometryData>)
 
     /**
-     * Notify the observer that a new text message has been added
-     * to the manager's list. Only appropriate client types are
-     * included.
+     * Notify the observer that a new positional entry has been added
+     * to the manager's list.
      * @param msg the new message
      */
     fun update(msg: GeometryData)

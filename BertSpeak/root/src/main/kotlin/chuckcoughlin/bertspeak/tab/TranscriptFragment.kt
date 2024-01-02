@@ -4,42 +4,38 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
-import chuckcoughlin.bertspeak.databinding.FragmentTranscriptBinding
-import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.databinding.FragmentTranscriptBinding
+import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 
 /**
  * This fragment allows perusal of the robot's spoken interactions. Blue implies
  * text from the robot, pink is text from the user..
  */
-class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnection, TextDataObserver {
+class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), TextDataObserver {
     override val name : String
-    private var service: DispatchService? = null
     private var frozen = false
     // These property is only valid between onCreateView and onDestroyView
-    private lateinit var adapter: TextDataAdapter
+    val adapter: TextDataAdapter
+    private lateinit var freezeButton: Button
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
             savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
         val binding = FragmentTranscriptBinding.inflate(inflater,container,false)
-        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_LOG_MESSAGES))
         var transcriptView = binding.transcriptRecyclerView
         transcriptView.setHasFixedSize(true) // Refers to the size of the layout.
         val layoutManager = LinearLayoutManager(transcriptView.getContext())
@@ -49,8 +45,8 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
         transcriptView.scrollToPosition(scrollPosition)
         var button = binding.transcriptClearButton
         button.setOnClickListener { clearButtonClicked() }
-        button = binding.transcriptFreezeButton
-        button.setOnClickListener { freezeButtonClicked() }
+        freezeButton = binding.transcriptFreezeButton
+        freezeButton.setOnClickListener { freezeButtonClicked() }
         updateUI()
         return binding.root
     }
@@ -58,29 +54,10 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
     // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
-        val intent = Intent(requireContext().applicationContext, DispatchService::class.java)
-        requireContext().applicationContext.bindService(intent, this, Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (service != null) {
-            Log.i(name, "onResume: registering as observer")
-            service?.getTextManager()?.registerTranscriptViewer(this)
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (service != null) {
-            Log.i(name, "onPause: unregistering as observer")
-            service?.getTextManager()?.unregisterTranscriptViewer(this)
-        }
     }
 
     override fun onStop() {
         super.onStop()
-        requireContext().applicationContext.unbindService(this)
     }
 
     override fun onDestroyView() {
@@ -93,58 +70,34 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
         stateToSave.putBoolean(BertConstants.BUNDLE_FROZEN, frozen)
     }
 
-    //======================================== Button Callbacks ======================================
+    //============================= Button Callbacks ================================
     //
     fun clearButtonClicked() {
         Log.i(name, "Clear button clicked")
-        if (service != null) {
-            service?.getTextManager()?.getTranscript()?.clear()
-            adapter.notifyDataSetChanged()
-        }
+        DispatchService.clear(MessageType.LOG)
+        adapter.reportDataSetChanged()
     }
 
-    /**
-     * The Freeze button has purely local control.
-     */
     fun freezeButtonClicked() {
         frozen = !frozen
-        if (service != null) {
-            if (!frozen) {
-                adapter.notifyDataSetChanged()
-            }
+        if (!frozen) {
+            adapter.reportDataSetChanged()
         }
         updateUI()
     }
 
     private fun updateUI() {
-        val button = binding.transcriptFreezeButton
         if (frozen) {
-            button.setText(R.string.buttonThaw)
-        } else {
-            button.setText(R.string.buttonFreeze)
+            freezeButton.setText(R.string.buttonThaw)
+        }
+        else {
+            freezeButton.setText(R.string.buttonFreeze)
         }
     }
 
-    // =================================== ServiceConnection ===============================
-    override fun onServiceDisconnected(name: ComponentName) {
-        if (service != null) service?.getTextManager()?.unregisterTranscriptViewer(this)
-        service = null
-    }
-
-    // name.getClassName() contains the class of the service.
-    override fun onServiceConnected(name: ComponentName, bndr: IBinder) {
-        val binder: DispatchServiceBinder = bndr as DispatchServiceBinder
-        service = binder.getService()
-        adapter.resetList(service?.getTextManager()?.getTranscript()?.toList())
-        service?.getTextManager()?.registerTranscriptViewer(this)
-    }
-
-    override fun initialize() {
-        Log.i(name, "initialize: message list is now ...")
-        for (m in service?.getTextManager()?.getTranscript()!!) {
-            Log.i(name, String.format("initialize: \t%s", m.message))
-        }
-        adapter.resetList(service?.getTextManager()?.getTranscript()?.toList())
+    override fun reset(list:List<TextData>) {
+        Log.i(name, "reset: message list is now ...")
+        adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
@@ -152,6 +105,7 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
     override fun update(msg: TextData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen || frozen) {
+            adapter.insertMessage(msg)
             adapter.reportDataSetChanged()
         }
     }
@@ -159,6 +113,7 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), ServiceConnecti
     val CLSS = "TranscriptFragment"
 
     init {
-        this.name = CLSS
+        name = CLSS
+        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_TRANSCRIPT_MESSAGES))
     }
 }

@@ -10,8 +10,8 @@ package chuckcoughlin.bertspeak.service
  * The DispatcherService is passed in the constructor
  */
 interface CommunicationManager {
-    val type: ManagerType   //
-    var state: ManagerState
+    val managerType: ManagerType   //
+    var managerState: ManagerState
 
     fun start()
     fun stop()

@@ -41,6 +41,7 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
         val binding = FragmentSettingsBinding.inflate(inflater,container,false)
         binding.fragmentSettingsText.setText(R.string.fragmentSettingsLabel)
         binding.list.itemsCanFocus = true
+        return binding.root
     }
 
     inner class SettingsListAdapter(context: Context, values: Array<NameValue>) :

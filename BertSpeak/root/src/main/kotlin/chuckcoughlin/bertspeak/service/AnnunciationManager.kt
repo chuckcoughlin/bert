@@ -9,10 +9,10 @@ import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.service.DispatchService.Companion.restoreAudio
 import chuckcoughlin.bertspeak.service.DispatchService.Companion.suppressAudio
 import chuckcoughlin.bertspeak.speech.Annunciator
-import chuckcoughlin.bertspeak.data.TextData
 import java.util.Locale
 
 /**
@@ -22,10 +22,10 @@ import java.util.Locale
  *  * (and not in the service).
  */
 class AnnunciationManager(service:DispatchService): CommunicationManager, TextToSpeech.OnInitListener {
-	override val type = ManagerType.ANNUNCIATOR
-	override var state = ManagerState.OFF
+	override val managerType = ManagerType.ANNUNCIATOR
+	override var managerState = ManagerState.OFF
 	val dispatcher = service
-	lateinit var annunciator: Annunciator
+	var annunciator: Annunciator
 	private val phrases: Array<String>
 
 
@@ -46,7 +46,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	// =================================== OnInitListener ===============================
 	override fun onInit(status: Int) {
 		if(status == TextToSpeech.SUCCESS) {
-			val voices: Set<Voice> = annunciator!!.voices
+			val voices: Set<Voice> = annunciator.voices
 			for(v in voices) {
 				if(v.name.equals("en-GB-SMTm00", ignoreCase = true)) {
 					Log.i(CLSS, String.format("onInit: voice = %s %d",
@@ -69,7 +69,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	fun speak(msg: TextData) {
 		if(msg.messageType == MessageType.ANS) {
 			restoreAudio()
-			annunciator!!.speak(msg.message)
+			annunciator.speak(msg.message)
 			suppressAudio()
 		}
 	}

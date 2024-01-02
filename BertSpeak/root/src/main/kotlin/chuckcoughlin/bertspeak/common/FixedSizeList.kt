@@ -4,14 +4,13 @@
  */
 package chuckcoughlin.bertspeak.common
 
-import kotlin.jvm.Synchronized
-import java.util.*
+import java.util.LinkedList
 
 /**
  * Extend a LinkedList to bound its size.
  */
 class FixedSizeList<E>(length: Int) : LinkedList<E>() {
-    private var bufferSize = 10
+    var bufferSize = 10
     fun getBufferSize(): Int {
         return bufferSize
     }

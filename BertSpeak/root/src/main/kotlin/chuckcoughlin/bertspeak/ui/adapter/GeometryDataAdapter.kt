@@ -14,8 +14,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
+import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.data.GeometryData
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -23,11 +24,11 @@ import java.util.Date
  * This class is a link between a RecyclerView and the data backstop.
  * Each element in the list is a string, a text message.
  */
-class GeometryDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataViewHolder>() {
+class GeometryDataAdapter(msgs: FixedSizeList<GeometryData>) : RecyclerView.Adapter<GeometryDataViewHolder>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     private var expandedPosition = -1
     private var recyclerView :RecyclerView? = null
-    private var messages: List<TextData> = msgs
+    private var messages: FixedSizeList<GeometryData> = msgs
 
      override fun onAttachedToRecyclerView(view: RecyclerView) {
          super.onAttachedToRecyclerView(view)
@@ -37,14 +38,14 @@ class GeometryDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataV
     /**
      * Create a new view holder. Inflate the row layout, set the item height.
      */
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TextDataViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GeometryDataViewHolder {
         Log.i(CLSS, String.format("onCreateViewHolder count = %d", messages.size))
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val shouldAttachToParent = false
         val layout: LinearLayout =
             inflater.inflate(R.layout.log_item, parent, shouldAttachToParent) as LinearLayout
         Log.i(CLSS, String.format("onCreateViewHolder inflation complete"))
-        return TextDataViewHolder(layout)
+        return GeometryDataViewHolder(layout)
     }
 
     /**
@@ -54,7 +55,7 @@ class GeometryDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataV
      * @param holder the viewholder that should be populated at the given position
      * @param position row that should be updated
      */
-    override fun onBindViewHolder(holder: TextDataViewHolder, pos: Int) {
+    override fun onBindViewHolder(holder: GeometryDataViewHolder, pos: Int) {
         var position = pos
         Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
         if( messages.size == 0 ) {
@@ -63,7 +64,7 @@ class GeometryDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataV
         }
         if(position>=messages.size) position = messages.size - 1
         val expand = position == expandedPosition
-        val msg: TextData = messages[position]
+        val msg: GeometryData = messages[position]
         val type: MessageType = msg.messageType
         // The timestamp is always the same
         val timestampView: TextView = holder.timestampView
@@ -139,15 +140,13 @@ class GeometryDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataV
      * Replace the source of messages for this adapter.
      * @param msgs message list, managed externally
      */
-    fun resetList(msgs: List<TextData>?) {
-        if(msgs == null ) {
-            messages = listOf<TextData>()
-        }
-        else {
-            messages = msgs
+    fun resetList(msgs: List<GeometryData>) {
+        val len = messages.bufferSize
+        messages = FixedSizeList<GeometryData>(len)
+        for(msg: GeometryData in msgs) {
+            messages.add(msg)
         }
         Log.i(CLSS, String.format("resetList new count = %d", messages.size))
-        reportDataSetChanged()
     }
 
     /*
@@ -161,18 +160,13 @@ class GeometryDataAdapter(msgs: List<TextData>) : RecyclerView.Adapter<TextDataV
         }
         //Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
     }
-    /*
-     * The parent class notifyItemInserted() method is final.
-     * Always scroll to the beginning of the list.
-     * Note: Calling notifyItemInserted causes a crash.
+    /**
+     * Insert a message at the end for this adapter.
+     * @param msgs message list,
      */
-    fun reportItemInserted() {
-        Log.i(CLSS, String.format("reportItemInserted count = %d", messages.size))
-        recyclerView!!.post() {
-            notifyDataSetChanged()
-            recyclerView!!.scrollToPosition(0)
-        }
-        //Log.i(CLSS, String.format("reportItemInserted SUCCESS"))
+    fun insertMessage(msg: GeometryData) {
+        messages.add(msg)
+        Log.i(CLSS, String.format("insetMessage new count = %d", messages.size))
     }
 
     private val CLSS = "TextMessageAdapter"

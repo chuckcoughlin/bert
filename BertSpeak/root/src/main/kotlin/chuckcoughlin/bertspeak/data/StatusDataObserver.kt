@@ -20,7 +20,7 @@ interface StatusDataObserver {
      * Call this method after an observer newly registers. The
      * intention is to allow the observer to "catch-up" with the
      * state of the manager all at oncw.
-     * @param list of DispatchData that describe the current state
+     * @param list of StatusData that describe the current joint parameters
      */
     fun reset(list: List<StatusData>)
     fun update(data: StatusData)
