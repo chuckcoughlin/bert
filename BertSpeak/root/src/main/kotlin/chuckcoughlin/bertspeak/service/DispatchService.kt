@@ -46,7 +46,6 @@ class DispatchService : Service(){
     val statusManager: StatusManager
     val textManager: TextManager
 
-
     // A client is binding to the service with bindService(). Not used.
     override fun onBind(intent: Intent?): IBinder? {
         return null

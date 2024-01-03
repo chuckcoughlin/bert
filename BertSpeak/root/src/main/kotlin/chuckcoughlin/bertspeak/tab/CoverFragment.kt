@@ -38,7 +38,7 @@ import chuckcoughlin.bertspeak.ui.waveform.WaveformView
 class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
 
     override val name : String
-    private var visualizer: Visualizer
+    private var visualizer: Visualizer?
 
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var seekBar: VerticalSeekBar
@@ -89,21 +89,35 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         stopVisualizer()
     }
 
+    @Synchronized
     private fun startVisualizer() {
-        try {
-            visualizer.setDataCaptureListener(this, Visualizer.getMaxCaptureRate(), true, false)
-            visualizer.captureSize = CAPTURE_SIZE
-            visualizer.enabled = true
-        }
-        catch (ex: Exception) {  // This will fail in the emulator
-            Log.i(name,String.format("startVisualizer: %s FAILED to start (%s).",name,ex.localizedMessage))
+        if (visualizer != null) {
+            try {
+                visualizer!!.setDataCaptureListener(
+                    this,
+                    Visualizer.getMaxCaptureRate(),
+                    true,
+                    false
+                )
+                visualizer!!.captureSize = CAPTURE_SIZE
+                visualizer!!.enabled = true
+            } catch (ex: Exception) {  // This will fail in the emulator
+                Log.i(
+                    name, String.format(
+                        "startVisualizer: %s FAILED to start (%s).",
+                        name, ex.localizedMessage
+                    )
+                )
+            }
         }
     }
-
+    @Synchronized
     private fun stopVisualizer() {
-        visualizer.enabled = false
-        visualizer.release()
-        visualizer.setDataCaptureListener(null, 0, false, false)
+        if( visualizer!=null ) {
+            visualizer!!.enabled = false
+            visualizer!!.release()
+            visualizer!!.setDataCaptureListener(null, 0, false, false)
+        }
     }
 
     /**
@@ -198,6 +212,12 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
 
     init {
         name = CLSS
-        visualizer = Visualizer(0)
+        visualizer = null
+        try {
+            visualizer = Visualizer(0)
+        }
+        catch(ex:Exception) {
+            Log.e(name, String.format("init: Failed to initialize visualizer (%s)",ex.localizedMessage))
+        }
     }
 }

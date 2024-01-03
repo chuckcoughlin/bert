@@ -24,12 +24,13 @@ import java.util.Locale
 class AnnunciationManager(service:DispatchService): CommunicationManager, TextToSpeech.OnInitListener {
 	override val managerType = ManagerType.ANNUNCIATOR
 	override var managerState = ManagerState.OFF
-	val dispatcher = service
-	var annunciator: Annunciator
+	val dispatcher: DispatchService
+	lateinit var annunciator: Annunciator
 	private val phrases: Array<String>
 
 
 	override fun start() {
+		annunciator = Annunciator(dispatcher.applicationContext, this)
 		annunciator.setOnUtteranceProgressListener(UtteranceListener())
 	}
 
@@ -43,7 +44,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 		val index = (rand * phrases.size).toInt()
 		return phrases[index]
 	}
-	// =================================== OnInitListener ===============================
+	// ===================== OnInitListener ==========================
 	override fun onInit(status: Int) {
 		if(status == TextToSpeech.SUCCESS) {
 			val voices: Set<Voice> = annunciator.voices
@@ -94,8 +95,12 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	val CLSS = "AnnunciationController"
 	val UTTERANCE_ID = CLSS
 
+	/**
+	 * Do not use the DispatchService here as it isn't initialized yet.
+	 */
 	init {
-		annunciator = Annunciator(dispatcher.applicationContext, this)
+		dispatcher = service
+		//annunciator = Annunciator(dispatcher.applicationContext, this)
 		// Start phrases to choose from ...
 		phrases = arrayOf(
 			"My speech module is ready",

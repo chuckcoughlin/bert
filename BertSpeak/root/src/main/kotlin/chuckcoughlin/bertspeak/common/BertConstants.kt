@@ -10,7 +10,9 @@ package chuckcoughlin.bertspeak.common
  */
 object BertConstants {
     // Database configuration
-    const val DB_FILE_PATH = "/data/user/0/chuckcoughlin.bertspeak/databases/BertSpeak.db"
+    //const val DB_FILE_PATH = "/data/user/0/chuckcoughlin.bertspeak/databases/BertSpeak.db"
+    //const val DB_FILE_PATH = "/Users/chuckc/robotics/BertSpeak/databases/BertSpeak.db"
+    const val DB_FILE_PATH = "/data/data/chuckcoughlin.bertspeak/BertSpeak.db"
     const val DB_NAME = "BertSpeak.db"
     const val DB_VERSION = 2
 
