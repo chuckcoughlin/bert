@@ -147,10 +147,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * Write plain text to the socket.
      */
     fun write(text: String) {
-        val deviceName =
-            if (device == null) "No device"
-            else if (deviceName == BertConstants.NO_DEVICE) "No name"
-            else deviceName
         try {
             if (output != null) {
                 if (!output!!.checkError()) {
@@ -219,7 +215,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             while(true) {
                 try {
                     var uuid: UUID? = null
-                    if(device!!.fetchUuidsWithSdp()) {
+                    if(device.fetchUuidsWithSdp()) {
                         val uuids = device.uuids
                         Log.i(CLSS, String.format(
                             "run: %s returned %d service UUIDs",

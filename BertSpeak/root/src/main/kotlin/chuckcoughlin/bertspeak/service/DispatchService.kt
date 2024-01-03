@@ -16,6 +16,7 @@ import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.TextDataObserver
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -60,6 +61,7 @@ class DispatchService : Service(){
      * @param startId
      * @return
      */
+    @DelicateCoroutinesApi
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         if( intent.action!=null ) {
             if(intent.action.equals(DispatchConstants.ACTION_START_SERVICE)) {
@@ -116,7 +118,7 @@ class DispatchService : Service(){
     // NOTE: This does not automatically set state to ERROR.
     fun logError(type:ManagerType,text:String) {
         val msg = type.name+":"+text
-        textManager.processText(LOG,text)
+        textManager.processText(LOG,msg)
 
     }
     fun receivePairedDevice(dev: BluetoothDevice) {

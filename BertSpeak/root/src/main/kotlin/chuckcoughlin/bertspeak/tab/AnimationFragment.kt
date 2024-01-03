@@ -62,7 +62,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), GeometryDataObse
 
     }
 
-    override fun update(geom: GeometryData) {
+    override fun update(msg: GeometryData) {
 
 
     }

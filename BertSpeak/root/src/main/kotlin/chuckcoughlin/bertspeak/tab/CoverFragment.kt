@@ -136,10 +136,10 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
      * We have received an update from one of the internal managers. Use the
      * category to determine which.
      */
-    override fun update(ddata: StatusData) {
-        if (ddata.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
-            val type = ddata.type
-            val state= ddata.state
+    override fun update(data: StatusData) {
+        if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
+            val type = data.type
+            val state= data.state
             when (type) {
                 ManagerType.BLUETOOTH-> {
                     updateStatusButton(bluetoothStatusButton,state)

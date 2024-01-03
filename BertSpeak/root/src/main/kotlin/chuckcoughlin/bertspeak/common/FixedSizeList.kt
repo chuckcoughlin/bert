@@ -10,13 +10,9 @@ import java.util.LinkedList
  * Extend a LinkedList to bound its size.
  */
 class FixedSizeList<E>(length: Int) : LinkedList<E>() {
-    var bufferSize = 10
-    fun getBufferSize(): Int {
-        return bufferSize
-    }
-
+    var bufferSize: Int
     @Synchronized
-    fun setBufferSize(sz: Int) {
+    fun reSizeBuffer(sz: Int) {
         // Whittle down the list, if necessary
         var size = sz
         if (size < 1) size = 0
