@@ -49,7 +49,7 @@ class TextManager (service:DispatchService): CommunicationManager {
      */
     @Synchronized
     fun clear(type: MessageType) {
-        Log.i(CLSS, String.format("clear (%s): %s", type.name))
+        Log.i(CLSS, String.format("clear (%s):", type.name))
         when (type) {
             MessageType.ANS -> {
                 transcriptList.clear()

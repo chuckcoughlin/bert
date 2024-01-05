@@ -5,7 +5,6 @@
 
 package chuckcoughlin.bertspeak
 
-import android.content.Intent
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.StrictMode
@@ -15,8 +14,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
 import chuckcoughlin.bertspeak.db.DatabaseManager
-import chuckcoughlin.bertspeak.common.DispatchConstants
-import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.tab.FragmentPageAdapter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -28,7 +25,6 @@ import com.google.android.material.tabs.TabLayoutMediator
  */
 class BertSpeakActivity : AppCompatActivity() {
     val name: String
-    private lateinit var binding: BertspeakMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,17 +36,11 @@ class BertSpeakActivity : AppCompatActivity() {
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
 
-        // Start the comprehensive dispatch connection service
-        // This must be in place before the fragments
-        val intent = Intent(this, DispatchService::class.java)
-        intent.action = DispatchConstants.ACTION_START_SERVICE
-        startService(intent)
-
         // get device dimensions
         val width = getScreenWidth()
         val height = getScreenHeight()
         Log.i(CLSS, String.format("onCreate: ... inflating binding (%d x %d)",height,width ))
-        binding = BertspeakMainBinding.inflate(layoutInflater)
+        val binding = BertspeakMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val adapter = FragmentPageAdapter(this)
@@ -89,33 +79,6 @@ class BertSpeakActivity : AppCompatActivity() {
 
         // Initialize the database
         DatabaseManager.initialize()
-    }
-
-    /**
-     * Send a startup intent to the DispatchService
-     */
-    override fun onStart() {
-        super.onStart()
-        Log.i(CLSS, String.format("onStart: ..." ))
-
-
-
-    }
-
-    override fun onStop() {
-        super.onStop()
-        val intent = Intent(this,DispatchService::class.java)
-        intent.action = DispatchConstants.ACTION_STOP_SERVICE
-        stopService(intent)
-    }
-
-    /**
-     * Shutdown the DispatchService and text resources
-     */
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.i(CLSS, String.format("onDestroy: ..." ))
-
     }
 
     fun getScreenWidth(): Int {

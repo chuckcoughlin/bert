@@ -5,13 +5,11 @@
 package chuckcoughlin.bertspeak
 
 import android.app.Application
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.graphics.Color
-import android.os.Build
+import android.content.Intent
 import android.os.StrictMode
 import android.util.Log
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.DispatchConstants
+import chuckcoughlin.bertspeak.service.DispatchService
 
 
 class App : Application() {
@@ -20,29 +18,19 @@ class App : Application() {
     }
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
+        Log.i(CLSS,String.format("onCreate"))
+        // Start the comprehensive dispatch connection service
+        // This must be in place before the fragments
+        val intent = Intent(this, DispatchService::class.java)
+        intent.action = DispatchConstants.ACTION_START_SERVICE
+        startService(intent)
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                BertConstants.NOTIFICATION_CHANNEL_ID, BertConstants.NOTIFICATION_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            serviceChannel.description = "Notification channel for Voice Service"
-            serviceChannel.enableLights(true)
-            serviceChannel.lightColor = Color.BLUE
-            val manager = getSystemService(
-                NotificationManager::class.java
-            )!!
-            manager.createNotificationChannel(serviceChannel)
-            Log.i(
-                CLSS, String.format(
-                    "createNotificationChannel: %s (%s)",
-                    BertConstants.NOTIFICATION_CHANNEL_NAME, BertConstants.NOTIFICATION_CHANNEL_ID
-                )
-            )
-        }
+    override fun onTerminate() {
+        super.onTerminate()
+        val intent = Intent(this,DispatchService::class.java)
+        intent.action = DispatchConstants.ACTION_STOP_SERVICE
+        stopService(intent)
     }
 
     companion object {
