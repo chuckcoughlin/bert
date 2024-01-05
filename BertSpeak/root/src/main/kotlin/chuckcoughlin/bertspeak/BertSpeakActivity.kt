@@ -40,6 +40,12 @@ class BertSpeakActivity : AppCompatActivity() {
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
 
+        // Start the comprehensive dispatch connection service
+        // This must be in place before the fragments
+        val intent = Intent(this, DispatchService::class.java)
+        intent.action = DispatchConstants.ACTION_START_SERVICE
+        startService(intent)
+
         // get device dimensions
         val width = getScreenWidth()
         val height = getScreenHeight()
@@ -92,10 +98,8 @@ class BertSpeakActivity : AppCompatActivity() {
         super.onStart()
         Log.i(CLSS, String.format("onStart: ..." ))
 
-        // Start the comprehensive dispatch connection service
-        val intent = Intent(this, DispatchService::class.java)
-        intent.action = DispatchConstants.ACTION_START_SERVICE
-        startService(intent)
+
+
     }
 
     override fun onStop() {
@@ -110,6 +114,8 @@ class BertSpeakActivity : AppCompatActivity() {
      */
     override fun onDestroy() {
         super.onDestroy()
+        Log.i(CLSS, String.format("onDestroy: ..." ))
+
     }
 
     fun getScreenWidth(): Int {

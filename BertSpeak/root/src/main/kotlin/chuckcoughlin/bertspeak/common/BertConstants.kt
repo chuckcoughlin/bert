@@ -9,9 +9,7 @@ package chuckcoughlin.bertspeak.common
  * the application.
  */
 object BertConstants {
-    // Database configuration
-    //const val DB_FILE_PATH = "/data/user/0/chuckcoughlin.bertspeak/databases/BertSpeak.db"
-    //const val DB_FILE_PATH = "/Users/chuckc/robotics/BertSpeak/databases/BertSpeak.db"
+    // Database configuration - must be on a path that exists in Android
     const val DB_FILE_PATH = "/data/data/chuckcoughlin.bertspeak/BertSpeak.db"
     const val DB_NAME = "BertSpeak.db"
     const val DB_VERSION = 2

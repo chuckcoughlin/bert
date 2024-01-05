@@ -25,7 +25,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	override val managerType = ManagerType.ANNUNCIATOR
 	override var managerState = ManagerState.OFF
 	val dispatcher: DispatchService
-	lateinit var annunciator: Annunciator
+	var annunciator: Annunciator
 	private val phrases: Array<String>
 
 
@@ -96,11 +96,11 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	val UTTERANCE_ID = CLSS
 
 	/**
-	 * Do not use the DispatchService here as it isn't initialized yet.
+	 * We are careful to not call this from the init() of the DispatchService
 	 */
 	init {
 		dispatcher = service
-		//annunciator = Annunciator(dispatcher.applicationContext, this)
+		annunciator = Annunciator(dispatcher.applicationContext, this)
 		// Start phrases to choose from ...
 		phrases = arrayOf(
 			"My speech module is ready",

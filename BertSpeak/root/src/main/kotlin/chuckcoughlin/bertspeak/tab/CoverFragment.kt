@@ -197,7 +197,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         // NO-OP
     }
 
-    // =================================OnSeekBarChangeListener =========================
+    // ====================OnSeekBarChangeListener =====================
     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
 
 
@@ -207,6 +207,8 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int,fromUser: Boolean) {
         //sliderText.setText("" + progress)
     }
+
+
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
 

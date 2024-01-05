@@ -37,20 +37,32 @@ import java.util.Locale
  * an error, we need to avoid a hard loop.
  */
 class DispatchService : Service(){
-    val flag = false
-    val annunciationManager: AnnunciationManager
-    val discoveryManager: DiscoveryManager
-    val geometryManager: GeometryManager
-    val speechManager: SpeechManager
-    val socketManager: SocketManager
-    val statusManager: StatusManager
-    val textManager: TextManager
+    lateinit var annunciationManager: AnnunciationManager
+    lateinit var discoveryManager: DiscoveryManager
+    lateinit var geometryManager: GeometryManager
+    lateinit var speechManager: SpeechManager
+    lateinit var socketManager: SocketManager
+    lateinit var statusManager: StatusManager
+    lateinit var textManager: TextManager
 
     // A client is binding to the service with bindService(). Not used.
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
+    /**
+     * The order here is important
+     */
+    override fun onCreate() {
+        Log.i(CLSS, "onCreate: ... ");
+        statusManager = StatusManager(this)
+        textManager = TextManager(this)
+        annunciationManager = AnnunciationManager(this)
+        discoveryManager = DiscoveryManager(this)
+        geometryManager = GeometryManager(this)
+        socketManager = SocketManager(this)
+        speechManager = SpeechManager(this)
+    }
     /**
      * The initial intent action is null. Otherwise we receive values when the user clicks on the
      * notification buttons.
@@ -62,10 +74,10 @@ class DispatchService : Service(){
      */
     @DelicateCoroutinesApi
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Log.i(CLSS, "Received startup intent ");
         if( intent.action!=null ) {
             if(intent.action.equals(DispatchConstants.ACTION_START_SERVICE)) {
-                Log.i(CLSS, "Received startup intent ");
-                DispatchService.instance = this
+                instance = this
                 // Start those managers that run on the main (UI) thread
                 statusManager.start()
                 // Start those managers that run on a background thread (no UI)
@@ -225,12 +237,5 @@ class DispatchService : Service(){
      * Initially we start a rudimentary version of each controller
      */
     init {
-        annunciationManager = AnnunciationManager(this)
-        discoveryManager = DiscoveryManager(this)
-        geometryManager = GeometryManager(this)
-        socketManager = SocketManager(this)
-        speechManager = SpeechManager(this)
-        statusManager = StatusManager(this)
-        textManager = TextManager(this)
     }
 }
