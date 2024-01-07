@@ -67,7 +67,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
      * @param state new state
      */
     fun updateState(type: ManagerType, state: ManagerState) {
-        if( (map[type]==null) or !map[type]!!.equals(state) ) {
+        if( !state.equals(map[type]) ) {
             map[type] = state
             val ddata = makeDispatchData(type)
             notifyObservers(ddata)
@@ -80,10 +80,10 @@ class StatusManager(service:DispatchService): CommunicationManager {
      * Constructor :  On start, initialize the state map.
      */
     init {
-        map = HashMap()
+        map = mutableMapOf<ManagerType,ManagerState>()
         map[ManagerType.BLUETOOTH] = ManagerState.OFF
         map[ManagerType.SOCKET] = ManagerState.OFF
         map[ManagerType.STATUS] = ManagerState.ACTIVE
-        observers = HashMap()
+        observers = mutableMapOf<String,StatusDataObserver>()
     }
 }

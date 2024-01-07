@@ -39,6 +39,7 @@ object BertConstants {
     const val NO_DEVICE = "UNDEFINED_DEVICE"
     const val NO_ERROR  = "NO ERROR"
     const val NO_ID     = -1
+    const val NO_JOB    = -1
     const val NO_TITLE  = "NO_TITLE"
 
 

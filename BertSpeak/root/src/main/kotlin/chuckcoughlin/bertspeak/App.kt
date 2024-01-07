@@ -5,14 +5,18 @@
 package chuckcoughlin.bertspeak
 
 import android.app.Application
-import android.content.Intent
 import android.os.StrictMode
 import android.util.Log
-import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.service.DispatchService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class App : Application() {
+    var dispatcherJob : Job
     fun App() {
         StrictMode.enableDefaults()  // Helps with dangling resource detection
     }
@@ -20,20 +24,24 @@ class App : Application() {
         super.onCreate()
         Log.i(CLSS,String.format("onCreate"))
         // Start the comprehensive dispatch connection service
-        // This must be in place before the fragments
-        val intent = Intent(this, DispatchService::class.java)
-        intent.action = DispatchConstants.ACTION_START_SERVICE
-        startService(intent)
+        // This must be in place before the fragment
+        val service = DispatchService(applicationContext)
+        service.initialize()
+        dispatcherJob = GlobalScope.launch() {
+            withContext(Dispatchers.IO) {
+                service.start()
+            }
+        }
     }
 
     override fun onTerminate() {
         super.onTerminate()
-        val intent = Intent(this,DispatchService::class.java)
-        intent.action = DispatchConstants.ACTION_STOP_SERVICE
-        stopService(intent)
+        dispatcherJob.cancel()
     }
 
-    companion object {
-        private const val CLSS = "App"
+    val CLSS = "App"
+
+    init {
+        dispatcherJob = Job()
     }
 }

@@ -6,6 +6,7 @@ package chuckcoughlin.bertspeak.service
 
 import android.app.Service
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
@@ -16,6 +17,7 @@ import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.TextDataObserver
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -25,18 +27,17 @@ import java.util.Locale
 
 
 /**
- * This is the foreground service and may be turned on/off with a notifications interface.
- * The voice service manages connections between the robot as and speech/logging facilities.
- * It accepts voice commands from the socket connection from the robot and updates listeners
- * with the resulting text. The listeners handle text enunciation and logging.
+ * The dispatcher handles communication between components and a set of
+ * managers. Manager responsibilities include:
+ * connections between the robot and speech/logging facilities;
+ * processing voice commands from the socket connection from the robot
+ * and updating listeners with the resulting text.
  *
  * The service relies on a Bluetooth connection, socket communication and the
  * Android speech recognition classes.
- *
- * Use a delay the transition to the next step. When we find
- * an error, we need to avoid a hard loop.
  */
-class DispatchService : Service(){
+class DispatchService(ctx: Context){
+    val context:Context
     lateinit var annunciationManager: AnnunciationManager
     lateinit var discoveryManager: DiscoveryManager
     lateinit var geometryManager: GeometryManager
@@ -45,16 +46,11 @@ class DispatchService : Service(){
     lateinit var statusManager: StatusManager
     lateinit var textManager: TextManager
 
-    // A client is binding to the service with bindService(). Not used.
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
-
     /**
      * The order here is important
      */
-    override fun onCreate() {
-        Log.i(CLSS, "onCreate: ... ");
+    fun initialize() {
+        Log.i(CLSS, "initialize: ... ");
         statusManager = StatusManager(this)
         textManager = TextManager(this)
         annunciationManager = AnnunciationManager(this)
@@ -73,7 +69,7 @@ class DispatchService : Service(){
      * @return
      */
     @DelicateCoroutinesApi
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    suspend fun start() {
         Log.i(CLSS, "Received startup intent ");
         if( intent.action!=null ) {
             if(intent.action.equals(DispatchConstants.ACTION_START_SERVICE)) {
@@ -107,7 +103,6 @@ class DispatchService : Service(){
         else {
             Log.e(CLSS, "Received null intent");
         }
-        return START_STICKY;
     }
 
 
@@ -188,6 +183,9 @@ class DispatchService : Service(){
     companion object {
         var instance:DispatchService
 
+        fun initialize() {
+
+        }
         // Handle all the registrations
         fun registerForGeometry(obs: GeometryDataObserver) {
             instance.geometryManager.register(obs)
@@ -228,14 +226,16 @@ class DispatchService : Service(){
             //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         }
         init {
+            Log.i("DispatchService", "init: Companion class: ... ");
             instance = DispatchService()
         }
     }
     val CLSS = "DispatchService"
 
     /*
-     * Initially we start a rudimentary version of each controller
+     *
      */
     init {
+        context = ctx
     }
 }
