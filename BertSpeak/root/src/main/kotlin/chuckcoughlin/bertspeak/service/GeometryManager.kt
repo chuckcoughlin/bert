@@ -14,11 +14,8 @@ class GeometryManager (service:DispatchService): CommunicationManager {
     private val jointList : MutableList<GeometryData>
     private val geometryObservers: MutableMap<String, GeometryDataObserver>
 
-    /**
-     *
-     */
-    override fun start() {
-    }
+   override suspend fun run() {}
+    override fun start() {}
     /**
      * Called when main activity is stopped. Clean up any resources.
      * To use again requires re-initialization.
@@ -40,7 +37,7 @@ class GeometryManager (service:DispatchService): CommunicationManager {
 
     fun unregister(observer: GeometryDataObserver) {
         for( key in geometryObservers.keys ) {
-            if( geometryObservers.get(key)!!.equals(observer) ) {
+            if( !observer.equals(geometryObservers.get(key)) ) {
                 geometryObservers.remove(key,observer)
             }
         }

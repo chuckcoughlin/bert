@@ -4,20 +4,15 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.app.Service
 import android.bluetooth.BluetoothDevice
 import android.content.Context
-import android.content.Intent
-import android.os.IBinder
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
-import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.TextDataObserver
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -51,6 +46,7 @@ class DispatchService(ctx: Context){
      */
     fun initialize() {
         Log.i(CLSS, "initialize: ... ");
+        instance = this
         statusManager = StatusManager(this)
         textManager = TextManager(this)
         annunciationManager = AnnunciationManager(this)
@@ -60,82 +56,67 @@ class DispatchService(ctx: Context){
         speechManager = SpeechManager(this)
     }
     /**
-     * The initial intent action is null. Otherwise we receive values when the user clicks on the
-     * notification buttons.
-     *  start speech analyzer and annunciator
-     * @param intent
-     * @param flags
-     * @param startId
-     * @return
+     * This instance is started by the Application in a background
+     * thread.
      */
-    @DelicateCoroutinesApi
-    suspend fun start() {
-        Log.i(CLSS, "Received startup intent ");
-        if( intent.action!=null ) {
-            if(intent.action.equals(DispatchConstants.ACTION_START_SERVICE)) {
-                instance = this
-                // Start those managers that run on the main (UI) thread
-                statusManager.start()
-                // Start those managers that run on a background thread (no UI)
-                // This includes especially network handlers
-                GlobalScope.launch(Dispatchers.IO) {
-                    withContext(Dispatchers.Main) {
-                        annunciationManager.start()
-                        geometryManager.start()
-                    }
-                }
-                // Start some managers in their own thread
-                GlobalScope.launch(Dispatchers.IO) {
-                    withContext(Dispatchers.Main) {
-                        discoveryManager.start()
-                    }
-                }
+    @OptIn(DelicateCoroutinesApi::class)
+    fun start() {
+        instance = this
+        // Start those managers that run on the main (UI) thread
+        statusManager.start()
+        speechManager.start()
+        annunciationManager.start()
+
+
+        // Start those managers that run on a background thread (no UI)
+        // This includes especially network handlers
+        GlobalScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                geometryManager.start()
+                discoveryManager.start()
             }
-            else if(intent.action.equals(DispatchConstants.ACTION_STOP_SERVICE)) {
-                Log.i(CLSS, String.format("Received shutdown intent ", intent.action!!))
-                stopSelf();
-            }
-            else {
-                Log.i(CLSS, String.format("Received unrecognized intent (%s)", intent.action!!))
-                stopSelf();
-            }
-        }
-        else {
-            Log.e(CLSS, "Received null intent");
         }
     }
-
 
     /**
-     * Shutdown the services and the singletons.
+     * Stop the sub-services.
      */
-    override fun onDestroy() {
-        super.onDestroy()
+   @OptIn(DelicateCoroutinesApi::class)
+    fun stop() {
+        annunciationManager.stop()
+        discoveryManager.stop()
         geometryManager.stop()
+        socketManager.stop()
+        speechManager.stop()
         statusManager.stop()
         textManager.stop()
-        stopSelf()
     }
 
-    /* ==============================================================================
-     * Methods callable by the various managers which are given the service instance
-     * ==============================================================================
+    /* =================================================================
+     *  Methods callable by the various managers which are given the
+     *  service instance.
+     * ==================================================================
      */
     // NOTE: This does not automatically set state to ERROR.
-    fun logError(type:ManagerType,text:String) {
-        val msg = type.name+":"+text
-        textManager.processText(LOG,msg)
-
+    fun logError(type: ManagerType, text: String) {
+        val msg = type.name + ":" + text
+        textManager.processText(LOG, msg)
     }
+
     fun receivePairedDevice(dev: BluetoothDevice) {
         socketManager.receivePairedDevice(dev)
     }
-    fun reportManagerState(type:ManagerType, state:ManagerState) {
-        statusManager.updateState(type,state)
+
+    fun reportManagerState(type: ManagerType, state: ManagerState) {
+        statusManager.updateState(type, state)
     }
+
+    @DelicateCoroutinesApi
     fun startSpeech() {
         speechManager.start()
     }
+
+    @DelicateCoroutinesApi
     fun stopSpeech() {
         speechManager.stop()
     }
@@ -144,9 +125,9 @@ class DispatchService(ctx: Context){
      * The bluetooth socket read a result from the robot. The text starts with a
      * MessageType header.
      */
-     fun receiveText(text: String) {
+    fun receiveText(text: String) {
         var txt = text
-        if (txt.length > 4) {
+        if(txt.length > 4) {
             Log.i(CLSS, String.format("receiveText: (%s)", txt))
             try {
                 val hdr = txt.substring(0, BertConstants.HEADER_LENGTH)
@@ -154,7 +135,7 @@ class DispatchService(ctx: Context){
                 txt = txt.substring(BertConstants.HEADER_LENGTH + 1)
                 textManager.processText(type, txt)
             }
-            catch (iae: IllegalArgumentException) {
+            catch(iae: IllegalArgumentException) {
                 Log.w(CLSS, String.format("receiveText: (%s) has unrecognized header", txt))
             }
         }
@@ -168,24 +149,22 @@ class DispatchService(ctx: Context){
      * Send text to the robot for processing. Inform the text manager for dissemination
      * to any observers.
      */
-     fun receiveSpokenText(text: String) {
+    fun receiveSpokenText(text: String) {
         Log.i(CLSS, String.format("receiveSpokenText: %s", text))
         textManager.processText(MessageType.MSG, text)
         socketManager.write(String.format("%s:%s", MessageType.MSG.name, text))
     }
 
 
-    /* ==============================================================================
-     * The companion object contains methods callable in a static way from components
-       throughout the application.
-     * ==============================================================================
+    /* ================================================================
+     * The companion object contains methods callable in a static way
+     * from components throughout the application. It is necessary
+     * to set the instance before any components are initialkized.
+     * ================================================================
      */
     companion object {
-        var instance:DispatchService
+        lateinit var instance:DispatchService
 
-        fun initialize() {
-
-        }
         // Handle all the registrations
         fun registerForGeometry(obs: GeometryDataObserver) {
             instance.geometryManager.register(obs)
@@ -225,16 +204,9 @@ class DispatchService(ctx: Context){
             //AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             //audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         }
-        init {
-            Log.i("DispatchService", "init: Companion class: ... ");
-            instance = DispatchService()
-        }
     }
     val CLSS = "DispatchService"
 
-    /*
-     *
-     */
     init {
         context = ctx
     }

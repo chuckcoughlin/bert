@@ -16,6 +16,8 @@ class StatusManager(service:DispatchService): CommunicationManager {
     private val map: MutableMap<ManagerType, ManagerState>
     private val observers: MutableMap<String, StatusDataObserver>
 
+    override suspend fun run() {}
+
     override fun start() {
         observers.clear()
     }

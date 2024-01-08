@@ -13,6 +13,7 @@ import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.service.DispatchService.Companion.restoreAudio
 import chuckcoughlin.bertspeak.service.DispatchService.Companion.suppressAudio
 import chuckcoughlin.bertspeak.speech.Annunciator
+import kotlinx.coroutines.DelicateCoroutinesApi
 import java.util.Locale
 
 /**
@@ -28,9 +29,9 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	var annunciator: Annunciator
 	private val phrases: Array<String>
 
-
+	override suspend fun run() {}
 	override fun start() {
-		annunciator = Annunciator(dispatcher.applicationContext, this)
+		Log.i(CLSS, String.format("start: "))
 		annunciator.setOnUtteranceProgressListener(UtteranceListener())
 	}
 
@@ -78,7 +79,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	// ================= UtteranceProgressListener ========================
 	// Use this to suppress feedback with analyzer while we're speaking
 	inner class UtteranceListener: UtteranceProgressListener() {
-		@Synchronized
+		@OptIn(DelicateCoroutinesApi::class)
 		override fun onDone(utteranceId: String) {
 			dispatcher.startSpeech()
 		}
@@ -87,6 +88,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 			Log.e(CLSS, String.format("onError UtteranceListener ERROR - %s", utteranceId))
 		}
 
+		@OptIn(DelicateCoroutinesApi::class)
 		override fun onStart(utteranceId: String) {
 			dispatcher.stopSpeech()
 		}
@@ -99,8 +101,9 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	 * We are careful to not call this from the init() of the DispatchService
 	 */
 	init {
+		Log.i(CLSS,"init - initializing annunciator")
 		dispatcher = service
-		annunciator = Annunciator(dispatcher.applicationContext, this)
+		annunciator = Annunciator(service.context, this)
 		// Start phrases to choose from ...
 		phrases = arrayOf(
 			"My speech module is ready",

@@ -11,6 +11,10 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 /**
@@ -26,22 +30,34 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	private var sr: SpeechRecognizer
 	private var recognizerIntent: Intent
 
+	override suspend fun run() {}
+	/** Must run on main thread */
+	@DelicateCoroutinesApi
 	override fun start() {
-		resetSpeechRecognizer()
-		if (!listening) {
-			startListening()
+		GlobalScope.launch(Dispatchers.Main) {
+			resetSpeechRecognizer()
+			if(!listening) {
+				startListening()
+			}
 		}
 		dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.ACTIVE)
 	}
 
+
+	/**
+	 * Must run on main thread
+	 */
+	@DelicateCoroutinesApi
 	override fun stop() {
-		sr.stopListening()
-		try {
-			sr.destroy()
+		GlobalScope.launch(Dispatchers.Main) {
+			sr.stopListening()
+			try {
+				sr.destroy()
+			}
+			catch(iae: IllegalArgumentException) {
+				Log.i(CLSS, String.format("%s:shutdown: (%s)", CLSS, iae.localizedMessage))
+			} // Happens in emulator
 		}
-		catch (iae: IllegalArgumentException) {
-			Log.i(CLSS, String.format("%s:shutdown: (%s)", CLSS, iae.localizedMessage))
-		} // Happens in emulator
 		dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.OFF)
 	}
 
@@ -56,13 +72,13 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 
 	private fun resetSpeechRecognizer() {
 		sr.destroy()
-		sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.applicationContext)
+		sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.context)
 		sr.setRecognitionListener(this)
 		listening = false
 	}
 
 
-	// =================================== RecognitionListener ============================
+	// ================ RecognitionListener ===============
 	override fun onReadyForSpeech(params: Bundle) {
 		Log.i(CLSS, "onReadyForSpeech")
 	}
@@ -177,7 +193,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 
 	init {
 		managerState = ManagerState.OFF
-		sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.applicationContext)
+		sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
 		recognizerIntent = createRecognizerIntent()
 		listening = false
 	}

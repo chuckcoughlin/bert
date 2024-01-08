@@ -27,7 +27,7 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
     private var bluetoothDevice: BluetoothDevice? = null
     private var deviceName : String?
 
-    override fun start() {
+     override suspend fun run() {
         observers.clear()
         var errorMsg = checkAdapter(bmgr.adapter)
         if(errorMsg.isEmpty()) {
@@ -76,6 +76,9 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
         }
     }
 
+    override fun start() {
+
+    }
     override fun stop() {
         observers.clear()
     }
@@ -126,8 +129,8 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
      * Initialize the Bluetooth
      */
     init {
-        bmgr = dispatcher.getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+        bmgr = dispatcher.context.getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         deviceName = DatabaseManager.getSetting(BertConstants.BERT_PAIRED_DEVICE)
-        observers = HashMap()
+        observers = mutableMapOf<String,StatusDataObserver>()
     }
 }

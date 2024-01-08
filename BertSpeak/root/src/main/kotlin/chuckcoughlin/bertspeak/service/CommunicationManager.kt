@@ -14,5 +14,11 @@ interface CommunicationManager {
     var managerState: ManagerState
 
     fun start()
-    fun stop()
+
+    /**
+     * Use this interface for sub-services that have blocking
+     * calls to system resources.
+     */
+    suspend fun run()
+     fun stop()
 }
