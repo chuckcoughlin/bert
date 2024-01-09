@@ -1,29 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="4dp"
     tools:context="chuckcoughlin.bertspeak.BertSpeakActivity">
-    <!--
-    android:clickable="true"
-    android:hapticFeedbackEnabled="false"
-    android:keepScreenOn="true"
-    android:keyboardNavigationCluster="true"
-    android:longClickable="true"
-    android:nestedScrollingEnabled="false"
-    android:preferKeepClear="true"
-    android:saveEnabled="true"
-    android:scrollbarAlwaysDrawHorizontalTrack="false"
-    android:scrollbarAlwaysDrawVerticalTrack="false"
-    android:soundEffectsEnabled="true"
-    android:splitMotionEvents="true"
-    -->
-
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbarlayout"
@@ -40,30 +24,27 @@
             android:padding="@dimen/appbar_padding"
             android:text="@string/app_name"
             android:textSize="24pt" />
-            <!-- android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" -->
-
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/mainTabs"
+        <!-- android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" -->
+        <TextView
+            android:id="@+id/invisibleText"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-            <!-- app:tabTextAppearance="@style/TabTextAppearance" -->
+            android:layout_height="@dimen/hidden_height"
+            android:background="@color/black"
+            android:padding="@dimen/appbar_padding" />
+        <!-- app:tabTextAppearance="@style/TabTextAppearance" -->
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/mainViewPager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            />
-            <!-- app:layout_behavior="@string/appbar_scrolling_view_behavior" -->
+            android:layout_weight="1" />
+        <!-- app:layout_behavior="@string/appbar_scrolling_view_behavior" -->
 
         <!-- This text is a pad to account for an invisible area on the tablet
              This may not be necessary-->
-        <TextView
-            android:id="@+id/invisibleText"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/mainTabs"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/hidden_height"
-            android:padding="@dimen/appbar_padding"
-            android:background="@color/black"/>
+            android:layout_height="wrap_content" />
     </com.google.android.material.appbar.AppBarLayout>
 </LinearLayout>

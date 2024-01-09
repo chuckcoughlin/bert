@@ -17,7 +17,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Locale
 
 
@@ -61,21 +60,22 @@ class DispatchService(ctx: Context){
      */
     @OptIn(DelicateCoroutinesApi::class)
     fun start() {
+        Log.i(CLSS, String.format("start: starting Dispatcher"))
         instance = this
         // Start those managers that run on the main (UI) thread
-        statusManager.start()
-        speechManager.start()
-        annunciationManager.start()
-
-
+        GlobalScope.launch(Dispatchers.Default) {
+            statusManager.start()
+            annunciationManager.start()
+        }
+        Log.i(CLSS, String.format("start: starting MAIN"))
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
-        GlobalScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) {
-                geometryManager.start()
-                discoveryManager.start()
-            }
+        GlobalScope.launch(Dispatchers.Main) {
+            speechManager.start()
+            geometryManager.start()
+            discoveryManager.start()
         }
+        Log.i(CLSS, String.format("start: complete"))
     }
 
     /**
@@ -111,14 +111,17 @@ class DispatchService(ctx: Context){
         statusManager.updateState(type, state)
     }
 
-    @DelicateCoroutinesApi
+    @OptIn(DelicateCoroutinesApi::class)
     fun startSpeech() {
-        speechManager.start()
+        GlobalScope.launch(Dispatchers.Main) {
+            speechManager.start()
+        }
     }
-
-    @DelicateCoroutinesApi
+    @OptIn(DelicateCoroutinesApi::class)
     fun stopSpeech() {
-        speechManager.stop()
+        GlobalScope.launch(Dispatchers.Main) {
+            speechManager.stop()
+        }
     }
 
     /**

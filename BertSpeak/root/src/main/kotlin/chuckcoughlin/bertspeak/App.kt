@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak

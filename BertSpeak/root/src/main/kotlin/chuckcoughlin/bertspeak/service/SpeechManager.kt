@@ -10,11 +10,6 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
-import chuckcoughlin.bertspeak.common.BertConstants
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.Locale
 
 /**
@@ -32,13 +27,10 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 
 	override suspend fun run() {}
 	/** Must run on main thread */
-	@DelicateCoroutinesApi
 	override fun start() {
-		GlobalScope.launch(Dispatchers.Main) {
-			resetSpeechRecognizer()
-			if(!listening) {
-				startListening()
-			}
+		resetSpeechRecognizer()
+		if(!listening) {
+			startListening()
 		}
 		dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.ACTIVE)
 	}
@@ -47,18 +39,15 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	/**
 	 * Must run on main thread
 	 */
-	@DelicateCoroutinesApi
 	override fun stop() {
-		GlobalScope.launch(Dispatchers.Main) {
-			sr.stopListening()
-			try {
-				sr.destroy()
-			}
-			catch(iae: IllegalArgumentException) {
-				Log.i(CLSS, String.format("%s:shutdown: (%s)", CLSS, iae.localizedMessage))
-			} // Happens in emulator
+		sr.stopListening()
+		try {
+			sr.destroy()
 		}
-		dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.OFF)
+		catch(iae: IllegalArgumentException) {
+			Log.w(CLSS, String.format("%s:stop: (%s)", CLSS, iae.localizedMessage))
+		} // Happens in emulator
+		dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.OFF)
 	}
 
 	// Delay before we start listening to avoid feedback loop
@@ -71,7 +60,12 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	}
 
 	private fun resetSpeechRecognizer() {
-		sr.destroy()
+		try {
+			sr.destroy()
+		}
+		catch(ex:Exception) {
+			Log.w(CLSS, String.format("%s:stop: (%s)", CLSS, ex.localizedMessage))
+		}
 		sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.context)
 		sr.setRecognitionListener(this)
 		listening = false
@@ -99,27 +93,19 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	}
 
 	override fun onError(error: Int) {
-		var reason = BertConstants.NO_ERROR
+		var reason:String =
 		when (error) {
-			SpeechRecognizer.ERROR_AUDIO -> reason = String.format("Audio recording error")
-			SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> reason =
-				String.format("INSUFFICIENT PERMISSION - Enable microphone in application")
-			SpeechRecognizer.ERROR_NO_MATCH -> Log.i(
-				CLSS,
-				String.format("SpeechRecognition: Error - no word match. Enunciate!")
-			)
-			SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> Log.d(
-				CLSS,
-				String.format("SpeechRecognition: Error - speech timeout")
-			)
-			SpeechRecognizer.ERROR_NETWORK -> reason = String.format("Network error")
-			SpeechRecognizer.ERROR_CLIENT -> reason = String.format("Error - in client")
-			SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> Log.i(
-				CLSS,
-				String.format("Error - recognition service is busy (started twice?)")
-			)
-			SpeechRecognizer.ERROR_SERVER -> reason = String.format("Error - in server")
-			else -> reason = String.format("ERROR (%d) ", error)
+			SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+			SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ->
+				"Insufficient permission - Enable microphone in application"
+			SpeechRecognizer.ERROR_NO_MATCH -> "no word match. Enunciate!"
+			SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "speech timeout"
+			SpeechRecognizer.ERROR_NETWORK -> "Network error"
+			SpeechRecognizer.ERROR_CLIENT -> "client error"
+			SpeechRecognizer.ERROR_RECOGNIZER_BUSY ->
+				"recognition service is busy (started twice?)"
+			SpeechRecognizer.ERROR_SERVER -> "server error"
+			else -> String.format("ERROR (%d) ", error)
 		}
 		Log.e(CLSS, String.format("SpeechRecognizer: Error - %s", reason))
 		dispatcher.logError(managerType,reason)
