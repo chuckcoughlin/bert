@@ -155,8 +155,10 @@ class GeometryDataAdapter(msgs: FixedSizeList<GeometryData>) : RecyclerView.Adap
     */
     fun reportDataSetChanged() {
         Log.i(CLSS, String.format("reportDataSetChanged count = %d", messages.size))
-        recyclerView!!.post() {
-            notifyDataSetChanged()
+        if( recyclerView!=null ) {
+            recyclerView!!.post() {
+                notifyDataSetChanged()
+            }
         }
         //Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
     }

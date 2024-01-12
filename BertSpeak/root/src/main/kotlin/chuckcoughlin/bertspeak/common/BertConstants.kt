@@ -40,6 +40,7 @@ object BertConstants {
     const val NO_ERROR  = "NO ERROR"
     const val NO_ID     = -1
     const val NO_JOB    = -1
+    const val NO_NAME  = "NO_NAME"
     const val NO_TITLE  = "NO_TITLE"
 
 

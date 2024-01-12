@@ -1,42 +1,60 @@
-<!-- Handle the listing of a large number of log messages by using a RecyclerView -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Handle display of the state and position of each joint -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="chuckcoughlin.bertspeak.tab.StatusFragment"
+    tools:context="chuckcoughlin.bertspeak.tab.TranscriptFragment"
     android:id="@+id/fragmentStatus">
 
-    <TextView
-        android:id="@+id/fragmentTablesText"
+    <!-- Define a horizontal barrier between the image and waveform -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/statusHorizontalGuide"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="@dimen/activity_horizontal_margin"
-        android:layout_marginStart="@dimen/activity_horizontal_margin"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:gravity="center"
-        android:textAppearance="@style/TablesTextAppearance"
-     />
+        android:layout_height="1dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:orientation="horizontal"
+        android:background="@color/black"
+        app:layout_constraintGuide_percent="0.9"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/logs_recycler_view"
+        android:id="@+id/statusRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="800dp"
-        android:animateLayoutChanges="false"
-        android:focusableInTouchMode="true"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
         android:scrollbars="vertical"
-        android:isScrollContainer="true"/>
+        android:isScrollContainer="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/statusHorizontalGuide"/>
 
-    <!-- Create a list of table rows (the particular list id is required)
-         Do not use a ScrollView as scrolling is already implemented by ListView -->
-    <ListView
-        android:id="@android:id/list"
+    <LinearLayout
+        android:id="@+id/transcriptLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_marginBottom="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:gravity="center|bottom"
+        app:layout_constraintTop_toBottomOf="@+id/statusHorizontalGuide"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         android:background="@color/navigationBarColor"
-        android:layout_below="@id/fragmentSettingsText"
-        android:layout_alignParentRight="true"
-        android:descendantFocusability="afterDescendants" />
-</LinearLayout>
+        android:orientation="horizontal">
+
+        <!-- change button color by setting android:backgroundTint -->
+        <Button
+            android:id="@+id/statusRefreshButton"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center"
+            android:background="@drawable/rounded_button"
+            android:text="@string/buttonRefresh" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

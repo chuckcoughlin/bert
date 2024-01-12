@@ -65,11 +65,6 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
         DispatchService.unregisterForLogs(this)
     }
 
-    override fun onDestroyView() {
-        Log.i(name, "onDestroyView")
-        super.onDestroyView()
-    }
-
     override fun onSaveInstanceState(stateToSave: Bundle) {
         super.onSaveInstanceState(stateToSave)
         stateToSave.putBoolean(BertConstants.BUNDLE_FROZEN, frozen)

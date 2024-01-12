@@ -102,7 +102,6 @@ object DatabaseManager {
              //   "initialize: Guarantee %s settings exist in %s at %s",
             //BertConstants.BERT_SIMULATED_CONNECTION,BertConstants.DB_NAME, statement))
         }
-        Log.i(CLSS,"initialize: Listing settings -")
         getSettings()
     }
 

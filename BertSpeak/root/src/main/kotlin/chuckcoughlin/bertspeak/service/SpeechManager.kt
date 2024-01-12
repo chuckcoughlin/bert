@@ -28,6 +28,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	override suspend fun run() {}
 	/** Must run on main thread */
 	override fun start() {
+		Log.i(CLSS, "Start ...")
 		resetSpeechRecognizer()
 		if(!listening) {
 			startListening()
@@ -40,6 +41,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	 * Must run on main thread
 	 */
 	override fun stop() {
+		Log.i(CLSS, "Stop ...")
 		sr.stopListening()
 		try {
 			sr.destroy()
@@ -60,11 +62,12 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	}
 
 	private fun resetSpeechRecognizer() {
+		Log.w(CLSS, String.format("resetSpeechRecognizer:", CLSS))
 		try {
 			sr.destroy()
 		}
 		catch(ex:Exception) {
-			Log.w(CLSS, String.format("%s:stop: (%s)", CLSS, ex.localizedMessage))
+			Log.w(CLSS, String.format("resetSpeechRecognizer: destroying (%s)", CLSS, ex.localizedMessage))
 		}
 		sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.context)
 		sr.setRecognitionListener(this)
@@ -107,8 +110,9 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 			SpeechRecognizer.ERROR_SERVER -> "server error"
 			else -> String.format("ERROR (%d) ", error)
 		}
-		Log.e(CLSS, String.format("SpeechRecognizer: Error - %s", reason))
+		Log.e(CLSS, String.format("onError - %s", reason))
 		dispatcher.logError(managerType,reason)
+
 		// Try again
 		resetSpeechRecognizer()
 		startListening()
@@ -179,7 +183,9 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 
 	init {
 		managerState = ManagerState.OFF
+		Log.i(CLSS, "init prior")
 		sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
+		Log.i(CLSS, "init post")
 		recognizerIntent = createRecognizerIntent()
 		listening = false
 	}

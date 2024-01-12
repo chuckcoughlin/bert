@@ -4,28 +4,18 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import android.content.ComponentName
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.data.GeometryData
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentStatusBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
 import chuckcoughlin.bertspeak.ui.adapter.GeometryDataAdapter
-import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 
 /**
  * This fragment displays servo data from the robot in tabular form. Only
@@ -40,7 +30,6 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), GeometryDataObserve
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
         val binding = FragmentStatusBinding.inflate(inflater,container,false)
-        binding.fragmentTablesText.setText(R.string.fragmentStatusLabel)
 
         return binding.root
     }

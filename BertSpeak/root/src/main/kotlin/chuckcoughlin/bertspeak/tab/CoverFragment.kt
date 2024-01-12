@@ -24,6 +24,9 @@ import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
+import chuckcoughlin.bertspeak.service.ManagerType.BLUETOOTH
+import chuckcoughlin.bertspeak.service.ManagerType.SOCKET
+import chuckcoughlin.bertspeak.service.ManagerType.SPEECH
 import chuckcoughlin.bertspeak.service.PermissionManager
 import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
@@ -59,9 +62,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         bluetoothStatusButton.setOnClickListener(this)
         socketStatusButton.isClickable = true
         voiceStatusButton.isClickable = true
-        updateStatusButton(bluetoothStatusButton, ManagerState.OFF)
-        updateStatusButton(socketStatusButton, ManagerState.OFF)
-        updateStatusButton(voiceStatusButton, ManagerState.OFF)
+        updateStatusButton(bluetoothStatusButton, BLUETOOTH, ManagerState.OFF)
+        updateStatusButton(socketStatusButton, SOCKET,ManagerState.OFF)
+        updateStatusButton(voiceStatusButton, SPEECH,ManagerState.OFF)
         val rendererFactory = RendererFactory()
         waveformView = binding.root.findViewById(R.id.waveformView)
         waveformView.setRenderer(
@@ -128,11 +131,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
      * red - enabled = false
      * @param state
      */
-    private fun updateStatusButton(btn: StatusImageButton, state: ManagerState) {
-        Log.i(name, String.format("updateStatusButton:%s", state.name))
+    private fun updateStatusButton(btn: StatusImageButton, type: ManagerType,state: ManagerState) {
+        Log.i(name, String.format("updateStatusButton (%s):%s",type.name,state.name))
         requireActivity().runOnUiThread(Runnable {
             btn.visibility = View.INVISIBLE
-            btn.setButtonState(state)
+            btn.state = state
             btn.visibility = View.VISIBLE
         })
     }
@@ -156,13 +159,13 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             val state= data.state
             when (type) {
                 ManagerType.BLUETOOTH-> {
-                    updateStatusButton(bluetoothStatusButton,state)
+                    updateStatusButton(bluetoothStatusButton,type,state)
                 }
                 ManagerType.SOCKET   -> {
-                    updateStatusButton(socketStatusButton, state)
+                    updateStatusButton(socketStatusButton, type,state)
                 }
                 else                 -> {
-                    updateStatusButton(voiceStatusButton, state)
+                    updateStatusButton(voiceStatusButton, type,state)
                 }
             }
         }
@@ -211,6 +214,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
 
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
+    val BLUETOOTH_NAME = "Bluetooth"
+    val SOCKET_NAME = "Socket"
+    val VOICE_NAME = "Voice"
 
     init {
         name = CLSS

@@ -9,15 +9,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import chuckcoughlin.bertspeak.common.BertConstants
-import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.data.GeometryData
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
-import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.databinding.FragmentAnimationBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.ui.adapter.GeometryDataAdapter
-import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 import chuckcoughlin.bertspeak.ui.animate.AnimationView
 
 /**
@@ -27,7 +22,6 @@ import chuckcoughlin.bertspeak.ui.animate.AnimationView
 class AnimationFragment (pos:Int): BasicAssistantFragment(pos), GeometryDataObserver {
 
     override val name: String
-    private val adapter: GeometryDataAdapter
     // These properties are only valid between onCreateView and onDestroyView
     private lateinit var leftPanel: AnimationView
     private lateinit var frontPanel:AnimationView
@@ -40,6 +34,8 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), GeometryDataObse
         leftPanel = binding.animationViewLeft
         frontPanel = binding.animationViewFront
         rightPanel = binding.animationViewRight
+        var button = binding.animationRefreshButton
+        button.setOnClickListener { refreshButtonClicked() }
         return binding.root
     }
 
@@ -57,30 +53,23 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), GeometryDataObse
         DispatchService.unregisterForGeometry(this)
     }
 
-    override fun onDestroyView() {
-        Log.i(name, "onDestroyView: ...")
-        super.onDestroyView()
-        DispatchService.unregisterForGeometry(this)
+    fun refreshButtonClicked() {
+
     }
-
-
     override fun reset(list:List<GeometryData>) {
         Log.i(name, "reset: message list ...")
-        adapter.resetList(list)
-        adapter.reportDataSetChanged()
+
     }
 
     override fun update(msg: GeometryData) {
         Log.i(name, String.format("update: message = %s", msg.message))
-        adapter.insertMessage(msg)
-        adapter.reportDataSetChanged()
+
     }
 
     val CLSS = "AnimationFragment"
 
     init {
         name = CLSS
-        adapter = GeometryDataAdapter(FixedSizeList<GeometryData>(BertConstants.NUM_JOINTS))
     }
 
 

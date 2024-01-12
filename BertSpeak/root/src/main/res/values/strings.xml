@@ -32,6 +32,7 @@
     <string name="buttonClear">Clear</string>
     <string name="buttonFreeze">Freeze</string>
     <string name="buttonOK">OK</string>
+    <string name="buttonRefresh">Refresh</string>
     <string name="buttonThaw">Unfreeze</string>
     <!-- Notification Button Labels -->
     <string name="notificationLabel">Speech Processing via Bluetooth connection to main robot.</string>
