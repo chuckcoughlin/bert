@@ -94,16 +94,13 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 		}
 	}
 
-	val CLSS = "AnnunciationController"
+	val CLSS = "AnnunciationManager"
 	val UTTERANCE_ID = CLSS
 
-	/**
-	 * We are careful to not call this from the init() of the DispatchService
-	 */
 	init {
 		Log.i(CLSS,"init - initializing annunciator")
 		dispatcher = service
-		annunciator = Annunciator(service.context, this)
+		annunciator = Annunciator(dispatcher.context, this)
 		// Start phrases to choose from ...
 		phrases = arrayOf(
 			"My speech module is ready",

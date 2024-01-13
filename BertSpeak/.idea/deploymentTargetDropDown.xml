@@ -4,18 +4,18 @@
     <value>
       <entry key="BertSpeak">
         <State>
-          <targetSelectedWithDropDown>
+          <runningDeviceTargetSelectedWithDropDown>
             <Target>
-              <type value="QUICK_BOOT_TARGET" />
+              <type value="RUNNING_DEVICE_TARGET" />
               <deviceKey>
                 <Key>
-                  <type value="VIRTUAL_DEVICE_PATH" />
-                  <value value="$USER_HOME$/.android/avd/Samsung_S8_Emulator_API_33.avd" />
+                  <type value="SERIAL_NUMBER" />
+                  <value value="R52T509A66L" />
                 </Key>
               </deviceKey>
             </Target>
-          </targetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-01-06T23:17:50.794407Z" />
+          </runningDeviceTargetSelectedWithDropDown>
+          <timeTargetWasSelectedWithDropDown value="2024-01-12T23:20:10.335683Z" />
         </State>
       </entry>
     </value>

@@ -15,13 +15,13 @@ import java.util.Locale
 /**
  * Analyze spoken input to the application.
  * Note that the speech recognizer must run on the main UI thread.
- * This manager gets started nad stopped with the need for speech recognition.
+ * This manager gets started and stopped with the need for speech recognition.
  */
 class SpeechManager(service:DispatchService): CommunicationManager, RecognitionListener {
 	override val managerType = ManagerType.SPEECH
 	override var managerState = ManagerState.OFF
 	val dispatcher = service
-	private var listening = false
+	var listening = false
 	private var sr: SpeechRecognizer
 	private var recognizerIntent: Intent
 
@@ -29,26 +29,33 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	/** Must run on main thread */
 	override fun start() {
 		Log.i(CLSS, "Start ...")
-		resetSpeechRecognizer()
-		if(!listening) {
-			startListening()
+		if( !SpeechRecognizer.isRecognitionAvailable(dispatcher.context) ) {
+			Log.w(CLSS, "start: ERROR (speech recognition is not supported on this device)")
+			dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.ERROR)
 		}
-		dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.ACTIVE)
+		else {
+			resetSpeechRecognizer()
+			startListening()
+			dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.ACTIVE)
+		}
 	}
-
 
 	/**
 	 * Must run on main thread
 	 */
 	override fun stop() {
 		Log.i(CLSS, "Stop ...")
-		sr.stopListening()
-		try {
-			sr.destroy()
+		if( listening ) {
+			sr.stopListening()
+			try {
+				sr.destroy()
+			}
+			catch(iae:IllegalArgumentException) {
+				// Happens in emulator
+				Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
+			}
+			listening = false
 		}
-		catch(iae: IllegalArgumentException) {
-			Log.w(CLSS, String.format("%s:stop: (%s)", CLSS, iae.localizedMessage))
-		} // Happens in emulator
 		dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.OFF)
 	}
 
@@ -57,24 +64,27 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	// a listener on the text-to-speech component.
 	private fun startListening() {
 		Log.i(CLSS, "Start listening ...")
-		listening = true
-		sr.startListening(recognizerIntent)
+		if( !listening ) {
+			sr.setRecognitionListener(this)
+			sr.startListening(recognizerIntent)
+			listening = true
+		}
 	}
 
 	private fun resetSpeechRecognizer() {
-		Log.w(CLSS, String.format("resetSpeechRecognizer:", CLSS))
-		try {
-			sr.destroy()
-		}
-		catch(ex:Exception) {
-			Log.w(CLSS, String.format("resetSpeechRecognizer: destroying (%s)", CLSS, ex.localizedMessage))
+		Log.i(CLSS, "reset speech recognizer ...")
+		if( listening ) {
+			try {
+				sr.destroy()
+			}
+			catch(iae:IllegalArgumentException) {
+				// Happens in emulator
+				Log.e(CLSS,String.format("resetSpeechRecognizer: destroy (%s))",iae.localizedMessage))
+			}
+			listening = false
 		}
 		sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.context)
-		sr.setRecognitionListener(this)
-		listening = false
 	}
-
-
 	// ================ RecognitionListener ===============
 	override fun onReadyForSpeech(params: Bundle) {
 		Log.i(CLSS, "onReadyForSpeech")
@@ -82,7 +92,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 
 	override fun onBeginningOfSpeech() {
 		Log.i(CLSS, "onBeginningOfSpeech");
-		dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.ACTIVE)
 	}
 
 	// Background level changed ...
@@ -118,25 +127,41 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 		startListening()
 	}
 
-
 	override fun onResults(results: Bundle) {
+		Log.i(CLSS, "onResults \n$results")
 		if( !results.isEmpty ) {
-			Log.i(CLSS, "onResults \n$results")
 			// Fill the list view with the strings the recognizer thought it could have heard, there should be 5, based on the call
 			val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
 			for (i in matches.indices) {
 				Log.i(CLSS, "result " + matches[i])
 			}
-			var text = matches[0]
-			text = scrubText(text)
-			dispatcher.receiveSpokenText(text)
-			dispatcher.reportManagerState(managerType, ManagerState.PENDING)
+			if( !matches.isEmpty()) {
+				var text = matches[0]
+				text = scrubText(text)
+				dispatcher.receiveSpokenText(text)
+				dispatcher.reportManagerState(managerType, ManagerState.PENDING)
+			}
 			startListening() // Repeat forever
 		}
 	}
 
 	override fun onPartialResults(partialResults: Bundle) {
 		Log.i(CLSS, "onPartialResults")
+		if( !partialResults.isEmpty ) {
+			Log.i(CLSS, "partial result = " + partialResults)
+			// Fill the list view with the strings the recognizer thought it could have heard, there should be 5, based on the call
+			val matches = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
+			for (i in matches.indices) {
+				Log.i(CLSS, "partial result " + matches[i])
+			}
+			if( !matches.isEmpty() ) {
+				var text = matches[0]
+				text = scrubText(text)
+				dispatcher.receiveSpokenText(text)
+				dispatcher.reportManagerState(managerType, ManagerState.PENDING)
+			}
+			startListening() // Repeat forever
+		}
 	}
 
 	override fun onEvent(eventType: Int, params: Bundle) {
@@ -152,7 +177,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 			RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
 			END_OF_PHRASE_TIME
 		)
-		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en")
+		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
 		//Give a hint to the recognizer about what the user is going to say
 		intent.putExtra(
 			RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -179,14 +204,13 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	}
 
 	val CLSS = "SpeechManager"
+	val DELAY_TIME = 1000L
 	val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
+
 
 	init {
 		managerState = ManagerState.OFF
-		Log.i(CLSS, "init prior")
-		sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
-		Log.i(CLSS, "init post")
 		recognizerIntent = createRecognizerIntent()
-		listening = false
+		sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.context)
 	}
 }

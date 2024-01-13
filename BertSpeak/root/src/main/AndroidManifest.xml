@@ -48,15 +48,5 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <service
-            android:name="chuckcoughlin.bertspeak.service.DispatchService"
-            android:enabled="true"
-            android:exported="false"
-            android:clearTaskOnLaunch="true"
-            android:excludeFromRecents="true"
-            android:foregroundServiceType="connectedDevice"
-            android:launchMode="singleInstance"
-            android:label="@string/notificationLabel">
-        </service>
     </application>
 </manifest>

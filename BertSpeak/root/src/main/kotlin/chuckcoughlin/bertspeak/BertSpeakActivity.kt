@@ -8,6 +8,7 @@ package chuckcoughlin.bertspeak
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.StrictMode
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -33,6 +34,7 @@ class BertSpeakActivity : AppCompatActivity() {
             StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
                 .detectLeakedClosableObjects().build()
         )
+
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
 
