@@ -22,8 +22,10 @@
     <!-- There are three columns consisting of label and AnimationViews -->
     <LinearLayout
         android:id="@+id/animation_layout_left"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/animation_panel_width"
         android:layout_height="0dp"
+        android:layout_margin="0dp"
+        android:background="@drawable/border_white"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/animation_layout_front"
@@ -50,9 +52,9 @@
 
     <LinearLayout
         android:id="@+id/animation_layout_front"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/animation_panel_width"
         android:layout_height="0dp"
-        android:layout_marginTop="0dp"
+        android:layout_margin="0dp"
         android:background="@drawable/border_white"
         android:orientation="vertical"
         app:layout_constraintStart_toEndOf="@+id/animation_layout_left"
@@ -80,9 +82,9 @@
 
     <LinearLayout
         android:id="@+id/animation_layout_right"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/animation_panel_width"
         android:layout_height="0dp"
-        android:layout_marginTop="0dp"
+        android:layout_margin="0dp"
         android:background="@drawable/border_white"
         android:orientation="vertical"
         app:layout_constraintStart_toEndOf="@+id/animation_layout_front"
@@ -107,6 +109,20 @@
             android:layout_marginTop="0dp"
             android:layout_marginBottom="0dp" />
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/animation_button_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:gravity="center|bottom"
+        app:layout_constraintTop_toBottomOf="@+id/animationHorizontalGuide"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/navigationBarColor"
+        android:orientation="horizontal">
         <!-- change button color by setting android:backgroundTint -->
         <Button
             android:id="@+id/animationRefreshButton"
@@ -116,7 +132,6 @@
             android:layout_gravity="center_vertical|center"
             android:background="@drawable/rounded_button"
             android:text="@string/buttonRefresh"
-            android:layout_marginRight="145dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/animationHorizontalGuide"/>
+            android:layout_marginRight="145dp"/>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

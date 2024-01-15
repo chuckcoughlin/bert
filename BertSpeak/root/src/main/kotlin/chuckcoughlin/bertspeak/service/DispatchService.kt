@@ -184,13 +184,13 @@ class DispatchService(ctx: Context){
         fun registerForLogs(obs: TextDataObserver) {
             instance.textManager.registerLogViewer(obs)
         }
-        fun unregisterForText(obs: TextDataObserver) {
+        fun unregisterForLogs(obs: TextDataObserver) {
             instance.textManager.unregisterLogViewer(obs)
         }
         fun registerForTranscripts(obs: TextDataObserver) {
             instance.textManager.registerTranscriptViewer(obs)
         }
-        fun unregisterForLogs(obs: TextDataObserver) {
+        fun unregisterForTranscripts(obs: TextDataObserver) {
             instance.textManager.unregisterTranscriptViewer(obs)
         }
         fun clear(type: MessageType) {

@@ -77,14 +77,15 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
         var source: String = msg.messageType.name
         if (expand) {
             sourceView.text = source
-            if (type == MessageType.ANS) {
-                sourceView.setTextColor(Color.BLUE)
-            }
+
         }
         else {
             // Truncate source to 16 char
             if (source.length > SOURCE_LEN) source = source.substring(0, SOURCE_LEN)
             sourceView.text = source
+        }
+        if (type == MessageType.MSG) {  // Outgoing
+            sourceView.setTextColor(Color.BLUE)
         }
 
         // In expanded mode, the message is the source (node-name).
@@ -187,8 +188,4 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
     private val SOURCE_LEN = 15
     private val LOG_MSG_HEIGHT = 75
     private val LOG_MSG_HEIGHT_EXPANDED = 225
-
-    init {
-        //messages = msgs
-    }
 }

@@ -54,10 +54,12 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), TextDataObserve
     // Bind to the DispatchService
     override fun onStart() {
         super.onStart()
+        DispatchService.registerForTranscripts(this)
     }
 
     override fun onStop() {
         super.onStop()
+        DispatchService.unregisterForTranscripts(this)
     }
 
     override fun onDestroyView() {

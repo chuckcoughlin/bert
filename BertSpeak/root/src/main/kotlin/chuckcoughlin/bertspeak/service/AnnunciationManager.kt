@@ -57,10 +57,12 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 				}
 			}
 			annunciator.language = Locale.UK
-			annunciator.setPitch(1.6f) //Default＝1.0
+			annunciator.setPitch(1.6f)      //Default＝1.0
 			annunciator.setSpeechRate(1.0f) // Default=1.0
 			Log.i(CLSS, "onInit: TextToSpeech initialized ...")
-			annunciator.speak(selectRandomText(), TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
+			val txt = selectRandomText()
+			annunciator.speak(txt, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
+			dispatcher.receiveSpokenText(txt)
 		}
 		else {
 			Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status))
