@@ -52,11 +52,11 @@ In the photos, the revised head is gold in color.
 
 A frontal view of the skull:
   ![Umbilical bundle1](/images/revised_head_front.jpeg)
-  ```                  Skull Front View     ``
+```                  Skull Front View     ``
 
 A back view of the skull before cabling is attached :
     ![Umbilical bundle1](/images/revised_head_back_unplugged.jpg)
-    ```                  Skull Back View     ``
+```                  Skull Back View     ``
 
 The umbilical cable bundle extends from the rear-end of the head to torso. It includes:
  * DC/DC 5V step-down converter for power to Odroid
@@ -73,8 +73,8 @@ Here are two views of the bundle from the back:
 
  And finally we show the back view with cabling attached and dongles inserted :
      ![Umbilical bundle1](/images/revised_head_back.jpeg)
-     ```                  Skull Back View     ``
-     
+```                  Skull Back View     ``
+
 
 #### Power Supply <a id="power-supply"></a>
 5V power for the Odroid processor is supplied by an UBEC DC/DC step-down converter.
