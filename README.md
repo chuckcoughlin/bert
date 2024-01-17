@@ -3,7 +3,7 @@
 
 
  For further details see the [architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md), [toolchain](https://github.com/chuckcoughlin/bert/tree/master/docs/toolchain.md), [test plan](https://github.com/chuckcoughlin/bert/tree/master/docs/testplan.md), [implementation](https://github.com/chuckcoughlin/bert/tree/master/docs/implementation.md) and [user-guide](http://github.com/chuckcoughlin/bert/tree/master/docs/user-guide.md) documents.
- The test plan contains current testing status and is a good indication of the project's progress. A prior version of the robot written in `Java` instead of `Kotlin` is stored on the `version1` branch.
+ The test plan contains current testing status and is a good indication of the project's progress. A prior version of the robot written in `Java` for the `Odroid-XU4` processor is stored on the `version1` branch. The current version is written in `Kotlin` for the `Odroid-N2+`
 
  ![Bert](/images/current_state.png)
  ```                  Bert - Most Recent Picture     ```

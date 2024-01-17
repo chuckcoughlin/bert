@@ -47,19 +47,35 @@ We used 2.5 x 12mm screws to fasten the 2 SMPS2Dynamixel boards to the torso. Th
 We applied 12V power to each SMPS2Dynamixel separately from our power supply. There is no connection between SMPS2Dynamixel boards on the RS485 ports as shown in the assembly video. The RS485 port from the upper SMPs2Dynamixel board is used to power the DC/DC Stepdown converter. This, in turn, powers the Odroid board.
 
 #### Head <a id="skeleton-head"></a>
-Created an umbilical bundle from rear-end of head to torso. It includes:
+The head design was revised in our latest version to accommodate the Odroid N2+ processor.
+In the photos, the revised head is gold in color.  
+
+A frontal view of the skull:
+  ![Umbilical bundle1](/images/revised_head_front.jpeg)
+  ```                  Skull Front View     ``
+
+A back view of the skull before cabling is attached :
+    ![Umbilical bundle1](/images/revised_head_back_unplugged.jpg)
+    ```                  Skull Back View     ``
+
+The umbilical cable bundle extends from the rear-end of the head to torso. It includes:
  * DC/DC 5V step-down converter for power to Odroid
  * USB extension bundle for USB2Serial
  * HDMI 8" extension to save wear and tear on Odroid HDMI port
 
+
 Here are two views of the bundle from the back:
- ![Umbilical bundle1](/images/umbilical1.png)
- ```                  Umbilical Bundle I     ```
+![Umbilical bundle1](/images/umbilical1.png)
+```                  Processor Connections     ```
 
  ![Umbilical bundle2](/images/umbilical2.jpg)
  ```                  Umbilical Bundle II     ```
 
-The face originates from a photo of Dick van Dyke, converted into a 3D image online at a site demonstrating [Large Pose 3D Face Reconstruction from a Single Image via Direct Volumetric CNN Regression](http://cvl-demos.cs.nott.ac.uk/vrn).
+ And finally we show the back view with cabling attached and dongles inserted :
+     ![Umbilical bundle1](/images/revised_head_back.jpeg)
+     ```                  Skull Back View     ``
+     
+
 #### Power Supply <a id="power-supply"></a>
 5V power for the Odroid processor is supplied by an UBEC DC/DC step-down converter.
 
