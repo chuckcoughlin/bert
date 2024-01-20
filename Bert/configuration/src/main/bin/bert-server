@@ -2,7 +2,7 @@
 # This is the init script for startup of the "bert" application.
 # Logs from this script will be found in /var/log/bert/
 #
-# This script starts the dispatcher for "bert". This is necessary to
+# This script starts the server for "bert". This is necessary to
 # operate either the bluetooth command or interactive terminal interfaces.
 
 ### BEGIN INIT INFO
@@ -19,11 +19,11 @@
 set -e
 export BERT_HOME=/usr/local/robot
 export BERTLOGDIR=/var/log/bert
-export BERTLOG=${BERTLOGDIR}/dispatch.log
-export DAEMON=${BERT_HOME}/bin/run_dispatcher.sh
+export BERTLOG=${BERTLOGDIR}/bert.log
+export DAEMON=${BERT_HOME}/bin/bert-server
 export PARAMS=""
 export PIDDIR=/var/run/bert
-export PIDFILE=${PIDDIR}/dispatch
+export PIDFILE=${PIDDIR}/server
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:${BERT_HOME}/bin
 
 . /lib/lsb/init-functions
@@ -33,15 +33,15 @@ mkdir -p ${PIDDIR}
 
 case "$1" in
   start)
-#       Uncomment for debugging, execute as: sudo bin/bert start
-#        set -x
-	rm -rf ${BERT_HOME}/logs/dispatcher*
+# Uncomment for debugging, execute as: sudo bin/bert start
+#  set -x
+	rm -rf ${BERT_HOME}/logs/server*
 	> ${BERTLOG}
 
-	echo "=============================== /etc/init.d/bert-dispatch start ===========================" >> ${BERTLOG}
+	echo "=============================== /etc/init.d/bert-server start ===========================" >> ${BERTLOG}
 	 if [ -e ${PIDFILE} ]
 	 then
-	 	log_success_msg "Bert dispatcher already running ... no action taken"
+	 	log_success_msg "Bert server already running ... no action taken"
 	 	return
 	 fi
 	 start-stop-daemon --start --pidfile ${PIDFILE} --exec $DAEMON
@@ -63,7 +63,7 @@ case "$1" in
   ;;
 
   *)
-    echo "Usage: /etc/init.d/bert-dispatch {start|stop|restart|force-reload}"
+    echo "Usage: /etc/init.d/bert-server {start|stop|restart|force-reload}"
     exit 1
     ;;
 esac

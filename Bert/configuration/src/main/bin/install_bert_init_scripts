@@ -9,4 +9,6 @@ fi
 cd ${BERT_HOME}/bin
 cp bert-server /etc/init.d
 chmod 755 /etc/init.d/bert-server
+mkdir -p /var/log/bert
+chmod 777 /var/log/bert
 update-rc.d bert-server defaults

@@ -61,6 +61,11 @@ object DatabaseManager {
                     SQL,sqle.localizedMessage))
                 return
             }
+            // Use this statement when upgrading to version 2 of the database.
+            var upgrade =
+                String.format("DELETE FROM Settings")
+            execLenient(upgrade)
+
             // Add initial settings - fail silently if they exist. The default values make sense
             // for development.
             var statement =
@@ -69,19 +74,13 @@ object DatabaseManager {
                     BertConstants.BERT_SERVER_HINT,
                     BertConstants.BERT_SERVER_HINT)
             execLenient(statement)
-            //Log.i(CLSS, String.format(
-            // "initialize: Guarantee %s settings exist in %s at %s",
-            //  BertConstants.BERT_SERVER,BertConstants.DB_NAME,statement))
 
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_PORT,
-                    BertConstants.BERT_PORT_HINT,
-                    BertConstants.BERT_PORT_HINT)
+                    BertConstants.BERT_VERSION,
+                    BertConstants.BERT_VERSION_HINT,
+                    BertConstants.BERT_VERSION_HINT)
             execLenient(statement)
-            //Log.i(CLSS, String.format(
-            //    "initialize: Guarantee %s settings exist in %s at %s",
-            //   BertConstants.BERT_PORT,BertConstants.DB_NAME, statement))
 
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
@@ -98,6 +97,13 @@ object DatabaseManager {
                     BertConstants.BERT_SIMULATED_CONNECTION, "true",
                     BertConstants.BERT_SIMULATED_CONNECTION_HINT)
             execLenient(statement)
+
+            statement =
+                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                    BertConstants.BERT_SIMULATED_CONNECTION, "true",
+                    BertConstants.BERT_SIMULATED_CONNECTION_HINT)
+            execLenient(statement)
+
             //Log.i(CLSS, String.format(
              //   "initialize: Guarantee %s settings exist in %s at %s",
             //BertConstants.BERT_SIMULATED_CONNECTION,BertConstants.DB_NAME, statement))
@@ -194,7 +200,6 @@ object DatabaseManager {
         db.setForeignKeyConstraintsEnabled(true)
         return db
     }
-
 
     private const val CLSS = "DatabaseManager"
 

@@ -30,8 +30,8 @@ mkdir -p ${BERTLOGDIR}
 
 case "$1" in
   start)
-#       Uncomment for debugging, execute as: sudo bin/bert start
-#        set -x
+# Uncomment for debugging, execute as: sudo bin/bert start
+#   set -x
 	if [ -f ${BERTLOG} ]
 	then
 		mv ${BERTLOG} ${BERTLOG}.bak
