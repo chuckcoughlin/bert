@@ -44,19 +44,19 @@ The hands are coated in [UreCoat](https://www.smooth-on.com/product-line/urecoat
 #### Torso <a id="skeleton-torso"></a>
 We used 2.5 x 12mm screws to fasten the 2 SMPS2Dynamixel boards to the torso. The video shows sticking them on with hot-glue.
 
-We applied 12V power to each SMPS2Dynamixel separately from our power supply. There is no connection between SMPS2Dynamixel boards on the RS485 ports as shown in the assembly video. The RS485 port from the upper SMPs2Dynamixel board is used to power the DC/DC Stepdown converter. This, in turn, powers the Odroid board.
+We applied 12V power to each SMPS2Dynamixel separately from our power supply. There is no connection between SMPS2Dynamixel boards on the RS485 ports as shown in the assembly video. The RS485 port from the upper SMPs2Dynamixel board is used to power the 12V Odroid board.
 
 #### Head <a id="skeleton-head"></a>
 The head design was revised in our latest version to accommodate the Odroid N2+ processor.
 In the photos, the revised head is gold in color.  
 
 A frontal view of the skull:
-  ![Umbilical bundle1](/images/revised_head_front.jpeg)
-```                  Skull Front View     ``
+ ![Skull Front](/images/revised_head_front.jpeg)
+ ```                  Skull Front View     ``
 
 A back view of the skull before cabling is attached :
-    ![Umbilical bundle1](/images/revised_head_back_unplugged.jpg)
-```                  Skull Back View     ``
+ ![Skull Back](/images/revised_head_back_unplugged.jpg)
+ ```                  Skull Back View     ``
 
 The umbilical cable bundle extends from the rear-end of the head to torso. It includes:
  * DC/DC 5V step-down converter for power to Odroid
@@ -65,26 +65,27 @@ The umbilical cable bundle extends from the rear-end of the head to torso. It in
 
 
 Here are two views of the bundle from the back:
-![Umbilical bundle1](/images/umbilical1.png)
-```                  Processor Connections     ```
+ ![Umbilical undle1](/images/umbilical1.png)
+ ```                  Processor Connections     ```
 
- ![Umbilical bundle2](/images/umbilical2.jpg)
+ ![Umbilical undle2](/images/umbilical2.jpg)
  ```                  Umbilical Bundle II     ```
 
  And finally we show the back view with cabling attached and dongles inserted :
-     ![Umbilical bundle1](/images/revised_head_back.jpeg)
-```                  Skull Back View     ``
+ ![Skull Back Wired](/images/revised_head_back.jpeg)
+ ```                  Skull Back View     ``
 
 
 #### Power Supply <a id="power-supply"></a>
-5V power for the Odroid processor is supplied by an UBEC DC/DC step-down converter.
+12V power for the Odroid processor is supplied directly through a custom cable. Note that
+the outermost wire is connected to the outside sheath of the power connector.
 
-![5V Power Supply](/images/5volt_step_down.jpg)
-```                  5V DC Power     ```
+![5V Power Supply](/images/power_cord.jpg)
+```                  12V DC Power     ```
 
 The main power pack, shown below, is constructed from a 3D-printed box (source code included). Inside it contains 2 AC/12V DC converters. The 12V connectors plug directly into the back of the robot.
 
-![Power Supply](/images/power_supply.png)
+![Power Supply](/images/12V_power.png)
 ```                  12V DC Power     ```
 
 ![Power Supply Mounted](/images/power_supply_mounted.png)
