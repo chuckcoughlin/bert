@@ -80,7 +80,7 @@ Here are two views of the bundle from the back:
 12V power for the Odroid processor is supplied directly through a custom cable. Note that
 the outermost wire is connected to the outside sheath of the power connector.
 
-!12V Processor Power](/images/12V_power_cord.png)
+![12V Processor Power](/images/12V_power_cord.png)
 ```                  12V Processor Power     ```
 
 The main power pack, shown below, is constructed from a 3D-printed box (source code included). Inside it contains 2 AC/12V DC converters. The 12V connectors plug directly into the back of the robot.
