@@ -51,12 +51,12 @@ The head design was revised in our latest version to accommodate the Odroid N2+ 
 In the photos, the revised head is gold in color.  
 
 A frontal view of the skull:
- ![Skull Front](/images/revised_head_front.jpeg)
- ```                  Skull Front View     ``
+![Skull Front](/images/revised_head_front.jpeg)
+```                  Skull Front View     ```
 
 A back view of the skull before cabling is attached :
- ![Skull Back](/images/revised_head_back_unplugged.jpg)
- ```                  Skull Back View     ``
+![Skull Back](/images/revised_head_back_unplugged.jpg)
+```                  Skull Back View     ```
 
 The umbilical cable bundle extends from the rear-end of the head to torso. It includes:
  * DC/DC 5V step-down converter for power to Odroid
@@ -69,23 +69,23 @@ Here are two views of the bundle from the back:
  ```                  Processor Connections     ```
 
  ![Umbilical undle2](/images/umbilical2.jpg)
- ```                  Umbilical Bundle II     ```
+ ```                  Umbilical Bundle     ```
 
  And finally we show the back view with cabling attached and dongles inserted :
  ![Skull Back Wired](/images/revised_head_back.jpeg)
- ```                  Skull Back View     ``
+ ```                  Skull Back View     ```
 
 
 #### Power Supply <a id="power-supply"></a>
 12V power for the Odroid processor is supplied directly through a custom cable. Note that
 the outermost wire is connected to the outside sheath of the power connector.
 
-![5V Power Supply](/images/power_cord.jpg)
-```                  12V DC Power     ```
+!12V Processor Power](/images/12V_power_cord.png)
+```                  12V Processor Power     ```
 
 The main power pack, shown below, is constructed from a 3D-printed box (source code included). Inside it contains 2 AC/12V DC converters. The 12V connectors plug directly into the back of the robot.
 
-![Power Supply](/images/12V_power.png)
+![Power Supply](/images/power_supply.png)
 ```                  12V DC Power     ```
 
 ![Power Supply Mounted](/images/power_supply_mounted.png)
