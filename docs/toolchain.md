@@ -59,7 +59,7 @@ A back view of the skull before cabling is attached :
 ```                  Skull Back View     ```
 
 The umbilical cable bundle extends from the rear-end of the head to torso. It includes:
- * DC/DC 5V step-down converter for power to Odroid
+ * 12V cable for power to Odroid
  * USB extension bundle for USB2Serial
  * HDMI 8" extension to save wear and tear on Odroid HDMI port
 
