@@ -20,7 +20,7 @@ set -e
 export BERT_HOME=/usr/local/robot
 export BERTLOGDIR=/var/log/bert
 export BERTLOG=${BERTLOGDIR}/bert.log
-export DAEMON=${BERT_HOME}/bin/bert-server
+export DAEMON=${BERT_HOME}/bin/bert
 export PARAMS=""
 export PIDDIR=/var/run/bert
 export PIDFILE=${PIDDIR}/server
@@ -35,10 +35,23 @@ case "$1" in
   start)
 # Uncomment for debugging, execute as: sudo bin/bert start
 #  set -x
-	rm -rf ${BERT_HOME}/logs/server*
+	rm -rf ${BERT_HOME}/logs/bert*
 	> ${BERTLOG}
 
-	echo "=============================== /etc/init.d/bert-server start ===========================" >> ${BERTLOG}
+	# This is important. We need to wait until the IP Address of the machine
+	# is actually configured. Loop until the IP comes up. This is needed for
+	# the Bluetooth connection.
+	while true; do
+	    IP="`hostname -I`"
+	    if [ "$IP" ] ; then
+	      echo "IP = ${IP}" >> ${BERTLOG}
+	      break
+	    fi
+	  sleep 1
+	done
+
+  IP=`echo ${IP}|sed -e 's/^[ \t]*//'`
+	echo "===================== /etc/init.d/bert-server start ===================" >> ${BERTLOG}
 	 if [ -e ${PIDFILE} ]
 	 then
 	 	log_success_msg "Bert server already running ... no action taken"
@@ -54,9 +67,9 @@ case "$1" in
   ;;
 
   stop)
-	start-stop-daemon --stop --retry 5 --oknodo --pidfile ${PIDFILE} 
-	log_end_msg $?
-	echo "=============================== /etc/init.d/bert-server stopped ===========================" >> ${BERTLOG}
+	  start-stop-daemon --stop --retry 5 --oknodo --pidfile ${PIDFILE}
+	  log_end_msg $?
+	  echo "=================== /etc/init.d/bert-server stopped ===============" >> ${BERTLOG}
   ;;
   force-reload)
     /etc/init.d/bert-server restart

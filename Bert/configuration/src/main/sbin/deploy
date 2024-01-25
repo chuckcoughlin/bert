@@ -1,9 +1,11 @@
 #!/bin/bash
-# Working directory is the project directory ${BERT_HOME}.
+# DO NOT run this script as root.
 # Synchronize the robot with the current build products.
 # The 'rsync' command is an efficient way to guarantee
 # that no more files are transferred than necessary.
-# Make sure there is a valid wi-fi connection.
+# Make sure there is a valid wi-fi connection. If the
+# init scripts have changed their install scripts must be
+# on the target system (with sudo)
 ROBOT_HOME=/usr/local/robot
 export PATH=$PATH:/usr/local/bin
 echo "Synchronizing configuration files, database ..."
