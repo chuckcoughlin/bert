@@ -20,7 +20,7 @@ import java.util.logging.Logger
 
 class Bert() {
     private val CLSS = "Bert"
-    val USAGE = "Usage: bert [-o] <robot_root>"
+    val USAGE = "Usage: bert [-bst] <robot_root>"
     val LOGGER = Logger.getLogger(CLSS)
     val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
 }
@@ -42,16 +42,19 @@ fun main(args: Array<String>) {
     }
 
     var arg = ConfigurationConstants.NO_VALUE
-    var offline = false
     var error = true
     // Analyze command-line argument to obtain the robot root directory.
-    // -o implies "offline", no serial or bluetooth communication
+    // -b use bluetooth communication
+    // -s use serial communications to servos
+    // -t use a local terminal connection to input commands
+    var bluetooth = false
+    var serial    = false
+    var terminal  = false
     for (a: String in args) {
         if (a.startsWith("-")) {   // Option
-            if (a.equals("-o")) offline = true
-            else {
-                break
-            }
+            if (a.contains("b")) bluetooth = true
+            if (a.contains("s")) serial    = true
+            if (a.contains("t")) terminal  = true
         }
         else {
             arg = a
@@ -71,8 +74,11 @@ fun main(args: Array<String>) {
     // any configurable robot parameters.
     RobotModel.startup(PathConstants.CONFIG_PATH)
     RobotModel.populate() // Analyze the xml for controllers and motors
-    // "offline" on the command line overrides the configuration file.
-    if( offline ) RobotModel.online = false
+    // We reserve several options for the command line as opposed
+    // to the configuration file. Set model values here.
+    RobotModel.useBluetooth = bluetooth
+    RobotModel.useSerial    = serial
+    RobotModel.useTerminal  = terminal
     //
     Database.startup(PathConstants.DB_PATH)
     val solver = Solver()

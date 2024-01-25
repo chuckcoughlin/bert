@@ -54,7 +54,6 @@ class Dispatcher(s:Solver) : Controller {
 
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
-    private val online: Boolean
     private var running:Boolean
     private val name: String
     private val solver: Solver = s
@@ -520,7 +519,7 @@ class Dispatcher(s:Solver) : Controller {
         motorGroupController  = MotorGroupController(this,mgcRequestChannel,mgcResponseChannel)
         terminalController    = Terminal(this,stdinChannel,stdoutChannel)
 
-        online = RobotModel.online
+        hasBluetooth = RobotModel.useBluetooth
         running = false
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
         val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs

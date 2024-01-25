@@ -14,7 +14,6 @@ import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotModel.online
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import jssc.SerialPort
 import jssc.SerialPortEvent

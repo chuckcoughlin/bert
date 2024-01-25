@@ -66,11 +66,12 @@ class BluetoothSocket(sock:NamedSocket)  {
      * 3) Parent sends to the dispatcher
      *
      * There is only one kind of message that we recognize. Anything
-     * else is an error. We skip this altogether if we're in development mode.
+     * else is an error. We skip this altogether if we're testing
+     * without bluetooth..
      */
     fun receiveRequest() : MessageBottle {
         var msg: MessageBottle = MessageBottle(RequestType.NONE)
-        while(true and !RobotModel.online) {
+        while(true and !RobotModel.useBluetooth) {
             var text: String? = socket.readLine() // Strips trailing new-line
             if (text == null || text.isEmpty()) {
                 try {

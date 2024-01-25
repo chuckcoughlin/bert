@@ -45,7 +45,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
 
     private val scope = MainScope() // Uses Dispatchers.Main
     private var ignoring : Boolean
-    private val online: Boolean
+    private val hasBluetooth: Boolean
     private var running:Boolean
 
     /**
@@ -58,7 +58,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
      */
     override suspend fun execute() {
         if( !running ) {
-            running = online
+            running = hasBluetooth
             runBlocking<Unit> {
                 launch {
                     Dispatchers.IO
@@ -69,14 +69,14 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
                              * Send them to the Bluetooth socket
                              */
                             responseChannel.onReceive() {
-                                if(online) tabletSocket.receiveResponse(it)
+                                if(hasBluetooth) tabletSocket.receiveResponse(it)
                             }
                             /**
                              * Read from bluetooth, blocked. Use ANTLR to convert text into requests.
                              * Forward requests to the Terminal launcher.
                              */
                             async {
-                                if( online ) {
+                                if( hasBluetooth ) {
                                     val msg = tabletSocket.receiveRequest()
                                     if (isLocalRequest(msg)) {
                                         handleLocalRequest(msg)
@@ -151,6 +151,6 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_PORT,port))
         val socket = NamedSocket(socketName,port.toInt())
         tabletSocket = BluetoothSocket(socket)
-        online = RobotModel.online
+        hasBluetooth = RobotModel.bluetooth
     }
 }

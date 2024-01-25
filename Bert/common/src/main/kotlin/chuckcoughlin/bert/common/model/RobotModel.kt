@@ -32,18 +32,11 @@ object RobotModel {
     val propertiesByController:  MutableMap<ControllerType, Properties>
     val jointsByController:      MutableMap<String,List<Joint>>
     val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
-    // In development mode there are no bluetooth nor serial communications
-    var online: Boolean = true
-        get() = (if( properties.get(ConfigurationConstants.PROPERTY_ONLINE)==null ) {true}
-                else if(properties.get(ConfigurationConstants.PROPERTY_ONLINE).toString().startsWith("f") ) {false}
-                else if(properties.get(ConfigurationConstants.PROPERTY_ONLINE).toString().startsWith("F") ) {false}
-                else {false}
-                )
-        set(value) {
-            field = value
-            if( field ) properties.set(ConfigurationConstants.PROPERTY_ONLINE,"true")
-            else        properties.set(ConfigurationConstants.PROPERTY_ONLINE,"false")
-        }
+    // These values are set by the main application based on command-line flags.
+    // Add pseudo-setters to set the values as properties.
+    var useBluetooth: Boolean = false
+    var useSerial: Boolean = false
+    var useTerminal: Boolean = false
 
     /**
      * Expand the supplied path as the configuration XML file.

@@ -7,4 +7,4 @@ bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
-./bertApp -o ${BERT_HOME}
+./bertApp -t ${BERT_HOME}

@@ -1,9 +1,11 @@
 #!/bin/sh
-# Execute the robot control application standalone from the command line
-# Clear logs first, then run in online mode per bert.xml
+# This is the application version meant to be executed autonomously
+# from the system init script (bert-server). Bluetooth and serial
+# ports are configured, but no terminal.
+#
 cd ${BERT_HOME}
 bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
-./bertApp ${BERT_HOME}
+./bertApp -bs ${BERT_HOME}

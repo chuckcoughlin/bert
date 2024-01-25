@@ -16,13 +16,17 @@ object ConfigurationConstants {
     const val PROPERTY_CONTROLLER_NAME = "controller"
     const val PROPERTY_DEVICE = "device"
     const val PROPERTY_HOSTNAME = "hostname"
-    const val PROPERTY_ONLINE = "online"
     const val PROPERTY_PORT = "port"
     const val PROPERTY_PROMPT = "prompt"
     const val PROPERTY_ROBOT_NAME = "name"
     const val PROPERTY_SOCKET = "socket"
     const val PROPERTY_UUID = "uuid"
     const val PROPERTY_NONE = "none"
+
+    // Flags set on the command-line
+    const val PROPERTY_USE_BLUETOOTH = "bluetooth"
+    const val PROPERTY_USE_SERIAL    = "serial"
+    const val PROPERTY_USE_TERMINAL  = "terminal"
 
     // Error values
     const val NO_CONTROLLER  = "Not Defined"

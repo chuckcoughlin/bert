@@ -1,0 +1,9 @@
+#!/bin/sh
+# Execute the robot control application standalone from the command line.
+# Kill any currently running version before executing this one.
+cd ${BERT_HOME}
+bin/clear_logs
+cd distribution/bertApp
+export APP_HOME=`pwd`
+cd bin
+./bertApp -bst ${BERT_HOME}
