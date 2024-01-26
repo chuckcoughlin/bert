@@ -1,29 +1,119 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Show a camera preview with table of known faces -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fragmentFaces"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:id="@+id/fragmentFaces">
+    android:orientation="vertical"
+    android:background="@drawable/border_white">
 
-    <LinearLayout
+    <!-- Define a horizontal barrier between the views and buttons -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/facesHorizontalGuide2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:orientation="horizontal"
+        android:background="@color/black"
+        app:layout_constraintGuide_percent="0.9"/>
+    <!-- Define a horizontal barrier between the views and edit area -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/facesHorizontalGuide1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:orientation="horizontal"
+        android:background="@color/black"
+        app:layout_constraintGuide_percent="0.8"/>
+
+    <!-- Define a vertical barrier between the 2 views -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/facesVerticalGuide"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:orientation="vertical"
+        android:background="@color/black"
+        app:layout_constraintGuide_percent="0.4"/>
+
+    <TextView
+        android:id="@+id/faces_name_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="0dp"
-        android:background="@drawable/border_white"
-        android:orientation="vertical">
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/border_gray"
+        android:text="@string/facesNameTitle"
+        android:textAlignment="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/facesVerticalGuide"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="@dimen/cover_parameter_text_size" />
 
-        <TextView
-            android:layout_width="match_parent"
+    <!-- This is the list of names of known faces -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/facesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        android:scrollbars="vertical"
+        android:isScrollContainer="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/facesVerticalGuide"
+        app:layout_constraintTop_toBottomOf="@+id/faces_name_title"
+        app:layout_constraintBottom_toTopOf="@+id/facesHorizontalGuide1"/>
+    <!-- This is a live view of the camera -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toEndOf="@+id/facesVerticalGuide"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- Add a view containing text entry boxes for a newly recognized face -->
+
+    <!-- Button panel -->
+    <LinearLayout
+        android:id="@+id/facesButtonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:gravity="center|bottom"
+        app:layout_constraintTop_toBottomOf="@+id/facesHorizontalGuide2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/navigationBarColor"
+        android:orientation="horizontal">
+        <!-- change button color by setting android:backgroundTint -->
+        <Button
+            android:id="@+id/facesAnalyzeButton"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="145dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/border_gray"
-            android:text="@string/facesCameraTitle"
-            android:textAlignment="center"
-            android:textSize="@dimen/cover_parameter_text_size" />
-        <chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
-            android:id="@+id/facerec_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="0dp"
-            android:layout_marginBottom="0dp"/>
+            android:layout_gravity="center_vertical|center"
+            android:background="@drawable/rounded_button"
+            android:text="@string/buttonAnalyze" />
+        <Button
+            android:id="@+id/facesDeleteButton"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center"
+            android:background="@drawable/rounded_button"
+            android:text="@string/buttonDelete" />
+        <Button
+            android:id="@+id/facesSaveButton"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center"
+            android:background="@drawable/rounded_button"
+            android:text="@string/buttonSave" />
     </LinearLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

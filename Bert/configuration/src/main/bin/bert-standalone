@@ -1,9 +1,12 @@
 #!/bin/sh
 # Execute the robot control application standalone from the command line.
 # Kill any currently running version before executing this one.
+# Turn on logging as desired
 cd ${BERT_HOME}
 bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
-./bertApp -bst ${BERT_HOME}
+# Turn on targeted debugging with these -d flags
+# dsp - Dispatcher
+./bertApp -bst -ddsp ${BERT_HOME}

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Charles Coughlin. All rights reserved.
+ * Copyright 2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -9,11 +9,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
+import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.data.TextDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentPosesBinding
+import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 
 /**
@@ -23,11 +26,13 @@ import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 class PosesFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
     override val name : String
     private var adapter: TextDataAdapter
+    private lateinit var refreshButton: Button
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
         val binding = FragmentPosesBinding.inflate(inflater,container,false)
-
+        refreshButton = binding.poseRefreshButton
+        refreshButton.setOnClickListener { refreshButtonClicked() }
         return binding.root
     }
 
@@ -38,6 +43,13 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
 
     override fun onStop() {
         super.onStop()
+    }
+
+    //============================= Button Callbacks ================================
+    //
+    fun refreshButtonClicked() {
+        Log.i(name, "Refresh button clicked")
+        adapter.reportDataSetChanged()
     }
 
 
@@ -57,6 +69,6 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
 
     init {
         name = CLSS
-        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_LOG_MESSAGES))
+        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_POSES))
     }
 }

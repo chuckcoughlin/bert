@@ -28,6 +28,9 @@ object ConfigurationConstants {
     const val PROPERTY_USE_SERIAL    = "serial"
     const val PROPERTY_USE_TERMINAL  = "terminal"
 
+    // Command-line keys to set debug logging
+    const val DEBUG_DISPATCHER = "dsp"
+
     // Error values
     const val NO_CONTROLLER  = "Not Defined"
     const val NO_DEVICE      = "No Device"

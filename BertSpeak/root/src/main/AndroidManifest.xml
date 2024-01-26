@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools" >
+    <!-- Work with either front or back camera -->
+    <uses-feature android:name="android.hardware.camera.any" />
     <!-- Add permission requirements here
             Note: MANAGE_EXTERNAL_STORAGE is not available if using Google store-->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -9,6 +11,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.MANAGE_BLUETOOTH" />

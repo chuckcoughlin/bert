@@ -48,6 +48,8 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * While running, this controller processes messages between the Dispatcher
      * and a user terminal. A few messages are intercepted that totally local
      * in nature (SLEEP,WAKE).
+     *
+     * When run autonomously (like as a system service), the terminal is not used.
      */
     @DelicateCoroutinesApi
     override suspend fun execute() : Unit = coroutineScope{

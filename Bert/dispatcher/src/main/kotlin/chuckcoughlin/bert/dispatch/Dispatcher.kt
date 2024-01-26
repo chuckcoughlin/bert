@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch
@@ -8,7 +8,11 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
@@ -16,9 +20,14 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -34,7 +43,6 @@ import java.util.logging.Logger
  * For each peripheral controller, the dispatcher uses a pair of communication channels
  * to send and receive message objects.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 class Dispatcher(s:Solver) : Controller {
     private val WEIGHT = 0.5 // weighting to give previous in EWMA
     // Communication channels
@@ -73,8 +81,10 @@ class Dispatcher(s:Solver) : Controller {
             running = true
             commandController.execute()
             if(DEBUG) LOGGER.info(String.format("%s.execute: command started", CLSS))
-            terminalController.execute()
-            if(DEBUG) LOGGER.info(String.format("%s.execute: terminal started", CLSS))
+            if( RobotModel.useTerminal) {
+                terminalController.execute()
+                if (DEBUG) LOGGER.info(String.format("%s.execute: terminal started", CLSS))
+            }
             internalController.execute()
             if(DEBUG) LOGGER.info(String.format("%s.execute: internal started", CLSS))
             motorGroupController.execute()
@@ -82,18 +92,18 @@ class Dispatcher(s:Solver) : Controller {
             if(DEBUG) LOGGER.info(String.format("%s.execute: controllers started", CLSS))
 
             // =================== Dispatch incoming messages and send to proper receivers =========================
-            if(online) {
-                // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
-                if(DEBUG) LOGGER.info(String.format("%s: Launching startup sequence ...", CLSS))
-                scope.launch(Dispatchers.IO) {
-                    withContext(Dispatchers.Default) {
-                        initialize()
-                        LOGGER.info(String.format("%s.execute: initialization complete", CLSS))
-                        // Inform the terminal and command controllers that we're running
-                        reportStartup(ControllerType.DISPATCHER.name)
-                    }
+
+            // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
+            if(DEBUG) LOGGER.info(String.format("%s: Launching startup sequence ...", CLSS))
+            scope.launch(Dispatchers.IO) {
+                withContext(Dispatchers.Default) {
+                    initialize()
+                    LOGGER.info(String.format("%s.execute: initialization complete", CLSS))
+                    // Inform the terminal and command controllers that we're running
+                    reportStartup(ControllerType.DISPATCHER.name)
                 }
             }
+
             runBlocking {
                 if(DEBUG) LOGGER.info(String.format("%s: Launching receive message co-routine ...", CLSS))
                 while (running) {
@@ -312,14 +322,15 @@ class Dispatcher(s:Solver) : Controller {
                     text = "I am " + p.years + " years, " + p.months +
                             " months, and " + p.days + " days old"
                 }
-                MetricType.CADENCE -> text = "The cadence is " + cadence + " milliseconds"
-                MetricType.CYCLECOUNT -> text = "I've processed " + cycleCount + " requests"
-                MetricType.CYCLETIME -> text = "The average cycle time is " + cycleTime.toInt() + " milliseconds"
-                MetricType.DUTYCYCLE -> text = "My average duty cycle is " + (100.0 * dutyCycle).toInt() + " percent"
+                MetricType.CADENCE -> text = "The cadence is "+cadence+" milliseconds"
+                MetricType.CYCLECOUNT -> text = "I've processed "+cycleCount+" requests"
+                MetricType.CYCLETIME -> text = "The average cycle time is "+cycleTime.toInt()+" milliseconds"
+                MetricType.DUTYCYCLE -> text = "My average duty cycle is "+(100.0 * dutyCycle).toInt()+" percent"
                 MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
                 MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                 MetricType.NAME -> text = "My name is $name"
             }
+
             request.text = text
         }
         else if (request.type.equals(RequestType.COMMAND)) {
@@ -491,7 +502,7 @@ class Dispatcher(s:Solver) : Controller {
     )
 
     private val CLSS = "Dispatcher"
-    private val DEBUG = true
+    private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
     override val controllerName = CLSS
@@ -505,6 +516,7 @@ class Dispatcher(s:Solver) : Controller {
      *    Terminal - communicate directly with the user console
      */
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DISPATCHER)
         commandRequestChannel = Channel<MessageBottle>()
         commandResponseChannel= Channel<MessageBottle>()
         fromInternalController  = Channel<MessageBottle>()
@@ -519,7 +531,6 @@ class Dispatcher(s:Solver) : Controller {
         motorGroupController  = MotorGroupController(this,mgcRequestChannel,mgcResponseChannel)
         terminalController    = Terminal(this,stdinChannel,stdoutChannel)
 
-        hasBluetooth = RobotModel.useBluetooth
         running = false
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
         val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs

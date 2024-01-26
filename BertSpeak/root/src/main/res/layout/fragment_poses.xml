@@ -1,16 +1,108 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Show a master-detail view of the Poses table as read from the robot -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fragmentLogs"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:id="@+id/fragmentPoses">
+    android:orientation="vertical"
+    android:background="@drawable/border_white">
+
+    <!-- Define a horizontal barrier between the views and buttons -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/posesHorizontalGuide"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:orientation="horizontal"
+        android:background="@color/black"
+        app:layout_constraintGuide_percent="0.9"/>
+
+    <!-- Define a vertical barrier between the 2 views -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/posesVerticalGuide"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:orientation="vertical"
+        android:background="@color/black"
+        app:layout_constraintGuide_percent="0.4"/>
 
     <TextView
+        android:id="@+id/poses_name_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/border_gray"
-        android:text="@string/posesTitle"
+        android:text="@string/posesNameTitle"
         android:textAlignment="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/posesVerticalGuide"
+        app:layout_constraintTop_toTopOf="parent"
         android:textSize="@dimen/cover_parameter_text_size" />
 
-</LinearLayout>
+    <!-- This is the list of names of poses -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/posesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        android:scrollbars="vertical"
+        android:isScrollContainer="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/posesVerticalGuide"
+        app:layout_constraintTop_toBottomOf="@+id/poses_name_title"
+        app:layout_constraintBottom_toTopOf="@+id/posesHorizontalGuide"/>
+
+    <TextView
+        android:id="@+id/poses_detail_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/border_gray"
+        android:text="@string/posesDetailTitle"
+        android:textAlignment="center"
+        app:layout_constraintStart_toEndOf="@+id/posesVerticalGuide"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="@dimen/cover_parameter_text_size" />
+    <TextView
+        android:id="@+id/poses_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/border_gray"
+        android:text=""
+        android:textAlignment="center"
+        app:layout_constraintStart_toEndOf="@+id/posesVerticalGuide"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/poses_detail_title"
+        android:textSize="@dimen/cover_parameter_text_size" />
+
+    <!-- This is the detail of the chosen pose -->
+    <LinearLayout
+        android:id="@+id/poseButtonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:gravity="center|bottom"
+        app:layout_constraintTop_toBottomOf="@+id/posesHorizontalGuide"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/navigationBarColor"
+        android:orientation="horizontal">
+        <!-- change button color by setting android:backgroundTint -->
+        <Button
+            android:id="@+id/poseRefreshButton"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center"
+            android:background="@drawable/rounded_button"
+            android:text="@string/buttonRefresh" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

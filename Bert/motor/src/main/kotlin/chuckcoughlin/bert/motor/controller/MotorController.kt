@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
@@ -14,6 +14,7 @@ import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import jssc.SerialPort
 import jssc.SerialPortEvent
@@ -604,10 +605,11 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     }
 
     /*
-	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL
+	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL.
+	 * Use of serial ports must be configured on command line.
 	 */
     private fun writeBytesToSerial(bytes: ByteArray) {
-        if( online and (bytes.size>0) ) {
+        if( RobotModel.useSerial and (bytes.size>0) ) {
             try {
                 val now = System.nanoTime() / 1000000
                 val interval = now - timeOfLastWrite

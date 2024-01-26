@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Charles Coughlin. All rights reserved.
+ * Copyright 2023-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
 */
 package chuckcoughlin.bertspeak.tab
@@ -29,7 +29,6 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
     override val name: String
     private var frozen: Boolean
     private val adapter: TextDataAdapter
-    // These properties only valid between onCreateView and onDestroyView
     private lateinit var freezeButton: Button
 
     /**

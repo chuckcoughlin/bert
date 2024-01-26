@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2023 Chuck Coughlin
+ * Copyright (C) 2022-2024 Chuck Coughlin
  *  (MIT License)
  */
 package chuckcoughlin.bertspeak.common
@@ -52,9 +52,10 @@ object BertConstants {
     // Name of the main node on the tablet
     const val MAIN_NODE_NAME = "tablet_node_main"
 
-    // Number of log messages to store/display
+    // Number of various types of messages to store/display
     const val NUM_JOINTS = 30
     const val NUM_LOG_MESSAGES = 40
+    const val NUM_POSES = 40
     const val NUM_TRANSCRIPT_MESSAGES = 80
 
     // For messages from robot (Does not include semi-colon)

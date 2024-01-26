@@ -1,6 +1,7 @@
 /**
- * Copyright 2023 Charles Coughlin. All rights reserved.
+ * Copyright 2024 Charles Coughlin. All rights reserved.
  * (MIT License)
+ * @see https://medium.com/swlh/how-to-create-a-simple-camera-app-using-android-camerax-library-7367778498e0
  */
 package chuckcoughlin.bertspeak.tab
 
@@ -9,27 +10,38 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import androidx.camera.view.PreviewView
+import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
+import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
 
 
 /**
- * This fragment presents shows the front camera output and attempts to identify the primary face
+ * This fragment presents the front camera output and attempts to identify the primary face
  * association it with "the operator".
  */
-class FacesFragment (pos:Int): BasicAssistantFragment(pos), OnSeekBarChangeListener {
+class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     private val name: String
-
-    // This property is only valid between onCreateView and onDestroyView
-    private lateinit var facialRecognitionView: FacialRecognitionView
+    private lateinit var cameraPreview: PreviewView
+    private lateinit var analyzeButton: Button
+    private lateinit var deleteButton: Button
+    private lateinit var saveButton: Button
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
         val binding = FragmentFacesBinding.inflate(inflater, container, false)
-        facialRecognitionView = binding.facerecView
+        cameraPreview = binding.cameraPreview
+        analyzeButton = binding.facesAnalyzeButton
+        analyzeButton.setOnClickListener { analyzeButtonClicked() }
+        deleteButton = binding.facesDeleteButton
+        deleteButton.setOnClickListener { deleteButtonClicked() }
+        saveButton = binding.facesSaveButton
+        saveButton.setOnClickListener { saveButtonClicked() }
         return binding.root
     }
 
@@ -45,18 +57,19 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), OnSeekBarChangeListe
         super.onStop()
     }
 
+    //============================= Button Callbacks ================================
+    //
+    fun analyzeButtonClicked() {
+        Log.i(name, "Analyze button clicked")
 
-   // ================== ?????Listener ===============
+    }
+    fun deleteButtonClicked() {
+        Log.i(name, "Delete button clicked")
 
-    // =================================OnSeekBarChangeListener =========================
-    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+    }
+    fun saveButtonClicked() {
+        Log.i(name, "Save button clicked")
 
-
-    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-
-    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-        //sliderText.setText("" + progress)
     }
 
     val CLSS = "FacesFragment"

@@ -24,17 +24,23 @@
     <string name="coverSeekbarTitle">Vol</string>
     <string name="coverWaveformTitle">Voice Waveform</string>
     <!-- Strings for FaceRec tab-->
-    <string name="facesCameraTitle">Camera</string>
+    <string name="facesCameraTitle">Front Camera</string>
+    <string name="facesNameTitle">First, Last Name</string>
     <!-- Strings for Poses tab -->
     <string name="posesTitle">Poses</string>
+    <string name="posesDetailTitle">Detail</string>
+    <string name="posesNameTitle">Name</string>
 
 
     <!-- Strings for Button Labels-->
+    <string name="buttonAnalyze">Analyze</string>
     <string name="buttonCancel">Cancel</string>
     <string name="buttonClear">Clear</string>
+    <string name="buttonDelete">Delete</string>
     <string name="buttonFreeze">Freeze</string>
     <string name="buttonOK">OK</string>
     <string name="buttonRefresh">Refresh</string>
+    <string name="buttonSave">Save</string>
     <string name="buttonThaw">Unfreeze</string>
     <!-- Notification Button Labels -->
     <string name="notificationLabel">Speech Processing via Bluetooth connection to main robot.</string>

@@ -32,6 +32,8 @@ object RobotModel {
     val propertiesByController:  MutableMap<ControllerType, Properties>
     val jointsByController:      MutableMap<String,List<Joint>>
     val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
+
+    var debug: String
     // These values are set by the main application based on command-line flags.
     // Add pseudo-setters to set the values as properties.
     var useBluetooth: Boolean = false
@@ -288,7 +290,6 @@ object RobotModel {
         return getPropertyForController(ctype,key,ConfigurationConstants.NO_VALUE)
     }
 
-
     private val CLSS = "RobotModel"
     private val LOGGER = Logger.getLogger(CLSS)
 
@@ -300,5 +301,6 @@ object RobotModel {
         jointsByController        = mutableMapOf<String, List<Joint>>()
         propertiesByController    = mutableMapOf<ControllerType,Properties>()
         motors                    = mutableMapOf<Joint, MotorConfiguration>()
+        debug = ""
     }
 }

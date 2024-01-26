@@ -50,8 +50,13 @@ fun main(args: Array<String>) {
     var bluetooth = false
     var serial    = false
     var terminal  = false
+    // debug
+    var dbg = ""
     for (a: String in args) {
-        if (a.startsWith("-")) {   // Option
+        if (a.startsWith("-d")) {     // Debugging flags
+            dbg = a.substring(2)
+        }
+        else if (a.startsWith("-")) {   // Option
             if (a.contains("b")) bluetooth = true
             if (a.contains("s")) serial    = true
             if (a.contains("t")) terminal  = true
@@ -79,7 +84,8 @@ fun main(args: Array<String>) {
     RobotModel.useBluetooth = bluetooth
     RobotModel.useSerial    = serial
     RobotModel.useTerminal  = terminal
-    //
+    // Enable internal logging
+    RobotModel.debug = dbg
     Database.startup(PathConstants.DB_PATH)
     val solver = Solver()
     solver.configure(RobotModel.motors, PathConstants.URDF_PATH)

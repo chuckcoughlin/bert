@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024 Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command
@@ -151,6 +151,6 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_PORT,port))
         val socket = NamedSocket(socketName,port.toInt())
         tabletSocket = BluetoothSocket(socket)
-        hasBluetooth = RobotModel.bluetooth
+        hasBluetooth = RobotModel.useBluetooth
     }
 }

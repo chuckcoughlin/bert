@@ -41,7 +41,6 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     private val requestChannel  = Channel<MessageBottle>()   // Same channel for each controller
     private val responseChannel = Channel<MessageBottle>()
     private val motorNameById: MutableMap<Int, String>
-    private val online: Boolean
     var running: Boolean
     override var controllerCount: Int = 0
 
@@ -100,7 +99,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         if (canHandleImmediately(request)) {
             parentResponseChannel.send(createResponseForLocalRequest(request))
         }
-        else if (!online) {
+        else if (!RobotModel.useSerial) {
             parentResponseChannel.send(simulateResponseForRequest(request))
         }
         else {
@@ -456,8 +455,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         running = false
         LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
         LOGGER.info(String.format("%s: os.name = %s", CLSS, System.getProperty("os.name"))) // Mac OS X
-        online = RobotModel.online
-        if (online) {
+        if (RobotModel.useSerial) {
             val motors: Map<Joint, MotorConfiguration> = RobotModel.motors
             for(cname in RobotModel.motorControllerNames) {
                 val portName : String = RobotModel.getPortForMotorController(cname)
