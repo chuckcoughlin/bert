@@ -111,22 +111,22 @@ class Dispatcher(s:Solver) : Controller {
                     select<Unit> {
                         // Reply to the original requestor when we get a result from the motor controller
                         mgcResponseChannel.onReceive() {     // Handle a serial response
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: from mcg = %s", CLSS, it.text));
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: from mcg = %s", CLSS, it.text))
                             replyToSource(it)
                         }
                         // When we get a response from the internal controller, dispatch the original request.
                         fromInternalController.onReceive() { // The internal controller has completed
-                            if (DEBUG)LOGGER.info(String.format("%s.execute: from internal = %s", CLSS, it.text));
+                            if (DEBUG)LOGGER.info(String.format("%s.execute: from internal = %s", CLSS, it.text))
                             dispatchRequest(it)
                         }
                         // The Bluetooth response channel contains requests that originate on the connected app
                         commandResponseChannel.onReceive() {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: from command = %s", CLSS, it.text));
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: from command = %s", CLSS, it.text))
                             dispatchRequest(it)
                         }
                         // The Terminal stdin channel contains requests typed at the terminal
                         stdinChannel.onReceive() {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: from terminal = %s", CLSS, it.text));
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: from terminal = %s", CLSS, it.text))
                             dispatchRequest(it)
                         }
                     }

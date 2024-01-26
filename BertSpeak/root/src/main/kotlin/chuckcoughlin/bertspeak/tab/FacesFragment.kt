@@ -5,6 +5,7 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,20 +14,35 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import android.widget.Toast
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
+import java.io.File
+import java.util.Locale
+import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 
 /**
  * This fragment presents the front camera output and attempts to identify the primary face
  * association it with "the operator".
  */
-class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
+class FacesFragment (pos:Int): BasicAssistantFragment(pos), ImageCapture.OnImageCapturedCallback {
     private val name: String
+    private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraPreview: PreviewView
+    private val imageCapture: ImageCapture
     private lateinit var analyzeButton: Button
     private lateinit var deleteButton: Button
     private lateinit var saveButton: Button
@@ -34,6 +50,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
+        cameraExecutor = Executors.newSingleThreadExecutor()
         val binding = FragmentFacesBinding.inflate(inflater, container, false)
         cameraPreview = binding.cameraPreview
         analyzeButton = binding.facesAnalyzeButton
@@ -42,10 +59,15 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         deleteButton.setOnClickListener { deleteButtonClicked() }
         saveButton = binding.facesSaveButton
         saveButton.setOnClickListener { saveButtonClicked() }
+        startCamera()
         return binding.root
     }
 
 
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+    }
     /**
      *
      */
@@ -57,10 +79,49 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         super.onStop()
     }
 
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        cameraProviderFuture.addListener({
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+                // Preview this, cameraSelector, preview, imageCapture)
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(cameraPreview.surfaceProvider)
+                }
+
+            // Use front camera by default
+            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll()
+                // Bind use cases to camera
+                cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview,imageCapture)
+            }
+            catch (exc: Exception) {
+                Log.e(CLSS, "Use case binding failed", exc)
+            }
+
+        }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+    // Take a photo keeping the image in memory for analysis
+    private fun takePicture() {
+        // Set up image capture listener, which is triggered once photo has
+        // been taken
+        imageCapture.takePicture(
+            ContextCompat.getMainExecutor(requireContext()),this);
+    }
+
     //============================= Button Callbacks ================================
     //
     fun analyzeButtonClicked() {
         Log.i(name, "Analyze button clicked")
+        takePicture()
 
     }
     fun deleteButtonClicked() {
@@ -71,11 +132,20 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         Log.i(name, "Save button clicked")
 
     }
+    //============================= Image Captured Callbacks ================================
+    override fun onError(exc: ImageCaptureException) {
+        Log.e(CLSS, "Photo capture failed: ${exc.message}", exc)
+    }
+
+    override fun onCaptureSuccess(image: ImageProxy) {
+        Log.i(CLSS, "Image captured: ...")
+    }
 
     val CLSS = "FacesFragment"
     val CAPTURE_SIZE = 256
 
     init {
         name = CLSS
+        imageCapture = ImageCapture.Builder().build()
     }
 }
