@@ -31,7 +31,6 @@ object Database  {
     fun getPoseForCommand(command: String): String? {
         return pose.getPoseForCommand(connection, command)
     }
-
     /** Return a list of column names with non-null values for the indicated pose
      * property.
      * @param mcmap a map of configurations. Joints not present are ignored.

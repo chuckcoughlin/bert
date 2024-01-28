@@ -4,3 +4,4 @@
 build
 # Ignore generated source files
 generated-src
+.idea/workspace.xml

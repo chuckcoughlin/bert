@@ -329,9 +329,8 @@ class Dispatcher(s:Solver) : Controller {
                 MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
                 MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                 MetricType.NAME -> text = "My name is $name"
-                MetricType.UNDEFINED -> TODO()
+                MetricType.UNDEFINED -> text = ""
             }
-
             request.text = text
         }
         else if (request.type.equals(RequestType.COMMAND)) {

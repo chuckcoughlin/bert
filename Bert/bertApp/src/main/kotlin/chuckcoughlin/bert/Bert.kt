@@ -26,7 +26,7 @@ class Bert() {
 }
 /**
  * Entry point for the main application that receives commands, processes
- * them through the serial interfaces to the motors and returns results.
+ * them through the serial interfaces to the motors and returns results.`
  *
  * Usage: Usage: bertApp [-o] <robot_root>
  *

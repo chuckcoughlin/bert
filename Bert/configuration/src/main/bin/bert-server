@@ -17,10 +17,11 @@
 ### END INIT INFO
 
 set -e
+export NAME=bert
 export BERT_HOME=/usr/local/robot
-export BERTLOGDIR=/var/log/bert
+export BERTLOGDIR=/var/log/${NAME}
 export BERTLOG=${BERTLOGDIR}/bert.log
-export DAEMON=${BERT_HOME}/bin/bert
+export DAEMON=${BERT_HOME}/bin/${NAME}
 export PARAMS=""
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:${BERT_HOME}/bin
 
@@ -50,7 +51,7 @@ case "$1" in
     IP=`echo ${IP}|sed -e 's/^[ \t]*//'`
 	  echo "===================== /etc/init.d/bert-server start ===================" >> ${BERTLOG}
     # start-stop-daemon will only start bert if there is no running instance
-	  start-stop-daemon --start --background $DAEMON
+	  start-stop-daemon --start --background --exec $DAEMON
 	  log_end_msg $?
   ;;
 
@@ -60,7 +61,7 @@ case "$1" in
   ;;
 
   stop)
-	  start-stop-daemon --stop --retry 5 $DAEMON
+	  start-stop-daemon --stop --name ${NAME}
 	  log_end_msg $?
 	  echo "=================== /etc/init.d/bert-server stopped ===============" >> ${BERTLOG}
   ;;

@@ -428,7 +428,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                     JointDynamicProperty.TEMPERATURE -> TODO()
                     JointDynamicProperty.TORQUE -> TODO()
                     JointDynamicProperty.VOLTAGE -> TODO()
-                    JointDynamicProperty.NONE -> TODO()
+                    JointDynamicProperty.NONE -> text = ""
                 }
             }
             request.text = text
