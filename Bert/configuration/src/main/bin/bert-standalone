@@ -1,7 +1,8 @@
 #!/bin/sh
 # Execute the robot control application standalone from the command line.
-# Kill any currently running version before executing this one.
-# Turn on logging as desired
+# Any currently running version should be stopped before executing this one.
+# This is meant to be run on the odroid as it enables bluetooth and serial
+# port motor connections. Turn on logging as desired
 cd ${BERT_HOME}
 bin/clear_logs
 cd distribution/bertApp

@@ -1,6 +1,6 @@
 #!/bin/sh
 # This is the application version meant to be executed autonomously
-# from the system init script (bert-server). Bluetooth and serial
+# from the odroid init script (bert-server). Bluetooth and serial
 # ports are configured, but no terminal.
 #
 cd ${BERT_HOME}

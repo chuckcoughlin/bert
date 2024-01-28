@@ -5,6 +5,7 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -38,11 +39,12 @@ import java.util.concurrent.Executors
  * This fragment presents the front camera output and attempts to identify the primary face
  * association it with "the operator".
  */
-class FacesFragment (pos:Int): BasicAssistantFragment(pos), ImageCapture.OnImageCapturedCallback {
+class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     private val name: String
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraPreview: PreviewView
     private val imageCapture: ImageCapture
+    private val callback: ImageCaptureCallback
     private lateinit var analyzeButton: Button
     private lateinit var deleteButton: Button
     private lateinit var saveButton: Button
@@ -100,7 +102,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), ImageCapture.OnImage
                 cameraProvider.unbindAll()
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview,imageCapture)
+                    requireActivity(), cameraSelector, preview)
             }
             catch (exc: Exception) {
                 Log.e(CLSS, "Use case binding failed", exc)
@@ -114,7 +116,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), ImageCapture.OnImage
         // Set up image capture listener, which is triggered once photo has
         // been taken
         imageCapture.takePicture(
-            ContextCompat.getMainExecutor(requireContext()),this);
+            ContextCompat.getMainExecutor(requireContext()),callback);
     }
 
     //============================= Button Callbacks ================================
@@ -132,13 +134,17 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), ImageCapture.OnImage
         Log.i(name, "Save button clicked")
 
     }
-    //============================= Image Captured Callbacks ================================
-    override fun onError(exc: ImageCaptureException) {
-        Log.e(CLSS, "Photo capture failed: ${exc.message}", exc)
-    }
+    class ImageCaptureCallback(): ImageCapture.OnImageCapturedCallback() {
 
-    override fun onCaptureSuccess(image: ImageProxy) {
-        Log.i(CLSS, "Image captured: ...")
+        //============================= Image Captured Callbacks ================================
+        override fun onError(exc: ImageCaptureException) {
+            Log.e(CLSS, "Photo capture failed: ${exc.message}", exc)
+        }
+
+        override fun onCaptureSuccess(image: ImageProxy) {
+            Log.i(CLSS, "Image captured: ...")
+        }
+        val CLSS = "ImageCptureCallback"
     }
 
     val CLSS = "FacesFragment"
@@ -147,5 +153,6 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), ImageCapture.OnImage
     init {
         name = CLSS
         imageCapture = ImageCapture.Builder().build()
+        callback = ImageCaptureCallback()
     }
 }

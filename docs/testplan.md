@@ -1,13 +1,16 @@
 ## Test Plan
 
-This document lays out a series of feature tests for the "Bert" project. Those tests which have passed are marked with green (![green](/images/ball_green.png)). Features that are currently in a broken state are marked in red (![red](/images/ball_red.png)).  A yellow (![yellow](/images/ball_yellow.png)) marker indicates a feature that has yet to be tested in the current version.
-Gray (![gray](/images/ball_gray.png)) indicates features that are not yet implemented. The green marker is a pretty fair indication of completion status of the project.
+This document lays out a series of feature tests for the "Bert" project. Those tests which have passed are marked with green (![green](/images/ball_green.png)). Features that are currently in a broken state and are
+actively being debugged are marked in red (![red](/images/ball_red.png)).  A yellow (![yellow](/images/ball_yellow.png)) marker indicates a feature that has yet to be tested in the current version.
+Gray (![gray](/images/ball_gray.png)) indicates features that are not yet implemented. The collection of
+green markers is a pretty fair indication of completion status of the project.
 
-Tests are run simply by giving typed commands to the robot.
+Unless otherwise stated, tests are run by giving typed commands to the stand-alone version of the robot.
 
 
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>
+  * [Startup](#startup)
   * [Connectivity](#connectivity)
   * [Calibration](#calibration)
   * [Movement](#movement)
@@ -17,8 +20,17 @@ Tests are run simply by giving typed commands to the robot.
   * [Grammar](#grammar)
 
 *********************************************************
-### a - Connectivity <a id="connectivity"></a>
-[toc](#table-of-contents)<br/>
+### a - Startup <a id="startup"></a>
+* ![red](/images/ball_red.png) ``System Scripts``  - Test the robot startup scripts.
+- [ ] bert-server start: Starts the "headless" version of the robot code on system boot
+- [ ] bert-server stop: Stops robot code running in the background
+- [x] bert-blueserver start: Starts the bluetooth daemon necessary for communication with the tablet
+- [ ] bert-standalone: Runs an interactive version of the robot, useful for testing
+- [ ] test_port: A test program for serial ports
+
+
+### b - Connectivity <a id="connectivity"></a>
+
 This section contains tests that validate the wiring and addressing of stepper motors,
 the conversion of raw readings from the motors into proper engineering
 units, and the listing of various parameters in the motor control tables. Finally, there
@@ -61,7 +73,8 @@ perform various system operations. In the list below, the check mark indicates c
   - [ ] shutdown: power off the robot after a clean shutdown.
 
 
-### b - Calibration <a id="calibration"></a>
+### c - Calibration <a id="calibration"></a>
+[toc](#table-of-contents)<br/>
 The purpose of this section is to validate stepper motor configuration parameters
 and to verify the correct orientation and limit values.
 
@@ -105,7 +118,8 @@ is complete, issue a response stating that the robot is ready.
   bert is ready
 ```
 
-### c - Movement <a id="movement"></a>
+### d - Movement <a id="movement"></a>
+[toc](#table-of-contents)<br/>
 This section includes the first set of tests for driving the position of the robot.
 It also introduces use of the database to store "poses". The tests here simply
 drive joints to a goal. There is not yet a concept of trajectory planning.
@@ -192,7 +206,8 @@ account for positional conflicts.
 * ![yellow](/images/ball_yellow.png) ``Define an Action`` - Actions are a series of commands (usually poses)
 executed with intervening time intervals.
 
-### d - Motion Planning <a id="planning"></a>
+### e - Motion Planning <a id="planning"></a>
+[toc](#table-of-contents)<br/>
 Plan motions so as to bring end effectors to a certain position and avoid collisions
 between different parts of the robot.
 
@@ -204,7 +219,7 @@ of target to the origin which is the center of the pelvis.
     where are your eyes
     where is your right ear
 ```
-  The object of the question may be either an "appendage" (as used in the examples) or a joint. An appendage
+The object of the question may be either an "appendage" (as used in the examples) or a joint. An appendage
 is simply a protuberance somewhere on a limb. The 'URDF' file defines legal names.
 In addition to validating that the syntax works, check numeric results for the following:
   - [x] ABS_Y: this is the first joint, at the top of the Pelvis. Its position should never change.
@@ -216,7 +231,8 @@ In addition to validating that the syntax works, check numeric results for the f
   - [ ] ... likewise, follow the left hip sub-chain to the left toe.
   - [ ] NOSE: make sure that the HEAD appendage calculations are correct.
 
-### e - Tablet Interaction <a id="tablet"></a>
+### f - Tablet Interaction <a id="tablet"></a>
+[toc](#table-of-contents)<br/>
 Test the integration of the android tablet with the robot, especially as it involves
 spoken text.
 * ![yellow](/images/ball_yellow.png) ``Speech`` - Validate that all commands and queries
@@ -239,7 +255,8 @@ commands and corresponding responses from the robot.
       pay attention
   ```
 
-### f - Performance <a id="performance"></a>
+### g - Performance <a id="performance"></a>
+[toc](#table-of-contents)<br/>
 Test the ability to query performance metrics from the dispatcher.
 * ![yellow](/images/ball_yellow.png) ``Metrics`` - use the terminal application to query
 the dispatcher for: name, age, height, cadence, cycle time and duty cycle. The results
@@ -249,7 +266,8 @@ should be formatted into proper english sentences. Typical syntax:
   what is your age
 ```
 
-### g - Grammar <a id="grammar"></a>
+### h - Grammar <a id="grammar"></a>
+[toc](#table-of-contents)<br/>
 This section includes tests of irregular or one-off speech patterns.
 * ![yellow](/images/ball_yellow.png) ``Completed``  - these are statements outside the regular
 syntax shown above that are processed in a reasonable manner.

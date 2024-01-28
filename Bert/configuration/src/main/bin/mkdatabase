@@ -1,11 +1,10 @@
-
+#!/bin/sh
 #  Build a database for installation on the robot. It contains
 #  the current repertoire of poses and actions.
 #
-# The current directory is the build project.
 #
-#!/bin/sh
 
+cd ${BERT_HOME}
 DB=bert.db
 CSV=${BERT_HOME}/csv
 ETC=${BERT_HOME}/etc
@@ -29,4 +28,5 @@ sqlite3 $DB << EOF
 .import /tmp/posemap PoseMap
 EOF
 
+mv ${DB} ${BERT_HOME}/etc/${DB}
 echo "${DB} creation compete."

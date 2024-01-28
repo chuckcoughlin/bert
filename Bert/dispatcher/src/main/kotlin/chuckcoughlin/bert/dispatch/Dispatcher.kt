@@ -109,23 +109,23 @@ class Dispatcher(s:Solver) : Controller {
                 while (running) {
                     if(DEBUG) LOGGER.info(String.format("%s: Entering select for cycle %d ...", CLSS, cycleCount))
                     select<Unit> {
-                        // Reply to the original requestor when we get a result from the motor controller
-                        mgcResponseChannel.onReceive() {     // Handle a serial response
+                        // Reply to the original requester when we get a result from the motor controller
+                        mgcResponseChannel.onReceive {     // Handle a serial response
                             if(DEBUG) LOGGER.info(String.format("%s.execute: from mcg = %s", CLSS, it.text))
                             replyToSource(it)
                         }
                         // When we get a response from the internal controller, dispatch the original request.
-                        fromInternalController.onReceive() { // The internal controller has completed
+                        fromInternalController.onReceive { // The internal controller has completed
                             if (DEBUG)LOGGER.info(String.format("%s.execute: from internal = %s", CLSS, it.text))
                             dispatchRequest(it)
                         }
                         // The Bluetooth response channel contains requests that originate on the connected app
-                        commandResponseChannel.onReceive() {
+                        commandResponseChannel.onReceive {
                             if(DEBUG) LOGGER.info(String.format("%s.execute: from command = %s", CLSS, it.text))
                             dispatchRequest(it)
                         }
                         // The Terminal stdin channel contains requests typed at the terminal
-                        stdinChannel.onReceive() {
+                        stdinChannel.onReceive {
                             if(DEBUG) LOGGER.info(String.format("%s.execute: from terminal = %s", CLSS, it.text))
                             dispatchRequest(it)
                         }
@@ -205,7 +205,7 @@ class Dispatcher(s:Solver) : Controller {
      * the appropriate response channel.
      */
     private suspend fun dispatchRequest(msg : MessageBottle) {
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchRequest ...",CLSS));
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchRequest ...",CLSS))
         val startCycle = System.currentTimeMillis()
         LOGGER.info(String.format("%s: Cycle %d ...", CLSS, cycleCount))
         // "internal" requests are those that need to be queued on the internal controller
@@ -213,7 +213,7 @@ class Dispatcher(s:Solver) : Controller {
             val response: MessageBottle = handleInternalRequest(msg)
             toInternalController.send(response)
         }
-        else if (isLocalRequest(msg)) {
+        else if(isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
             val response: MessageBottle = handleLocalRequest(msg)
             if(!response.type.equals(RequestType.NONE))replyToSource(response)
@@ -230,7 +230,7 @@ class Dispatcher(s:Solver) : Controller {
     // 1) Freezing a joint requires getting the motor position first to update the internal status dictionary
     private suspend fun handleInternalRequest(request: MessageBottle): MessageBottle {
         // Entire robot
-        if (request.type.equals(RequestType.COMMAND) &&
+        if(request.type==RequestType.COMMAND &&
             request.command.equals(CommandType.FREEZE)) {
             var msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.POSITION
@@ -329,6 +329,7 @@ class Dispatcher(s:Solver) : Controller {
                 MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
                 MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                 MetricType.NAME -> text = "My name is $name"
+                MetricType.UNDEFINED -> TODO()
             }
 
             request.text = text
@@ -454,7 +455,7 @@ class Dispatcher(s:Solver) : Controller {
             stdoutChannel.send(response)
         }
         else {
-            // There should be no routings to Dispatcher, Internal or MotorController
+            // There should be no routes to Dispatcher, Internal or MotorController
             LOGGER.warning(String.format("%s.handleResponse: Unknown destination - %s, ignored", CLSS, source))
         }
     }
@@ -504,11 +505,10 @@ class Dispatcher(s:Solver) : Controller {
     private val CLSS = "Dispatcher"
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
-    private val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
     override val controllerName = CLSS
     override val controllerType = ControllerType.DISPATCHER
     /**
-     * The dispatcher creates all controllers and communitaion channels for the application. Request/response
+     * The dispatcher creates all controllers and communication channels for the application. Request/response
      * naming is from the point of view of the Dispatcher.
      *    Command - bluetooth connection to the tablet
      *    Internal - where multiple or repeating messages are required for a single user request.

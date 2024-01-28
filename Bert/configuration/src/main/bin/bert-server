@@ -22,43 +22,36 @@ export BERTLOGDIR=/var/log/bert
 export BERTLOG=${BERTLOGDIR}/bert.log
 export DAEMON=${BERT_HOME}/bin/bert
 export PARAMS=""
-export PIDDIR=/var/run/bert
-export PIDFILE=${PIDDIR}/server
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:${BERT_HOME}/bin
 
 . /lib/lsb/init-functions
 mkdir -p ${BERT_HOME}/logs
 mkdir -p ${BERTLOGDIR}
-mkdir -p ${PIDDIR}
 
 case "$1" in
   start)
-# Uncomment for debugging, execute as: sudo bin/bert start
-#  set -x
-	rm -rf ${BERT_HOME}/logs/bert*
-	> ${BERTLOG}
+    # Uncomment for debugging, execute as: sudo bin/bert start
+    #  set -x
+	  rm -rf ${BERTLOG}
+	  > ${BERTLOG}
 
-	# This is important. We need to wait until the IP Address of the machine
-	# is actually configured. Loop until the IP comes up. This is needed for
-	# the Bluetooth connection.
-	while true; do
+	  # This is important. We need to wait until the IP Address of the machine
+	  # is actually configured. Loop until the IP comes up. This is needed for
+	  # the Bluetooth connection.
+	  while true; do
 	    IP="`hostname -I`"
 	    if [ "$IP" ] ; then
 	      echo "IP = ${IP}" >> ${BERTLOG}
 	      break
 	    fi
-	  sleep 1
-	done
+	    sleep 1
+	  done
 
-  IP=`echo ${IP}|sed -e 's/^[ \t]*//'`
-	echo "===================== /etc/init.d/bert-server start ===================" >> ${BERTLOG}
-	 if [ -e ${PIDFILE} ]
-	 then
-	 	log_success_msg "Bert server already running ... no action taken"
-	 	return
-	 fi
-	 start-stop-daemon --start --pidfile ${PIDFILE} --exec $DAEMON
-	 log_end_msg $?
+    IP=`echo ${IP}|sed -e 's/^[ \t]*//'`
+	  echo "===================== /etc/init.d/bert-server start ===================" >> ${BERTLOG}
+    # start-stop-daemon will only start bert if there is no running instance
+	  start-stop-daemon --start --background $DAEMON
+	  log_end_msg $?
   ;;
 
   restart)
@@ -67,7 +60,7 @@ case "$1" in
   ;;
 
   stop)
-	  start-stop-daemon --stop --retry 5 --oknodo --pidfile ${PIDFILE}
+	  start-stop-daemon --stop --retry 5 $DAEMON
 	  log_end_msg $?
 	  echo "=================== /etc/init.d/bert-server stopped ===============" >> ${BERTLOG}
   ;;
