@@ -364,7 +364,7 @@ devices are in range leading to incorrect pairings. If so, the Odroid system may
 "DbusFailedError: host is down".
 
 #### PyPot <a id="pypot"></a>
-*PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://poppy-project.github.io/pypot/index.html).
+*PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://github.com/poppy-project/herborist).
 ```
   sudo apt-get install python-pip
   sudo apt-get install python-numpy
@@ -372,6 +372,7 @@ devices are in range leading to incorrect pairings. If so, the Odroid system may
   sudo apt-get install python-matplotlib
   sudo apt-get install python-qt4
   sudo pip install pypot
+  sudo pip install herborist
 ```
 
 ## Software Development <a id="software"/>
@@ -542,6 +543,7 @@ We make use of the following freely-available applications:
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
   * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the
   original `poppy` design. Export in .obj format for printing.
+  * [Herborist](https://github.com/poppy-project/herborist) - Configure Dynamixel servos using an interactive interface. 
   * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
   * [iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
 
