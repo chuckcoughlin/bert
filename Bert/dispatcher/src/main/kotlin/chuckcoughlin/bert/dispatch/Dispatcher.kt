@@ -8,11 +8,7 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
@@ -20,14 +16,9 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -94,39 +85,43 @@ class Dispatcher(s:Solver) : Controller {
             // =================== Dispatch incoming messages and send to proper receivers =========================
 
             // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
-            if(DEBUG) LOGGER.info(String.format("%s: Launching startup sequence ...", CLSS))
+            if(DEBUG) LOGGER.info(String.format("%s.execute: Launching startup sequence ...", CLSS))
             scope.launch(Dispatchers.IO) {
                 withContext(Dispatchers.Default) {
                     initialize()
                     LOGGER.info(String.format("%s.execute: initialization complete", CLSS))
                     // Inform the terminal and command controllers that we're running
-                    reportStartup(ControllerType.DISPATCHER.name)
+                    reportStartup()
                 }
             }
 
             runBlocking {
-                if(DEBUG) LOGGER.info(String.format("%s: Launching receive message co-routine ...", CLSS))
+                if(DEBUG) LOGGER.info(String.format("%s.execute: Launching receive message co-routine ...", CLSS))
                 while (running) {
-                    if(DEBUG) LOGGER.info(String.format("%s: Entering select for cycle %d ...", CLSS, cycleCount))
+                    if(DEBUG) LOGGER.info(String.format("%s.execute: Entering select for cycle %d ...", CLSS, cycleCount))
                     select<Unit> {
                         // Reply to the original requester when we get a result from the motor controller
                         mgcResponseChannel.onReceive {     // Handle a serial response
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: from mcg = %s", CLSS, it.text))
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: bgcResponseChannel receive %s(%s) from %s",
+                                CLSS, it.type.name,it.text,it.source))
                             replyToSource(it)
                         }
                         // When we get a response from the internal controller, dispatch the original request.
                         fromInternalController.onReceive { // The internal controller has completed
-                            if (DEBUG)LOGGER.info(String.format("%s.execute: from internal = %s", CLSS, it.text))
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
+                                CLSS, it.type.name,it.text,it.source))
                             dispatchRequest(it)
                         }
                         // The Bluetooth response channel contains requests that originate on the connected app
                         commandResponseChannel.onReceive {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: from command = %s", CLSS, it.text))
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: commandResponseChannel receive %s(%s) from %s",
+                                CLSS, it.type.name,it.text,it.source))
                             dispatchRequest(it)
                         }
                         // The Terminal stdin channel contains requests typed at the terminal
                         stdinChannel.onReceive {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: from terminal = %s", CLSS, it.text))
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
+                                CLSS, it.type.name,it.text,it.source))
                             dispatchRequest(it)
                         }
                     }
@@ -205,7 +200,7 @@ class Dispatcher(s:Solver) : Controller {
      * the appropriate response channel.
      */
     private suspend fun dispatchRequest(msg : MessageBottle) {
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchRequest ...",CLSS))
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchRequest %s from %s",CLSS,msg.type.name,msg.source))
         val startCycle = System.currentTimeMillis()
         LOGGER.info(String.format("%s: Cycle %d ...", CLSS, cycleCount))
         // "internal" requests are those that need to be queued on the internal controller
@@ -348,7 +343,7 @@ class Dispatcher(s:Solver) : Controller {
                 }
                 catch (ioe: IOException) {
                     LOGGER.warning(
-                        String.format( "%s.createResponseForLocalRequest: Powerdown error (%s)",
+                        String.format( "%s.handleLocalRequest: Powerdown error (%s)",
                             CLSS,ioe.message))
                 }
             }
@@ -455,17 +450,17 @@ class Dispatcher(s:Solver) : Controller {
         }
         else {
             // There should be no routes to Dispatcher, Internal or MotorController
-            LOGGER.warning(String.format("%s.handleResponse: Unknown destination - %s, ignored", CLSS, source))
+            LOGGER.warning(String.format("%s.replyToSource: Unknown destination - %s, ignored", CLSS, source))
         }
     }
 
     // Report to both bluetooth and stdio controllers that we're running  ...
-    private suspend fun reportStartup(sourceName: String) {
+    private suspend fun reportStartup() {
         val startMessage = MessageBottle(RequestType.NOTIFICATION)
         startMessage.text = selectRandomText(startPhrases)
-        LOGGER.info(String.format("%s: Bert is ready ... (to %s)", CLSS, sourceName))
-        startMessage.source = sourceName
-        commandResponseChannel.send(startMessage)
+        LOGGER.info(String.format("%s.reportStartup: Bert is ready ... (from %s)", CLSS, ControllerType.DISPATCHER.name))
+        startMessage.source = ControllerType.DISPATCHER.name
+        commandRequestChannel.send(startMessage)
         stdoutChannel.send(startMessage)
     }
 
@@ -482,7 +477,7 @@ class Dispatcher(s:Solver) : Controller {
     // =============================== SocketStateChangeListener ============================================
     suspend fun stateChanged(event: SocketStateChangeEvent) {
         if (event.state.equals(SocketStateChangeEvent.READY)) {
-            reportStartup(event.name!!)
+            LOGGER.info(String.format("%s.stateChanged: new state is ", CLSS, event.state))
         }
     }
 

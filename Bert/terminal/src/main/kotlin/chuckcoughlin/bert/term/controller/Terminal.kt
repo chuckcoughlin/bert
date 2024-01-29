@@ -63,7 +63,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                     val msg = stdoutChannel.receive()
                     if (DEBUG) LOGGER.info(String.format("%s.execute received response: %s", CLSS, msg.text))
                     displayMessage(msg)   // stdOut
-                    print(prompt)
+                    handleUserInput()
                 }
             }
             /* Read from stdin, blocked. Use ANTLR to convert text into requests.
@@ -129,7 +129,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                 if(DEBUG) LOGGER.info(String.format("%s.handleUserInput request = %s", CLSS, request.type.name))
                 stdinChannel.send(request)
             }
-
         }
     }
 
@@ -171,12 +170,13 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
 
     private val CLSS = "Terminal"
     private val LOGGER = Logger.getLogger(CLSS)
-    private val DEBUG = false
+    private val DEBUG: Boolean
     private val PROMPT = "Bert:"    // Default prompt
     override val controllerName = CLSS
     override val controllerType = ControllerType.TERMINAL
 
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_TERMINAL)
         parser = StatementParser()
         translator = MessageTranslator()
         prompt = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_PROMPT,PROMPT)

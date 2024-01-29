@@ -9,5 +9,7 @@ cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
 # Turn on targeted debugging with these -d flags
+# cmd - Command
 # dsp - Dispatcher
-./bertApp -t -ddsp ${BERT_HOME}
+# ter - Terminal
+./bertApp -t -dcmd,dsp,ter ${BERT_HOME}

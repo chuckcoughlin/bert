@@ -13,13 +13,8 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
@@ -56,6 +51,7 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
      * A few messages are intercepted that cause a quick shutdown. These are direct responses
      * to user input, like "shutdown".
      */
+    @DelicateCoroutinesApi
     override suspend fun execute() {
         if( !running ) {
             running = hasBluetooth
@@ -69,21 +65,27 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
                              * Send them to the Bluetooth socket
                              */
                             responseChannel.onReceive() {
-                                if(hasBluetooth) tabletSocket.receiveResponse(it)
+                                if(DEBUG) {
+                                    LOGGER.info((String.format("%s.execute: received %s",
+                                        CLSS,it.type.name)))
+                                }
+                                if(it.type!=RequestType.NOTIFICATION) {  // Ignore notifications
+                                    if (hasBluetooth) tabletSocket.receiveResponse(it)
+                                }
                             }
-                            /**
-                             * Read from bluetooth, blocked. Use ANTLR to convert text into requests.
-                             * Forward requests to the Terminal launcher.
-                             */
-                            async {
-                                if( hasBluetooth ) {
-                                    val msg = tabletSocket.receiveRequest()
-                                    if (isLocalRequest(msg)) {
-                                        handleLocalRequest(msg)
-                                    }
-                                    else  {
-                                        requestChannel.send(msg)
-                                    }
+                        }
+                        /**
+                         * Read from bluetooth, blocked. Use ANTLR to convert text into requests.
+                         * Forward requests to the Terminal launcher.
+                         */
+                        async {
+                            if( hasBluetooth ) {
+                                val msg = tabletSocket.receiveRequest()
+                                if (isLocalRequest(msg)) {
+                                    handleLocalRequest(msg)
+                                }
+                                else  {
+                                    requestChannel.send(msg)
                                 }
                             }
                         }
@@ -102,7 +104,6 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
             scope.cancel()
         }
     }
-
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
@@ -136,12 +137,14 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
     }
 
     private val CLSS = "Command"
+    private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     private val EXIT_WAIT_INTERVAL: Long = 1000
     override val controllerName = CLSS
     override val controllerType = ControllerType.COMMAND
 
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         ignoring = false
         running = false
         messageTranslator = MessageTranslator()
