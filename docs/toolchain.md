@@ -24,6 +24,7 @@ This document describes the software tools used to develop "Bert", including the
     * [Other Tools](#other)
 ***
 ## Hardware <a id="hardware"></a>
+Details of the hardware assembly are documented in [The Assembly Guild for the Poppy_Humanoid](https://docs.poppy-project.org/en/assembly-guides/poppy-humanoid)
 
 ### Skeleton <a id="skeleton"></a>
 [toc](#table-of-contents)
@@ -94,11 +95,17 @@ The main power pack, shown below, is constructed from a 3D-printed box (source c
 ### Joints <a id="joints"></a>
 [toc](#table-of-contents)
 
-Once [pypot](#pypot) is installed on the Odroid then the *herborist* application is available to configure and address the Dynamixel motors.
-```
-python /usr/local/lib/python2.7/dist-packages/pypot/tools/herborist2/herborist.py
-```
+The [pypot](#pypot) python package must be installed on the Odroid to configure and test the Dynamixel motors.
 
+The Dynamixel setup for flashing EEPROM is shown below:
+
+![poppy](/images/dynamixel_configuration.png)
+```                        Dynamixel Flashing Setup```
+
+More detailed information may be found [here](https://docs.poppy-project.org/en/assembly-guides/poppy-torso/addressing_dynamixe)
+```
+python3 /usr/local/lib/python3.10/dist-packages/pypot/tools/dxlconfig.py
+```
 Initially, the devices can be found with the following parameters:
 ```
     Port:       /dev/tty/ACM0
@@ -108,12 +115,7 @@ Initially, the devices can be found with the following parameters:
     ID       :  1
 ```
 
-The Dynamixel setup for flashing EEPROM is shown below:
-
-![poppy](/images/dynamixel_configuration.png)
-```                        Dynamixel Flashing Setup```
-
-<em> Note: When the motors were fresh from the manufacturer ``herborist`` continually froze when flashing the EEPROM. I was forced to use Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings.  Once a motor was configured initially, ``herborist`` seems to work just fine. </em>
+<em> Note: When the motors were fresh from the manufacturer, I used Robotis [Dynamixel Wizard](http://www.robotis.us/roboplus1) on a Windows machine to make the initial ID and baudrate settings.  Once a motor is configured, use ``dxl_write`` for further setup.</em>
 
 
 In the motor EEPROM and RAM configuration, angles are defined such that 0 deg is at the bottom when viewing the front of the motor, 180 deg is to the top. Values decrease going clock-wise. Thus, for our purposes, decreasing values of position, load and speed all refer to the clock-wise direction.
@@ -366,13 +368,13 @@ devices are in range leading to incorrect pairings. If so, the Odroid system may
 #### PyPot <a id="pypot"></a>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://github.com/poppy-project/herborist).
 ```
-  sudo apt-get install python-pip
-  sudo apt-get install python-numpy
-  sudo apt-get install python-scipy
-  sudo apt-get install python-matplotlib
-  sudo apt-get install python-qt4
-  sudo pip install pypot
-  sudo pip install herborist
+  sudo apt-get install python3-pip
+  sudo apt-get install python3-pyqt5
+  pip install pypot
+  pip install herborist
+```
+As a workaround we use a command-line tool from PyPot.
+```
 ```
 
 ## Software Development <a id="software"/>
@@ -465,6 +467,10 @@ The *IntelliJ* `Configuration` project has a collection of *bash* scripts and ot
 *ANTLR* is a parsing framework used for understanding natural language. Use the plugin available from the
 *IntelliJ* settings page.
 
+##### Python
+*Python* is required for the *herborist* Dynamixel configuration application. Use the plugin available from the
+*IntelliJ* settings page.
+
 ##### Modularized Jar Files
 A few of the jar files were not available as `gradle` dependencies or were built using a too-old version of Java. These were updated manually for Java10 module compatibility.
 
@@ -508,10 +514,6 @@ A local directory holding the class files is taken as the root directory. This e
 ```
 
 
-##### Python
-PyDev is an eclipse plugin for development of Python code. Under the _eclipse_ <u>Help->Install New Software</u> menu, add a new update source:
-
-
 ### Android Studio <a id="android"></a>
 [toc](#table-of-contents)
 
@@ -543,7 +545,7 @@ We make use of the following freely-available applications:
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
   * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the
   original `poppy` design. Export in .obj format for printing.
-  * [Herborist](https://github.com/poppy-project/herborist) - Configure Dynamixel servos using an interactive interface. 
+  * [Herborist](https://github.com/poppy-project/herborist) - Configure Dynamixel servos using an interactive interface.
   * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
   * [iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
 

@@ -542,6 +542,22 @@ export JAVA_AWT_INCLUDE_PATH=$JAVA_HOME/include
 Since the purpose of all this was to generate a Makefile of about 50 lines, I
 did it the old-fashioned way and edited it by hand, to use `make` directly.
 
+*** Herborist *** </br>
+
+Herborist is a tool for configuring Dynamixel servos. The [toolchain](https://github.com/chuckcoughlin/bert/tree/master/docs/toolchain.md) document describes an Ubuntu installation using *pip*, but, for me, the install of the PyQt5 package failed and, subsequently, the *herborist* install. As a workaround, I copied the code (pure python) and ran it directly.
+```
+   cd
+   cd src/herborist
+   python3 setup.py build
+   sudo chmod 777 /usr/local/lib/python3.10/dist-packages
+   sudo chmod 666 /usr/local/lib/python3.10/dist-packages/easy-install.pth
+   sudo chmod 777 build.bdist.linux-aarch64
+   sudo chmod 777 /usr/local/bin
+   python3 setup.py install
+```
+This failed to run, also. My workaround is to use a command-line tool in the *PyPot* distribution for servo
+configuration.
+
 *** JBlueZ ***<br/>
 JBlueZ](http://jbluez.sourceforge.net/)
 by Edward Kay is a minimalist

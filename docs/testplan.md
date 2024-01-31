@@ -20,14 +20,18 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
   * [Grammar](#grammar)
 
 *********************************************************
-### a - Startup <a id="startup"></a>
-* ![red](/images/ball_red.png) ``System Scripts``  - Test the robot startup scripts.
-- [ ] bert-server start: Starts the "headless" version of the robot code on system boot
-- [ ] bert-server stop: Stops robot code running in the background
-- [x] bert-blueserver start: Starts the bluetooth daemon necessary for communication with the tablet
-- [ ] bert-standalone: Runs an interactive version of the robot, useful for testing
-- [ ] test_port: A test program for serial ports
-
+### a - Startup and Test <a id="startup"></a>
+* ![green](/images/ball_green.png) ``System Scripts``  - Launch the robot code on system boot. Run standalone
+test applications
+- [x] bert-server start/stop: Start/stop the "headless" version of the robot code on system boot.
+- [x] bert-blueserver start/stop: Run the bluetooth daemon necessary for communication with the tablet.
+* ![gray](/images/ball_gray.png) ``Test Applications``  - Test features independent of the robot
+application.
+- [x] bert-standalone: Run an interactive version of the robot on the odroid. It features a terminal
+interface for interactive testing.
+- [ ] check_dxl_configuration - read DXL motor settings in a single run.
+- [ ] dxl_read: Read both configuration and values from a servo motor.
+- [ ] dxl_write: Set volatile values for a given motor.
 
 ### b - Connectivity <a id="connectivity"></a>
 

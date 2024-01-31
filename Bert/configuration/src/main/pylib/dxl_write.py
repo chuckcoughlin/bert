@@ -1,9 +1,16 @@
+#!/usr/bin/env python
 """
-  Command-line port test based on the "herborist" tool.
+   Copyright 2024. Charles Coughlin. All Rights Reserved.
+   GPL2 License because of PyPot
+  Command-line tool to configure a Dynamixel motor, based on
+  pypot dxlconfig.py (removing factory reset)
+
+   Examples:
+  dxl_write --type=MX-28 --id=23 --angle-limit=(-100, 100) --zeroposition --port=/dev/ttyAMA0
+  dxl_write --help
+
 """
-import sys
-import threading
-import pypot.dynamixel
+
 
 __dxl_io = None
 __lock = threading.Lock()

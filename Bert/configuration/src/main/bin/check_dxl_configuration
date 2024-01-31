@@ -1,0 +1,7 @@
+#!/bin/sh
+# Execute a read test of a Dynamixel Motor
+cd ${BERT_HOME}
+cd pyib
+PROG="dxl_read.py"
+python3 ${PROG}
+
