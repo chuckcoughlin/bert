@@ -467,6 +467,13 @@ The *IntelliJ* `Configuration` project has a collection of *bash* scripts and ot
 *ANTLR* is a parsing framework used for understanding natural language. Use the plugin available from the
 *IntelliJ* settings page.
 
+##### Git
+*git* is the source code control tool. For development the repository is checked out as:
+```
+git clone http://[token]@github.com/chuckcoughlin/bert.git bert
+```
+where [token] is the private user token for the repository.
+
 ##### Python
 *Python* is required for the *herborist* Dynamixel configuration application. Use the plugin available from the
 *IntelliJ* settings page.
