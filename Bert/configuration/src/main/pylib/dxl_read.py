@@ -9,7 +9,7 @@
   dxl_write --help
 """
 
-mport sys
+import sys
 import time
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
