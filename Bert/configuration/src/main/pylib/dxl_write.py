@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
    Copyright 2024. Charles Coughlin. All Rights Reserved.
-   GPL2 License because of PyPot
+   GPL3 License because of PyPot
   Command-line tool to configure a Dynamixel motor, based on
   pypot dxlconfig.py (removing factory reset)
 
@@ -10,7 +10,10 @@
   dxl_write --help
 
 """
-
+import pypot.dynamixel
+import sys
+import threading
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 __dxl_io = None
 __lock = threading.Lock()

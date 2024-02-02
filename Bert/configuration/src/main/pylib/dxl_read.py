@@ -29,9 +29,7 @@ def check(pred, msg):
 def main():
     available_ports = get_available_ports()
     default_port = available_ports[0] if available_ports else None
-    parser = ArgumentParser(description='Configuration tool for dynamixel motors '
-                                        'WARNING: ONLY ONE MOTOR SHOULD BE '
-                                        'CONNECTED TO THE BUS WHEN CONFIGURING!',
+    parser = ArgumentParser(description='Configuration tool for dynamixel motors ',
                             formatter_class=ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--id', type=int, required=True,

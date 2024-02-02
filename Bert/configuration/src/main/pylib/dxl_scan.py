@@ -2,11 +2,16 @@
 """
    Copyright 2024. Charles Coughlin. All Rights Reserved.
    GPL2 License because of PyPot
+
   Command-line tool to discover which Dynamixel motors are configured.
   We check both /dev/ttyACM0 and /dev/ttyACM1.
   There are no command-line arguments
 """
 
+import pypot.dynamixel
+import sys
+import threading
+import time
 
 __dxl_io = None
 __lock = threading.Lock()
@@ -33,7 +38,7 @@ class DxlScan():
     def execute(self):
         # Scan the specified port and protocol
         self.scan('/dev/ttyACM0')
-        self.scan('/dev/ttyACM1)'
+        self.scan('/dev/ttyACM1')
         
     def scan(self,port):
         dxl_io = get_dxl_connection(port, self.baudrate)
@@ -41,12 +46,10 @@ class DxlScan():
         for id in self.id_range:
             if dxl_io.ping(id):
                 model = dxl_io.get_model((id, ))[0]
-                print "Got ping from "+str(id)+"("+str(model)+")"
-                                               ""
+                print( "dxl_scan: Found "+port+":"+str(id)+" ("+str(model)+")")
 
         release_dxl_connection()
-        
-        
+
         
 def main():
     app = DxlScan(sys.argv)
