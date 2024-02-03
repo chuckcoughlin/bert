@@ -202,6 +202,7 @@ The initial root password is `root/odroid` or `odroid/odroid`. Change passwords 
 Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
 Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
 ```
+   PS1="\u: "
    export BERT_HOME=/usr/local/robot
    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
 ```
@@ -552,7 +553,7 @@ We make use of the following freely-available applications:
   * [MeshLab](http://www.meshlab.net) - Use this tool to optimize and convert between 3D formats.
   * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the
   original `poppy` design. Export in .obj format for printing.
-  * [Herborist](https://github.com/poppy-project/herborist) - Configure Dynamixel servos using an interactive interface.
+  * [pypot.dynamixel](https://poppy-project.github.io/pypot/dynamixel.html) - Configure Dynamixel servos using a command-line interface.
   * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
   * [iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
 

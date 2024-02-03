@@ -29,9 +29,9 @@ test applications
 application.
 - [x] bert-standalone: Run an interactive version of the robot on the odroid. It features a terminal
 interface for interactive testing.
-- [ ] check_dxl_configuration - read DXL motor settings in a single run.
-- [ ] dxl_read: Read both configuration and values from a servo motor.
-- [ ] dxl_write: Set volatile values for a given motor.
+- [x] dxl_scan: Show ids of all connected DXM controllers.
+- [x] dxl_read: Read parameters of a servo motor.
+- [x] dxl_write: Set volatile values for a given motor.
 
 ### b - Connectivity <a id="connectivity"></a>
 
@@ -39,11 +39,16 @@ This section contains tests that validate the wiring and addressing of stepper m
 the conversion of raw readings from the motors into proper engineering
 units, and the listing of various parameters in the motor control tables. Finally, there
 is a section listing maintenance commands.
-* ![yellow](/images/ball_yellow.png) ``Validate Connections``  - Use *herborist* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
+* ![green](/images/ball_green.png) ``Motor addressing``  - Use *dxl_scan* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
+* ![yellow](/images/ball_yellow.png) ``Motor configuration``  - Use *dxl_read* to access each individual motor. Verify that parameter settings match values in *bert.xml*.
 * ![yellow](/images/ball_yellow.png) ``Joint IDs`` - verify that the pairing of name to ID
 is correct for every joint.  Syntax of the query:
 ```
     what is the id of your left hip y
+```
+* ![yellow](/images/ball_yellow.png) ``Goal positions`` - set the position of each joint to its default. Visually verify the position of each joint. Use the standalone version of the robot to enter the command:
+```
+    attention
 ```
 * ![yellow](/images/ball_yellow.png) ``List attributes`` - Use the terminal application to list
 values of a selected attribute for all joints. Verify conversions from raw readings

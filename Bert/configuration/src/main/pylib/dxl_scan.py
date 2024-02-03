@@ -37,6 +37,7 @@ class DxlScan():
     # Run the test
     def execute(self):
         # Scan the specified port and protocol
+        print('dynamixel_scan: Discovering motors ...')
         self.scan('/dev/ttyACM0')
         self.scan('/dev/ttyACM1')
         
@@ -46,7 +47,7 @@ class DxlScan():
         for id in self.id_range:
             if dxl_io.ping(id):
                 model = dxl_io.get_model((id, ))[0]
-                print( "dxl_scan: Found "+port+":"+str(id)+" ("+str(model)+")")
+                print( "   "+port+":"+str(id)+" ("+str(model)+")")
 
         release_dxl_connection()
 
