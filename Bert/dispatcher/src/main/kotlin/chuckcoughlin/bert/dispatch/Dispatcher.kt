@@ -70,8 +70,10 @@ class Dispatcher(s:Solver) : Controller {
         if(DEBUG) LOGGER.info(String.format("%s.execute: startup ...", CLSS))
         if( !running ) {
             running = true
-            commandController.execute()
-            if(DEBUG) LOGGER.info(String.format("%s.execute: command started", CLSS))
+            if( RobotModel.useBluetooth) {
+                commandController.execute()
+                if(DEBUG) LOGGER.info(String.format("%s.execute: command started", CLSS))
+            }
             if( RobotModel.useTerminal) {
                 terminalController.execute()
                 if (DEBUG) LOGGER.info(String.format("%s.execute: terminal started", CLSS))

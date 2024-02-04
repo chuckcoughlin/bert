@@ -56,6 +56,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         if( !running ) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
+            while(r)
             /* Coroutine to write responses from the Dispatcher to stdout
              */
             outJob = scope.launch(Dispatchers.IO) {
