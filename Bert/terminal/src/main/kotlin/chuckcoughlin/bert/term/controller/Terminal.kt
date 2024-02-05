@@ -56,11 +56,11 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         if( !running ) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            while(r)
             /* Coroutine to write responses from the Dispatcher to stdout
-             */
+            */
             outJob = scope.launch(Dispatchers.IO) {
-                while( running ) {
+                while (running) {
+                    if (DEBUG) LOGGER.info(String.format("%s.execute waiting for stdoutChannel", CLSS))
                     val msg = stdoutChannel.receive()
                     if (DEBUG) LOGGER.info(String.format("%s.execute received response: %s", CLSS, msg.text))
                     displayMessage(msg)   // stdOut
@@ -71,9 +71,10 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
              * Forward requests to the dispatcher.
              */
             inJob = scope.launch(Dispatchers.IO) {
-                while(running) {
-                    if (DEBUG) LOGGER.info(String.format("%s.execute: waiting for user input", CLSS))
+                while (running) {
+                    if (DEBUG) LOGGER.info(String.format("%s.execute: waiting for user input...", CLSS))
                     handleUserInput()
+                    println(prompt)
                 }
             }
         }
@@ -106,6 +107,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      */
     suspend fun handleUserInput() {
         print(prompt)
+        if(DEBUG) LOGGER.info(String.format("%s.handleUserInput: waiting for input ...", CLSS))
         val text = readln()
         if( text.isNotEmpty() ) {
             if(DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsing %s", CLSS, text))
@@ -119,6 +121,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             else if(  request.type.equals(RequestType.NOTIFICATION) ) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleUserInput notification = %s",
                     CLSS, request.text))
+                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput notification sent to dispatcher", CLSS))
                 displayMessage(request)   // Take care of locally to stdOut
             }
             else if(isLocalRequest(request)) {
@@ -129,6 +132,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             else {
                 if(DEBUG) LOGGER.info(String.format("%s.handleUserInput request = %s", CLSS, request.type.name))
                 stdinChannel.send(request)
+                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput request sent to dispatcher", CLSS))
             }
         }
     }

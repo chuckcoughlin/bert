@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,6 +75,11 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="Bert" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Bert" type="f1a62948:ProjectNode" />
+                <item name="command" type="2d1252cf:ModuleNode" />
               </path>
             </expand>
             <select />
@@ -284,6 +288,11 @@
           <url>file://$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/controller/BluetoothSocket</url>
           <line>44</line>
           <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt</url>
+          <line>72</line>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/configuration/src/main/pylib/dxl_read.py</url>
