@@ -16,7 +16,7 @@ import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import java.util.*
+import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
 /**
@@ -33,16 +33,15 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
     private val parser: StatementParser
     private val translator: MessageTranslator
     private val dispatcher = parent
-    private var stdinChannel  = stdin    // Terminal->Dispatcher  (user requests)
-    private var stdoutChannel = stdout   // Dispatcher->Terminal  (dispatcher response for display)
-    private var prompt:String
+    private var stdinChannel = stdin    // Terminal->Dispatcher  (user requests)
+    private var stdoutChannel = stdout  // Dispatcher->Terminal  (dispatcher response for display)
+    private var prompt: String
 
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
-    private var ignoring : Boolean
-    private var running:Boolean
-    private var inJob:Job
-    private var outJob:Job
+    private var ignoring: Boolean
+    private var running: Boolean
+    private var job: Job
 
     /**
      * While running, this controller processes messages between the Dispatcher
@@ -52,29 +51,49 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * When run autonomously (like as a system service), the terminal is not used.
      */
     @DelicateCoroutinesApi
-    override suspend fun execute() : Unit = coroutineScope{
-        if( !running ) {
+    override suspend fun execute(): Unit = coroutineScope {
+        if (!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
             /* Coroutine to write responses from the Dispatcher to stdout
             */
-            outJob = scope.launch(Dispatchers.IO) {
+            job = scope.launch(Dispatchers.IO) {
                 while (running) {
-                    if (DEBUG) LOGGER.info(String.format("%s.execute waiting for stdoutChannel", CLSS))
-                    val msg = stdoutChannel.receive()
-                    if (DEBUG) LOGGER.info(String.format("%s.execute received response: %s", CLSS, msg.text))
-                    displayMessage(msg)   // stdOut
-                    handleUserInput()
-                }
-            }
-            /* Read from stdin, blocked. Use ANTLR to convert text into requests.
-             * Forward requests to the dispatcher.
-             */
-            inJob = scope.launch(Dispatchers.IO) {
-                while (running) {
-                    if (DEBUG) LOGGER.info(String.format("%s.execute: waiting for user input...", CLSS))
-                    handleUserInput()
-                    println(prompt)
+                    if (DEBUG) LOGGER.info(String.format("%s.execute waiting for select", CLSS))
+                    print(prompt)
+                    val msg = select<MessageBottle> {
+                        stdoutChannel.onReceive() {
+                            displayMessage(it)
+                            it
+                        }
+                        handleUserInput().onAwait() {
+                            if (!it.error.equals(BottleConstants.NO_ERROR)) {
+                                if (DEBUG) LOGGER.info(
+                                    String.format(
+                                        "%s.execute ERROR = %s (%s)", CLSS, it.error, it.text ))
+                                displayMessage(it)   // Show the error
+                            }
+                            else if (isLocalRequest(it)) {
+                                val m = handleLocalRequest(it)
+                                if (DEBUG) LOGGER.info(String.format("%s.execute  local = %s", CLSS, m.text))
+                            }
+                            else if (it.type.equals(RequestType.NOTIFICATION)) {
+                                if (DEBUG) LOGGER.info(
+                                    String.format("%s.handleUserInput notification = %s",CLSS, it.text))
+                                displayMessage(it)   // Take care of locally to stdOut
+                            }
+                            else {
+                                if (DEBUG) LOGGER.info( String.format("%s.execute requesting = %s", CLSS,
+                                    it.type.name ))
+                                stdinChannel.send(it)
+                                if (DEBUG) LOGGER.info(
+                                    String.format("%s.execute request sent to dispatcher", CLSS) )
+                            }
+                            it
+                        }
+                    } // End select
+                    if (DEBUG) LOGGER.info(String.format("%s.execute handled response: %s from %s",
+                            CLSS, msg.text, msg.source ) )
                 }
             }
         }
@@ -83,11 +102,11 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         }
     }
 
+
     override suspend fun shutdown() {
         if( running ) {
             running = false
-            inJob.cancel()
-            outJob.cancel()
+            job.cancel()
         }
     }
 
@@ -97,45 +116,24 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * Send directly to stdOut
      * @param response
      */
-    fun displayMessage(msg: MessageBottle) {
+    fun displayMessage(msg: MessageBottle)  {
         val text: String = translator.messageToText(msg)
         println(text)
     }
     /**
-     * Read directly from stdin.
-     * Convert the text into a MessageBottle and forward to the dispatcher.
+     * Read from stdin, blocked. Use ANTLR to convert text into a message bottle.
      */
-    suspend fun handleUserInput() {
-        print(prompt)
-        if(DEBUG) LOGGER.info(String.format("%s.handleUserInput: waiting for input ...", CLSS))
+    fun handleUserInput() : Deferred<MessageBottle> = GlobalScope.async {
+        var request = MessageBottle(RequestType.NONE)
         val text = readln()
-        if( text.isNotEmpty() ) {
-            if(DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsing %s", CLSS, text))
-            val request = parser.parseStatement(text)
+        if (text.isNotEmpty()) {
+            if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsing %s", CLSS, text))
+            request = parser.parseStatement(text)
             request.source = controllerName
-            if( !request.error.equals(BottleConstants.NO_ERROR) ) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput ERROR = %s (%s)",
-                    CLSS, request.error, request.text))
-                displayMessage(request)   // Take care of locally to stdOut
-            }
-            else if(  request.type.equals(RequestType.NOTIFICATION) ) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput notification = %s",
-                    CLSS, request.text))
-                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput notification sent to dispatcher", CLSS))
-                displayMessage(request)   // Take care of locally to stdOut
-            }
-            else if(isLocalRequest(request)) {
-                val msg = handleLocalRequest(request)
-                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput  local = %s", CLSS, msg.text))
-                stdinChannel.send(msg)
-            }
-            else {
-                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput request = %s", CLSS, request.type.name))
-                stdinChannel.send(request)
-                if(DEBUG) LOGGER.info(String.format("%s.handleUserInput request sent to dispatcher", CLSS))
-            }
         }
+        request
     }
+
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
@@ -187,7 +185,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         prompt = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_PROMPT,PROMPT)
         running = false
         ignoring = false
-        inJob = Job()
-        outJob = Job()
+        job = Job()
     }
 }
