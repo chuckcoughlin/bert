@@ -42,7 +42,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     var pose: String
     var jointDefinitionProperty: JointDefinitionProperty   // Possible subject of the original request
     var jointDynamicProperty: JointDynamicProperty         // Possible subject of the original request
-    var source: String       // Origin of message
+    var source: String       // Origin of the request
     var text : String        // Pronounceable text of a response
     var control : ExecutionControl  // Parameters dealing with execution of the message
 

@@ -47,6 +47,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     /**
      * Start a motor controller for each port.
      */
+    @DelicateCoroutinesApi
     override suspend fun execute() {
         LOGGER.info(String.format("%s(%s).start: Initializing ...",CLSS, controllerName))
 

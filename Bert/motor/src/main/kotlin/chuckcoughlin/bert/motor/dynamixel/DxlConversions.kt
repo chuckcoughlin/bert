@@ -200,6 +200,7 @@ object DxlConversions {
                 dxlValue = 1
                 if (value == 0.0) dxlValue = 0
             }
+            JointDynamicProperty.NONE -> { }
         }
         return dxlValue
     }

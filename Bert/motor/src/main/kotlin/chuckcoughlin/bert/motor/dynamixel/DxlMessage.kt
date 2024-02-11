@@ -499,10 +499,8 @@ object DxlMessage {
      * @param bytes status response from the controller
      */
     fun updateGoalsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
-        var msg = ""
         if (verifyHeader(bytes)) {
-            msg = String.format("%s.updateGoalsFromBytes: %s", CLSS, dump(bytes))
-            val id = bytes[2].toInt()
+            val msg = String.format("%s.updateGoalsFromBytes: %s", CLSS, dump(bytes))
             val err = bytes[4]
             var property: JointDynamicProperty = JointDynamicProperty.POSITION
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
@@ -526,14 +524,14 @@ object DxlMessage {
                 bottle.text = text
             }
             else {
-                msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",
+                val msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",
                     CLSS,err,descriptionForError(err))
                 bottle.error = msg
                 LOGGER.severe(msg)
             }
         }
         else {
-            msg = String.format("%s.updateGoalsFromBytes: Illegal message: %s", CLSS, dump(bytes))
+            val msg = String.format("%s.updateGoalsFromBytes: Illegal message: %s", CLSS, dump(bytes))
             bottle.error = msg
             LOGGER.severe(msg)
         }
@@ -549,11 +547,10 @@ object DxlMessage {
      * @param bytes status response from the controller
      */
     fun updateLimitsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
-        var msg = ""
         mc.isDirect = true
         mc.offset = 0.0
         if (verifyHeader(bytes)) {
-            msg = String.format("%s.updateLimitsFromBytes: %s", CLSS, dump(bytes))
+            val msg = String.format("%s.updateLimitsFromBytes: %s", CLSS, dump(bytes))
             val id = bytes[2].toInt()
             val err = bytes[4]
             var property: JointDynamicProperty = JointDynamicProperty.MAXIMUMANGLE // CW
@@ -573,14 +570,14 @@ object DxlMessage {
                 bottle.text = text
             }
             else {
-                msg = String.format("%s.updateLimitsFromBytes: message returned error %d (%s)",
+                val msg = String.format("%s.updateLimitsFromBytes: message returned error %d (%s)",
                     CLSS,err,descriptionForError(err))
                 bottle.error = msg
                 LOGGER.severe(msg)
             }
         }
         else {
-            msg = String.format("%s.updateLimitsFromBytes: Illegal message: %s", CLSS, dump(bytes))
+            val msg = String.format("%s.updateLimitsFromBytes: Illegal message: %s", CLSS, dump(bytes))
             bottle.error = msg
             LOGGER.severe(msg)
         }
@@ -597,9 +594,8 @@ object DxlMessage {
      */
     fun updateParameterFromBytes(property: JointDynamicProperty,mc: MotorConfiguration,
             bottle: MessageBottle,bytes: ByteArray) {
-        var msg = ""
         if (verifyHeader(bytes)) {
-            msg = String.format("%s.updateParameterFromBytes: %s", CLSS, dump(bytes))
+            val msg = String.format("%s.updateParameterFromBytes: %s", CLSS, dump(bytes))
             val id = bytes[2].toInt()
             val err = bytes[4]
             val value = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
@@ -612,14 +608,14 @@ object DxlMessage {
                 )
             }
             else {
-                msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",
+                val msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",
                     CLSS,err, descriptionForError(err))
                 bottle.error = msg
                 LOGGER.severe(msg)
             }
         }
         else {
-            msg = String.format("%s.updateParameterFromBytes: Illegal message: %s", CLSS, dump(bytes))
+            val msg = String.format("%s.updateParameterFromBytes: Illegal message: %s", CLSS, dump(bytes))
             bottle.error = msg
             LOGGER.severe(msg)
         }

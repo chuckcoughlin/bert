@@ -48,6 +48,8 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * and a user terminal. A few messages are intercepted that totally local
      * in nature (SLEEP,WAKE).
      *
+     * A response to a request that started here will have the source as Termonal.
+     *
      * When run autonomously (like as a system service), the terminal is not used.
      */
     @DelicateCoroutinesApi
@@ -61,39 +63,15 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                 while (running) {
                     if (DEBUG) LOGGER.info(String.format("%s.execute waiting for select", CLSS))
                     print(prompt)
-                    val msg = select<MessageBottle> {
-                        stdoutChannel.onReceive() {
+                    select<MessageBottle> {
+                        stdoutChannel.onReceive() { it ->
                             displayMessage(it)
                             it
                         }
-                        handleUserInput().onAwait() {
-                            if (!it.error.equals(BottleConstants.NO_ERROR)) {
-                                if (DEBUG) LOGGER.info(
-                                    String.format(
-                                        "%s.execute ERROR = %s (%s)", CLSS, it.error, it.text ))
-                                displayMessage(it)   // Show the error
-                            }
-                            else if (isLocalRequest(it)) {
-                                val m = handleLocalRequest(it)
-                                if (DEBUG) LOGGER.info(String.format("%s.execute  local = %s", CLSS, m.text))
-                            }
-                            else if (it.type.equals(RequestType.NOTIFICATION)) {
-                                if (DEBUG) LOGGER.info(
-                                    String.format("%s.handleUserInput notification = %s",CLSS, it.text))
-                                displayMessage(it)   // Take care of locally to stdOut
-                            }
-                            else {
-                                if (DEBUG) LOGGER.info( String.format("%s.execute requesting = %s", CLSS,
-                                    it.type.name ))
-                                stdinChannel.send(it)
-                                if (DEBUG) LOGGER.info(
-                                    String.format("%s.execute request sent to dispatcher", CLSS) )
-                            }
-                            it
-                        }
+                        handleUserInput().onAwait{it}
+
                     } // End select
-                    if (DEBUG) LOGGER.info(String.format("%s.execute handled response: %s from %s",
-                            CLSS, msg.text, msg.source ) )
+                    if (DEBUG) LOGGER.info(String.format("%s.execute select completed", CLSS))
                 }
             }
         }
@@ -104,7 +82,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
 
 
     override suspend fun shutdown() {
-        if( running ) {
+        if (running) {
             running = false
             job.cancel()
         }
@@ -116,23 +94,57 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * Send directly to stdOut
      * @param response
      */
-    fun displayMessage(msg: MessageBottle)  {
+    fun displayMessage(msg: MessageBottle) {
         val text: String = translator.messageToText(msg)
         println(text)
     }
+
     /**
      * Read from stdin, blocked. Use ANTLR to convert text into a message bottle.
+     * withContext converts to co-routine
      */
-    fun handleUserInput() : Deferred<MessageBottle> = GlobalScope.async {
-        var request = MessageBottle(RequestType.NONE)
-        val text = readln()
-        if (text.isNotEmpty()) {
-            if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsing %s", CLSS, text))
-            request = parser.parseStatement(text)
-            request.source = controllerName
+    fun handleUserInput(): Deferred<MessageBottle> =
+        GlobalScope.async(Dispatchers.IO) {
+            var request = MessageBottle(RequestType.NONE)
+            val text = readln()
+            if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:returning %s", CLSS, text))
+            if (text.isNotEmpty()) {
+                request = parser.parseStatement(text)
+                request.source = controllerName
+                if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsed %s", CLSS, text))
+            }
+            if (!request.error.equals(BottleConstants.NO_ERROR)) {
+                if (DEBUG) LOGGER.info(
+                    String.format(
+                        "%s.execute ERROR = %s (%s)", CLSS, request.error, request.text
+                    )
+                )
+                displayMessage(request)   // Show the error
+            }
+            else if (isLocalRequest(request)) {
+                val m = handleLocalRequest(request)
+                if (DEBUG) LOGGER.info(String.format("%s.execute  local = %s", CLSS, m.text))
+            }
+            else if (request.type.equals(RequestType.NOTIFICATION)) {
+                if (DEBUG) LOGGER.info(
+                    String.format("%s.execute notification = %s", CLSS, request.text)
+                )
+                displayMessage(request)   // Take care of locally to stdOut
+            }
+            else {
+                if (DEBUG) LOGGER.info(
+                    String.format(
+                        "%s.execute requesting = %s", CLSS,
+                        request.type.name
+                    )
+                )
+                stdinChannel.send(request)
+                if (DEBUG) LOGGER.info(
+                    String.format("%s.execute request sent to dispatcher", CLSS)
+                )
+            }
+            request
         }
-        request
-    }
 
 
     // We handle the command to sleep and awake immediately.

@@ -10,11 +10,7 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.Limb
-import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import jssc.SerialPort
 import jssc.SerialPortEvent
@@ -86,6 +82,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * 2) sets travel speeds to "normal"
      * 3) moves any limbs that are "out-of-bounds" back into range.
      */
+    @DelicateCoroutinesApi
     override suspend fun execute() {
         LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
             CLSS, controllerName, port.portName))
@@ -671,7 +668,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                             CLSS,controllerName,nbytes))
                         return
                     }
-                    else if (DxlMessage.errorMessageFromStatus(bytes) != null) {
+                    else if (DxlMessage.errorMessageFromStatus(bytes).isNotBlank()) {
                         LOGGER.severe( String.format("%s(%s).serialEvent: ERROR: %s",
                             CLSS,DxlMessage.errorMessageFromStatus(bytes)) )
                         if (req.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
