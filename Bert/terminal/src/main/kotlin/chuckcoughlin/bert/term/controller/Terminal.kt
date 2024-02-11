@@ -32,7 +32,6 @@ import java.util.logging.Logger
 class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : Controller {
     private val parser: StatementParser
     private val translator: MessageTranslator
-    private val dispatcher = parent
     private var stdinChannel = stdin    // Terminal->Dispatcher  (user requests)
     private var stdoutChannel = stdout  // Dispatcher->Terminal  (dispatcher response for display)
     private var prompt: String
@@ -57,8 +56,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         if (!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            /* Coroutine to write responses from the Dispatcher to stdout
-            */
+            /* select() in coroutine to balance sends/receives from DIspatcher */
             job = scope.launch(Dispatchers.IO) {
                 while (running) {
                     if (DEBUG) LOGGER.info(String.format("%s.execute waiting for select", CLSS))
@@ -69,7 +67,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                             it
                         }
                         handleUserInput().onAwait{it}
-
                     } // End select
                     if (DEBUG) LOGGER.info(String.format("%s.execute select completed", CLSS))
                 }
@@ -101,7 +98,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
 
     /**
      * Read from stdin, blocked. Use ANTLR to convert text into a message bottle.
-     * withContext converts to co-routine
+     * async returns  a deferred value.
      */
     fun handleUserInput(): Deferred<MessageBottle> =
         GlobalScope.async(Dispatchers.IO) {
@@ -115,11 +112,9 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             }
             if (!request.error.equals(BottleConstants.NO_ERROR)) {
                 if (DEBUG) LOGGER.info(
-                    String.format(
-                        "%s.execute ERROR = %s (%s)", CLSS, request.error, request.text
-                    )
-                )
+                    String.format("%s.execute ERROR = %s (%s)", CLSS, request.error, request.text))
                 displayMessage(request)   // Show the error
+                print(prompt)           // Prompt for new input
             }
             else if (isLocalRequest(request)) {
                 val m = handleLocalRequest(request)
@@ -129,15 +124,10 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                 if (DEBUG) LOGGER.info(
                     String.format("%s.execute notification = %s", CLSS, request.text)
                 )
-                displayMessage(request)   // Take care of locally to stdOut
+                displayMessage(request)   // Write local notification to stdout
+                print(prompt)
             }
             else {
-                if (DEBUG) LOGGER.info(
-                    String.format(
-                        "%s.execute requesting = %s", CLSS,
-                        request.type.name
-                    )
-                )
                 stdinChannel.send(request)
                 if (DEBUG) LOGGER.info(
                     String.format("%s.execute request sent to dispatcher", CLSS)
@@ -145,7 +135,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             }
             request
         }
-
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
@@ -195,7 +184,7 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
         parser = StatementParser()
         translator = MessageTranslator()
         prompt = RobotModel.getPropertyForController(controllerType,ConfigurationConstants.PROPERTY_PROMPT,PROMPT)
-        running = false
+        running  = false
         ignoring = false
         job = Job()
     }

@@ -16,7 +16,7 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
   * [Movement](#movement)
   * [Motion Planning](#planning)
   * [Tablet Interaction](#tablet)
-  * [Performance](#performance)
+  * [Parameters](#parameters)
   * [Grammar](#grammar)
 
 *********************************************************
@@ -264,13 +264,15 @@ commands and corresponding responses from the robot.
       pay attention
   ```
 
-### g - Performance <a id="performance"></a>
+### g - Static Parameters <a id="parameters"></a>
 [toc](#table-of-contents)<br/>
-Test the ability to query performance metrics from the dispatcher.
-* ![yellow](/images/ball_yellow.png) ``Metrics`` - use the terminal application to query
+Test the ability to query performance metrics from the dispatcher. These do not involve
+the stepper motors
+* ![green](/images/ball_green.png) ``Metrics`` - use the terminal application to query
 the dispatcher for: name, age, height, cadence, cycle time and duty cycle. The results
 should be formatted into proper english sentences. Typical syntax:
 ```
+  what is your name
   how tall are you
   what is your age
 ```
