@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.speech.process
@@ -379,10 +379,14 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitMetricsQuestion(ctx: SpeechSyntaxParser.MetricsQuestionContext): Any? {
         bottle.type = RequestType.GET_METRIC
         val metric: String = ctx.Metric().getText().lowercase()
-        if (metric.equals("cycle time", ignoreCase = true)) {
+        if( metric.equals("cycles", ignoreCase = true) ||
+            metric.equals("cycle count", ignoreCase = true) ) {
+            bottle.metric = MetricType.CYCLECOUNT
+        }
+        else if( metric.equals("cycle time", ignoreCase = true) ) {
             bottle.metric = MetricType.CYCLETIME
         }
-        else if (metric.equals("duty cycle", ignoreCase = true)) {
+        else if( metric.equals("duty cycle", ignoreCase = true) ) {
             bottle.metric = MetricType.DUTYCYCLE
         }
         else {

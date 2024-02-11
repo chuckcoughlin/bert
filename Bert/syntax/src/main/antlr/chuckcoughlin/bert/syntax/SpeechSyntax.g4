@@ -93,7 +93,7 @@ List: ('tell me'|'describe'|'list');
 Limb: 'arm'|'back'|'head'|'leg'|'torso';
 Limits: 'limits';
 Means: 'means';
-Metric: 'age'|'cadence'|'cycle time'|'duty cycle'|'height'|'name';
+Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|'name';
 Mittens: 'mittens';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';

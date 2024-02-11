@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.speech.process
@@ -15,7 +15,8 @@ import java.util.*
 import java.util.logging.Logger
 
 /**
- * This translator takes "Request Bottles" and generates text meant to be spoken.
+ * This translator takes "MessageBottles" and generates text meant to be spoken.
+ * These are usually responses to requests or error messages
  */
 class MessageTranslator {
     // Acknowledgments to a greeting
