@@ -9,6 +9,12 @@ plugins {
 dependencies {
     implementation(project(":bertApp"))
 }
+if (hasProperty("buildScan")) {
+    extensions.findByName("buildScan")?.withGroovyBuilder {
+        setProperty("termsOfServiceUrl", "https://gradle.com/terms-of-service")
+        setProperty("termsOfServiceAgree", "yes")
+    }
+}
 
 //Files included in the copy
 val dataContent = copySpec {

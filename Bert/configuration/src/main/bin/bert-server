@@ -24,6 +24,7 @@ export BERTLOG=${BERTLOGDIR}/bert.log
 export DAEMON=${BERT_HOME}/bin/${NAME}
 export PARAMS=""
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:${BERT_HOME}/bin
+PIDFILE="/run/bert-server.pid"
 
 . /lib/lsb/init-functions
 mkdir -p ${BERT_HOME}/logs
@@ -61,7 +62,8 @@ case "$1" in
   ;;
 
   stop)
-	  start-stop-daemon --stop --name ${NAME}
+    # This is rather dangerous as it stops any running java instance
+	  start-stop-daemon --stop --name java
 	  log_end_msg $?
 	  echo "=================== /etc/init.d/bert-server stopped ===============" >> ${BERTLOG}
   ;;

@@ -5,10 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Install.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/Install.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/syntax/src/main/antlr/chuckcoughlin/bert/syntax/SpeechSyntax.g4" beforeDir="false" afterPath="$PROJECT_DIR$/syntax/src/main/antlr/chuckcoughlin/bert/syntax/SpeechSyntax.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/bert-server" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/bert-server" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/install_bert_init_scripts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/install_bert_init_scripts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/install_blueserver_init_scripts" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/install_blueserver_init_scripts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/terminal/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,6 +86,11 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="Bert" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Bert" type="f1a62948:ProjectNode" />
                 <item name="command" type="2d1252cf:ModuleNode" />
               </path>
               <path>
@@ -93,6 +103,31 @@
                 <item name="Bert" type="f1a62948:ProjectNode" />
                 <item name="configuration" type="2d1252cf:ModuleNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Bert" type="f1a62948:ProjectNode" />
+                <item name="configuration" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Bert" type="f1a62948:ProjectNode" />
+                <item name="terminal" type="2d1252cf:ModuleNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Bert" type="f1a62948:ProjectNode" />
+                <item name="terminal" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Bert" type="f1a62948:ProjectNode" />
+                <item name="terminal" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
@@ -173,6 +208,48 @@
     </option>
   </component>
   <component name="RunManager" selected="Gradle.Install">
+    <configuration name="Bert [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <method v="2" />
+    </configuration>
+    <configuration name="Bert:terminal [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/terminal" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="GradleRunConfiguration" factoryName="Gradle">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -245,11 +322,15 @@
     <list>
       <item itemvalue="Gradle.Install" />
       <item itemvalue="Gradle.clean" />
+      <item itemvalue="Gradle.Bert [build]" />
+      <item itemvalue="Gradle.Bert:terminal [build]" />
       <item itemvalue="Kotlin.BertKt" />
       <item itemvalue="Kotlin script (Beta).Bert " />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.Bert:terminal [build]" />
+        <item itemvalue="Gradle.Bert [build]" />
         <item itemvalue="Kotlin.BertKt" />
       </list>
     </recent_temporary>
@@ -289,12 +370,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt</url>
-          <line>341</line>
+          <line>338</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/dynamixel/DxlMessage.kt</url>
-          <line>604</line>
+          <line>600</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
@@ -304,7 +385,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt</url>
-          <line>136</line>
+          <line>135</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">

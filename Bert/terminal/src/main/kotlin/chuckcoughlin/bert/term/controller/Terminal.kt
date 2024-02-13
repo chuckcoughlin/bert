@@ -118,7 +118,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             }
             else if (isLocalRequest(request)) {
                 val m = handleLocalRequest(request)
-                if (DEBUG) LOGGER.info(String.format("%s.execute  local = %s", CLSS, m.text))
             }
             else if (request.type.equals(RequestType.NOTIFICATION)) {
                 if (DEBUG) LOGGER.info(
@@ -167,8 +166,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                 isLocal = true
             }
         }
-        LOGGER.info(String.format("%s.isLocalRequest: command=%s (%s)",CLSS,command,
-            if(isLocal)"true" else "false"))
         return isLocal
     }
 

@@ -10,3 +10,4 @@ cd ${BERT_HOME}/bin
 cp bert-blueserver /etc/init.d
 chmod 755 /etc/init.d/bert-blueserver
 update-rc.d bert-blueserver defaults
+systemctl daemon-reload

@@ -12,3 +12,4 @@ chmod 755 /etc/init.d/bert-server
 mkdir -p /var/log/bert
 chmod 777 /var/log/bert
 update-rc.d bert-server defaults
+systemctl daemon-reload
