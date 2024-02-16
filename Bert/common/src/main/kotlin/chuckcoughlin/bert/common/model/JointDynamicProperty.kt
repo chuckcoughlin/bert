@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
 /**
@@ -25,6 +26,7 @@ enum class JointDynamicProperty {
     companion object {
         private val CLSS = "JointDynamicProperty"
         private val LOGGER = Logger.getLogger(CLSS)
+
         /**
          * @return  a comma-separated list of all property types in a single String.
          */
@@ -41,11 +43,30 @@ enum class JointDynamicProperty {
          * This is the replacement and is case insensitive.
          */
         fun fromString(arg: String): JointDynamicProperty {
-            for (prop:JointDynamicProperty in JointDynamicProperty.values()) {
+            for (prop: JointDynamicProperty in JointDynamicProperty.values()) {
                 if (prop.name.equals(arg, true)) return prop
             }
-            JointDynamicProperty.LOGGER.warning(String.format("%s.fromString: no match for %s", JointDynamicProperty.CLSS,arg ))
+            JointDynamicProperty.LOGGER.warning(
+                String.format(
+                    "%s.fromString: no match for %s",
+                    JointDynamicProperty.CLSS,
+                    arg
+                )
+            )
             return JointDynamicProperty.NONE
+        }
+
+        /**
+         * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+         */
+        fun toJSON(): String {
+            val gson = GsonBuilder().setPrettyPrinting().create()
+            var names = mutableListOf<String>()
+            for (type in JointDynamicProperty.values()) {
+                if (!type.equals(JointDynamicProperty.NONE))
+                    names.add(type.name)
+            }
+            return gson.toJson(names)
         }
     }
 }

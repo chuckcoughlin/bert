@@ -15,6 +15,7 @@ import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.selects.select
 import java.util.logging.Logger
 
 /**
@@ -35,15 +36,15 @@ import java.util.logging.Logger
 class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Controller {
     private var tabletSocket: BluetoothSocket
     private val messageTranslator: MessageTranslator
-    private val dispatcher = parent
-    private var requestChannel  = req    // Dispatcher->Command  (results of user requests)
-    private var responseChannel = rsp    // Command->Dispatcher  (requests initiated by user)
+    private val dispatcher=parent
+    private var requestChannel=req    // Dispatcher->Command  (results of user requests)
+    private var responseChannel=rsp    // Command->Dispatcher  (requests initiated by user)
+
     @DelicateCoroutinesApi
-    private val scope = GlobalScope // For long-running coroutines
-    private var ignoring : Boolean
-    private var running:Boolean
-    private var inJob:Job
-    private var outJob:Job
+    private val scope=GlobalScope // For long-running coroutines
+    private var ignoring: Boolean
+    private var running: Boolean
+    private var job: Job
 
     /**
      * While running, read from the bluetooth daemon (representing the tablet) and forward
@@ -54,43 +55,32 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
      * to user input, like "shutdown".
      */
     @DelicateCoroutinesApi
-    override suspend fun execute() {
-        if( !running ) {
+    override suspend fun execute(): Unit=coroutineScope {
+        if(!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
-            running = true
+            running=true
             /* Coroutine to write responses from the Dispatcher to tablet
              * via Bluetooth, that is the Bluetooth socket
              */
-            outJob = scope.launch(Dispatchers.IO) {
-                while (running) {
-                    val msg = responseChannel.receive()
-                    if (DEBUG) LOGGER.info(
-                        (String.format(
-                            "%s.execute: received %s",
-                            CLSS, msg.type.name
-                        ))
-                    )
-                    if (msg.type != RequestType.NOTIFICATION) {  // Ignore notifications
-                        tabletSocket.receiveResponse(msg)
+            job=scope.launch(Dispatchers.IO) {
+                while(running) {
+                    select<MessageBottle> {
+                        responseChannel.onReceive() { it ->
+                            if(!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
+                                tabletSocket.receiveResponse(it)
+                            }
+                            it
+                        }
+
+                        /**
+                         * Read from bluetooth. Use ANTLR to convert text into requests.
+                         * Forward requests to the Dispatcher launcher.
+                         */
+                        handleBluetoothInput().onAwait() { it }
                     }
-                }
-                /**
-                 * Read from bluetooth. Use ANTLR to convert text into requests.
-                 * Forward requests to the Dispatcher launcher.
-                 */
-                inJob = scope.launch(Dispatchers.IO) {
-                    val msg = tabletSocket.receiveRequest()
-                    if (DEBUG) LOGGER.info(
-                        (String.format(
-                            "%s.execute: received %s",
-                            CLSS, msg.type.name
-                        ))
+                    if(DEBUG) LOGGER.info(
+                            String.format("%s.execute: select completedf", CLSS)
                     )
-                    if (isLocalRequest(msg)) {
-                        handleLocalRequest(msg)
-                    } else {
-                        requestChannel.send(msg)
-                    }
                 }
             }
         }
@@ -100,32 +90,49 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
     }
 
     override suspend fun shutdown() {
-        if( running ) {
-            running = false
-            inJob.cancel()
-            outJob.cancel()
+        if(running) {
+            running=false
+            job.cancel()
         }
     }
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.type.equals(RequestType.COMMAND)) {
-            val command: CommandType = request.command
+        if(request.type.equals(RequestType.COMMAND)) {
+            val command: CommandType=request.command
             LOGGER.warning(String.format("%s.handleLocalRequest: command=%s", CLSS, command))
-            if( command.equals(CommandType.SLEEP) ) {
-                ignoring = true
+            if(command.equals(CommandType.SLEEP)) {
+                ignoring=true
             }
-            else if( command.equals(CommandType.WAKE) ) {
-                ignoring = false
+            else if(command.equals(CommandType.WAKE)) {
+                ignoring=false
             }
             else {
-                val msg = String.format("I don't recognize command %s", command)
-                request.error = msg
+                val msg=String.format("I don't recognize command %s", command)
+                request.error=msg
             }
         }
-        request.text = messageTranslator.randomAcknowledgement()
+        request.text=messageTranslator.randomAcknowledgement()
         return request
     }
+
+    /**
+     * Read from stdin, blocked. Use ANTLR to convert text into a message bottle.
+     * async returns  a deferred value.
+     */
+    fun handleBluetoothInput(): Deferred<MessageBottle> =
+    GlobalScope.async(Dispatchers.IO) {
+        val msg=tabletSocket.receiveRequest()
+        if(isLocalRequest(msg)) {
+            handleLocalRequest(msg)
+        }
+        else {
+            requestChannel.send(msg)
+        }
+        msg
+    }
+
+
 
     // Local requests are those that can be handled immediately without forwarding to the dispatcher.
     private fun isLocalRequest(request: MessageBottle): Boolean {
@@ -151,12 +158,27 @@ class Command(parent: Controller,req : Channel<MessageBottle>,rsp: Channel<Messa
         running = false
         messageTranslator = MessageTranslator()
         val socketName = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_SOCKET)
-        LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_SOCKET,socketName))
+        LOGGER.info(
+                String.format(
+                        "%s.init: %s %s=%s",
+                        CLSS,
+                        controllerName,
+                        ConfigurationConstants.PROPERTY_SOCKET,
+                        socketName
+                )
+        )
         val port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT)
-        LOGGER.info(String.format("%s.init: %s %s=%s", CLSS, controllerName,ConfigurationConstants.PROPERTY_PORT,port))
-        val socket = NamedSocket(socketName,port.toInt())
+        LOGGER.info(
+                String.format(
+                        "%s.init: %s %s=%s",
+                        CLSS,
+                        controllerName,
+                        ConfigurationConstants.PROPERTY_PORT,
+                        port
+                )
+        )
+        val socket = NamedSocket(socketName, port.toInt())
         tabletSocket = BluetoothSocket(socket)
-        inJob = Job()
-        outJob = Job()
+        job = Job()
     }
 }

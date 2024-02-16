@@ -37,7 +37,10 @@ class BluetoothSocket(sock:NamedSocket)  {
     fun receiveResponse(response: MessageBottle) {
         var text: String = translator.messageToText(response)
         text = text.trim { it <= ' ' }
-        socket.write(String.format("%s:%s", MessageType.ANS.name, text))
+        var mtype = MessageType.ANS
+        if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
+            response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
+        socket.write(String.format("%s:%s", mtype.name, text))
     }
 
     /**
@@ -65,7 +68,7 @@ class BluetoothSocket(sock:NamedSocket)  {
      * 2) Analyze text and use ANTLR to convert into MessageBottle
      * 3) Parent sends to the dispatcher
      *
-     * There is only one kind of message that we recognize. Anything
+     * There is only two kinds of messages (MSG,JSN) that we recognize. Anything
      * else is an error. We skip this altogether if we're testing
      * without bluetooth..
      */
@@ -78,8 +81,7 @@ class BluetoothSocket(sock:NamedSocket)  {
                     Thread.sleep(CLIENT_READ_ATTEMPT_INTERVAL) // A read error has happened, we don't want a hard loop
                     continue
                 }
-                catch (ignore: InterruptedException) {
-                }
+                catch (ignore: InterruptedException) {}
             }
             else if (text.length > BottleConstants.HEADER_LENGTH) {
                 val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)
@@ -96,8 +98,14 @@ class BluetoothSocket(sock:NamedSocket)  {
                     }
                     break
                 }
+                else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
+                    LOGGER.info(String.format("%s: %s", socket.name, text))
+                    msg.error = String.format("JSON messages are not recognized from the tablet")
+                    continue
+                }
                 else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
                     LOGGER.info(String.format("%s: %s", socket.name, text))
+                    msg.error = String.format("LOG messages are not recognized from the tablet")
                     continue
                 }
                 else {

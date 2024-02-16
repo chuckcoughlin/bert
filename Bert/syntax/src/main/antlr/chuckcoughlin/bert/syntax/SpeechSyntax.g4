@@ -19,7 +19,6 @@ statement:
 command:
 	Greeting Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					# initializeJoints
-    | Salutation? List Article? Configuration                   # configurationRequest
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Controller? Motors       # handleListCommand1
 	| Salutation? List Article? Controller? Motor? Properties                   # handleListCommand2
@@ -35,7 +34,7 @@ command:
 // Request for information
 question:
       Salutation?  How Attribute Are You 						# attributeQuestion
-    | What Is Article? Configuration							# configurationQuestion
+    | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
     | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
     | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
@@ -77,9 +76,9 @@ As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
-Configuration: 'configuration';
 Controller: 'lower'|'upper';
 Do: 'do';
+Dynamic: 'dynamic';
 Goals: 'goals'|'targets';
 Greeting: 'hello'|'high'|'hi';
 Have: 'have'|'wear';
@@ -89,7 +88,7 @@ Initialize: 'initialize';
 Isay: 'i say';
 Is: 'is';
 It: 'it';
-List: ('tell me'|'describe'|'list');
+List: ('tell me'|'describe'|'list'|'show me');
 Limb: 'arm'|'back'|'head'|'leg'|'torso';
 Limits: 'limits';
 Means: 'means';
@@ -102,6 +101,7 @@ Of: 'of'|'for';
 Off: 'off';
 On: 'on';
 Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
+Parameters: 'properties'|'parameters'|'settings';
 Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'state'|'torque'|'load'|'temperature'|'voltage'|'velocity';
@@ -110,6 +110,7 @@ Salutation:'bert'|'burt'|'now'|'please';
 Save: 'save';
 Set: 'set';
 Side: 'left'|'right'|'other';
+Static: 'static';
 Straighten: 'straighten';
 Take: 'assume' | 'take';
 Then: 'then';

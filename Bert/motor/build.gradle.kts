@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
     implementation("io.github.java-native:jssc:2.9.4")
+    implementation("com.google.code.gson:gson:2.8.5")
     implementation(project(":common"))
     implementation(project(":database"))
 }

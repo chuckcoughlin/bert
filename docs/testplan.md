@@ -11,7 +11,7 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>
   * [Startup](#startup)
-  * [Connectivity](#connectivity)
+  * [Configuration](#configuration)
   * [Calibration](#calibration)
   * [Movement](#movement)
   * [Motion Planning](#planning)
@@ -33,7 +33,7 @@ interface for interactive testing.
 - [x] dxl_read: Read parameters of a servo motor.
 - [x] dxl_write: Set volatile values for a given motor.
 
-### b - Connectivity <a id="connectivity"></a>
+### b - Configuration <a id="configuration"></a>
 
 This section contains tests that validate the wiring and addressing of stepper motors,
 the conversion of raw readings from the motors into proper engineering
@@ -41,39 +41,43 @@ units, and the listing of various parameters in the motor control tables. Finall
 is a section listing maintenance commands.
 * ![green](/images/ball_green.png) ``Motor addressing``  - Use *dxl_scan* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
 * ![yellow](/images/ball_yellow.png) ``Motor configuration``  - Use *dxl_read* to access each individual motor. Verify that parameter settings match values in *bert.xml*.
-* ![yellow](/images/ball_yellow.png) ``Joint IDs`` - verify that the pairing of name to ID
-is correct for every joint.  Syntax of the query:
-```
-    what is the id of your left hip y
-```
-* ![yellow](/images/ball_yellow.png) ``Goal positions`` - set the position of each joint to its default. Visually verify the position of each joint. Use the standalone version of the robot to enter the command:
-```
-    attention
-```
-* ![yellow](/images/ball_yellow.png) ``List attributes`` - Use the terminal application to list
-values of a selected attribute for all joints. Verify conversions from raw readings
-to engineering units. Available
- parameters include: position, speed, load, voltage and temperature. Values are read directly
-from the motors, scaled and logged.
-(At a later time the values will be displayed on the tablet.) Typical requests:
-```
-    tell me your joint positions
-    list the speeds of your motors
-```
-* ![yellow](/images/ball_yellow.png) ``Joint Properties`` - Use the terminal application to
-read the current values of joint properties. A complete list of joint names and properties may be found
+* ![yellow](/images/ball_yellow.png) ``Individual Joint Properties`` - Use the terminal application to
+read the current values of joint properties, one by one. A complete list of joint names and properties may be found
 in the *Vocabulary* section of the user guide. In addition to properties configured in the configuration
 file (like: id, motor type, orientation, minimum angle and maximum angle), properties include current
 values read directly from the motor (like: position (degrees), speed (degrees/sec), load (N-m),
 temperature (deg C), and voltage (volts). A typical query:
 ```
+    what is the id of your left hip y
     what is the position of your left elbow
     what is your right ankle position
     what is the speed of your right knee
     what is the temperature of your right shoulder x
     what is the torque of your left hip x
 ```
-
+* ![yellow](/images/ball_yellow.png) ``Name Parameters`` - This set of commands and the next
+are designed for data communication with the tablet. Responses are formatted in JSON. Use the terminal application to list the names of properties available for each joint. There are static and
+dynamic properties. Typical requests:
+```
+    what are your static motor parameters
+    what are the dynamic properties of your joints
+```
+* ![yellow](/images/ball_yellow.png) ``List Parameter Values`` - Use the terminal application to list
+values of a selected property for all joints. Verify conversions from raw readings
+to engineering units. Available
+ parameters include: position, speed, load, voltage and temperature. Values are read directly
+from the motors, scaled and bundled into the response in JSON format. Values for static parameters
+come directly from the XML configuration file, dynamic properties are read from the motors.
+Typical requests:
+```
+    tell me your joint positions
+    list the speeds of your motors
+    display your motor ids
+```
+* ![yellow](/images/ball_yellow.png) ``Goal positions`` - set the position of each joint to its default. Visually verify the position of each joint. Use the standalone version of the robot to enter the command:
+```
+    attention
+```
 * ![gray](/images/ball_gray.png) ``Maintenance Commands`` - These are no-argument commands that
 perform various system operations. In the list below, the check mark indicates completion.
   - [x] halt: stop the control processes on the robot. Leave the operating system running.
@@ -81,18 +85,11 @@ perform various system operations. In the list below, the check mark indicates c
   operation in the event of I/O errors.
   - [ ] shutdown: power off the robot after a clean shutdown.
 
-
 ### c - Calibration <a id="calibration"></a>
 [toc](#table-of-contents)<br/>
 The purpose of this section is to validate stepper motor configuration parameters
 and to verify the correct orientation and limit values.
 
-* ![yellow](/images/ball_yellow.png) ``Configuration File`` - use the terminal application to
-dump motor parameters from the XML configuration file. Values are sent to a log file.
-The parameter list includes: id, motor type, orientation and angle limits. The request is:
-```
-   describe your configuration
-```
 * ![yellow](/images/ball_yellow.png) ``Hardware Limits`` - Use the terminal application to query limits
 that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
 Values include angle, speed and and torque limits. Results are logged.
@@ -118,7 +115,7 @@ EEPROM limits. A typical query:
     what are the limits of your left elbow
 ```
 
-* ![yellow](/images/ball_yellow.png) ``Sane Startup`` - When the robot is first powered on,
+* ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
 its limbs are in unknown positions. As part of the startup sequence, read the positions of
 all joints and move those
 that are outside configured limits to the closest "legal" value. When this initialization
@@ -269,12 +266,13 @@ commands and corresponding responses from the robot.
 Test the ability to query performance metrics from the dispatcher. These do not involve
 the stepper motors
 * ![green](/images/ball_green.png) ``Metrics`` - use the terminal application to query
-the dispatcher for: name, age, height, cadence, cycle time and duty cycle. The results
-should be formatted into proper english sentences. Typical syntax:
+the dispatcher for: name, age, height, cadence, cycle time, duty cycle and cycles processed.
+The results should be formatted into proper english sentences. Typical syntax:
 ```
   what is your name
   how tall are you
   what is your age
+  what is the cycle count
 ```
 
 ### h - Grammar <a id="grammar"></a>

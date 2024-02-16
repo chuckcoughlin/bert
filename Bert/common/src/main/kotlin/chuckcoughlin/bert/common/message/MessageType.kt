@@ -12,10 +12,9 @@ package chuckcoughlin.bert.common.message
  */
 enum class MessageType {
     ANS,  // Reply from the robot. The tablet should "speak" the contents
+    JSN,  // Data from the robot in JSON format
     LOG,  // A system message meant to be appended to the "Log" panel.
-    MSG,  // Request or query from the tablet, plain english  
-    ROW,  // Pipe-delimited data to be added to the most recent table          
-    TBL // Define a table for the table panel. Pipe-delimited title and column headings
+    MSG   // Request or query from the tablet, plain english
     ;
 
     companion object {

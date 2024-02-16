@@ -491,7 +491,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             if (request.duration < duration) request.duration = duration
             request.control.responseCount = 0 // No response
         }
-        else if (type==RequestType.LIST_MOTOR_PROPERTY) {
+        else if( type==RequestType.LIST_MOTOR_PROPERTY ||
+                 type==RequestType.READ_MOTOR_PROPERTY ) {
             val limb = request.limb
             val prop = request.jointDynamicProperty
             if( limb.equals(Limb.NONE) ) {

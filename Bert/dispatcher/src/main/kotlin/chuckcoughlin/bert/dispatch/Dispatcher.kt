@@ -8,26 +8,18 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -238,12 +230,12 @@ class Dispatcher(s:Solver) : Controller {
         // Entire robot
         if(request.type==RequestType.COMMAND &&
             request.command.equals(CommandType.FREEZE)) {
-            var msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+            var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.POSITION
             msg.source = ControllerType.BITBUCKET.name
             toInternalController.send(request)
 
-            msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+            msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.POSITION
             msg.source = ControllerType.BITBUCKET.name
             msg.control.delay =1000 // 1 sec delay
@@ -255,13 +247,13 @@ class Dispatcher(s:Solver) : Controller {
             for( jpv in walker ) {
                 val value = jpv.value
                 if( value.equals(BottleConstants.ON_VALUE) ) {
-                    var msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+                    var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
                     msg.jointDynamicProperty = JointDynamicProperty.POSITION
                     msg.limb = request.limb
                     msg.source = ControllerType.BITBUCKET.name
                     toInternalController.send(msg)
 
-                    msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+                    msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
                     msg.jointDynamicProperty = JointDynamicProperty.POSITION
                     msg.limb = request.limb
                     msg.source = ControllerType.BITBUCKET.name
@@ -363,6 +355,14 @@ class Dispatcher(s:Solver) : Controller {
                 request.error = msg
             }
         }
+        else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
+            if(!request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
+                request.text = JointDefinitionProperty.toJSON()
+            }
+            else {
+                request.text = JointDynamicProperty.toJSON()
+            }
+        }
         else if (request.type.equals(RequestType.MAP_POSE)) {
             val command = request.command
             val poseName = request.pose
@@ -425,6 +425,7 @@ class Dispatcher(s:Solver) : Controller {
         if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION) ||
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
             request.type.equals(RequestType.GET_METRIC) ||
+            request.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
             request.type.equals(RequestType.MAP_POSE) ||
             request.type.equals(RequestType.SAVE_POSE)) {
             return true

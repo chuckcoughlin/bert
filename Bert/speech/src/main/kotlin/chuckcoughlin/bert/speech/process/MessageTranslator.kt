@@ -57,7 +57,7 @@ class MessageTranslator {
                     "Received an empty notification."
                 }
                 else if (type.equals(RequestType.NONE)) {
-                    "Received empty message."
+                    "Received an empty message."
                 }
                 else if (type.equals(RequestType.COMMAND)) {
                     randomAcknowledgement()
@@ -65,9 +65,6 @@ class MessageTranslator {
                 else if (type.equals(RequestType.GET_METRIC)) {
                     String.format("The metric %s is unknown",
                             msg.metric.name.lowercase())
-                }
-                else if (type.equals(RequestType.GET_CONFIGURATION)) {
-                    "Motor metrics have been written to log files"
                 }
                 else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
                     val property: JointDynamicProperty = msg.jointDynamicProperty
@@ -140,7 +137,7 @@ class MessageTranslator {
             }
         }
 
-        if (text.isEmpty()) {
+        if( text.isEmpty() ) {
             text = String.format("I don't understand the response for %s",
                 msg.type.name.lowercase().replace("_", " ")
             )
