@@ -11,5 +11,8 @@ cd bin
 # Turn on targeted debugging with these -d flags
 # cmd - Command
 # dsp - Dispatcher
+# grp - Group Controller
+# mtr - Motor Controller
 # ter - Terminal
+# -bst means hasBluetooth, hasSerial and hasTerminal
 ./bertApp -bst -dcmd,dsp,ter ${BERT_HOME}

@@ -15,7 +15,8 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
   * [Calibration](#calibration)
   * [Movement](#movement)
   * [Motion Planning](#planning)
-  * [Tablet Interaction](#tablet)
+  * [Tablet Communication](#tablet)
+  * [Tablet Application](#bertspeak)
   * [Parameters](#parameters)
   * [Grammar](#grammar)
 
@@ -237,7 +238,7 @@ In addition to validating that the syntax works, check numeric results for the f
   - [ ] ... likewise, follow the left hip sub-chain to the left toe.
   - [ ] NOSE: make sure that the HEAD appendage calculations are correct.
 
-### f - Tablet Interaction <a id="tablet"></a>
+### f - Tablet Communication <a id="tablet"></a>
 [toc](#table-of-contents)<br/>
 Test the integration of the android tablet with the robot, especially as it involves
 spoken text.
@@ -245,23 +246,50 @@ spoken text.
 used in the previous section can be executed via speech and that responses are
 likewise formulated into audible sentences.
 
-* ![yellow](/images/ball_yellow.png) ``Transcript`` - Validate that the tablet keeps a record of spoken
-commands and corresponding responses from the robot.
+### g - Tablet Application <a id="bertspeak"></a>
+[toc](#table-of-contents)<br/>
 
-* ![yellow](/images/ball_yellow.png) ``Logging`` - Validate that notifications (errors and results
-  of commands that produce lists of things) are recorded on the tablet application.
+* ![yellow](/images/ball_yellow.png)
+![Cover](/images/bertspeak_cover.png)
+The cover page shows a reclining picture of
+the robot. It also contains controls to
+enable/disable speech and to adjust the
+volume,
 
-* ![yellow](/images/ball_yellow.png) ``Voice Suppression`` - It can be annoying when the robot
+* ![yellow](/images/ball_yellow.png)
+ It can be annoying when the robot
   attempts to interpret (and fails) background speech not directed  towards it. The
-  commands below place the robot into a state where it ignores ambient speech until specifically
-  directed to be attentive.
-
+  commands below place the robot into a state where it ignores ambient speech until specifically directed to be attentive.
   ```
       ignore me
       pay attention
   ```
+* ![gray](/images/ball_gray.png)
+![Facial Recognition](/images/bertspeak_facerec.png)
+This is the facial recognition page that
+will eventually allow the application to
+recognize whoever is handling the tablet.
 
-### g - Static Parameters <a id="parameters"></a>
+* ![gray](/images/ball_gray.png)
+![Animation](/images/bertspeak_animation.png)
+This panel is planned to show the robot position
+in real-time .
+
+* ![yellow](/images/ball_yellow.png)
+  ![Logging](/images/bertspeak_logging.png)
+  Validate that notifications and internal
+  application errors are logged to this panel.
+
+* ![yellow](/images/ball_yellow.png)
+![Settings](/images/bertspeak_settings.png)
+There are a small number of configurable parameters
+that are settable on this page.
+  
+* ![yellow](/images/ball_yellow.png)
+![Transcript](/images/bertspeak_transcript.png) - Validate that the tablet keeps a record of spoken commands and corresponding responses from the robot.
+
+
+### h - Static Parameters <a id="parameters"></a>
 [toc](#table-of-contents)<br/>
 Test the ability to query performance metrics from the dispatcher. These do not involve
 the stepper motors
@@ -275,7 +303,7 @@ The results should be formatted into proper english sentences. Typical syntax:
   what is the cycle count
 ```
 
-### h - Grammar <a id="grammar"></a>
+### i - Grammar <a id="grammar"></a>
 [toc](#table-of-contents)<br/>
 This section includes tests of irregular or one-off speech patterns.
 * ![yellow](/images/ball_yellow.png) ``Completed``  - these are statements outside the regular

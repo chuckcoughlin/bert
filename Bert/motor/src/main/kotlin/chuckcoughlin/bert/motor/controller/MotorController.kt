@@ -47,6 +47,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private val scope = GlobalScope // For long-running coroutines
     private val port: SerialPort
     private var running:Boolean
+    private var job: Job
     private val motorManager: MotorManager
     private val condition: Condition
     private val configurationsById: MutableMap<Int, MotorConfiguration>
@@ -78,13 +79,13 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      *
      * At one point, we thought we should initialize the motors somehow.  This is now
      * taken care of by the dispatcher. The dispatcher:
-     * 1) requests a list of current positions (thus updating the MotorConfigurations)
-     * 2) sets travel speeds to "normal"
-     * 3) moves any limbs that are "out-of-bounds" back into range.
+     *     1) requests a list of current positions (thus updating the MotorConfigurations)
+     *     2) sets travel speeds to "normal"
+     *     3) moves any limbs that are "out-of-bounds" back into range.
      */
     @DelicateCoroutinesApi
     override suspend fun execute() {
-        LOGGER.info(String.format("%s(%s).start: Initializing port %s)",
+        LOGGER.info(String.format("%s(%s).execute: Initializing port %s)",
             CLSS, controllerName, port.portName))
         if (!port.isOpened) {
             try {
@@ -99,23 +100,23 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 }
                 else {
                     LOGGER.severe(String.format(
-                        "%s.initialize: Failed to open port %s for %s",
+                        "%s.execute: Failed to open port %s for %s",
                         CLSS, port.portName, controllerName))
                 }
             }
             catch (spe: SerialPortException) {
-                LOGGER.severe(String.format("%s.initialize: Error opening port %s for %s (%s)",
+                LOGGER.severe(String.format("%s.execute: Error opening port %s for %s (%s)",
                     CLSS, port.portName, controllerName, spe.getLocalizedMessage()))
                 return
             }
-            LOGGER.info(String.format("%s.initialize: Initialized port %s)", CLSS, port.getPortName()))
+            LOGGER.info(String.format("%s.execute: Initialized port %s)", CLSS, port.getPortName()))
         }
         // Port is open, now use it.
         running = true
-        scope.launch(Dispatchers.IO) {
+        job = scope.launch(Dispatchers.IO) {
 
             while (running) {
-                select<Unit> {
+                select<MessageBottle> {
                     /**
                      * On receipt of a message from the SerialPort,
                      * decypher and forward to the MotorManager.
@@ -127,8 +128,9 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                      * The parent request is a motor command. Convert it
                      * into a message for the SerialPort amd write.
                      */
-                    parentRequestChannel.onReceive() {
-                        receiveRequest(it)   // stdOut
+                    parentRequestChannel.onReceive() { // parent request
+                        processRequest(it)
+                        it
                     }
                 }
             }
@@ -140,10 +142,13 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             port.closePort()
         }
         catch (spe: SerialPortException) {
-            LOGGER.severe(String.format("%s.close: Error closing port for %s (%s)",
+            LOGGER.severe(String.format("%s.shutdown: Error closing port for %s (%s)",
                 CLSS,controllerName,spe.localizedMessage))
         }
-        running = false
+        if (running) {
+            running = false
+            job.cancel()
+        }
     }
 
     /**
@@ -151,50 +156,49 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * and that controller is not this one, otherwise add the request to the request queue.
      * @param request
      */
-    suspend fun receiveRequest(request: MessageBottle) {
-        lock.lock()
-        //LOGGER.info(String.format("%s(%s).receiveRequest: processing %s",CLSS,controllerName,request.fetchRequestType().name()));
-        try {
-            if (isLocalRequest(request)) {
-                handleLocalRequest(request)
-                return
-            }
-            else if (isSingleControllerRequest(request)) {
-                // Do nothing if the joint or limb isn't in our controllerName.
-                val joint: Joint = request.joint
-                val cName: String = request.control.controller
-                val limb: Limb = request.limb
-                if( !joint.equals(Joint.NONE) ) {
-                    val mc: MotorConfiguration = configurationsByJoint[joint] ?: return
+     suspend fun processRequest(request:MessageBottle) {
+            lock.lock()
+            //LOGGER.info(String.format("%s(%s).receiveRequest: processing %s",CLSS,controllerName,request.fetchRequestType().name()));
+            try {
+                if(isLocalRequest(request)) {
+                    handleLocalRequest(request)
                 }
-                else if (!cName.isEmpty()) {
-                    if (!cName.equals(controllerName, ignoreCase = true)) {
-                        return
+                else if(isSingleControllerRequest(request)) {
+                    // Do nothing if the joint or limb isn't in our controllerName.
+                    val joint: Joint=request.joint
+                    val cName: String=request.control.controller
+                    val limb: Limb=request.limb
+                    if(!joint.equals(Joint.NONE)) {
+                        val mc: MotorConfiguration=configurationsByJoint[joint] ?: return
                     }
-                }
-                else if (!limb.equals(Limb.NONE) ) {
-                    val count = configurationsForLimb(limb).size
-                    if (count == 0) {
-                        return
+                    else if(!cName.isEmpty()) {
+                        if(!cName.equals(controllerName, ignoreCase=true)) {
+                            return
+                        }
+                    }
+                    else if(!limb.equals(Limb.NONE)) {
+                        val count=configurationsForLimb(limb).size
+                        if(count == 0) {
+                            return
+                        }
+                    }
+                    else {
+                        val property: JointDynamicProperty=request.jointDynamicProperty
+                        LOGGER.info(String.format("%s(%s).receiveRequest: %s (%s)",
+                                CLSS, controllerName, request.type.name, property.name))
                     }
                 }
                 else {
-                    val property: JointDynamicProperty = request.jointDynamicProperty
-                    LOGGER.info(String.format("%s(%s).receiveRequest: %s (%s)",
-                        CLSS,controllerName,request.type.name,property.name))
+                    LOGGER.info(String.format("%s(%s).receiveRequest: multi-controller request (%s)",
+                            CLSS, controllerName, request.type.name))
                 }
+                requestQueue.addLast(request)
+                // LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
+                condition.signal()
             }
-            else {
-                LOGGER.info(String.format("%s(%s).receiveRequest: multi-controller request (%s)",
-                    CLSS,controllerName,request.type.name))
+            finally {
+                lock.unlock()
             }
-            requestQueue.addLast(request)
-            // LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
-            condition.signal()
-        }
-        finally {
-            lock.unlock()
-        }
     }
 
     /**
@@ -235,8 +239,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                     synthesizeResponse(req)
                 }
             }
-            catch (ie: InterruptedException) {
-            }
+            catch (ie: InterruptedException) { }
             finally {
                 lock.unlock()
             }
@@ -245,7 +248,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
 
     // ============================= Private Helper Methods =============================
     // Create a response for a request that can be handled immediately. There aren't many of them.
-    private suspend fun handleLocalRequest(request: MessageBottle): MessageBottle {
+    private suspend fun handleLocalRequest(request: MessageBottle) {
         // The following two requests simply use the current positions of the motors, whatever they are
         if (request.type.equals(RequestType.COMMAND)) {
             val command: CommandType = request.command
@@ -262,7 +265,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 request.error = msg
             }
         }
-        return request
     }
 
     /**
@@ -758,6 +760,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     }
 
     private val CLSS = "MotorController"
+    private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     private val BAUD_RATE = 1000000
     private val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
@@ -767,6 +770,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     override val controllerType = ControllerType.MOTOR
 
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
         port = p
         motorManager = parent
         lock = ReentrantLock()
@@ -777,5 +781,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         responseQueue = LinkedList<MessageBottle>()
         timeOfLastWrite = System.nanoTime() / 1000000
         running = false
+        job = Job()
     }
 }

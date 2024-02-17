@@ -47,9 +47,9 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * and a user terminal. A few messages are intercepted that totally local
      * in nature (SLEEP,WAKE).
      *
-     * A response to a request that started here will have the source as Termonal.
-     *
-     * When run autonomously (like as a system service), the terminal is not used.
+     * A response to a request that starts here will have the source as Termonal.
+     * When the application is run autonomously (like as a system service), the
+     * terminal is not used.
      */
     @DelicateCoroutinesApi
     override suspend fun execute(): Unit = coroutineScope {
@@ -59,7 +59,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
             /* select() in coroutine to balance sends/receives from DIspatcher */
             job = scope.launch(Dispatchers.IO) {
                 while (running) {
-                    if (DEBUG) LOGGER.info(String.format("%s.execute waiting for select", CLSS))
                     print(prompt)
                     select<MessageBottle> {
                         stdoutChannel.onReceive() { it ->
@@ -68,7 +67,6 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                         }
                         handleUserInput().onAwait{it}
                     } // End select
-                    if (DEBUG) LOGGER.info(String.format("%s.execute select completed", CLSS))
                 }
             }
         }
@@ -100,11 +98,12 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
      * Read from stdin, blocked. Use ANTLR to convert text into a message bottle.
      * async returns  a deferred value.
      */
+    @DelicateCoroutinesApi
     fun handleUserInput(): Deferred<MessageBottle> =
         GlobalScope.async(Dispatchers.IO) {
             var request = MessageBottle(RequestType.NONE)
             val text = readln()
-            if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:returning %s", CLSS, text))
+            if (DEBUG) LOGGER.info(String.format("%s.handleUserInput: %s", CLSS, text))
             if (text.isNotEmpty()) {
                 request = parser.parseStatement(text)
                 request.source = controllerName
@@ -117,7 +116,8 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                 print(prompt)           // Prompt for new input
             }
             else if (isLocalRequest(request)) {
-                val m = handleLocalRequest(request)
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest:%s",CLSS,request.text));
+                request = handleLocalRequest(request)
             }
             else if (request.type.equals(RequestType.NOTIFICATION)) {
                 if (DEBUG) LOGGER.info(
@@ -127,20 +127,17 @@ class Terminal(parent: Controller,stdin: Channel<MessageBottle>,stdout: Channel<
                 print(prompt)
             }
             else {
-                stdinChannel.send(request)
                 if (DEBUG) LOGGER.info(
-                    String.format("%s.execute request sent to dispatcher", CLSS)
-                )
+                        String.format("%s.execute request sent to dispatcher", CLSS))
+                stdinChannel.send(request)
             }
             request
         }
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest:%s",CLSS,request.text));
         if (request.type==RequestType.COMMAND) {
             val command: CommandType = request.command
-            LOGGER.info(String.format("%s.handleLocalRequest: command=%s",CLSS,command));
             if( command.equals(CommandType.SLEEP) ){
                 ignoring = true
             }

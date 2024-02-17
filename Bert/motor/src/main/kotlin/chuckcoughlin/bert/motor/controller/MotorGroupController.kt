@@ -9,16 +9,16 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
+import com.google.gson.GsonBuilder
 import jssc.SerialPort
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
 import java.util.*
 import java.util.logging.Logger
-import com.google.gson.GsonBuilder
 
 /**
- * The MotorGroupController receives requests from the server having to do with
+ * The MotorGroupController receives requests from the dispatcher that have to do with
  * the Dynamixel motors. This controller then dispenses the request to the multiple
  * MotorControllers receiving results via a call-back. An await-signal scheme
  * is used to present a synchronized method interface to the server.
@@ -43,6 +43,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     private val responseChannel = Channel<MessageBottle>()
     private val motorNameById: MutableMap<Int, String>
     var running: Boolean
+    private var job: Job
     override var controllerCount: Int = 0
 
     /**
@@ -50,33 +51,42 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      */
     @DelicateCoroutinesApi
     override suspend fun execute() {
-        LOGGER.info(String.format("%s(%s).start: Initializing ...",CLSS, controllerName))
-
-        // Port is open, now use it.
-        scope.launch(Dispatchers.IO) {
-            while (running) {
-                select<Unit> {
-                    /**
-                     * On receipt of a message from the SerialPort,
-                     * decypher, forward to the MotorManager.
-                     */
-                    responseChannel.onReceive() {
-                        handleAggregatedResponse(it)
-                    }
-                    /*
-                     * The parent request is a motor command. Convert it
-                     * into a message for the SerialPort amd write.
-                     */
-                    parentRequestChannel.onReceive() {
-                        processRequest(it)   // stdOut
+        if (!running) {
+            LOGGER.info(String.format("%s.execute: started...", CLSS))
+            running = true
+            LOGGER.info(String.format("%s(%s).execute: Initializing ...",CLSS, controllerName))
+            // Port is open, now use it.
+            job = scope.launch(Dispatchers.IO) {
+                while (running) {
+                    select<MessageBottle> {
+                        /**
+                         * On receipt of a message from the SerialPort,
+                         * decypher, forward to the MotorManager.
+                         */
+                        responseChannel.onReceive() {
+                            handleAggregatedResponse(it)
+                        }
+                        /*
+                         * The parent request is a motor command. Convert it
+                         * into a message for the SerialPort amd write.
+                         */
+                        parentRequestChannel.onReceive() {
+                            processRequest(it)
+                        }
                     }
                 }
             }
         }
+        else {
+            LOGGER.warning(String.format("%s.execute: attempted to start, but already running...", CLSS))
+        }
     }
 
     override suspend fun shutdown() {
-        running = false
+        if (running) {
+            running = false
+            job.cancel()
+        }
     }
 
 
@@ -97,7 +107,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * @param request
      * @return the response, usually containing current joint positions.
      */
-    suspend fun processRequest(request: MessageBottle) {
+    suspend fun processRequest(request: MessageBottle):MessageBottle {
         if (canHandleImmediately(request)) {
             parentResponseChannel.send(createResponseForLocalRequest(request))
         }
@@ -109,6 +119,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 CLSS,request.type.name))
             requestChannel.send(request)     // All motor controllers receive
         }
+        return request
     }
     // =========================== Motor Manager Interface ====================================
     /**
@@ -118,15 +129,16 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * by synchronized.
      * @param rsp the original request
      */
-    override suspend fun handleAggregatedResponse(response: MessageBottle) {
+    override suspend fun handleAggregatedResponse(response: MessageBottle):MessageBottle {
         val count: Int = response.incrementResponderCount()
-        LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
+        if(DEBUG) LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
             CLSS,response.type.name,count,controllerCount))
         if (count >= controllerCount) {
-            LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",
+            if(DEBUG) LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",
                 CLSS ))
             parentResponseChannel.send(response)
         }
+        return response
     }
 
     /**
@@ -135,15 +147,16 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * result to the dispatcher.
      * @param rsp the response
      */
-    override suspend fun handleSynthesizedResponse(response: MessageBottle) {
+    override suspend fun handleSynthesizedResponse(response: MessageBottle) :MessageBottle{
         val count: Int = response.incrementResponderCount()
-        LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",
+        if(DEBUG)LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",
             CLSS,response.type.name,count,controllerCount) )
         if (count >= controllerCount) {
-            LOGGER.info(String.format("%s.handleSynthesizedResponse: all controllers accounted for: responding ...",
+            if(DEBUG) LOGGER.info(String.format("%s.handleSynthesizedResponse: all controllers accounted for: responding ...",
                 CLSS) )
             parentResponseChannel.send(response)
         }
+        return response
     }
 
     /**
@@ -151,8 +164,9 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * alone. It has modified the request directly. Forward result to the Dispatcher.
      * @param response the message to be forwarded.
      */
-    override suspend fun handleSingleControllerResponse(response: MessageBottle) {
+    override suspend fun handleSingleControllerResponse(response: MessageBottle):MessageBottle {
         parentResponseChannel.send(response)
+        return response
     }
 
     // =========================== Private Helper Methods =====================================
@@ -204,10 +218,10 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
             val mc: MotorConfiguration? = RobotModel.motors[joint]
             if (mc != null) {
                 // The request can be for either a definition or dynamic property
-                if (request.jointDefinitionProperty == JointDefinitionProperty.NONE) {
+                if (request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
                     // Dynamic property
                     val property = request.jointDynamicProperty
-                    LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
+                    if(DEBUG) LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
                         CLSS, request.type.name, property.name, joint.name))
 
                     when (property) {
@@ -250,7 +264,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 else {
                     // Configuration property
                     val property = request.jointDefinitionProperty
-                    LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
+                    if(DEBUG)LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
                         CLSS, request.type.name, property.name, joint.name))
                     when (property) {
                         JointDefinitionProperty.ID -> {
@@ -299,7 +313,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
             for (controller in motorControllers) {
                 val list: MutableCollection<MotorConfiguration> = controller.configurations
                 for (mc in list) {
-                    LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
+                    if(DEBUG)LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
                         mc.joint, mc.id, mc.type.name, mc.minAngle, mc.maxAngle,mc.offset,
                         if( mc.isDirect ) "" else "(indirect)"))
                 }
@@ -308,7 +322,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
             // Either a definition property or dynamic property
             val property = request.jointDynamicProperty
-            LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
+            if(DEBUG)LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s for all motors",
                 CLSS, request.type.name, property.name))
             val mcs: Map<Joint, MotorConfiguration> = RobotModel.motors
             var mcList = mutableListOf<MotorConfiguration>()
@@ -369,9 +383,8 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                             }
                         }
                     }
-
                 }
-                LOGGER.info(text)
+                if(DEBUG) LOGGER.info(text)
             }
             val gson = GsonBuilder().setPrettyPrinting().create()
             text = gson.toJson(mcList)
@@ -439,6 +452,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     }
 
     private val CLSS = "MotorGroupController"
+    private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     override val controllerName = CLSS
     override val controllerType = ControllerType.MOTORGROUP
@@ -448,6 +462,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * motors all communicating on the same serial port.
      */
     init  {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_GROUP)
         motorControllers = mutableListOf<MotorController>()
         motorNameById    = mutableMapOf<Int, String>()
         running = false
@@ -480,7 +495,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                     }
                 }
 
-                LOGGER.info(String.format("%s.initialize: Created motor controller %s",
+                if(DEBUG) LOGGER.info(String.format("%s.initialize: Created motor controller %s",
                     CLSS,controller.controllerName))
             }
             controllerCount = motorControllers.size
@@ -488,5 +503,6 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         else {
             controllerCount = 0
         }
+        job=Job()
     }
 }
