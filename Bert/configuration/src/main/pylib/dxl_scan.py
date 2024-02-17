@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/bin/python3
 """
    Copyright 2024. Charles Coughlin. All Rights Reserved.
    GPL2 License because of PyPot
