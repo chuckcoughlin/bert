@@ -1,17 +1,20 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 
 package chuckcoughlin.bertspeak
 
+import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.Manifest
 import android.os.Bundle
 import android.os.StrictMode
-import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
 import chuckcoughlin.bertspeak.db.DatabaseManager
@@ -34,6 +37,7 @@ class BertSpeakActivity : AppCompatActivity() {
             StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
                 .detectLeakedClosableObjects().build()
         )
+        checkPermissions()
 
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
@@ -83,6 +87,16 @@ class BertSpeakActivity : AppCompatActivity() {
         DatabaseManager.initialize()
     }
 
+    /**
+     * The visualizer needs run-time permissions.
+     * If permissions have not been granted in the tablet settings, OKs are requested on application startup.
+     */
+    private fun checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.RECORD_AUDIO),RCODE)
+        }
+    }
+
     fun getScreenWidth(): Int {
         return Resources.getSystem().displayMetrics.widthPixels
     }
@@ -91,7 +105,9 @@ class BertSpeakActivity : AppCompatActivity() {
         return Resources.getSystem().displayMetrics.heightPixels
     }
 
+
     private val CLSS = "BertSpeakActivity"
+    private val RCODE= 23
 
     init {
         Log.d(CLSS, "Main activity init ...")
