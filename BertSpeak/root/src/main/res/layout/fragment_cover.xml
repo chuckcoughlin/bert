@@ -47,12 +47,12 @@
         />
     <ImageView
         android:id="@+id/fragmentCoverImage"
-        android:layout_width="@dimen/cover_image_width"
-        android:layout_height="@dimen/cover_image_height"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:contentDescription="@string/coverDescription"
         android:src="@drawable/recliner"
         android:adjustViewBounds="true"
-        android:scaleType="fitXY"
+        android:scaleType="fitCenter"
         android:layout_marginStart="@dimen/cover_image_left_margin"
         android:layout_marginEnd="2dp"
         android:layout_marginTop="@dimen/cover_topMargin"
@@ -70,7 +70,6 @@
         android:layout_margin="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/layoutSocket"
-        app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
@@ -98,7 +97,6 @@
         android:orientation="vertical"
         app:layout_constraintStart_toEndOf="@+id/layoutBluetoothStatus"
         app:layout_constraintEnd_toStartOf="@+id/layoutVoice"
-        app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
@@ -128,7 +126,6 @@
         app:layout_constraintStart_toEndOf="@+id/layoutSocket"
         app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintTop_toBottomOf="@+id/fragmentCoverImage"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
@@ -206,6 +203,15 @@
         app:layout_constraintStart_toEndOf="@+id/coverVertical2"
         app:layout_constraintTop_toBottomOf="@+id/volumeAdjustTitle"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/stopButton"/>
+    <!-- Button to shutdown the app -->
+    <chuckcoughlin.bertspeak.ui.StatusImageButton
+        android:id="@+id/stopButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/lightGray"
+        android:src="@drawable/ball_red"
+        app:layout_constraintStart_toEndOf="@+id/coverVertical2"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
