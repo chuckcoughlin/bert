@@ -16,6 +16,7 @@
     <dimen name="cover_topMargin">2dp</dimen>
     <dimen name="cover_parameter_text_size">24sp</dimen>
     <dimen name="cover_parameter_top_margin">24dp</dimen>
+    <dimen name="cover_image_left_margin">2dp</dimen>
     <dimen name="cover_image_top_margin">12dp</dimen>
     <dimen name="cover_image_height">520dp</dimen>
     <dimen name="cover_image_width">782dp</dimen>

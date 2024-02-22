@@ -18,6 +18,7 @@
     <string name="animationRightTitle">Right</string>
     <!-- Strings for Cover tab-->
     <string name="coverDescription">"Bert Reclining"</string>
+    <string name="coverImageTitle">Bert</string>
     <string name="coverParameterBluetooth">Bluetooth</string>
     <string name="coverParameterSocket">Socket</string>
     <string name="coverParameterVoice">Voice</string>
