@@ -249,9 +249,10 @@ likewise formulated into audible sentences.
 ### g - Tablet Application <a id="bertspeak"></a>
 [toc](#table-of-contents)<br/>
 
+![Cover](/images/bertspeak_cover.png)
+
 * ![green](/images/ball_green.png) ```Cover```
 
-![Cover](/images/bertspeak_cover.png)
 The cover page shows a reclining picture of
 the robot. It also contains controls to
 enable/disable speech and to adjust the
@@ -265,29 +266,40 @@ commands below place the robot into a state where it ignores ambient speech unti
       ignore me
       pay attention
   ```
-* ![gray](/images/ball_gray.png) ```FaceRec```
+
 ![Facial Recognition](/images/bertspeak_facerec.png)
+
+* ![gray](/images/ball_gray.png) ```FaceRec```
+
 This is the facial recognition page that
 will eventually allow the application to
 recognize whoever is handling the tablet.
 
-* ![gray](/images/ball_gray.png) ```Animation```
 ![Animation](/images/bertspeak_animation.png)
+
+* ![gray](/images/ball_gray.png) ```Animation```
+
 This panel is planned to show the robot position
 in real-time .
 
-* ![yellow](/images/ball_yellow.png) ```Logging```
 ![Logging](/images/bertspeak_logs.png)
+
+* ![yellow](/images/ball_yellow.png) ```Logging```
+
 Validate that notifications and internal
 application errors are logged to this panel.
 
-* ![yellow](/images/ball_yellow.png) ```Settings```
 ![Settings](/images/bertspeak_settings.png)
+
+* ![yellow](/images/ball_yellow.png) ```Settings```
 There are a small number of configurable parameters
 that are settable on this page.
 
+
+![Transcript](/images/bertspeak_transcript.png)
 * ![yellow](/images/ball_yellow.png) ```Transcript```
-![Transcript](/images/bertspeak_transcript.png) - Validate that the tablet keeps a record of spoken commands and corresponding responses from the robot.
+
+Validate that the tablet keeps a record of spoken commands and corresponding responses from the robot.
 
 ### h - Static Parameters <a id="parameters"></a>
 [toc](#table-of-contents)<br/>
