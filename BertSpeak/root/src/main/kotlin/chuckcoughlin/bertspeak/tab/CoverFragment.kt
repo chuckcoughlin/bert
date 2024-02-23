@@ -49,6 +49,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
 
     private lateinit var bluetoothStatusButton: StatusImageButton
     private lateinit var socketStatusButton: StatusImageButton
+    private lateinit var stopStatusButton: StatusImageButton
     private lateinit var voiceStatusButton: StatusImageButton
 
     // Inflate the view. It holds a fixed image of the robot
@@ -57,9 +58,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         val binding = FragmentCoverBinding.inflate(inflater, container, false)
         bluetoothStatusButton = binding.bluetoothStatus  // ToggleButton
         socketStatusButton    = binding.socketStatus
+        stopStatusButton      = binding.stopButton
         voiceStatusButton     = binding.voiceStatus
         bluetoothStatusButton.isClickable = true // Not really buttons, just indicators
         bluetoothStatusButton.setOnClickListener(this)
+        stopStatusButton.setOnClickListener(this)
         socketStatusButton.isClickable = true
         voiceStatusButton.isClickable = true
         updateStatusButton(bluetoothStatusButton, BLUETOOTH, ManagerState.OFF)
@@ -125,10 +128,10 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
      */
     private fun updateStatusButton(btn: StatusImageButton, type: ManagerType,state: ManagerState) {
         Log.i(name, String.format("updateStatusButton (%s):%s",type.name,state.name))
-        requireActivity().runOnUiThread(Runnable {
-            btn.visibility = View.INVISIBLE
-            btn.state = state
-            btn.visibility = View.VISIBLE
+            requireActivity().runOnUiThread(Runnable {
+                btn.visibility = View.INVISIBLE
+                btn.state = state
+                btn.visibility = View.VISIBLE
         })
     }
 
@@ -173,11 +176,16 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             socketStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SOCKET.name))
             }
+            // The stop button triggers an immediate shutdown
+            stopStatusButton -> {
+                Log.i(name, String.format("onClick: application shutdown",))
+                requireActivity().finishAndRemoveTask()
+                System.exit(0)
+            }
             voiceStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.STATUS.name))
             }
         }
-
     }
 
     // ================== OnDataCaptureListener ===============
