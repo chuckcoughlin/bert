@@ -8,7 +8,7 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="list_vertical_padding">4dp</dimen>
     <dimen name="row_padding_vertical">10dp</dimen>
-    <dimen name="log_field_padding">1dp</dimen>
+    <dimen name="log_field_padding">0dp</dimen>
     <dimen name="log_transition_z">2dp</dimen>
     <!-- Kludge for mismatch between emulator and tablet -->
     <dimen name="hidden_height">2dp</dimen>
@@ -17,6 +17,7 @@
     <dimen name="cover_parameter_text_size">24sp</dimen>
     <dimen name="cover_parameter_top_margin">24dp</dimen>
     <dimen name="cover_image_left_margin">2dp</dimen>
+    <dimen name="cover_image_right_margin">2dp</dimen>
     <dimen name="cover_image_top_margin">12dp</dimen>
     <dimen name="cover_image_height">520dp</dimen>
     <dimen name="cover_image_width">782dp</dimen>

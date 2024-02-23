@@ -249,12 +249,13 @@ likewise formulated into audible sentences.
 ### g - Tablet Application <a id="bertspeak"></a>
 [toc](#table-of-contents)<br/>
 
-* ![yellow](/images/ball_yellow.png) ```Cover```
+* ![green](/images/ball_green.png) ```Cover```
+
 ![Cover](/images/bertspeak_cover.png)
 The cover page shows a reclining picture of
 the robot. It also contains controls to
 enable/disable speech and to adjust the
-volume,
+volume, and to kill the application.
 
 * ![yellow](/images/ball_yellow.png) ```Ignoring```
 It can be annoying when the robot

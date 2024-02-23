@@ -33,9 +33,9 @@
     <!-- The upper left view is the image with a panel of status buttons underneath.-->
     <TextView
         android:id="@+id/imageTitle"
-        android:layout_width="@dimen/cover_image_width"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="0dp"
+        android:layout_marginEnd="@dimen/cover_image_right_margin"
         android:layout_marginStart="@dimen/cover_image_left_margin"
         android:background="@drawable/border_gray"
         android:text="@string/coverImageTitle"
@@ -43,7 +43,7 @@
         android:textSize="@dimen/cover_waveform_text_size"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/coverVertical2"
+        app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         />
     <ImageView
         android:id="@+id/fragmentCoverImage"
@@ -54,7 +54,7 @@
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:layout_marginStart="@dimen/cover_image_left_margin"
-        android:layout_marginEnd="2dp"
+        android:layout_marginEnd="@dimen/cover_image_right_margin"
         android:layout_marginTop="@dimen/cover_topMargin"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageTitle"
@@ -150,7 +150,7 @@
     <!-- The is a text label above the wave-form meter -->
     <TextView
         android:id="@+id/waveformTitle"
-        android:layout_width="@dimen/cover_waveform_width"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp"
@@ -166,7 +166,7 @@
     <!-- The left-most panel is a slide control for the voice volume -->
     <chuckcoughlin.bertspeak.ui.waveform.WaveformView
         android:id="@+id/waveformView"
-        android:layout_width="@dimen/cover_waveform_width"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp"
