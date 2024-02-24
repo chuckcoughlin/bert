@@ -254,8 +254,8 @@ likewise formulated into audible sentences.
 * ![green](/images/ball_green.png) ```Cover```
 
 The cover page shows a reclining picture of
-the robot. It also contains controls to
-enable/disable speech and to adjust the
+the robot and an audio visualizer. It also contains controls to
+enable/disable speech, to adjust the
 volume, and to kill the application.
 
 * ![yellow](/images/ball_yellow.png) ```Ignoring```
@@ -291,7 +291,8 @@ application errors are logged to this panel.
 
 ![Settings](/images/bertspeak_settings.png)
 
-* ![yellow](/images/ball_yellow.png) ```Settings```
+* ![green](/images/ball_green.png) ```Settings```
+
 There are a small number of configurable parameters
 that are settable on this page.
 

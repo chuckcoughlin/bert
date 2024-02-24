@@ -22,14 +22,16 @@ object BertConstants {
     const val BERT_SERVER = "Server"
     const val BERT_PORT = "Port"
     const val BERT_PAIRED_DEVICE = "Paired Device"
-    const val BERT_VERSION = "Database Version"
     const val BERT_SIMULATED_CONNECTION = "Simulated Connection"
+    const val BERT_VERSION = "Database Version"
+    const val BERT_VOLUME = "Volume"
 
     // These are the default values for the settings
     const val BERT_SERVER_HINT = "10.0.0.42"
     const val BERT_PORT_HINT = "11046"
     const val BERT_PAIRED_DEVICE_HINT = "bert"
     const val BERT_VERSION_HINT = "2"
+    const val BERT_VOLUME_HINT = "0.5"
     const val BERT_SERVICE_UUID_HINT = "33001101-0000-2000-8080-00815FAB34FF"
     const val BERT_SIMULATED_CONNECTION_HINT = "false"
 
@@ -43,11 +45,6 @@ object BertConstants {
     const val NO_JOB    = -1
     const val NO_NAME  = "NO_NAME"
     const val NO_TITLE  = "NO_TITLE"
-
-
-    // Notifications
-    const val NOTIFICATION_CHANNEL_ID = "speechServiceChannel"
-    const val NOTIFICATION_CHANNEL_NAME = "Spoken Text Channel"
 
     // Name of the main node on the tablet
     const val MAIN_NODE_NAME = "tablet_node_main"

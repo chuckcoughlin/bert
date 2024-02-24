@@ -7,14 +7,15 @@
         android:id="@+id/fragmentSettingsText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginBottom="20dp"
-        android:layout_marginEnd="@dimen/activity_horizontal_margin"
-        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/cover_image_right_margin"
+        android:layout_marginStart="@dimen/cover_image_left_margin"
+        android:layout_marginBottom="2dp"
         android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:gravity="center"
-        android:textAppearance="@style/SettingsTextAppearance" />
-
+        android:background="@drawable/border_gray"
+        android:text="@string/coverImageTitle"
+        android:textAlignment="center"
+        android:textSize="@dimen/cover_waveform_text_size"
+        />
     <!-- Create a list of name/value pairs (the particular list id is required)
          Do not use a ScrollView as scrolling is already implemented by ListView -->
     <ListView

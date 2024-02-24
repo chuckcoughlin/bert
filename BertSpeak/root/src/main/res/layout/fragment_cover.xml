@@ -197,6 +197,7 @@
         android:layout_height="0dp"
         android:background="@color/lightGray"
         android:max="100"
+        android:min="0"
         android:progress="50"
         android:progressDrawable="@drawable/seekbar_progress"
         android:thumb="@drawable/seekbar_thumb"

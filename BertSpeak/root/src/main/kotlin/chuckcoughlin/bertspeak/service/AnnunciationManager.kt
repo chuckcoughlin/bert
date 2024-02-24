@@ -95,6 +95,20 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 			dispatcher.stopSpeech()
 		}
 	}
+	fun restoreAudio() {
+		//AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		//audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
+	}
+	fun setVolume(vol:Int) {
+		//AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		//audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
+	}
+	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
+	// annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
+	fun suppressAudio() {
+		//AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		//audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+	}
 
 	val CLSS = "AnnunciationManager"
 	val UTTERANCE_ID = CLSS

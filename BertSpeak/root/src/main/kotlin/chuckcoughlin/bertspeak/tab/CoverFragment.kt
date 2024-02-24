@@ -17,10 +17,13 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.R
+import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
+import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
+import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
@@ -73,8 +76,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         waveformView.setRenderer(
             rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY)
         )
+        // Seek Bar 0-100
         seekBar = binding.verticalSeekbar
         seekBar.setOnSeekBarChangeListener(this)
+        val prog = (DatabaseManager.getSetting(BertConstants.BERT_VOLUME)).toDouble()
+        seekBar.progress = (prog*100).toInt()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
         return binding.root
@@ -201,14 +207,13 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     }
 
     // ====================OnSeekBarChangeListener =====================
-    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+    override fun onStopTrackingTouch(seekBar: SeekBar) {}
+    override fun onStartTrackingTouch(seekBar: SeekBar) {}
 
-
-    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-
-    override fun onProgressChanged(seekBar: SeekBar?, progress: Int,fromUser: Boolean) {
-        //sliderText.setText("" + progress)
+    override fun onProgressChanged(seekBar: SeekBar, progress: Int,fromUser: Boolean) {
+        val prog = progress.toDouble()/100.0
+        val nv = NameValue(BertConstants.BERT_VOLUME,prog.toString())
+        DatabaseManager.updateSetting(nv)
     }
 
 

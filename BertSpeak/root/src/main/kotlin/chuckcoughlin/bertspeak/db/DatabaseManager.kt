@@ -104,6 +104,12 @@ object DatabaseManager {
                     BertConstants.BERT_SIMULATED_CONNECTION_HINT)
             execLenient(statement)
 
+            statement =
+                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                    BertConstants.BERT_VOLUME, BertConstants.BERT_VOLUME_HINT,
+                    BertConstants.BERT_VOLUME_HINT)
+            execLenient(statement)
+
             //Log.i(CLSS, String.format(
              //   "initialize: Guarantee %s settings exist in %s at %s",
             //BertConstants.BERT_SIMULATED_CONNECTION,BertConstants.DB_NAME, statement))
@@ -114,10 +120,11 @@ object DatabaseManager {
     // ===================== Settings =============================
     /**
      * Read name/value pairs from the database.
+     * Return an empty string if the field is not found
      */
-    fun getSetting(name: String): String? {
+    fun getSetting(name: String): String {
         synchronized(this) {
-            var result: String? = null
+            var result: String = ""
             val args = arrayOfNulls<String>(1) // Use for PreparedStatement
             args[0] = name
             val SQL = "SELECT value FROM Settings WHERE Name=?"
@@ -157,11 +164,19 @@ object DatabaseManager {
      * Save a single setting to the database.
      * @param nv the subject name-value pair
      */
-    fun updateSetting(nv: NameValue?) {
+    fun updateSetting(nv: NameValue) {
         synchronized(this) {
+            // Validate
+            if( nv.name.equals(BertConstants.BERT_VOLUME)) {
+                var value = nv.value.toDouble()
+                if( value == Double.NaN ) value = 0.5
+                else if( value >1.0 )   value = 1.0
+                else if( value<0.0  )   value = 0.0
+                nv.value = value.toString()
+             }
             val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
             val bindArgs = arrayOfNulls<String>(3)
-            bindArgs[0] = nv!!.value
+            bindArgs[0] = nv.value
             bindArgs[1] = nv.hint
             bindArgs[2] = nv.name
             database.execSQL(SQL, bindArgs)
