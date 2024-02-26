@@ -7,6 +7,7 @@ package chuckcoughlin.bertspeak.tab
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
+import android.os.Build.VERSION_CODES.R
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,10 +17,8 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.lifecycle.Lifecycle
-import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
-import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
@@ -30,6 +29,7 @@ import chuckcoughlin.bertspeak.service.ManagerType
 import chuckcoughlin.bertspeak.service.ManagerType.BLUETOOTH
 import chuckcoughlin.bertspeak.service.ManagerType.SOCKET
 import chuckcoughlin.bertspeak.service.ManagerType.SPEECH
+import chuckcoughlin.bertspeak.service.ManagerType.STATUS
 import chuckcoughlin.bertspeak.service.PermissionManager
 import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
@@ -72,7 +72,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         updateStatusButton(socketStatusButton, SOCKET,ManagerState.OFF)
         updateStatusButton(voiceStatusButton, SPEECH,ManagerState.OFF)
         val rendererFactory = RendererFactory()
-        waveformView = binding.root.findViewById(R.id.waveformView)
+        waveformView = binding.waveformView
         waveformView.setRenderer(
             rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY)
         )
@@ -81,6 +81,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         seekBar.setOnSeekBarChangeListener(this)
         val prog = (DatabaseManager.getSetting(BertConstants.BERT_VOLUME)).toDouble()
         seekBar.progress = (prog*100).toInt()
+        DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
         return binding.root
@@ -173,7 +174,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     }
 
     // ================== OnClickListener ===============
-    // One of the status buttons has been clicked
+    // One of the status buttons has been clicked.
     override fun onClick(v: View) {
         when(v) {
             bluetoothStatusButton -> {
@@ -190,6 +191,14 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             }
             voiceStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.STATUS.name))
+                if( voiceStatusButton.state.equals(ManagerState.OFF)) {
+                    DispatchService.updateManagerStatus(ManagerType.ANNUNCIATOR,ManagerState.ACTIVE)
+                }
+                else if( voiceStatusButton.state.equals(ManagerState.ACTIVE)) {
+                    DispatchService.updateManagerStatus(ManagerType.ANNUNCIATOR,ManagerState.OFF)
+                }
+
+
             }
         }
     }
@@ -211,9 +220,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     override fun onStartTrackingTouch(seekBar: SeekBar) {}
 
     override fun onProgressChanged(seekBar: SeekBar, progress: Int,fromUser: Boolean) {
-        val prog = progress.toDouble()/100.0
-        val nv = NameValue(BertConstants.BERT_VOLUME,prog.toString())
-        DatabaseManager.updateSetting(nv)
+        DispatchService.setVolume(progress)
     }
 
 

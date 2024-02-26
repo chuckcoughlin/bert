@@ -196,14 +196,19 @@ class DispatchService(ctx: Context){
         fun clear(type: MessageType) {
             instance.textManager.clear(type)
         }
+
         fun restoreAudio() {
             instance.annunciationManager.restoreAudio()
         }
+        // Volume is an integer between 0-100
         fun setVolume(vol:Int) {
             instance.annunciationManager.setVolume(vol)
         }
         fun suppressAudio() {
             instance.annunciationManager.suppressAudio()
+        }
+        fun updateManagerStatus(mgr:ManagerType,state:ManagerState) {
+            instance.statusManager.updateState(mgr, state)
         }
     }
     val CLSS = "DispatchService"

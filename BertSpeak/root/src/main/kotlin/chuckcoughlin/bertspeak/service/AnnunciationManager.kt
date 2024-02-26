@@ -4,17 +4,27 @@
  */
 package chuckcoughlin.bertspeak.service
 
+import android.content.Context
+import android.content.Context.AUDIO_SERVICE
+import android.media.AudioManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.getSystemService
+import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService.Companion.restoreAudio
 import chuckcoughlin.bertspeak.service.DispatchService.Companion.suppressAudio
 import chuckcoughlin.bertspeak.speech.Annunciator
 import kotlinx.coroutines.DelicateCoroutinesApi
+import java.lang.NumberFormatException
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Handle the audible annunciation of results to the user.
@@ -27,7 +37,9 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	override var managerState = ManagerState.OFF
 	val dispatcher: DispatchService
 	var annunciator: Annunciator
+	private val audio: AudioManager
 	private val phrases: Array<String>
+	private var vol :Int   // Current volume
 
 	override suspend fun run() {}
 	override fun start() {
@@ -69,12 +81,16 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 
 		}
 	}
+	// Annunciate the supplied text.
+	// Turn off the audio when not in use.
 	@Synchronized
 	fun speak(msg: TextData) {
-		if(msg.messageType == MessageType.ANS) {
-			restoreAudio()
-			annunciator.speak(msg.message)
-			suppressAudio()
+		if( managerState.equals(ManagerState.ACTIVE)) {
+			if(msg.messageType == MessageType.ANS) {
+				restoreAudio(vol)
+				annunciator.speak(msg.message)
+				suppressAudio()
+			}
 		}
 	}
 
@@ -96,18 +112,29 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 		}
 	}
 	fun restoreAudio() {
-		//AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		//audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
+		val pcnt = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toDouble()
+		val maxVol = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+		val vol = ((maxVol*pcnt)/100.0).roundToInt()
+		restoreAudio(vol)
 	}
-	fun setVolume(vol:Int) {
-		//AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		//audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
+	private fun restoreAudio(v:Int) {
+		audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL, v, 0);
+	}
+	/**
+	 * Set the voice stream volume.
+	 * @param pcnt - volume percent of maximum (0-100)
+	 */
+	fun setVolume(pcnt:Int) {
+		val maxVol = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+		val vol = ((maxVol*pcnt)/100.0).roundToInt()
+		val nv = NameValue(BertConstants.BERT_VOLUME,pcnt.toString())
+		DatabaseManager.updateSetting(nv)
+		audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL,vol,AudioManager.FLAG_PLAY_SOUND)
 	}
 	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
 	// annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
 	fun suppressAudio() {
-		//AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		//audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+		audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 	}
 
 	val CLSS = "AnnunciationManager"
@@ -116,7 +143,15 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	init {
 		Log.i(CLSS,"init - initializing annunciator")
 		dispatcher = service
+		audio = dispatcher.context.getSystemService<AudioManager>() as AudioManager
 		annunciator = Annunciator(dispatcher.context, this)
+		try {
+			vol = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toInt()
+		}
+		catch(nfe:NumberFormatException) {
+			// Database entry was not a number
+			vol = 0
+		}
 		// Start phrases to choose from ...
 		phrases = arrayOf(
 			"My speech module is ready",
