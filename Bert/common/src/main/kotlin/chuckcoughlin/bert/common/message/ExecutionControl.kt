@@ -7,7 +7,7 @@ package chuckcoughlin.bert.common.message
  * those wait on a timer. The queued messages may optionally have a timed delay as well.
  *
  * @param delay an idle interval between when this message is
- * first placed on the timer queue and when actually executes. Any time
+ * first placed on the timer queue and when it should execute (~msecs). Any time
  *  spent waiting on the sequential queue is counted toward the delay
  * ("time served").
 */
@@ -18,8 +18,8 @@ data class ExecutionControl(var delay: Long) : Cloneable {
      * to be sent to the Dispatcher. The time is calculated as the message
      * is placed on the timer queue.
      */
-    var executionTime: Long   // ~msecs
-    var repeatInterval: Long  // ~msecs
+    var executionTime : Long   // ~msecs
+    var repeatInterval: Long   // ~msecs
     var originalSource: String
     /* While processing within the MotorController attach a serial message response count to the
     * request so that we can determine when the response is complete.
@@ -30,7 +30,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
     override public fun clone(): ExecutionControl {
         val copy = ExecutionControl(delay)
         copy.controller     = controller
-        copy.executionTime  = executionTime
+        copy.executionTime  = executionTime   // Current time
         copy.repeatInterval = repeatInterval
         copy.originalSource = originalSource
         copy.responseCount  = responseCount
@@ -40,7 +40,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
 
     override fun toString(): String {
         return String.format("%s: message from %s expires in %d ms",
-            CLSS,originalSource,executionTime - System.nanoTime() / 1000000 )
+            CLSS,originalSource,executionTime - (System.nanoTime() / 1000000) )
     }
 
     private val CLSS = "ExecutionControl"
@@ -51,7 +51,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
 
     init {
         controller = BottleConstants.NO_CONTROLLER
-        executionTime  = 0
+        executionTime  = System.nanoTime() / 1000000
         repeatInterval = 0
         responseCount  = 0
         shouldRepeat = false

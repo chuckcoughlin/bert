@@ -56,7 +56,7 @@ temperature (deg C), and voltage (volts). A typical query:
     what is the temperature of your right shoulder x
     what is the torque of your left hip x
 ```
-* ![yellow](/images/ball_yellow.png) ``Name Parameters`` - This set of commands and the next
+* ![green](/images/ball_green.png) ``Name Parameters`` - This set of commands and the next
 are designed for data communication with the tablet. Responses are formatted in JSON. Use the terminal application to list the names of properties available for each joint. There are static and
 dynamic properties. Typical requests:
 ```

@@ -8,7 +8,13 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.logging.Logger
 
 /**
@@ -33,7 +39,7 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
                     if( size>0 ) {
                         LOGGER.info(String.format("%s.execute: delaying with %d msgs", CLSS,size ))
                         val msg = get(0)
-                        period = msg.control.executionTime - System.currentTimeMillis()
+                        period = msg.control.executionTime - (System.nanoTime()/1000000)
                         LOGGER.info(String.format("%s.execute: delaying %d msecs", CLSS,period ))
                         handleCompletion(msg)
                     }
@@ -59,7 +65,7 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
      */
     @Synchronized
     fun addMessage(msg: MessageBottle,cancelScope:Boolean) {
-        msg.control.executionTime = System.currentTimeMillis()+msg.control.delay
+        msg.control.executionTime = (System.nanoTime()/1000000) + msg.control.delay
         var index = 0
         val iter: Iterator<MessageBottle> = iterator()
         while (iter.hasNext()) {

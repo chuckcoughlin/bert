@@ -34,7 +34,8 @@ command:
 // Request for information
 question:
       Salutation?  How Attribute Are You 						# attributeQuestion
-    | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
+    | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion1
+    | What Are Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion2
     | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
     | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
