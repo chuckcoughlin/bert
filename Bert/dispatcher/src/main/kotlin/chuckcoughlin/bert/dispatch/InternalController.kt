@@ -7,7 +7,9 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.common.model.RobotModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.logging.Logger
@@ -118,12 +120,13 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
     }
 
     private val CLSS = "InternalController"
-    private val DEBUG = true
+    private val DEBUG : Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     override val controllerName = CLSS
     override val controllerType = ControllerType.INTERNAL
 
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_INTERNAL)
         running = false
         index = 0
         job = Job() // Parent job

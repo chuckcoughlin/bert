@@ -27,7 +27,7 @@ class SequentialQueue : LinkedList<MessageBottle>() {
      */
     override fun addLast(message: MessageBottle) {
         super.addLast(message)
-        val now = System.nanoTime() / 1000000
+        val now = System.currentTimeMillis()
         message.control.executionTime = (now + message.control.delay)
     }
 
@@ -38,7 +38,7 @@ class SequentialQueue : LinkedList<MessageBottle>() {
      */
     override fun removeFirst(): MessageBottle {
         val msg = super.removeFirst()!!
-        val now = System.nanoTime() / 1000000
+        val now = System.currentTimeMillis()
         if (nextAllowedExecuteTime < now) nextAllowedExecuteTime = now
         if (msg.control.executionTime < nextAllowedExecuteTime) {
             msg.control.executionTime = nextAllowedExecuteTime
@@ -53,7 +53,7 @@ class SequentialQueue : LinkedList<MessageBottle>() {
     }
 
     init {
-        nextAllowedExecuteTime = System.nanoTime() / 1000000 // Work in milliseconds
+        nextAllowedExecuteTime = System.currentTimeMillis() // Work in milliseconds
         locked = false
     }
 }

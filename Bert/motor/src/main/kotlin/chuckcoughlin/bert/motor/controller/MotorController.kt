@@ -611,7 +611,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private fun writeBytesToSerial(bytes: ByteArray) {
         if( RobotModel.useSerial and (bytes.size>0) ) {
             try {
-                val now = System.nanoTime() / 1000000
+                val now = System.currentTimeMillis()
                 val interval = now - timeOfLastWrite
                 if (interval < MIN_WRITE_INTERVAL) {
                     Thread.sleep(MIN_WRITE_INTERVAL - interval)
@@ -620,7 +620,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 LOGGER.info(String.format("%s(%s).writeBytesToSerial: Write interval %d msecs",
                     CLSS, controllerName,interval))
                 val success: Boolean = port.writeBytes(bytes)
-                timeOfLastWrite = System.nanoTime() / 1000000
+                timeOfLastWrite = System.currentTimeMillis()
                 port.purgePort(SerialPort.PURGE_RXCLEAR or SerialPort.PURGE_TXCLEAR) // Force the write to complete
                 if (!success) {
                     LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Failed write of %d bytes to %s",
@@ -779,7 +779,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         configurationsByJoint = HashMap<Joint, MotorConfiguration>()
         requestQueue = LinkedList<MessageBottle>()
         responseQueue = LinkedList<MessageBottle>()
-        timeOfLastWrite = System.nanoTime() / 1000000
+        timeOfLastWrite = System.currentTimeMillis()
         running = false
         job = Job()
     }

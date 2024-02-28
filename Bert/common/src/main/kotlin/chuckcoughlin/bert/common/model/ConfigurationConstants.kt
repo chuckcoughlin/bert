@@ -32,6 +32,7 @@ object ConfigurationConstants {
     const val DEBUG_COMMAND    = "cmd"
     const val DEBUG_DISPATCHER = "dsp"
     const val DEBUG_GROUP      = "grp"
+    const val DEBUG_INTERNAL   = "int"
     const val DEBUG_MOTOR      = "mtr"
     const val DEBUG_TERMINAL   = "ter"
 

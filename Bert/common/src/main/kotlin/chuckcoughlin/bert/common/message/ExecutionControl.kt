@@ -40,7 +40,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
 
     override fun toString(): String {
         return String.format("%s: message from %s expires in %d ms",
-            CLSS,originalSource,executionTime - (System.nanoTime() / 1000000) )
+            CLSS,originalSource,executionTime - (System.currentTimeMillis()) )
     }
 
     private val CLSS = "ExecutionControl"
@@ -51,7 +51,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
 
     init {
         controller = BottleConstants.NO_CONTROLLER
-        executionTime  = System.nanoTime() / 1000000
+        executionTime  = System.currentTimeMillis()
         repeatInterval = 0
         responseCount  = 0
         shouldRepeat = false

@@ -8,6 +8,8 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.RobotModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -39,7 +41,7 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
                     if( size>0 ) {
                         LOGGER.info(String.format("%s.execute: delaying with %d msgs", CLSS,size ))
                         val msg = get(0)
-                        period = msg.control.executionTime - (System.nanoTime()/1000000)
+                        period = msg.control.executionTime - System.currentTimeMillis()
                         LOGGER.info(String.format("%s.execute: delaying %d msecs", CLSS,period ))
                         handleCompletion(msg)
                     }
@@ -65,7 +67,7 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
      */
     @Synchronized
     fun addMessage(msg: MessageBottle,cancelScope:Boolean) {
-        msg.control.executionTime = (System.nanoTime()/1000000) + msg.control.delay
+        msg.control.executionTime = System.currentTimeMillis() + msg.control.delay
         var index = 0
         val iter: Iterator<MessageBottle> = iterator()
         while (iter.hasNext()) {
@@ -73,7 +75,7 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
             if (im.control.executionTime > msg.control.executionTime) {
                 add(index, msg)
                 if( DEBUG ) {
-                    val now = System.nanoTime() / 1000000
+                    val now = System.currentTimeMillis()
                     LOGGER.info(String.format("%s.addMessage: %s scheduled in %d msecs position %d",
                             CLSS, msg.type.name, msg.control.executionTime - now, index))
                 }
@@ -107,12 +109,13 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
     }
 
     private val CLSS = "TimedQueue"
-    private val DEBUG = true
+    private val DEBUG: Boolean
     private val HEARTBEAT_INTERAL = 10000L // 10 secs
     private val POLL_INTERVAL = 10000L
     private val LOGGER = Logger.getLogger(CLSS)
 
     init{
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_INTERNAL)
         stopped = false
         heartbeat = MessageBottle(RequestType.HEARTBEAT)
         heartbeat.text = "heartbeat"
