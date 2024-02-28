@@ -9,7 +9,8 @@ import chuckcoughlin.bert.common.model.JointDynamicProperty
 import java.util.logging.Logger
 
 /**
- * This class is used within a MessageBottle to hold property-value pairs.
+ * This class is used within a MessageBottle to hold joint-property-value objects.
+ * These are used to define a pose.
  */
 class JointPropertyValue()  {
     var joint : Joint

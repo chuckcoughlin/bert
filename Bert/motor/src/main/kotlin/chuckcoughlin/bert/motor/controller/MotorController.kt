@@ -397,20 +397,18 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 }
             }
         }
+        // Assume a dynamic property
         else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val propertyValues = request.getJointValueIterator()
-            if( propertyValues.hasNext() ) {             // There should be only one entry
-                val pv = propertyValues.next()
-                val joint = pv.joint // This is the one we want to freeze
-                val prop = pv.property
-                for (mc in configurationsByJoint.values) {
+            val pv = request.value
+            val joint = request.joint
+            val prop  = request.jointDynamicProperty
+            for (mc in configurationsByJoint.values) {
                     if (mc.joint.equals(joint)) {
                         bytes = DxlMessage.bytesToGetLimits(mc.id)
                         request.control.responseCount = 1 // Status message
                         break
                     }
                 }
-            }
         }
         else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
             val limb = request.limb

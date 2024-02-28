@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2024 Charles Coughlin. All rights reserved.
  * MIT License
  */
 package chuckcoughlin.bert.common.message
@@ -44,6 +44,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     var jointDynamicProperty: JointDynamicProperty         // Possible subject of the original request
     var source: String       // Origin of the request
     var text : String        // Pronounceable text of a response
+    var value: Double
     var control : ExecutionControl  // Parameters dealing with execution of the message
 
     /**
@@ -75,20 +76,18 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         return responderCount
     }
 
+    // Use the joint-property-value list for requests that address multiple joints
     fun addJointValue(j: Joint,prop: JointDynamicProperty, value: Number) {
         jointValues.add(JointPropertyValue(j,prop,value))
     }
-    // Use this version where the request is a query for multiple values
-    fun addJointValue(j: Joint,prop: JointDynamicProperty) {
-        jointValues.add(JointPropertyValue(j,prop,Double.NaN))
-    }
+
     fun clearJointValues() {
         jointValues.clear()
     }
 
     override public fun clone(): MessageBottle {
         val copy = MessageBottle(type)
-        copy.jointValues = jointValues.toMutableList()
+        copy.jointValues  = jointValues.toMutableList()
         copy.appendage   = appendage
         copy.command     = command
         copy.error       = error
@@ -104,6 +103,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         copy.control     = control.clone()
         return copy
     }
+    // Return an iterator for pose joint-values within a single message
     fun getJointValueIterator() : MutableListIterator<JointPropertyValue> {
         return jointValues.listIterator()
     }
@@ -170,6 +170,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         jointDynamicProperty = JointDynamicProperty.NONE
         source = BottleConstants.NO_SOURCE
         text  = ""   // Text is the printable response
+        value = Double.NaN
         control = ExecutionControl(BottleConstants.NO_DELAY)
     }
 }

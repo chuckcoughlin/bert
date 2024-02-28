@@ -8,11 +8,7 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
@@ -21,14 +17,9 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -147,6 +138,7 @@ class Dispatcher(s:Solver) : Controller {
         }
     }
 
+    // Send preliminary messages to ensure a sane starting configuration
     suspend fun initialize() {
         // Set the speed to "normal" rate. Delay to all startup to complete
         var msg = MessageBottle(RequestType.SET_POSE)
@@ -216,7 +208,7 @@ class Dispatcher(s:Solver) : Controller {
         val startCycle = System.currentTimeMillis()
         LOGGER.info(String.format("%s: Cycle %d ...", CLSS, cycleCount))
         // "internal" requests are those that need to be queued on the internal controller
-        if (isInternalRequest(msg)) {
+        if( isInternalRequest(msg) ) {
             val response: MessageBottle = handleInternalRequest(msg)
             toInternalController.send(response)
         }
@@ -226,10 +218,11 @@ class Dispatcher(s:Solver) : Controller {
             if(!response.type.equals(RequestType.NONE))replyToSource(response)
         }
         else if(msg.type.equals(RequestType.HEARTBEAT)) {
-            ; // Do nothing
+            // Do nothing
         }
         else {
-            // Handle motor request. The controller forwards response here via "handleResponse".
+            LOGGER.warning(String.format("%s.dispatchRequest %s from %s is unhandled",
+                    CLSS,msg.type.name,msg.source))
         }
     }
 
@@ -295,8 +288,9 @@ class Dispatcher(s:Solver) : Controller {
         return request
     }
 
-    // Create a response for a request that can be handled immediately. The response is simply the original request
-    // with some text to return to the user.
+    // Create a response for a request that can be handled immediately, that is without
+    // reference to the motors. The response is simply the original request
+    // with altered text to return to the user.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
         LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
         // The following two requests simply use the current positions of the motors, whatever they are

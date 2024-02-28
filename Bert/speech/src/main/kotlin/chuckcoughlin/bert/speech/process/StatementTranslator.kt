@@ -243,17 +243,15 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitHandleListCommand1(ctx: SpeechSyntaxParser.HandleListCommand1Context): Any? {
         bottle.type = RequestType.LIST_MOTOR_PROPERTY
         val pname: String = ctx.Properties().getText() // plural
-        try {
-            val jp: JointDynamicProperty = determineJointProperty(pname)
-            bottle.addJointValue(Joint.NONE,jp)
-            if (ctx.Controller() != null) {
-                bottle.control.controller = determineController(ctx.Controller().getText())
-            }
+        setJointPropertyInMessage(bottle,pname)
+        if (ctx.Controller() != null) {
+            bottle.control.controller = determineController(ctx.Controller().getText())
         }
-        catch (iae: IllegalArgumentException) {
+        if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
+            bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
             val msg = String.format(
-                "My joints don't hava a property %s, that I know of",
-                pname.lowercase(Locale.getDefault())
+                    "My joints don't hava a property %s, that I know of",
+                    pname.lowercase(Locale.getDefault())
             )
             bottle.error = msg
         }
@@ -264,17 +262,16 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitHandleListCommand2(ctx: SpeechSyntaxParser.HandleListCommand2Context) :Any? {
         bottle.type = RequestType.LIST_MOTOR_PROPERTY
         val pname: String = ctx.Properties().getText() // plural
-        try {
-            val jp: JointDynamicProperty = determineJointProperty(pname)
-            bottle.addJointValue(Joint.NONE,jp)
-            if (ctx.Controller() != null) {
-                bottle.control.controller = determineController(ctx.Controller().getText())
-            }
+
+        setJointPropertyInMessage(bottle,pname)
+        if (ctx.Controller() != null) {
+            bottle.control.controller = determineController(ctx.Controller().getText())
         }
-        catch (iae: IllegalArgumentException) {
+        if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
+            bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
             val msg = String.format(
-                "My joints don't hava a property %s, that I know of",
-                pname.lowercase(Locale.getDefault())
+                    "My joints don't hava a property %s, that I know of",
+                    pname.lowercase(Locale.getDefault())
             )
             bottle.error = msg
         }
@@ -290,29 +287,27 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // what is the id of your left hip y?
     override fun visitJointPropertyQuestion(ctx: SpeechSyntaxParser.JointPropertyQuestionContext): Any? {
         bottle.type = RequestType.GET_MOTOR_PROPERTY
-        val property: String = ctx.Property().getText().uppercase()
-        try {
-            val jp: JointDynamicProperty = determineJointProperty(property)
-            // If side or axis were set previously, use those jointValues as defaults
-            var side = sharedDictionary[SharedKey.SIDE].toString()
-            if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-            sharedDictionary[SharedKey.SIDE] = side
-            var axis = sharedDictionary[SharedKey.AXIS].toString()
-            if (ctx.Axis() != null) axis = ctx.Axis().getText()
-            sharedDictionary[SharedKey.AXIS] = axis
-            val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.joint = joint
-            if (joint.equals(Joint.NONE)) {
-                val msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
-                bottle.error = msg
-            }
-            else {
-                bottle.addJointValue(joint,jp)
-                sharedDictionary[SharedKey.JOINT] = joint
-                sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-            }
+        val property: String = ctx.Property().getText().lowercase()
+        setJointPropertyInMessage(bottle,property)
+        // If side or axis were set previously, use those jointValues as defaults
+        var side = sharedDictionary[SharedKey.SIDE].toString()
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var axis = sharedDictionary[SharedKey.AXIS].toString()
+        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        sharedDictionary[SharedKey.AXIS] = axis
+        val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
+        bottle.joint = joint
+        if (joint.equals(Joint.NONE)) {
+            val msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
+            bottle.error = msg
         }
-        catch (iae: IllegalArgumentException) {
+        else {
+            sharedDictionary[SharedKey.JOINT] = joint
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+        }
+        if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
+            bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
             val msg = String.format("I don't have a property %s, that I know of", property)
             bottle.error = msg
         }
@@ -486,33 +481,32 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Identical to JointPropertyQuestion, but different word order
     override fun visitMotorPropertyQuestion1(ctx: SpeechSyntaxParser.MotorPropertyQuestion1Context): Any? {
         bottle.type = RequestType.GET_MOTOR_PROPERTY
-        val property: String = ctx.Property().getText().uppercase()
-        try {
-            val jp: JointDynamicProperty = determineJointProperty(property)
-            // If side or axis were set previously, use those jointValues as defaults
-            var side = sharedDictionary[SharedKey.SIDE].toString()
-            if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-            sharedDictionary[SharedKey.SIDE] = side
-            var axis = sharedDictionary[SharedKey.AXIS].toString()
-            if (ctx.Axis() != null) axis = ctx.Axis().getText()
-            sharedDictionary[SharedKey.AXIS] = axis
-            var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
-            if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.joint = joint
-            bottle.addJointValue(joint, jp)
-            if (joint.equals(Joint.NONE)) {
-                var msg: String = "You must specify a legal joint"
-                if (ctx.Joint() != null) {
-                    msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
-                }
-                bottle.error = msg
+        val property: String = ctx.Property().getText().lowercase()
+        setJointPropertyInMessage(bottle,property)
+        // If side or axis were set previously, use those jointValues as defaults
+        var side = sharedDictionary[SharedKey.SIDE].toString()
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var axis = sharedDictionary[SharedKey.AXIS].toString()
+        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        sharedDictionary[SharedKey.AXIS] = axis
+        var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
+        if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
+        bottle.joint = joint
+        if (joint.equals(Joint.NONE)) {
+            var msg: String = "You must specify a legal joint"
+            if (ctx.Joint() != null) {
+                msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
             }
-            else {
-                sharedDictionary[SharedKey.JOINT] = joint
-                sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-            }
+            bottle.error = msg
         }
-        catch (iae: IllegalArgumentException) {
+        else {
+            sharedDictionary[SharedKey.JOINT] = joint
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+        }
+
+        if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
+            bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
             val msg = String.format("I don't have a property %s, that I know of", property)
             bottle.error = msg
         }
@@ -523,33 +517,31 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Identical to MotorPropertyQuestion1, but different word order
     override fun visitMotorPropertyQuestion2(ctx: SpeechSyntaxParser.MotorPropertyQuestion2Context): Any? {
         bottle.type = RequestType.GET_MOTOR_PROPERTY
-        val property: String = ctx.Property().getText().uppercase()
-        try {
-            val jp: JointDynamicProperty = determineJointProperty(property)
-            // If side or axis were set previously, use those jointValues as defaults
-            var side = sharedDictionary[SharedKey.SIDE].toString()
-            if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-            sharedDictionary[SharedKey.SIDE] = side
-            var axis = sharedDictionary[SharedKey.AXIS].toString()
-            if (ctx.Axis() != null) axis = ctx.Axis().getText()
-            sharedDictionary[SharedKey.AXIS] = axis
-            var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
-            if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.joint = joint
-            if (joint.equals(Joint.NONE)) {
-                var msg: String = "You must specify a legal joint"
-                if (ctx.Joint() != null) {
-                    msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
-                }
-                bottle.error = msg
+        val property: String = ctx.Property().getText().lowercase()
+        setJointPropertyInMessage(bottle,property)
+        // If side or axis were set previously, use those jointValues as defaults
+        var side = sharedDictionary[SharedKey.SIDE].toString()
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var axis = sharedDictionary[SharedKey.AXIS].toString()
+        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        sharedDictionary[SharedKey.AXIS] = axis
+        var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
+        if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
+        bottle.joint = joint
+        if (joint.equals(Joint.NONE)) {
+            var msg: String = "You must specify a legal joint"
+            if (ctx.Joint() != null) {
+                msg = String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
             }
-            else {
-                bottle.addJointValue(joint, jp)
-                sharedDictionary[SharedKey.JOINT] = joint
-                sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-            }
+            bottle.error = msg
         }
-        catch (iae: IllegalArgumentException) {
+        else {
+            sharedDictionary[SharedKey.JOINT] = joint
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+        }
+        if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
+            bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
             val msg = String.format("I don't have a property %s, that I know of", property)
             bottle.error = msg
         }
@@ -629,8 +621,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitSetMotorPosition(ctx: SpeechSyntaxParser.SetMotorPositionContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Property defaults to position
-        var property: JointDynamicProperty = JointDynamicProperty.POSITION
-        if (ctx.Property() != null) property = determineJointProperty(ctx.Property().getText())
+        var property = "position"
+        if (ctx.Property() != null) property = ctx.Property().getText()
+        setJointPropertyInMessage(bottle,property)
 
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
@@ -656,8 +649,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.error = "Only position, speed, torque and state are settable for a joint"
         }
         else {
-            var value = ctx.Value().getText().toDouble()
-            bottle.addJointValue(joint,property,value)
+            bottle.value = ctx.Value().getText().toDouble()
         }
         sharedDictionary[SharedKey.JOINT] = joint
         sharedDictionary[SharedKey.IT] = SharedKey.JOINT
@@ -668,7 +660,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorPropertyContext) : Any?{
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Get the property
-        val property: JointDynamicProperty = determineJointProperty(ctx.Property().getText())
+        bottle.jointDynamicProperty = JointDynamicProperty.fromString(ctx.Property().getText())
 
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
@@ -692,18 +684,18 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         }
 
         if (ctx.Value() != null) {
-            bottle.addJointValue(joint,property,ctx.Value().getText().toDouble())
+            bottle.value = ctx.Value().getText().toDouble()
         }
         else if (ctx.On() != null) {
-            bottle.addJointValue(joint,property,BottleConstants.ON_VALUE.toDouble())
+            bottle.value = BottleConstants.ON_VALUE.toDouble()
         }
         else if (ctx.Off() != null) {
-            bottle.addJointValue(joint,property,BottleConstants.OFF_VALUE.toDouble())
+            bottle.value = BottleConstants.OFF_VALUE.toDouble()
         }
-        if (!property.equals(JointDynamicProperty.POSITION) &&
-            !property.equals(JointDynamicProperty.SPEED) &&
-            !property.equals(JointDynamicProperty.STATE) &&
-            !property.equals(JointDynamicProperty.TORQUE)) {
+        if (!bottle.jointDynamicProperty.equals(JointDynamicProperty.POSITION) &&
+            !bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
+            !bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
+            !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE)) {
 
             bottle.error = "Only position, speed, torque and state are settable for a joint"
         }
@@ -970,29 +962,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return result
     }
 
-    // Determine a joint property from the supplied string. Take care of recognized
-    // aliases in one place. The name may be plural in some settings.
-    private fun determineJointProperty(name: String): JointDynamicProperty {
-        var pname = name
-        if (pname.endsWith("s") || pname.endsWith("S")) {
-            pname = pname.substring(0, pname.length - 1).uppercase(Locale.getDefault())
-        }
-        if (pname.equals("angle", ignoreCase = true)) {
-            pname = "POSITION"
-        }
-        else if (pname.equals("load", ignoreCase = true ))         pname = "TORQUE"
-        else if (pname.equals("max angle", ignoreCase = true))     pname ="MAXIMUMANGLE"
-        else if (pname.equals("min angle", ignoreCase = true))     pname ="MINIMUMANGLE"
-        else if (pname.equals("maximum angle", ignoreCase = true)) pname ="MAXIMUMANGLE"
-        else if (pname.equals("minimum angle", ignoreCase = true)) pname ="MINIMUMANGLE"
-        else if (pname.equals("motor type", ignoreCase = true))    pname ="MOTORTYPE"
-        else if (pname.equals("speed", ignoreCase = true))         pname ="SPEED"
-        else if (pname.equals("state", ignoreCase = true))         pname = "STATE"
-        else if (pname.equals("torque", ignoreCase = true))        pname = "TORQUE"
-        else if (pname.equals("velocity", ignoreCase = true))      pname = "SPEED"
-        else if (pname.equals("velocitie", ignoreCase = true))     pname = "SPEED"
-        return JointDynamicProperty.fromString(pname)
-    }
+
 
     // Determine the specific limb from the body part and side. (Side is not always needed).
     // A limb is a grouping of joints, e.g. "arm" includes elbow and shoulder.
@@ -1060,6 +1030,41 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             "normal speed"
         }
         return pose
+    }
+
+    // Determine a joint property from the supplied string. It may be either a static
+    // or dynamic property. Take care of recognized aliases. The name may be plural
+    // in some settings. Set the appropriate property in the supplied message.
+    private fun setJointPropertyInMessage(msg: MessageBottle, name: String) {
+        var pname = name
+        if (pname.endsWith("s") || pname.endsWith("S")) {
+            pname = pname.substring(0, pname.length - 1).uppercase(Locale.getDefault())
+        }
+        var isDynamic = true
+        if (pname.equals("angle", ignoreCase = true))              pname = "POSITION"
+        else if (pname.equals("load", ignoreCase = true ))         pname = "TORQUE"
+        else if (pname.equals("max angle", ignoreCase = true))     pname ="MAXIMUMANGLE"
+        else if (pname.equals("min angle", ignoreCase = true))     pname ="MINIMUMANGLE"
+        else if (pname.equals("maximum angle", ignoreCase = true)) pname ="MAXIMUMANGLE"
+        else if (pname.equals("minimum angle", ignoreCase = true)) pname ="MINIMUMANGLE"
+        else if (pname.equals("motor type", ignoreCase = true))    pname ="MOTORTYPE"
+        else if (pname.equals("speed", ignoreCase = true))         pname ="SPEED"
+        else if (pname.equals("state", ignoreCase = true))         pname = "STATE"
+        else if (pname.equals("torque", ignoreCase = true))        pname = "TORQUE"
+        else if (pname.equals("velocity", ignoreCase = true))      pname = "SPEED"
+        else if (pname.equals("velocitie", ignoreCase = true))     pname = "SPEED"
+        else {
+            isDynamic = false
+        }
+
+        if (pname.equals("id", ignoreCase = true))               pname = "ID"
+        else if (pname.equals("motor type", ignoreCase = true))  pname = "MOTORTYPE"
+        else if (pname.equals("offset", ignoreCase = true))      pname ="OFFSET"
+        else if (pname.equals("orientation", ignoreCase = true)) pname ="ORIENTATION"
+
+        if( isDynamic ) msg.jointDynamicProperty = JointDynamicProperty.fromString(pname)
+        else            msg.jointDefinitionProperty = JointDefinitionProperty.fromString(pname)
+
     }
 
     companion object {

@@ -318,5 +318,4 @@ class PoseTable {
         private const val CLSS = "PoseTable"
         private val LOGGER = Logger.getLogger(CLSS)
     }
-
 }

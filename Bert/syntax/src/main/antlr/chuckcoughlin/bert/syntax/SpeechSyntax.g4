@@ -36,7 +36,7 @@ question:
       Salutation?  How Attribute Are You 						# attributeQuestion
     | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion1
     | What Are Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion2
-    | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis? # handleBulkPropertyQuestion
+    | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis?   # handleBulkPropertyQuestion
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
     | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
     | What Is Article? Property Of Article? Side? Joint Axis?   # motorPropertyQuestion2
@@ -48,14 +48,14 @@ question:
 
 // Convey information to the robot.
 declaration:
-      You Are phrase								# declarePose1
-    | Article Pose Is phrase 						# declarePose2
-	| Save Article? Pose (As phrase)?           	# declareNoNamePose
-	| To phrase Means To Take Article? Pose phrase	# mapPoseToCommand1
-	| To phrase Means You Are phrase            	# mapPoseToCommand2
-	| To phrase Is To Be phrase						# mapPoseToCommand3
+      You Are phrase								    # declarePose1
+    | Article Pose Is phrase 						    # declarePose2
+	| Save Article? Pose (As phrase)?           	    # declareNoNamePose
+	| To phrase Means To Take Article? Pose phrase	    # mapPoseToCommand1
+	| To phrase Means You Are phrase            	    # mapPoseToCommand2
+	| To phrase Is To Be phrase						    # mapPoseToCommand3
 	| When Isay phrase Then? Take Article? Pose phrase	# mapPoseToCommand4
-	| When You phrase Then You Are phrase			# mapPoseToCommand5
+	| When You phrase Then You Are phrase			    # mapPoseToCommand5
 	
 	;
 
@@ -123,14 +123,11 @@ What: 'what';
 When: 'when';
 Where: 'where';
 
-
 COMMA: ',';
 COLON: ':';
 DECIMAL: DASH? DIGIT* PERIOD DIGIT*;
 INTEGER: DASH?DIGIT+;
 NAME:  (ALPHA+);
-
-
 
 
 // Fragments are never evaluated,
