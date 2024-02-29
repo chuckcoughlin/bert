@@ -108,15 +108,15 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
      * @return the response, usually containing current joint positions.
      */
     suspend fun processRequest(request: MessageBottle):MessageBottle {
-        if (canHandleImmediately(request)) {
+        LOGGER.info(String.format("%s.processRequest: processing %s",
+            CLSS,request.type.name))
+        if (canHandleImmediately(request) ) {
             parentResponseChannel.send(createResponseForLocalRequest(request))
         }
         else if (!RobotModel.useSerial) {
             parentResponseChannel.send(simulateResponseForRequest(request))
         }
         else {
-            LOGGER.info(String.format("%s.processRequest: processing %s",
-                CLSS,request.type.name))
             requestChannel.send(request)     // All motor controllers receive
         }
         return request
@@ -212,9 +212,12 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     // to return directly to the user. These jointValues are obtained from the initial configuration.
     private fun createResponseForLocalRequest(request: MessageBottle): MessageBottle {
         var text: String = ""
-        if( request.type == RequestType.GET_MOTOR_PROPERTY ) {
+        if( request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
             val joint = request.joint
             val jointName: String = Joint.toText(joint)
+
+            if(DEBUG)LOGGER.info(String.format("%s.createResponseForLocalRequest: %s in %s",
+                CLSS, request.type.name,joint.name))
             val mc: MotorConfiguration? = RobotModel.motors[joint]
             if (mc != null) {
                 // The request can be for either a definition or dynamic property
@@ -264,7 +267,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 else {
                     // Configuration property
                     val property = request.jointDefinitionProperty
-                    if(DEBUG)LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
+                    if(DEBUG) LOGGER.info(String.format("%s.createResponseForLocalRequest: %s %s in %s",
                         CLSS, request.type.name, property.name, joint.name))
                     when (property) {
                         JointDefinitionProperty.ID -> {

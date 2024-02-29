@@ -33,7 +33,7 @@
 	     Spec loads are: 6.0,2.5,1.2; spec speeds are: 700,700,684 for MX-64, MX-28,AT-12, respectively.
     -->
 	<controller name="lower" type="MOTOR" port="lower" device="/dev/ttyACM1" >
-		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="-91" min="60" max="135" orientation="direct"   speed="Z660" load="1.9" limb="LEFT_LEG"/>
+		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="-91" min="60" max="135" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="-8" min="155" max="205" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="-18" min="75" max="225" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="LEFT_HIP_Z"   type="MX28" id="12" offset="-200" min="-20" max="45" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>

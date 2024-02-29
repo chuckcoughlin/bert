@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch
@@ -21,13 +21,14 @@ import java.util.logging.Logger
 class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) :
                                                         MessageController {
     private val dispatcher = parent
+    private val scope = GlobalScope     // For long-running coroutines
     private var toDispatcher   = req    // Internal->Dispatcher  (dispatcher gets results)
     private var fromDispatcher = rsp    // Dispatcher->Internal
     private val timedQueue: TimedQueue
     private val sequentialQueues: MutableMap<Limb, SequentialQueue>
     private var running:Boolean
     private var index:Long          // Sequence of a message
-    private val job:Job
+    private var job:Job
 
     @DelicateCoroutinesApi
     override suspend fun execute() {
@@ -39,10 +40,10 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
              * New requests are either placed on one of the sequential queues
              * or the timed queue
              */
-            CoroutineScope(job).launch {
+            job = scope.launch(Dispatchers.IO) {
                 while (running) {
                     val msg = fromDispatcher.receive()
-                    if (DEBUG) LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.text))
+                    if (DEBUG) LOGGER.info(String.format("%s.execute received: %s (%s)", CLSS, msg.type.name,msg.text))
                     handleRequest(msg)
                 }
             }

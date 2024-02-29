@@ -30,6 +30,7 @@ object ConfigurationConstants {
 
     // Command-line keys to set debug logging
     const val DEBUG_COMMAND    = "cmd"
+    const val DEBUG_CONFIGURATION = "cfg"
     const val DEBUG_DISPATCHER = "dsp"
     const val DEBUG_GROUP      = "grp"
     const val DEBUG_INTERNAL   = "int"

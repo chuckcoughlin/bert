@@ -8,7 +8,11 @@ import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
@@ -17,9 +21,14 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -217,12 +226,17 @@ class Dispatcher(s:Solver) : Controller {
             val response: MessageBottle = handleLocalRequest(msg)
             if(!response.type.equals(RequestType.NONE))replyToSource(response)
         }
+        else if(isMotorRequest(msg)) {
+            mgcRequestChannel.send(msg)
+        }
         else if(msg.type.equals(RequestType.HEARTBEAT)) {
             // Do nothing
         }
         else {
-            LOGGER.warning(String.format("%s.dispatchRequest %s from %s is unhandled",
+            LOGGER.info(String.format("%s.dispatchRequest %s from %s is unhandled",
                     CLSS,msg.type.name,msg.source))
+            msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
+            replyToSource(msg)
         }
     }
 
@@ -358,6 +372,7 @@ class Dispatcher(s:Solver) : Controller {
                 request.error = msg
             }
         }
+        // List the names of different kinds of properties
         else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
             if(!request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
                 request.text = JointDefinitionProperty.toJSON()
@@ -445,6 +460,14 @@ class Dispatcher(s:Solver) : Controller {
         }
         else if( request.type == RequestType.NOTIFICATION ) {
             request.source = ControllerType.DISPATCHER.name
+            return true
+        }
+        return false
+    }
+    // These are requests that can be processed directly by the group controller and sent to the
+    // proper motor controller.
+    private fun isMotorRequest(request: MessageBottle): Boolean {
+        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
             return true
         }
         return false

@@ -53,8 +53,10 @@ object RobotModel {
     }
     /**
      * Analyze the XML configuration document in its entirety. This must be called before the model is accessed.
+     * The debug string is set externally
      */
     fun populate() {
+        DEBUG = debug.contains(ConfigurationConstants.DEBUG_CONFIGURATION)
         analyzeProperties()
         analyzeControllers()
         analyzeMotors()
@@ -154,6 +156,7 @@ object RobotModel {
      */
     fun analyzeSerialController(controllerElement: Element) {
         val controller = XMLUtility.attributeValue(controllerElement, "name")
+        LOGGER.info(String.format("%s.analyzeSerialController: %s",CLSS,controller))
         // Create a map of joints for the controller
         val jointElements = controllerElement.getElementsByTagName("joint")
         val jcount = jointElements.length
@@ -165,7 +168,7 @@ object RobotModel {
             val joint = Joint.fromString(jname)  // Case insensitive
             if( joint!=Joint.NONE ) {
                 joints.add(joint)
-                LOGGER.fine(String.format("%s.analyzeSerialController: %s added %s",CLSS,controller,jname));
+                if(DEBUG) LOGGER.info(String.format("%s.analyzeSerialController: %s added %s",CLSS,controller,jname));
             }
             else {
                 LOGGER.warning(String.format("%s.analyzeSerialController: %s is not a legal joint name ",
@@ -180,13 +183,14 @@ object RobotModel {
      * of MotorConfiguration objects.
      */
     fun analyzeMotors() {
+        LOGGER.info(String.format("%s.analyzeMotors",CLSS))
         val controllers = document!!.getElementsByTagName("controller")
         val count = controllers.length
         var index = 0
         while (index < count) {
             val controllerNode = controllers.item(index)
             val type = XMLUtility.attributeValue(controllerNode, "type")
-            if( type.equals("SERIAL", ignoreCase = true )) {
+            if( type.equals("MOTOR", ignoreCase = true )) {
                 val controller = XMLUtility.attributeValue(controllerNode, "name")
                 var node = controllerNode.firstChild
                 while (node != null) {
@@ -222,7 +226,7 @@ object RobotModel {
                                 }
                             }
                             motors[motor.joint] = motor
-                            LOGGER.fine(String.format("%s.analyzeMotors: Found %s", CLSS, motor.joint.name))
+                            if(DEBUG) LOGGER.info(String.format("%s.analyzeMotors: Found %s", CLSS, motor.joint.name))
                         }
                     }
                     node = node.nextSibling
@@ -291,9 +295,11 @@ object RobotModel {
     }
 
     private val CLSS = "RobotModel"
+    private var DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
+        DEBUG = false
         properties = Properties()
         motorControllerDevices    = mutableMapOf<String, String>()
         motorControllerPorts      = mutableMapOf<String, String>()

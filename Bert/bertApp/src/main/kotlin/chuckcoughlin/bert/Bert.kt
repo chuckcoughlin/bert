@@ -78,14 +78,15 @@ fun main(args: Array<String>) {
     // The RobotModel is a singleton that describes
     // any configurable robot parameters.
     RobotModel.startup(PathConstants.CONFIG_PATH)
+    // Enable internal logging
+    RobotModel.debug = dbg
     RobotModel.populate() // Analyze the xml for controllers and motors
     // We reserve several options for the command line as opposed
     // to the configuration file. Set model values here.
     RobotModel.useBluetooth = bluetooth
     RobotModel.useSerial    = serial
     RobotModel.useTerminal  = terminal
-    // Enable internal logging
-    RobotModel.debug = dbg
+
     Database.startup(PathConstants.DB_PATH)
     val solver = Solver()
     solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
