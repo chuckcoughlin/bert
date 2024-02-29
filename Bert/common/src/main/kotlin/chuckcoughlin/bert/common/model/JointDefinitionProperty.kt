@@ -36,18 +36,21 @@ enum class JointDefinitionProperty {
 
         /**
          * The enumeration function valueOf appears to always throw an exception.
-         * This is the replacement and is case insensitive.
+         * This is the replacement and is case in-sensitive. On no match, NONE
+         * is returned.
          */
         fun fromString(arg: String): JointDefinitionProperty {
             for (prop: JointDefinitionProperty in JointDefinitionProperty.values()) {
                 if (prop.name.equals(arg, true)) return prop
             }
-            JointDefinitionProperty.LOGGER.warning(
+            /*
+            JointDefinitionProperty.LOGGER.info(
                 String.format(
                     "%s.fromString: no match for %s",
                     JointDefinitionProperty.CLSS, arg
                 )
             )
+             */
             return JointDefinitionProperty.NONE
         }
 

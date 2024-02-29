@@ -40,12 +40,14 @@ enum class JointDynamicProperty {
 
         /**
          * The enumeration function valueOf appears to always throw an exception.
-         * This is the replacement and is case insensitive.
+         * This is the replacement and is case in-sensitive. On no-match
+         * return NONE.
          */
         fun fromString(arg: String): JointDynamicProperty {
             for (prop: JointDynamicProperty in JointDynamicProperty.values()) {
                 if (prop.name.equals(arg, true)) return prop
             }
+            /*
             JointDynamicProperty.LOGGER.warning(
                 String.format(
                     "%s.fromString: no match for %s",
@@ -53,6 +55,7 @@ enum class JointDynamicProperty {
                     arg
                 )
             )
+             */
             return JointDynamicProperty.NONE
         }
 

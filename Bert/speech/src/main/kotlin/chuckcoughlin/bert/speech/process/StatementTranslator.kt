@@ -507,7 +507,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
         if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
             bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
-            val msg = String.format("I don't have a property %s, that I know of", property)
+            val msg = String.format("I don't have a value %s, that I know of", property)
             bottle.error = msg
         }
         return null
@@ -1042,6 +1042,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         }
         var isDynamic = true
         if (pname.equals("angle", ignoreCase = true))              pname = "POSITION"
+        else if (pname.equals("position", ignoreCase = true ))     pname = "POSITION"
         else if (pname.equals("load", ignoreCase = true ))         pname = "TORQUE"
         else if (pname.equals("max angle", ignoreCase = true))     pname ="MAXIMUMANGLE"
         else if (pname.equals("min angle", ignoreCase = true))     pname ="MINIMUMANGLE"
