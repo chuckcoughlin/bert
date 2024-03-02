@@ -15,8 +15,13 @@ import kotlinx.coroutines.channels.Channel
 import java.util.logging.Logger
 
 /**
- * A timer controller accepts a RequestBottle and submits it to the parent
- * Dispatcher on a clocked basis.
+ * The internal controller is used to implement delays and ordering in messages destined
+ * for the motor controllers. All messages are returned to the Dispatcher (which then
+ * distributes it to the intended target).
+ *
+ * In the future this controller will be used to delay movements that ttinterfere with
+ * other movements in progress, or stop movements that may cause collisions between
+ * separate appendages.
  */
 class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) :
                                                         MessageController {
@@ -110,12 +115,12 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
 
     /**
      * Called by the timer queue once the message is ready to execute. Forward to the
-     * dispatcher for actual processing. Mark the source as INTERNAL so
-     * that the dispatcher knows to return the message here once processing is complete.
+     * dispatcher for actual processing. Retain the source as the original source of
+     * the message. This allows the dispatcher to forward the response to the proper
+     * requestor.
      * @param holder
      */
     override suspend fun dispatchMessage(msg:MessageBottle) {
-        msg.source = ControllerType.INTERNAL.name
         if (DEBUG) LOGGER.info(String.format("%s.dispatchMessage sending to dispatcher: %s", CLSS, msg.type.name))
         toDispatcher.send(msg)
     }

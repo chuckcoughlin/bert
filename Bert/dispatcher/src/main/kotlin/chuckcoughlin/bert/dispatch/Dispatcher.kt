@@ -151,21 +151,22 @@ class Dispatcher(s:Solver) : Controller {
     suspend fun initialize() {
         // Set the speed to "normal" rate. Delay to all startup to complete
         var msg = MessageBottle(RequestType.SET_POSE)
-        msg.pose = BottleConstants.POSE_NORMAL_SPEED
+        msg.pose = ConfigurationConstants.POSE_NORMAL_SPEED
         msg.source = ControllerType.BITBUCKET.name
-        msg.control.delay = 500 // 1/2 sec delay
+        msg.control.delay = 500                // 1/2 sec delay
         toInternalController.send(msg)
+
         // Read all the joint positions, one controller at a time
-        msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+        msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.POSITION
-        msg.control.controller =  BottleConstants.CONTROLLER_LOWER
+        msg.control.controller =  BottleConstants.CONTROLLER_UPPER
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
         toInternalController.send(msg)
 
-        msg = MessageBottle(RequestType.LIST_MOTOR_PROPERTY)
+        msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.POSITION
-        msg.control.controller = BottleConstants.CONTROLLER_UPPER
+        msg.control.controller =  BottleConstants.CONTROLLER_LOWER
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
         toInternalController.send(msg)
@@ -409,7 +410,7 @@ class Dispatcher(s:Solver) : Controller {
     }
 
     // These are complex requests that require that several messages be created and processed
-    // on the internal controller.
+    // on the internal controller - or otherwise requests that cannot execute too closely in time.
     private fun isInternalRequest(request: MessageBottle): Boolean {
         // Never send a request launched by the internal controller back to it. That would be an infinite loop
         if( request.source.equals(ControllerType.INTERNAL.name ) ) return false
@@ -468,6 +469,12 @@ class Dispatcher(s:Solver) : Controller {
     // proper motor controller.
     private fun isMotorRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
+            return true
+        }
+        else if (request.type.equals(RequestType.READ_MOTOR_PROPERTY) ) {
+            return true
+        }
+        else if (request.type.equals(RequestType.SET_POSE) ) {
             return true
         }
         return false

@@ -114,7 +114,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         // Port is open, now use it.
         running = true
         job = scope.launch(Dispatchers.IO) {
-
             while (running) {
                 select<MessageBottle> {
                     /**

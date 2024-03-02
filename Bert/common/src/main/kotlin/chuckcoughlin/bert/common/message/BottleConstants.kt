@@ -21,10 +21,6 @@ object BottleConstants {
     const val CONTROLLER_LOWER = "lower"
     const val CONTROLLER_UPPER = "upper"
 
-    // Pose names (these are required to exist)
-    const val POSE_HOME = "home"
-    const val POSE_NORMAL_SPEED = "normal speed"
-
     // Message from tablet
     const val HEADER_LENGTH = 4 // Includes semi-colon
 

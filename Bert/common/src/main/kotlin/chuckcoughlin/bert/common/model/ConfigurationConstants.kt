@@ -37,6 +37,10 @@ object ConfigurationConstants {
     const val DEBUG_MOTOR      = "mtr"
     const val DEBUG_TERMINAL   = "ter"
 
+    // Pose names (these are required to exist)
+    const val POSE_HOME = "home"
+    const val POSE_NORMAL_SPEED = "normal speed"
+
     // Error valu
     const val NO_CONTROLLER  = "Not Defined"
     const val NO_DEVICE      = "No Device"

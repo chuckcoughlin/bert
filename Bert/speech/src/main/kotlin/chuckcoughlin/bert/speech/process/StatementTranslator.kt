@@ -853,7 +853,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         }
         else if (phrase.startsWith("straighten")) {
             bottle.type = RequestType.SET_POSE
-            bottle.pose = BottleConstants.POSE_HOME
+            bottle.pose = ConfigurationConstants.POSE_HOME
         }
         else {
             success = false

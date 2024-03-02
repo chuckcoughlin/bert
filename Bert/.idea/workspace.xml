@@ -6,8 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/JointDefinitionProperty.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/JointDefinitionProperty.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/JointDynamicProperty.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/JointDynamicProperty.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/BottleConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/BottleConstants.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/csv/Pose.csv" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/csv/Pose.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/InternalController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/SequentialQueue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/SequentialQueue.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/TimedQueue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/TimedQueue.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -365,7 +371,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt</url>
-          <line>342</line>
+          <line>341</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">

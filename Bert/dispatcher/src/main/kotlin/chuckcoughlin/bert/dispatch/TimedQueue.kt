@@ -10,12 +10,18 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.logging.Logger
 
 /**
  * After a specified delay, the next message is returned.
- * There is always, at least one message present in
+ * There is at least one message present in
  * the queue, the HEARTBEAT.
  */
 class TimedQueue(private val controller: MessageController) : MutableList<MessageBottle> by mutableListOf() {
@@ -39,7 +45,6 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
                         LOGGER.info(String.format("%s.execute: delaying %d msecs", CLSS,period ))
                         handleCompletion(msg)
                     }
-
                     delay(period)
 
                     LOGGER.info(String.format("%s.execute...", CLSS))
