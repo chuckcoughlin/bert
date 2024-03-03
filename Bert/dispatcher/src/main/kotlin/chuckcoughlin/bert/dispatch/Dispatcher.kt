@@ -122,7 +122,7 @@ class Dispatcher(s:Solver) : Controller {
                         fromInternalController.onReceive { // The internal controller has completed
                             if(DEBUG) LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
-                            dispatchRequest(it)
+                            dispatchFromInternal(it)
                         }
                         // The Bluetooth response channel contains requests that originate on the connected app
                         commandResponseChannel.onReceive {

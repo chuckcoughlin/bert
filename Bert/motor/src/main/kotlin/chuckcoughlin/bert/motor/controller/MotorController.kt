@@ -115,21 +115,18 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         running = true
         job = scope.launch(Dispatchers.IO) {
             while (running) {
-                select<MessageBottle> {
+                select<Unit> {
                     /**
                      * On receipt of a message from the SerialPort,
                      * decypher and forward to the MotorManager.
                      */
-                    async {
-                        receiveSerialResponse()
-                    }
+                    receiveSerialResponse().onAwait{}
                     /**
                      * The parent request is a motor command. Convert it
                      * into a message for the SerialPort amd write.
                      */
                     parentRequestChannel.onReceive() { // parent request
                         processRequest(it)
-                        it
                     }
                 }
             }
@@ -198,6 +195,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             finally {
                 lock.unlock()
             }
+
     }
 
     /**
@@ -207,8 +205,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      *
      * Integer.toHexString(this.hashCode())
      */
-    suspend fun receiveSerialResponse() {
-        while (running) {
+     fun receiveSerialResponse() : Deferred<Unit> =
+        GlobalScope.async(Dispatchers.IO) {
             lock.lock()
             try {
                 condition.await()
@@ -242,7 +240,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             finally {
                 lock.unlock()
             }
-        }
     }
 
     // ============================= Private Helper Methods =============================

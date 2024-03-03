@@ -6,7 +6,6 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.RobotModel
@@ -63,8 +62,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         if( running ) {
             running = false
             timedQueue.stop()
-            if (DEBUG) println(String.format("%s.shutdown: cancel timed queue ", CLSS))
-            job.cancelAndJoin()
+            job.cancel()
             if (DEBUG) println(String.format("%s.shutdown: cancelled job ", CLSS))
         }
     }
@@ -73,11 +71,11 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
      * Check the sequential queues for any that have messages ready to process.
      * Place any ready messages onto the timed queue.
      */
-    private fun evaluateQueues() {
+    suspend private fun evaluateQueues() {
         for (sq: SequentialQueue in sequentialQueues.values) {
             if (sq.locked == false && sq.isNotEmpty()) {
                 val msg = sq.removeFirst()
-                timedQueue.addMessage(msg,true)
+                timedQueue.addMessage(msg)
             }
         }
     }
@@ -88,7 +86,9 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
      * @param request incoming message holder
      */
     private suspend fun handleRequest(msg: MessageBottle) {
+        timedQueue.addMessage(msg)
         // A SYNC message simply unlocks the work queue
+        /*
         if(msg.type.equals(RequestType.SYNC)) {
             sequentialQueues[msg.limb]!!.locked = false
         }
@@ -110,6 +110,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
             }
         }
         evaluateQueues()
+        */
     }
 
 
