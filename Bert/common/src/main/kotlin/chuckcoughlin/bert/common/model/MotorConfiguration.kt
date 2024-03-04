@@ -1,11 +1,10 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
 
 import java.io.Serializable
-import java.util.*
 import java.util.logging.Logger
 
 /**
@@ -16,42 +15,31 @@ import java.util.logging.Logger
  *
  * The parameters here are configured in EEPROM. Some may be modifiable
  * at runtime, others are read-only
+ * @param j name of the motor (its joint)
+ * @param motorType Dynamixel model
+ * @param motorId address
+ * @param cname controller name
+ * @param direct true if orientation is "forward"
  */
-class MotorConfiguration : Serializable {
-    /**
-     * Constructor: Sets configuration attributes. The rest are left at default jointValues.
-     * @param j name of the motor (its joint)
-     * @param type Dynamixel model
-     * @param motorId address
-     * @param cname controller name
-     * @param isDirect true if orientation is "forward"
-     */
-    constructor(j: Joint, type: DynamixelType, motorId: Int, cname: String, isDirect: Boolean)  {
-        id = motorId
-        controller = cname
-        joint = j
-        this.type = type
-        this.isDirect = isDirect
-    }
+class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname: String, direct: Boolean): Serializable {
+    val controller: String
     val joint: Joint
-    var limb: Limb
     val type : DynamixelType
     val id: Int
 
-    var controller: String
-        private set
     // Setting torque enable is essentially powering the motor on/off
     var isTorqueEnabled : Boolean// Torque-enable - on/off
-    var offset : Double // Configured position correction
+    var limb: Limb
     var minAngle : Double
     var maxAngle : Double
     var maxSpeed : Double
     var maxTorque : Double
+    var offset : Double // Configured position correction
     var isDirect: Boolean
-
+    var readyTime: Long  // Time at which joint is ready to receive next command
     // When we set a new position, use the previous position and speed
     // to estimate the travel time.
-    var position : Double // ~ degrees
+    var position = 0.0        // ~ degrees
         get() = field
         set(value) {
             var delta = field - value
@@ -90,11 +78,6 @@ class MotorConfiguration : Serializable {
         isTorqueEnabled = state != 0
     }
 
-    fun setType(typ: String) {
-        type = DynamixelType.fromString(typ)
-    }
-
-
     companion object {
         private const val CLSS = "MotorConfiguration"
         private val LOGGER = Logger.getLogger(CLSS)
@@ -105,19 +88,22 @@ class MotorConfiguration : Serializable {
      * Set initial values for both definition and runtime parameters.
      */
     init {
+        // Read-only
+        controller = cname
+        id = motorId
+        isDirect = direct
+        joint = j
+        type = motorType
+
         limb = Limb.NONE
-        type = DynamixelType.MX28
-        id = 0
-        controller = ""
         offset = 0.0
         minAngle = -90.0
         maxAngle = 90.0
         maxSpeed = 600.0
         maxTorque = 1.9
-        isDirect = true
+        readyTime = System.currentTimeMillis()
         travelTime = 0
         // These are current goal settings
-        position = 0.0 // Pure guess
         speed = 684.0 // Power-off AX-12
         temperature = 20.0 // Room temperature
         torque = 0.0 // Power-off value

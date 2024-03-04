@@ -29,7 +29,6 @@ enum class RequestType {
     SET_MOTOR_PROPERTY,      // For a particular motor
     SET_POSE,                // Position robot in the named pose
     SET_STATE,               // A global configuration, like ignoring
-    SYNC,                    // An internal message OKing release of the next queued message for a limb
     NONE;
 
     companion object {

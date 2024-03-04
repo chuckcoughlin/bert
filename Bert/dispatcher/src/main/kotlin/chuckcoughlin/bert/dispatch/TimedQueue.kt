@@ -11,6 +11,7 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -34,7 +35,7 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
     suspend fun execute() = coroutineScope {
         running = true
         addMessage(heartbeat)    // Guarantee there is always at least one
-        launch { runner() }
+        job = launch(Dispatchers.Main) { runner() }
     }
     /**
      * Add a new message to the list ordered by its absolute execution time
