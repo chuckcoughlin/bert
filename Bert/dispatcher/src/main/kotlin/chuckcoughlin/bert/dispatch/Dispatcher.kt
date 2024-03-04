@@ -7,12 +7,7 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.controller.SocketStateChangeEvent
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
@@ -21,14 +16,9 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -45,7 +35,6 @@ import java.util.logging.Logger
  * to send and receive message objects.
  */
 class Dispatcher(s:Solver) : Controller {
-    private val WEIGHT = 0.5 // weighting to give previous in EWMA
     // Communication channels
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from Bluetooth
     private val commandResponseChannel     : Channel<MessageBottle>    // Response to Bluetooth
@@ -95,7 +84,6 @@ class Dispatcher(s:Solver) : Controller {
             if(DEBUG) LOGGER.info(String.format("%s.execute: controllers started", CLSS))
 
             // =================== Dispatch incoming messages and send to proper receivers =========================
-
             // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
             if(DEBUG) LOGGER.info(String.format("%s.execute: Launching startup sequence ...", CLSS))
             scope.launch(Dispatchers.IO) {
@@ -106,10 +94,11 @@ class Dispatcher(s:Solver) : Controller {
                     reportStartup()
                 }
             }
-
+            // Loop forever handling command requests -----------
             runBlocking {
                 if(DEBUG) LOGGER.info(String.format("%s.execute: Launching receive message co-routine ...", CLSS))
                 while (running) {
+                    val startCycle = System.currentTimeMillis()
                     if(DEBUG) LOGGER.info(String.format("%s.execute: Entering select for cycle %d ...", CLSS, cycleCount))
                     select<Unit> {
                         // Reply to the original requester when we get a result from the motor controller
@@ -122,22 +111,26 @@ class Dispatcher(s:Solver) : Controller {
                         fromInternalController.onReceive { // The internal controller has completed
                             if(DEBUG) LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
-                            dispatchFromInternal(it)
+                            dispatchInternalResponse(it)
                         }
                         // The Bluetooth response channel contains requests that originate on the connected app
                         commandResponseChannel.onReceive {
                             if(DEBUG) LOGGER.info(String.format("%s.execute: commandResponseChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
-                            dispatchRequest(it)
+                            dispatchCommandResponse(it)
                         }
                         // The Terminal stdin channel contains requests typed at the terminal
                         stdinChannel.onReceive {
                             if(DEBUG) LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
-                            dispatchRequest(it)
+                            dispatchCommandResponse(it)
                         }
                     }
                     cycleCount = cycleCount + 1
+                    val endCycle=System.currentTimeMillis()
+                    val elapsed=endCycle - startCycle
+                    cycleTime=exponentiallyWeightedMovingAverage(cycleTime, elapsed.toDouble())
+                    dutyCycle=exponentiallyWeightedMovingAverage(dutyCycle, elapsed.toDouble() / cadence)
                 }
                 LOGGER.info(String.format("%s.execute: execution complete.", CLSS))
             }
@@ -210,13 +203,13 @@ class Dispatcher(s:Solver) : Controller {
     }
     // ========================================= Helper Methods =======================================
     /**
-     * Analyze an incoming message and determine what to do with it. Ultimately it will be placed in
-     * the appropriate response channel.
+     * Analyze an incoming message from the command (bluetooth) or terminal channels. Some requests
+     * are handled immediately. Any motor requests are first passed to the internal controller to
+     * handle delay or conflict issues.
      */
-    private suspend fun dispatchRequest(msg : MessageBottle) {
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchRequest %s from %s",CLSS,msg.type.name,msg.source))
+    private suspend fun dispatchCommandResponse(msg : MessageBottle) {
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s",CLSS,msg.type.name,msg.source))
         val startCycle = System.currentTimeMillis()
-        LOGGER.info(String.format("%s: Cycle %d ...", CLSS, cycleCount))
         // "internal" requests are those that need to be queued on the internal controller
         if( isInternalRequest(msg) ) {
             val response: MessageBottle = handleInternalRequest(msg)
@@ -228,13 +221,32 @@ class Dispatcher(s:Solver) : Controller {
             if(!response.type.equals(RequestType.NONE))replyToSource(response)
         }
         else if(isMotorRequest(msg)) {
+            toInternalController.send(msg)
+        }
+        else {
+            LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s is unhandled",
+                    CLSS,msg.type.name,msg.source))
+            msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
+            replyToSource(msg)
+        }
+    }
+
+    /**
+     * Analyze messages coming from the internal controller. All delay and conflict issues have been
+     * resolved. Forward messages on to the motor controller. The source, presumeably has not been
+     * altered from the command requests.
+     */
+    private suspend fun dispatchInternalResponse(msg : MessageBottle) {
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s",CLSS,msg.type.name,msg.source))
+        // "internal" requests are those that need to be queued on the internal controller
+        if(isMotorRequest(msg)) {
             mgcRequestChannel.send(msg)
         }
         else if(msg.type.equals(RequestType.HEARTBEAT)) {
             // Do nothing
         }
         else {
-            LOGGER.info(String.format("%s.dispatchRequest %s from %s is unhandled",
+            LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s is unhandled",
                     CLSS,msg.type.name,msg.source))
             msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
             replyToSource(msg)
@@ -405,10 +417,6 @@ class Dispatcher(s:Solver) : Controller {
         return request
     }
 
-    private fun exponentiallyWeightedMovingAverage(currentValue: Double, previousValue: Double): Double {
-        return (1.0 - WEIGHT) * currentValue + WEIGHT * previousValue
-    }
-
     // These are complex requests that require that several messages be created and processed
     // on the internal controller - or otherwise requests that cannot execute too closely in time.
     private fun isInternalRequest(request: MessageBottle): Boolean {
@@ -468,13 +476,10 @@ class Dispatcher(s:Solver) : Controller {
     // These are requests that can be processed directly by the group controller and sent to the
     // proper motor controller.
     private fun isMotorRequest(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
-            return true
-        }
-        else if (request.type.equals(RequestType.READ_MOTOR_PROPERTY) ) {
-            return true
-        }
-        else if (request.type.equals(RequestType.SET_POSE) ) {
+        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+            request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+            request.type.equals(RequestType.SET_POSE) ||
+            request.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
         }
         return false
@@ -507,9 +512,10 @@ class Dispatcher(s:Solver) : Controller {
         startMessage.source = ControllerType.DISPATCHER.name
         if(RobotModel.useTerminal) stdoutChannel.send(startMessage)
         if(RobotModel.useBluetooth) commandRequestChannel.send(startMessage)
-
     }
-
+    private fun exponentiallyWeightedMovingAverage(currentValue: Double,previousValue: Double): Double {
+        return (1.0 - WEIGHT) * currentValue + WEIGHT * previousValue
+    }
     /**
      * Select a random startup phrase from the list.
      * @return the selected phrase.
@@ -518,13 +524,6 @@ class Dispatcher(s:Solver) : Controller {
         val rand = Math.random()
         val index = (rand * phrases.size).toInt()
         return phrases[index]
-    }
-
-    // =============================== SocketStateChangeListener ============================================
-    suspend fun stateChanged(event: SocketStateChangeEvent) {
-        if (event.state.equals(SocketStateChangeEvent.READY)) {
-            LOGGER.info(String.format("%s.stateChanged: new state is ", CLSS, event.state))
-        }
     }
 
     // Phrases to choose from ... (randomly)
@@ -545,6 +544,8 @@ class Dispatcher(s:Solver) : Controller {
     private val CLSS = "Dispatcher"
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
+    private val WEIGHT = 0.5 // weighting to give previous in EWMA
+
     override val controllerName = CLSS
     override val controllerType = ControllerType.DISPATCHER
     /**
@@ -582,5 +583,4 @@ class Dispatcher(s:Solver) : Controller {
         }
         LOGGER.info(String.format("%s.init: cadence %d msecs", CLSS, cadence))
     }
-
 }

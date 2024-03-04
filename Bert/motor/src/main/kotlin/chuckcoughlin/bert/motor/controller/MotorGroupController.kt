@@ -260,8 +260,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                             text = String.format("The voltage of my %s is %.0f volts",
                                 jointName, mc.voltage)
                         }
-                        JointDynamicProperty.NONE -> {
-                        }
+                        JointDynamicProperty.NONE -> {}
                     }
                 }
                 else {

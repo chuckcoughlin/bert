@@ -634,7 +634,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     }
     // ============================== SerialPortEventListener ===============================
     /**
-     * Handle the response from the serial request. Note that all our interactions with removing from the
+     * Handle the response from the serial request. Note that all our interactions removing from the
      * responseQueue and dealing with remainder are synchronized here.
      *
      * Unless an error is returned, the response queue must have at least one response for associating results.
@@ -649,8 +649,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             // The value is the number of bytes in the read buffer
             val byteCount: Int = event.getEventValue()
             LOGGER.info(String.format("%s(%s).serialEvent (%s) %s: expect %d msgs got %d bytes",
-                CLSS,controllerName,event.portName,req.type.name,
-                req.control.responseCount ?: 0, byteCount) )
+                CLSS,controllerName,event.port.portName,req.type.name,
+                req.control.responseCount, byteCount) )
             if (byteCount > 0) {
                 try {
                     var bytes: ByteArray = port.readBytes(byteCount)

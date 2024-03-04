@@ -33,13 +33,11 @@ class MotorConfiguration : Serializable {
         this.type = type
         this.isDirect = isDirect
     }
-    var joint: Joint
-        private set
+    val joint: Joint
     var limb: Limb
-    var type : DynamixelType
-        private set
-    var id: Int
-        private set
+    val type : DynamixelType
+    val id: Int
+
     var controller: String
         private set
     // Setting torque enable is essentially powering the motor on/off
