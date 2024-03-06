@@ -33,8 +33,12 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
 
     @DelicateCoroutinesApi
     suspend fun execute() = coroutineScope {
+        if (DEBUG) LOGGER.info(String.format(
+            "%s.execute: executing ...", CLSS ))
         running = true
         addMessage(heartbeat)    // Guarantee there is always at least one
+        if (DEBUG) LOGGER.info(String.format(
+            "%s.execute: executing added heartbat ...", CLSS ))
         job = launch(Dispatchers.Main) { runner() }
     }
     /**
@@ -64,10 +68,10 @@ class TimedQueue(private val controller: MessageController) : MutableList<Messag
             }
             index++
         }
-        // If this is the first messaage in the queue change the delay time
+        // If this is the first message in the queue change the delay time
         add(msg)
         delayTime = msg.control.executionTime - now
-        channel.send(delayTime)
+        //channel.send(delayTime)
     }
 
     suspend fun handleCompletion() {

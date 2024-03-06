@@ -41,12 +41,14 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
 
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            // timedQueue.execute()
+            //timedQueue.execute()
             /* Coroutine to accept requests from the Dispatcher.
              * New requests are either placed on one of the sequential queues
              * or the timed queue
              */
             job = scope.launch(Dispatchers.IO) {
+                timedQueue.execute()
+                LOGGER.info(String.format("%s.execute: launched...", CLSS))
                 while (running) {
                     val msg = fromDispatcher.receive()
                     if (DEBUG) LOGGER.info(String.format("%s.execute received: %s (%s)", CLSS, msg.type.name,msg.text))
