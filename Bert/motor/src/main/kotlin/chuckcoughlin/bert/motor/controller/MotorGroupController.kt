@@ -20,11 +20,11 @@ import java.util.logging.Logger
 /**
  * The MotorGroupController receives requests from the dispatcher that have to do with
  * the Dynamixel motors. This controller then dispenses the request to the multiple
- * MotorControllers receiving results via a call-back. An await-signal scheme
- * is used to present a synchronized method interface to the server.
+ * MotorControllers then receives results via a call-back. When all motor controllers
+ * have reported, results are then forwarded to the dispatcher.
  *
- * The same channel is used for each of the MotorControllers. On receipt of a
- * message it is the responsibility of the controller to ignore inappropriate
+ * The same request channel is used for each of the MotorControllers. On receipt of a
+ * message it is the responsibility of the motor controller to ignore inappropriate
  * requests.
  *
  * On initialization, the system architecture is checked to determine if
@@ -88,7 +88,6 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
             job.cancel()
         }
     }
-
 
     /**
      * There are 3 kinds of messages that we process:

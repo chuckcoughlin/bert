@@ -36,7 +36,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var maxTorque : Double
     var offset : Double // Configured position correction
     var isDirect: Boolean
-    var readyTime: Long  // Time at which joint is ready to receive next command
+    var commandTime: Long  // Time at which joint is commandeded from InternalController
     // When we set a new position, use the previous position and speed
     // to estimate the travel time.
     var position = 0.0        // ~ degrees
@@ -101,7 +101,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         maxAngle = 90.0
         maxSpeed = 600.0
         maxTorque = 1.9
-        readyTime = System.currentTimeMillis()
+        commandTime = System.currentTimeMillis()
         travelTime = 0
         // These are current goal settings
         speed = 684.0 // Power-off AX-12

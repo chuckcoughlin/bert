@@ -7,11 +7,7 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
@@ -20,14 +16,9 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -43,6 +34,7 @@ import java.util.logging.Logger
  * For each peripheral controller, the dispatcher uses a pair of communication channels
  * to send and receive message objects.
  */
+@DelicateCoroutinesApi
 class Dispatcher(s:Solver) : Controller {
     // Communication channels
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from Bluetooth
@@ -59,7 +51,6 @@ class Dispatcher(s:Solver) : Controller {
     private val motorGroupController: MotorGroupController
     private var terminalController: Terminal
 
-    @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
     private var running:Boolean
     private val name: String
@@ -152,14 +143,15 @@ class Dispatcher(s:Solver) : Controller {
     // Send preliminary messages to ensure a sane starting configuration
     suspend fun initialize() {
         if(DEBUG) LOGGER.info(String.format("%s.initialize: sending messages to establish sanity", CLSS))
-        // Set the speed to "normal" rate. Delay to all startup to complete
+        // Set the speed to "normal" rate.
         var msg = MessageBottle(RequestType.SET_POSE)
         msg.pose = ConfigurationConstants.POSE_NORMAL_SPEED
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 500                // 1/2 sec delay
         toInternalController.send(msg)
 
-        // Read all the joint positions, one controller at a time
+        // Read all the joint positions, one controller at a time. This fills our
+        // internal buffers with the current positions.
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.POSITION
         msg.control.controller =  BottleConstants.CONTROLLER_UPPER
@@ -219,7 +211,6 @@ class Dispatcher(s:Solver) : Controller {
      */
     private suspend fun dispatchCommandResponse(msg : MessageBottle) {
         if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s",CLSS,msg.type.name,msg.source))
-        val startCycle = System.currentTimeMillis()
         // "internal" requests are those that need to be queued on the internal controller
         if( isInternalRequest(msg) ) {
             val response: MessageBottle = handleInternalRequest(msg)

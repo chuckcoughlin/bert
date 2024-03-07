@@ -7,6 +7,7 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -24,13 +25,13 @@ import java.util.logging.Logger
  *
  * Messages are executed in the order they are received.
  */
+@DelicateCoroutinesApi
 class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) :
                                                         MessageController {
     private val dispatcher = parent
     private val scope = GlobalScope     // For long-running coroutines
     private var toDispatcher   = req    // Internal->Dispatcher  (dispatcher gets results)
     private var fromDispatcher = rsp    // Dispatcher->Internal
-    private val timedQueue: TimedQueue
     private var running:Boolean
     private var index:Long          // Sequence of a message
     private var job:Job
@@ -38,16 +39,12 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
     @DelicateCoroutinesApi
     override suspend fun execute() {
         if (!running) {
-
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            //timedQueue.execute()
             /* Coroutine to accept requests from the Dispatcher.
-             * New requests are either placed on one of the sequential queues
-             * or the timed queue
+             * Requests are processed in the order they are received.
              */
             job = scope.launch(Dispatchers.IO) {
-                timedQueue.execute()
                 LOGGER.info(String.format("%s.execute: launched...", CLSS))
                 while (running) {
                     val msg = fromDispatcher.receive()
@@ -65,7 +62,6 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         if (DEBUG) println(String.format("%s.shutdown: shutting down ... ", CLSS))
         if( running ) {
             running = false
-            timedQueue.stop()
             job.cancel()
             if (DEBUG) println(String.format("%s.shutdown: cancelled job ", CLSS))
         }
@@ -78,24 +74,47 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
      * @param request incoming message holder
      */
     private suspend fun handleRequest(msg: MessageBottle) {
-        timedQueue.addMessage(msg)
+        val now = System.currentTimeMillis()
+        var delayTime = LATENCY + msg.control.delay
+        if( !msg.joint.equals(Joint.NONE) ) {
+            val mc = RobotModel.motors.get(msg.joint)!!
+            val required = mc.commandTime + mc.travelTime - now
+            if( required > delayTime) delayTime=required
+        }
+        val jvWalker = msg.getJointValueIterator()
+        while( jvWalker.hasNext() ) {
+            val jv = jvWalker.next()
+            val mc = RobotModel.motors.get(jv.joint)!!
+            val required = mc.commandTime + mc.travelTime - now
+            if( required > delayTime) delayTime=required
+        }
+        delay(delayTime)
+        dispatchMessage(msg)
     }
 
 
     /**
-     * Called by the timer queue once the message is ready to execute. Forward to the
-     * dispatcher for actual processing. Retain the source as the original source of
-     * the message. This allows the dispatcher to forward the response to the proper
-     * requestor.
-     * @param holder
+     * Forward to the dispatcher for actual processing (presumeably by the MotorController).
+     * Retain the source as the original source of the message. This allows the dispatcher to
+     * forward the response to the proper requestor.
+     * @param msg
      */
     override suspend fun dispatchMessage(msg:MessageBottle) {
         if (DEBUG) LOGGER.info(String.format("%s.dispatchMessage sending to dispatcher: %s", CLSS, msg.type.name))
+        // Mark dispatch time on motors
+        val now = System.currentTimeMillis()
+        if( !msg.joint.equals(Joint.NONE) ) RobotModel.motors.get(msg.joint)!!.commandTime = now
+        val jvWalker = msg.getJointValueIterator()
+        while( jvWalker.hasNext() ) {
+            val jv = jvWalker.next()
+            RobotModel.motors.get(jv.joint)!!.commandTime = now
+        }
         toDispatcher.send(msg)
     }
 
     private val CLSS = "InternalController"
     private val DEBUG : Boolean
+    private val LATENCY = 100L     // Estimated time between dispatch here and receipt by motor
     private val LOGGER = Logger.getLogger(CLSS)
     override val controllerName = CLSS
     override val controllerType = ControllerType.INTERNAL
@@ -105,6 +124,5 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
         running = false
         index = 0
         job = Job() // Parent job
-        timedQueue = TimedQueue(this)
     }
 }

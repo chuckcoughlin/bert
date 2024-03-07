@@ -85,6 +85,11 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         jointValues.clear()
     }
 
+    // Return an iterator for pose joint-values within a single message
+    fun getJointValueIterator() : MutableListIterator<JointPropertyValue> {
+        return jointValues.listIterator()
+    }
+
     override public fun clone(): MessageBottle {
         val copy = MessageBottle(type)
         copy.jointValues  = jointValues.toMutableList()
@@ -103,10 +108,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         copy.control     = control.clone()
         return copy
     }
-    // Return an iterator for pose joint-values within a single message
-    fun getJointValueIterator() : MutableListIterator<JointPropertyValue> {
-        return jointValues.listIterator()
-    }
+
     // =================================== JSON ======================================
     fun toJSON(): String {
         val mapper = jacksonObjectMapper()
