@@ -94,6 +94,7 @@ object RobotModel {
             val controllerName = XMLUtility.attributeValue(controllerElement, "name")
             val type = XMLUtility.attributeValue(controllerElement, "type")
             if( !controllerName.isEmpty() ) {
+                motorControllerNames.add(controllerName)
                 val ctype = ControllerType.fromString(type)
                 when(ctype) {
                     ControllerType.BITBUCKET -> {}
@@ -199,7 +200,7 @@ object RobotModel {
                         if (joint.tagName == "joint") {
                             val j = Joint.fromString(XMLUtility.attributeValue(joint, "name"))
                             val id = XMLUtility.attributeValue(joint, "id").toInt()
-                            val typ = DynamixelType.fromString(type)
+                            val typ = DynamixelType.fromString(XMLUtility.attributeValue(joint, "type"))
                             var value = XMLUtility.attributeValue(joint, "orientation")
                             val isDirect = value.equals("direct", ignoreCase = true)
 

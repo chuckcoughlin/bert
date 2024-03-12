@@ -1,14 +1,16 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.DynamixelType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.sql.db.Database
 import java.util.logging.Logger
 
@@ -214,6 +216,7 @@ object DxlMessage {
      * @return up to 3 byte arrays as required by the pose
      */
     fun byteArrayListToSetPose(map: Map<Joint, MotorConfiguration>, pose: String): List<ByteArray> {
+        LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %s",CLSS,pose))
         val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter( pose, JointDynamicProperty.TORQUE)
         val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.SPEED)
         val positions: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.POSITION)
@@ -279,7 +282,7 @@ object DxlMessage {
             var index = 7
             for (key in positions.keys) {
                 val mc: MotorConfiguration = map[key]!!
-                //LOGGER.info(String.format("%s.bytesToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.getId(),key,positions.get(key)));
+                LOGGER.info(String.format("%s.byteArrayListToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.id,key,positions.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, positions[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -778,6 +781,7 @@ object DxlMessage {
         private set
     const val CLSS = "DxlMessage"
     val LOGGER = Logger.getLogger(CLSS)
+    val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
 
     // Constants for the instructions
     const val BROADCAST_ID = 0xFE.toByte() // ID to transmit to all devices connected to port

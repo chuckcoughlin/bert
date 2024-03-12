@@ -52,8 +52,8 @@ object DxlConversions {
         var result = raw.toDouble() * r / res
         if (!mc.isDirect) result = r - result
         result = result + mc.offset
-        //LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %.0f %s result %.0f",CLSS,mc.getName().name(),b1,b2,
-        //		mc.getOffset(),(mc.isDirect()?"DIRECT":"INDIRECT"),result));
+        //LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %.0f %s result %.0f",CLSS,mc.joint.name,b1,b2,
+        //    mc.offset,if(mc.isDirect)"DIRECT" else "INDIRECT",result))
         return result
     }
 

@@ -52,9 +52,12 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     @DelicateCoroutinesApi
     override suspend fun execute() {
         if (!running) {
-            LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            LOGGER.info(String.format("%s(%s).execute: Initializing ...",CLSS, controllerName))
+            LOGGER.info(String.format("%s.execute: started...", CLSS))
+            // Start the individual motor controllers
+            for( controller:MotorController in motorControllers ) {
+                controller.execute()
+            }
             // Port is open, now use it.
             job = scope.launch(Dispatchers.IO) {
                 while (running) {
@@ -469,24 +472,23 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         running = false
         LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
         LOGGER.info(String.format("%s: os.name = %s", CLSS, System.getProperty("os.name"))) // Mac OS X
-        if (RobotModel.useSerial) {
-            val motors: Map<Joint, MotorConfiguration> = RobotModel.motors
+        if(RobotModel.useSerial) {
             for(cname in RobotModel.motorControllerNames) {
-                val portName : String = RobotModel.getPortForMotorController(cname)
-                if( portName==ConfigurationConstants.NO_PORT ) continue   // Controller is not a motor controller
-
-                val port:SerialPort = SerialPort(portName)
-                val controller = MotorController(port,this,requestChannel,responseChannel)
+                val name : String = RobotModel.getPortForMotorController(cname)
+                if( name==ConfigurationConstants.NO_PORT ) continue   // Controller is not a motor controller
+                val device : String = RobotModel.getDeviceForMotorController(cname)
+                LOGGER.info(String.format("%s.init: %s controller has port %s", CLSS, name,device))
+                val port:SerialPort = SerialPort(device)
+                val controller = MotorController(name,port,this,requestChannel,responseChannel)
                 motorControllers.add(controller)
 
                 // Add configurations to the controller for each motor in the group
                 val joints: List<Joint> = RobotModel.getJointsForMotorController(cname)
-                LOGGER.info(String.format("%s.initialize: getting joints for %s", CLSS, cname))
                 LOGGER.info(String.format("%s.initialize: %d joints for %s", CLSS, joints.size, cname))
                 for (joint in joints) {
-                    val motor: MotorConfiguration? = motors[joint]
+                    val motor: MotorConfiguration? = RobotModel.motors[joint]
                     if (motor != null) {
-                        //LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name(),controller.getGroupName()));
+                        if(DEBUG) LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name,controller.controllerName))
                         controller.putMotorConfiguration(joint, motor)
                         motorNameById[motor.id] = joint.name
                     }
@@ -495,9 +497,6 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                             CLSS,joint.name, cname))
                     }
                 }
-
-                if(DEBUG) LOGGER.info(String.format("%s.initialize: Created motor controller %s",
-                    CLSS,controller.controllerName))
             }
             controllerCount = motorControllers.size
         }

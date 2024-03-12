@@ -60,7 +60,7 @@ temperature (deg C), and voltage (volts). A typical query:
 are designed for data communication with the tablet. Responses are formatted in JSON. Use the terminal application to list the names of properties available for each joint. There are static and
 dynamic properties. Typical requests:
 ```
-    what are your static motor parameters
+    what are your static motor parameter
     what are the dynamic properties of your joints
 ```
 * ![yellow](/images/ball_yellow.png) ``List Parameter Values`` - Use the terminal application to list

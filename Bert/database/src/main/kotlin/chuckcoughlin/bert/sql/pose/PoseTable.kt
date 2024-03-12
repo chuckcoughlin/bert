@@ -99,6 +99,7 @@ class PoseTable {
                 while (rs.next()) {
                     for (col in 1..colCount) {
                         val name: String = meta.getColumnName(col)
+                        if (name.equals("id", ignoreCase = true)) continue
                         if (name.equals("name", ignoreCase = true)) continue
                         if (name.equals("parameter", ignoreCase = true)) continue
                         try {

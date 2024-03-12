@@ -42,7 +42,7 @@ import java.util.logging.Logger
  * @param rsp - channel for responses sent to the parent (motor manager)
  */
 @Suppress("UNUSED_PARAMETER")
-class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
+class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
     private val port: SerialPort
@@ -85,8 +85,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
     @DelicateCoroutinesApi
     override suspend fun execute() {
-        LOGGER.info(String.format("%s(%s).execute: Initializing port %s)",
-            CLSS, controllerName, port.portName))
+        LOGGER.info(String.format("%s.execute: %s initializing port %s)",CLSS, controllerName, port.portName))
         if (!port.isOpened) {
             try {
                 val success: Boolean = port.openPort()
@@ -99,8 +98,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                     port.addEventListener(this)
                 }
                 else {
-                    LOGGER.severe(String.format(
-                        "%s.execute: Failed to open port %s for %s",
+                    LOGGER.severe(String.format("%s.execute: Failed to open port %s for %s",
                         CLSS, port.portName, controllerName))
                 }
             }
@@ -154,7 +152,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      */
      suspend fun processRequest(request:MessageBottle) {
             lock.lock()
-            //LOGGER.info(String.format("%s(%s).receiveRequest: processing %s",CLSS,controllerName,request.fetchRequestType().name()));
+            LOGGER.info(String.format("%s(%s).proccessRequest: processing %s",CLSS,controllerName,request.type.name));
             try {
                 if(isLocalRequest(request)) {
                     handleLocalRequest(request)
@@ -180,16 +178,16 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                     }
                     else {
                         val property: JointDynamicProperty=request.jointDynamicProperty
-                        LOGGER.info(String.format("%s(%s).receiveRequest: %s (%s)",
+                        LOGGER.info(String.format("%s(%s).proccessRequest: %s (%s)",
                                 CLSS, controllerName, request.type.name, property.name))
                     }
                 }
                 else {
-                    LOGGER.info(String.format("%s(%s).receiveRequest: multi-controller request (%s)",
+                    LOGGER.info(String.format("%s(%s).proccessRequest: multi-controller request (%s)",
                             CLSS, controllerName, request.type.name))
                 }
                 requestQueue.addLast(request)
-                // LOGGER.info(String.format("%s(%s).receiveRequest: added to request queue %s",CLSS,controllerName,request.fetchRequestType().name()));
+                LOGGER.info(String.format("%s(%s).proccessRequest: added to request queue %s",CLSS,controllerName,request.type.name));
                 condition.signal()
             }
             finally {
@@ -210,7 +208,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             lock.lock()
             try {
                 condition.await()
-                // LOGGER.info(String.format("%s.run: %s Got signal for message, writing to %s",CLSS,controllerName,port.getPortName()));
+                LOGGER.info(String.format("%s.receiveSerialResponse:  %s got signal for message, writing to %s",CLSS,controllerName,port.getPortName()));
                 val req: MessageBottle = requestQueue.removeFirst() // Oldest
                 if (isSingleWriteRequest(req)) {
                     val bytes = messageToBytes(req)
@@ -219,7 +217,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                             responseQueue.addLast(req)
                         }
                         writeBytesToSerial(bytes)
-                        LOGGER.info(String.format("%s(%s).run: wrote %d bytes", CLSS, controllerName, bytes.size))
+                        LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
                     }
                 }
                 else {
@@ -229,7 +227,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                     }
                     for (bytes in byteArrayList) {
                         writeBytesToSerial(bytes)
-                        LOGGER.info(String.format("%s(%s).run: wrote %d bytes", CLSS, controllerName, bytes.size))
+                        LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
                     }
                 }
                 if (req.control.responseCount == 0) {
@@ -248,8 +246,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         // The following two requests simply use the current positions of the motors, whatever they are
         if (request.type.equals(RequestType.COMMAND)) {
             val command: CommandType = request.command
-            LOGGER.warning(String.format(
-                "%s(%s).createResponseForLocalRequest: command=%s",
+            LOGGER.warning(String.format("%s.handleLocalRequest: %s command=%s",
                 CLSS,controllerName,command.name) )
             if (command.equals(CommandType.RESET)) {
                 remainder = null // Resync after dropped messages.
@@ -305,6 +302,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         return if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_POSE) ) {
             false
         }
@@ -320,8 +318,9 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
      * (There may be only one).
      */
     private fun returnsStatusArray(msg: MessageBottle): Boolean {
-        return if (msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+        return if(  msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+                    msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+                    msg.type.equals(RequestType.READ_MOTOR_PROPERTY)) {
             true
         }
         else {
@@ -339,6 +338,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         request.control.responseCount = 0 // No response, unless specified otherwise
         var bytes: ByteArray  = ByteArray(0)
         val type: RequestType = request.type
+        if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s",
+            CLSS,controllerName,type.name))
         if (type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.FREEZE) ) {
 
@@ -479,8 +480,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
     private fun messageToByteList(request: MessageBottle): List<ByteArray> {
         var list: List<ByteArray> = ArrayList()
         val type: RequestType = request.type
-        // Unfortunately broadcast requests don't work here. We have to concatenate the
-        // requests into single long lists.
+        if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s",
+            CLSS,controllerName,type.name))
         if (type.equals(RequestType.INITIALIZE_JOINTS)) {
             list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
             val duration: Long = DxlMessage.mostRecentTravelTime
@@ -513,7 +514,7 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
                 CLSS,type.name))
         }
         for (bytes in list) {
-            LOGGER.info(String.format( "%s(%s).messageToByteList: %s = \n%s",
+            LOGGER.info(String.format( "%s.messageToByteList: %s %s = \n%s",
                 CLSS,controllerName,request.type,DxlMessage.dump(bytes)))
         }
 
@@ -648,9 +649,8 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
             }
             // The value is the number of bytes in the read buffer
             val byteCount: Int = event.getEventValue()
-            LOGGER.info(String.format("%s(%s).serialEvent (%s) %s: expect %d msgs got %d bytes",
-                CLSS,controllerName,event.port.portName,req.type.name,
-                req.control.responseCount, byteCount) )
+            LOGGER.info(String.format("%s.serialEvent %s: expect %d %s msgs got %d bytes",
+                CLSS,controllerName,req.control.responseCount,req.type.name, byteCount) )
             if (byteCount > 0) {
                 try {
                     var bytes: ByteArray = port.readBytes(byteCount)
@@ -776,5 +776,6 @@ class MotorController(p: SerialPort, parent: MotorManager,req: Channel<MessageBo
         timeOfLastWrite = System.currentTimeMillis()
         running = false
         job = Job()
+        LOGGER.info(String.format("%s.init: created...", CLSS))
     }
 }

@@ -71,6 +71,7 @@ fun main(args: Array<String>) {
         println(app.USAGE)
         System.exit(1)
     }
+
     val path = Paths.get(arg)
     PathConstants.setHome(path)
     // Setup logging to use only a file appender to our logging directory
