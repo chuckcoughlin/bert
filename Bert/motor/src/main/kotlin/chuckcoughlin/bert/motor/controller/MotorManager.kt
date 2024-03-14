@@ -10,7 +10,7 @@ import chuckcoughlin.bert.common.message.MessageBottle
  * the callbacks utilized by individual MotorControllers
  */
 interface MotorManager {
-    suspend fun handleAggregatedResponse(response: MessageBottle):MessageBottle
+    suspend fun handleAggregatedResponse(cname:String,response: MessageBottle):MessageBottle
     suspend fun handleSynthesizedResponse(response: MessageBottle):MessageBottle
     suspend fun handleSingleControllerResponse(response: MessageBottle):MessageBottle
 

@@ -48,7 +48,7 @@ class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Ch
                 LOGGER.info(String.format("%s.execute: launched...", CLSS))
                 while (running) {
                     val msg = fromDispatcher.receive()
-                    if (DEBUG) LOGGER.info(String.format("%s.execute received: %s (%s)", CLSS, msg.type.name,msg.text))
+                    if (DEBUG) LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
                     handleRequest(msg)
                 }
             }

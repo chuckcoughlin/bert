@@ -94,7 +94,6 @@ object RobotModel {
             val controllerName = XMLUtility.attributeValue(controllerElement, "name")
             val type = XMLUtility.attributeValue(controllerElement, "type")
             if( !controllerName.isEmpty() ) {
-                motorControllerNames.add(controllerName)
                 val ctype = ControllerType.fromString(type)
                 when(ctype) {
                     ControllerType.BITBUCKET -> {}
@@ -190,9 +189,10 @@ object RobotModel {
         var index = 0
         while (index < count) {
             val controllerNode = controllers.item(index)
+            val cname = XMLUtility.attributeValue(controllerNode, "name")
+            motorControllerNames.add(cname)
             val type = XMLUtility.attributeValue(controllerNode, "type")
             if( type.equals("MOTOR", ignoreCase = true )) {
-                val controller = XMLUtility.attributeValue(controllerNode, "name")
                 var node = controllerNode.firstChild
                 while (node != null) {
                     if (node.nodeType == Node.ELEMENT_NODE) {
@@ -204,7 +204,7 @@ object RobotModel {
                             var value = XMLUtility.attributeValue(joint, "orientation")
                             val isDirect = value.equals("direct", ignoreCase = true)
 
-                            val motor = MotorConfiguration(j,typ,id,controller,isDirect)
+                            val motor = MotorConfiguration(j,typ,id,cname,isDirect)
                             motor.offset = XMLUtility.attributeValue(joint, "offset").toDouble()
                             // The following attributes are optional
                             value = XMLUtility.attributeValue(joint, "min")

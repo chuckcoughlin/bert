@@ -42,10 +42,11 @@ import java.util.logging.Logger
  * @param rsp - channel for responses sent to the parent (motor manager)
  */
 @Suppress("UNUSED_PARAMETER")
-class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
+class MotorController(name:String,parent: MotorManager,p:SerialPort,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
-    private val port: SerialPort
+    override val controllerName = name
+    private var port: SerialPort
     private var running:Boolean
     private var job: Job
     private val motorManager: MotorManager
@@ -152,12 +153,13 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
      */
      suspend fun processRequest(request:MessageBottle) {
             lock.lock()
-            LOGGER.info(String.format("%s(%s).proccessRequest: processing %s",CLSS,controllerName,request.type.name));
+            LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name));
             try {
                 if(isLocalRequest(request)) {
                     handleLocalRequest(request)
                 }
                 else if(isSingleControllerRequest(request)) {
+                    LOGGER.info(String.format("%s.processRequest: %s single-controller request (%s)", CLSS, controllerName, request.type.name))
                     // Do nothing if the joint or limb isn't in our controllerName.
                     val joint: Joint=request.joint
                     val cName: String=request.control.controller
@@ -178,16 +180,16 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
                     }
                     else {
                         val property: JointDynamicProperty=request.jointDynamicProperty
-                        LOGGER.info(String.format("%s(%s).proccessRequest: %s (%s)",
+                        LOGGER.info(String.format("%s.processRequest: %s %s (%s)",
                                 CLSS, controllerName, request.type.name, property.name))
                     }
                 }
                 else {
-                    LOGGER.info(String.format("%s(%s).proccessRequest: multi-controller request (%s)",
+                    LOGGER.info(String.format("%s.processRequest: %s multi-controller request (%s)",
                             CLSS, controllerName, request.type.name))
                 }
                 requestQueue.addLast(request)
-                LOGGER.info(String.format("%s(%s).proccessRequest: added to request queue %s",CLSS,controllerName,request.type.name));
+                LOGGER.info(String.format("%s.processRequest: %s added to request queue %s",CLSS,controllerName,request.type.name));
                 condition.signal()
             }
             finally {
@@ -197,8 +199,8 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
     }
 
     /**
-     * Wait until we receive a request message. Convert to serial request, write to port.
-     * From there a listener forwards the responses to the controllerName controller (MotorManager).
+     * Wait until a request message is ready on the queue. Convert to serial request, write to port.
+     * From there a listener forwards the responses to the group controller (a MotorManager).
      * Do not free the request lock until we have the response in-hand.
      *
      * Integer.toHexString(this.hashCode())
@@ -251,7 +253,7 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
             if (command.equals(CommandType.RESET)) {
                 remainder = null // Resync after dropped messages.
                 responseQueue.clear()
-                motorManager.handleAggregatedResponse(request)
+                motorManager.handleAggregatedResponse(controllerName,request)
             }
             else {
                 val msg = String.format("Unrecognized command: %s", command)
@@ -294,15 +296,16 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
     }
 
     /**
-     * The list here should match the request types in messageToByteList().
+     * The list of NOT single request here should match the request types in messageToByteList().
      * @param msg the request
      * @return true if this request translates into a single serial message.
      * false implies that an array of serial messages are required.
      */
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         return if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
-            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_POSE) ) {
             false
         }
@@ -513,9 +516,11 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
             LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",
                 CLSS,type.name))
         }
-        for (bytes in list) {
-            LOGGER.info(String.format( "%s.messageToByteList: %s %s = \n%s",
-                CLSS,controllerName,request.type,DxlMessage.dump(bytes)))
+        if(DEBUG) {
+            for (bytes in list) {
+                LOGGER.info(String.format( "%s.messageToByteList: %s %s = \n%s",
+                    CLSS,controllerName,request.type,DxlMessage.dump(bytes)))
+            }
         }
 
         return list
@@ -699,7 +704,7 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
                         }
                         else {
                             runBlocking {
-                                motorManager.handleAggregatedResponse(req)
+                                motorManager.handleAggregatedResponse(controllerName,req)
                             }
                         }
                     }
@@ -760,7 +765,6 @@ class MotorController(name:String,p: SerialPort, parent: MotorManager,req: Chann
     private val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
     private val STATUS_RESPONSE_LENGTH = 8 // byte count
 
-    override val controllerName = String.format("%s:%s",CLSS,p.portName)
     override val controllerType = ControllerType.MOTOR
 
     init {

@@ -642,10 +642,11 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.error = msg
         }
 
-        if (!property.equals(JointDynamicProperty.POSITION) &&
-            !property.equals(JointDynamicProperty.SPEED) &&
-            !property.equals(JointDynamicProperty.STATE) &&
-            !property.equals(JointDynamicProperty.TORQUE) ) {
+        val prop = bottle.jointDynamicProperty
+        if (!prop.equals(JointDynamicProperty.POSITION) &&
+            !prop.equals(JointDynamicProperty.SPEED) &&
+            !prop.equals(JointDynamicProperty.STATE) &&
+            !prop.equals(JointDynamicProperty.TORQUE) ) {
             bottle.error = "Only position, speed, torque and state are settable for a joint"
         }
         else {
