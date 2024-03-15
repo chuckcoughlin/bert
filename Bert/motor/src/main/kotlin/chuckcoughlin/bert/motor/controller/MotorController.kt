@@ -37,23 +37,22 @@ import java.util.logging.Logger
  * (not clones) as those held by the MotorManager (MotorGroupController).
  *
  * @param p - the serial port shared by the motors under control
- * @param parent - the motor manager
  * @param req - channel for requests from the parent (motor manager)
  * @param rsp - channel for responses sent to the parent (motor manager)
  */
 @Suppress("UNUSED_PARAMETER")
-class MotorController(name:String,parent: MotorManager,p:SerialPort,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
+class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
     override val controllerName = name
     private var port: SerialPort
     private var running:Boolean
     private var job: Job
-    private val motorManager: MotorManager
     private val condition: Condition
     private val configurationsById: MutableMap<Int, MotorConfiguration>
     private val configurationsByJoint: MutableMap<Joint, MotorConfiguration>
     private var parentRequestChannel = req
+    private var parentResponseChannel = rsp
     private val lock: Lock
     private var remainder: ByteArray? = null
     private val requestQueue // requests waiting to be processed
@@ -253,12 +252,12 @@ class MotorController(name:String,parent: MotorManager,p:SerialPort,req: Channel
             if (command.equals(CommandType.RESET)) {
                 remainder = null // Resync after dropped messages.
                 responseQueue.clear()
-                motorManager.handleAggregatedResponse(controllerName,request)
             }
             else {
-                val msg = String.format("Unrecognized command: %s", command)
+                val msg = String.format("my motor controller cannot handle a %s command", command)
                 request.error = msg
             }
+            parentResponseChannel.send(request)
         }
     }
 
@@ -399,16 +398,14 @@ class MotorController(name:String,parent: MotorManager,p:SerialPort,req: Channel
         }
         // Assume a dynamic property
         else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val pv = request.value
             val joint = request.joint
-            val prop  = request.jointDynamicProperty
             for (mc in configurationsByJoint.values) {
-                    if (mc.joint.equals(joint)) {
-                        bytes = DxlMessage.bytesToGetLimits(mc.id)
-                        request.control.responseCount = 1 // Status message
-                        break
-                    }
+                if (mc.joint.equals(joint)) {
+                    bytes = DxlMessage.bytesToGetLimits(mc.id)
+                    request.control.responseCount = 1 // Status message
+                    break
                 }
+            }
         }
         else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
             val limb = request.limb
@@ -528,33 +525,32 @@ class MotorController(name:String,parent: MotorManager,p:SerialPort,req: Channel
 
     /**
      * We have just written a message to the serial port that generates no
-     * response. Make one up and send it off to the "MotorManager". It expects
+     * response. Make one up and reply to the group controller. It expects
      * a response from each controller.
+     *
+     * A random acknowledgement will be added before the response is presented
+     * to the user.
      * @param msg the request
      */
     private suspend fun synthesizeResponse(msg: MessageBottle) {
-        if (msg.type==RequestType.INITIALIZE_JOINTS ||
-            msg.type==RequestType.SET_POSE) {
-            motorManager.handleSynthesizedResponse(msg)
+        if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
+            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
+            msg.type.equals(RequestType.SET_POSE) ) {
+            msg.text = ""   // Random acknowledgement added later
         }
-        else if (msg.type.equals(RequestType.COMMAND)) {
-            val cmd: CommandType = msg.command
-            if (cmd==CommandType.FREEZE ||
-                cmd==CommandType.RELAX ) {
-                motorManager.handleSynthesizedResponse(msg) }
+        else if( msg.type.equals(RequestType.COMMAND))  {
+            if (msg.command.equals(CommandType.FREEZE) ||
+                msg.command.equals(CommandType.RELAX) ) {
+                msg.text=""
+            }
             else {
-                LOGGER.severe(String.format("%s.synthesizeResponse: Unhandled response for command %s", CLSS, cmd))
-                motorManager.handleSingleControllerResponse(msg) // Probably an error
+                msg.error = String.format("could not synthesize a response for command %s", msg.command.name)
             }
         }
-        else if (msg.type==RequestType.SET_LIMB_PROPERTY) {
-            motorManager.handleSingleControllerResponse(msg)
-        }
         else {
-            LOGGER.severe(String.format("%s.synthesizeResponse: Unhandled response for %s",
-                CLSS, msg.type.name))
-            motorManager.handleSingleControllerResponse(msg) // Probably an error
+            msg.error = String.format("could not synthesize a response for message %s", msg.type.name)
         }
+        parentResponseChannel.send(msg)
     }
 
     // We update the properties in the request from our serial message.
@@ -699,16 +695,15 @@ class MotorController(name:String,parent: MotorManager,p:SerialPort,req: Channel
                         if (isSingleControllerRequest(req)) {
                             updateRequestFromBytes(req, bytes)
                             runBlocking {
-                                motorManager.handleSingleControllerResponse(req)
+                                parentResponseChannel.send(req)
                             }
                         }
                         else {
                             runBlocking {
-                                motorManager.handleAggregatedResponse(controllerName,req)
+                                parentResponseChannel.send(req)
                             }
                         }
                     }
-
                 }
                 catch (ex: SerialPortException) {
                     System.out.println(ex)
@@ -770,7 +765,6 @@ class MotorController(name:String,parent: MotorManager,p:SerialPort,req: Channel
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
         port = p
-        motorManager = parent
         lock = ReentrantLock()
         condition = lock.newCondition()
         configurationsById = HashMap<Int, MotorConfiguration>()

@@ -33,7 +33,7 @@ import java.util.logging.Logger
  * requests being made.
  */
 
-class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller,MotorManager {
+class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBottle>) : Controller {
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
     val motorControllers: MutableMap<String,MotorController>
@@ -51,7 +51,7 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
     private val motorNameById: MutableMap<Int, String>
     var running: Boolean
     private var job: Job
-    override var controllerCount: Int = 0
+    var controllerCount: Int = 0
 
     /**
      * Start a motor controller for each port.
@@ -70,18 +70,19 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 while (running) {
                     select<MessageBottle> {
                         /**
-                         * On receipt of a message from the SerialPort,
-                         * decypher, forward to the MotorManager.
+                         * On receipt of a message from a motor controller,
+                         * accumulate, if necessary, then forward to the
+                         * dispatcher.
                          */
                         lowerResponseChannel.onReceive() {
-                            handleAggregatedResponse(LOWER,it)
+                            handleControllerResponse(LOWER,it)
                         }
                         upperResponseChannel.onReceive() {
-                            handleAggregatedResponse(UPPER,it)
+                            handleControllerResponse(UPPER,it)
                         }
                         /*
-                         * The parent request is a motor command. Convert it
-                         * into a message for the SerialPort amd write.
+                         * The parent request is a motor command. Forward it
+                         * to one or both of the motor controllers.
                          */
                         parentRequestChannel.onReceive() {
                             processRequest(it)
@@ -133,15 +134,13 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         }
         return request
     }
-    // =========================== Motor Manager Interface ====================================
     /**
      * When the one of the controllers has detected the response is complete, it calls
      * this method. When all controllers have responded the response will be sent off.
-     * For this to work, it is important that work on the response object
-     * by synchronized.
+     * For this to work, it is important that work on the response object be synchronized.
      * @param rsp the original request
      */
-    override suspend fun handleAggregatedResponse(cname:String,response: MessageBottle):MessageBottle {
+    suspend fun handleControllerResponse(cname:String,response: MessageBottle):MessageBottle {
         val count: Int = response.incrementResponderCount()
         if(DEBUG) LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
             CLSS,response.type.name,count,controllerCount))
@@ -150,34 +149,6 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
                 CLSS ))
             parentResponseChannel.send(response)
         }
-        return response
-    }
-
-    /**
-     * This method is called by each controller as it handles a request that does
-     * not generate a response. Once each controller has responded, we forward the
-     * result to the dispatcher.
-     * @param rsp the response
-     */
-    override suspend fun handleSynthesizedResponse(response: MessageBottle) :MessageBottle{
-        val count: Int = response.incrementResponderCount()
-        if(DEBUG)LOGGER.info(String.format("%s.handleSynthesizedResponse: received %s (%d of %d)",
-            CLSS,response.type.name,count,controllerCount) )
-        if (count >= controllerCount) {
-            if(DEBUG) LOGGER.info(String.format("%s.handleSynthesizedResponse: all controllers accounted for: responding ...",
-                CLSS) )
-            parentResponseChannel.send(response)
-        }
-        return response
-    }
-
-    /**
-     * This method is called by the controller that handled a request that pertained to it
-     * alone. It has modified the request directly. Forward result to the Dispatcher.
-     * @param response the message to be forwarded.
-     */
-    override suspend fun handleSingleControllerResponse(response: MessageBottle):MessageBottle {
-        parentResponseChannel.send(response)
         return response
     }
 
@@ -416,13 +387,13 @@ class MotorGroupController(parent:Controller,req: Channel<MessageBottle>, rsp: C
         var device = RobotModel.getDeviceForMotorController(LOWER)
         LOGGER.info(String.format("%s.init: %s controller has port %s", CLSS, LOWER,device))
         var port:SerialPort = SerialPort(device)
-        lowerController = MotorController(LOWER,this,port,lowerRequestChannel,lowerResponseChannel)
+        lowerController = MotorController(LOWER,port,lowerRequestChannel,lowerResponseChannel)
         motorControllers.put(LOWER,lowerController)
 
         device = RobotModel.getDeviceForMotorController(UPPER)
         LOGGER.info(String.format("%s.init: %s controller has port %s", CLSS, UPPER, device))
         port = SerialPort(device)
-        upperController = MotorController(UPPER,this,port,upperRequestChannel,upperResponseChannel)
+        upperController = MotorController(UPPER,port,upperRequestChannel,upperResponseChannel)
         motorControllers.put(UPPER,upperController)
 
         if(RobotModel.useSerial) {

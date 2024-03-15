@@ -26,9 +26,8 @@ import java.util.logging.Logger
  * Messages are executed in the order they are received.
  */
 @DelicateCoroutinesApi
-class InternalController(parent : Dispatcher,req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) :
+class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>) :
                                                         MessageController {
-    private val dispatcher = parent
     private val scope = GlobalScope     // For long-running coroutines
     private var toDispatcher   = req    // Internal->Dispatcher  (dispatcher gets results)
     private var fromDispatcher = rsp    // Dispatcher->Internal
