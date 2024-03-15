@@ -40,7 +40,6 @@ import java.util.logging.Logger
  * @param req - channel for requests from the parent (motor manager)
  * @param rsp - channel for responses sent to the parent (motor manager)
  */
-@Suppress("UNUSED_PARAMETER")
 class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
@@ -55,8 +54,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private var parentResponseChannel = rsp
     private val lock: Lock
     private var remainder: ByteArray? = null
-    private val requestQueue // requests waiting to be processed
-            : LinkedList<MessageBottle>
+    private val requestQueue : Channel<MessageBottle>  // requests waiting to be processed
     private val responseQueue // responses waiting for serial results
             : LinkedList<MessageBottle>
     private var timeOfLastWrite: Long
@@ -118,7 +116,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                      * On receipt of a message from the SerialPort,
                      * decypher and forward to the MotorManager.
                      */
-                    receiveSerialResponse().onAwait{}
+                    processQueuedRequest().onAwait{}
                     /**
                      * The parent request is a motor command. Convert it
                      * into a message for the SerialPort amd write.
@@ -187,7 +185,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     LOGGER.info(String.format("%s.processRequest: %s multi-controller request (%s)",
                             CLSS, controllerName, request.type.name))
                 }
-                requestQueue.addLast(request)
+                requestQueue.send(request)
                 LOGGER.info(String.format("%s.processRequest: %s added to request queue %s",CLSS,controllerName,request.type.name));
                 condition.signal()
             }
@@ -204,42 +202,33 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      *
      * Integer.toHexString(this.hashCode())
      */
-     fun receiveSerialResponse() : Deferred<Unit> =
-        GlobalScope.async(Dispatchers.IO) {
-            lock.lock()
-            try {
-                condition.await()
-                LOGGER.info(String.format("%s.receiveSerialResponse:  %s got signal for message, writing to %s",CLSS,controllerName,port.getPortName()));
-                val req: MessageBottle = requestQueue.removeFirst() // Oldest
-                if (isSingleWriteRequest(req)) {
-                    val bytes = messageToBytes(req)
-                    if (bytes != null) {
-                        if (req.control.responseCount > 0) {
-                            responseQueue.addLast(req)
-                        }
-                        writeBytesToSerial(bytes)
-                        LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
-                    }
-                }
-                else {
-                    val byteArrayList = messageToByteList(req)
+     suspend fun processQueuedRequest() : MessageBottle {
+            val req: MessageBottle = requestQueue.receive() // Oldest
+            LOGGER.info(String.format("%s.receiveSerialResponse:  %s got signal for message, writing to %s",CLSS,controllerName,port.getPortName()));
+            if (isSingleWriteRequest(req)) {
+                val bytes = messageToBytes(req)
+                if (bytes != null) {
                     if (req.control.responseCount > 0) {
                         responseQueue.addLast(req)
                     }
-                    for (bytes in byteArrayList) {
-                        writeBytesToSerial(bytes)
-                        LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
-                    }
-                }
-                if (req.control.responseCount == 0) {
-                    synthesizeResponse(req)
+                    writeBytesToSerial(bytes)
+                    LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
                 }
             }
-            catch (ie: InterruptedException) { }
-            finally {
-                lock.unlock()
+            else {
+                val byteArrayList = messageToByteList(req)
+                if (req.control.responseCount > 0) {
+                    responseQueue.addLast(req)
+                }
+                for (bytes in byteArrayList) {
+                    writeBytesToSerial(bytes)
+                    LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
+                }
             }
-    }
+            if (req.control.responseCount == 0) {
+                synthesizeResponse(req)
+            }
+        }
 
     // ============================= Private Helper Methods =============================
     // Create a response for a request that can be handled immediately. There aren't many of them.
@@ -304,7 +293,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         return if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_POSE) ) {
             false
         }
@@ -769,7 +757,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         condition = lock.newCondition()
         configurationsById = HashMap<Int, MotorConfiguration>()
         configurationsByJoint = HashMap<Joint, MotorConfiguration>()
-        requestQueue = LinkedList<MessageBottle>()
+        requestQueue = Channel<MessageBottle>()
         responseQueue = LinkedList<MessageBottle>()
         timeOfLastWrite = System.currentTimeMillis()
         running = false
