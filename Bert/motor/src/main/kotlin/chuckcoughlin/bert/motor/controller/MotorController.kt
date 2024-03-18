@@ -308,12 +308,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         // Assume a dynamic property
         else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val joint = request.joint
-            for (mc in configurationsByJoint.values) {
-                if (mc.joint.equals(joint)) {
-                    bytes = DxlMessage.bytesToGetLimits(mc.id)
-                    request.control.responseCount = 1 // Status message
-                    break
-                }
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if (mc.joint.equals(joint)) {
+                bytes = DxlMessage.bytesToGetProperty(mc.id,request.jointDynamicProperty)
+                request.control.responseCount = 1 // Status message
             }
         }
         else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
@@ -334,38 +332,27 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
         }
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-            val propertyValues = request.getJointValueIterator()
-            if (propertyValues.hasNext()) {             // There should be only one entry
-                val pv = propertyValues.next()
-                val joint = pv.joint
-                val prop = pv.property
-                val value = pv.value.toDouble()
-                for (mc in configurationsByJoint.values) {
-                    if (mc.joint.equals(joint)) {
-                        bytes = DxlMessage.bytesToSetProperty(mc, prop, value.toDouble())
-                        if (prop.equals(JointDynamicProperty.POSITION) ) {
-                            val duration = mc.travelTime
-                            if (request.duration < duration) request.duration = duration
-                            request.text = String.format("My position is %.0f", mc.position)
-                        }
-                        else if (prop.equals(JointDynamicProperty.STATE) ) {
-                            request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
-                                if (value == 0.0) "disabled" else "enabled"
-                            )
-                        }
-                        else {
-                            request.text = String.format("My %s %s is %s",Joint.toText(mc.joint), prop.name, value
-                            )
-                        }
-                    }
-                    request.control.responseCount = 1 // Status message
-                    break
+            val joint = request.joint
+            val prop = request.jointDynamicProperty
+            val value = request.value.toDouble()
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if (mc.joint.equals(joint)) {
+                bytes = DxlMessage.bytesToSetProperty(mc, prop, value.toDouble())
+                if (prop.equals(JointDynamicProperty.POSITION) ) {
+                    val duration = mc.travelTime
+                    if (request.duration < duration) request.duration = duration
+                    request.text = String.format("My position is %.0f", mc.position)
+                }
+                else if (prop.equals(JointDynamicProperty.STATE) ) {
+                    request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
+                        if (value == 0.0) "disabled" else "enabled"
+                    )
+                }
+                else {
+                    request.text = String.format("My %s %s is %s",Joint.toText(mc.joint), prop.name, value)
                 }
             }
-            else {
-                LOGGER.warning(String.format("%s.messageToBytes: Empty property value - ignored (%s)",
-                    CLSS, type.name) )
-            }
+            request.control.responseCount = 1 // Status message
         }
         else if (type.equals(RequestType.NONE)) {
             LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
