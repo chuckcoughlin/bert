@@ -90,7 +90,7 @@ fun main(args: Array<String>) {
 
     Database.startup(PathConstants.DB_PATH)
     val solver = Solver()
-    solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
+    solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
     val dispatcher = Dispatcher(solver)
     Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
     runBlocking {

@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
     RobotModel.populate() //
     setMotorPositions()
     val solver = Solver()
-    solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
+    solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
     val chain: Chain = solver.model.chain
     val root = chain.root
     println(String.format("%s: root = %s ", CLSS, root!!.name))
@@ -74,8 +74,8 @@ private val CLSS = "TestChain"
  * Set the initial positions of the motors to "home"!
  */
 fun setMotorPositions() {
-    for (joint in RobotModel.motors.keys) {
-        val mc = RobotModel.motors.get(joint)
+    for (joint in RobotModel.motorsByJoint.keys) {
+        val mc = RobotModel.motorsByJoint.get(joint)
         // Set some reasonable values from the "home" pose.
         when (joint) {
             Joint.ABS_X -> mc!!.position = 180.0

@@ -13,16 +13,10 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import jssc.SerialPort
-import jssc.SerialPortEvent
-import jssc.SerialPortEventListener
 import jssc.SerialPortException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.selects.select
 import java.util.*
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 
 /**
@@ -40,23 +34,20 @@ import java.util.logging.Logger
  * @param req - channel for requests from the parent (motor manager)
  * @param rsp - channel for responses sent to the parent (motor manager)
  */
-class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller,SerialPortEventListener {
+class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:Channel<MessageBottle>) : Controller {
     @DelicateCoroutinesApi
     private val scope = GlobalScope // For long-running coroutines
     override val controllerName = name
     private var port: SerialPort
     private var running:Boolean
     private var job: Job
-    private val condition: Condition
-    private val configurationsById: MutableMap<Int, MotorConfiguration>
     private val configurationsByJoint: MutableMap<Joint, MotorConfiguration>
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
-    private val lock: Lock
-    private var remainder: ByteArray? = null
-    private val requestQueue : Channel<MessageBottle>  // requests waiting to be processed
-    private val responseQueue // responses waiting for serial results
-            : LinkedList<MessageBottle>
+    private val requestQueue: Channel<MessageBottle>
+    private val responseQueue: Channel<MessageBottle>
+    // The pending message allows the serial callback to accumulate results for the same message
+    private val responder: SerialResponder
     private var timeOfLastWrite: Long
 
     val configurations: MutableCollection<MotorConfiguration>
@@ -67,7 +58,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     }
 
     fun putMotorConfiguration(joint: Joint, mc: MotorConfiguration) {
-        configurationsById[mc.id] = mc
         configurationsByJoint[joint] = mc
     }
 
@@ -93,7 +83,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     port.purgePort(SerialPort.PURGE_RXCLEAR)
                     port.purgePort(SerialPort.PURGE_TXCLEAR)
                     port.flowControlMode = SerialPort.FLOWCONTROL_RTSCTS_IN or SerialPort.FLOWCONTROL_RTSCTS_OUT
-                    port.addEventListener(this)
+                    port.addEventListener(responder)
                 }
                 else {
                     LOGGER.severe(String.format("%s.execute: Failed to open port %s for %s",
@@ -107,24 +97,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             LOGGER.info(String.format("%s.execute: Initialized port %s)", CLSS, port.getPortName()))
         }
-        // Port is open, now use it.
+        // Port is open, now use it. Simply run in a loop getting the next request.
         running = true
         job = scope.launch(Dispatchers.IO) {
             while (running) {
-                select<Unit> {
-                    /**
-                     * On receipt of a message from the SerialPort,
-                     * decypher and forward to the MotorManager.
-                     */
-                    processQueuedRequest().onAwait{}
-                    /**
-                     * The parent request is a motor command. Convert it
-                     * into a message for the SerialPort amd write.
-                     */
-                    parentRequestChannel.onReceive() { // parent request
-                        processRequest(it)
-                    }
-                }
+                processRequest()
             }
         }
     }
@@ -142,128 +119,86 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             job.cancel()
         }
     }
-
     /**
-     * This method blocks until any prior request completes. Ignore requests that apply to a single controller
-     * and that controller is not this one, otherwise add the request to the request queue.
-     * @param request
+     * This method waits for the next request in the inout. It then processes the message synchronously
+     * until the response is returned to the group controller. Ignore requests that apply to a single
+     * controller that is not this one. Otherwise each request will have a response.
      */
-     suspend fun processRequest(request:MessageBottle) {
-            lock.lock()
-            LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name));
-            try {
-                if(isLocalRequest(request)) {
-                    handleLocalRequest(request)
-                }
-                else if(isSingleControllerRequest(request)) {
-                    LOGGER.info(String.format("%s.processRequest: %s single-controller request (%s)", CLSS, controllerName, request.type.name))
-                    // Do nothing if the joint or limb isn't in our controllerName.
-                    val joint: Joint=request.joint
-                    val cName: String=request.control.controller
-                    val limb: Limb=request.limb
-                    if(!joint.equals(Joint.NONE)) {
-                        val mc: MotorConfiguration=configurationsByJoint[joint] ?: return
-                    }
-                    else if(!cName.isEmpty()) {
-                        if(!cName.equals(controllerName, ignoreCase=true)) {
-                            return
-                        }
-                    }
-                    else if(!limb.equals(Limb.NONE)) {
-                        val count=configurationsForLimb(limb).size
-                        if(count == 0) {
-                            return
-                        }
-                    }
-                    else {
-                        val property: JointDynamicProperty=request.jointDynamicProperty
-                        LOGGER.info(String.format("%s.processRequest: %s %s (%s)",
-                                CLSS, controllerName, request.type.name, property.name))
-                    }
-                }
-                else {
-                    LOGGER.info(String.format("%s.processRequest: %s multi-controller request (%s)",
-                            CLSS, controllerName, request.type.name))
-                }
-                requestQueue.send(request)
-                LOGGER.info(String.format("%s.processRequest: %s added to request queue %s",CLSS,controllerName,request.type.name));
-                condition.signal()
+    suspend fun processRequest() {
+        val request = parentRequestChannel.receive()    //  Waits for message
+        LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name));
+        if( isImmediateRequest(request)) {
+            handleImmediateRequest(request)
+        }
+        // Do nothing if the joint or limb isn't on this controller
+        // -- a limb is on one side or the other, not both
+        else if(isSingleControllerRequest(request)) {
+            val joint: Joint=request.joint
+            val cName: String=request.control.controller
+            val limb: Limb=request.limb
+            if(!joint.equals(Joint.NONE)) {
+                val mc: MotorConfiguration=configurationsByJoint[joint] ?: return
             }
-            finally {
-                lock.unlock()
+            else if(!cName.isEmpty() && !cName.equals(controllerName, ignoreCase=true)) {
+                return
             }
-
-    }
-
-    /**
-     * Wait until a request message is ready on the queue. Convert to serial request, write to port.
-     * From there a listener forwards the responses to the group controller (a MotorManager).
-     * Do not free the request lock until we have the response in-hand.
-     *
-     * Integer.toHexString(this.hashCode())
-     */
-     suspend fun processQueuedRequest() : MessageBottle {
-            val req: MessageBottle = requestQueue.receive() // Oldest
-            LOGGER.info(String.format("%s.receiveSerialResponse:  %s got signal for message, writing to %s",CLSS,controllerName,port.getPortName()));
-            if (isSingleWriteRequest(req)) {
-                val bytes = messageToBytes(req)
-                if (bytes != null) {
-                    if (req.control.responseCount > 0) {
-                        responseQueue.addLast(req)
-                    }
-                    writeBytesToSerial(bytes)
-                    LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
-                }
-            }
-            else {
-                val byteArrayList = messageToByteList(req)
-                if (req.control.responseCount > 0) {
-                    responseQueue.addLast(req)
-                }
-                for (bytes in byteArrayList) {
-                    writeBytesToSerial(bytes)
-                    LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
-                }
-            }
-            if (req.control.responseCount == 0) {
-                synthesizeResponse(req)
+            else if(!limb.equals(Limb.NONE)) {
+                val count=configurationsForLimb(limb).size
+                if(count == 0) { return }
             }
         }
+        // Make sure that there is MIN_WRITE_INTERVAL between writes
+        val now = System.currentTimeMillis()
+        if( now - timeOfLastWrite < MIN_WRITE_INTERVAL ) {
+            delay(MIN_WRITE_INTERVAL - (now - timeOfLastWrite))
+            timeOfLastWrite = System.currentTimeMillis()
+        }
+        // Now construct the byte array to write to the port
+        if (isSingleWriteRequest(request)) {
+            val bytes = messageToBytes(request)
+            if (bytes != null) {
+                if (request.control.responseCount > 0) {
+                    requestQueue.send(request)
+                }
+                writeBytesToSerial(bytes)
+                LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
+            }
+        }
+        else {
+            val byteArrayList = messageToByteList(request)
+            if (request.control.responseCount > 0) {
+                requestQueue.send(request)
+            }
+            for (bytes in byteArrayList) {
+                writeBytesToSerial(bytes)
+                LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
+            }
+        }
+        if (request.control.responseCount == 0) {
+            synthesizeResponse(request)
+        }
+    }
 
     // ============================= Private Helper Methods =============================
-    // Create a response for a request that can be handled immediately. There aren't many of them.
-    private suspend fun handleLocalRequest(request: MessageBottle) {
-        // The following two requests simply use the current positions of the motors, whatever they are
-        if (request.type.equals(RequestType.COMMAND)) {
-            val command: CommandType = request.command
-            LOGGER.warning(String.format("%s.handleLocalRequest: %s command=%s",
-                CLSS,controllerName,command.name) )
-            if (command.equals(CommandType.RESET)) {
-                remainder = null // Resync after dropped messages.
-                responseQueue.clear()
-            }
-            else {
-                val msg = String.format("my motor controller cannot handle a %s command", command)
-                request.error = msg
-            }
-            parentResponseChannel.send(request)
-        }
-    }
-
     /**
-     * A local command is one that can be handled directly without any serial
-     * communications.
      * @param msg the request
-     * @return true if this is the type of request that can be satisfied locally.
+     * @return true if this request is meant to be tqken out of order
      */
-    private fun isLocalRequest(msg: MessageBottle): Boolean {
-        return if (msg.type.equals(RequestType.COMMAND) &&
-            msg.command.equals(CommandType.RESET) ) {
-            true
-        }
-        else false
+    private fun handleImmediateRequest(msg: MessageBottle) {
+        if (msg.type.equals(RequestType.COMMAND) &&
+            msg.command.equals(CommandType.RESET) ) {}
     }
-
+    /**
+     * @param msg the request
+     * @return true if this request is meant to be tqken out of order
+     */
+    private fun isImmediateRequest(msg: MessageBottle): Boolean {
+        if (msg.type.equals(RequestType.COMMAND) &&
+            msg.command.equals(CommandType.RESET) ){
+            return true
+        }
+        return false
+    }
     /**
      * @param msg the request
      * @return true if this is the type of request satisfied by a single controller.
@@ -520,7 +455,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * to the user.
      * @param msg the request
      */
-    private suspend fun synthesizeResponse(msg: MessageBottle) {
+    private fun synthesizeResponse(msg: MessageBottle) {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
             msg.type.equals(RequestType.SET_POSE) ) {
@@ -538,7 +473,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         else {
             msg.error = String.format("could not synthesize a response for message %s", msg.type.name)
         }
-        parentResponseChannel.send(msg)
     }
 
     // We update the properties in the request from our serial message.
@@ -578,15 +512,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
     }
 
-    // The bytes array contains the results of a request for status. It may be the concatenation
-    // of several responses. Update the loacal motor configuration map and return a map keyed by motor
-    // id to be aggregated by the MotorManager with similar responses from other motors.
-    // 
-    private fun updateStatusFromBytes(property: JointDynamicProperty, bytes: ByteArray): Map<Int, String> {
-        val props: MutableMap<Int, String> = HashMap()
-        DxlMessage.updateParameterArrayFromBytes(property, configurationsById, bytes, props)
-        return props
-    }
 
     /*
 	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL.
@@ -622,83 +547,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
         }
     }
-    // ============================== SerialPortEventListener ===============================
-    /**
-     * Handle the response from the serial request. Note that all our interactions removing from the
-     * responseQueue and dealing with remainder are synchronized here.
-     *
-     * Unless an error is returned, the response queue must have at least one response for associating results.
-     */
-    override fun serialEvent(event: SerialPortEvent) {
-        LOGGER.info(String.format("%s(%s).serialEvent queue is %d", CLSS, controllerName, responseQueue.size))
-        if (event.isRXCHAR()) {
-            var req: MessageBottle = MessageBottle(RequestType.NONE)
-            if (!responseQueue.isEmpty()) {
-                req = responseQueue.getFirst()
-            }
-            // The value is the number of bytes in the read buffer
-            val byteCount: Int = event.getEventValue()
-            LOGGER.info(String.format("%s.serialEvent %s: expect %d %s msgs got %d bytes",
-                CLSS,controllerName,req.control.responseCount,req.type.name, byteCount) )
-            if (byteCount > 0) {
-                try {
-                    var bytes: ByteArray = port.readBytes(byteCount)
-                    bytes = prependRemainder(bytes)
-                    bytes = DxlMessage.ensureLegalStart(bytes) // never null
-                    var nbytes = bytes.size
-                    LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",
-                        CLSS,controllerName, DxlMessage.dump(bytes)))
-                    val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
-                    if (mlen < 0 || nbytes < mlen) {
-                        LOGGER.info( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
-                            CLSS,controllerName,nbytes))
-                        return
-                    }
-                    else if (DxlMessage.errorMessageFromStatus(bytes).isNotBlank()) {
-                        LOGGER.severe( String.format("%s(%s).serialEvent: ERROR: %s",
-                            CLSS,DxlMessage.errorMessageFromStatus(bytes)) )
-                        if (req.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
-                    }
-                    if(returnsStatusArray(req)) {  // Some requests return a message for each motor
-                        var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
-                        if (nmsgs > req.control.responseCount) nmsgs = req.control.responseCount
-                        nbytes = nmsgs * STATUS_RESPONSE_LENGTH
-                        if (nbytes < bytes.size) {
-                            bytes = truncateByteArray(bytes, nbytes)
-                        }
-                        val prop= req.jointDynamicProperty
-                        val map = updateStatusFromBytes(prop, bytes)
-                        for (key in map.keys) {
-                            val param = map[key]
-                            val joint = configurationsById[key]!!.joint
-                            req.addJointValue(joint,prop, param!!.toDouble())
-                            req.control.responseCount = req.control.responseCount - 1
-                            LOGGER.info(
-                                String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
-                                    CLSS, controllerName, prop.name, req.control.responseCount, param) )
-                        }
-                    }
-                    if (req.control.responseCount <= 0) {
-                        responseQueue.removeFirst()
-                        if (isSingleControllerRequest(req)) {
-                            updateRequestFromBytes(req, bytes)
-                            runBlocking {
-                                parentResponseChannel.send(req)
-                            }
-                        }
-                        else {
-                            runBlocking {
-                                parentResponseChannel.send(req)
-                            }
-                        }
-                    }
-                }
-                catch (ex: SerialPortException) {
-                    System.out.println(ex)
-                }
-            }
-        }
-    }
 
     private fun configurationsForLimb(limb: Limb): Map<Joint, MotorConfiguration> {
         val result: MutableMap<Joint, MotorConfiguration> = HashMap<Joint, MotorConfiguration>()
@@ -710,55 +558,21 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         return result
     }
 
-    /**
-     * Combine the remainder from the previous serial read. Set the remainder null.
-     * @param bytes
-     * @return
-     */
-    private fun prependRemainder(bytes: ByteArray): ByteArray {
-        if(remainder == null) return bytes
-        val combination = ByteArray(remainder!!.size + bytes.size)
-        System.arraycopy(remainder!!, 0, combination, 0, remainder!!.size)
-        System.arraycopy(bytes, 0, combination, remainder!!.size, bytes.size)
-        remainder = null
-        return combination
-    }
-
-    /**
-     * Create a remainder from extra bytes at the end of the array.
-     * Remainder should always be null as we enter this routine.
-     * @param bytes
-     * @param nbytes count of bytes we need.
-     * @return
-     */
-    private fun truncateByteArray(bytes: ByteArray, nb: Int): ByteArray {
-        var nbytes = nb
-        if (nbytes > bytes.size) nbytes = bytes.size
-        if (nbytes == bytes.size) return bytes
-        val copy = ByteArray(nbytes)
-        System.arraycopy(bytes, 0, copy, 0, nbytes)
-        remainder = null
-        return copy
-    }
-
     private val CLSS = "MotorController"
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     private val BAUD_RATE = 1000000
     private val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
-    private val STATUS_RESPONSE_LENGTH = 8 // byte count
 
     override val controllerType = ControllerType.MOTOR
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
         port = p
-        lock = ReentrantLock()
-        condition = lock.newCondition()
-        configurationsById = HashMap<Int, MotorConfiguration>()
-        configurationsByJoint = HashMap<Joint, MotorConfiguration>()
         requestQueue = Channel<MessageBottle>()
-        responseQueue = LinkedList<MessageBottle>()
+        responseQueue = Channel<MessageBottle>()
+        responder = SerialResponder(name,requestQueue,responseQueue)
+        configurationsByJoint = HashMap<Joint, MotorConfiguration>()
         timeOfLastWrite = System.currentTimeMillis()
         running = false
         job = Job()

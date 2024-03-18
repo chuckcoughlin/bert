@@ -202,7 +202,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
 
             if(DEBUG)LOGGER.info(String.format("%s.createImmediateResponse: %s in %s",
                 CLSS, request.type.name,joint.name))
-            val mc: MotorConfiguration? = RobotModel.motors[joint]
+            val mc: MotorConfiguration? = RobotModel.motorsByJoint[joint]
             if (mc != null) {
                 // The requests handled immediately are only static properties
                 val property = request.jointDefinitionProperty
@@ -265,7 +265,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             val definition = request.jointDefinitionProperty
             if(DEBUG)LOGGER.info(String.format("%s.createImmediateResponse: %s %s for all motors",
                 CLSS, request.type.name, definition.name))
-            val mcs: Map<Joint, MotorConfiguration> = RobotModel.motors
+            val mcs: Map<Joint, MotorConfiguration> = RobotModel.motorsByJoint
             var mcList = mutableListOf<MotorConfiguration>()
             for (joint in mcs.keys) {
                 val mc: MotorConfiguration = mcs[joint]!!
@@ -322,7 +322,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         if (requestType.equals(RequestType.GET_MOTOR_PROPERTY)) {
             val joint: Joint = request.joint
             val jointName: String = Joint.toText(joint)
-            val mcmaybe: MotorConfiguration? = RobotModel.motors[joint]
+            val mcmaybe: MotorConfiguration? = RobotModel.motorsByJoint[joint]
             val mc:MotorConfiguration = mcmaybe!!
             if( request.jointDynamicProperty==JointDynamicProperty.NONE ) {
                 // Definition property
@@ -402,7 +402,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 val joints: List<Joint> = RobotModel.getJointsForMotorController(controller.controllerName)
                 LOGGER.info(String.format("%s.initialize: %d joints for %s", CLSS, joints.size, controller.controllerName))
                 for (joint in joints) {
-                    val motor: MotorConfiguration? = RobotModel.motors[joint]
+                    val motor: MotorConfiguration? = RobotModel.motorsByJoint[joint]
                     if (motor != null) {
                         if(DEBUG) LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name,controller.controllerName))
                         controller.putMotorConfiguration(joint, motor)

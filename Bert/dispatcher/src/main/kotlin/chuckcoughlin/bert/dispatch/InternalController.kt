@@ -76,14 +76,14 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         val now = System.currentTimeMillis()
         var delayTime = LATENCY + msg.control.delay
         if( !msg.joint.equals(Joint.NONE) ) {
-            val mc = RobotModel.motors.get(msg.joint)!!
+            val mc = RobotModel.motorsByJoint.get(msg.joint)!!
             val required = mc.commandTime + mc.travelTime - now
             if( required > delayTime) delayTime=required
         }
         val jvWalker = msg.getJointValueIterator()
         while( jvWalker.hasNext() ) {
             val jv = jvWalker.next()
-            val mc = RobotModel.motors.get(jv.joint)!!
+            val mc = RobotModel.motorsByJoint.get(jv.joint)!!
             val required = mc.commandTime + mc.travelTime - now
             if( required > delayTime) delayTime=required
         }
@@ -102,11 +102,11 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         if (DEBUG) LOGGER.info(String.format("%s.dispatchMessage sending to dispatcher: %s", CLSS, msg.type.name))
         // Mark dispatch time on motors
         val now = System.currentTimeMillis()
-        if( !msg.joint.equals(Joint.NONE) ) RobotModel.motors.get(msg.joint)!!.commandTime = now
+        if( !msg.joint.equals(Joint.NONE) ) RobotModel.motorsByJoint.get(msg.joint)!!.commandTime = now
         val jvWalker = msg.getJointValueIterator()
         while( jvWalker.hasNext() ) {
             val jv = jvWalker.next()
-            RobotModel.motors.get(jv.joint)!!.commandTime = now
+            RobotModel.motorsByJoint.get(jv.joint)!!.commandTime = now
         }
         toDispatcher.send(msg)
     }

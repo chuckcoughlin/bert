@@ -1,5 +1,5 @@
 /**
- * Copyright 2022=2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022=2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -27,11 +27,11 @@ object RobotModel {
     private var document: Document? = null
     val motorControllerNames:   MutableList<String>  // Names of the serial controllers
     val motorControllerDevices: MutableMap<String,String>
-    val motorControllerPorts: MutableMap<String,String>
     val properties: Properties   // These are the generic properties
     val propertiesByController:  MutableMap<ControllerType, Properties>
     val jointsByController:      MutableMap<String,List<Joint>>
-    val motors : MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
+    val motorsByJoint:           MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
+    val motorsById:              MutableMap<Int, MotorConfiguration>   // Motor configuration by id
 
     var debug: String
     // These values are set by the main application based on command-line flags.
@@ -115,8 +115,6 @@ object RobotModel {
                     ControllerType.MOTOR -> {
                         val device = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_DEVICE)
                         motorControllerDevices[controllerName] = device
-                        val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
-                        motorControllerPorts[controllerName] = port  // Name
                         analyzeSerialController(controllerElement)
                     }
                     ControllerType.MOTORGROUP -> {}
@@ -226,7 +224,8 @@ object RobotModel {
                                         CLSS,motor.joint.name, value ))
                                 }
                             }
-                            motors[motor.joint] = motor
+                            motorsByJoint[motor.joint] = motor
+                            motorsById[motor.id] = motor
                             if(DEBUG) LOGGER.info(String.format("%s.analyzeMotors: Found %s", CLSS, motor.joint.name))
                         }
                     }
@@ -256,13 +255,6 @@ object RobotModel {
             device = ConfigurationConstants.NO_DEVICE
         }
         return device
-    }
-    fun getPortForMotorController(name:String): String {
-        var port = motorControllerPorts[name]
-        if( port==null ) {
-            port = ConfigurationConstants.NO_PORT
-        }
-        return port
     }
     /**
      * @return a named String property of the robot as a whole. If the requested
@@ -303,11 +295,11 @@ object RobotModel {
         DEBUG = false
         properties = Properties()
         motorControllerDevices    = mutableMapOf<String, String>()
-        motorControllerPorts      = mutableMapOf<String, String>()
         motorControllerNames      = mutableListOf<String>()
         jointsByController        = mutableMapOf<String, List<Joint>>()
         propertiesByController    = mutableMapOf<ControllerType,Properties>()
-        motors                    = mutableMapOf<Joint, MotorConfiguration>()
+        motorsById                = mutableMapOf<Int, MotorConfiguration>()
+        motorsByJoint             = mutableMapOf<Joint, MotorConfiguration>()
         debug = ""
     }
 }

@@ -7,11 +7,7 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
@@ -20,14 +16,9 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -418,10 +409,10 @@ class Dispatcher(s:Solver) : Controller {
         else if (request.type.equals(RequestType.SAVE_POSE)) {
             var poseName: String = request.pose
             if (!poseName.equals(BottleConstants.NO_POSE)) {
-                Database.saveJointPositionsForPose(RobotModel.motors, poseName)
+                Database.saveJointPositionsForPose(RobotModel.motorsByJoint, poseName)
             }
             else {
-                poseName = Database.saveJointPositionsAsNewPose(RobotModel.motors)
+                poseName = Database.saveJointPositionsAsNewPose(RobotModel.motorsByJoint)
                 request.text = "I saved the pose as $poseName"
             }
         }

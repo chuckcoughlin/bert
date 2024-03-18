@@ -34,7 +34,7 @@ fun main(args: Array<String>) {
     RobotModel.startup(PathConstants.CONFIG_PATH)
     RobotModel.populate() //
     val solver = Solver()
-    solver.configure(RobotModel.motors, PathConstants.URDF_PATH)
+    solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
 
     //solver.setJointPosition(Joint.ABS_Y,90.);
     val xyz = solver.getPosition(Joint.ABS_Y) // Just to top of pelvis
