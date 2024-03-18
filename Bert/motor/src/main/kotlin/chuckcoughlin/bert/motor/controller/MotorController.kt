@@ -161,7 +161,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     requestQueue.send(request)
                 }
                 writeBytesToSerial(bytes)
-                LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
+                LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes", CLSS, controllerName, bytes.size))
             }
         }
         else {
@@ -171,11 +171,17 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             for (bytes in byteArrayList) {
                 writeBytesToSerial(bytes)
-                LOGGER.info(String.format("%s.receiveSerialResponse: %s wrote %d bytes", CLSS, controllerName, bytes.size))
+                LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes", CLSS, controllerName, bytes.size))
             }
         }
-        if (request.control.responseCount == 0) {
+
+        if( request.control.responseCount>0 ) {
+            val response = responseQueue.receive()
+            parentResponseChannel.send(response)
+        }
+        else {
             synthesizeResponse(request)
+            parentResponseChannel.send(request)
         }
     }
 
@@ -207,14 +213,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if (msg.type.equals(RequestType.GET_GOALS) ||
             msg.type.equals(RequestType.GET_LIMITS) ||
             msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
             msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
         }
-        else if (msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) &&
-            (!msg.control.controller.isEmpty() || !msg.limb.equals(Limb.NONE))) {
-            return true
-        }
+
         return false
     }
 
@@ -237,23 +241,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     }
 
     /**
-     * @param msg the request
-     * @return true if this is the type of message that returns a separate
-     * status response for every motor referenced in the request.
-     * (There may be only one).
-     */
-    private fun returnsStatusArray(msg: MessageBottle): Boolean {
-        return if(  msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-                    msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
-                    msg.type.equals(RequestType.READ_MOTOR_PROPERTY)) {
-            true
-        }
-        else {
-            false
-        }
-    }
-
-    /**
      * Convert the request message into a command for the serial port. As a side
      * effect set the number of expected responses. This can vary by request type.
      * @param wrapper
@@ -263,8 +250,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         request.control.responseCount = 0 // No response, unless specified otherwise
         var bytes: ByteArray  = ByteArray(0)
         val type: RequestType = request.type
-        if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s",
-            CLSS,controllerName,type.name))
+        if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s",CLSS,controllerName,type.name))
         if (type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.FREEZE) ) {
 
@@ -389,8 +375,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",
                 CLSS, type.name))
         }
-        LOGGER.info(String.format("%s.messageToBytes: %s = \n%s",
-            CLSS, request.type.name, DxlMessage.dump(bytes)))
+        LOGGER.info(String.format("%s.messageToBytes: %s = \n%s",CLSS,
+            request.type.name, DxlMessage.dump(bytes)))
         return bytes
     }
     /**
@@ -518,16 +504,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 	 * Use of serial ports must be configured on command line.
 	 */
     private fun writeBytesToSerial(bytes: ByteArray) {
-        if( RobotModel.useSerial and (bytes.size>0) ) {
+        LOGGER.info(String.format("%s.writeBytesToSerial: %s %d bytes to %s",CLSS,controllerName,bytes.size,port.portName))
+        if( bytes.size>0 ) {
             try {
-                val now = System.currentTimeMillis()
-                val interval = now - timeOfLastWrite
-                if (interval < MIN_WRITE_INTERVAL) {
-                    Thread.sleep(MIN_WRITE_INTERVAL - interval)
-                    //LOGGER.info(String.format("%s(%s).writeBytesToSerial: Slept %d msecs",CLSS,controllerName,MIN_WRITE_INTERVAL-interval));
-                }
-                LOGGER.info(String.format("%s(%s).writeBytesToSerial: Write interval %d msecs",
-                    CLSS, controllerName,interval))
                 val success: Boolean = port.writeBytes(bytes)
                 timeOfLastWrite = System.currentTimeMillis()
                 port.purgePort(SerialPort.PURGE_RXCLEAR or SerialPort.PURGE_TXCLEAR) // Force the write to complete
@@ -536,16 +515,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                         CLSS,controllerName, bytes.size,port.getPortName()) )
                 }
             }
-            catch (ie: InterruptedException) {
-                LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Interruption writing to %s (%s)",
-                    CLSS,controllerName,
-                    port.getPortName(),ie.localizedMessage))
-            }
             catch (spe: SerialPortException) {
                 LOGGER.severe(String.format("%s(%s).writeBytesToSerial: Error writing to %s (%s)",
                     CLSS,controllerName,port.getPortName(),spe.getLocalizedMessage() ) )
             }
         }
+        LOGGER.info(String.format("%s.writeBytesToSerial: %s wrote %d bytes to %s",CLSS,controllerName,bytes.size,port.portName))
     }
 
     private fun configurationsForLimb(limb: Limb): Map<Joint, MotorConfiguration> {
@@ -569,8 +544,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
         port = p
-        requestQueue = Channel<MessageBottle>()
-        responseQueue = Channel<MessageBottle>()
+        requestQueue  = Channel<MessageBottle>(1)
+        responseQueue = Channel<MessageBottle>(1)
         responder = SerialResponder(name,requestQueue,responseQueue)
         configurationsByJoint = HashMap<Joint, MotorConfiguration>()
         timeOfLastWrite = System.currentTimeMillis()

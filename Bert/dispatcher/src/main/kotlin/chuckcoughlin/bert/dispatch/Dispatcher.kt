@@ -7,7 +7,11 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
@@ -16,9 +20,14 @@ import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -148,7 +157,7 @@ class Dispatcher(s:Solver) : Controller {
         msg.pose = ConfigurationConstants.POSE_NORMAL_SPEED
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 500                // 1/2 sec delay
-        toInternalController.send(msg)
+        //toInternalController.send(msg)
 
 
         // Read all the joint positions, one controller at a time. This fills our
@@ -158,14 +167,14 @@ class Dispatcher(s:Solver) : Controller {
         msg.control.controller =  BottleConstants.CONTROLLER_UPPER
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
-        toInternalController.send(msg)
+        //toInternalController.send(msg)
 
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.POSITION
         msg.control.controller =  BottleConstants.CONTROLLER_LOWER
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
-        toInternalController.send(msg)
+        //toInternalController.send(msg)
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)

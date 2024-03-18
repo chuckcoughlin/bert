@@ -81,8 +81,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                             val joint = RobotModel.motorsById[key]!!.joint
                             request.addJointValue(joint,prop, param!!.toDouble())
                             request.control.responseCount = request.control.responseCount - 1
-                            LOGGER.info(
-                                    String.format("%s(%s).serialEvent: received %s (%d remaining) = %s",
+                            LOGGER.info(String.format("%s.serialEvent: %s received %s (%d remaining) = %s",
                                             CLSS, name, prop.name, request.control.responseCount, param) )
                         }
                     }
@@ -90,8 +89,9 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                         if (isSingleControllerRequest(request)) {
                             updateRequestFromBytes(request, bytes)
                         }
-                        runBlocking(Dispatchers.IO) { outChannel.send(request) }
                         pending = null
+                        runBlocking(Dispatchers.IO) { outChannel.send(request) }
+                        LOGGER.info(String.format("%s.serialEvent: sent response %s.",CLSS,request.type.name))
                     }
                 }
                 catch (ex: SerialPortException) {

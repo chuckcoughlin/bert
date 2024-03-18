@@ -135,19 +135,24 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         return request
     }
     /**
-     * When the one of the controllers has detected the response is complete, it calls
-     * this method. When all controllers have responded the response will be sent off.
+     * When the one of the controllers has reported its response, we check to see if we need to
+     * wait until all controllers have reported.
      * For this to work, it is important that work on the response object be synchronized.
      * @param rsp the original request
      */
     suspend fun handleControllerResponse(cname:String,response: MessageBottle):MessageBottle {
-        val count: Int = response.incrementResponderCount()
-        if(DEBUG) LOGGER.info(String.format("%s.handleAggregatedResponse: received %s (%d of %d)",
-            CLSS,response.type.name,count,controllerCount))
-        if (count >= controllerCount) {
-            if(DEBUG) LOGGER.info(String.format("%s.handleAggregatedResponse: all controllers accounted for: responding ...",
-                CLSS ))
+        if( isSingleControllerRequest(response)) {
             parentResponseChannel.send(response)
+        }
+        else {
+            val count: Int = response.incrementResponderCount()
+            if (DEBUG) LOGGER.info(String.format("%s.handleControllerResponse: received %s (%d of %d)",
+                CLSS, response.type.name, count, controllerCount))
+            if (count >= controllerCount) {
+                if (DEBUG) LOGGER.info(String.format("%s.handleControllerResponse: all controllers accounted for: responding ...",
+                    CLSS))
+                parentResponseChannel.send(response)
+            }
         }
         return response
     }
@@ -314,6 +319,21 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         return request
     }
 
+    /**
+     * @param msg the request
+     * @return true if this is the type of request satisfied by a single controller.
+     */
+    private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
+        if (msg.type.equals(RequestType.GET_GOALS) ||
+            msg.type.equals(RequestType.GET_LIMITS) ||
+            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
+            msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+            return true
+        }
+        return false
+    }
 
     // When in development mode, simulate something reasonable as a response.
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {
