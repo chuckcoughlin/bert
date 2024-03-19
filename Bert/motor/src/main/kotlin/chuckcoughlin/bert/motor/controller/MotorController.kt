@@ -176,7 +176,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
 
         if( request.control.responseCount>0 ) {
+            LOGGER.info(String.format("%s.processRequest: %s waiting for response ...", CLSS, controllerName))
             val response = responseQueue.receive()
+            LOGGER.info(String.format("%s.processRequest: %s got response", CLSS, controllerName))
             parentResponseChannel.send(response)
         }
         else {

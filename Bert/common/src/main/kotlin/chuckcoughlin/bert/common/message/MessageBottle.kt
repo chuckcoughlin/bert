@@ -15,7 +15,7 @@ import java.io.Serializable
 import java.util.logging.Logger
 
 /**
- * This class represents the contents of requests and responses that are sent
+ * This class is a container for requests and responses that are sent
  * across channels between parts of the robot. Semantics are entirely
  * determined by the message type.
  *
@@ -36,6 +36,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     var command : CommandType
     var error : String       // Error message if not blank
     var handler: ControllerType // The subsystem to handle this message
+    var id: Long             // Unique identifier (used for serial processing)
     var joint : Joint        // Request applies to this joint (if one)
     var limb: Limb           // Message applies to this limb
     var metric: MetricType
@@ -164,6 +165,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         command     = CommandType.NONE
         error   =  BottleConstants.NO_ERROR   // No error
         handler = ControllerType.UNDEFINED
+        id = 0
         joint = Joint.NONE                  // Name of relavant joint
         limb  = Limb.NONE
         metric = MetricType.NAME

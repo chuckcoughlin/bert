@@ -63,8 +63,8 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                         return
                     }
                     else if (DxlMessage.errorMessageFromStatus(bytes).isNotBlank()) {
-                        LOGGER.severe( String.format("%s(%s).serialEvent: ERROR: %s",
-                                CLSS,DxlMessage.errorMessageFromStatus(bytes)) )
+                        LOGGER.severe( String.format("%s.serialEvent: %s ERROR: %s",
+                                CLSS,name,DxlMessage.errorMessageFromStatus(bytes)) )
                         if (request.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
                     }
                     if(returnsStatusArray(request)) {  // Some requests return a message for each motor

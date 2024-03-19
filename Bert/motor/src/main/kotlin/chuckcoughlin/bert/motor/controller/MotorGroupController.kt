@@ -49,6 +49,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     private val upperRequestChannel  = Channel<MessageBottle>()   // For joints in upper controller
     private val upperResponseChannel = Channel<MessageBottle>()
     private val motorNameById: MutableMap<Int, String>
+    private var messageId: Long
+    private var pendingMessages: MutableMap<Long,MutableList<String>>
     var running: Boolean
     private var job: Job
     var controllerCount: Int = 0
@@ -129,6 +131,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             parentResponseChannel.send(simulateResponseForRequest(request))
         }
         else {
+            pendingMessages.put(request.id,mutableListOf<String>())
             lowerRequestChannel.send(request)     // All motor controllers receive
             upperRequestChannel.send(request)
         }
@@ -141,17 +144,19 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * @param rsp the original request
      */
     suspend fun handleControllerResponse(cname:String,response: MessageBottle):MessageBottle {
+        val id = response.id
+        LOGGER.info(String.format("%s.handleControllerResponse: %s processing %s (%s)",CLSS,cname,response.type.name,response.text))
         if( isSingleControllerRequest(response)) {
             parentResponseChannel.send(response)
         }
         else {
-            val count: Int = response.incrementResponderCount()
-            if (DEBUG) LOGGER.info(String.format("%s.handleControllerResponse: received %s (%d of %d)",
-                CLSS, response.type.name, count, controllerCount))
-            if (count >= controllerCount) {
-                if (DEBUG) LOGGER.info(String.format("%s.handleControllerResponse: all controllers accounted for: responding ...",
-                    CLSS))
+            val list = pendingMessages.get(id)!!
+            list.add(cname)
+            if (DEBUG) LOGGER.info(String.format("%s.handleControllerResponse: pending %s ( at %d of %d)",
+                CLSS, response.type.name, list.size, controllerCount))
+            if(list.size >= controllerCount) {
                 parentResponseChannel.send(response)
+                pendingMessages.remove(id)
             }
         }
         return response
@@ -391,6 +396,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     override val controllerType = ControllerType.MOTORGROUP
     private val UPPER = "upper"  // Must match bert.xml
     private val LOWER = "lower"  // Must match bert.xml
+
     /**
      * Create the "serial" controllers that handle Dynamixel motors. We launch multiple
      * instances each running in its own thread. Each controller handles a group of
@@ -399,7 +405,9 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     init  {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_GROUP)
         motorNameById    = mutableMapOf<Int, String>()
+        messageId = 0
         motorControllers = mutableMapOf<String, MotorController>()
+        pendingMessages  = mutableMapOf<Long,MutableList<String>>()
         running = false
         LOGGER.info(String.format("%s: os.arch = %s", CLSS, System.getProperty("os.arch"))) // x86_64
         LOGGER.info(String.format("%s: os.name = %s", CLSS, System.getProperty("os.name"))) // Mac OS X
