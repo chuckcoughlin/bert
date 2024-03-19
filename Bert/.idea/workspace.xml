@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MessageBottle.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MessageBottle.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/SerialResponder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/SerialResponder.kt" afterDir="false" />
     </list>

@@ -54,11 +54,10 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                     bytes = prependRemainder(bytes)
                     bytes = DxlMessage.ensureLegalStart(bytes) // never null
                     var nbytes = bytes.size
-                    LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",
-                            CLSS,name, DxlMessage.dump(bytes)))
+                    LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",CLSS,name, DxlMessage.dump(bytes)))
                     val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
                     if (mlen < 0 || nbytes < mlen) {
-                        LOGGER.info( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
+                        LOGGER.warning( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
                                 CLSS,name,nbytes))
                         return
                     }
@@ -84,6 +83,9 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                             LOGGER.info(String.format("%s.serialEvent: %s received %s (%d remaining) = %s",
                                             CLSS, name, prop.name, request.control.responseCount, param) )
                         }
+                    }
+                    else {
+                        request.control.responseCount = request.control.responseCount - 1
                     }
                     if (request.control.responseCount <= 0) {
                         if (isSingleControllerRequest(request)) {
@@ -128,8 +130,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
      * (There may be only one).
      */
     private fun returnsStatusArray(msg: MessageBottle): Boolean {
-        return if(  msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-                    msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+        return if(  msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
                     msg.type.equals(RequestType.READ_MOTOR_PROPERTY)) {
             true
         }
