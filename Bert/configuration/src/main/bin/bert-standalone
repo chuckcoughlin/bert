@@ -17,4 +17,4 @@ cd bin
 # ser - Serail responder
 # ter - Terminal
 # -bst means hasBluetooth, hasSerial and hasTerminal
-./bertApp -bst -dcmd,dsp,grp,mtr,ser,ter ${BERT_HOME}
+./bertApp -bst -dcmd,dsp,grp,int,mtr,ser,ter ${BERT_HOME}

@@ -402,7 +402,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else if (type==RequestType.SET_POSE) {
             val poseName: String = request.pose
-            list = DxlMessage.byteArrayListToSetPose(configurationsByJoint, poseName)
+            list = DxlMessage.byteArrayListToSetPose(poseName,configurationsByJoint)
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration
             request.control.responseCount = 0 // AYNC WRITE, no responses

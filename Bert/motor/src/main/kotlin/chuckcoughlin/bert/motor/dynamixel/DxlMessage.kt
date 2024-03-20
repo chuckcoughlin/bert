@@ -208,14 +208,14 @@ object DxlMessage {
     }
 
     /**
-     * A pose may consist of any or all of position, speed and torque for the motors it refrerences. Query the database
+     * A pose may consist of any or all of position, speed and torque for the motors on the particular controller. Query the database
      * to get values. Skip any that have null values. There is a hardware limit of 143 bytes for each array (shouldn't be a problem).
      * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
-     * @param map of the motor configurations keyed by joint name
      * @param pose name of the pose to be set
+     * @param map of the motor configurations keyed by joint name
      * @return up to 3 byte arrays as required by the pose
      */
-    fun byteArrayListToSetPose(map: Map<Joint, MotorConfiguration>, pose: String): List<ByteArray> {
+    fun byteArrayListToSetPose(pose: String,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
         LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %s",CLSS,pose))
         val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter( pose, JointDynamicProperty.TORQUE)
         val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.SPEED)
@@ -234,7 +234,7 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in torques.keys) {
-                val mc: MotorConfiguration = map[key]!!
+                val mc: MotorConfiguration = RobotModel.motorsByJoint[key]!!
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -257,7 +257,8 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in speeds.keys) {
-                val mc: MotorConfiguration = map[key]!!
+                LOGGER.info(String.format("%s.byteArrayListToSetPose: joint = %s",CLSS,key.name))
+                val mc: MotorConfiguration = RobotModel.motorsByJoint[key]!!
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, speeds[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -281,7 +282,7 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in positions.keys) {
-                val mc: MotorConfiguration = map[key]!!
+                val mc: MotorConfiguration = RobotModel.motorsByJoint[key]!!
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.id,key,positions.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, positions[key]!!)
                 bytes[index] = mc.id.toByte()
@@ -401,8 +402,8 @@ object DxlMessage {
         else if (property.equals(JointDynamicProperty.TEMPERATURE)) {
             mc.temperature = value
         }
-        else if (property.equals(JointDynamicProperty.TORQUE)
-        ) mc.torque = value
+        else if (property.equals(JointDynamicProperty.TORQUE))
+            mc.torque = value
         return bytes
     }
 

@@ -42,7 +42,7 @@ units, and the listing of various parameters in the motor control tables. Finall
 is a section listing maintenance commands.
 * ![green](/images/ball_green.png) ``Motor addressing``  - Use *dxl_scan* to access each of the motor groups (*upper* and *lower*). Verify that the discovery operation shows the correct motor ids within each group.
 * ![yellow](/images/ball_yellow.png) ``Motor configuration``  - Use *dxl_read* to access each individual motor. Verify that parameter settings match values in *bert.xml*.
-* ![yellow](/images/ball_yellow.png) ``Individual Joint Properties`` - Use the terminal application to
+* ![green](/images/ball_green.png) ``Individual Joint Properties`` - Use the terminal application to
 read the current values of joint properties, one by one. A complete list of joint names and properties may be found
 in the *Vocabulary* section of the user guide. In addition to properties configured in the configuration
 file (like: id, motor type, orientation, minimum angle and maximum angle), properties include current

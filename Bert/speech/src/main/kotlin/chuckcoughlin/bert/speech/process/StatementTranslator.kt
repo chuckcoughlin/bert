@@ -1052,9 +1052,12 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else if (pname.equals("motor type", ignoreCase = true))    pname ="MOTORTYPE"
         else if (pname.equals("speed", ignoreCase = true))         pname ="SPEED"
         else if (pname.equals("state", ignoreCase = true))         pname = "STATE"
+        else if (pname.equals("temp", ignoreCase = true))          pname = "TEMPERATURE"
+        else if (pname.equals("temperature", ignoreCase = true))   pname = "TEMPERATURE"
         else if (pname.equals("torque", ignoreCase = true))        pname = "TORQUE"
         else if (pname.equals("velocity", ignoreCase = true))      pname = "SPEED"
         else if (pname.equals("velocitie", ignoreCase = true))     pname = "SPEED"
+        else if (pname.equals("voltage", ignoreCase = true))       pname = "VOLTAGE"
         else {
             isDynamic = false
         }

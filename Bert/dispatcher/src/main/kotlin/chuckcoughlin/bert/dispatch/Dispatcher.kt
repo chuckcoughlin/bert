@@ -157,7 +157,7 @@ class Dispatcher(s:Solver) : Controller {
         msg.pose = ConfigurationConstants.POSE_NORMAL_SPEED
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 500                // 1/2 sec delay
-        //toInternalController.send(msg)
+        toInternalController.send(msg)
 
 
         // Read all the joint positions, one controller at a time. This fills our

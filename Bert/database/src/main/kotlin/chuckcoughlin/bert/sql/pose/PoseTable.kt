@@ -96,7 +96,7 @@ class PoseTable {
                 rs = statement.executeQuery()
                 val meta: ResultSetMetaData = rs.getMetaData()
                 val colCount: Int = meta.getColumnCount()
-                while (rs.next()) {
+                while (rs.next() ) {
                     for (col in 1..colCount) {
                         val name: String = meta.getColumnName(col)
                         if (name.equals("id", ignoreCase = true)) continue
@@ -109,6 +109,8 @@ class PoseTable {
                             try {
                                 val dbl = value.toString().toDouble()
                                 map[joint] = dbl
+                                LOGGER.info(String.format("%s.getPoseJointValuesForParameter: %s for %s = %s",
+                                    CLSS, parameter, joint.name, value))
                             }
                             catch (nfe: NumberFormatException) {
                                 LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: %s value for %s not a double (%s)",
