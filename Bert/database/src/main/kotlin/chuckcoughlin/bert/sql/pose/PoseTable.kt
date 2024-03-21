@@ -86,7 +86,6 @@ class PoseTable {
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
             pose = pose.lowercase(Locale.getDefault())
-            pose = pose.lowercase(Locale.getDefault())
             val SQL = "select * from pose where name = ? and parameter = ? "
             try {
                 statement = cxn.prepareStatement(SQL)
@@ -118,7 +117,7 @@ class PoseTable {
                             }
                         }
                         catch(iae: IllegalArgumentException) {
-                            LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: %s not a joint name (%s)",
+                            LOGGER.warning(String.format("%s.getPoseJointValuesForParameter: column %s not a joint name (%s)",
                                 CLSS, name, iae.message))
                         }
                     }

@@ -220,7 +220,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
         }
-
         return false
     }
 
@@ -449,44 +448,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.error = String.format("could not synthesize a response for message %s", msg.type.name)
         }
     }
-
-    // We update the properties in the request from our serial message.
-    // The properties must include motor type and orientation
-    private fun updateRequestFromBytes(request: MessageBottle, bytes: ByteArray) {
-        val type: RequestType = request.type
-        if (type.equals(RequestType.GET_GOALS)) {
-            val joint = request.joint
-            val mc: MotorConfiguration? = getMotorConfiguration(joint)
-            DxlMessage.updateGoalsFromBytes(mc!!, request, bytes)
-        }
-        else if (type.equals(RequestType.GET_LIMITS)) {
-            val joint = request.joint
-            val mc: MotorConfiguration? = getMotorConfiguration(joint)
-            DxlMessage.updateLimitsFromBytes(mc!!, request, bytes)
-        }
-        else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val joint = request.joint
-            val mc: MotorConfiguration? = getMotorConfiguration(joint)
-            val property = request.jointDynamicProperty
-            DxlMessage.updateParameterFromBytes(property, mc!!, request, bytes)
-            val partial = request.text
-            if (partial.isNotEmpty()) {
-                request.text = String.format("My %s %s is %s",
-                    Joint.toText(joint),property.name.lowercase(Locale.getDefault()),partial)
-            }
-        }
-        else if (type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
-            type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-            val err: String = DxlMessage.errorMessageFromStatus(bytes)
-            request.error = err
-        }
-        else {
-            LOGGER.severe(String.format("%s.updateRequestFromBytes: Unhandled response for %s",
-                CLSS,type.name))
-        }
-    }
-
 
     /*
 	 * Guarantee that consecutive writes won't be closer than MIN_WRITE_INTERVAL.

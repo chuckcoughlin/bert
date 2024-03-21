@@ -443,7 +443,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                     }
                 }
             }
-            controllerCount = 2
+            controllerCount = motorControllers.size
         }
         else {
             controllerCount = 0

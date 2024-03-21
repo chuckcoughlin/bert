@@ -5,12 +5,7 @@
 package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.DynamixelType
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.sql.db.Database
 import java.util.logging.Logger
 
@@ -208,15 +203,17 @@ object DxlMessage {
     }
 
     /**
-     * A pose may consist of any or all of position, speed and torque for the motors on the particular controller. Query the database
-     * to get values. Skip any that have null values. There is a hardware limit of 143 bytes for each array (shouldn't be a problem).
+     * A pose consists of any or all of position, speed and torque for all joints. The supplied map contains joints for
+     * the single relevant controller. The database query returns values for all controllers. Skip any that do not apply.
+     * There is a hardware limit of 143 bytes for each array (shouldn't be a problem).
      * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
      * @param pose name of the pose to be set
-     * @param map of the motor configurations keyed by joint name
+     * @param map of the motor configurations for subject controller keyed by joint name
      * @return up to 3 byte arrays as required by the pose
      */
     fun byteArrayListToSetPose(pose: String,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
         LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %s",CLSS,pose))
+        // These maps will contain all joints
         val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter( pose, JointDynamicProperty.TORQUE)
         val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.SPEED)
         val positions: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.POSITION)
@@ -233,8 +230,8 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.TORQUE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
-            for (key in torques.keys) {
-                val mc: MotorConfiguration = RobotModel.motorsByJoint[key]!!
+            for (key in map.keys) {
+                val mc: MotorConfiguration = map[key]!!
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -256,9 +253,9 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.SPEED)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
-            for (key in speeds.keys) {
+            for (key in map.keys) {
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: joint = %s",CLSS,key.name))
-                val mc: MotorConfiguration = RobotModel.motorsByJoint[key]!!
+                val mc: MotorConfiguration = map[key]!!
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, speeds[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -281,8 +278,8 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.POSITION)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
-            for (key in positions.keys) {
-                val mc: MotorConfiguration = RobotModel.motorsByJoint[key]!!
+            for (key in map.keys) {
+                val mc: MotorConfiguration = map[key]!!
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.id,key,positions.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, positions[key]!!)
                 bytes[index] = mc.id.toByte()
