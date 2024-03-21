@@ -14,7 +14,8 @@ cd bin
 # grp - Group Controller
 # int - Internal Controller
 # mtr - Motor Controller
-# ser - Serail responder
+# ser - Serial responder
+# sql - Database
 # ter - Terminal
 # -bst means hasBluetooth, hasSerial and hasTerminal
 ./bertApp -bst -dcmd,dsp,grp,int,mtr,ser,ter ${BERT_HOME}

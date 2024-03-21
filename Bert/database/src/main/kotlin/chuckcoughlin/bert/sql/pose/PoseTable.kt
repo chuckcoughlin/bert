@@ -5,9 +5,11 @@
  */
 package chuckcoughlin.bert.sql.pose
 
+import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import java.sql.*
 import java.util.*
@@ -73,7 +75,6 @@ class PoseTable {
     /** Return a list of column names with non-null values for the indicated pose
      * property. There should only be one (or none) row returned.
      * @param pose
-     * @param map contains a map of configurations. Joints not in the list are ignored.
      * @param parameter, e.g. "position","speed","torque"
      * @return list of upper-case joint names.
      */
@@ -108,7 +109,7 @@ class PoseTable {
                             try {
                                 val dbl = value.toString().toDouble()
                                 map[joint] = dbl
-                                LOGGER.info(String.format("%s.getPoseJointValuesForParameter: %s for %s = %s",
+                                if(DEBUG) LOGGER.info(String.format("%s.getPoseJointValuesForParameter: %s for %s = %s",
                                     CLSS, parameter, joint.name, value))
                             }
                             catch (nfe: NumberFormatException) {
@@ -319,5 +320,6 @@ class PoseTable {
     companion object {
         private const val CLSS = "PoseTable"
         private val LOGGER = Logger.getLogger(CLSS)
+        private val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)
     }
 }

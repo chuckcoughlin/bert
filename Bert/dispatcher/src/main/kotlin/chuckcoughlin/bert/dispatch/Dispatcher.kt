@@ -159,28 +159,20 @@ class Dispatcher(s:Solver) : Controller {
         msg.control.delay = 500                // 1/2 sec delay
         toInternalController.send(msg)
 
-
-        // Read all the joint positions, one controller at a time. This fills our
+        // Read all the joint positions (using both controllers). This fills our
         // internal buffers with the current positions.
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.POSITION
         msg.control.controller =  BottleConstants.CONTROLLER_UPPER
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
-        //toInternalController.send(msg)
-
-        msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-        msg.jointDynamicProperty = JointDynamicProperty.POSITION
-        msg.control.controller =  BottleConstants.CONTROLLER_LOWER
-        msg.source = ControllerType.BITBUCKET.name
-        msg.control.delay = 1000 // 1 sec delay
-        //toInternalController.send(msg)
+        toInternalController.send(msg)
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 2000 // 2 sec delay
-        //toInternalController.send(msg)
+        toInternalController.send(msg)
     }
 
     /**
@@ -488,6 +480,7 @@ class Dispatcher(s:Solver) : Controller {
     // proper motor controller.
     private fun isMotorRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+            request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.SET_POSE) ||
             request.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {

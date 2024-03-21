@@ -58,6 +58,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     }
 
     fun putMotorConfiguration(joint: Joint, mc: MotorConfiguration) {
+        LOGGER.info(String.format("%s.putMotorConfiguration: %s has a %s", CLSS, controllerName, joint.name))
         configurationsByJoint[joint] = mc
     }
 
@@ -183,6 +184,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else {
             synthesizeResponse(request)
+            LOGGER.info(String.format("%s.processRequest: %s responding %s with synthesis", CLSS, controllerName,request.type.name))
             parentResponseChannel.send(request)
         }
     }
