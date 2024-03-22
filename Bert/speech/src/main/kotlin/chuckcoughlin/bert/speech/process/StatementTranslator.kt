@@ -551,7 +551,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // move your left hip y to 45 degrees
     override fun visitMoveMotor(ctx: SpeechSyntaxParser.MoveMotorContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
-
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -575,7 +574,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             bottle.joint = joint
         }
-        bottle.addJointValue(joint,JointDynamicProperty.POSITION,ctx.Value().getText().toDouble())
+        var property = "position"
+        setJointPropertyInMessage(bottle,property)
         return null
     }
 

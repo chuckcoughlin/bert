@@ -503,6 +503,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         timeOfLastWrite = System.currentTimeMillis()
         running = false
         job = Job()
-        LOGGER.info(String.format("%s.init: created...", CLSS))
+        LOGGER.info(String.format("%s.init: created %s...", CLSS,name))
     }
 }

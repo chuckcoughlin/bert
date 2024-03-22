@@ -429,11 +429,10 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             for(controller in motorControllers.values) {
                 // Add configurations to the controller for each motor in the group
                 val joints: List<Joint> = RobotModel.getJointsForMotorController(controller.controllerName)
-                LOGGER.info(String.format("%s.initialize: %d joints for %s", CLSS, joints.size, controller.controllerName))
                 for (joint in joints) {
                     val motor: MotorConfiguration? = RobotModel.motorsByJoint[joint]
                     if (motor != null) {
-                        if(DEBUG) LOGGER.info(String.format("%s.initialize: Added motor %s to group %s",CLSS,joint.name,controller.controllerName))
+                        if(DEBUG) LOGGER.info(String.format("%s.init: Added motor %s to group %s",CLSS,joint.name,controller.controllerName))
                         controller.putMotorConfiguration(joint, motor)
                         motorNameById[motor.id] = joint.name
                     }

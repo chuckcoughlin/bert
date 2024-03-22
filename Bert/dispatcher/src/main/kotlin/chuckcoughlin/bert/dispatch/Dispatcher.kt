@@ -166,13 +166,13 @@ class Dispatcher(s:Solver) : Controller {
         msg.control.controller =  BottleConstants.CONTROLLER_UPPER
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
-        toInternalController.send(msg)
+        //toInternalController.send(msg)
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 2000 // 2 sec delay
-        toInternalController.send(msg)
+        //toInternalController.send(msg)
     }
 
     /**
