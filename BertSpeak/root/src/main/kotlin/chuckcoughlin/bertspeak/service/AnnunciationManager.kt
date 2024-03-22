@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Charles Coughlin. All rights reserved.
+ * Copyright 2023-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
@@ -125,6 +125,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	 * @param pcnt - volume percent of maximum (0-100)
 	 */
 	fun setVolume(pcnt:Int) {
+		Log.i(CLSS, String.format("setVolume %d", pcnt))
 		val maxVol = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
 		val vol = ((maxVol*pcnt)/100.0).roundToInt()
 		val nv = NameValue(BertConstants.BERT_VOLUME,pcnt.toString())

@@ -35,6 +35,7 @@ import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.waveform.WaveformView
+import com.google.android.material.slider.Slider
 
 
 /**
@@ -78,9 +79,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         )
         // Seek Bar 0-100
         seekBar = binding.verticalSeekbar
-        seekBar.setOnSeekBarChangeListener(this)
-        val prog = (DatabaseManager.getSetting(BertConstants.BERT_VOLUME)).toDouble()
-        seekBar.progress = (prog*100).toInt()
+        seekBar.setOnClickListener(this)
+        val prog = (DatabaseManager.getSetting(BertConstants.BERT_VOLUME)).toDouble()*100f
+        seekBar.progress = prog.toInt()
+        DispatchService.setVolume(seekBar.progress)
+        Log.i(name, String.format("onCreateView: seek bar at %d.",seekBar.progress))
         DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
@@ -220,6 +223,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     override fun onStartTrackingTouch(seekBar: SeekBar) {}
 
     override fun onProgressChanged(seekBar: SeekBar, progress: Int,fromUser: Boolean) {
+        Log.i(name, String.format("onProgressChanged: seekBar at %d",progress))
         DispatchService.setVolume(progress)
     }
 
