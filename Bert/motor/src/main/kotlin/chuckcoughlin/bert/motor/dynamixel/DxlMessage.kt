@@ -32,12 +32,11 @@ object DxlMessage {
         for (mc in configurationsByJoint.values) {
             val pos: Double = mc.position
             if (pos == 0.0) {
-                LOGGER.info(String.format(
-                    "%s.byteArrayListToInitializePositions: %s never evaluated, ignored",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s never evaluated, ignored",
                     CLSS,mc.joint.name))
             }
             else if (pos > mc.maxAngle ) {
-                LOGGER.info(java.lang.String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
                         CLSS, mc.joint.name, pos, mc.maxAngle))
                 mc.position = mc.maxAngle
                 outliers.add(mc)
@@ -55,15 +54,15 @@ object DxlMessage {
         // No knock-knees
         var leftHip: MotorConfiguration? = configurationsByJoint[Joint.LEFT_HIP_X]
         if (leftHip != null) {
-            if (leftHip.position > MAX_HIP_X) {
-                leftHip.position = MAX_HIP_X
+            if (leftHip.position > HIP_X_LIMIT) {
+                leftHip.position = HIP_X_LIMIT
                 outliers.add(leftHip)
             }
         }
         var rightHip: MotorConfiguration? = configurationsByJoint[Joint.RIGHT_HIP_X]
         if( rightHip!=null) {
-            if (rightHip.position > MAX_HIP_X) {
-                rightHip.position = MAX_HIP_X
+            if (rightHip.position > HIP_X_LIMIT) {
+                rightHip.position = HIP_X_LIMIT
                 outliers.add(rightHip)
             }
         }
@@ -71,14 +70,14 @@ object DxlMessage {
         leftHip = configurationsByJoint[Joint.LEFT_HIP_X]
         if( leftHip!=null ) {
             rightHip = configurationsByJoint[Joint.LEFT_HIP_X]
-            if (leftHip.position < MIN_HIP_Z) {
-                leftHip.position = MIN_HIP_Z
+            if (leftHip.position < HIP_Z_LIMIT) {
+                leftHip.position = HIP_Z_LIMIT
                 outliers.add(leftHip)
             }
         }
         if( rightHip!=null) {
-            if (rightHip.position < MIN_HIP_Z) {
-                rightHip.position = MIN_HIP_Z
+            if (rightHip.position < HIP_Z_LIMIT) {
+                rightHip.position = HIP_Z_LIMIT
                 outliers.add(rightHip)
             }
         }
@@ -794,6 +793,6 @@ object DxlMessage {
     const val SYNC_READ = 0x82.toByte() // For multiple devices, Instruction to read data from the same Address with the same length at once
     const val SYNC_WRITE = 0x83.toByte() // For multiple devices, Instruction to write data on the same Address with the same length at once
     const val BULK_READ = 0x92.toByte() // For multiple devices, Instruction to read data from different Addresses with different lengths at once
-    const val MAX_HIP_X = 190.0
-    const val MIN_HIP_Z = -8.0
+    const val HIP_X_LIMIT = 190.0         // Reasonable hip limit
+    const val HIP_Z_LIMIT = -8.0
 }
