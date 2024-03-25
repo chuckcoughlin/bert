@@ -20,8 +20,8 @@ command:
 	Greeting Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					# initializeJoints
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
-	| Salutation? List Article? Properties Of Article? Controller? Motors       # handleListCommand1
-	| Salutation? List Article? Controller? Motor? Properties                   # handleListCommand2
+	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand1
+	| Salutation? List Article? Motor? Properties                   # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
 	| Salutation? Move Adverb                                                   # moveSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?		# enableTorque
@@ -60,7 +60,7 @@ declaration:
 	;
 
 // Arbitrary string of words
-phrase: (NAME|Value|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Set|Side|Straighten|Take|To)+    # wordList
+phrase: (NAME|Value|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
     ;
 
 // First is a list of terms that are used below or use word that appear elsewhere
@@ -70,14 +70,13 @@ Why: 'why';
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
-Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow';
+Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow'|'faster'|'slower'|'quicker';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Are: 'are';
 As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
-Controller: 'lower'|'upper';
 Do: 'do';
 Dynamic: 'dynamic';
 Goals: 'goals'|'targets';

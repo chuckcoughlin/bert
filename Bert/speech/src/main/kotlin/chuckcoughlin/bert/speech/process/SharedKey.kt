@@ -10,9 +10,10 @@ package chuckcoughlin.bert.speech.process
  */
 enum class SharedKey {
     APPENDAGE, ASLEEP,  // Robot ignores requests,
-    AXIS, CONTROLLER, JOINT, LIMB, PARTIAL,  // Text of an incomplete request
-    POSE,  // Current pose
-    SIDE, IT // Datatype of "it"
+    AXIS, JOINT, LIMB, PARTIAL,  // Text of an incomplete request
+    POSE,    // Current pose
+    SIDE, IT, // Datatype of "it"
+    SPEED
     ;
 
     companion object {

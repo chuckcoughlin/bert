@@ -30,11 +30,11 @@ class StatementParser {
         context[SharedKey.ASLEEP] = "false"
         context[SharedKey.APPENDAGE] = Appendage.NONE
         context[SharedKey.AXIS] = "x"
-        context[SharedKey.CONTROLLER] = ""
         context[SharedKey.JOINT] = Joint.NONE
         context[SharedKey.LIMB] = Limb.NONE
         context[SharedKey.POSE] = "home"
         context[SharedKey.SIDE] = "right"
+        context[SharedKey.SPEED] = "normal speed"
         context[SharedKey.IT] = SharedKey.JOINT
     }
 

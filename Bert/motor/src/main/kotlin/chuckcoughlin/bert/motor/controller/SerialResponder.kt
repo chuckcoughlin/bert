@@ -21,6 +21,9 @@ import java.util.logging.Logger
  * Handle callbacks from the serial port. Use channels to receive the original
  * request message and to transmit a response.
  *
+ * Since the same request object is processed in parallel by multiple MotorControl
+ * and SerialResponder objects, it is imperative that any object updates be synchronized.
+ *
  * @param name - the serial port name used to identify the instance
  * @param req - channel for requests from the parent motor controller
  * @param rsp - channel for responses sent to the parent motor controller
@@ -35,10 +38,12 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
 
     // ============================== SerialPortEventListener ===============================
     /**
-     * Handle the response from the serial request.
+     * Handle the response from the serial request. NOTE: Since multiple serialEvents
+     * are updating the same request, any updates must be synchronized.
      */
+    @Synchronized
     override fun serialEvent(event: SerialPortEvent) {
-        // LOGGER.info(String.format("%s(%s).serialEvent queue", CLSS, name))
+        LOGGER.info(String.format("%s.serialEvent for %s (pending %s)", CLSS, name,if(pending==null) "none" else "yes"))
         if (event.isRXCHAR()) {
             var request =
                 if(pending==null) runBlocking(Dispatchers.IO) { inChannel.receive() }
@@ -47,14 +52,14 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
             // The value is the number of bytes in the read buffer
             val byteCount: Int = event.getEventValue()
             LOGGER.info(String.format("%s.serialEvent %s: expect %d %s msgs got %d bytes",
-                    CLSS,name,request.control.responseCount,request.type.name, byteCount) )
+                    CLSS,name,request.control.responseCount[name]!!,request.type.name, byteCount) )
             if (byteCount > 0) {
                 try {
                     var bytes: ByteArray = event.port.readBytes(byteCount)
                     bytes = prependRemainder(bytes)
                     bytes = DxlMessage.ensureLegalStart(bytes) // never null
                     var nbytes = bytes.size
-                    LOGGER.info(String.format("%s(%s).serialEvent: read =\n%s",CLSS,name, DxlMessage.dump(bytes)))
+                    LOGGER.info(String.format("%s(%s).serialEvent: contents =\n%s",CLSS,name, DxlMessage.dump(bytes)))
                     val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
                     if (mlen < 0 || nbytes < mlen) {
                         LOGGER.warning( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
@@ -68,7 +73,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                     }
                     if(returnsStatusArray(request)) {  // Some requests return a message for each motor
                         var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
-                        if (nmsgs > request.control.responseCount) nmsgs = request.control.responseCount
+                        if (nmsgs > request.control.responseCount[name]!!) nmsgs = request.control.responseCount[name]!!
                         nbytes = nmsgs * STATUS_RESPONSE_LENGTH
                         if (nbytes < bytes.size) {
                             bytes = truncateByteArray(bytes, nbytes)
@@ -79,21 +84,24 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                             val param = map[key]
                             val joint = RobotModel.motorsById[key]!!.joint
                             request.addJointValue(joint,prop, param!!.toDouble())
-                            request.control.responseCount = request.control.responseCount - 1
+                            request.control.responseCount[name] = request.control.responseCount[name]!! - 1
                             LOGGER.info(String.format("%s.serialEvent: %s received %s (%d remaining) = %s",
-                                            CLSS, name, prop.name, request.control.responseCount, param) )
+                                            CLSS, name, joint.name, request.control.responseCount[name]!!, param) )
                         }
                     }
                     else {
-                        request.control.responseCount = request.control.responseCount - 1
+                        request.control.responseCount[name] = request.control.responseCount[name]!! - 1
                     }
-                    if (request.control.responseCount <= 0) {
+                    if (request.control.responseCount[name]!! <= 0) {
                         if (isSingleControllerRequest(request)) {
                             updateRequestFromBytes(request, bytes)
                         }
                         pending = null
                         runBlocking(Dispatchers.IO) { outChannel.send(request) }
                         LOGGER.info(String.format("%s.serialEvent: sent response %s.",CLSS,request.type.name))
+                    }
+                    else {
+                        pending = request
                     }
                 }
                 catch (ex: SerialPortException) {
@@ -117,7 +125,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
             return true
         }
         else if (msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) &&
-            (!msg.control.controller.isEmpty() || !msg.limb.equals(Limb.NONE))) {
+            !msg.limb.equals(Limb.NONE)) {
             return true
         }
         return false
@@ -141,6 +149,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
 
     // We update the properties in the request from our serial message.
     // The properties must include motor type and orientation
+    @Synchronized
     private fun updateRequestFromBytes(request: MessageBottle, bytes: ByteArray) {
         val type: RequestType = request.type
         if (type.equals(RequestType.GET_GOALS)) {

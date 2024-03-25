@@ -30,6 +30,9 @@ import java.util.logging.Logger
  * It is important that the MotorConfiguration objects are the same objects
  * (not clones) as those held by the MotorManager (MotorGroupController).
  *
+ * Since the same request object is processed in parallel by multiple MotorControl
+ * and SerialResponder objects, it is imperative that any object updates be synchronized.
+ *
  * @param p - the serial port shared by the motors under control
  * @param req - channel for requests from the parent (motor manager)
  * @param rsp - channel for responses sent to the parent (motor manager)
@@ -58,7 +61,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     }
 
     fun putMotorConfiguration(joint: Joint, mc: MotorConfiguration) {
-        LOGGER.info(String.format("%s.putMotorConfiguration: %s has a %s", CLSS, controllerName, joint.name))
+        //LOGGER.info(String.format("%s.putMotorConfiguration: %s has a %s", CLSS, controllerName, joint.name))
         configurationsByJoint[joint] = mc
     }
 
@@ -128,20 +131,13 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     suspend fun processRequest() {
         val request = parentRequestChannel.receive()    //  Waits for message
         LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name));
-        if( isImmediateRequest(request)) {
-            handleImmediateRequest(request)
-        }
         // Do nothing if the joint or limb isn't on this controller
         // -- a limb is on one side or the other, not both
-        else if(isSingleControllerRequest(request)) {
+        if(isSingleControllerRequest(request)) {
             val joint: Joint=request.joint
-            val cName: String=request.control.controller
             val limb: Limb=request.limb
             if(!joint.equals(Joint.NONE)) {
                 val mc: MotorConfiguration=configurationsByJoint[joint] ?: return
-            }
-            else if(!cName.isEmpty() && !cName.equals(controllerName, ignoreCase=true)) {
-                return
             }
             else if(!limb.equals(Limb.NONE)) {
                 val count=configurationsForLimb(limb).size
@@ -158,7 +154,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if (isSingleWriteRequest(request)) {
             val bytes = messageToBytes(request)
             if (bytes != null) {
-                if (request.control.responseCount > 0) {
+                if (request.control.responseCount[controllerName]!! > 0) {
                     requestQueue.send(request)
                 }
                 writeBytesToSerial(bytes)
@@ -167,7 +163,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else {
             val byteArrayList = messageToByteList(request)
-            if (request.control.responseCount > 0) {
+            if (request.control.responseCount[controllerName]!! > 0) {
                 requestQueue.send(request)
             }
             for (bytes in byteArrayList) {
@@ -176,7 +172,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
         }
 
-        if( request.control.responseCount>0 ) {
+        if( request.control.responseCount[controllerName]!!>0 ) {
             LOGGER.info(String.format("%s.processRequest: %s waiting for response ...", CLSS, controllerName))
             val response = responseQueue.receive()
             LOGGER.info(String.format("%s.processRequest: %s got response", CLSS, controllerName))
@@ -190,25 +186,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     }
 
     // ============================= Private Helper Methods =============================
-    /**
-     * @param msg the request
-     * @return true if this request is meant to be tqken out of order
-     */
-    private fun handleImmediateRequest(msg: MessageBottle) {
-        if (msg.type.equals(RequestType.COMMAND) &&
-            msg.command.equals(CommandType.RESET) ) {}
-    }
-    /**
-     * @param msg the request
-     * @return true if this request is meant to be tqken out of order
-     */
-    private fun isImmediateRequest(msg: MessageBottle): Boolean {
-        if (msg.type.equals(RequestType.COMMAND) &&
-            msg.command.equals(CommandType.RESET) ){
-            return true
-        }
-        return false
-    }
     /**
      * @param msg the request
      * @return true if this is the type of request satisfied by a single controller.
@@ -250,7 +227,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return
      */
     private fun messageToBytes(request: MessageBottle): ByteArray? {
-        request.control.responseCount = 0 // No response, unless specified otherwise
+        request.control.responseCount[controllerName] = 0 // No response, unless specified otherwise
         var bytes: ByteArray  = ByteArray(0)
         val type: RequestType = request.type
         if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s",CLSS,controllerName,type.name))
@@ -293,7 +270,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (mc in configurationsByJoint.values) {
                 if (mc.joint.equals(joint)) {
                     bytes = DxlMessage.bytesToGetGoals(mc.id)
-                    request.control.responseCount = 1 // Status message
+                    request.control.responseCount[controllerName] = 1 // Status message
                     break
                 }
             }
@@ -303,7 +280,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (mc in configurationsByJoint.values) {
                 if (mc.joint.equals(joint)) {
                     bytes = DxlMessage.bytesToGetLimits(mc.id)
-                    request.control.responseCount = 1 // Status message
+                    request.control.responseCount[controllerName] = 1 // Status message
                     break
                 }
             }
@@ -314,7 +291,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val mc = RobotModel.motorsByJoint[joint]!!
             if (mc.joint.equals(joint)) {
                 bytes = DxlMessage.bytesToGetProperty(mc.id,request.jointDynamicProperty)
-                request.control.responseCount = 1 // Status message
+                request.control.responseCount[controllerName] = 1 // Status message
             }
         }
         else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
@@ -355,7 +332,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     request.text = String.format("My %s %s is %s",Joint.toText(mc.joint), prop.name, value)
                 }
             }
-            request.control.responseCount = 1 // Status message
+            request.control.responseCount[controllerName] = 1 // Status message
         }
         else if (type.equals(RequestType.NONE)) {
             LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
@@ -385,7 +362,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration
-            request.control.responseCount = 0 // No response
+            request.control.responseCount[controllerName] = 0 // No response
         }
         else if( type==RequestType.LIST_MOTOR_PROPERTY ||
                  type==RequestType.READ_MOTOR_PROPERTY ) {
@@ -393,12 +370,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val prop = request.jointDynamicProperty
             if( limb.equals(Limb.NONE) ) {
                 list = DxlMessage.byteArrayListToListProperty(prop, configurationsByJoint.values)
-                request.control.responseCount = configurationsByJoint.size // Status packet for each motor
+                request.control.responseCount[controllerName] = configurationsByJoint.size // Status packet for each motor
             }
             else {
                 val configs: Map<Joint, MotorConfiguration> = configurationsForLimb(limb)
                 list = DxlMessage.byteArrayListToListProperty(prop, configs.values)
-                request.control.responseCount = configs.size // Status packet for each motor in limb
+                request.control.responseCount[controllerName] = configs.size // Status packet for each motor in limb
             }
         }
         else if (type==RequestType.SET_POSE) {
@@ -406,7 +383,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             list = DxlMessage.byteArrayListToSetPose(poseName,configurationsByJoint)
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration
-            request.control.responseCount = 0 // AYNC WRITE, no responses
+            request.control.responseCount[controllerName] = 0 // AYNC WRITE, no responses
         }
         else {
             LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",
@@ -485,6 +462,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         return result
     }
 
+    // Attempt to recover from an error
+    // NOTE: If there is an error on the controller itself, we need to recycle power
+    fun reset() {
+
+    }
+
     private val CLSS = "MotorController"
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
@@ -499,7 +482,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         requestQueue  = Channel<MessageBottle>(1)
         responseQueue = Channel<MessageBottle>(1)
         responder = SerialResponder(name,requestQueue,responseQueue)
-        configurationsByJoint = HashMap<Joint, MotorConfiguration>()
+        configurationsByJoint = mutableMapOf<Joint, MotorConfiguration>()
         timeOfLastWrite = System.currentTimeMillis()
         running = false
         job = Job()

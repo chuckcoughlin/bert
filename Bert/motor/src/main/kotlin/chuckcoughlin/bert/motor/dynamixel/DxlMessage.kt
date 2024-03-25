@@ -498,6 +498,7 @@ object DxlMessage {
      * @param bottle a MessageBottle in which we set properties
      * @param bytes status response from the controller
      */
+    @Synchronized
     fun updateGoalsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
         if (verifyHeader(bytes)) {
             val msg = String.format("%s.updateGoalsFromBytes: %s", CLSS, dump(bytes))
@@ -546,6 +547,7 @@ object DxlMessage {
      * @param bottle a MessageBottle in which we set properties
      * @param bytes status response from the controller
      */
+    @Synchronized
     fun updateLimitsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
         mc.isDirect = true
         mc.offset = 0.0
@@ -592,6 +594,7 @@ object DxlMessage {
      * @param props properties from a MessageBottle
      * @param bytes status response from the controller
      */
+    @Synchronized
     fun updateParameterFromBytes(property: JointDynamicProperty,mc: MotorConfiguration,
             bottle: MessageBottle,bytes: ByteArray) {
         if (verifyHeader(bytes)) {
@@ -630,6 +633,7 @@ object DxlMessage {
      * @param bytes status response from the controller
      * @param parameters an array of positions by id, supplied. This is augmented by the method.
      */
+    @Synchronized
     fun updateParameterArrayFromBytes(property: JointDynamicProperty,configurations: Map<Int, MotorConfiguration>,
             bytes: ByteArray, parameters: MutableMap<Int, String> ) {
         var msg: String

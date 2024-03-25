@@ -244,9 +244,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.type = RequestType.LIST_MOTOR_PROPERTY
         val pname: String = ctx.Properties().getText() // plural
         setJointPropertyInMessage(bottle,pname)
-        if (ctx.Controller() != null) {
-            bottle.control.controller = determineController(ctx.Controller().getText())
-        }
         if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
             bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
             val msg = String.format(
@@ -262,11 +259,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitHandleListCommand2(ctx: SpeechSyntaxParser.HandleListCommand2Context) :Any? {
         bottle.type = RequestType.LIST_MOTOR_PROPERTY
         val pname: String = ctx.Properties().getText() // plural
-
         setJointPropertyInMessage(bottle,pname)
-        if (ctx.Controller() != null) {
-            bottle.control.controller = determineController(ctx.Controller().getText())
-        }
         if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
             bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
             val msg = String.format(
@@ -436,7 +429,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         }
         return null
     }
-
     // when i say climb take the pose climbing
     override fun visitMapPoseToCommand4(ctx: SpeechSyntaxParser.MapPoseToCommand4Context): Any? {
         bottle.type = RequestType.MAP_POSE
@@ -574,8 +566,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             bottle.joint = joint
         }
-        var property = "position"
-        setJointPropertyInMessage(bottle,property)
+        // Property is fixed as position
+        bottle.jointDynamicProperty = JointDynamicProperty.POSITION
+        bottle.value = ctx.Value().getText().toDouble()
         return null
     }
 
@@ -620,11 +613,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // set your left elbow torque to 1.2
     override fun visitSetMotorPosition(ctx: SpeechSyntaxParser.SetMotorPositionContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
-        // Property defaults to position
-        var property = "position"
-        if (ctx.Property() != null) property = ctx.Property().getText()
-        setJointPropertyInMessage(bottle,property)
-
+        // Property is fixed as position
+        bottle.jointDynamicProperty = JointDynamicProperty.POSITION
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side()!=null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -1005,32 +995,47 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     }
 
     // The poses returned here are expected to exist in the Pose table of the database.
+    // Canonical names are: very slow speed,slow speed,normal speed,fast speed,very fast speed
     private fun poseForAdverb(adverb: String): String {
-        var pose = ""
-        pose = if (adverb.lowercase(Locale.getDefault()).contains("slow motion")) {
-            "very slow speed"
+        val speed = adverb.lowercase()
+        val currentSpeed = sharedDictionary[SharedKey.SPEED].toString()
+        if(speed.contains("faster") ||
+            speed.contains("quicker")) {
+            if(currentSpeed.equals("very slow speed")) sharedDictionary[SharedKey.SPEED] = "slow speed"
+            else if(currentSpeed.equals("slow speed")) sharedDictionary[SharedKey.SPEED] = "normal speed"
+            else if(currentSpeed.equals("normal speed")) sharedDictionary[SharedKey.SPEED] = "fast speed"
+            else if(currentSpeed.equals("fast speed")) sharedDictionary[SharedKey.SPEED] = "very fast speed"
         }
-        else if (adverb.lowercase(Locale.getDefault()).contains("slow")) {
-            if (adverb.lowercase(Locale.getDefault()).contains("very")) {
-                "very slow speed"
+        else if (speed.contains("slower")) {
+            if(currentSpeed.equals("very fast speed")) sharedDictionary[SharedKey.SPEED] = "fast speed"
+            else if(currentSpeed.equals("fast speed")) sharedDictionary[SharedKey.SPEED] = "normal speed"
+            else if(currentSpeed.equals("normal speed")) sharedDictionary[SharedKey.SPEED] = "slow speed"
+            else if(currentSpeed.equals("slow speed")) sharedDictionary[SharedKey.SPEED] = "very slow speed"
+        }
+        else if (speed.contains("slow motion")) {
+            sharedDictionary[SharedKey.SPEED] = "very slow speed"
+        }
+        else if(speed.contains("slow")) {
+            if(speed.contains("very")) {
+                sharedDictionary[SharedKey.SPEED] = "very slow speed"
             }
             else {
-                "slow speed"
+                sharedDictionary[SharedKey.SPEED] = "slow speed"
             }
         }
-        else if (adverb.lowercase(Locale.getDefault()).contains("fast") ||
-                 adverb.lowercase(Locale.getDefault()).contains("quick")) {
-            if (adverb.lowercase(Locale.getDefault()).contains("very")) {
-                "very fast speed"
+        else if(speed.contains("fast") ||
+                speed.contains("quick")) {
+            if(speed.contains("very")) {
+                sharedDictionary[SharedKey.SPEED] = "very fast speed"
             }
             else {
-                "fast speed"
+                sharedDictionary[SharedKey.SPEED] = "fast speed"
             }
         }
-        else {
-            "normal speed"
+        else if(speed.contains("normal")) {
+            sharedDictionary[SharedKey.SPEED] = "normal speed"
         }
-        return pose
+        return sharedDictionary[SharedKey.SPEED].toString()   // Must be a pose name
     }
 
     // Determine a joint property from the supplied string. It may be either a static

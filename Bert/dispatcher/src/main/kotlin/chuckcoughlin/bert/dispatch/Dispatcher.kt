@@ -80,17 +80,12 @@ class Dispatcher(s:Solver) : Controller {
             running = true
             if( RobotModel.useBluetooth) {
                 commandController.execute()
-                if(DEBUG) LOGGER.info(String.format("%s.execute: command started", CLSS))
             }
             if( RobotModel.useTerminal) {
                 terminalController.execute()
-                if (DEBUG) LOGGER.info(String.format("%s.execute: terminal started", CLSS))
             }
             internalController.execute()
-            if(DEBUG) LOGGER.info(String.format("%s.execute: internal started", CLSS))
             motorGroupController.execute()
-            if(DEBUG) LOGGER.info(String.format("%s.execute: motors started", CLSS))
-            if(DEBUG) LOGGER.info(String.format("%s.execute: controllers started", CLSS))
 
             // =================== Dispatch incoming messages and send to proper receivers =========================
             // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
@@ -163,10 +158,9 @@ class Dispatcher(s:Solver) : Controller {
         // internal buffers with the current positions.
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.POSITION
-        msg.control.controller =  BottleConstants.CONTROLLER_UPPER
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
-        //toInternalController.send(msg)
+        toInternalController.send(msg)
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
@@ -383,10 +377,6 @@ class Dispatcher(s:Solver) : Controller {
                             CLSS,ioe.message))
                 }
             }
-            else {
-                val msg = String.format("Unrecognized command: %s", command)
-                request.error = msg
-            }
         }
         // List the names of different kinds of properties
         else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
@@ -462,12 +452,12 @@ class Dispatcher(s:Solver) : Controller {
         }
         else if (request.type.equals(RequestType.COMMAND)) {
             val cmd = request.command
-            return if (cmd.equals(CommandType.FREEZE) ||
-                cmd.equals(CommandType.RELAX) ) {
-                false
+            return if (cmd.equals(CommandType.HALT) ||
+                cmd.equals(CommandType.SHUTDOWN)) {
+                true
             }
             else {
-                true
+                false
             }
         }
         else if( request.type == RequestType.NOTIFICATION ) {
@@ -479,7 +469,8 @@ class Dispatcher(s:Solver) : Controller {
     // These are requests that can be processed directly by the group controller and sent to the
     // proper motor controller.
     private fun isMotorRequest(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+        if (request.type.equals(RequestType.COMMAND) ||
+            request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.SET_POSE) ||

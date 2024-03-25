@@ -12,7 +12,6 @@ package chuckcoughlin.bert.common.message
  * ("time served").
 */
 data class ExecutionControl(var delay: Long) : Cloneable {
-    var controller: String // Name of the controller to handle the request
      /*
      * The execution time is the earliest time at which this message is allowed
      * to be sent to the Dispatcher. The time is calculated as the message
@@ -24,16 +23,15 @@ data class ExecutionControl(var delay: Long) : Cloneable {
     /* While processing within the MotorController attach a serial message response count to the
     * request so that we can determine when the response is complete.
     */
-    var responseCount:Int
+    var responseCount:MutableMap<String, Int>
     var shouldRepeat: Boolean
 
     override public fun clone(): ExecutionControl {
         val copy = ExecutionControl(delay)
-        copy.controller     = controller
         copy.executionTime  = executionTime   // Current time
         copy.repeatInterval = repeatInterval
         copy.originalSource = originalSource
-        copy.responseCount  = responseCount
+        copy.responseCount  = mutableMapOf<String, Int>()
         copy.shouldRepeat   = shouldRepeat
         return copy
     }
@@ -50,10 +48,9 @@ data class ExecutionControl(var delay: Long) : Cloneable {
         get() = ++id
 
     init {
-        controller = BottleConstants.NO_CONTROLLER
         executionTime  = System.currentTimeMillis()
         repeatInterval = 0
-        responseCount  = 0
+        responseCount  = mutableMapOf<String, Int>()
         shouldRepeat = false
         originalSource = BottleConstants.NO_SOURCE
         id = nextId

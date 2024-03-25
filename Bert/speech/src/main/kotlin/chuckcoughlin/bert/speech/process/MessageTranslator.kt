@@ -81,7 +81,6 @@ class MessageTranslator {
             }
             // Lists are written to JSON
             else if(type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
-                val controllerName: String=msg.control.controller
                 val iterator: MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                 val gson=GsonBuilder().setPrettyPrinting().create()
                 var names=mutableListOf<String>()

@@ -6,6 +6,7 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -74,7 +75,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                         /**
                          * On receipt of a message from a motor controller,
                          * accumulate, if necessary, then forward to the
-                         * dispatcher.
+                         * dispatcher. NOTE: Each controller returns the
+                         * same request object.
                          */
                         lowerResponseChannel.onReceive() {
                             handleControllerResponse(LOWER,it)
@@ -168,7 +170,11 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // immediately. Results are created from the original configuration file.
     // We also create error messages some requests that are illegal
     private fun canHandleImmediately(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+        if (request.type.equals(RequestType.COMMAND) &&
+            request.command.equals(CommandType.RESET) ) {
+            return true
+        }
+        else if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.LIST_MOTOR_PROPERTY) ) {
             // Certain properties are constants available from the configuration file.
             val defProp= request.jointDefinitionProperty
@@ -207,7 +213,12 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // to return directly to the user. These jointValues are obtained from the initial configuration
     private fun createImmediateResponse(request: MessageBottle): MessageBottle {
         var text: String = ""
-        if( request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
+        if (request.type.equals(RequestType.COMMAND) &&
+            request.command.equals(CommandType.RESET) ) {
+            pendingMessages.clear()
+            text = "I have been reset"
+        }
+        else if( request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
             val joint = request.joint
             val jointName: String = Joint.toText(joint)
 
@@ -432,7 +443,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 for (joint in joints) {
                     val motor: MotorConfiguration? = RobotModel.motorsByJoint[joint]
                     if (motor != null) {
-                        if(DEBUG) LOGGER.info(String.format("%s.init: Added motor %s to group %s",CLSS,joint.name,controller.controllerName))
+                        if(DEBUG) LOGGER.info(String.format("%s.init: Added motor %s: %s",CLSS,controller.controllerName,joint.name))
                         controller.putMotorConfiguration(joint, motor)
                         motorNameById[motor.id] = joint.name
                     }
