@@ -61,7 +61,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     }
 
     fun putMotorConfiguration(joint: Joint, mc: MotorConfiguration) {
-        //LOGGER.info(String.format("%s.putMotorConfiguration: %s has a %s", CLSS, controllerName, joint.name))
         configurationsByJoint[joint] = mc
     }
 
@@ -173,7 +172,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
 
         if( request.control.responseCount[controllerName]!!>0 ) {
-            LOGGER.info(String.format("%s.processRequest: %s waiting for response ...", CLSS, controllerName))
             val response = responseQueue.receive()
             LOGGER.info(String.format("%s.processRequest: %s got response", CLSS, controllerName))
             parentResponseChannel.send(response)
@@ -342,8 +340,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",
                 CLSS, type.name))
         }
-        LOGGER.info(String.format("%s.messageToBytes: %s = \n%s",CLSS,
-            request.type.name, DxlMessage.dump(bytes)))
+        LOGGER.info(String.format("%s.messageToBytes: expect %d responses %d bytes \n%s",CLSS,
+            request.control.responseCount[controllerName],bytes.size))
         return bytes
     }
     /**

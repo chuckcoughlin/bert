@@ -135,6 +135,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         else {
             pendingMessages.put(request.id,mutableListOf<String>())
             lowerRequestChannel.send(request)     // All motor controllers receive
+            delay(6000)
             upperRequestChannel.send(request)
         }
         return request

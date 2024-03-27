@@ -56,28 +56,9 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
      * @param period ~ msecs
      */
     var duration: Long = 0 // ~msecs
-    var responderCount = 0 // Number of controllers/motors that have contributed
-
-    /**
-     * Increment the responder count by a specified value.
-     * @param increment
-     * @return the new count
-     */
-    fun incrementResponderCount(increment: Int): Int {
-        responderCount = responderCount + increment
-        return responderCount
-    }
-
-    /**
-     * Increment the responder count by 1.
-     * @return the new count
-     */
-    fun incrementResponderCount(): Int {
-        responderCount = responderCount + 1
-        return responderCount
-    }
 
     // Use the joint-property-value list for requests that address multiple joints
+    @Synchronized
     fun addJointValue(j: Joint,prop: JointDynamicProperty, value: Number) {
         jointValues.add(JointPropertyValue(j,prop,value))
     }
