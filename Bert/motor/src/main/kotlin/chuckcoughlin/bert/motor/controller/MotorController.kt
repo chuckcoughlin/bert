@@ -322,7 +322,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 if (prop.equals(JointDynamicProperty.POSITION) ) {
                     val duration = mc.travelTime
                     if (request.duration < duration) request.duration = duration
-                    request.text = String.format("My position is %.0f", mc.position)
+                    request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.position)
                 }
                 else if (prop.equals(JointDynamicProperty.STATE) ) {
                     request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
@@ -414,6 +414,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
             msg.type.equals(RequestType.SET_POSE) ) {
             msg.text = ""   // Random acknowledgement added later
+        }
+        else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+            // Description is added by
         }
         else if( msg.type.equals(RequestType.COMMAND))  {
             if (msg.command.equals(CommandType.FREEZE) ||
