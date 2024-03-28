@@ -167,6 +167,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             for (bytes in byteArrayList) {
                 writeBytesToSerial(bytes)
+                delay(MIN_WRITE_INTERVAL)    // This could be significant
                 LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes", CLSS, controllerName, bytes.size))
             }
         }
@@ -352,7 +353,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return
      */
     private fun messageToByteList(request: MessageBottle): List<ByteArray> {
-        var list: List<ByteArray> = ArrayList()
+        var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
         if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s",
             CLSS,controllerName,type.name))
@@ -470,7 +471,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     private val BAUD_RATE = 1000000
-    private val MIN_WRITE_INTERVAL = 100   // msecs between writes (50 was too short)
+    private val MIN_WRITE_INTERVAL = 100L   // msecs between writes (50 was too short)
 
     override val controllerType = ControllerType.MOTOR
 
