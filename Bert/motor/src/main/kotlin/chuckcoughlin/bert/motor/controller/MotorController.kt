@@ -165,9 +165,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if (request.control.responseCount[controllerName]!! > 0) {
                 requestQueue.send(request)
             }
+            var count = byteArrayList.size
             for (bytes in byteArrayList) {
                 writeBytesToSerial(bytes)
-                delay(MIN_WRITE_INTERVAL)    // This could be significant
+                count--
+                if(count>0) delay(MIN_WRITE_INTERVAL)    // This could be significant
                 LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes", CLSS, controllerName, bytes.size))
             }
         }
@@ -338,11 +340,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 CLSS, type.name ) )
         }
         else {
-            LOGGER.severe(String.format("%s.messageToBytes: Unhandled request type %s",
-                CLSS, type.name))
+            LOGGER.severe(String.format("%s.messageToBytes: %s unhandled request %s",
+                CLSS, controllerName,type.name))
         }
-        LOGGER.info(String.format("%s.messageToBytes: expect %d responses %d bytes \n%s",CLSS,
-            request.control.responseCount[controllerName],bytes.size))
+        LOGGER.info(String.format("%s.messageToBytes: %s expect %d responses %d bytes",CLSS,
+            controllerName,request.control.responseCount[controllerName],bytes.size))
         return bytes
     }
     /**

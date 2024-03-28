@@ -135,7 +135,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         else {
             pendingMessages.put(request.id,mutableListOf<String>())
             lowerRequestChannel.send(request)     // All motor controllers receive
-            delay(6000)
+            // delay(6000)   // Makes is so motor controllers don't overlap
             upperRequestChannel.send(request)
         }
         return request
