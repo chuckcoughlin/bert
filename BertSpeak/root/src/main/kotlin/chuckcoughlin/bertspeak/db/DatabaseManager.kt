@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Charles Coughlin. All rights reserved.
+ * Copyright 2023-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.db
@@ -174,6 +174,7 @@ object DatabaseManager {
                 else if( value<0.0  )   value = 0.0
                 nv.value = value.toString()
              }
+            Log.i(CLSS, String.format("updateSettings: %s = %s (%s)", nv.name, nv.value, nv.hint))
             val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
             val bindArgs = arrayOfNulls<String>(3)
             bindArgs[0] = nv.value

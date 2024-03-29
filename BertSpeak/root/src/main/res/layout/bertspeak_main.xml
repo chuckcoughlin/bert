@@ -29,6 +29,7 @@
             android:id="@+id/invisibleText"
             android:layout_width="match_parent"
             android:layout_height="@dimen/hidden_height"
+            android:text=""
             android:background="@color/black"
             android:padding="@dimen/appbar_padding" />
         <!-- app:tabTextAppearance="@style/TabTextAppearance" -->
