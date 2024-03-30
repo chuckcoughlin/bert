@@ -38,7 +38,8 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/mainTabs"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:contentDescription="The row of tabs below the app bar"/>
     <!-- This view holds the fragment pages -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/mainViewPager"
