@@ -31,7 +31,7 @@ object BertConstants {
     const val BERT_PORT_HINT = "11046"
     const val BERT_PAIRED_DEVICE_HINT = "bert"
     const val BERT_VERSION_HINT = "2"
-    const val BERT_VOLUME_HINT = "0.5"
+    const val BERT_VOLUME_HINT = "50"
     const val BERT_SERVICE_UUID_HINT = "33001101-0000-2000-8080-00815FAB34FF"
     const val BERT_SIMULATED_CONNECTION_HINT = "false"
 

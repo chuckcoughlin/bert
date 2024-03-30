@@ -168,12 +168,8 @@ object DatabaseManager {
         synchronized(this) {
             // Validate
             if( nv.name.equals(BertConstants.BERT_VOLUME)) {
-                var value = nv.value.toDouble()
-                if( value == Double.NaN ) value = 0.5
-                else if( value >1.0 )   value = 1.0
-                else if( value<0.0  )   value = 0.0
-                nv.value = value.toString()
-             }
+                validateVolume(nv)
+            }
             Log.i(CLSS, String.format("updateSettings: %s = %s (%s)", nv.name, nv.value, nv.hint))
             val SQL = "UPDATE Settings set value=?, hint=? WHERE name = ?"
             val bindArgs = arrayOfNulls<String>(3)
@@ -196,6 +192,9 @@ object DatabaseManager {
             var index = 0
             while (index < count) {
                 val nv = items[index]
+                if( nv.name.equals(BertConstants.BERT_VOLUME)) {
+                    validateVolume(nv)
+                }
                 bindArgs[0] = nv.value
                 bindArgs[1] = nv.hint
                 bindArgs[2] = nv.name
@@ -203,6 +202,14 @@ object DatabaseManager {
                 index++
             }
         }
+    }
+
+    private fun validateVolume(nv:NameValue) {
+        var value = nv.value.toDouble()
+        if( value.isNaN() ) value = 50.0
+        else if( value >100.0 )   value = 100.0
+        else if( value<0.0  )   value = 0.0
+        nv.value = value.toString()
     }
 
     // If the database is open, close it to ensure correct writable flags

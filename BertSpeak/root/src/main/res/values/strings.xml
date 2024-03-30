@@ -3,6 +3,9 @@
     <!-- SYstem-level variables -->
     <string name="appbar_scrolling_view_behavior">true</string>
     <!-- Labels in the navigation bar -->
+    <string name="blank"> </string>
+    <string name="tabDesc">The row of tabs below the app bar</string>
+
     <string name="fragmentAnimationLabel">Animation</string>
     <string name="fragmentCoverLabel">Cover</string>
     <string name="fragmentFacesLabel">FaceRec</string>
