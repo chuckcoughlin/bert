@@ -14,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/BertSpeak.AppBarOverlayTheme">
+        <!-- android:tabTextAppearance="@style/TabTextAppearance -->
         <!-- This is the text that appears centered in the title bar -->
         <TextView
             android:id="@+id/appTitle"
@@ -23,8 +24,8 @@
             android:minHeight="?actionBarSize"
             android:padding="@dimen/appbar_padding"
             android:text="@string/app_name"
-            android:textSize="24pt" />
-        <!-- android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title" -->
+            android:textSize="24pt"
+            android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title"/>
         <TextView
             android:id="@+id/invisibleText"
             android:layout_width="match_parent"
@@ -32,14 +33,14 @@
             android:text="@string/blank"
             android:background="@color/black"
             android:padding="@dimen/appbar_padding" />
-        <!-- app:tabTextAppearance="@style/TabTextAppearance" -->
+
     </com.google.android.material.appbar.AppBarLayout>
     <!-- This is the row of tabs below the app bar-->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/mainTabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/tabDesc"/>
+        android:contentDescription="@string/tabDesc" />
     <!-- This view holds the fragment pages -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/mainViewPager"

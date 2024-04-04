@@ -47,6 +47,7 @@ class BertSpeakActivity : AppCompatActivity() {
         val height = getScreenHeight()
         Log.i(CLSS, String.format("onCreate: ... inflating binding (%d x %d)",height,width ))
         val binding = BertspeakMainBinding.inflate(layoutInflater)
+        Log.i(CLSS, "onCreate: ... binding inflated")
         setContentView(binding.root)
 
         val adapter = FragmentPageAdapter(this)

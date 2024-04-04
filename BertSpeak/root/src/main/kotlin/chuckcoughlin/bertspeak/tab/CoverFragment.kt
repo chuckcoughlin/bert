@@ -140,7 +140,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         Log.i(name, String.format("updateStatusButton (%s):%s",type.name,state.name))
             requireActivity().runOnUiThread(Runnable {
                 btn.visibility = View.INVISIBLE
-                btn.state = state
+                btn.setButtonState(state)
                 btn.visibility = View.VISIBLE
         })
     }

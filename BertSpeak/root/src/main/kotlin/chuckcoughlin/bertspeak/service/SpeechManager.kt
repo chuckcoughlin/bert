@@ -62,15 +62,18 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	// Delay before we start listening to avoid feedback loop
 	// with spoken response. Note this will be cut short by
 	// a listener on the text-to-speech component.
+	@Synchronized
 	private fun startListening() {
 		Log.i(CLSS, "Start listening ...")
 		if( !listening ) {
 			sr.setRecognitionListener(this)
 			sr.startListening(recognizerIntent)
 			listening = true
+			dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.ACTIVE)
 		}
 	}
 
+	@Synchronized
 	private fun resetSpeechRecognizer() {
 		Log.i(CLSS, "reset speech recognizer ...")
 		if( listening ) {
@@ -82,6 +85,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				Log.e(CLSS,String.format("resetSpeechRecognizer: destroy (%s))",iae.localizedMessage))
 			}
 			listening = false
+			dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.OFF)
 		}
 		sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.context)
 	}

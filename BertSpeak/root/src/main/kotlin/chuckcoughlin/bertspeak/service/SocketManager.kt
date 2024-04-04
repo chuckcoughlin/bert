@@ -4,9 +4,12 @@
  */
 package chuckcoughlin.bertspeak.service
 
+import android.Manifest.permission
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
@@ -52,7 +55,11 @@ class SocketManager(service:DispatchService): CommunicationManager {
     @Synchronized
     fun receivePairedDevice(dev:BluetoothDevice) {
         device = dev
-        deviceName = device.name
+        if(ActivityCompat.checkSelfPermission(dispatcher.context, permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(CLSS, "receivePairedDevice: Permission check for BluetoothConnect failed")
+            return
+        }
+        deviceName = dev.name
     }
 
     override suspend fun run() {}
@@ -97,6 +104,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
         }
         catch (_: IOException) {
         }
+        dispatcher.reportManagerState(ManagerType.SOCKET, ManagerState.OFF)
     }
 
     /**
@@ -166,9 +174,8 @@ class SocketManager(service:DispatchService): CommunicationManager {
                     Log.e(CLSS, String.format("write: out stream error", deviceName))
                 }
             }
-            else {
-                Log.e(CLSS, String.format(
-                        "write: Device(%s) output is undefined  before connection",
+            else if(!deviceName.equals(BertConstants.NO_DEVICE)) {
+                Log.e(CLSS, String.format("write: Device(%s) output is undefined  before connection",
                         deviceName))
             }
         }
@@ -289,7 +296,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             }
             else {
                 dispatcher.logError(managerType,reason)
-                managerState = ACTIVE
+                managerState = ERROR
             }
             dispatcher.reportManagerState(managerType,managerState)
         }
