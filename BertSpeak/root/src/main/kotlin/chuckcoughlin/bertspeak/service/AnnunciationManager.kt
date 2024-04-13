@@ -41,7 +41,6 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	private val phrases: Array<String>
 	private var vol :Int   // Current volume
 
-	override suspend fun run() {}
 	override fun start() {
 		Log.i(CLSS, String.format("start: "))
 		annunciator.setOnUtteranceProgressListener(UtteranceListener())
@@ -146,12 +145,15 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 		dispatcher = service
 		audio = dispatcher.context.getSystemService<AudioManager>() as AudioManager
 		annunciator = Annunciator(dispatcher.context, this)
+		// This is handled the same way in the CoverFragment startup
 		try {
 			vol = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toInt()
+			setVolume(vol)
 		}
 		catch(nfe:NumberFormatException) {
 			// Database entry was not a number
-			vol = 0
+			Log.i(CLSS,"init - volume in database was not an integer")
+			vol = 50
 		}
 		// Start phrases to choose from ...
 		phrases = arrayOf(

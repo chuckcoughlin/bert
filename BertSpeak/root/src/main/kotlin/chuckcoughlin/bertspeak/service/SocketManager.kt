@@ -62,8 +62,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
         deviceName = dev.name
     }
 
-    override suspend fun run() {}
-
     override fun start() {
             if (connectionThread != null && connectionThread!!.isAlive && !connectionThread!!.isInterrupted) {
                 Log.i(CLSS, "socket connection already in progress ...")

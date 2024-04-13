@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
@@ -63,15 +63,15 @@ class DispatchService(ctx: Context){
         Log.i(CLSS, String.format("start: starting Dispatcher"))
         instance = this
         // Start those managers that run on the main (UI) thread
-        GlobalScope.launch(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.Main) {
             statusManager.start()
             annunciationManager.start()
+            speechManager.start()
         }
         Log.i(CLSS, String.format("start: starting MAIN"))
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
-        GlobalScope.launch(Dispatchers.Main) {
-            speechManager.start()
+        GlobalScope.launch(Dispatchers.Default) {
             geometryManager.start()
             discoveryManager.start()
         }
@@ -199,6 +199,17 @@ class DispatchService(ctx: Context){
 
         fun restoreAudio() {
             instance.annunciationManager.restoreAudio()
+        }
+        fun setSpeechState(state:ManagerState) {
+            when(state) {
+                ManagerState.ACTIVE -> {
+                    instance.speechManager.startListening()
+                }
+                ManagerState.OFF -> {
+                    instance.speechManager.stopListening()
+                }
+                else -> {}
+            }
         }
         // Volume is an integer between 0-100
         fun setVolume(vol:Int) {

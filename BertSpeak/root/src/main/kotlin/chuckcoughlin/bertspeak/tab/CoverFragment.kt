@@ -29,13 +29,13 @@ import chuckcoughlin.bertspeak.service.ManagerType
 import chuckcoughlin.bertspeak.service.ManagerType.BLUETOOTH
 import chuckcoughlin.bertspeak.service.ManagerType.SOCKET
 import chuckcoughlin.bertspeak.service.ManagerType.SPEECH
-import chuckcoughlin.bertspeak.service.ManagerType.STATUS
 import chuckcoughlin.bertspeak.service.PermissionManager
 import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.waveform.WaveformView
 import com.google.android.material.slider.Slider
+import kotlin.math.roundToInt
 
 
 /**
@@ -68,7 +68,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         bluetoothStatusButton.setOnClickListener(this)
         stopStatusButton.setOnClickListener(this)
         socketStatusButton.isClickable = true
+        socketStatusButton.setOnClickListener(this)
         voiceStatusButton.isClickable = true
+        voiceStatusButton.setOnClickListener(this)
         updateStatusButton(bluetoothStatusButton, BLUETOOTH, ManagerState.OFF)
         updateStatusButton(socketStatusButton, SOCKET,ManagerState.OFF)
         updateStatusButton(voiceStatusButton, SPEECH,ManagerState.OFF)
@@ -79,9 +81,16 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         )
         // Seek Bar 0-100
         seekBar = binding.verticalSeekbar
-        seekBar.setOnClickListener(this)
-        val prog = (DatabaseManager.getSetting(BertConstants.BERT_VOLUME)).toDouble()*100f
-        seekBar.progress = prog.toInt()
+        seekBar.isClickable = true
+        seekBar.setOnSeekBarChangeListener(this)
+        try {
+            val prog = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toDouble().roundToInt()
+            seekBar.progress = prog
+        }
+        catch(nfe:NumberFormatException) {
+            Log.w(name, String.format("onCreateView: non-numeric database setting for volume"))
+            seekBar.progress = 50
+        }
         DispatchService.setVolume(seekBar.progress)
         Log.i(name, String.format("onCreateView: seek bar at %d.",seekBar.progress))
         DispatchService.restoreAudio()
@@ -193,15 +202,13 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
                 System.exit(0)
             }
             voiceStatusButton -> {
-                Log.i(name, String.format("onClick:%s",ManagerType.STATUS.name))
+                Log.i(name, String.format("onClick:%s",ManagerType.SPEECH.name))
                 if( voiceStatusButton.state.equals(ManagerState.OFF)) {
-                    DispatchService.updateManagerStatus(ManagerType.ANNUNCIATOR,ManagerState.ACTIVE)
+                    DispatchService.setSpeechState(ManagerState.ACTIVE)
                 }
-                else if( voiceStatusButton.state.equals(ManagerState.ACTIVE)) {
-                    DispatchService.updateManagerStatus(ManagerType.ANNUNCIATOR,ManagerState.OFF)
+                else {
+                    DispatchService.setSpeechState(ManagerState.OFF)
                 }
-
-
             }
         }
     }

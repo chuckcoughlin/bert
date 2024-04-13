@@ -14,7 +14,6 @@ class GeometryManager (service:DispatchService): CommunicationManager {
     private val jointList : MutableList<GeometryData>
     private val geometryObservers: MutableMap<String, GeometryDataObserver>
 
-   override suspend fun run() {}
     override fun start() {}
     /**
      * Called when main activity is stopped. Clean up any resources.

@@ -28,7 +28,6 @@ class TextManager (service:DispatchService): CommunicationManager {
     private val tableObservers: MutableMap<String, TextDataObserver>
     private val transcriptObservers: MutableMap<String, TextDataObserver>
 
-    override suspend fun run() {}
     override fun start() {
         clear(MessageType.ANS)
         clear(MessageType.LOG)

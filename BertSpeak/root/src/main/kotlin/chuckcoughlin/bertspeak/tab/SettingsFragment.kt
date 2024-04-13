@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -48,6 +48,7 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
         ArrayAdapter<NameValue>( context, R.layout.settings_item, values)   {
 
         override fun getItemId(position: Int): Long {
+            Log.i(name, String.format("getItemId: %d",position))
             return getItem(position).hashCode().toLong()
         }
 
@@ -66,11 +67,15 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
             assert(nv != null)
             nameView.text = nv!!.name
             editText.setText(nv.value)
+            Log.i(name, String.format("getView: editText %s = %s",nv.name,nv.value))
             editText.hint = nv.hint
             if (nv.name.uppercase(Locale.getDefault()).contains("PASSWORD")) {
                 editText.inputType =
                     InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                 editText.setSelection(editText.text.length)
+            }
+            else if (nv.name.uppercase(Locale.getDefault()).contains("VOLUME")) {
+                editText.inputType = InputType.TYPE_CLASS_NUMBER
             }
             else {
                 editText.inputType = InputType.TYPE_CLASS_TEXT
