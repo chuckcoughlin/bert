@@ -31,7 +31,7 @@ import java.util.Locale
  * Android speech recognition classes.
  */
 class DispatchService(ctx: Context){
-    val context:Context
+    var context:Context
     lateinit var annunciationManager: AnnunciationManager
     lateinit var discoveryManager: DiscoveryManager
     lateinit var geometryManager: GeometryManager
@@ -66,7 +66,7 @@ class DispatchService(ctx: Context){
         GlobalScope.launch(Dispatchers.Main) {
             statusManager.start()
             annunciationManager.start()
-            speechManager.start()
+            //speechManager.start()
         }
         Log.i(CLSS, String.format("start: starting MAIN"))
         // Start those managers that run on a background thread (no UI)
@@ -87,7 +87,7 @@ class DispatchService(ctx: Context){
         discoveryManager.stop()
         geometryManager.stop()
         socketManager.stop()
-        speechManager.stop()
+        //speechManager.stop()
         statusManager.stop()
         textManager.stop()
     }
@@ -114,13 +114,13 @@ class DispatchService(ctx: Context){
     @OptIn(DelicateCoroutinesApi::class)
     fun startSpeech() {
         GlobalScope.launch(Dispatchers.Main) {
-            speechManager.start()
+            //speechManager.startListening()
         }
     }
     @OptIn(DelicateCoroutinesApi::class)
     fun stopSpeech() {
         GlobalScope.launch(Dispatchers.Main) {
-            speechManager.stop()
+            //speechManager.stopListening()
         }
     }
 
@@ -203,10 +203,10 @@ class DispatchService(ctx: Context){
         fun setSpeechState(state:ManagerState) {
             when(state) {
                 ManagerState.ACTIVE -> {
-                    instance.speechManager.startListening()
+                    //instance.speechManager.startListening()
                 }
                 ManagerState.OFF -> {
-                    instance.speechManager.stopListening()
+                    //instance.speechManager.stopListening()
                 }
                 else -> {}
             }

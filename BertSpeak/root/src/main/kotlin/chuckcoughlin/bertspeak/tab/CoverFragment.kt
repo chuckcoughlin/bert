@@ -4,11 +4,15 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
 import android.os.Build.VERSION_CODES.R
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +20,8 @@ import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
@@ -46,7 +52,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
 
     override val name : String
     private var visualizer: Visualizer
-
+    private val activityLauncher : ActivityResultLauncher<String>
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var seekBar: VerticalSeekBar
     private lateinit var waveformView: WaveformView
@@ -96,6 +102,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
+        activityLauncher.launch("Speak?")
         return binding.root
     }
     /**
@@ -168,6 +175,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
      * category to determine which.
      */
     override fun update(data: StatusData) {
+        Log.i(name, String.format("update (%s):%s = %s",data.action,data.type,data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             val type = data.type
             val state= data.state
@@ -198,6 +206,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             // The stop button triggers an immediate shutdown
             stopStatusButton -> {
                 Log.i(name, String.format("onClick: application shutdown",))
+                DispatchService.instance.stop()
                 requireActivity().finishAndRemoveTask()
                 System.exit(0)
             }
@@ -212,6 +221,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             }
         }
     }
+
 
     // ================== OnDataCaptureListener ===============
     // This is valid only between view-create and destroy
@@ -235,14 +245,48 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     }
 
 
+    inner class RecognizerActivityContract : ActivityResultContract<String, Int?>() {
+        override fun createIntent(context: Context, input: String): Intent {
+            return createRecognizerIntent()
+        }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): Int? = when {
+            resultCode != Activity.RESULT_OK -> null
+            else -> Log.i(name,intent.toString())
+        }
+
+        override fun getSynchronousResult(context: Context, input: String): SynchronousResult<Int?>? {
+            return if (input.isNullOrEmpty()) SynchronousResult(42) else null
+        }
+    }
+    private fun createRecognizerIntent(): Intent {
+        //val locale = "us-UK"
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        //intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
+        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
+        //intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
+        //intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak: ")
+        //Give a hint to the recognizer about what the user is going to say
+        intent.putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        )
+        // Max number of results. This is two attempts at deciphering, not a 2-word limit.
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
+        return intent
+    }
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
+    val REQUEST_CODE = 4242
     val BLUETOOTH_NAME = "Bluetooth"
     val SOCKET_NAME = "Socket"
     val VOICE_NAME = "Voice"
 
     init {
         name = CLSS
+        activityLauncher = registerForActivityResult(RecognizerActivityContract()){}
         visualizer = Visualizer(0)
     }
 }

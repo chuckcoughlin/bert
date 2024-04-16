@@ -7,10 +7,13 @@ package chuckcoughlin.bertspeak.service
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognitionListener
+import android.speech.RecognitionSupport
+import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
 import java.util.Locale
+import java.util.concurrent.Executors
 
 /**
  * Analyze spoken input to the application.
@@ -26,13 +29,31 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 
 	/** Must run on main thread */
 	override fun start() {
-		Log.i(CLSS, "Start ...")
 		if( !SpeechRecognizer.isRecognitionAvailable(dispatcher.context) ) {
 			Log.w(CLSS, "start: ERROR (speech recognition is not supported on this device)")
 			dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.ERROR)
 		}
 		else {
-			sr = SpeechRecognizer.createSpeechRecognizer(DispatchService.instance.context)
+			if( SpeechRecognizer.isOnDeviceRecognitionAvailable(dispatcher.context) ) {
+				Log.i(CLSS, "start: speechRecognizer is on-device")
+				sr = SpeechRecognizer.createOnDeviceSpeechRecognizer(dispatcher.context)
+			}
+			else  {
+				Log.i(CLSS, "start: speechRecognizer is off-device")
+				sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
+			}
+			/*
+			sr!!.checkRecognitionSupport(recognizerIntent, Executors.newSingleThreadExecutor(),
+				object : RecognitionSupportCallback {
+					override fun onSupportResult(recognitionSupport: RecognitionSupport) {
+						Log.i(CLSS, "start: checkRecognitionSupport onSupportResult")
+					}
+
+					override fun onError(error: Int) {
+						Log.i(CLSS, "start: checkRecognitionSupport onError")
+					}
+				})
+				*/
 			sr!!.setRecognitionListener(this)
 			startListening()
 		}
@@ -52,6 +73,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				// Happens in emulator
 				Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
 			}
+			sr = null
 		}
 	}
 
@@ -61,7 +83,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	@Synchronized
 	fun startListening() {
 		Log.i(CLSS, "Start listening ...")
-		if( sr!=null ) {
+		if( sr!=null) {
 			sr!!.startListening(recognizerIntent)
 			dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.ACTIVE)
 		}
@@ -113,7 +135,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 		dispatcher.logError(managerType,reason)
 
 		// Try again
-		//startListening()
+		startListening()
 	}
 
 	override fun onResults(results: Bundle) {
@@ -131,8 +153,8 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				dispatcher.receiveSpokenText(text)
 				dispatcher.reportManagerState(managerType, ManagerState.PENDING)
 			}
-			startListening() // Repeat forever
 		}
+		startListening() // Repeat forever
 	}
 
 	/**
@@ -149,8 +171,9 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	private fun createRecognizerIntent(): Intent {
 		//val locale = "us-UK"
 		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-		intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
+		//intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
 		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
+		intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
 		intent.putExtra(
 			RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME
 		)
@@ -182,6 +205,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 
 	val CLSS = "SpeechManager"
 	val DELAY_TIME = 1000L
+	val SPEECH_MIN_TIME = 100     // Word must be at least this long
 	val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
 
 
@@ -191,6 +215,5 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	init {
 		managerState = ManagerState.OFF
 		recognizerIntent = createRecognizerIntent()
-		sr = SpeechRecognizer.createOnDeviceSpeechRecognizer(DispatchService.instance.context)
 	}
 }

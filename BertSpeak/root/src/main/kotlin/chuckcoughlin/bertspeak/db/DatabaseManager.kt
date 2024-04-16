@@ -216,7 +216,7 @@ object DatabaseManager {
     private fun getDatabase(canWrite:Boolean) : SQLiteDatabase {
         var flags = SQLiteDatabase.CREATE_IF_NECESSARY
         flags = if( canWrite ) flags or SQLiteDatabase.OPEN_READWRITE
-        else flags or SQLiteDatabase.OPEN_READONLY
+                else flags or SQLiteDatabase.OPEN_READONLY
         val db = SQLiteDatabase.openDatabase(
             BertConstants.DB_FILE_PATH, null,flags, errorHandler)
 

@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.ListAdapter
 import android.widget.TextView
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.NameValue
@@ -20,7 +21,7 @@ import chuckcoughlin.bertspeak.db.DatabaseManager
 import java.util.Locale
 
 class SettingsListAdapter(context: Context, values: Array<NameValue>) :
-    ArrayAdapter<NameValue>( context, R.layout.settings_item, values)   {
+    ArrayAdapter<NameValue>( context, R.layout.settings_item, values),ListAdapter   {
 
     override fun getItemId(position: Int): Long {
         Log.i(CLSS, String.format("getItemId: %d",position))
