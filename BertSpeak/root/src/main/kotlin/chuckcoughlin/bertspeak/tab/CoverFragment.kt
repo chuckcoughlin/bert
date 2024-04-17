@@ -252,7 +252,12 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
 
         override fun parseResult(resultCode: Int, intent: Intent?): Int? = when {
             resultCode != Activity.RESULT_OK -> null
-            else -> Log.i(name,intent.toString())
+            else -> {
+                Log.i(name, String.format("result code = %d %d",resultCode,Activity.RESULT_OK))
+                val matches = intent!!.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                Log.i(name, intent.toString())
+                Log.i(name,matches!!.get(0))
+            }
         }
 
         override fun getSynchronousResult(context: Context, input: String): SynchronousResult<Int?>? {
