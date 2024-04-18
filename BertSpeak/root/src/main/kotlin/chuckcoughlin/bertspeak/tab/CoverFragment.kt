@@ -12,7 +12,9 @@ import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
 import android.os.Build.VERSION_CODES.R
 import android.os.Bundle
+import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -48,11 +50,12 @@ import kotlin.math.roundToInt
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar.
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener,RecognitionListener {
 
     override val name : String
     private var visualizer: Visualizer
-    private val activityLauncher : ActivityResultLauncher<String>
+    private val recognizerIntent : Intent
+    private lateinit var sr : SpeechRecognizer
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var seekBar: VerticalSeekBar
     private lateinit var waveformView: WaveformView
@@ -102,7 +105,8 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
-        activityLauncher.launch("Speak?")
+        sr = SpeechRecognizer.createSpeechRecognizer(requireContext())
+        sr.setRecognitionListener(this)
         return binding.root
     }
     /**
@@ -212,12 +216,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             }
             voiceStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SPEECH.name))
-                if( voiceStatusButton.state.equals(ManagerState.OFF)) {
-                    DispatchService.setSpeechState(ManagerState.ACTIVE)
-                }
-                else {
-                    DispatchService.setSpeechState(ManagerState.OFF)
-                }
+                sr.startListening(recognizerIntent)
             }
         }
     }
@@ -245,24 +244,68 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     }
 
 
-    inner class RecognizerActivityContract : ActivityResultContract<String, Int?>() {
-        override fun createIntent(context: Context, input: String): Intent {
-            return createRecognizerIntent()
-        }
+    // ================================ RecognitionListener =============================
+    override fun onReadyForSpeech(p0: Bundle?) {
+        Log.i(name, "onReadyForSpeech: ....")
+    }
 
-        override fun parseResult(resultCode: Int, intent: Intent?): Int? = when {
-            resultCode != Activity.RESULT_OK -> null
-            else -> {
-                Log.i(name, String.format("result code = %d %d",resultCode,Activity.RESULT_OK))
-                val matches = intent!!.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                Log.i(name, intent.toString())
-                Log.i(name,matches!!.get(0))
+    override fun onBeginningOfSpeech() {
+        Log.i(name, "onBeginningOfSpeech: ....")
+    }
+
+    override fun onRmsChanged(p0: Float) {
+        Log.i(name, "onRmsChanged: ....")
+    }
+
+    override fun onBufferReceived(p0: ByteArray?) {
+        Log.i(name, "onBufferReceive: ....")
+    }
+
+    override fun onEndOfSpeech() {
+        Log.i(name, "onEndOfSpeech: ....")
+    }
+
+    override fun onError(error: Int) {
+        var reason:String =
+            when (error) {
+                SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ->
+                    "Insufficient permission - Enable microphone in application"
+                SpeechRecognizer.ERROR_NO_MATCH -> "no word match. Enunciate!"
+                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "speech timeout"
+                SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                SpeechRecognizer.ERROR_CLIENT -> "client error"
+                SpeechRecognizer.ERROR_RECOGNIZER_BUSY ->
+                    "recognition service is busy (started twice?)"
+                SpeechRecognizer.ERROR_SERVER -> "server error"
+                SpeechRecognizer.ERROR_TOO_MANY_REQUESTS -> "too many requests"
+                else -> String.format("ERROR (%d) ", error)
+            }
+        Log.e(CLSS, String.format("onError - %s", reason))
+    }
+
+    override fun onResults(results: Bundle?) {
+        Log.i(CLSS, "onResults \n$results")
+        if( results!=null && !results.isEmpty ) {
+            // Fill the array with the strings the recognizer thought it could have heard, there should be 5
+            val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
+            for (i in matches.indices) {
+                Log.i(CLSS, "result " + matches[i])
+            }
+            // The zeroth result is usually the space-separated one
+            if( !matches.isEmpty()) {
+                var text = matches[0]
+                Log.i(CLSS, "RESULT  = "+text)
             }
         }
+    }
 
-        override fun getSynchronousResult(context: Context, input: String): SynchronousResult<Int?>? {
-            return if (input.isNullOrEmpty()) SynchronousResult(42) else null
-        }
+    override fun onPartialResults(p0: Bundle?) {
+        Log.i(name, "onPartialResults: ....")
+    }
+
+    override fun onEvent(p0: Int, p1: Bundle?) {
+        Log.i(name, "onEvent: ....")
     }
     private fun createRecognizerIntent(): Intent {
         //val locale = "us-UK"
@@ -291,7 +334,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
 
     init {
         name = CLSS
-        activityLauncher = registerForActivityResult(RecognizerActivityContract()){}
+        recognizerIntent = createRecognizerIntent()
         visualizer = Visualizer(0)
     }
+
+
 }

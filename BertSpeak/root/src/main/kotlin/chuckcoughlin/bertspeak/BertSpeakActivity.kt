@@ -8,6 +8,7 @@ package chuckcoughlin.bertspeak
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.Manifest
+import android.media.MediaRecorder
 import android.os.Bundle
 import android.os.StrictMode
 import android.util.Log
@@ -39,6 +40,12 @@ class BertSpeakActivity : AppCompatActivity() {
                 .detectLeakedClosableObjects().build()
         )
         checkPermissions()
+
+        // Apparently the AudioManager on the emulator is configured
+        // at too low fidelity for speech
+        val mr = MediaRecorder(baseContext)
+        mr.setAudioSamplingRate(11)
+        mr.setAudioEncodingBitRate(20)
 
         // If we absolutely have to start over again with the database ...
         //deleteDatabase(BertConstants.DB_NAME);
