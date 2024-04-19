@@ -24,7 +24,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	override val managerType = ManagerType.SPEECH
 	override var managerState = ManagerState.OFF
 	val dispatcher = service
-	private var sr: SpeechRecognizer? = null
+	private lateinit var sr: SpeechRecognizer
 	private var recognizerIntent: Intent
 
 	/** Must run on main thread */
@@ -54,8 +54,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 					}
 				})
 				*/
-			sr!!.setRecognitionListener(this)
-			startListening()
+			sr.setRecognitionListener(this)
 		}
 	}
 
@@ -64,16 +63,13 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	 */
 	override fun stop() {
 		Log.i(CLSS, "Stop ...")
-		if( sr!=null ) {
-			sr!!.stopListening()
-			try {
-				sr!!.destroy()
-			}
-			catch(iae:IllegalArgumentException) {
-				// Happens in emulator
-				Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
-			}
-			sr = null
+		sr.stopListening()
+		try {
+			sr.destroy()
+		}
+		catch(iae:IllegalArgumentException) {
+			// Happens in emulator
+			Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
 		}
 	}
 
@@ -83,38 +79,22 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	@Synchronized
 	fun startListening() {
 		Log.i(CLSS, "Start listening ...")
-		if( sr!=null) {
-			sr!!.startListening(recognizerIntent)
-			dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.ACTIVE)
-		}
+		sr.startListening(recognizerIntent)
+		dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.ACTIVE)
 	}
 	fun stopListening() {
 		Log.i(CLSS, "Stop listening ...")
-		if( sr!=null ) {
-			sr!!.stopListening()
-			dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.OFF)
-		}
+		sr.stopListening()
+		dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.OFF)
 	}
 
 	// ================ RecognitionListener ===============
-	override fun onReadyForSpeech(params: Bundle) {
-		Log.i(CLSS, "onReadyForSpeech")
-	}
-
-	override fun onBeginningOfSpeech() {
-		Log.i(CLSS, "onBeginningOfSpeech");
-	}
-
+	override fun onReadyForSpeech(params: Bundle) {}
+	override fun onBeginningOfSpeech() {}
 	// Background level changed ...
 	override fun onRmsChanged(rmsdB: Float) {}
-	override fun onBufferReceived(buffer: ByteArray) {
-		Log.i(CLSS, "onBufferReceived")
-	}
-
-	override fun onEndOfSpeech() {
-		Log.i(CLSS, "onEndofSpeech")
-	}
-
+	override fun onBufferReceived(buffer: ByteArray) {}
+	override fun onEndOfSpeech() {}
 	override fun onError(error: Int) {
 		var reason:String =
 			when (error) {
@@ -133,9 +113,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 			}
 		Log.e(CLSS, String.format("onError - %s", reason))
 		dispatcher.logError(managerType,reason)
-
-		// Try again
-		startListening()
 	}
 
 	override fun onResults(results: Bundle) {
@@ -164,19 +141,17 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 		Log.i(CLSS, "onPartialResults")
 	}
 
-	override fun onEvent(eventType: Int, params: Bundle) {
-		Log.i(CLSS, "onEvent $eventType")
-	}
+	override fun onEvent(eventType: Int, params: Bundle) {}
 
 	private fun createRecognizerIntent(): Intent {
 		//val locale = "us-UK"
 		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-		//intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
 		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
-		intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
+		/* intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
 		intent.putExtra(
 			RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME
 		)
+		*/
 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
 		//Give a hint to the recognizer about what the user is going to say
 		intent.putExtra(

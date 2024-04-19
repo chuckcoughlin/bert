@@ -66,7 +66,7 @@ class DispatchService(ctx: Context){
         GlobalScope.launch(Dispatchers.Main) {
             statusManager.start()
             annunciationManager.start()
-            //speechManager.start()
+            speechManager.start()
         }
         Log.i(CLSS, String.format("start: starting MAIN"))
         // Start those managers that run on a background thread (no UI)
@@ -87,7 +87,7 @@ class DispatchService(ctx: Context){
         discoveryManager.stop()
         geometryManager.stop()
         socketManager.stop()
-        //speechManager.stop()
+        speechManager.stop()
         statusManager.stop()
         textManager.stop()
     }

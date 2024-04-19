@@ -50,12 +50,11 @@ import kotlin.math.roundToInt
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar.
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener,RecognitionListener {
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,
+                                                 OnDataCaptureListener,OnSeekBarChangeListener {
 
     override val name : String
     private var visualizer: Visualizer
-    private val recognizerIntent : Intent
-    private lateinit var sr : SpeechRecognizer
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var seekBar: VerticalSeekBar
     private lateinit var waveformView: WaveformView
@@ -105,8 +104,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
-        sr = SpeechRecognizer.createSpeechRecognizer(requireContext())
-        sr.setRecognitionListener(this)
         return binding.root
     }
     /**
@@ -216,7 +213,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             }
             voiceStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SPEECH.name))
-                sr.startListening(recognizerIntent)
             }
         }
     }
@@ -243,98 +239,14 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         DispatchService.setVolume(progress)
     }
 
-
-    // ================================ RecognitionListener =============================
-    override fun onReadyForSpeech(p0: Bundle?) {
-        Log.i(name, "onReadyForSpeech: ....")
-    }
-
-    override fun onBeginningOfSpeech() {
-        Log.i(name, "onBeginningOfSpeech: ....")
-    }
-
-    override fun onRmsChanged(p0: Float) {
-        Log.i(name, "onRmsChanged: ....")
-    }
-
-    override fun onBufferReceived(p0: ByteArray?) {
-        Log.i(name, "onBufferReceive: ....")
-    }
-
-    override fun onEndOfSpeech() {
-        Log.i(name, "onEndOfSpeech: ....")
-    }
-
-    override fun onError(error: Int) {
-        var reason:String =
-            when (error) {
-                SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ->
-                    "Insufficient permission - Enable microphone in application"
-                SpeechRecognizer.ERROR_NO_MATCH -> "no word match. Enunciate!"
-                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "speech timeout"
-                SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                SpeechRecognizer.ERROR_CLIENT -> "client error"
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY ->
-                    "recognition service is busy (started twice?)"
-                SpeechRecognizer.ERROR_SERVER -> "server error"
-                SpeechRecognizer.ERROR_TOO_MANY_REQUESTS -> "too many requests"
-                else -> String.format("ERROR (%d) ", error)
-            }
-        Log.e(CLSS, String.format("onError - %s", reason))
-    }
-
-    override fun onResults(results: Bundle?) {
-        Log.i(CLSS, "onResults \n$results")
-        if( results!=null && !results.isEmpty ) {
-            // Fill the array with the strings the recognizer thought it could have heard, there should be 5
-            val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
-            for (i in matches.indices) {
-                Log.i(CLSS, "result " + matches[i])
-            }
-            // The zeroth result is usually the space-separated one
-            if( !matches.isEmpty()) {
-                var text = matches[0]
-                Log.i(CLSS, "RESULT  = "+text)
-            }
-        }
-    }
-
-    override fun onPartialResults(p0: Bundle?) {
-        Log.i(name, "onPartialResults: ....")
-    }
-
-    override fun onEvent(p0: Int, p1: Bundle?) {
-        Log.i(name, "onEvent: ....")
-    }
-    private fun createRecognizerIntent(): Intent {
-        //val locale = "us-UK"
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        //intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
-        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
-        //intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
-        //intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME)
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak: ")
-        //Give a hint to the recognizer about what the user is going to say
-        intent.putExtra(
-            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-        )
-        // Max number of results. This is two attempts at deciphering, not a 2-word limit.
-        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
-        return intent
-    }
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
-    val REQUEST_CODE = 4242
     val BLUETOOTH_NAME = "Bluetooth"
     val SOCKET_NAME = "Socket"
     val VOICE_NAME = "Voice"
 
     init {
         name = CLSS
-        recognizerIntent = createRecognizerIntent()
         visualizer = Visualizer(0)
     }
 
