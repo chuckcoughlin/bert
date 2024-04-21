@@ -97,14 +97,14 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), TextDataObserve
         }
     }
 
-    override fun reset(list:List<TextData>) {
+    override fun resetText(list:List<TextData>) {
         Log.i(name, "reset: message list is now ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
     @Synchronized
-    override fun update(msg: TextData) {
+    override fun updateText(msg: TextData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen || frozen) {
             adapter.insertMessage(msg)

@@ -4,43 +4,38 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
+
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
-import android.os.Build.VERSION_CODES.R
 import android.os.Bundle
-import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
+import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
+import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusDataObserver
+import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.data.TextDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
-import chuckcoughlin.bertspeak.service.ManagerType.BLUETOOTH
-import chuckcoughlin.bertspeak.service.ManagerType.SOCKET
-import chuckcoughlin.bertspeak.service.ManagerType.SPEECH
 import chuckcoughlin.bertspeak.service.PermissionManager
 import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.waveform.WaveformView
-import com.google.android.material.slider.Slider
 import kotlin.math.roundToInt
 
 
@@ -48,15 +43,16 @@ import kotlin.math.roundToInt
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar.
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,TextDataObserver,
+                                OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
 
     override val name : String
     private var visualizer: Visualizer
-    private val activityLauncher : ActivityResultLauncher<String>
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var seekBar: VerticalSeekBar
     private lateinit var waveformView: WaveformView
 
+    private lateinit var voiceText: TextView
     private lateinit var bluetoothStatusButton: StatusImageButton
     private lateinit var socketStatusButton: StatusImageButton
     private lateinit var stopStatusButton: StatusImageButton
@@ -70,6 +66,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         socketStatusButton    = binding.socketStatus
         stopStatusButton      = binding.stopButton
         voiceStatusButton     = binding.voiceStatus
+        voiceText             = binding.voiceEditText
         bluetoothStatusButton.isClickable = true // Not really buttons, just indicators
         bluetoothStatusButton.setOnClickListener(this)
         stopStatusButton.setOnClickListener(this)
@@ -77,9 +74,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         socketStatusButton.setOnClickListener(this)
         voiceStatusButton.isClickable = true
         voiceStatusButton.setOnClickListener(this)
-        updateStatusButton(bluetoothStatusButton, BLUETOOTH, ManagerState.OFF)
-        updateStatusButton(socketStatusButton, SOCKET,ManagerState.OFF)
-        updateStatusButton(voiceStatusButton, SPEECH,ManagerState.OFF)
         val rendererFactory = RendererFactory()
         waveformView = binding.waveformView
         waveformView.setRenderer(
@@ -102,7 +96,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
-        activityLauncher.launch("Speak?")
+
         return binding.root
     }
     /**
@@ -111,12 +105,14 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     override fun onStart() {
         super.onStart()
         Log.i(name, "onStart: registering as observer")
+        DispatchService.registerForTranscripts(this)
         DispatchService.registerForStatus(this)
         startVisualizer()
     }
 
     override fun onStop() {
         super.onStop()
+        DispatchService.unregisterForTranscripts(this)
         DispatchService.unregisterForStatus(this)
         stopVisualizer()
     }
@@ -161,12 +157,13 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
         })
     }
 
+    // ===================== StatusDataObserver =====================
     /**
      * This is called when we first establish the observer.
      */
-    override fun reset(list: List<StatusData>) {
+    override fun resetStatus(list: List<StatusData>) {
         for (ddata in list) {
-            update(ddata)
+            updateStatus(ddata)
         }
     }
 
@@ -174,7 +171,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
      * We have received an update from one of the internal managers. Use the
      * category to determine which.
      */
-    override fun update(data: StatusData) {
+    override fun updateStatus(data: StatusData) {
         Log.i(name, String.format("update (%s):%s = %s",data.action,data.type,data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             val type = data.type
@@ -192,7 +189,31 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
             }
         }
     }
+    // ===================== TextDataObserver =====================
+    /**
+     * This is called when we first establish the observer.
+     * Simply update the text
+     */
+    override fun resetText(list: List<TextData>) {
+        if(list.size>0) {
+            updateText(list.last())
+        }
+    }
 
+    /**
+     * We only handle MSG, VOICE. All other text types are ignored.
+     */
+    override fun updateText(msg: TextData) {
+        Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
+        if(msg.type.equals(MessageType.ANS)) {
+            voiceText.text = msg.message
+            voiceText.setTextColor(Color.BLUE)
+        }
+        else if(msg.type.equals(MessageType.MSG)) {
+            voiceText.text = msg.message
+            voiceText.setTextColor(Color.BLACK)
+        }
+    }
     // ================== OnClickListener ===============
     // One of the status buttons has been clicked.
     override fun onClick(v: View) {
@@ -210,14 +231,10 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
                 requireActivity().finishAndRemoveTask()
                 System.exit(0)
             }
+            // This button has three states.
             voiceStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SPEECH.name))
-                if( voiceStatusButton.state.equals(ManagerState.OFF)) {
-                    DispatchService.setSpeechState(ManagerState.ACTIVE)
-                }
-                else {
-                    DispatchService.setSpeechState(ManagerState.OFF)
-                }
+                DispatchService.toggleSpeechState()
             }
         }
     }
@@ -245,48 +262,15 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver, 
     }
 
 
-    inner class RecognizerActivityContract : ActivityResultContract<String, Int?>() {
-        override fun createIntent(context: Context, input: String): Intent {
-            return createRecognizerIntent()
-        }
-
-        override fun parseResult(resultCode: Int, intent: Intent?): Int? = when {
-            resultCode != Activity.RESULT_OK -> null
-            else -> Log.i(name,intent.toString())
-        }
-
-        override fun getSynchronousResult(context: Context, input: String): SynchronousResult<Int?>? {
-            return if (input.isNullOrEmpty()) SynchronousResult(42) else null
-        }
-    }
-    private fun createRecognizerIntent(): Intent {
-        //val locale = "us-UK"
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        //intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
-        intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
-        //intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
-        //intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME)
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak: ")
-        //Give a hint to the recognizer about what the user is going to say
-        intent.putExtra(
-            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-        )
-        // Max number of results. This is two attempts at deciphering, not a 2-word limit.
-        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
-        return intent
-    }
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
-    val REQUEST_CODE = 4242
     val BLUETOOTH_NAME = "Bluetooth"
     val SOCKET_NAME = "Socket"
     val VOICE_NAME = "Voice"
 
+
     init {
         name = CLSS
-        activityLauncher = registerForActivityResult(RecognizerActivityContract()){}
         visualizer = Visualizer(0)
     }
 }

@@ -20,12 +20,12 @@ interface GeometryDataObserver {
      * allows the observer to "catch-up" with the
      * current state of the joint list.
      */
-    fun reset(list: List<GeometryData>)
+    fun resetGeometry(list: List<GeometryData>)
 
     /**
      * Notify the observer that a new positional entry has been added
      * to the manager's list.
      * @param msg the new message
      */
-    fun update(msg: GeometryData)
+    fun updateGeometry(msg: GeometryData)
 }

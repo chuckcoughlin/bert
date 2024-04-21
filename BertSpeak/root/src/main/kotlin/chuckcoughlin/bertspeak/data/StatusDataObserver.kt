@@ -22,6 +22,6 @@ interface StatusDataObserver {
      * state of the manager all at oncw.
      * @param list of StatusData that describe the current joint parameters
      */
-    fun reset(list: List<StatusData>)
-    fun update(data: StatusData)
+    fun resetStatus(list: List<StatusData>)
+    fun updateStatus(data: StatusData)
 }

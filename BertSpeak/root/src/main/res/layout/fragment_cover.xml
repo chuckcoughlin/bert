@@ -146,6 +146,7 @@
             />
     </LinearLayout>
 
+
     <!-- The middle panel is the voice waveform-->
     <!-- The is a text label above the wave-form meter -->
     <TextView
@@ -174,10 +175,41 @@
         app:layout_constraintStart_toEndOf="@+id/coverVertical1"
         app:layout_constraintEnd_toStartOf="@+id/coverVertical2"
         app:layout_constraintTop_toBottomOf="@id/waveformTitle"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layoutVoiceText"
         app:layout_constraintVertical_bias="0.5"
         tools:context="chuckcoughlin.bertspeak.BertSpeakActivity"
         tools:showIn="@layout/fragment_cover" />
+    <LinearLayout
+        android:id="@+id/layoutVoiceText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginEnd="0dp"
+        app:layout_constraintStart_toEndOf="@+id/coverVertical1"
+        app:layout_constraintEnd_toStartOf="@+id/coverVertical2"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <TextView
+            android:id="@+id/voiceVoiceTextLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border_gray"
+            android:text="@string/coverVoiceText"
+            android:textAlignment="center"
+            android:textSize="@dimen/cover_parameter_text_size" />
+        <TextView
+            android:id="@+id/voiceEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/cover_voice_text_size"
+            android:paddingBottom="@dimen/cover_voice_text_pad"
+            android:paddingTop="@dimen/cover_voice_text_pad"
+            android:paddingStart="@dimen/cover_voice_text_pad"
+            android:paddingEnd="@dimen/cover_voice_text_pad"
+            android:background="@drawable/border_white"
+            android:hint="@string/coverVoiceTextHint" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/volumeAdjustTitle"

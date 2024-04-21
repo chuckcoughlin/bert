@@ -94,13 +94,13 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
         }
     }
 
-    override fun reset(list:List<TextData>) {
+    override fun resetText(list:List<TextData>) {
         Log.i(name, "reset: message list ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
-    override fun update(msg: TextData) {
+    override fun updateText(msg: TextData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen) {
             // This must take place on the UI thread

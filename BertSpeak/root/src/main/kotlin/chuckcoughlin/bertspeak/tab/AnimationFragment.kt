@@ -56,12 +56,12 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), GeometryDataObse
     fun refreshButtonClicked() {
 
     }
-    override fun reset(list:List<GeometryData>) {
+    override fun resetGeometry(list:List<GeometryData>) {
         Log.i(name, "reset: message list ...")
 
     }
 
-    override fun update(msg: GeometryData) {
+    override fun updateGeometry(msg: GeometryData) {
         Log.i(name, String.format("update: message = %s", msg.message))
 
     }

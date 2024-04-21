@@ -31,7 +31,7 @@ class GeometryManager (service:DispatchService): CommunicationManager {
      */
     fun register(observer: GeometryDataObserver) {
         geometryObservers[observer.name] = observer
-        observer.reset(jointList)
+        observer.resetGeometry(jointList)
     }
 
     fun unregister(observer: GeometryDataObserver) {
@@ -45,7 +45,7 @@ class GeometryManager (service:DispatchService): CommunicationManager {
 
     private fun initializeObservers() {
         for (observer in geometryObservers.values) {
-            observer.reset(jointList)
+            observer.resetGeometry(jointList)
         }
     }
 
@@ -55,7 +55,7 @@ class GeometryManager (service:DispatchService): CommunicationManager {
     private fun notifyObservers(msg: GeometryData) {
         Log.i(CLSS, String.format("notifyObservers: %s", msg.message))
         for (observer in geometryObservers.values) {
-            observer.update(msg)
+            observer.updateGeometry(msg)
         }
     }
 

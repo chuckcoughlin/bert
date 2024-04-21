@@ -118,17 +118,17 @@ class TextManager (service:DispatchService): CommunicationManager {
      */
     fun registerLogViewer(observer: TextDataObserver) {
         logObservers[observer.name] = observer
-        observer.reset(logList)
+        observer.resetText(logList)
     }
 
     fun registerTableViewer(observer: TextDataObserver) {
         tableObservers[observer.name] = observer
-        observer.reset(rowList)
+        observer.resetText(rowList)
     }
 
     fun registerTranscriptViewer(observer: TextDataObserver) {
         transcriptObservers[observer.name] = observer
-        observer.reset(transcriptList)
+        observer.resetText(transcriptList)
     }
 
     fun unregisterLogViewer(observer: TextDataObserver) {
@@ -157,18 +157,18 @@ class TextManager (service:DispatchService): CommunicationManager {
 
     private fun initializeLogObservers() {
         for (observer in logObservers.values) {
-            observer.reset(logList)
+            observer.resetText(logList)
         }
     }
     private fun initializeTableObservers() {
         for (observer in tableObservers.values) {
-            observer.reset(rowList)
+            observer.resetText(rowList)
         }
     }
 
     private fun initializeTranscriptObservers() {
         for (observer in transcriptObservers.values) {
-            observer.reset(transcriptList)
+            observer.resetText(transcriptList)
         }
     }
 
@@ -178,13 +178,13 @@ class TextManager (service:DispatchService): CommunicationManager {
     private fun notifyLogObservers(msg: TextData) {
         Log.i(CLSS, String.format("notifyLogObservers: %s", msg.message))
         for (observer in logObservers.values) {
-            observer.update(msg)
+            observer.updateText(msg)
         }
     }
 
     private fun notifyTableObservers(msg: TextData) {
         for (observer in tableObservers.values) {
-            observer.update(msg)
+            observer.updateText(msg)
         }
     }
 
@@ -193,7 +193,7 @@ class TextManager (service:DispatchService): CommunicationManager {
         for (observer in transcriptObservers.values) {
             Log.i(CLSS, String.format("notifyTranscript: %s", msg.message))
             Log.i(CLSS, String.format("notifyTranscript: updating for %s", msg.message))
-            observer.update(msg)
+            observer.updateText(msg)
         }
     }
 

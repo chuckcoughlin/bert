@@ -66,7 +66,7 @@ class DispatchService(ctx: Context){
         GlobalScope.launch(Dispatchers.Main) {
             statusManager.start()
             annunciationManager.start()
-            //speechManager.start()
+            speechManager.start()
         }
         Log.i(CLSS, String.format("start: starting MAIN"))
         // Start those managers that run on a background thread (no UI)
@@ -87,7 +87,7 @@ class DispatchService(ctx: Context){
         discoveryManager.stop()
         geometryManager.stop()
         socketManager.stop()
-        //speechManager.stop()
+        speechManager.stop()
         statusManager.stop()
         textManager.stop()
     }
@@ -200,16 +200,8 @@ class DispatchService(ctx: Context){
         fun restoreAudio() {
             instance.annunciationManager.restoreAudio()
         }
-        fun setSpeechState(state:ManagerState) {
-            when(state) {
-                ManagerState.ACTIVE -> {
-                    //instance.speechManager.startListening()
-                }
-                ManagerState.OFF -> {
-                    //instance.speechManager.stopListening()
-                }
-                else -> {}
-            }
+        fun toggleSpeechState() {
+            instance.speechManager.toggleSpeechState()
         }
         // Volume is an integer between 0-100
         fun setVolume(vol:Int) {

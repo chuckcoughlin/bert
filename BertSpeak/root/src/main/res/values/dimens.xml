@@ -24,6 +24,8 @@
     <dimen name="cover_status_width">180dp</dimen>
     <dimen name="cover_waveform_text_size">32sp</dimen>
     <dimen name="cover_waveform_width">460dp</dimen>
+    <dimen name="cover_voice_text_pad">12dp</dimen>
+    <dimen name="cover_voice_text_size">24sp</dimen>
     <dimen name="button_image_height">32dp</dimen>
     <dimen name="button_image_width">64dp</dimen>
     <dimen name="button_image_left_margin">2dp</dimen>

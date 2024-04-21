@@ -35,7 +35,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
             val ddata = makeDispatchData(type)
             list.add(ddata)
         }
-        observer.reset(list)
+        observer.resetStatus(list)
     }
 
     fun unregister(observer: StatusDataObserver) {
@@ -56,7 +56,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
      */
     private fun notifyObservers(ddata: StatusData) {
         for (observer in observers.values) {
-            observer.update(ddata)
+            observer.updateStatus(ddata)
         }
     }
 

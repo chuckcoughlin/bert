@@ -46,7 +46,7 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), GeometryDataObserve
     }
 
 
-    override fun reset(list:List<GeometryData>) {
+    override fun resetGeometry(list:List<GeometryData>) {
         Log.i(name, "reset: message list ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
@@ -55,7 +55,7 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), GeometryDataObserve
     /**
      * Should not be called as we update these all at once.
      */
-    override fun update(msg: GeometryData) {
+    override fun updateGeometry(msg: GeometryData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         // This must take place on the UI thread
         adapter.insertMessage(msg)

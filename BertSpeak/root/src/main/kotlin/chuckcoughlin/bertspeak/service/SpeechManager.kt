@@ -12,6 +12,8 @@ import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
+import chuckcoughlin.bertspeak.service.ManagerState.OFF
 import java.util.Locale
 import java.util.concurrent.Executors
 
@@ -24,7 +26,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	override val managerType = ManagerType.SPEECH
 	override var managerState = ManagerState.OFF
 	val dispatcher = service
-	private var sr: SpeechRecognizer? = null
+	private lateinit var sr: SpeechRecognizer
 	private var recognizerIntent: Intent
 
 	/** Must run on main thread */
@@ -43,7 +45,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
 			}
 			/*
-			sr!!.checkRecognitionSupport(recognizerIntent, Executors.newSingleThreadExecutor(),
+			sr.checkRecognitionSupport(recognizerIntent, Executors.newSingleThreadExecutor(),
 				object : RecognitionSupportCallback {
 					override fun onSupportResult(recognitionSupport: RecognitionSupport) {
 						Log.i(CLSS, "start: checkRecognitionSupport onSupportResult")
@@ -54,8 +56,9 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 					}
 				})
 				*/
-			sr!!.setRecognitionListener(this)
-			startListening()
+			sr.setRecognitionListener(this)
+			managerState = OFF
+			dispatcher.reportManagerState(ManagerType.SPEECH,managerState)
 		}
 	}
 
@@ -64,57 +67,62 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	 */
 	override fun stop() {
 		Log.i(CLSS, "Stop ...")
-		if( sr!=null ) {
-			sr!!.stopListening()
-			try {
-				sr!!.destroy()
-			}
-			catch(iae:IllegalArgumentException) {
-				// Happens in emulator
-				Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
-			}
-			sr = null
+		stopListening()
+		try {
+			sr.destroy()
+		}
+		catch(iae:IllegalArgumentException) {
+			// Happens in emulator
+			Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
 		}
 	}
 
-	// Delay before we start listening to avoid feedback loop
-	// with spoken response. Note this will be cut short by
-	// a listener on the text-to-speech component.
-	@Synchronized
+	/* Delay before we start listening to avoid feedback loop
+	 * with spoken response. Note this will be cut short by
+	 * a listener on the text-to-speech component.
+	 */
 	fun startListening() {
 		Log.i(CLSS, "Start listening ...")
-		if( sr!=null) {
-			sr!!.startListening(recognizerIntent)
-			dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.ACTIVE)
-		}
+		sr.startListening(recognizerIntent)
 	}
 	fun stopListening() {
 		Log.i(CLSS, "Stop listening ...")
-		if( sr!=null ) {
-			sr!!.stopListening()
-			dispatcher.reportManagerState(ManagerType.SPEECH, ManagerState.OFF)
-		}
+		sr.stopListening()
 	}
 
+	/*
+	 * Toggle through the three non-error states.
+	 */
+	fun toggleSpeechState() {
+		if( managerState.equals(ManagerState.OFF)) {
+			managerState = ManagerState.PENDING
+			startListening()
+		}
+		else if( managerState.equals(ManagerState.PENDING)) {
+			managerState = ManagerState.ACTIVE
+			startListening()
+		}
+		else  {
+			managerState = ManagerState.OFF
+			stopListening()
+		}
+		dispatcher.reportManagerState(ManagerType.SPEECH, managerState)
+	}
 	// ================ RecognitionListener ===============
 	override fun onReadyForSpeech(params: Bundle) {
 		Log.i(CLSS, "onReadyForSpeech")
 	}
-
 	override fun onBeginningOfSpeech() {
 		Log.i(CLSS, "onBeginningOfSpeech");
 	}
-
 	// Background level changed ...
 	override fun onRmsChanged(rmsdB: Float) {}
 	override fun onBufferReceived(buffer: ByteArray) {
 		Log.i(CLSS, "onBufferReceived")
 	}
-
 	override fun onEndOfSpeech() {
 		Log.i(CLSS, "onEndofSpeech")
 	}
-
 	override fun onError(error: Int) {
 		var reason:String =
 			when (error) {
@@ -133,9 +141,8 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 			}
 		Log.e(CLSS, String.format("onError - %s", reason))
 		dispatcher.logError(managerType,reason)
-
-		// Try again
-		startListening()
+		managerState = ManagerState.ERROR
+		dispatcher.reportManagerState(ManagerType.SPEECH, managerState)
 	}
 
 	override fun onResults(results: Bundle) {
@@ -151,10 +158,11 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				var text = matches[0]
 				text = scrubText(text)
 				dispatcher.receiveSpokenText(text)
-				dispatcher.reportManagerState(managerType, ManagerState.PENDING)
 			}
 		}
-		startListening() // Repeat forever
+		if(managerState.equals(ManagerState.ACTIVE) ) {
+			startListening()
+		}
 	}
 
 	/**
@@ -207,7 +215,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	val DELAY_TIME = 1000L
 	val SPEECH_MIN_TIME = 100     // Word must be at least this long
 	val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
-
 
 	/**
 	 * Creating the speech recognizer must be done on the main thread.

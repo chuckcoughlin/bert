@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Charles Coughlin. All rights reserved.
+ * Copyright 2023-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  * @See http://hoodaandroid.blogspot.com/2012/10/vertical-seek-bar-or-slider-in-android.html
  */
