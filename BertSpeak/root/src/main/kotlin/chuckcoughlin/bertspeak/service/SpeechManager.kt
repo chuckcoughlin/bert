@@ -141,6 +141,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 			}
 		Log.e(CLSS, String.format("onError - %s", reason))
 		dispatcher.logError(managerType,reason)
+
 		managerState = ManagerState.ERROR
 		dispatcher.reportManagerState(ManagerType.SPEECH, managerState)
 	}
@@ -172,19 +173,17 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 		Log.i(CLSS, "onPartialResults")
 	}
 
-	override fun onEvent(eventType: Int, params: Bundle) {
-		Log.i(CLSS, "onEvent $eventType")
-	}
+	override fun onEvent(eventType: Int, params: Bundle) {}
 
 	private fun createRecognizerIntent(): Intent {
 		//val locale = "us-UK"
 		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-		//intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, javaClass.getPackage()?.name)
 		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
-		intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
+		/* intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
 		intent.putExtra(
 			RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME
 		)
+		*/
 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
 		//Give a hint to the recognizer about what the user is going to say
 		intent.putExtra(

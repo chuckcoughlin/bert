@@ -96,7 +96,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
         DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
-
         return binding.root
     }
     /**
@@ -260,7 +259,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
         Log.i(name, String.format("onProgressChanged: seekBar at %d",progress))
         DispatchService.setVolume(progress)
     }
-
 
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256

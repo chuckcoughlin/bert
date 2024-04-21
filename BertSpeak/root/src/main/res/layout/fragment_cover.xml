@@ -61,7 +61,7 @@
         app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         />
 
-    <!-- Status panel at bottom of image - three linear layouts-->
+    <!-- Status panel at bottom of image - 4 linear layouts-->
     <LinearLayout
         android:id="@+id/layoutBluetoothStatus"
         android:layout_width="0dp"
@@ -71,7 +71,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/layoutSocket"
         app:layout_constraintBottom_toBottomOf="parent">
-
         <TextView
             android:id="@+id/bluetoothConnectionLabel"
             android:layout_width="match_parent"
@@ -98,7 +97,6 @@
         app:layout_constraintStart_toEndOf="@+id/layoutBluetoothStatus"
         app:layout_constraintEnd_toStartOf="@+id/layoutVoice"
         app:layout_constraintBottom_toBottomOf="parent">
-
         <TextView
             android:id="@+id/socketConnectionLabel"
             android:layout_width="match_parent"
@@ -127,7 +125,6 @@
         app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintBottom_toBottomOf="parent">
-
         <TextView
             android:id="@+id/voiceConnectionLabel"
             android:layout_width="match_parent"
