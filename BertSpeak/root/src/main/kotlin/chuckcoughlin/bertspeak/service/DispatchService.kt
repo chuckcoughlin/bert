@@ -103,8 +103,12 @@ class DispatchService(ctx: Context){
         textManager.processText(LOG, msg)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun receivePairedDevice(dev: BluetoothDevice) {
         socketManager.receivePairedDevice(dev)
+        GlobalScope.launch(Dispatchers.Default) {
+            socketManager.start()
+        }
     }
 
     fun reportManagerState(type: ManagerType, state: ManagerState) {
@@ -154,8 +158,8 @@ class DispatchService(ctx: Context){
      */
     fun receiveSpokenText(text: String) {
         Log.i(CLSS, String.format("receiveSpokenText: %s", text))
-        textManager.processText(MessageType.MSG, text)
-        socketManager.write(String.format("%s:%s", MessageType.MSG.name, text))
+        textManager.processText(MessageType.ANS, text)
+        socketManager.write(String.format("%s:%s", MessageType.ANS.name, text))
     }
 
 

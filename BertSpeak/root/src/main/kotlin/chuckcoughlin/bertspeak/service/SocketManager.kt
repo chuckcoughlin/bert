@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bertspeak.service
@@ -14,6 +14,7 @@ import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.ERROR
+import chuckcoughlin.bertspeak.service.ManagerState.PENDING
 import kotlinx.coroutines.NonCancellable.start
 import java.io.BufferedReader
 import java.io.IOException
@@ -40,7 +41,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     override var managerState = ManagerState.OFF
     private val buffer: CharArray
     private val dispatcher = service
-    private var connectionThread: ConnectionThread? = null
+    private lateinit var connectionThread: ConnectionThread
     private var readerThread: ReaderThread? = null
     private lateinit var device: BluetoothDevice
     private var deviceName: String
@@ -60,20 +61,22 @@ class SocketManager(service:DispatchService): CommunicationManager {
             return
         }
         deviceName = dev.name
+        managerState = PENDING
+        dispatcher.reportManagerState(managerType,managerState)
     }
 
+    /* Do not start the manager until the bluetooth device has been defined.
+     */
     override fun start() {
-            if (connectionThread != null && connectionThread!!.isAlive && !connectionThread!!.isInterrupted) {
-                Log.i(CLSS, "socket connection already in progress ...")
-                return
-            }
-            connectionThread = ConnectionThread(device)
-            connectionThread!!.start()
+        connectionThread = ConnectionThread(device)
+        connectionThread.start()
+        managerState = ACTIVE
+        dispatcher.reportManagerState(managerType,managerState)
     }
 
     private fun stopChecking() {
-        if (connectionThread != null && connectionThread!!.isAlive) {
-            connectionThread!!.interrupt()
+        if (connectionThread.isAlive) {
+            connectionThread.interrupt()
         }
     }
 
@@ -86,8 +89,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             try {
                 input!!.close()
             }
-            catch (ignore: IOException) {
-            }
+            catch (ignore: IOException) {}
             input = null
         }
         if (output != null) {
@@ -102,7 +104,8 @@ class SocketManager(service:DispatchService): CommunicationManager {
         }
         catch (_: IOException) {
         }
-        dispatcher.reportManagerState(ManagerType.SOCKET, ManagerState.OFF)
+        managerState = ManagerState.OFF
+        dispatcher.reportManagerState(managerType, managerState)
     }
 
     /**
@@ -159,12 +162,8 @@ class SocketManager(service:DispatchService): CommunicationManager {
         try {
             if (output != null) {
                 if (!output!!.checkError()) {
-                    Log.i(
-                        CLSS, String.format(
-                            "write: writing ... %s (%d bytes) to %s.",
-                            text, text.length + 1, deviceName
-                        )
-                    )
+                    Log.i(CLSS, String.format( "write: writing ... %s (%d bytes) to %s.",
+                            text, text.length + 1, deviceName))
                     output!!.println(text) // Appends new-line
                     output!!.flush()
                 }
@@ -199,8 +198,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             text = input!!.readLine()
         }
         catch(ex: Exception) {
-            Log.i(CLSS,String.format("reread: ERROR opening %s for read (%s)", deviceName, ex.message)
-            )
+            Log.i(CLSS,String.format("reread: ERROR opening %s for read (%s)", deviceName, ex.message))
         }
         Log.i(CLSS, String.format("reread: got %s", text))
         return text
@@ -264,13 +262,11 @@ class SocketManager(service:DispatchService): CommunicationManager {
                     break
                 }
                 catch(se: SecurityException) {
-                    Log.w(CLSS, String.format(
-                            "run: SecurityException connecting to socket (%s)",
+                    Log.w(CLSS, String.format( "run: SecurityException connecting to socket (%s)",
                             se.localizedMessage))
                 }
                 catch(ioe: IOException) {
-                    Log.w(CLSS, String.format(
-                        "run: IOException connecting to socket (%s)",
+                    Log.w(CLSS, String.format("run: IOException connecting to socket (%s)",
                         ioe.localizedMessage ) )
                     // See: https://stackoverflow.com/questions/18657427/ioexception-read-failed-socket-might-closed-bluetooth-on-android-4-3
                     try {

@@ -72,14 +72,15 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
             bmgr.adapter.cancelDiscovery()
         }
         else {
-
+            dispatcher.logError(managerType,errorMsg)
+            managerState = ManagerState.ERROR
+            dispatcher.reportManagerState(managerType,managerState)
         }
     }
 
     override fun stop() {
         observers.clear()
     }
-
 
     // An empty string returned implies success, else an error message.
     // For now we always return an error
@@ -98,19 +99,16 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
         }
         return errorMsg
     }
-
     fun getPairedDevice() : BluetoothDevice? {
         var device:BluetoothDevice? = null
         val pairedDevices = bmgr.adapter.bondedDevices
         if( deviceName!=null ) {
             for(dev in pairedDevices) {
-                Log.i(
-                    CLSS, String.format("%s: discovered %s (%s %s)",
-                        CLSS, dev.name, dev.type, dev.address) )
+                Log.i(CLSS, String.format("%s: discovered %s (%s %s)",
+                      CLSS, dev.name, dev.type, dev.address) )
                 if(dev.name.equals(deviceName, ignoreCase = true)) {
-                    Log.i(
-                        CLSS, String.format("%s: Matched %s (%s %s)", CLSS, dev.name,
-                            dev.type,dev.address) )
+                    Log.i(CLSS, String.format("%s: Matched %s (%s %s)",
+                          CLSS, dev.name,dev.type,dev.address) )
                     device = dev
                     break
                 }

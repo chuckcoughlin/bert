@@ -176,7 +176,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
             val type = data.type
             val state= data.state
             when (type) {
-                ManagerType.BLUETOOTH-> {
+                ManagerType.DISCOVERY-> {
                     updateStatusButton(bluetoothStatusButton,type,state)
                 }
                 ManagerType.SOCKET   -> {
@@ -218,7 +218,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
     override fun onClick(v: View) {
         when(v) {
             bluetoothStatusButton -> {
-                Log.i(name, String.format("onClick:%s",ManagerType.BLUETOOTH.name))
+                Log.i(name, String.format("onClick:%s",ManagerType.DISCOVERY.name))
             }
             socketStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SOCKET.name))

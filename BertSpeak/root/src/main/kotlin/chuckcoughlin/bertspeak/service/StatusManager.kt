@@ -81,7 +81,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
      */
     init {
         map = mutableMapOf<ManagerType,ManagerState>()
-        map[ManagerType.BLUETOOTH] = ManagerState.OFF
+        map[ManagerType.DISCOVERY] = ManagerState.OFF
         map[ManagerType.SOCKET] = ManagerState.OFF
         map[ManagerType.STATUS] = ManagerState.ACTIVE
         observers = mutableMapOf<String,StatusDataObserver>()

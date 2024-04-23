@@ -8,7 +8,7 @@ package chuckcoughlin.bertspeak.service
  * These are the communication controllers embedded in this application.
  */
 enum class ManagerType {
-    ANNUNCIATOR,BLUETOOTH, DISCOVERY, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
+    ANNUNCIATOR, DISCOVERY, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
 
     companion object {
         /**
