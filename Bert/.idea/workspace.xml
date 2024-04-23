@@ -5,11 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/db/DatabaseManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/db/DatabaseManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/DiscoveryManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/DiscoveryManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/SpeechManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/SpeechManager.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/tab/CoverFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/tab/CoverFragment.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/ui/adapter/SettingsListAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/ui/adapter/SettingsListAdapter.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -121,7 +121,7 @@ class MessageTranslator {
                 randomAcknowledgement()
             }
             else if (type.equals(RequestType.SET_POSE)) {
-                String.format("I am %s", msg.pose.lowercase(Locale.getDefault()))
+                String.format("I am at %s", msg.pose.lowercase(Locale.getDefault()))
             }
             else {
                 val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()

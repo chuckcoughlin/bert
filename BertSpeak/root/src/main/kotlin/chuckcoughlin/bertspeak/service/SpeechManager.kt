@@ -7,15 +7,11 @@ package chuckcoughlin.bertspeak.service
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognitionListener
-import android.speech.RecognitionSupport
-import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
-import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.OFF
 import java.util.Locale
-import java.util.concurrent.Executors
 
 /**
  * Analyze spoken input to the application.
@@ -28,6 +24,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	val dispatcher = service
 	private lateinit var sr: SpeechRecognizer
 	private var recognizerIntent: Intent
+	private var listening:Boolean
 
 	/** Must run on main thread */
 	override fun start() {
@@ -44,18 +41,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				Log.i(CLSS, "start: speechRecognizer is off-device")
 				sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
 			}
-			/*
-			sr.checkRecognitionSupport(recognizerIntent, Executors.newSingleThreadExecutor(),
-				object : RecognitionSupportCallback {
-					override fun onSupportResult(recognitionSupport: RecognitionSupport) {
-						Log.i(CLSS, "start: checkRecognitionSupport onSupportResult")
-					}
-
-					override fun onError(error: Int) {
-						Log.i(CLSS, "start: checkRecognitionSupport onError")
-					}
-				})
-				*/
 			sr.setRecognitionListener(this)
 			managerState = OFF
 			dispatcher.reportManagerState(ManagerType.SPEECH,managerState)
@@ -82,23 +67,32 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	 * a listener on the text-to-speech component.
 	 */
 	fun startListening() {
-		Log.i(CLSS, "Start listening ...")
-		sr.startListening(recognizerIntent)
+		if(!listening) {
+			Log.i(CLSS, "Start listening ...")
+			sr.startListening(recognizerIntent)
+		}
+		listening = true
 	}
+	/* There is very little need for this. It should only
+	 * be called if speech is in progress
+	 */
 	fun stopListening() {
-		Log.i(CLSS, "Stop listening ...")
-		sr.stopListening()
+		if( listening ) {
+			Log.i(CLSS, "Stop listening ...")
+			sr.stopListening()
+		}
+		listening = false
 	}
 
 	/*
 	 * Toggle through the three non-error states.
 	 */
 	fun toggleSpeechState() {
-		if( managerState.equals(ManagerState.OFF)) {
+		if( managerState == ManagerState.OFF) {
 			managerState = ManagerState.PENDING
 			startListening()
 		}
-		else if( managerState.equals(ManagerState.PENDING)) {
+		else if( managerState==ManagerState.PENDING) {
 			managerState = ManagerState.ACTIVE
 			startListening()
 		}
@@ -139,6 +133,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				SpeechRecognizer.ERROR_TOO_MANY_REQUESTS -> "too many requests"
 				else -> String.format("ERROR (%d) ", error)
 			}
+		listening = false
 		Log.e(CLSS, String.format("onError - %s", reason))
 		dispatcher.logError(managerType,reason)
 
@@ -161,6 +156,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 				dispatcher.receiveSpokenText(text)
 			}
 		}
+		listening = false
 		if(managerState.equals(ManagerState.ACTIVE) ) {
 			startListening()
 		}
@@ -221,5 +217,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 	init {
 		managerState = ManagerState.OFF
 		recognizerIntent = createRecognizerIntent()
+		listening = false
 	}
 }

@@ -131,7 +131,7 @@ This section includes the first set of tests for driving the position of the rob
 It also introduces use of the database to store "poses". The tests here simply
 drive joints to a goal. There is not yet a concept of trajectory planning.
 
-* ![yellow](/images/ball_yellow.png) ``Move Joint`` - Using the terminal application,
+* ![green](/images/ball_yellow.png) ``Move Joint`` - Using the terminal application,
 move a joint to a specified position. Make sure that any attempts to drive it
 out-of-range are clipped . Sample command syntax:
 ```
@@ -142,7 +142,7 @@ out-of-range are clipped . Sample command syntax:
     set the left elbow to 90
     straighten your left knee
 ```
-* ![yellow](/images/ball_yellow.png) ``Pronouns`` - Show the use of 'it' and 'other' as substitutions for
+* ![green](/images/ball_yellow.png) ``Pronouns`` - Show the use of 'it' and 'other' as substitutions for
 the last referenced joint or side. Sample command syntax:
 ```
     move it to 20
@@ -159,6 +159,8 @@ Sample command syntax:
     move normally
     move quickly
     move very slowly
+    move slower
+    go faster
 ```
 The "move" commands set speeds for all joint movements at once.
 

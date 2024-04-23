@@ -134,7 +134,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
 
     @Synchronized
     private fun stopVisualizer() {
-        visualizer.enabled = false
+        //visualizer.enabled = false
         visualizer.release()
         visualizer.setDataCaptureListener(null, 0, false, false)
     }

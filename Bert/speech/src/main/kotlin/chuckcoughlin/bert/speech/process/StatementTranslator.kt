@@ -577,7 +577,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.type = RequestType.SET_POSE
         val pose = poseForAdverb(ctx.Adverb().getText())
         bottle.pose = pose
-        bottle.text = String.format("I am moving %s", ctx.Adverb().getText())
+        bottle.text = String.format("I am moving at a %s", ctx.Adverb().getText())
         return null
     }
 
