@@ -7,6 +7,7 @@ package chuckcoughlin.bertspeak.service
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
@@ -60,7 +61,7 @@ class DispatchService(ctx: Context){
      */
     @OptIn(DelicateCoroutinesApi::class)
     fun start() {
-        Log.i(CLSS, String.format("start: starting Dispatcher"))
+        Log.i(CLSS, String.format("start: starting Dispatcher and managers"))
         instance = this
         // Start those managers that run on the main (UI) thread
         GlobalScope.launch(Dispatchers.Main) {
@@ -68,7 +69,6 @@ class DispatchService(ctx: Context){
             annunciationManager.start()
             speechManager.start()
         }
-        Log.i(CLSS, String.format("start: starting MAIN"))
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
         GlobalScope.launch(Dispatchers.Default) {
@@ -103,12 +103,11 @@ class DispatchService(ctx: Context){
         textManager.processText(LOG, msg)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+    // Executed from the DiscoveryManager once the Bluetooth
+    // device is paired.
     fun receivePairedDevice(dev: BluetoothDevice) {
         socketManager.receivePairedDevice(dev)
-        GlobalScope.launch(Dispatchers.Default) {
-            socketManager.start()
-        }
+        socketManager.start()
     }
 
     fun reportManagerState(type: ManagerType, state: ManagerState) {
@@ -118,13 +117,13 @@ class DispatchService(ctx: Context){
     @OptIn(DelicateCoroutinesApi::class)
     fun startSpeech() {
         GlobalScope.launch(Dispatchers.Main) {
-            //speechManager.startListening()
+            speechManager.startListening()
         }
     }
     @OptIn(DelicateCoroutinesApi::class)
     fun stopSpeech() {
         GlobalScope.launch(Dispatchers.Main) {
-            //speechManager.stopListening()
+            speechManager.stopListening()
         }
     }
 

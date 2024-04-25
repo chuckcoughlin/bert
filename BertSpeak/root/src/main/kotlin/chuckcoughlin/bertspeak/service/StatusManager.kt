@@ -7,7 +7,7 @@ import chuckcoughlin.bertspeak.data.StatusDataObserver
 /**
  * The status manager keeps track of the status of the managers within the
  * application. The DispatchService holds a single instance that is made available
- * to UI fragments through the binder interface.
+ * to UI fragments via the singleton instance.
  */
 class StatusManager(service:DispatchService): CommunicationManager {
     val dispatcher = service
@@ -17,10 +17,8 @@ class StatusManager(service:DispatchService): CommunicationManager {
     private val observers: MutableMap<String, StatusDataObserver>
 
     override fun start() {
-        observers.clear()
     }
     override fun stop() {
-        observers.clear()
     }
 
     /**
@@ -83,7 +81,9 @@ class StatusManager(service:DispatchService): CommunicationManager {
         map = mutableMapOf<ManagerType,ManagerState>()
         map[ManagerType.DISCOVERY] = ManagerState.OFF
         map[ManagerType.SOCKET] = ManagerState.OFF
+        map[ManagerType.SPEECH] = ManagerState.OFF
         map[ManagerType.STATUS] = ManagerState.ACTIVE
+        map[ManagerType.TEXT] = ManagerState.OFF
         observers = mutableMapOf<String,StatusDataObserver>()
     }
 }

@@ -28,7 +28,6 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
     private var deviceName : String?
 
      override fun start() {
-        observers.clear()
         var errorMsg = checkAdapter(bmgr.adapter)
         if(errorMsg.isEmpty()) {
             var success = false
@@ -65,11 +64,10 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
             }
             else {
                 errorMsg = "Failed to find a paired bluetooth device"
-                dispatcher.logError(managerType,errorMsg)
+                dispatcher.logError(managerType, errorMsg)
                 managerState = ManagerState.ERROR
-                dispatcher.reportManagerState(managerType,managerState)
+                dispatcher.reportManagerState(managerType, managerState)
             }
-            bmgr.adapter.cancelDiscovery()
         }
         else {
             dispatcher.logError(managerType,errorMsg)
@@ -79,7 +77,8 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
     }
 
     override fun stop() {
-        observers.clear()
+        managerState = ManagerState.OFF
+        dispatcher.reportManagerState(managerType,managerState)
     }
 
     // An empty string returned implies success, else an error message.
