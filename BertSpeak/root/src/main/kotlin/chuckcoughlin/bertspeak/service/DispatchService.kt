@@ -105,6 +105,7 @@ class DispatchService(ctx: Context){
 
     // Executed from the DiscoveryManager once the Bluetooth
     // device is paired.
+    @DelicateCoroutinesApi
     fun receivePairedDevice(dev: BluetoothDevice) {
         socketManager.receivePairedDevice(dev)
         socketManager.start()
@@ -158,7 +159,7 @@ class DispatchService(ctx: Context){
     fun receiveSpokenText(text: String) {
         Log.i(CLSS, String.format("receiveSpokenText: %s", text))
         textManager.processText(MessageType.ANS, text)
-        socketManager.write(String.format("%s:%s", MessageType.ANS.name, text))
+        socketManager.prepareTextToSend(String.format("%s:%s", MessageType.ANS.name, text))
     }
 
 

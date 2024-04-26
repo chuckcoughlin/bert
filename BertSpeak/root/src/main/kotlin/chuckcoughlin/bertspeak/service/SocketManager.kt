@@ -15,12 +15,16 @@ import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.ERROR
 import chuckcoughlin.bertspeak.service.ManagerState.PENDING
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable.start
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.io.BufferedReader
@@ -47,17 +51,16 @@ class SocketManager(service:DispatchService): CommunicationManager {
     override val managerType = ManagerType.SOCKET
     override var managerState = ManagerState.OFF
     private val buffer: CharArray
+    private var textToSend: CompletableDeferred<String>
     private val dispatcher = service
-    private var readerThread: ReaderThread? = null
     private var connected: Boolean
     private lateinit var device: BluetoothDevice
+    private lateinit var reader: BufferedReader
+    private lateinit var writer: PrintWriter
     private lateinit var socket: BluetoothSocket
     private var deviceName: String
     private var running: Boolean
     private var job: Job
-
-    private var input: BufferedReader? = null
-    private var output: PrintWriter? = null
 
     /**
      * This is required before we can be started
@@ -76,88 +79,110 @@ class SocketManager(service:DispatchService): CommunicationManager {
 
     /* Do not start the manager until the bluetooth device has been defined.
      */
+    @DelicateCoroutinesApi
     override fun start() {
-        GlobalScope.launch(Dispatchers.IO) {
+        while( !connected ) {
             connectSocket()
+            if(!connected) {
+                GlobalScope.launch(Dispatchers.IO) {
+                    delay(CLIENT_ATTEMPT_INTERVAL)
+                }
+            }
         }
-        reason = openPorts()
-        managerState = PENDING
-        dispatcher.reportManagerState(managerType,managerState)
+        if( openPorts() ) {
+            managerState = ACTIVE
+            dispatcher.reportManagerState(managerType, managerState)
+            running = true
+            job = GlobalScope.launch(Dispatchers.IO) {
+                execute()
+            }
+        }
     }
 
 
     /**
      * We are a client. Attempt to connect to the server.
+     * The paired device must already be set.
      * Set the connected flag
      */
-    private suspend fun connectSocket() : Boolean {
-        // Keep attempting a connection until the server is ready
-        var attempts = 0
+    private fun connectSocket() {
         var reason = ""
-        while(!connected && reason.isBlank()) {
-            try {
-                var uuid: UUID? = null
-                if(device.fetchUuidsWithSdp()) {
-                    val uuids = device.uuids
-                    Log.i(CLSS, String.format("connectSocket: %s returned %d service UUIDs",
-                        deviceName, uuids.size))
-                    for(id in uuids) {
-                        uuid = id.uuid
-                        Log.i(CLSS, String.format(
-                            "connectSocket: %s: service UUID = %s", deviceName, uuid.toString()))
-                    }
-                    if(uuid == null) {
-                        reason = String.format("There were no service UUIDs found on %s", deviceName)
-                    }
-                    else {
-                        Log.i(CLSS, String.format("connectSocket: creating RFComm socket for %s ...",SERIAL_UUID))
-                        socket = device.createRfcommSocketToServiceRecord(SERIAL_UUID)!!
-                        Log.i(CLSS, String.format("connectSocket: attempting to connect to %s ...",
-                            deviceName))
-                        socket.connect()
-                        connected = true
-                        Log.i(CLSS, String.format("connectSocket: connected to %s after %d attempts",
-                            deviceName, attempts))
-                    }
+        try {
+            var uuid: UUID? = null
+            if(device.fetchUuidsWithSdp()) {
+                val uuids = device.uuids
+                Log.i(CLSS, String.format("connectSocket: %s returned %d service UUIDs",
+                    deviceName, uuids.size))
+
+                for(id in uuids) {
+                    uuid = id.uuid
+                    Log.i(CLSS, String.format("connectSocket: %s: service UUID = %s", deviceName, uuid.toString()))
+                }
+                if(uuid == null) {
+                    reason = String.format("There were no service UUIDs found on %s", deviceName)
                 }
                 else {
-                    reason = String.format("The tablet failed to fetch service UUIDS to %s", deviceName)
+                    Log.i(CLSS, String.format("connectSocket: creating RFComm socket for %s ...",SERIAL_UUID))
+                    socket = device.createRfcommSocketToServiceRecord(SERIAL_UUID)!!
+                    Log.i(CLSS, String.format("connectSocket: attempting to connect to %s ...",
+                        deviceName))
+                    socket.connect()
+                    connected = true
+                    Log.i(CLSS, String.format("connectSocket: connected to %s",deviceName))
                 }
             }
-            catch(se: SecurityException) {
-                reason = String.format("connectSocket: security exception (%s)", se.localizedMessage)
-            }
-            // See: https://stackoverflow.com/questions/18657427/ioexception-read-failed-socket-might-closed-bluetooth-on-android-4-3
-            catch(ioe: IOException) {
-                reason = String.format("connectSocket: IOException connecting to socket (%s)", ioe.localizedMessage)
-            }
-
-            if(!connected) {
-                delay(CLIENT_ATTEMPT_INTERVAL)
-
-                if(attempts % CLIENT_LOG_INTERVAL == 0) {
-                    val msg = String.format(
-                        "The tablet failed to create a client socket to %s due to %s",
-                        deviceName, ioe.message)
-                    Log.w(CLSS, String.format("run: ERROR %s", reason))
-                    dispatcher.logError(managerType, reason)
-                }
+            else {
+                reason = String.format("The tablet failed to fetch service UUIDS to %s", deviceName)
             }
         }
-        attempts++
+        catch(se: SecurityException) {
+            reason = String.format("connectSocket: security exception (%s)", se.localizedMessage)
         }
-        // ========== End While ======================
+        // See: https://stackoverflow.com/questions/18657427/ioexception-read-failed-socket-might-closed-bluetooth-on-android-4-3
+        catch(ioe: IOException) {
+            reason = String.format("connectSocket: IOException connecting to socket (%s)", ioe.localizedMessage)
+        }
 
-        if( connected ) {
-            managerState = ACTIVE
+        if(connected) {
+            managerState = PENDING
         }
-        else if( reason.isNotBlank() ){
+        else {
             Log.w(CLSS, String.format("connectSocket: ERROR %s", reason))
-            dispatcher.logError(managerType,reason)
+            dispatcher.logError(managerType, reason)
             managerState = ERROR
         }
         dispatcher.reportManagerState(managerType,managerState)
+    }
 
+    /**
+     * Open IO streams for reading and writing. The socket must exist.
+     * @return an error description. Null if no error.
+     */
+    private fun openPorts(): Boolean {
+        var success = false
+        try {
+            reader = BufferedReader(InputStreamReader(socket.inputStream))
+            Log.i(CLSS, String.format("openPorts: opened %s for read", deviceName))
+            try {
+                writer = PrintWriter(socket.outputStream, true)
+                Log.i(CLSS, String.format("openPorts: opened %s for write", deviceName))
+                write(String.format("%s:the tablet is connected", MessageType.LOG.name))
+                success = true
+            }
+            catch (ex: Exception) {
+                val reason = String.format("The tablet failed to open a socket for writing due to %s",
+                    ex.message)
+                Log.i( CLSS,String.format("openPorts: ERROR opening %s for write (%s)",
+                    CLSS,deviceName,ex.message),ex)
+                dispatcher.logError(managerType,reason)
+            }
+        }
+        catch (ex: Exception) {
+            val reason = String.format("The tablet failed to open a socket for reading due to %s",ex.message)
+            Log.i(CLSS,String.format("openPorts: ERROR opening %s for read (%s)",CLSS,deviceName,ex.message), ex)
+            dispatcher.logError(managerType,reason)
+        }
+        return success
     }
     /**
      * While running, this controller processes messages between the Dispatcher
@@ -170,54 +195,37 @@ class SocketManager(service:DispatchService): CommunicationManager {
      */
     @DelicateCoroutinesApi
     suspend fun execute(): Unit = coroutineScope {
-        if (!running) {
-            LOGGER.info(String.format("%s.execute: started...", CLSS))
-            running = true
-            /* select() in coroutine to balance sends/receives from Dispatcher */
-            job = scope.launch(Dispatchers.IO) {
-                while (running) {
-                    print(prompt)
-                    select<MessageBottle> {
-
-                        handleUserInput().onAwait{it}
-                    } // End select
-                }
+        Log.i(CLSS,"execute: started...")
+        while (running) {
+            select<Unit> {
+                read().onAwait(){}
+                textToSend.onAwait{ write(it) }
             }
         }
-        else {
-            LOGGER.warning(String.format("%s.execute: attempted to start, but already running...", CLSS))
-        }
     }
 
-    private fun stopChecking() {
-        if (connectionThread.isAlive) {
-            connectionThread.interrupt()
-        }
-    }
 
     /**
      * Close IO streams.
      */
     override fun stop() {
-        stopChecking()
-        if (input != null) {
+        if( running ) {
+            job.cancel()
             try {
-                input!!.close()
+                reader.close()
             }
             catch (ignore: IOException) {}
-            input = null
-        }
-        if (output != null) {
-            output!!.close()
-            output = null
-        }
-        try {
-            if (_socket != null) {
-                _socket = null
-                socket.close()
+            try {
+                writer.close()
             }
-        }
-        catch (_: IOException) {
+            catch (ignore: IOException) {}
+            running = false
+            try {
+                if( connected ) {
+                    socket.close()
+                }
+             }
+            catch (_: IOException) {}
         }
         managerState = ManagerState.OFF
         dispatcher.reportManagerState(managerType, managerState)
@@ -230,19 +238,14 @@ class SocketManager(service:DispatchService): CommunicationManager {
      *
      * @return the line of text
      */
-    fun read(): String? {
-        var text: String? = null
+    @DelicateCoroutinesApi
+    fun read(): Deferred<String> =
+        GlobalScope.async(Dispatchers.IO)  {
+        var text: String
         try {
-            if (input != null) {
-                Log.i(CLSS, String.format("read: reading ... "))
-                text = input!!.readLine() // Does not include CR
-                Log.i(CLSS, String.format("read: returning: %s", text))
-            }
-            else {
-                Log.e(CLSS,
-                    String.format("read: Error reading from %s before connection",
-                    deviceName))
-            }
+            Log.i(CLSS, "read: reading ... ")
+            text = reader.readLine() // Does not include CR
+            Log.i(CLSS, String.format("read: returning: %s", text))
         }
         catch (ioe: IOException) {
             Log.e(CLSS, String.format("read: Error reading from %s (%s)",
@@ -253,64 +256,48 @@ class SocketManager(service:DispatchService): CommunicationManager {
         catch (npe: NullPointerException) {
             Log.e(CLSS, String.format( "read: Null pointer reading from %s (%s)",
                     deviceName, npe.localizedMessage))
-
             // Close and attempt to reopen port
             text = reread()
         }
-        return text
-    }
-
-    /**
-     * Start a thread that loops forever in a blocking read.
-     */
-    fun readInThread() {
-        if (readerThread == null) {
-            readerThread = ReaderThread()
-            readerThread!!.start()
-        }
+        text
     }
 
     /**
      * Write plain text to the socket.
      */
-    fun write(text: String) {
+    fun write(text: String)  {
         try {
-            if (output != null) {
-                if (!output!!.checkError()) {
-                    Log.i(CLSS, String.format( "write: writing ... %s (%d bytes) to %s.",
-                            text, text.length + 1, deviceName))
-                    output!!.println(text) // Appends new-line
-                    output!!.flush()
-                }
-                else {
-                    Log.e(CLSS, String.format("write: out stream error", deviceName))
-                }
+            if (!writer.checkError()) {
+                Log.i(CLSS, String.format( "write: writing ... %s (%d bytes) to %s.",
+                    text, text.length + 1, deviceName))
+                writer.println(text) // Appends new-line
+                writer.flush()
             }
-            else if(!deviceName.equals(BertConstants.NO_DEVICE)) {
-                Log.e(CLSS, String.format("write: Device(%s) output is undefined  before connection",
-                        deviceName))
+            else {
+                Log.e(CLSS, String.format("write: out stream error", deviceName))
             }
         }
         catch (ex: Exception) {
             Log.e(CLSS,String.format("write: Error writing %d bytes to %s(%s)",
-                    text.length,deviceName,ex.localizedMessage),ex)
+                text.length,deviceName,ex.localizedMessage),ex)
         }
     }
 
     /**
      * We've gotten a null when reading the socket. This means, as far as I can tell, that the other end has
      * shut down. Close the socket and re-open or re-listen/accept. We hang until this succeeds.
-     * @return the next
+     * @return the next text from the socket.
      */
-    private fun reread(): String? {
-        var text: String? = null
+    @DelicateCoroutinesApi
+    private fun reread(): String {
+        var text = ""
         Log.i(CLSS, String.format("reread: on %s", deviceName))
         stop()
         start()
         try {
-            input = BufferedReader(InputStreamReader(socket.inputStream))
+            reader = BufferedReader(InputStreamReader(socket.inputStream))
             Log.i(CLSS, String.format("reread: reopened %s for read", deviceName))
-            text = input!!.readLine()
+            text = reader.readLine()
         }
         catch(ex: Exception) {
             Log.i(CLSS,String.format("reread: ERROR opening %s for read (%s)", deviceName, ex.message))
@@ -319,81 +306,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
         return text
     }
 
-    // =================== Connection Thread ==================
-    /**
-     * Check for the network in a separate thread.
-     */
-    private inner class ConnectionThread(val device: BluetoothDevice) : Thread() {
-
-
-
-        /**
-         * Open IO streams for reading and writing. The socket must exist.
-         * @return an error description. Null if no error.
-         */
-        private fun openPorts(): String? {
-            var reason: String? = null
-            try {
-                input = BufferedReader(InputStreamReader(socket.inputStream))
-                Log.i(CLSS, String.format("openPorts: opened %s for read", deviceName))
-                try {
-                    output = PrintWriter(socket.outputStream, true)
-                    Log.i(CLSS, String.format("openPorts: opened %s for write", deviceName))
-                    write(String.format("%s:the tablet is connected", MessageType.LOG.name))
-                }
-                catch (ex: Exception) {
-                    reason = String.format(
-                        "The tablet failed to open a socket for writing due to %s",
-                        ex.message
-                    )
-                    Log.i( CLSS,String.format("openPorts: ERROR opening %s for write (%s)",
-                        CLSS,deviceName,ex.message),ex)
-                    dispatcher.logError(managerType,reason)
-                }
-            }
-            catch (ex: Exception) {
-                reason = String.format(
-                    "The tablet failed to open a socket for reading due to %s",
-                    ex.message
-                )
-                Log.i(CLSS,String.format("openPorts: ERROR opening %s for read (%s)",CLSS,deviceName,ex.message),
-                    ex)
-                dispatcher.logError(managerType,reason)
-            }
-            return reason
-        }
-
-        init {
-            isDaemon = true
-            // don't require callers to explicitly kill all the old checker threads.
-            uncaughtExceptionHandler = UncaughtExceptionHandler { _, ex ->
-                val msg = String.format("There was an uncaught exception creating socket connection: %s",ex.localizedMessage)
-                Log.e(CLSS, msg, ex)
-                dispatcher.logError(managerType,msg)
-            }
-        }
+    fun prepareTextToSend(text:String) {
+        textToSend.complete(text)
     }
-    // End of ConnectionThread
-
-    // ================ Reader Thread =================
-    /**
-     * Check for the network in a separate thread.
-     */
-    private inner class ReaderThread : Thread() {
-        /**
-         * Read in a separate thread. Read blocks.
-         */
-        override fun run() {
-            while (true) {
-                try {
-                    val text = read() ?: break
-                    dispatcher.receiveText(text)
-                    sleep(100)
-                }
-                catch (_: InterruptedException) {}
-            }
-        }
-    }  // End of ReaderThread
 
     val CLSS = "SocketManager"
     val BUFFER_SIZE = 256
@@ -408,6 +323,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
         connected = false
         deviceName = BertConstants.NO_DEVICE
         running  = false
+        textToSend = CompletableDeferred<String>("")
         job = Job()
     }
 }

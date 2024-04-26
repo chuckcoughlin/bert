@@ -12,6 +12,7 @@ import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.db.DatabaseManager
+import kotlinx.coroutines.DelicateCoroutinesApi
 
 /**
  * Attempt to discover a Bluetooth network. This manager must be run on its own
@@ -27,6 +28,7 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
     private var bluetoothDevice: BluetoothDevice? = null
     private var deviceName : String?
 
+    @DelicateCoroutinesApi
      override fun start() {
         var errorMsg = checkAdapter(bmgr.adapter)
         if(errorMsg.isEmpty()) {
