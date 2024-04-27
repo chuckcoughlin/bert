@@ -25,6 +25,7 @@ import kotlinx.coroutines.NonCancellable.start
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.io.BufferedReader
@@ -81,24 +82,23 @@ class SocketManager(service:DispatchService): CommunicationManager {
      */
     @DelicateCoroutinesApi
     override fun start() {
-        while( !connected ) {
-            connectSocket()
-            if(!connected) {
-                GlobalScope.launch(Dispatchers.IO) {
+        Log.i(CLSS, "start ...")
+        job = GlobalScope.launch(Dispatchers.IO) {
+            while(!connected) {
+                connectSocket()
+                if(!connected) {
                     delay(CLIENT_ATTEMPT_INTERVAL)
                 }
             }
-        }
-        if( openPorts() ) {
-            managerState = ACTIVE
-            dispatcher.reportManagerState(managerType, managerState)
-            running = true
-            job = GlobalScope.launch(Dispatchers.IO) {
+
+            if(openPorts()) {
+                managerState = ACTIVE
+                dispatcher.reportManagerState(managerType, managerState)
+                running = true
                 execute()
             }
         }
     }
-
 
     /**
      * We are a client. Attempt to connect to the server.
@@ -312,7 +312,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
 
     val CLSS = "SocketManager"
     val BUFFER_SIZE = 256
-    val CLIENT_ATTEMPT_INTERVAL: Long = 2000 // 2 secs
+    val CLIENT_ATTEMPT_INTERVAL = 2000L  // 2 secs
     val CLIENT_LOG_INTERVAL = 10
 
     // Well-known port for Bluetooth serial port service

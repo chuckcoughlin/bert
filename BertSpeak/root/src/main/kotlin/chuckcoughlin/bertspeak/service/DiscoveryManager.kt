@@ -30,8 +30,9 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
 
     @DelicateCoroutinesApi
      override fun start() {
+        managerState = ManagerState.PENDING
         var errorMsg = checkAdapter(bmgr.adapter)
-        if(errorMsg.isEmpty()) {
+        if(errorMsg.isBlank()) {
             var success = false
             try {
                 bmgr.adapter.startDiscovery()
@@ -62,20 +63,18 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
                 Log.i(CLSS, String.format("BluetoothChecker: Paired to %s", deviceName))
                 dispatcher.receivePairedDevice(bluetoothDevice!!)
                 managerState = ManagerState.ACTIVE
-                dispatcher.reportManagerState(managerType,managerState)
             }
             else {
                 errorMsg = "Failed to find a paired bluetooth device"
-                dispatcher.logError(managerType, errorMsg)
                 managerState = ManagerState.ERROR
-                dispatcher.reportManagerState(managerType, managerState)
+                dispatcher.logError(managerType, errorMsg)
             }
         }
         else {
-            dispatcher.logError(managerType,errorMsg)
             managerState = ManagerState.ERROR
-            dispatcher.reportManagerState(managerType,managerState)
+            dispatcher.logError(managerType,errorMsg)
         }
+        dispatcher.reportManagerState(managerType, managerState)
     }
 
     override fun stop() {
@@ -115,6 +114,8 @@ class DiscoveryManager(service:DispatchService): CommunicationManager {
                 }
             }
         }
+        managerState = ManagerState.ACTIVE
+        dispatcher.reportManagerState(managerType,managerState)
         return device
     }
 
