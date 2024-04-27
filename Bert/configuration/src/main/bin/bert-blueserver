@@ -46,8 +46,6 @@ case "$1" in
 	  IP=`echo ${IP}|sed -e 's/^[ \t]*//'`
 	  echo "IP = ${IP}" >> ${BERTLOG}
 	  echo "=============== /etc/init.d/blueserver start ===============" >> ${BERTLOG}
-	  # Launch Serial Port service and connect bluetooth devices
-	  sdptool add SP
 	  $DAEMON ${BERTLOG}
   ;;
 

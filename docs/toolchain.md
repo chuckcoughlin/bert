@@ -347,7 +347,7 @@ Then to build on the Odroid, from the directory containing the source projects -
 ```
 
 Configure Bluetooth using the robot's pull-down menu. Configure the adapter so that it is always visible (discoverable) and give it a "friendly"
-name of "bert_humanoid". Pairing is based on the friendly name and can be initiated
+name of "bert". Pairing is based on the friendly name and can be initiated
 either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
 
 Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy context="default">``:
@@ -359,10 +359,9 @@ Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy
 ```
 
 Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded. On the tablet
-the device should be configured as ``bert_humanoid``. On the Odroid the adapter is known as ``bert``.
+the device should be configured as ``bert``. On the Odroid the adapter is also known as ``bert``.
 
-The init script launches the Bluetooth Serial Port service which is a necessary
-prerequisite for running the daemon. Connection difficulties may arise if too many bluetooth-enabled
+The init script launches the _blueserverd_ daemon. Connection difficulties may arise if too many bluetooth-enabled
 devices are in range leading to incorrect pairings. If so, the Odroid system may report
 "DbusFailedError: host is down".
 

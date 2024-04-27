@@ -16,4 +16,8 @@ echo "Synchronizing the distribution area ..."
 cd ${BERT_HOME}
 rsync -r distribution bert:${ROBOT_HOME}
 
+#echo "Synchronizing the source area ..."
+#cd /Users/chuckc/robotics/bert/odroid
+#rsync -r blueserver herborist jssc-jni bert:/home/chuckc/src
+
 echo "Robot update is complete."
