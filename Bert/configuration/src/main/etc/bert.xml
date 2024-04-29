@@ -20,7 +20,7 @@
 	     must match the hardcoded value in tablet code, the well-known bluetooth UUID
 	     for RFCOMM. -->
 	<controller name="command" type="COMMAND"
-		socket="blueserver" hostname="localhost"  port="11046" uuid="33001101-0000-2000-8080-00815FAB34FF">
+		socket="bert" hostname="localhost"  port="11046" uuid="1101-0000-2000-8080-00815FAB34FF">
 	</controller>
 	<controller name="terminal" type="TERMINAL" prompt="bert:"/>
 	

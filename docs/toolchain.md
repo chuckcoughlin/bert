@@ -318,52 +318,8 @@ Once the build has been executed on the Development system (and deployed), edit 
   /usr/lib/jvm/java-18-openjdk-arm64
    /usr/local/robot/bin
 ```
-
-#### Bluetooth
-Programmatic access to Bluetooth requires a interface to the Odroid's
-bluetooth library `libbluetooth.so` (BlueZ 5.48).
-An excellent introduction is a book by Albert Huang
-of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
- Starting with Albert's examples and relying
-heavily on lessons learned trying to implement the various packages
-mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
-daemon using RFCOMM. It communicates with the Kotlin application over sockets and
-the tablet via Bluetooth.
-Its sole purpose is to transfer strings between the tablet and the Odroid robot application.
-The tablet uses standard Android Bluetooth classes.
-
-On the development machine, in the _IntelliJ_ Configuration project, the ``install_odroid_source`` script
-copies C source files onto the Odroid in preparation for building _blueserverd_, the
-daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
-the correct robot home directory on the Odroid).
-
-Then to build on the Odroid, from the directory containing the source projects -
-```
-  cd blueserver
-  make -e
-  make install
-  cd ${BERT_HOME}/bin
-  sudo ./install_blueserver_init_scripts
-```
-
-Configure Bluetooth using the robot's pull-down menu. Configure the adapter so that it is always visible (discoverable) and give it a "friendly"
-name of "bert". Pairing is based on the friendly name and can be initiated
-either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
-
-Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy context="default">``:
-
-```
-  <allow send_interface="org.bluez.GattService1"/>
-  <allow send_interface="org.bluez.GattCharacteristic1"/>
-  <allow send_interface="org.bluez.GattDescriptor1"/>
-```
-
-Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded. On the tablet
-the device should be configured as ``bert``. On the Odroid the adapter is also known as ``bert``.
-
-The init script launches the _blueserverd_ daemon. Connection difficulties may arise if too many bluetooth-enabled
-devices are in range leading to incorrect pairings. If so, the Odroid system may report
-"DbusFailedError: host is down".
+#### Network
+We use standard `Kotlin` libraries for ethernet communication over Wi-fi.
 
 #### PyPot <a id="pypot"></a>
 *PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://github.com/poppy-project/herborist).

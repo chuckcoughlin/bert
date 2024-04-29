@@ -85,18 +85,13 @@ Substitution parameters, @...@, are replaced with site-specific values during th
  	<property name="prompt">bert: </property>
 
 
- 	<!-- The following section defines client-side processes that are also known to the server.
- 		 Each client process communicates in both directions over its own socket.
- 		 Device UUID for Bluetooth - must match hardcoded value in tablet code. This is
-		 the well-known UUID for RFCOMM.
- 	-->
- 	<controller name="terminal" type="TERMINAL">
- 		<socket  name="terminal" port="11044"/>
- 	</controller>
- 	<controller name="command" type="COMMAND">
- 		<socket  name="command" port="11045"/>
- 		<socket  type="bluetooth"  uuid="33001101-0000-2000-8080-00815FAB34FF"/>
- 	</controller>
+  <!-- For the "Command" controller, defines the bert  TCP socket. The device UUID
+	     must match the hardcoded value in tablet code, the well-known bluetooth UUID
+	     for RFCOMM. -->
+	<controller name="command" type="COMMAND"
+		socket="bert" hostname="localhost"  port="11046" uuid="1101-0000-2000-8080-00815FAB34FF">
+	</controller>
+	<controller name="terminal" type="TERMINAL" prompt="bert:"/>
 
  	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
  	     a serial connection. The names must exist in the enumeration bert.share.motor.Joint.
@@ -566,6 +561,56 @@ to _libbluetooth.so_. However, it requires J2ME which is not the Java on the Odr
 It also relies on _DBus_ which is yet-another-interface to learn and debug. It
 also comes with a GPL license.
 
+The version1 code had this working, but broke with the current Bluetooth version (BlueZ 5.48). Instead of
+debugging yet again, we elected to drop Bluetooth communication in favor simple socket-socket communication
+over WiFi. The realization that a WiFi network could be established anywhere with a cell phone "local hotspot"
+removed the need for bluetooth between robot and tablet.
+
+Programmatic access to Bluetooth requires a interface to the Odroid's
+bluetooth library `libbluetooth.so` .
+An excellent introduction is a book by Albert Huang
+of MIT published [here](http://people.csail.mit.edu/albert/bluez-intro/).
+ Starting with Albert's examples and relying
+heavily on lessons learned trying to implement the various packages
+mentioned in my "Failures" section (See [Software Architecture](http://github.com/chuckcoughlin/bert/tree/master/docs/architecture.md)), I developed a custom, minimalist
+daemon using RFCOMM. It communicates with the Kotlin application over sockets and
+the tablet via Bluetooth.
+Its sole purpose is to transfer strings between the tablet and the Odroid robot application.
+The tablet uses standard Android Bluetooth classes.
+
+On the development machine, in the _IntelliJ_ Configuration project, the ``install_odroid_source`` script
+copies C source files onto the Odroid in preparation for building _blueserverd_, the
+daemon, and _blueserver_, an interactive test application. (This script may have to be modified for
+the correct robot home directory on the Odroid).
+
+Then to build on the Odroid, from the directory containing the source projects -
+```
+  cd blueserver
+  make -e
+  make install
+  cd ${BERT_HOME}/bin
+  sudo ./install_blueserver_init_scripts
+```
+
+Configure Bluetooth using the robot's pull-down menu. Configure the adapter so that it is always visible (discoverable) and give it a "friendly"
+name of "bert". Pairing is based on the friendly name and can be initiated
+either from the robot or the tablet. The ```bluetoothctl``` tool is available for command-line configuration.
+
+Add the following lines to _/etc/dbus-1/system.d/bluetooth.conf_ under ``<policy context="default">``:
+
+```
+  <allow send_interface="org.bluez.GattService1"/>
+  <allow send_interface="org.bluez.GattCharacteristic1"/>
+  <allow send_interface="org.bluez.GattDescriptor1"/>
+```
+
+Note that _blueserver.h_ has the bluetooth address of the tablet hard-coded. On the tablet
+the device should be configured as ``bert``. On the Odroid the adapter is also known as ``bert``.
+
+The init script launches the _blueserverd_ daemon. Connection difficulties may arise if too many bluetooth-enabled
+devices are in range leading to incorrect pairings. If so, the Odroid system may report
+"DbusFailedError: host is down".
+
 *** TinyB *** </br>
 [TinyB](https://github.com/intel-iot-devkit/tinyb ) is a library and Java classes for Bluetooth LE communication.
  The original distribution builds with `cmake`, but I was never
@@ -594,7 +639,6 @@ though not the one we needed, for ARM. Consequently I had to build from source u
 that brought on a GPL dependency.
 
 This just got too complicated.
-
 
 *** GATT *** <br/>
 Since we don't need a full-featured Bluetooth interface, the idea was to simplify things
