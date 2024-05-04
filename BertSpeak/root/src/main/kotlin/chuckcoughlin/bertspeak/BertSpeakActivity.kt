@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
+import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService
@@ -48,7 +49,7 @@ class BertSpeakActivity : AppCompatActivity() {
         mr.setAudioEncodingBitRate(20)
 
         // If we absolutely have to start over again with the database ...
-        //deleteDatabase(BertConstants.DB_NAME);
+        deleteDatabase(BertConstants.DB_NAME);
 
         // get device dimensions
         val width = getScreenWidth()

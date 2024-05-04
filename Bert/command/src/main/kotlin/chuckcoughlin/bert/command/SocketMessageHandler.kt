@@ -1,31 +1,35 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.controller.NamedSocket
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.PrintWriter
+import java.net.Socket
 import java.util.logging.Logger
 
 /**
- * The Bluetooth socket handles input/output to/from an Android tablet via
- * the blueserverd daemon. The tablet handles speech-to-text and text-to-speech.
- * For this connection, we act as a client.
+ * The SocketMessageHandler handles input/output to/from an Android tablet via
+ * a socket interface. The tablet handles speech-to-text and text-to-speech.
+ * The robot system is the server.
  * @param sock for socket connection
  */
-class BluetoothSocket(sock:NamedSocket)  {
+class SocketMessageHandler(sock: Socket)  {
     private val socket = sock
     private val parser: StatementParser
     private val translator: MessageTranslator
     private var suppressingErrors: Boolean
+    private val input: BufferedReader
+    private val output: PrintWriter
 
     /**
      * Extract text from the message and forward on to the tablet formatted appropriately.
@@ -40,7 +44,7 @@ class BluetoothSocket(sock:NamedSocket)  {
         var mtype = MessageType.ANS
         if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
             response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
-        socket.write(String.format("%s:%s", mtype.name, text))
+        output.write(String.format("%s:%s", mtype.name, text))
     }
 
     /**
@@ -69,13 +73,12 @@ class BluetoothSocket(sock:NamedSocket)  {
      * 3) Parent sends to the dispatcher
      *
      * There is only two kinds of messages (MSG,JSN) that we recognize. Anything
-     * else is an error. We skip this altogether if we're testing
-     * without bluetooth..
+     * else is an error.
      */
     fun receiveRequest() : MessageBottle {
         var msg: MessageBottle = MessageBottle(RequestType.NONE)
-        while(true and !RobotModel.useBluetooth) {
-            var text: String? = socket.readLine() // Strips trailing new-line
+        while(true) {
+            var text: String? = input.readLine() // Strips trailing new-line
             if (text == null || text.isEmpty()) {
                 try {
                     Thread.sleep(CLIENT_READ_ATTEMPT_INTERVAL) // A read error has happened, we don't want a hard loop
@@ -89,7 +92,7 @@ class BluetoothSocket(sock:NamedSocket)  {
                     // Strip header then translate the rest.
                     try {
                         text = text.substring(BottleConstants.HEADER_LENGTH)
-                        LOGGER.info(String.format("%s parsing: %s", socket.name, text))
+                        LOGGER.info(String.format(" parsing MSG: %s", text))
                         msg = parser.parseStatement(text)
                     }
                     catch (ex: Exception) {
@@ -99,12 +102,12 @@ class BluetoothSocket(sock:NamedSocket)  {
                     break
                 }
                 else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
-                    LOGGER.info(String.format("%s: %s", socket.name, text))
+                    LOGGER.info(String.format(" parsing JSN: %s", text))
                     msg.error = String.format("JSON messages are not recognized from the tablet")
                     continue
                 }
                 else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
-                    LOGGER.info(String.format("%s: %s", socket.name, text))
+                    LOGGER.info(String.format(" parsing LOG: %s", text))
                     msg.error = String.format("LOG messages are not recognized from the tablet")
                     continue
                 }
@@ -133,12 +136,12 @@ class BluetoothSocket(sock:NamedSocket)  {
                 break
             }
         }
-        LOGGER.info(String.format("BluetoothBackgroundReader,%s stopped", socket.name))
+        LOGGER.info(String.format("%s stopped", CLSS))
         return msg
     }
 
 
-    private val CLSS = "BluetoothSocket"
+    private val CLSS = "SocketMessageHandler"
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs
     private val LOGGER = Logger.getLogger(CLSS)
 
@@ -146,5 +149,9 @@ class BluetoothSocket(sock:NamedSocket)  {
         parser = StatementParser()
         translator = MessageTranslator()
         suppressingErrors = false
+        input = BufferedReader(InputStreamReader(socket.getInputStream()))
+        LOGGER.info(String.format("%s.startup: opened socket for read",CLSS))
+        output = PrintWriter(socket.getOutputStream(), true)
+        LOGGER.info(String.format("%s.startup: opened socket for write",CLSS))
     }
 }

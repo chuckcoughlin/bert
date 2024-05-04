@@ -6,16 +6,24 @@ package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.controller.NamedSocket
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import java.net.ServerSocket
 import java.util.logging.Logger
 
 /**
@@ -33,7 +41,8 @@ import java.util.logging.Logger
  * @param rsp - channel for responses from the parent (Dispatcher)
  */
 class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Controller {
-    private var tabletSocket: BluetoothSocket
+    private val host:String
+    private val port:Int
     private val messageTranslator: MessageTranslator
     private var requestChannel=req    // Dispatcher->Command  (results of user requests)
     private var responseChannel=rsp    // Command->Dispatcher  (requests initiated by user)
@@ -45,7 +54,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     private var job: Job
 
     /**
-     * While running, read from the bluetooth daemon (representing the tablet) and forward
+     * While running, read from the network (i.e. the tablet) and forward
      * resulting requests to the dispatcher. We accept its responses and forward back to the tablet.
      * Communication with the tablet consists of simple strings, plus a 4-character header.
      *
@@ -57,28 +66,40 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         if(!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running=true
-            /* Coroutine to write responses from the Dispatcher to tablet
-             * via Bluetooth, that is the Bluetooth socket
-             */
+            /* First connect to the network (always LOCALHOST) */
+            val serverSocket = ServerSocket(port)
+            LOGGER.info(String.format("%s.execute: server socket created on %s (%d)", CLSS,
+                serverSocket.inetAddress.canonicalHostName,serverSocket.localPort))
+
             job=scope.launch(Dispatchers.IO) {
                 while(running) {
-                    select<MessageBottle> {
-                        responseChannel.onReceive() { it ->
-                            if(!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
-                                tabletSocket.receiveResponse(it)
+                    val socket = serverSocket.accept()
+                    LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
+                        socket.inetAddress.canonicalHostName,socket.port))
+                    val handler = SocketMessageHandler(socket!!)
+                    while( socket!=null && socket.isConnected) {
+                        select<MessageBottle> {
+                            responseChannel.onReceive() { it ->
+                                if (!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
+                                    handler.receiveResponse(it)
+                                }
+                                it
                             }
-                            it
-                        }
 
-                        /**
-                         * Read from bluetooth. Use ANTLR to convert text into requests.
-                         * Forward requests to the Dispatcher launcher.
-                         */
-                        handleBluetoothInput().onAwait() { it }
+                            /**
+                             * Read from the tablet via the network. Use ANTLR to convert text into requests.
+                             * Forward requests to the Dispatcher launcher.
+                             */
+                            handleNetworkInput(handler).onAwait() { it }
+                        }
                     }
+
                     if(DEBUG) LOGGER.info(
                             String.format("%s.execute: select completedf", CLSS)
                     )
+                    // No longer running
+                    serverSocket.close()
+                    delay(DELAY)
                 }
             }
         }
@@ -119,9 +140,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
      * async returns  a deferred value.
      */
     @DelicateCoroutinesApi
-    fun handleBluetoothInput(): Deferred<MessageBottle> =
+    fun handleNetworkInput(handler:SocketMessageHandler): Deferred<MessageBottle> =
     GlobalScope.async(Dispatchers.IO) {
-        val msg=tabletSocket.receiveRequest()
+        val msg=handler.receiveRequest()
         if(isLocalRequest(msg)) {
             handleLocalRequest(msg)
         }
@@ -145,9 +166,10 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     }
 
     private val CLSS = "Command"
+    private val DELAY = 2000L
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
-    private val EXIT_WAIT_INTERVAL: Long = 1000
+    private val LOCALHOST = "127.0.0.1"
     override val controllerName = CLSS
     override val controllerType = ControllerType.COMMAND
 
@@ -156,28 +178,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         ignoring = false
         running = false
         messageTranslator = MessageTranslator()
-        val socketName = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_SOCKET)
-        LOGGER.info(
-                String.format(
-                        "%s.init: %s %s=%s",
-                        CLSS,
-                        controllerName,
-                        ConfigurationConstants.PROPERTY_SOCKET,
-                        socketName
-                )
-        )
-        val port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT)
-        LOGGER.info(
-                String.format(
-                        "%s.init: %s %s=%s",
-                        CLSS,
-                        controllerName,
-                        ConfigurationConstants.PROPERTY_PORT,
-                        port
-                )
-        )
-        val socket = NamedSocket(socketName, port.toInt())
-        tabletSocket = BluetoothSocket(socket)
+        host = LOCALHOST
+        port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT).toInt()
+        LOGGER.info(String.format("%s.init: %s on %s",CLSS,host,port))
         job = Job()
     }
 }

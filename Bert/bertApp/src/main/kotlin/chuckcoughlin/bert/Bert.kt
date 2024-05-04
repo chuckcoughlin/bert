@@ -47,7 +47,7 @@ fun main(args: Array<String>) {
     // -b use bluetooth communication
     // -s use serial communications to servos
     // -t use a local terminal connection to input commands
-    var bluetooth = false
+    var network = false
     var serial    = false
     var terminal  = false
     // debug
@@ -57,7 +57,7 @@ fun main(args: Array<String>) {
             dbg = a.substring(2)
         }
         else if (a.startsWith("-")) {   // Option
-            if (a.contains("b")) bluetooth = true
+            if (a.contains("n")) network = true
             if (a.contains("s")) serial    = true
             if (a.contains("t")) terminal  = true
         }
@@ -84,7 +84,7 @@ fun main(args: Array<String>) {
     RobotModel.populate() // Analyze the xml for controllers and motors
     // We reserve several options for the command line as opposed
     // to the configuration file. Set model values here.
-    RobotModel.useBluetooth = bluetooth
+    RobotModel.useNetwork = network
     RobotModel.useSerial    = serial
     RobotModel.useTerminal  = terminal
 
@@ -95,7 +95,6 @@ fun main(args: Array<String>) {
     Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
     runBlocking {
         dispatcher.execute()
-        //dispatcher.shutdown()
     }
 }
 

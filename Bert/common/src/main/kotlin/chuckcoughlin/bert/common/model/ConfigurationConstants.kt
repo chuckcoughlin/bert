@@ -20,7 +20,6 @@ object ConfigurationConstants {
     const val PROPERTY_PROMPT = "prompt"
     const val PROPERTY_ROBOT_NAME = "name"
     const val PROPERTY_SOCKET = "socket"
-    const val PROPERTY_UUID = "uuid"
     const val PROPERTY_NONE = "none"
 
     // Flags set on the command-line

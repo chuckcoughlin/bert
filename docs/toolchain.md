@@ -509,7 +509,7 @@ We make use of the following freely-available applications:
   * [Blender](http://www.blender.org) - Create 3D models. Use `Blender-2.8` for modeling parts that are not part of the
   original `poppy` design. Export in .obj format for printing.
   * [pypot.dynamixel](https://poppy-project.github.io/pypot/dynamixel.html) - Configure Dynamixel servos using a command-line interface.
-  * [Inkscape](https://inkscape.org/en/release/0.92.2) - Construct diagrams and charts.
+  * [Boxy](https://apps.apple.com/us/app/boxy-svg/id611658502) - Construct SVG diagrams and charts ($19.95).
   * [iCircuit](https://itunes.apple.com/us/app/icircuit/id454347770?ls=1&mt=12) - Draw and analyze electrical circuits.
 
 ##### Blender Cheat Sheet

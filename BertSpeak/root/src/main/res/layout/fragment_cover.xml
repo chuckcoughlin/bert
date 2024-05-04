@@ -9,7 +9,6 @@
     android:orientation="vertical"
     android:adjustViewBounds="true"
     android:background="@drawable/border_white">
-
     <!-- Define a vertical barrier between the image and waveform -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/coverVertical1"
@@ -61,52 +60,54 @@
         app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         />
 
-    <!-- Status panel at bottom of image - 4 linear layouts-->
+    <!-- Status panel at bottom of image - 3 linear layouts
+         Network, Speech, Hearing -->
+    <!-- Socket Connection (Network) -->
     <LinearLayout
-        android:id="@+id/layoutBluetoothStatus"
+        android:id="@+id/layoutNetworkStatus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_margin="0dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/layoutSocket"
-        app:layout_constraintBottom_toBottomOf="parent">
-        <TextView
-            android:id="@+id/bluetoothConnectionLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/border_gray"
-            android:text="@string/coverParameterBluetooth"
-            android:textAlignment="center"
-            android:textSize="@dimen/cover_parameter_text_size"
-         />
-        <chuckcoughlin.bertspeak.ui.StatusImageButton
-            android:id="@+id/bluetoothStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/border_white"
-            android:src="@drawable/ball_gray"
-            />
-    </LinearLayout>
-    <!-- Socket Connection -->
-    <LinearLayout
-        android:id="@+id/layoutSocket"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintStart_toEndOf="@+id/layoutBluetoothStatus"
-        app:layout_constraintEnd_toStartOf="@+id/layoutVoice"
+        app:layout_constraintEnd_toStartOf="@+id/layoutSpeech"
         app:layout_constraintBottom_toBottomOf="parent">
         <TextView
             android:id="@+id/socketConnectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
-            android:text="@string/coverParameterSocket"
+            android:text="@string/coverParameterNetwork"
+            android:textAlignment="center"
+            android:textSize="@dimen/cover_parameter_text_size"
+         />
+        <chuckcoughlin.bertspeak.ui.StatusImageButton
+            android:id="@+id/networkStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border_white"
+            android:src="@drawable/ball_gray"
+            />
+    </LinearLayout>
+    <!-- Text to Speech (does the tablet talk?) -->
+    <LinearLayout
+        android:id="@+id/layoutSpeech"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@+id/layoutNetworkStatus"
+        app:layout_constraintEnd_toStartOf="@+id/layoutHearing"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <TextView
+            android:id="@+id/speechLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border_gray"
+            android:text="@string/coverParameterSpeech"
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size"/>
         <chuckcoughlin.bertspeak.ui.StatusImageButton
-            android:id="@+id/socketStatus"
+            android:id="@+id/speechStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_white"
@@ -114,28 +115,28 @@
             />
     </LinearLayout>
 
-    <!-- Voice Connectionl -->
+    <!-- Speech to Text (does the tablet hear?) -->
     <LinearLayout
-        android:id="@+id/layoutVoice"
+        android:id="@+id/layoutHearing"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginEnd="0dp"
-        app:layout_constraintStart_toEndOf="@+id/layoutSocket"
+        app:layout_constraintStart_toEndOf="@+id/layoutSpeech"
         app:layout_constraintEnd_toStartOf="@+id/coverVertical1"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintBottom_toBottomOf="parent">
         <TextView
-            android:id="@+id/voiceConnectionLabel"
+            android:id="@+id/hearingLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_gray"
-            android:text="@string/coverParameterVoice"
+            android:text="@string/coverParameterHearing"
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size" />
 
         <chuckcoughlin.bertspeak.ui.StatusImageButton
-            android:id="@+id/voiceStatus"
+            android:id="@+id/hearingStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/border_white"

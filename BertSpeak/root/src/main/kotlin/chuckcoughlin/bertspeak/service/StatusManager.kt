@@ -79,7 +79,8 @@ class StatusManager(service:DispatchService): CommunicationManager {
      */
     init {
         map = mutableMapOf<ManagerType,ManagerState>()
-        map[ManagerType.DISCOVERY] = ManagerState.OFF
+        map[ManagerType.ANNUNCIATOR] = ManagerState.OFF
+        map[ManagerType.GEOMETRY] = ManagerState.OFF
         map[ManagerType.SOCKET] = ManagerState.OFF
         map[ManagerType.SPEECH] = ManagerState.OFF
         map[ManagerType.STATUS] = ManagerState.ACTIVE

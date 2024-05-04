@@ -34,7 +34,6 @@ import java.util.Locale
 class DispatchService(ctx: Context){
     var context:Context
     lateinit var annunciationManager: AnnunciationManager
-    lateinit var discoveryManager: DiscoveryManager
     lateinit var geometryManager: GeometryManager
     lateinit var speechManager: SpeechManager
     lateinit var socketManager: SocketManager
@@ -50,7 +49,6 @@ class DispatchService(ctx: Context){
         statusManager = StatusManager(this)
         textManager = TextManager(this)
         annunciationManager = AnnunciationManager(this)
-        discoveryManager = DiscoveryManager(this)
         geometryManager = GeometryManager(this)
         socketManager = SocketManager(this)
         speechManager = SpeechManager(this)
@@ -73,7 +71,7 @@ class DispatchService(ctx: Context){
         // This includes especially network handlers
         GlobalScope.launch(Dispatchers.Default) {
             geometryManager.start()
-            discoveryManager.start()
+            socketManager.start()
         }
         Log.i(CLSS, String.format("start: complete"))
     }
@@ -84,7 +82,6 @@ class DispatchService(ctx: Context){
    @OptIn(DelicateCoroutinesApi::class)
     fun stop() {
         annunciationManager.stop()
-        discoveryManager.stop()
         geometryManager.stop()
         socketManager.stop()
         speechManager.stop()
@@ -103,13 +100,6 @@ class DispatchService(ctx: Context){
         textManager.processText(LOG, msg)
     }
 
-    // Executed from the DiscoveryManager once the Bluetooth
-    // device is paired.
-    @DelicateCoroutinesApi
-    fun receivePairedDevice(dev: BluetoothDevice) {
-        socketManager.receivePairedDevice(dev)
-        socketManager.start()
-    }
 
     fun reportManagerState(type: ManagerType, state: ManagerState) {
         statusManager.updateState(type, state)

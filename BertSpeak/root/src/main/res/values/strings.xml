@@ -22,12 +22,12 @@
     <!-- Strings for Cover tab-->
     <string name="coverDescription">"Bert Reclining"</string>
     <string name="coverImageTitle">Bert</string>
-    <string name="coverParameterBluetooth">Bluetooth</string>
-    <string name="coverParameterSocket">Socket</string>
-    <string name="coverParameterVoice">Voice</string>
+    <string name="coverParameterSpeech">Speech</string>
+    <string name="coverParameterNetwork">Network</string>
+    <string name="coverParameterHearing">Hearing</string>
     <string name="coverSeekbarTitle">Vol</string>
     <string name="coverVoiceText">Voice Text</string>
-    <string name="coverVoiceTextHint">Hit Voice to record</string>
+    <string name="coverVoiceTextHint">Hit Speak to record</string>
     <string name="coverWaveformTitle">Voice Waveform</string>
     <!-- Strings for FaceRec tab-->
     <string name="facesCameraTitle">Front Camera</string>

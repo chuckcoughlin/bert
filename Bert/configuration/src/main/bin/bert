@@ -8,6 +8,6 @@ bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
-# -b - use Bluetooth
+# -n - use Network
 # -s - use Serial
-./bertApp -bs ${BERT_HOME}
+./bertApp -ns ${BERT_HOME}

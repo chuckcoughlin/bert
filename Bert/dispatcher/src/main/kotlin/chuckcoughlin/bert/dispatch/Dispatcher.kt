@@ -78,7 +78,7 @@ class Dispatcher(s:Solver) : Controller {
         if(DEBUG) LOGGER.info(String.format("%s.execute: startup ...", CLSS))
         if( !running ) {
             running = true
-            if( RobotModel.useBluetooth) {
+            if( RobotModel.useNetwork) {
                 commandController.execute()
             }
             if( RobotModel.useTerminal) {
@@ -184,7 +184,7 @@ class Dispatcher(s:Solver) : Controller {
                 motorGroupController.shutdown()
                 if(DEBUG) println(String.format("%s.shutdown: motors ...", CLSS))
                 commandController.shutdown()
-                if(DEBUG) println(String.format("%s.shutdown: bluetooth connection ...", CLSS))
+                if(DEBUG) println(String.format("%s.shutdown: network connection ...", CLSS))
                 terminalController.shutdown()
                 if(DEBUG) println(String.format("%s.shutdown: terminal ...", CLSS))
                 internalController.shutdown()
@@ -509,7 +509,7 @@ class Dispatcher(s:Solver) : Controller {
         LOGGER.info(String.format("%s.reportStartup: Bert is ready ... (from %s)", CLSS, ControllerType.DISPATCHER.name))
         startMessage.source = ControllerType.DISPATCHER.name
         if(RobotModel.useTerminal) stdoutChannel.send(startMessage)
-        if(RobotModel.useBluetooth) commandRequestChannel.send(startMessage)
+        if(RobotModel.useNetwork) commandRequestChannel.send(startMessage)
     }
     private fun exponentiallyWeightedMovingAverage(currentValue: Double,previousValue: Double): Double {
         return (1.0 - WEIGHT) * currentValue + WEIGHT * previousValue

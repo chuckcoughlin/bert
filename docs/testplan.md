@@ -22,20 +22,18 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
 
 *********************************************************
 ### a - Startup and Test <a id="startup"></a>
-* ![green](/images/ball_green.png) ``System Scripts``  - Launch the robot code on system boot. Run standalone
-test applications
-- [x] bert-server start/stop: Start/stop the "headless" version of the robot code on system boot.
-- [x] bert-blueserver start/stop: Run the bluetooth daemon necessary for communication with the tablet.
+* ![green](/images/ball_green.png) ``System Scripts``  - Launch the robot code autonomously on system boot or standalone from the command-line.
+- [x] bert-server start/stop: Start/stop the "headless" version of the robot code.
+- [x] bert-standalone: Run the robot code from the command line. (Cannot be run simultaneously with daemon).
 * ![gray](/images/ball_gray.png) ``Test Applications``  - Test features independent of the robot
 application.
-- [x] bert-standalone: Run an interactive version of the robot on the odroid. It features a terminal
+- [x] bert-client: Connect via sockets to a running version of the robot. Type commands, receive responses.
 interface for interactive testing.
 - [x] dxl_scan: Show ids of all connected DXM controllers.
 - [x] dxl_read: Read parameters of a servo motor.
 - [x] dxl_write: Set volatile values for a given motor.
 
 ### b - Configuration <a id="configuration"></a>
-
 This section contains tests that validate the wiring and addressing of stepper motors,
 the conversion of raw readings from the motors into proper engineering
 units, and the listing of various parameters in the motor control tables. Finally, there

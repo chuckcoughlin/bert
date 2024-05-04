@@ -14,7 +14,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
@@ -41,7 +40,7 @@ import kotlin.math.roundToInt
 
 /**
  * This fragment presents a static "cover" with a waveform view of the voice signal
- * plus a volume bar.
+ * plus a volume bar. There are three status sbuttons: Connect, Listen, Speak
  */
 class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,TextDataObserver,
                                 OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
@@ -53,27 +52,27 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
     private lateinit var waveformView: WaveformView
 
     private lateinit var voiceText: TextView
-    private lateinit var bluetoothStatusButton: StatusImageButton
-    private lateinit var socketStatusButton: StatusImageButton
+    private lateinit var networkStatusButton: StatusImageButton
+    private lateinit var hearingStatusButton: StatusImageButton
     private lateinit var stopStatusButton: StatusImageButton
-    private lateinit var voiceStatusButton: StatusImageButton
+    private lateinit var speechStatusButton: StatusImageButton
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         Log.i(name, "onCreateView: ....")
         val binding = FragmentCoverBinding.inflate(inflater, container, false)
-        bluetoothStatusButton = binding.bluetoothStatus  // ToggleButton
-        socketStatusButton    = binding.socketStatus
+        networkStatusButton = binding.networkStatus  // ToggleButton
+        hearingStatusButton    = binding.hearingStatus
         stopStatusButton      = binding.stopButton
-        voiceStatusButton     = binding.voiceStatus
+        speechStatusButton     = binding.speechStatus
         voiceText             = binding.voiceEditText
-        bluetoothStatusButton.isClickable = true // Not really buttons, just indicators
-        bluetoothStatusButton.setOnClickListener(this)
+        networkStatusButton.isClickable = true // Not really buttons, just indicators
+        networkStatusButton.setOnClickListener(this)
         stopStatusButton.setOnClickListener(this)
-        socketStatusButton.isClickable = true
-        socketStatusButton.setOnClickListener(this)
-        voiceStatusButton.isClickable = true
-        voiceStatusButton.setOnClickListener(this)
+        hearingStatusButton.isClickable = true
+        hearingStatusButton.setOnClickListener(this)
+        speechStatusButton.isClickable = true
+        speechStatusButton.setOnClickListener(this)
         val rendererFactory = RendererFactory()
         waveformView = binding.waveformView
         waveformView.setRenderer(
@@ -176,14 +175,14 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
             val type = data.type
             val state= data.state
             when (type) {
-                ManagerType.DISCOVERY-> {
-                    updateStatusButton(bluetoothStatusButton,type,state)
+                ManagerType.SOCKET-> {
+                    updateStatusButton(networkStatusButton,type,state)
                 }
-                ManagerType.SOCKET   -> {
-                    updateStatusButton(socketStatusButton, type,state)
+                ManagerType.ANNUNCIATOR   -> {
+                    updateStatusButton(speechStatusButton, type,state)
                 }
                 else                 -> {
-                    updateStatusButton(voiceStatusButton, type,state)
+                    updateStatusButton(hearingStatusButton, type,state)
                 }
             }
         }
@@ -217,11 +216,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
     // One of the status buttons has been clicked.
     override fun onClick(v: View) {
         when(v) {
-            bluetoothStatusButton -> {
-                Log.i(name, String.format("onClick:%s",ManagerType.DISCOVERY.name))
-            }
-            socketStatusButton -> {
+            networkStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SOCKET.name))
+            }
+            hearingStatusButton -> {
+                Log.i(name, String.format("onClick:%s",ManagerType.ANNUNCIATOR.name))
             }
             // The stop button triggers an immediate shutdown
             stopStatusButton -> {
@@ -231,7 +230,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
                 System.exit(0)
             }
             // This button has three states.
-            voiceStatusButton -> {
+            speechStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SPEECH.name))
                 DispatchService.toggleSpeechState()
             }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.controller

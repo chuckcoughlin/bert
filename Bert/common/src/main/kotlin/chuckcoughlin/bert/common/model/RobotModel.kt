@@ -36,7 +36,7 @@ object RobotModel {
     var debug: String
     // These values are set by the main application based on command-line flags.
     // Add pseudo-setters to set the values as properties.
-    var useBluetooth: Boolean = false
+    var useNetwork: Boolean = false
     var useSerial: Boolean = false
     var useTerminal: Boolean = false
 
@@ -105,8 +105,6 @@ object RobotModel {
                         commandProperties[ConfigurationConstants.PROPERTY_HOSTNAME] = hostname
                         val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
                         commandProperties[ConfigurationConstants.PROPERTY_PORT] = port  // Integer
-                        val uuid = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_UUID)
-                        commandProperties[ConfigurationConstants.PROPERTY_UUID] = uuid
                         propertiesByController[ctype] = commandProperties
                     }
                     ControllerType.DISPATCHER -> {}
@@ -126,8 +124,6 @@ object RobotModel {
                         commandProperties[ConfigurationConstants.PROPERTY_HOSTNAME] = hostname
                         val port = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_PORT)
                         commandProperties[ConfigurationConstants.PROPERTY_PORT] = port  // Integer
-                        val uuid = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_UUID)
-                        commandProperties[ConfigurationConstants.PROPERTY_UUID] = uuid
                         propertiesByController[ctype] = commandProperties
                     }
                     ControllerType.TABLET -> {}

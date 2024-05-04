@@ -70,51 +70,34 @@ object DatabaseManager {
             // for development.
             var statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_SERVER,
-                    BertConstants.BERT_SERVER_HINT,
-                    BertConstants.BERT_SERVER_HINT)
+                    BertConstants.BERT_HOST,
+                    BertConstants.BERT_HOST_HINT,
+                    BertConstants.BERT_HOST_HINT)
             execLenient(statement)
-
+            statement =
+                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                    BertConstants.BERT_HOST_IP,
+                    BertConstants.BERT_HOST_IP_HINT,
+                    BertConstants.BERT_HOST_IP_HINT)
+            execLenient(statement)
+            statement =
+                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
+                    BertConstants.BERT_PORT,
+                    BertConstants.BERT_PORT_HINT,
+                    BertConstants.BERT_PORT_HINT)
+            execLenient(statement)
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
                     BertConstants.BERT_VERSION,
                     BertConstants.BERT_VERSION_HINT,
                     BertConstants.BERT_VERSION_HINT)
             execLenient(statement)
-
-            statement =
-                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_PAIRED_DEVICE,
-                    BertConstants.BERT_PAIRED_DEVICE_HINT,
-                    BertConstants.BERT_PAIRED_DEVICE_HINT)
-            execLenient(statement)
-            //Log.i(CLSS, String.format(
-            //   "initialize: Guarantee %s settings exist in %s at %s",
-            //  BertConstants.BERT_PAIRED_DEVICE,BertConstants.DB_NAME, statement))
-
-            statement =
-                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_SIMULATED_CONNECTION, "true",
-                    BertConstants.BERT_SIMULATED_CONNECTION_HINT)
-            execLenient(statement)
-
-            statement =
-                String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_SIMULATED_CONNECTION, "true",
-                    BertConstants.BERT_SIMULATED_CONNECTION_HINT)
-            execLenient(statement)
-
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
                     BertConstants.BERT_VOLUME, BertConstants.BERT_VOLUME_HINT,
                     BertConstants.BERT_VOLUME_HINT)
             execLenient(statement)
-
-            //Log.i(CLSS, String.format(
-             //   "initialize: Guarantee %s settings exist in %s at %s",
-            //BertConstants.BERT_SIMULATED_CONNECTION,BertConstants.DB_NAME, statement))
         }
-        getSettings()
     }
 
     // ===================== Settings =============================

@@ -17,5 +17,5 @@ cd bin
 # ser - Serial responder
 # sql - Database
 # ter - Terminal
-# -bst means hasBluetooth, hasSerial and hasTerminal
-./bertApp -bst -dcmd,dsp,grp,int,mtr,ser,ter ${BERT_HOME}
+# -nst means hasNetwork, hasSerial and hasTerminal
+./bertApp -nst -dcmd,dsp,grp,int,mtr,ser,ter ${BERT_HOME}
