@@ -74,7 +74,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
         Log.i(CLSS, "start ...")
         val serverAddress = InetAddress.getByName(host)
         if( !serverAddress.isSiteLocalAddress ) {
-            Log.e(CLSS, String.format("start: address resolution failed for %s", host))
+            Log.i(CLSS, String.format("start: address resolution failed for %s", host))
             managerState = ERROR
             dispatcher.reportManagerState(managerType, managerState)
             return

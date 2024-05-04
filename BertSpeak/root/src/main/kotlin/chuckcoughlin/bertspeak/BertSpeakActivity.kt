@@ -40,6 +40,7 @@ class BertSpeakActivity : AppCompatActivity() {
             StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
                 .detectLeakedClosableObjects().build()
         )
+        Log.i(CLSS, "onCreate: ... checking permissions ...")
         checkPermissions()
 
         // Apparently the AudioManager on the emulator is configured
@@ -47,9 +48,7 @@ class BertSpeakActivity : AppCompatActivity() {
         val mr = MediaRecorder(baseContext)
         mr.setAudioSamplingRate(11)
         mr.setAudioEncodingBitRate(20)
-
-        // If we absolutely have to start over again with the database ...
-        deleteDatabase(BertConstants.DB_NAME);
+        Log.i(CLSS, "onCreate: ... set audio")
 
         // get device dimensions
         val width = getScreenWidth()
@@ -92,9 +91,6 @@ class BertSpeakActivity : AppCompatActivity() {
         })
 
          */
-
-        // Initialize the database
-        DatabaseManager.initialize()
         DispatchService.instance.context = this.baseContext
     }
 
