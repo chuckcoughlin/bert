@@ -16,11 +16,9 @@
 	<!-- Controllers are objects that handle communication between various parts
 	     of the application. The controllers defined here have special attributes.
 	-->
-	<!-- For the "Command" controller, define the bluetooth socket. The device UUID
-	     must match the hardcoded value in tablet code, the well-known bluetooth UUID
-	     for RFCOMM. -->
+	<!-- For the "Command" controller, define the network socket. The port knppwn to the client. -->
 	<controller name="command" type="COMMAND"
-		socket="bert" hostname="localhost"  port="11046" uuid="1101-0000-2000-8080-00815FAB34FF">
+		socket="bert" hostname="localhost"  port="11046">
 	</controller>
 	<controller name="terminal" type="TERMINAL" prompt="bert:"/>
 	

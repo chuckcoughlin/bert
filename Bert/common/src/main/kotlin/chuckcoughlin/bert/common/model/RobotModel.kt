@@ -50,6 +50,7 @@ object RobotModel {
         val dBuilder = dbFactory.newDocumentBuilder()
         val xmlInput = InputSource(StringReader(xmlFile.readText()))
         document = dBuilder.parse(xmlInput)
+        LOGGER.info(String.format("%s: ============ Startup =================",CLSS))
     }
     /**
      * Analyze the XML configuration document in its entirety. This must be called before the model is accessed.
@@ -97,7 +98,7 @@ object RobotModel {
                 val ctype = ControllerType.fromString(type)
                 when(ctype) {
                     ControllerType.BITBUCKET -> {}
-                    ControllerType.COMMAND -> {     // The command controller connects to Bluetooth
+                    ControllerType.COMMAND -> {     // The command controller connects to a TCP network
                         val commandProperties = Properties()
                         val socket = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_SOCKET)
                         commandProperties[ConfigurationConstants.PROPERTY_SOCKET] = socket

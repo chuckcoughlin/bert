@@ -261,9 +261,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
 
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
-    val BLUETOOTH_NAME = "Bluetooth"
-    val SOCKET_NAME = "Socket"
-    val VOICE_NAME = "Voice"
 
 
     init {

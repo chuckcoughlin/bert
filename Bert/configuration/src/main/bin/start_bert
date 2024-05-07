@@ -1,6 +1,5 @@
 #!/bin/sh
-# Start the robot server and bluetooth command processes.
+# Start the robot server.
 # Run as super-user
 export BERT_HOME=/usr/local/robot
 /etc/init.d/bert-server start
-

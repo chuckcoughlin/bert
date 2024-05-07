@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
@@ -28,7 +27,7 @@ import java.util.Locale
  * processing voice commands from the socket connection from the robot
  * and updating listeners with the resulting text.
  *
- * The service relies on a Bluetooth connection, socket communication and the
+ * The service relies on socket communication and the
  * Android speech recognition classes.
  */
 class DispatchService(ctx: Context){
@@ -119,8 +118,8 @@ class DispatchService(ctx: Context){
     }
 
     /**
-     * The bluetooth socket read a result from the robot. The text starts with a
-     * MessageType header.
+     * The TCP socket reads a result from the robot. The text starts with a
+     * MessageType header. We strip it and route the message accordingly.
      */
     fun receiveText(text: String) {
         var txt = text

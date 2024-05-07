@@ -98,8 +98,7 @@ class PermissionManager(act:FragmentActivity)  {
 
 	init {
 		permissions = arrayOf<String>(
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.INTERNET,
 			Manifest.permission.RECORD_AUDIO
 		)
 	}

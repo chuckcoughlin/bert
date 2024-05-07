@@ -23,7 +23,7 @@ object ConfigurationConstants {
     const val PROPERTY_NONE = "none"
 
     // Flags set on the command-line
-    const val PROPERTY_USE_BLUETOOTH = "bluetooth"
+    const val PROPERTY_USE_NETWORK   = "network"
     const val PROPERTY_USE_SERIAL    = "serial"
     const val PROPERTY_USE_TERMINAL  = "terminal"
 

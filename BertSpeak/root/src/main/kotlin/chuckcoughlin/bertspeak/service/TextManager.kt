@@ -10,7 +10,7 @@ import chuckcoughlin.bertspeak.data.TextDataObserver
 /**
  * The text manager is a repository of text messages destined to be
  * logged and/or annunciated. The messages may originate on the tablet
- * be responses from the robot connected via Bluetooth.
+ * be responses from the robot connected via a TCP network.
  *
  * Only the most recent table that has been transmitted is displayable.
  * The column list must be sent before the rows as new columns clear out

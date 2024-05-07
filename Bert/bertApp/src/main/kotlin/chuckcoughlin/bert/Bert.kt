@@ -19,7 +19,7 @@ import java.util.*
 import java.util.logging.Logger
 
 class Bert() {
-    private val CLSS = "Bert"
+    val CLSS = "Bert"
     val USAGE = "Usage: bert [-bst] <robot_root>"
     val LOGGER = Logger.getLogger(CLSS)
     val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
@@ -44,7 +44,7 @@ fun main(args: Array<String>) {
     var arg = ConfigurationConstants.NO_VALUE
     var error = true
     // Analyze command-line argument to obtain the robot root directory.
-    // -b use bluetooth communication
+    // -n use network (wifi) communication
     // -s use serial communications to servos
     // -t use a local terminal connection to input commands
     var network = false
@@ -76,6 +76,7 @@ fun main(args: Array<String>) {
     PathConstants.setHome(path)
     // Setup logging to use only a file appender to our logging directory
     LoggerUtility.configureRootLogger(app.LOG_ROOT)
+
     // The RobotModel is a singleton that describes
     // any configurable robot parameters.
     RobotModel.startup(PathConstants.CONFIG_PATH)

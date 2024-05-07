@@ -9,13 +9,13 @@
               <type value="RUNNING_DEVICE_TARGET" />
               <deviceKey>
                 <Key>
-                  <type value="VIRTUAL_DEVICE_PATH" />
-                  <value value="$USER_HOME$/.android/avd/Samsung_S8_Emulator_API_33.avd" />
+                  <type value="SERIAL_NUMBER" />
+                  <value value="R52T509A66L" />
                 </Key>
               </deviceKey>
             </Target>
           </runningDeviceTargetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-05-04T20:00:11.656704Z" />
+          <timeTargetWasSelectedWithDropDown value="2024-05-06T20:35:48.890232Z" />
         </State>
       </entry>
       <entry key="sandbox">

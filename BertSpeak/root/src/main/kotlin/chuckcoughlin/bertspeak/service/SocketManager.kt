@@ -4,12 +4,7 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.Manifest.permission
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothSocket
-import android.content.pm.PackageManager
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
@@ -22,18 +17,14 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable.start
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.PrintWriter
-import java.lang.Thread.UncaughtExceptionHandler
 import java.net.InetAddress
 import java.net.Socket
 import java.util.UUID
@@ -56,10 +47,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private val buffer: CharArray
     private var textToSend: CompletableDeferred<String>
     private val dispatcher = service
-    private var connected: Boolean
     private lateinit var reader: BufferedReader
     private lateinit var writer: PrintWriter
-    private lateinit var socket: Socket
+    private var socket: Socket
     private var running: Boolean
     private val host:String
     private val port:Int
@@ -67,38 +57,44 @@ class SocketManager(service:DispatchService): CommunicationManager {
 
 
     /* On start, the manager connects to the remote robot host
-     * and establishes a connection
+     * and establishes a connection as a client.
      */
     @DelicateCoroutinesApi
     override fun start() {
         Log.i(CLSS, "start ...")
-        val serverAddress = InetAddress.getByName(host)
-        if( !serverAddress.isSiteLocalAddress ) {
-            Log.i(CLSS, String.format("start: address resolution failed for %s", host))
-            managerState = ERROR
+        try {
+            val serverAddress = InetAddress.getByName(host)
+            if( !serverAddress.isSiteLocalAddress ) {
+                Log.i(CLSS, String.format("start: address resolution failed for %s", host))
+                managerState = ERROR
+                dispatcher.reportManagerState(managerType, managerState)
+                return
+            }
+
+            Log.i(CLSS, String.format("start: got server address"))
+            managerState = PENDING
             dispatcher.reportManagerState(managerType, managerState)
-            return
-        }
 
-        Log.i(CLSS, String.format("start: defined client socket on %s", socket.localAddress.hostName))
-        managerState = PENDING
-        dispatcher.reportManagerState(managerType, managerState)
+            socket = Socket(serverAddress,port)
+            Log.i(CLSS, String.format("start: defined client socket on %s", socket.localAddress.hostName))
+            if(!defineReaderWriter(socket)) {
+                socket.close()
+                managerState = ERROR
+                dispatcher.reportManagerState(managerType, managerState)
+                return
+            }
 
-        socket = Socket(serverAddress,port)
-        if(!defineReaderWriter(socket)) {
-            socket.close()
-            managerState = ERROR
+            Log.i(CLSS, String.format("start: defined client socket on %s", socket.localAddress.hostName))
+            managerState = ACTIVE
             dispatcher.reportManagerState(managerType, managerState)
-            return
-        }
 
-        Log.i(CLSS, String.format("start: defined client socket on %s", socket.localAddress.hostName))
-        managerState = ACTIVE
-        dispatcher.reportManagerState(managerType, managerState)
-
-        job = GlobalScope.launch(Dispatchers.IO) {
+            job = GlobalScope.launch(Dispatchers.IO) {
                 running = true
                 execute()
+            }
+        }
+        catch(ex:Exception ) {
+            Log.i(CLSS, String.format("start: error getting %s address (%s)",host,ex.localizedMessage))
         }
     }
 
@@ -113,7 +109,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             Log.i(CLSS, String.format("openPorts: opened for read"))
             try {
                 writer = PrintWriter(sock.outputStream, true)
-                Log.i(CLSS, String.format("openPorts: opened %s for write"))
+                Log.i(CLSS, String.format("openPorts: opened for write"))
                 write(String.format("%s:the tablet is connected", MessageType.LOG.name))
                 success = true
             }
@@ -169,7 +165,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             catch (ignore: IOException) {}
             running = false
             try {
-                if( connected ) {
+                if( !socket.isClosed ) {
                     socket.close()
                 }
              }
@@ -266,11 +262,11 @@ class SocketManager(service:DispatchService): CommunicationManager {
 
     init {
         buffer = CharArray(BUFFER_SIZE)
-        connected = false
         running  = false
+        socket = Socket()
         textToSend = CompletableDeferred<String>("")
         job = Job()
-        host  = DatabaseManager.getSetting(BertConstants.BERT_HOST)
+        host  = DatabaseManager.getSetting(BertConstants.BERT_HOST_IP)
         port  = DatabaseManager.getSetting(BertConstants.BERT_PORT).toInt()
     }
 }

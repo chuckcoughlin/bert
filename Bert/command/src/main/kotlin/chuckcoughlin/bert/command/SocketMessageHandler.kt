@@ -106,9 +106,9 @@ class SocketMessageHandler(sock: Socket)  {
                     msg.error = String.format("JSON messages are not recognized from the tablet")
                     continue
                 }
+                // Simply send tablet log messages to our logger
                 else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
-                    LOGGER.info(String.format(" parsing LOG: %s", text))
-                    msg.error = String.format("LOG messages are not recognized from the tablet")
+                    LOGGER.info(text)
                     continue
                 }
                 else {

@@ -46,8 +46,8 @@ import java.util.logging.Logger
 @DelicateCoroutinesApi
 class Dispatcher(s:Solver) : Controller {
     // Communication channels
-    private val commandRequestChannel      : Channel<MessageBottle>    // Commands from Bluetooth
-    private val commandResponseChannel     : Channel<MessageBottle>    // Response to Bluetooth
+    private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (wifi)
+    private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (wifi)
     private val fromInternalController     : Channel<MessageBottle>    // Internal (i.e. local)  controller
     private val toInternalController    : Channel<MessageBottle>
     private val mgcRequestChannel          : Channel<MessageBottle>    // Motor group controller
@@ -117,7 +117,7 @@ class Dispatcher(s:Solver) : Controller {
                                 CLSS, it.type.name,it.text,it.source))
                             dispatchInternalResponse(it)
                         }
-                        // The Bluetooth response channel contains requests that originate on the connected app
+                        // The Command response channel contains requests that originate on the connected app (tablet)
                         commandResponseChannel.onReceive {
                             if(DEBUG) LOGGER.info(String.format("%s.execute: commandResponseChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
@@ -201,7 +201,7 @@ class Dispatcher(s:Solver) : Controller {
     }
     // ========================================= Helper Methods =======================================
     /**
-     * Analyze an incoming message from the command (bluetooth) or terminal channels. Some requests
+     * Analyze an incoming message from the command (wifi) or terminal channels. Some requests
      * are handled immediately. Any motor requests are first passed to the internal controller to
      * handle delay or conflict issues.
      */
@@ -502,7 +502,7 @@ class Dispatcher(s:Solver) : Controller {
         }
     }
 
-    // Report to both bluetooth and stdio controllers that we're running  ...
+    // Report to both command and stdio controllers that we're running  ...
     private suspend fun reportStartup() {
         val startMessage = MessageBottle(RequestType.NOTIFICATION)
         startMessage.text = selectRandomText(startPhrases)
@@ -549,7 +549,7 @@ class Dispatcher(s:Solver) : Controller {
     /**
      * The dispatcher creates all controllers and communication channels for the application. Request/response
      * naming is from the point of view of the Dispatcher.
-     *    Command - bluetooth connection to the tablet
+     *    Command - network (wifi) connection to the tablet
      *    Internal - where multiple or repeating messages are required for a single user request.
      *    MotorController - make serial requests to the motors
      *    Terminal - communicate directly with the user console
