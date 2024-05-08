@@ -24,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
+import java.net.SocketException
 import java.util.logging.Logger
 
 /**
@@ -77,28 +78,35 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 while(running) {
                     LOGGER.info(String.format("%s.execute: waiting to accept client connection ...", CLSS))
                     val socket = serverSocket.accept()
-                    LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
-                        socket.inetAddress.canonicalHostName,socket.port))
-                    val handler = SocketMessageHandler(socket!!)
-                    while( socket!=null && socket.isConnected) {
-                        select<MessageBottle> {
-                            responseChannel.onReceive() { it ->
-                                if (!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
-                                    handler.receiveResponse(it)
+                    try {
+                        LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
+                            socket.inetAddress.canonicalHostName, socket.port))
+                        val handler = SocketMessageHandler(socket!!)
+                        while (socket != null && socket.isConnected) {
+                            select<MessageBottle> {
+                                responseChannel.onReceive() { it ->
+                                    if (!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
+                                        handler.receiveResponse(it)
+                                    }
+                                    it
                                 }
-                                it
+                                /**
+                                 * Read from the tablet via the network. Use ANTLR to convert text into requests.
+                                 * Forward requests to the Dispatcher launcher.
+                                 */
+                                handleNetworkInput(handler).onAwait() { it }
                             }
-                            /**
-                             * Read from the tablet via the network. Use ANTLR to convert text into requests.
-                             * Forward requests to the Dispatcher launcher.
-                             */
-                            handleNetworkInput(handler).onAwait() { it }
                         }
+                        LOGGER.info(String.format("%s.execute: select completed", CLSS))
+                        // No longer running
+                        socket.close()
+                        serverSocket.close()
                     }
-
-                    LOGGER.info(String.format("%s.execute: select completed", CLSS))
-                    // No longer running
-                    serverSocket.close()
+                    // Throw this when we detect the socket connection closed by the client
+                    // Wait and accept another connection
+                    catch(se:SocketException) {
+                        socket.close()
+                    }
                     delay(DELAY)
                 }
                 LOGGER.info(String.format("%s.execute: Complete ", CLSS))
