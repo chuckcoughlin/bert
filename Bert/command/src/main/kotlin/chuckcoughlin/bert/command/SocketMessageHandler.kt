@@ -15,6 +15,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
+import java.net.SocketException
 import java.util.logging.Logger
 
 /**
@@ -38,7 +39,7 @@ class SocketMessageHandler(sock: Socket)  {
      *
      * @param response
      */
-    fun receiveResponse(response: MessageBottle) {
+    fun sendResponse(response: MessageBottle) {
         var text: String = translator.messageToText(response)
         text = text.trim { it <= ' ' }
         var mtype = MessageType.ANS
@@ -54,7 +55,7 @@ class SocketMessageHandler(sock: Socket)  {
      */
     private fun handleImmediateRequest(request: MessageBottle) {
         if (!request.type.equals(RequestType.PARTIAL)) {
-            if (!suppressingErrors) receiveResponse(request)
+            if (!suppressingErrors) sendResponse(request)
             else {
                 suppressingErrors = true // Suppress replies to consecutive syntax errors
                 val text: String = translator.messageToText(request)
@@ -73,69 +74,58 @@ class SocketMessageHandler(sock: Socket)  {
      * 3) Parent sends to the dispatcher
      *
      * There is only two kinds of messages (MSG,JSN) that we recognize. Anything
-     * else is an error.
+     * else is an error. Returning an empty string signals loss of the client.
+     * Throw an exception to force closing of the socket.
      */
     fun receiveRequest() : MessageBottle {
         var msg: MessageBottle = MessageBottle(RequestType.NONE)
-        while(true) {
-            var text: String? = input.readLine() // Strips trailing new-line
-            if (text == null || text.isEmpty()) {
+        var text: String? = input.readLine() // Strips trailing new-line
+        if (text == null || text.isEmpty()) {
+            throw SocketException("Read retuyrned an empty string")
+        }
+        else if (text.length > BottleConstants.HEADER_LENGTH) {
+            val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)
+            if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
+                // Strip header then translate the rest.
                 try {
-                    Thread.sleep(CLIENT_READ_ATTEMPT_INTERVAL) // A read error has happened, we don't want a hard loop
-                    continue
+                    text = text.substring(BottleConstants.HEADER_LENGTH)
+                    LOGGER.info(String.format(" parsing MSG: %s", text))
+                    msg = parser.parseStatement(text)
                 }
-                catch (ignore: InterruptedException) {}
-            }
-            else if (text.length > BottleConstants.HEADER_LENGTH) {
-                val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)
-                if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
-                    // Strip header then translate the rest.
-                    try {
-                        text = text.substring(BottleConstants.HEADER_LENGTH)
-                        LOGGER.info(String.format(" parsing MSG: %s", text))
-                        msg = parser.parseStatement(text)
-                    }
-                    catch (ex: Exception) {
-                        msg = MessageBottle(RequestType.NOTIFICATION)
-                        msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, msg.type.name)
-                    }
-                    break
-                }
-                else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
-                    LOGGER.info(String.format(" parsing JSN: %s", text))
-                    msg.error = String.format("JSON messages are not recognized from the tablet")
-                    continue
-                }
-                // Simply send tablet log messages to our logger
-                else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
-                    LOGGER.info(text)
-                    continue
-                }
-                else {
+                catch (ex: Exception) {
                     msg = MessageBottle(RequestType.NOTIFICATION)
-                    msg.error = String.format("Message has an unrecognized prefix (%s)", text)
-                    break
+                    msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, msg.type.name)
                 }
+            }
+            else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
+                LOGGER.info(String.format(" parsing JSN: %s", text))
+                msg.error = String.format("JSON messages are not recognized from the tablet")
+            }
+            // Simply send tablet log messages to our logger
+            else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
+                LOGGER.info(text)
             }
             else {
                 msg = MessageBottle(RequestType.NOTIFICATION)
-                msg.error = String.format("Received a short message from the tablet (%s)", text)
-                break
-            }
-            msg.source = ControllerType.COMMAND.name
-            if (msg.type == RequestType.NOTIFICATION ||
-                msg.type == RequestType.NONE ||
-                msg.type == RequestType.PARTIAL ||
-                !msg.error.equals(BottleConstants.NO_ERROR) ) {
-                handleImmediateRequest(msg)
-                break
-            }
-            else {
-                suppressingErrors = false
-                msg = receiveRequest()
-                break
+                msg.error = String.format("Message has an unrecognized prefix (%s)", text)
             }
         }
+        else {
+            msg = MessageBottle(RequestType.NOTIFICATION)
+            msg.error = String.format("Received a short message from the tablet (%s)", text)
+        }
+        msg.source = ControllerType.COMMAND.name
+        if (msg.type == RequestType.NOTIFICATION ||
+            msg.type == RequestType.NONE ||
+            msg.type == RequestType.PARTIAL ||
+            !msg.error.equals(BottleConstants.NO_ERROR) ) {
+            handleImmediateRequest(msg)
+        }
+        else {
+            suppressingErrors = false
+            msg = receiveRequest()
+        }
+
         LOGGER.info(String.format("%s stopped", CLSS))
         return msg
     }

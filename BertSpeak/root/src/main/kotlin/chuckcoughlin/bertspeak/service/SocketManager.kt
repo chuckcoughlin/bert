@@ -19,6 +19,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.io.BufferedReader
@@ -27,6 +28,7 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.InetAddress
 import java.net.Socket
+import java.net.SocketException
 import java.util.UUID
 
 
@@ -47,6 +49,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private val buffer: CharArray
     private var textToSend: CompletableDeferred<String>
     private val dispatcher = service
+    private lateinit var serverAddress: InetAddress
     private lateinit var reader: BufferedReader
     private lateinit var writer: PrintWriter
     private var socket: Socket
@@ -62,41 +65,61 @@ class SocketManager(service:DispatchService): CommunicationManager {
     @DelicateCoroutinesApi
     override fun start() {
         Log.i(CLSS, "start ...")
-        try {
-            val serverAddress = InetAddress.getByName(host)
-            if( !serverAddress.isSiteLocalAddress ) {
-                Log.i(CLSS, String.format("start: address resolution failed for %s", host))
-                managerState = ERROR
-                dispatcher.reportManagerState(managerType, managerState)
-                return
-            }
-
-            Log.i(CLSS, String.format("start: got server address"))
-            managerState = PENDING
+        serverAddress = InetAddress.getByName(host)
+        if( !serverAddress.isSiteLocalAddress ) {
+            Log.i(CLSS, String.format("start: address resolution failed for %s", host))
+            managerState = ERROR
             dispatcher.reportManagerState(managerType, managerState)
-
-            socket = Socket(serverAddress,port)
-            Log.i(CLSS, String.format("start: defined client socket on %s", socket.localAddress.hostName))
-            if(!defineReaderWriter(socket)) {
-                socket.close()
-                managerState = ERROR
-                dispatcher.reportManagerState(managerType, managerState)
-                return
-            }
-
-            Log.i(CLSS, String.format("start: defined client socket on %s", socket.localAddress.hostName))
-            managerState = ACTIVE
-            dispatcher.reportManagerState(managerType, managerState)
-
-            job = GlobalScope.launch(Dispatchers.IO) {
-                running = true
-                execute()
-            }
         }
-        catch(ex:Exception ) {
-            Log.i(CLSS, String.format("start: error getting %s address (%s)",host,ex.localizedMessage))
+        else {
+            running = true
+            execute()
         }
     }
+
+    /**
+     * While running, this manager processes messages between the tablet
+     * and robot.
+     */
+    @DelicateCoroutinesApi
+     fun execute(): Unit {
+        Log.i(CLSS, "execute: started...")
+        job = GlobalScope.launch(Dispatchers.IO) {
+            while(running) {
+                managerState = PENDING
+                dispatcher.reportManagerState(managerType, managerState)
+                socket = Socket(serverAddress, port)
+                try {
+                    Log.i(CLSS, String.format("execute: defined client socket on %s", socket.localAddress.hostName))
+                    if(!defineReaderWriter(socket)) {
+                        socket.close()
+                        managerState = ERROR
+                        dispatcher.reportManagerState(managerType, managerState)
+                        running = false
+                    }
+                    else {
+                        Log.i(CLSS, String.format("execute: defined client socket on %s", socket.localAddress.hostName))
+                        managerState = ACTIVE
+                        dispatcher.reportManagerState(managerType, managerState)
+                        while(socket.isConnected) {
+                            select<Unit> {
+                                read().onAwait() {}
+                                textToSend.onAwait { write(it) }
+                            }
+                        }
+                        Log.i(CLSS,"execute: select completed")
+                        socket.close()
+                    }
+                }
+                catch(se:SocketException) {
+                    Log.i(CLSS,String.format("execute: server socket closed"))
+                    socket.close()
+                }
+                delay(CLIENT_ATTEMPT_INTERVAL)
+            }
+        }
+    }
+
 
     /**
      * Open IO streams for reading and writing. The socket must exist.
@@ -129,27 +152,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
         return success
     }
     /**
-     * While running, this controller processes messages between the Dispatcher
-     * and a user terminal. A few messages are intercepted that totally local
-     * in nature (SLEEP,WAKE).
-     *
-     * A response to a request that starts here will have the source as Termonal.
-     * When the application is run autonomously (like as a system service), the
-     * terminal is not used.
-     */
-    @DelicateCoroutinesApi
-    suspend fun execute(): Unit = coroutineScope {
-        Log.i(CLSS,"execute: started...")
-        while (running) {
-            select<Unit> {
-                read().onAwait(){}
-                textToSend.onAwait{ write(it) }
-            }
-        }
-    }
-
-
-    /**
      * Close IO streams.
      */
     override fun stop() {
@@ -177,8 +179,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
 
     /**
      * Read a line of text from the socket. The read will block and wait for data to appear.
-     * If we get a null, then close the socket and either re-open or re-listen
-     * depending on whether or not this is the server side, or not.
+     * If we get a null, then close the socket and re-listen.
      *
      * @return the line of text
      */
@@ -190,6 +191,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
             Log.i(CLSS, "read: reading ... ")
             text = reader.readLine() // Does not include CR
             Log.i(CLSS, String.format("read: returning: %s", text))
+            if( text.isEmpty() ) {
+                throw SocketException("read: Empty text implies server has shut down")
+            }
         }
         catch (ioe: IOException) {
             Log.e(CLSS, String.format("read: Error reading from socket (%s)", ioe.localizedMessage))

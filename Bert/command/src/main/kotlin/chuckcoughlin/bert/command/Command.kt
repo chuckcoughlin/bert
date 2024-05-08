@@ -12,16 +12,8 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
 import java.net.SocketException
@@ -82,11 +74,11 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                         LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
                             socket.inetAddress.canonicalHostName, socket.port))
                         val handler = SocketMessageHandler(socket!!)
-                        while (socket != null && socket.isConnected) {
+                        while( socket.isConnected ) {
                             select<MessageBottle> {
                                 responseChannel.onReceive() { it ->
                                     if (!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
-                                        handler.receiveResponse(it)
+                                        handler.sendResponse(it)
                                     }
                                     it
                                 }
