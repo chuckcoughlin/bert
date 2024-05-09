@@ -85,10 +85,10 @@ class SocketMessageHandler(sock: Socket)  {
         }
         else if (text.length > BottleConstants.HEADER_LENGTH) {
             val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)
+            text = text.substring(BottleConstants.HEADER_LENGTH)
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
                 // Strip header then translate the rest.
                 try {
-                    text = text.substring(BottleConstants.HEADER_LENGTH)
                     LOGGER.info(String.format(" parsing MSG: %s", text))
                     msg = parser.parseStatement(text)
                 }
@@ -103,11 +103,11 @@ class SocketMessageHandler(sock: Socket)  {
             }
             // Simply send tablet log messages to our logger
             else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
-                LOGGER.info(text)
+                LOGGER.info(String.format("Tablet LOG: %s",text))
             }
             else {
                 msg = MessageBottle(RequestType.NOTIFICATION)
-                msg.error = String.format("Message has an unrecognized prefix (%s)", text)
+                msg.error = String.format("Message has an unrecognized prefix (%s)", hdr)
             }
         }
         else {

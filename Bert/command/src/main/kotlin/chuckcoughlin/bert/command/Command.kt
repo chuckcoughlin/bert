@@ -12,8 +12,16 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
 import java.net.SocketException
@@ -63,7 +71,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             /* First connect to the network (always LOCALHOST) */
             val serverSocket = ServerSocket(port)
             LOGGER.info(String.format("%s.execute: server socket created on %s (%d)", CLSS,
-                serverSocket.localSocketAddress.toString(),serverSocket.localPort))
+                serverSocket.inetAddress.canonicalHostName,serverSocket.localPort))
 
             /* We can connect with multiple clients, but only one at a time */
             job=scope.launch(Dispatchers.IO) {
