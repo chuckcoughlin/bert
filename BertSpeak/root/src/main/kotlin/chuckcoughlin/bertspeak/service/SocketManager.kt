@@ -20,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.io.BufferedReader
@@ -83,36 +84,37 @@ class SocketManager(service:DispatchService): CommunicationManager {
      */
     @DelicateCoroutinesApi
      fun execute(): Unit {
-        Log.i(CLSS, "execute: started...")
+        Log.i(CLSS, String.format("execute: connecting to %s on %d",host,port))
         job = GlobalScope.launch(Dispatchers.IO) {
             while(running) {
                 managerState = PENDING
                 dispatcher.reportManagerState(managerType, managerState)
                 socket = Socket(serverAddress, port)
-                try {
-                    Log.i(CLSS, String.format("execute: defined client socket on %s", socket.localAddress.hostName))
-                    if(!defineReaderWriter(socket)) {
-                        socket.close()
-                        managerState = ERROR
-                        dispatcher.reportManagerState(managerType, managerState)
-                        running = false
-                    }
-                    else {
-                        Log.i(CLSS, String.format("execute: defined client socket on %s", socket.localAddress.hostName))
-                        managerState = ACTIVE
-                        dispatcher.reportManagerState(managerType, managerState)
-                        while(socket.isConnected) {
-                            select<Unit> {
-                                read().onAwait() {}
-                                textToSend.onAwait { write(it) }
-                            }
-                        }
-                        Log.i(CLSS,"execute: select completed")
-                        socket.close()
-                    }
+
+                Log.i(CLSS, String.format("execute: defined client socket on %s", socket.localAddress.hostName))
+                if(!defineReaderWriter(socket)) {
+                    socket.close()
+                    managerState = ERROR
+                    dispatcher.reportManagerState(managerType, managerState)
+                    running = false
                 }
-                catch(se:SocketException) {
-                    Log.i(CLSS,String.format("execute: server socket closed"))
+                else {
+                    managerState = ACTIVE
+                    dispatcher.reportManagerState(managerType, managerState)
+                    while(socket.isConnected) {
+                        textToSend = CompletableDeferred<String>("")
+                        Log.i(CLSS, String.format("execute: selecting a read or write"))
+                        select<Unit> {
+                            read().onAwait() { it->
+                                if( it.isBlank() ) {
+                                    socket.close()
+                                    running = false
+                                }
+                            }
+                            textToSend.onAwait { write(it) }
+                        }
+                    }
+                    Log.i(CLSS,"execute: select completed")
                     socket.close()
                 }
                 delay(CLIENT_ATTEMPT_INTERVAL)
@@ -128,11 +130,11 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private fun defineReaderWriter(sock:Socket): Boolean {
         var success = false
         try {
-            reader = BufferedReader(InputStreamReader(sock.inputStream))
-            Log.i(CLSS, String.format("openPorts: opened for read"))
+            reader = BufferedReader(InputStreamReader(sock.getInputStream()))
+            Log.i(CLSS, String.format("defineReaderWriter: opened for read"))
             try {
-                writer = PrintWriter(sock.outputStream, true)
-                Log.i(CLSS, String.format("openPorts: opened for write"))
+                writer = PrintWriter(sock.getOutputStream(), true)
+                Log.i(CLSS, String.format("defineReaderWriter: opened for write"))
                 write(String.format("%s:the tablet is connected", MessageType.LOG.name))
                 success = true
             }
@@ -186,24 +188,21 @@ class SocketManager(service:DispatchService): CommunicationManager {
     @DelicateCoroutinesApi
     fun read(): Deferred<String> =
         GlobalScope.async(Dispatchers.IO)  {
-        var text: String
+        var text = ""
         try {
-            Log.i(CLSS, "read: reading ... ")
-            text = reader.readLine() // Does not include CR
-            Log.i(CLSS, String.format("read: returning: %s", text))
-            if( text.isEmpty() ) {
-                throw SocketException("read: Empty text implies server has shut down")
-            }
+            Log.i(CLSS, "read: blocked on read ")
+            //text = reader.readLine() // Does not include CR
+            text = readNextLine(reader)
+            Log.i(CLSS, String.format("read: returned: %s", text))
         }
         catch (ioe: IOException) {
             Log.e(CLSS, String.format("read: Error reading from socket (%s)", ioe.localizedMessage))
-            // Close and attempt to reopen port
-            text = reread()
         }
         catch (npe: NullPointerException) {
             Log.e(CLSS, String.format( "read: Null pointer reading from socket (%s)",npe.localizedMessage))
-            // Close and attempt to reopen port
-            text = reread()
+        }
+        catch (ex:Exception) {
+            Log.e(CLSS, String.format( "read: Unhandled exception (%s)",ex.localizedMessage))
         }
         text
     }
@@ -213,15 +212,10 @@ class SocketManager(service:DispatchService): CommunicationManager {
      */
     fun write(text: String)  {
         try {
-            if (!writer.checkError()) {
-                Log.i(CLSS, String.format( "write: writing ... %s (%d bytes)",
-                    text, text.length + 1))
-                writer.println(text) // Appends new-line
-                writer.flush()
-            }
-            else {
-                Log.e(CLSS, String.format("write: out stream error"))
-            }
+            Log.i(CLSS, String.format( "write: writing ... %s (%d bytes)",
+                text, text.length + 1))
+            writer.println(text) // Appends new-line
+            writer.flush()
         }
         catch (ex: Exception) {
             Log.e(CLSS,String.format("write: Error writing %d bytes (%s)",
@@ -252,6 +246,15 @@ class SocketManager(service:DispatchService): CommunicationManager {
         return text
     }
 
+    private fun readNextLine(reader: BufferedReader):String {
+        val stringBuilder = StringBuilder()
+        var c = reader.read().toChar()
+        while( c!= '\n' ) {
+            stringBuilder.append(c)
+            Log.i(CLSS, String.format("readNextLine: got %c", c))
+        }
+        return stringBuilder.toString()
+    }
     fun prepareTextToSend(text:String) {
         textToSend.complete(text)
     }
@@ -260,9 +263,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
     val BUFFER_SIZE = 256
     val CLIENT_ATTEMPT_INTERVAL = 2000L  // 2 secs
     val CLIENT_LOG_INTERVAL = 10
-
-    // Well-known port for Bluetooth serial port service
-    val SERIAL_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
     init {
         buffer = CharArray(BUFFER_SIZE)

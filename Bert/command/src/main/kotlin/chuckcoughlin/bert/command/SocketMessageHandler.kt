@@ -11,11 +11,11 @@ import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
+import kotlinx.coroutines.CompletableDeferred
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
-import java.net.SocketException
 import java.util.logging.Logger
 
 /**
@@ -24,8 +24,9 @@ import java.util.logging.Logger
  * The robot system is the server.
  * @param sock for socket connection
  */
-class SocketMessageHandler(sock: Socket)  {
+class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
     private val socket = sock
+    private val connected = cxn
     private val parser: StatementParser
     private val translator: MessageTranslator
     private var suppressingErrors: Boolean
@@ -45,7 +46,13 @@ class SocketMessageHandler(sock: Socket)  {
         var mtype = MessageType.ANS
         if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
             response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
-        output.write(String.format("%s:%s", mtype.name, text))
+        try {
+            output.write(String.format("%s:%s", mtype.name, text))
+        }
+        catch(ex:Exception) {
+            LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.",ex.localizedMessage))
+            connected.complete(false)
+        }
     }
 
     /**
@@ -81,7 +88,8 @@ class SocketMessageHandler(sock: Socket)  {
         var msg: MessageBottle = MessageBottle(RequestType.NONE)
         var text: String? = input.readLine() // Strips trailing new-line
         if (text == null || text.isEmpty()) {
-            throw SocketException("Read retuyrned an empty string")
+            LOGGER.info(String.format(" received nothing on read. Assume client is closed."))
+            connected.complete(false)
         }
         else if (text.length > BottleConstants.HEADER_LENGTH) {
             val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)

@@ -12,6 +12,7 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +25,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
-import java.net.SocketException
 import java.util.logging.Logger
 
 /**
@@ -51,6 +51,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
     @DelicateCoroutinesApi
     private val scope=GlobalScope // For long-running coroutines
+    private var connected: CompletableDeferred<Boolean>
     private var ignoring: Boolean
     private var running: Boolean
     private var job: Job
@@ -75,42 +76,44 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
             /* We can connect with multiple clients, but only one at a time */
             job=scope.launch(Dispatchers.IO) {
-                while(running) {
+                while (running) {
                     LOGGER.info(String.format("%s.execute: waiting to accept client connection ...", CLSS))
                     val socket = serverSocket.accept()
-                    try {
-                        LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
-                            socket.inetAddress.canonicalHostName, socket.port))
-                        val handler = SocketMessageHandler(socket!!)
-                        while( socket.isConnected ) {
-                            select<MessageBottle> {
-                                responseChannel.onReceive() { it ->
-                                    if (!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
-                                        handler.sendResponse(it)
-                                    }
-                                    it
+                    LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
+                        socket.inetAddress.canonicalHostName, socket.port))
+                    connected = CompletableDeferred<Boolean>(false)
+                    val handler = SocketMessageHandler(socket!!, connected)
+                    while (!socket.isClosed) {
+                        select<MessageBottle> {
+                            responseChannel.onReceive() { it ->
+                                if (!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
+                                    handler.sendResponse(it)
                                 }
-                                /**
-                                 * Read from the tablet via the network. Use ANTLR to convert text into requests.
-                                 * Forward requests to the Dispatcher launcher.
-                                 */
-                                handleNetworkInput(handler).onAwait() { it }
+                                it
+                            }
+                            /**
+                             * Read from the tablet via the network. Use ANTLR to convert text into requests.
+                             * Forward requests to the Dispatcher launcher.
+                             */
+                            handleNetworkInput(handler).onAwait() { it }
+                            /*
+							 * Handle case where connected client disappears
+							 */
+                            connected.onAwait() { it ->
+                                LOGGER.info(String.format("%s.execute: client disconnected", CLSS))
+                                socket.close()
+                                MessageBottle(RequestType.NONE)
                             }
                         }
-                        LOGGER.info(String.format("%s.execute: select completed", CLSS))
-                        // No longer running
-                        socket.close()
-                        serverSocket.close()
                     }
-                    // Throw this when we detect the socket connection closed by the client
-                    // Wait and accept another connection
-                    catch(se:SocketException) {
-                        socket.close()
-                    }
+                    LOGGER.info(String.format("%s.execute: select complete - wait for new connection", CLSS))
+                    if (!socket.isClosed) socket.close()
                     delay(DELAY)
                 }
-                LOGGER.info(String.format("%s.execute: Complete ", CLSS))
+                // No longer running
+                serverSocket.close()
             }
+            LOGGER.info(String.format("%s.execute: Complete ", CLSS))
         }
         else {
             LOGGER.warning(String.format("%s: attempted to start, but already running...", CLSS))
@@ -184,6 +187,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
+        connected = CompletableDeferred<Boolean>(false)
         ignoring = false
         running = false
         messageTranslator = MessageTranslator()
