@@ -256,6 +256,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
         return stringBuilder.toString()
     }
     fun prepareTextToSend(text:String) {
+        Log.i(CLSS, String.format("prepareTextToSend: writing %s", text))
         textToSend.complete(text)
     }
 

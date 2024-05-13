@@ -12,17 +12,8 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
 import java.util.logging.Logger
@@ -86,7 +77,8 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                     while (!socket.isClosed) {
                         select<MessageBottle> {
                             responseChannel.onReceive() { it ->
-                                if (!it.type.equals(RequestType.NOTIFICATION)) {  // Ignore notifications
+                                if (!it.type.equals(RequestType.NOTIFICATION) &&  // Ignore notifications
+                                    !it.type.equals(RequestType.NONE)) {          // Ignore type NONE
                                     handler.sendResponse(it)
                                 }
                                 it

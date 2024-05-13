@@ -47,7 +47,10 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
         if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
             response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
         try {
-            output.write(String.format("%s:%s", mtype.name, text))
+            val msgtxt = String.format("%s:%s", mtype.name, text)
+            LOGGER.info(String.format("writing to tablet: %s",msgtxt))
+            output.write(msgtxt)
+            output.flush()
         }
         catch(ex:Exception) {
             LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.",ex.localizedMessage))
