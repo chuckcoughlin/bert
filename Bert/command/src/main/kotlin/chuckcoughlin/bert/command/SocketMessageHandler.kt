@@ -103,11 +103,11 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
         else if (text.length > BottleConstants.HEADER_LENGTH) {
             val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)
             text = text.substring(BottleConstants.HEADER_LENGTH)
-            if( DEBUG ) LOGGER.info(String.format("TABLET READ: %s.", text))
+            if( DEBUG ) LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
-                // Strip header then translate the rest.
+                // We've stripped the header now analyze the rest.
                 try {
-                    LOGGER.info(String.format(" parsing MSG: %s", text))
+                    LOGGER.info(String.format(" parsing %s: %s", hdr,text))
                     msg = parser.parseStatement(text)
                 }
                 catch (ex: Exception) {
@@ -118,6 +118,10 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
             else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
                 LOGGER.info(String.format(" parsing JSN: %s", text))
                 msg.error = String.format("JSON messages are not recognized from the tablet")
+            }
+            // For now simply log responses from the tablet.
+            else if (hdr.equals(MessageType.ANS.name, ignoreCase = true)) {
+                LOGGER.info(String.format("Tablet ANS: %s",text))
             }
             // Simply send tablet log messages to our logger
             else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {

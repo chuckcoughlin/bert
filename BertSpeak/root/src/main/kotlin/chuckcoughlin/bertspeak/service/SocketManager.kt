@@ -125,7 +125,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             try {
                 writer = PrintWriter(sock.getOutputStream(), true)
                 Log.i(CLSS, String.format("defineReaderWriter: opened for write"))
-                writer.write(String.format("%s:the tablet is connected", MessageType.LOG.name))
+                writer.println(String.format("%s:the tablet is connected", MessageType.LOG.name))
                 writer.flush()
                 success = true
             }
@@ -175,7 +175,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     @DelicateCoroutinesApi
     fun readSocket(): Boolean  {
         var text : String? =  reader.readLine()      // Does not include CR
-        if( text!=null && text.isNotEmpty()) {
+        if( text!=null ) {
             Log.i(CLSS, String.format("read: returned: %s.", text))
             dispatcher.receiveText(text)
             return true

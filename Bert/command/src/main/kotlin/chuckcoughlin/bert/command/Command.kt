@@ -100,9 +100,11 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                             /*
 							 * Handle case where connected client disappears
 							 */
-                            connected.onAwait() { it ->
-                                LOGGER.info(String.format("%s.execute: client disconnected", CLSS))
-                                socket.close()
+                            connected.onAwait() { it->
+                                if( !it ) {
+                                    LOGGER.info(String.format("%s.execute: client disconnected",CLSS))
+                                    socket.close()
+                                }
                                 MessageBottle(RequestType.NONE)
                             }
                         }
