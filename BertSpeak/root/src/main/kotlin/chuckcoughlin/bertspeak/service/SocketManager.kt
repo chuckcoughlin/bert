@@ -17,6 +17,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable.start
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -48,7 +49,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     override val managerType = ManagerType.SOCKET
     override var managerState = ManagerState.OFF
     private val buffer: CharArray
-    private var textToSend: CompletableDeferred<String>
+    private var connected: Boolean
     private val dispatcher = service
     private lateinit var serverAddress: InetAddress
     private lateinit var reader: BufferedReader
@@ -99,30 +100,19 @@ class SocketManager(service:DispatchService): CommunicationManager {
                     running = false
                 }
                 else {
+                    connected = true
                     managerState = ACTIVE
                     dispatcher.reportManagerState(managerType, managerState)
-                    while(socket.isConnected) {
-                        textToSend = CompletableDeferred<String>("")
-                        Log.i(CLSS, String.format("execute: selecting a read or write"))
-                        select<Unit> {
-                            read().onAwait() { it->
-                                if( it.isBlank() ) {
-                                    socket.close()
-                                    running = false
-                                }
-                            }
-                            textToSend.onAwait { write(it) }
-                        }
+                    while(connected ) {
+                        Log.i(CLSS, String.format("execute: reading from socket ..."))
+                        connected = readSocket()
                     }
-                    Log.i(CLSS,"execute: select completed")
+                    Log.i(CLSS,"execute: socket closed")
                     socket.close()
                 }
-                delay(CLIENT_ATTEMPT_INTERVAL)
             }
         }
     }
-
-
     /**
      * Open IO streams for reading and writing. The socket must exist.
      * @return an error description. Null if no error.
@@ -135,12 +125,12 @@ class SocketManager(service:DispatchService): CommunicationManager {
             try {
                 writer = PrintWriter(sock.getOutputStream(), true)
                 Log.i(CLSS, String.format("defineReaderWriter: opened for write"))
-                write(String.format("%s:the tablet is connected", MessageType.LOG.name))
+                writer.write(String.format("%s:the tablet is connected", MessageType.LOG.name))
+                writer.flush()
                 success = true
             }
             catch (ex: Exception) {
-                val reason = String.format("The tablet failed to open a socket for writing due to %s",
-                    ex.message)
+                val reason = String.format("The tablet failed to open a socket for writing due to %s",ex.message)
                 Log.i( CLSS,String.format("defineReaderWriter: ERROR opening socket for write (%s)",
                     CLSS,ex.message),ex)
                 dispatcher.logError(managerType,reason)
@@ -168,12 +158,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
             }
             catch (ignore: IOException) {}
             running = false
-            try {
-                if( !socket.isClosed ) {
-                    socket.close()
-                }
+            if( !socket.isClosed ) {
+                socket.close()
              }
-            catch (_: IOException) {}
         }
         managerState = ManagerState.OFF
         dispatcher.reportManagerState(managerType, managerState)
@@ -183,44 +170,29 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * Read a line of text from the socket. The read will block and wait for data to appear.
      * If we get a null, then close the socket and re-listen.
      *
-     * @return the line of text
+     * @return connection status
      */
     @DelicateCoroutinesApi
-    fun read(): Deferred<String> =
-        GlobalScope.async(Dispatchers.IO)  {
-        var text = ""
-        try {
-            Log.i(CLSS, "read: blocked on read ")
-            //text = reader.readLine() // Does not include CR
-            text = readNextLine(reader)
+    fun readSocket(): Boolean  {
+        var text =  reader.readText()      // Does not include CR
+        if( text.isNotEmpty()) {
             Log.i(CLSS, String.format("read: returned: %s", text))
+            dispatcher.receiveText(text)
+            return true
         }
-        catch (ioe: IOException) {
-            Log.e(CLSS, String.format("read: Error reading from socket (%s)", ioe.localizedMessage))
+        else {
+            return false
         }
-        catch (npe: NullPointerException) {
-            Log.e(CLSS, String.format( "read: Null pointer reading from socket (%s)",npe.localizedMessage))
-        }
-        catch (ex:Exception) {
-            Log.e(CLSS, String.format( "read: Unhandled exception (%s)",ex.localizedMessage))
-        }
-        text
     }
 
     /**
      * Write plain text to the socket.
      */
-    fun write(text: String)  {
-        try {
-            Log.i(CLSS, String.format( "write: writing ... %s (%d bytes)",
+    fun writeSocket(text: String) {
+            Log.i(CLSS, String.format( "writeSocket: writing ... %s (%d bytes)",
                 text, text.length + 1))
             writer.println(text) // Appends new-line
             writer.flush()
-        }
-        catch (ex: Exception) {
-            Log.e(CLSS,String.format("write: Error writing %d bytes (%s)",
-                text.length,ex.localizedMessage),ex)
-        }
     }
 
     /**
@@ -246,19 +218,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
         return text
     }
 
-    private fun readNextLine(reader: BufferedReader):String {
-        val stringBuilder = StringBuilder()
-        var c = reader.read().toChar()
-        while( c!= '\n' ) {
-            stringBuilder.append(c)
-            Log.i(CLSS, String.format("readNextLine: got %c", c))
-        }
-        return stringBuilder.toString()
-    }
-    fun prepareTextToSend(text:String) {
-        Log.i(CLSS, String.format("prepareTextToSend: writing %s", text))
-        textToSend.complete(text)
-    }
 
     val CLSS = "SocketManager"
     val BUFFER_SIZE = 256
@@ -269,7 +228,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
         buffer = CharArray(BUFFER_SIZE)
         running  = false
         socket = Socket()
-        textToSend = CompletableDeferred<String>("")
+        connected = false
         job = Job()
         host  = DatabaseManager.getSetting(BertConstants.BERT_HOST_IP)
         port  = DatabaseManager.getSetting(BertConstants.BERT_PORT).toInt()

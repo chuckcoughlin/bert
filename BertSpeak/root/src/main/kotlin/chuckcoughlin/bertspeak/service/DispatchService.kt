@@ -145,10 +145,13 @@ class DispatchService(ctx: Context){
      * Send text to the robot for processing. Inform the text manager for dissemination
      * to any observers.
      */
+    @OptIn(DelicateCoroutinesApi::class)
     fun receiveSpokenText(text: String) {
-        Log.i(CLSS, String.format("receiveSpokenText: %s", text))
-        textManager.processText(MessageType.ANS, text)
-        socketManager.prepareTextToSend(String.format("%s:%s", MessageType.ANS.name, text))
+        GlobalScope.launch(Dispatchers.IO) {
+            Log.i(CLSS, String.format("receiveSpokenText: %s", text))
+            textManager.processText(MessageType.ANS, text)
+            socketManager.writeSocket(String.format("%s:%s", MessageType.ANS.name, text))
+        }
     }
 
 

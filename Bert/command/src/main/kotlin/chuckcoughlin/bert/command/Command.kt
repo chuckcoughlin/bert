@@ -12,8 +12,17 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
 import java.util.logging.Logger
@@ -72,7 +81,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                     val socket = serverSocket.accept()
                     LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
                         socket.inetAddress.canonicalHostName, socket.port))
-                    connected = CompletableDeferred<Boolean>(false)
+                    connected = CompletableDeferred<Boolean>(true)
                     val handler = SocketMessageHandler(socket!!, connected)
                     while (!socket.isClosed) {
                         select<MessageBottle> {

@@ -46,15 +46,18 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
         var mtype = MessageType.ANS
         if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
             response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
-        try {
-            val msgtxt = String.format("%s:%s", mtype.name, text)
-            LOGGER.info(String.format("writing to tablet: %s",msgtxt))
-            output.write(msgtxt)
-            output.flush()
-        }
-        catch(ex:Exception) {
-            LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.",ex.localizedMessage))
-            connected.complete(false)
+
+        if( text.isNotEmpty()) {
+            try {
+                val msgtxt = String.format("%s:%s", mtype.name, text)
+                LOGGER.info(String.format("writing to tablet: %s", msgtxt))
+                output.write(msgtxt)
+                output.flush()
+            }
+            catch (ex: Exception) {
+                LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+                connected.complete(false)
+            }
         }
     }
 
@@ -134,7 +137,6 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
         }
         else {
             suppressingErrors = false
-            msg = receiveRequest()
         }
 
         LOGGER.info(String.format("%s stopped", CLSS))
