@@ -99,6 +99,7 @@ class PermissionManager(act:FragmentActivity)  {
 	init {
 		permissions = arrayOf<String>(
             Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_WIFI_STATE,
 			Manifest.permission.RECORD_AUDIO
 		)
 	}

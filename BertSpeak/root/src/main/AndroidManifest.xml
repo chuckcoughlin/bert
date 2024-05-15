@@ -4,7 +4,7 @@
     <!-- Work with either front or back camera -->
     <uses-feature android:name="android.hardware.camera.any" />
     <!-- Add permission requirements here
-            Note: MANAGE_EXTERNAL_STORAGE is not available if using Google store-->
+         Note: MANAGE_EXTERNAL_STORAGE is not available if using Google store-->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />

@@ -174,13 +174,14 @@ class SocketManager(service:DispatchService): CommunicationManager {
      */
     @DelicateCoroutinesApi
     fun readSocket(): Boolean  {
-        var text =  reader.readText()      // Does not include CR
-        if( text.isNotEmpty()) {
-            Log.i(CLSS, String.format("read: returned: %s", text))
+        var text : String? =  reader.readLine()      // Does not include CR
+        if( text!=null && text.isNotEmpty()) {
+            Log.i(CLSS, String.format("read: returned: %s.", text))
             dispatcher.receiveText(text)
             return true
         }
         else {
+            Log.i(CLSS,"received nothing on read. Assume server has stopped.")
             return false
         }
     }
@@ -189,10 +190,15 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * Write plain text to the socket.
      */
     fun writeSocket(text: String) {
-            Log.i(CLSS, String.format( "writeSocket: writing ... %s (%d bytes)",
+        if( text.isNotBlank()) {
+            Log.i(CLSS, String.format("writeSocket: writing ... %s (%d bytes)",
                 text, text.length + 1))
             writer.println(text) // Appends new-line
             writer.flush()
+        }
+        else {
+            Log.i(CLSS, "writeSocket: atempt to write empty string, ignored")
+        }
     }
 
     /**

@@ -9,6 +9,8 @@ import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
 import kotlinx.coroutines.CompletableDeferred
@@ -47,11 +49,12 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
         if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
             response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
 
+        if(text.isBlank()) text = response.error
         if( text.isNotEmpty()) {
             try {
                 val msgtxt = String.format("%s:%s", mtype.name, text)
-                LOGGER.info(String.format("writing to tablet: %s", msgtxt))
-                output.write(msgtxt)
+                if( DEBUG ) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
+                output.println(msgtxt)
                 output.flush()
             }
             catch (ex: Exception) {
@@ -100,6 +103,7 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
         else if (text.length > BottleConstants.HEADER_LENGTH) {
             val hdr = text.substring(0, BottleConstants.HEADER_LENGTH - 1)
             text = text.substring(BottleConstants.HEADER_LENGTH)
+            if( DEBUG ) LOGGER.info(String.format("TABLET READ: %s.", text))
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
                 // Strip header then translate the rest.
                 try {
@@ -146,9 +150,11 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
 
     private val CLSS = "SocketMessageHandler"
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs
+    private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         parser = StatementParser()
         translator = MessageTranslator()
         suppressingErrors = false

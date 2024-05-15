@@ -8,6 +8,16 @@ bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
+# Turn on targeted debugging with these -d flags
+# cmd - Command
+# dsp - Dispatcher
+# grp - Group Controller
+# int - Internal Controller
+# mtr - Motor Controller
+# ser - Serial responder
+# sql - Database
+# ter - Terminal
+# These flags turn on components of the app
 # -n - use Network
 # -s - use Serial
-./bertApp -ns ${BERT_HOME}
+./bertApp -ns -dcmd,mtr,ser ${BERT_HOME}
