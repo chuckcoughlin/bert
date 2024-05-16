@@ -52,9 +52,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private var connected: Boolean
     private val dispatcher = service
     private lateinit var serverAddress: InetAddress
-    private lateinit var reader: BufferedReader
-    private lateinit var writer: PrintWriter
-    private var socket: Socket
+    private var reader: BufferedReader?
+    private var writer: PrintWriter?
+    private var socket: Socket?
     private var running: Boolean
     private val host:String
     private val port:Int
@@ -93,11 +93,10 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 socket = Socket(serverAddress, port)
 
                 Log.i(CLSS, String.format("execute: defined client socket on %s", socket.localAddress.hostName))
-                if(!defineReaderWriter(socket)) {
-                    socket.close()
+                if(socket==null || !defineReaderWriter(socket!!)) {
+                    running = false
                     managerState = ERROR
                     dispatcher.reportManagerState(managerType, managerState)
-                    running = false
                 }
                 else {
                     connected = true
@@ -108,8 +107,8 @@ class SocketManager(service:DispatchService): CommunicationManager {
                         connected = readSocket()
                     }
                     Log.i(CLSS,"execute: socket closed")
-                    socket.close()
                 }
+                if(socket!=null) socket.close()
             }
         }
     }
@@ -131,14 +130,13 @@ class SocketManager(service:DispatchService): CommunicationManager {
             }
             catch (ex: Exception) {
                 val reason = String.format("The tablet failed to open a socket for writing due to %s",ex.message)
-                Log.i( CLSS,String.format("defineReaderWriter: ERROR opening socket for write (%s)",
-                    CLSS,ex.message),ex)
+                Log.i( CLSS,String.format("defineReaderWriter: ERROR %s",CLSS,ex.message),ex)
                 dispatcher.logError(managerType,reason)
             }
         }
         catch (ex: Exception) {
             val reason = String.format("The tablet failed to open a socket for reading due to %s",ex.message)
-            Log.i(CLSS,String.format("defineReaderWriter: ERROR opening socket for read (%s)",CLSS,ex.message), ex)
+            Log.i(CLSS,String.format("defineReaderWriter: ERROR %s",CLSS,reason), ex)
             dispatcher.logError(managerType,reason)
         }
         return success
@@ -174,15 +172,17 @@ class SocketManager(service:DispatchService): CommunicationManager {
      */
     @DelicateCoroutinesApi
     fun readSocket(): Boolean  {
-        var text : String? =  reader.readLine()      // Does not include CR
-        if( text!=null ) {
-            Log.i(CLSS, String.format("read: returned: %s.", text))
-            dispatcher.receiveText(text)
-            return true
-        }
-        else {
-            Log.i(CLSS,"received nothing on read. Assume server has stopped.")
-            return false
+        if(reader!=null) {
+            var text: String? = reader.readLine()      // Does not include CR
+            if(text != null) {
+                Log.i(CLSS, String.format("read: returned: %s.", text))
+                dispatcher.receiveText(text)
+                return true
+            }
+            else {
+                Log.i(CLSS, "received nothing on read. Assume server has stopped.")
+                return false
+            }
         }
     }
 
@@ -190,14 +190,16 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * Write plain text to the socket.
      */
     fun writeSocket(text: String) {
-        if( text.isNotBlank()) {
-            Log.i(CLSS, String.format("writeSocket: writing ... %s (%d bytes)",
-                text, text.length + 1))
-            writer.println(text) // Appends new-line
-            writer.flush()
-        }
-        else {
-            Log.i(CLSS, "writeSocket: atempt to write empty string, ignored")
+        if( !socket.isClosed ) {
+            if(text.isNotBlank()) {
+                Log.i(CLSS, String.format("writeSocket: writing ... %s (%d bytes)",
+                    text, text.length + 1))
+                writer.println(text) // Appends new-line
+                writer.flush()
+            }
+            else {
+                Log.i(CLSS, "writeSocket: attempt to write empty string, ignored")
+            }
         }
     }
 
@@ -233,7 +235,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
     init {
         buffer = CharArray(BUFFER_SIZE)
         running  = false
-        socket = Socket()
+        socket   = null
+        reader   = null
+        writer   = null
         connected = false
         job = Job()
         host  = DatabaseManager.getSetting(BertConstants.BERT_HOST_IP)

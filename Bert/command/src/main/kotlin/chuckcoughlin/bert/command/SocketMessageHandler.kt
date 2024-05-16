@@ -81,23 +81,22 @@ class SocketMessageHandler(sock: Socket,cxn:CompletableDeferred<Boolean>)  {
     }
     /**
      * Perform a blocking read as a background thread. The specified socket
-     * connects to the "blueserverd" daemon. We are receiving requests from
-     * the tablet, but have connected as if we were a client.
-     *
-     * Forever ...
+     * connects to the robot which acts as a server. We have connected as
+     * a client.
+     *.
      * 1) Read request from socket
-     * 2) Analyze text and use ANTLR to convert into MessageBottle
-     * 3) Parent sends to the dispatcher
+     * 2) Analyze text and use ANTLR to convert into a MessageBottle
+     * 3) Send to the robot
      *
-     * There is only two kinds of messages (MSG,JSN) that we recognize. Anything
-     * else is an error. Returning an empty string signals loss of the client.
+     * There are only two kinds of messages (MSG,JSN) that result in actions. Anything
+     * else is simply logged. Returning an empty string signals loss of the client.
      * Throw an exception to force closing of the socket.
      */
-    fun receiveRequest() : MessageBottle {
-        var msg: MessageBottle = MessageBottle(RequestType.NONE)
+    fun processRequest() : MessageBottle {
+        var msg = MessageBottle(RequestType.NONE)
         var text: String? = input.readLine() // Strips trailing new-line
         if (text == null || text.isEmpty()) {
-            LOGGER.info(String.format(" received nothing on read. Assume client is closed."))
+            LOGGER.info(String.format("Received nothing on read. Assume client is closed."))
             connected.complete(false)
         }
         else if (text.length > BottleConstants.HEADER_LENGTH) {

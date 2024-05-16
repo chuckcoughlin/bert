@@ -12,17 +12,8 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
 import java.util.logging.Logger
@@ -85,6 +76,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                     val handler = SocketMessageHandler(socket!!, connected)
                     while (!socket.isClosed) {
                         select<MessageBottle> {
+                            /**
+                             * Receive from the Dispatcher
+                             */
                             responseChannel.onReceive() { it ->
                                 if (!it.type.equals(RequestType.NOTIFICATION) &&  // Ignore notifications
                                     !it.type.equals(RequestType.NONE)) {          // Ignore type NONE
@@ -96,10 +90,8 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                              * Read from the tablet via the network. Use ANTLR to convert text into requests.
                              * Forward requests to the Dispatcher launcher.
                              */
-                            handleNetworkInput(handler).onAwait() { it }
-                            /*
-							 * Handle case where connected client disappears
-							 */
+                            receiveNetworkInput(handler).onAwait() { it }
+                            /* Handle case where connected client disappears */
                             connected.onAwait() { it->
                                 if( !it ) {
                                     LOGGER.info(String.format("%s.execute: client disconnected",CLSS))
@@ -129,6 +121,22 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             job.cancel()
         }
     }
+    /**
+     * Read from the network socket, blocked. Use ANTLR to convert text into a message bottle.
+     * async returns  a deferred value.
+     */
+    @DelicateCoroutinesApi
+    fun receiveNetworkInput(handler:SocketMessageHandler): Deferred<MessageBottle> =
+        GlobalScope.async(Dispatchers.IO) {
+            val msg=handler.processRequest()
+            if(isLocalRequest(msg)) {
+                handleLocalRequest(msg)
+            }
+            else {
+                requestChannel.send(msg)
+            }
+            msg
+        }
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
@@ -149,24 +157,6 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         request.text=messageTranslator.randomAcknowledgement()
         return request
     }
-
-    /**
-     * Read from stdin, blocked. Use ANTLR to convert text into a message bottle.
-     * async returns  a deferred value.
-     */
-    @DelicateCoroutinesApi
-    fun handleNetworkInput(handler:SocketMessageHandler): Deferred<MessageBottle> =
-    GlobalScope.async(Dispatchers.IO) {
-        val msg=handler.receiveRequest()
-        if(isLocalRequest(msg)) {
-            handleLocalRequest(msg)
-        }
-        else {
-            requestChannel.send(msg)
-        }
-        msg
-    }
-
 
 
     // Local requests are those that can be handled immediately without forwarding to the dispatcher.
