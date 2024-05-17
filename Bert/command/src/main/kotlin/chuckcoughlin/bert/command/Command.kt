@@ -6,15 +6,25 @@ package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.*
+import chuckcoughlin.bert.speech.process.StatementParser
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import java.awt.SystemColor.text
 import java.net.ServerSocket
 import java.util.logging.Logger
 
@@ -36,15 +46,16 @@ import java.util.logging.Logger
 class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Controller {
     private val host:String
     private val port:Int
-    private val messageTranslator: MessageTranslator
+    private val translator: MessageTranslator
+    private val parser: StatementParser
     private var requestChannel=req    // Dispatcher->Command  (results of user requests)
     private var responseChannel=rsp    // Command->Dispatcher  (requests initiated by user)
 
     @DelicateCoroutinesApi
     private val scope=GlobalScope // For long-running coroutines
-    private var connected: CompletableDeferred<Boolean>
     private var ignoring: Boolean
     private var running: Boolean
+    private var suppressingErrors: Boolean
     private var job: Job
 
     /**
@@ -59,56 +70,70 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     override suspend fun execute(): Unit=coroutineScope {
         if(!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
-            running=true
+            running = true
             /* First connect to the network (always LOCALHOST) */
-            val serverSocket = ServerSocket(port)
-            LOGGER.info(String.format("%s.execute: server socket created on %s (%d)", CLSS,
-                serverSocket.inetAddress.canonicalHostName,serverSocket.localPort))
+            try {
+                val serverSocket = ServerSocket(port)
+                LOGGER.info(String.format("%s.execute: server socket created on %s (%d)", CLSS,
+                    serverSocket.inetAddress.canonicalHostName, serverSocket.localPort))
 
-            /* We can connect with multiple clients, but only one at a time */
-            job=scope.launch(Dispatchers.IO) {
-                while (running) {
-                    LOGGER.info(String.format("%s.execute: waiting to accept client connection ...", CLSS))
-                    val socket = serverSocket.accept()
-                    LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
-                        socket.inetAddress.canonicalHostName, socket.port))
-                    connected = CompletableDeferred<Boolean>(true)
-                    val handler = SocketMessageHandler(socket!!, connected)
-                    while (!socket.isClosed) {
-                        select<MessageBottle> {
-                            /**
-                             * Receive from the Dispatcher
-                             */
-                            responseChannel.onReceive() { it ->
-                                if (!it.type.equals(RequestType.NOTIFICATION) &&  // Ignore notifications
-                                    !it.type.equals(RequestType.NONE)) {          // Ignore type NONE
-                                    handler.sendResponse(it)
+                /* We can connect with multiple clients, but only one at a time */
+                job = scope.launch(Dispatchers.IO) {
+                    while (running) {
+                        LOGGER.info(String.format("%s.execute: waiting to accept client connection ...", CLSS))
+                        try {
+                            val socket = serverSocket.accept()
+                            LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
+                                socket.inetAddress.canonicalHostName, socket.port))
+                            var connected = true
+                            val handler = SocketMessageHandler(socket!!)
+                            while (connected) {
+                                select<Unit> {
+                                    /** Receive from the Dispatcher */
+                                    responseChannel.onReceive() {
+                                        if (!it.type.equals(RequestType.NOTIFICATION) &&  // Ignore notifications
+                                            !it.type.equals(RequestType.NONE)) {          // Ignore type NONE
+                                            connected = handler.sendResponse(it)
+                                        }
+                                    }
+                                    /**
+                                     * Read from the tablet via the network. Use ANTLR to convert text into requests.
+                                     * Forward requests to the Dispatcher launcher.
+                                     */
+                                    handler.receiveNetworkInput().onAwait() {
+                                        if (it != null && it.isNotEmpty()) {
+                                            val msg = processRequest(it)
+                                            if (isLocalRequest(msg)) {
+                                                handleLocalRequest(msg)
+                                            }
+                                            else {
+                                                requestChannel.send(msg)
+                                            }
+                                        }
+                                        else {
+                                            connected = false
+                                        }
+                                    }
                                 }
-                                it
                             }
-                            /**
-                             * Read from the tablet via the network. Use ANTLR to convert text into requests.
-                             * Forward requests to the Dispatcher launcher.
-                             */
-                            receiveNetworkInput(handler).onAwait() { it }
-                            /* Handle case where connected client disappears */
-                            connected.onAwait() { it->
-                                if( !it ) {
-                                    LOGGER.info(String.format("%s.execute: client disconnected",CLSS))
-                                    socket.close()
-                                }
-                                MessageBottle(RequestType.NONE)
-                            }
+                            LOGGER.info(String.format("%s.execute: select complete - wait for new connection", CLSS))
+                            if (!socket.isClosed) socket.close()
                         }
+                        catch(ex:Exception ) {
+                            LOGGER.warning(String.format("%s: Error accepting client connection (%s)", CLSS,port,ex.localizedMessage))
+                            delay(DELAY)
+                        }
+                        delay(DELAY)
                     }
-                    LOGGER.info(String.format("%s.execute: select complete - wait for new connection", CLSS))
-                    if (!socket.isClosed) socket.close()
-                    delay(DELAY)
+                    // No longer running
+                    serverSocket.close()
                 }
-                // No longer running
-                serverSocket.close()
+                LOGGER.info(String.format("%s.execute: Complete ", CLSS))
             }
-            LOGGER.info(String.format("%s.execute: Complete ", CLSS))
+            catch( ex:Exception ) {
+                LOGGER.warning(String.format("%s: Error creating socket server, localhost port %d (%s)", CLSS,port,ex.localizedMessage))
+                running = false
+            }
         }
         else {
             LOGGER.warning(String.format("%s: attempted to start, but already running...", CLSS))
@@ -121,27 +146,75 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             job.cancel()
         }
     }
+
     /**
-     * Read from the network socket, blocked. Use ANTLR to convert text into a message bottle.
-     * async returns  a deferred value.
+     * Analyze text and use ANTLR to convert into a MessageBottle
+     * Send to the dispatcher unless this can be handled locally
+     *
+     * There are only two kinds of messages (MSG,JSN) that result in actions. Anything
+     * else is simply logged. Returning an empty string signals loss of the client.
+     * Throw an exception to force closing of the socket.
      */
-    @DelicateCoroutinesApi
-    fun receiveNetworkInput(handler:SocketMessageHandler): Deferred<MessageBottle> =
-        GlobalScope.async(Dispatchers.IO) {
-            val msg=handler.processRequest()
-            if(isLocalRequest(msg)) {
-                handleLocalRequest(msg)
+    private fun processRequest(txt:String) : MessageBottle {
+        var msg = MessageBottle(RequestType.NONE)
+
+        if (txt.length > BottleConstants.HEADER_LENGTH) {
+            val hdr  = txt.substring(0, BottleConstants.HEADER_LENGTH - 1)
+            val text = txt.substring(BottleConstants.HEADER_LENGTH)
+            if( DEBUG ) LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
+            if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
+                // We've stripped the header now analyze the rest.
+                try {
+                    LOGGER.info(String.format(" parsing %s: %s", hdr,text))
+                    msg = parser.parseStatement(text)
+                }
+                catch (ex: Exception) {
+                    msg = MessageBottle(RequestType.NOTIFICATION)
+                    msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, msg.type.name)
+                }
+            }
+            else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
+                LOGGER.info(String.format(" parsing JSN: %s", text))
+                msg.error = String.format("JSON messages are not recognized from the tablet")
+            }
+            // For now simply log responses from the tablet.
+            else if (hdr.equals(MessageType.ANS.name, ignoreCase = true)) {
+                LOGGER.info(String.format("Tablet ANS: %s",text))
+            }
+            // Simply send tablet log messages to our logger
+            else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
+                LOGGER.info(String.format("Tablet LOG: %s",text))
             }
             else {
-                requestChannel.send(msg)
+                msg = MessageBottle(RequestType.NOTIFICATION)
+                msg.error = String.format("Message has an unrecognized prefix (%s)", hdr)
             }
-            msg
         }
+        else {
+            msg = MessageBottle(RequestType.NOTIFICATION)
+            msg.error = String.format("Received a short message from the tablet (%s)", text)
+        }
+        msg.source = ControllerType.COMMAND.name
+        if (msg.type == RequestType.NOTIFICATION ||
+            msg.type == RequestType.NONE ||
+            msg.type == RequestType.PARTIAL ||
+            !msg.error.equals(BottleConstants.NO_ERROR) ) {
+
+            suppressingErrors = true // Suppress replies to consecutive syntax errors
+            val text: String = translator.messageToText(msg)
+            LOGGER.info(String.format("%s.SuppressedErrorMessage: %s", CLSS, text))
+        }
+        else {
+            suppressingErrors = false
+        }
+        return msg
+    }
+
 
     // We handle the command to sleep and awake immediately.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
         if(request.type.equals(RequestType.COMMAND)) {
-            val command: CommandType=request.command
+            val command: CommandType =request.command
             LOGGER.warning(String.format("%s.handleLocalRequest: command=%s", CLSS, command))
             if(command.equals(CommandType.SLEEP)) {
                 ignoring=true
@@ -154,11 +227,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 request.error=msg
             }
         }
-        request.text=messageTranslator.randomAcknowledgement()
+        request.text=translator.randomAcknowledgement()
         return request
     }
-
-
     // Local requests are those that can be handled immediately without forwarding to the dispatcher.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.COMMAND)) {
@@ -180,10 +251,11 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
-        connected = CompletableDeferred<Boolean>(false)
         ignoring = false
         running = false
-        messageTranslator = MessageTranslator()
+        suppressingErrors = false
+        parser = StatementParser()
+        translator = MessageTranslator()
         host = LOCALHOST
         port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT).toInt()
         LOGGER.info(String.format("%s.init: %s on %s",CLSS,host,port))

@@ -150,7 +150,7 @@ class DispatchService(ctx: Context){
         GlobalScope.launch(Dispatchers.IO) {
             Log.i(CLSS, String.format("receiveSpokenText: %s", text))
             textManager.processText(MessageType.ANS, text)
-            socketManager.writeSocket(String.format("%s:%s", MessageType.ANS.name, text))
+            socketManager.receiveTextToSend(String.format("%s:%s", MessageType.ANS.name, text))
         }
     }
 

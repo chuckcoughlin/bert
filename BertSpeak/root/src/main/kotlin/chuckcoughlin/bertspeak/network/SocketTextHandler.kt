@@ -1,15 +1,11 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.command
 
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageType
-import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.speech.process.MessageTranslator
+import android.util.Log
+import chuckcoughlin.bertspeak.common.MessageType
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +15,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
-import java.util.logging.Logger
 
 /**
  * The SocketMessageHandler handles input/output to/from an Android tablet via
@@ -27,9 +22,8 @@ import java.util.logging.Logger
  * The robot system is the server.
  * @param sock for socket connection
  */
-class SocketMessageHandler(sock: Socket)  {
+class SocketTextHandler(sock: Socket)  {
     private val socket = sock
-    private val translator: MessageTranslator
     private val input: BufferedReader
     private val output: PrintWriter
 
@@ -41,24 +35,19 @@ class SocketMessageHandler(sock: Socket)  {
      * @param response
      * @return true on success
      */
-    fun sendResponse(response: MessageBottle) :Boolean {
+    fun writeSocket(txt: String) :Boolean {
         var success = true
-        var text: String = translator.messageToText(response)
-        text = text.trim { it <= ' ' }
+        var text = txt.trim { it <= ' ' }
         var mtype = MessageType.ANS
-        if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
-            response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
-
-        if(text.isBlank()) text = response.error
         if( text.isNotEmpty()) {
             try {
                 val msgtxt = String.format("%s:%s", mtype.name, text)
-                if( DEBUG ) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
+                if( DEBUG ) Log.i(CLSS,String.format("TABLET WRITE: %s.", msgtxt))
                 output.println(msgtxt)
                 output.flush()
             }
             catch (ex: Exception) {
-                LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+                Log.i(CLSS,String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
                 success = false
             }
         }
@@ -66,32 +55,34 @@ class SocketMessageHandler(sock: Socket)  {
     }
 
     /**
-     * Perform a blocking read. The specified socket is assumed to be connected
-     * to the tablet which is a client to the robot.
+     * The specified socket is assumed to be connected to the robot as a client.
+     * Read a line of text from the socket. The read will block and wait for data
+     * to appear. If we get a null, then close the socket and re-listen
      * @return a deferred value for use in a select() clause.
      */
     @DelicateCoroutinesApi
-    fun receiveNetworkInput(): Deferred<String?> =
+    fun readSocket(): Deferred<String> =
         GlobalScope.async(Dispatchers.IO) {
-            var text: String? = input.readLine() // Strips trailing new-line
-            if (text == null || text.isEmpty()) {
-                LOGGER.info(String.format("Received nothing on read. Assume client is closed."))
+            Log.i(CLSS, String.format("readSocket: reading from socket ..."))
+            val text = input.readLine() // Strips trailing new-line
+            if( text.isEmpty() ) {
+                Log.i(CLSS,"Received nothing on read. Assume client is closed.")
+            }
+            else {
+                if( DEBUG ) Log.i(CLSS,String.format("TABLET READ: %s.", text))
             }
             text
         }
 
-
     private val CLSS = "SocketMessageHandler"
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs
     private val DEBUG: Boolean
-    private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        translator = MessageTranslator()
-        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
+        DEBUG = true
         input = BufferedReader(InputStreamReader(socket.getInputStream()))
-        LOGGER.info(String.format("%s.startup: opened socket for read",CLSS))
+        Log.i(CLSS,"init: opened socket for read")
         output = PrintWriter(socket.getOutputStream(), true)
-        LOGGER.info(String.format("%s.startup: opened socket for write",CLSS))
+        Log.i(CLSS,"init: opened socket for write")
     }
 }
