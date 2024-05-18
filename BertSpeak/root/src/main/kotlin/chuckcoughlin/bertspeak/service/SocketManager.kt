@@ -16,12 +16,11 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.InetAddress
 import java.net.Socket
 
@@ -35,20 +34,22 @@ import java.net.Socket
  * "shutdown". Change listeners are notified (in a separate Thread) when the
  * socket is "ready".
  *
- * @param handler the parent fragment
+ * @param service the dispatcher
 */
 class SocketManager(service:DispatchService): CommunicationManager {
     override val managerType = ManagerType.SOCKET
     override var managerState = ManagerState.OFF
     private val buffer: CharArray
     private val dispatcher = service
+    private var handler : SocketTextHandler?
     private lateinit var serverAddress: InetAddress
-    private var textToSend: CompletableDeferred<String>
     private var socket: Socket?
     private var running: Boolean
     private val host:String
     private val port:Int
-    private var job: Job
+    private var readjob: Job
+    private var writejob: Job
+    private val writeChannel: Channel<String>
 
 
     /* On start, the manager connects to the remote robot host
@@ -74,57 +75,64 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * and robot.
      */
     @DelicateCoroutinesApi
-     fun execute(): Unit {
+    fun execute() {
         Log.i(CLSS, String.format("execute: connecting to %s on %d",host,port))
-        job = GlobalScope.launch(Dispatchers.IO) {
-            while(running) {
-                managerState = PENDING
-                dispatcher.reportManagerState(managerType, managerState)
-                try {
-                    socket = Socket(serverAddress, port)
-                    Log.i(CLSS,String.format("execute: defined client socket for %s %d",serverAddress.hostName,port))
-                    var connected = true
-                    val handler = SocketTextHandler(socket!!)
-                    managerState = ACTIVE
-                    dispatcher.reportManagerState(managerType, managerState)
-                    while (connected) {
-                        select<Unit> {
-                            handler.readSocket().onAwait() {
-                                Log.i(CLSS,"readSocket returned")
-                                if(it.isNotEmpty()) {
-                                    dispatcher.receiveText(it)
-                                }
-                                else {
-                                    connected = false
-                                }
-                            }
-                            textToSend.onAwait() {
-                                connected = handler.writeSocket(it)
-                            }
+        while(running) {
+            managerState = PENDING
+            dispatcher.reportManagerState(managerType, managerState)
+            try {
+                socket = Socket(serverAddress, port)
+                Log.i(CLSS,String.format("execute: defined client socket for %s %d",serverAddress.hostName,port))
+                var connected = true
+                val handler = SocketTextHandler(socket!!)
+                readjob = GlobalScope.launch(Dispatchers.IO) {
+                    while(connected) {
+                        val text = handler.readSocket()
+                        if( text==null || text.isEmpty() ) {
+                            connected = false
+                            handler.close()
+                            Log.i(CLSS, "execute: socket closed")
+                        }
+                        else {
+                            Log.i(CLSS, String.format("execute: read socket returned %s", text))
+                            dispatcher.receiveText(text)
                         }
                     }
-                    Log.i(CLSS, "execute: socket closed")
-                    socket!!.close()
                 }
-                catch(ex:Exception) {
-                    Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",serverAddress.hostName,port,ex.localizedMessage))
-                    managerState = ERROR
-                    dispatcher.reportManagerState(managerType, managerState)
+                writejob = GlobalScope.launch(Dispatchers.IO) {
+                    while(connected) {
+                        val text = writeChannel.receive()
+                        handler.writeSocket(text)
+                        Log.i(CLSS, "writeSocket returned")
+                    }
                 }
-                delay(CLIENT_ATTEMPT_INTERVAL)
+                managerState = ACTIVE
+                dispatcher.reportManagerState(managerType, managerState)
+            }
+            catch(ex:Exception) {
+                Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",serverAddress.hostName,port,ex.localizedMessage))
+                managerState = ERROR
+                dispatcher.reportManagerState(managerType, managerState)
             }
         }
     }
 
-    fun receiveTextToSend(text:String) {
-        textToSend.complete(text)
+
+    suspend fun receiveTextToSend(text:String) {
+        writeChannel.send(text)
     }
     /**
      * Close IO streams.
      */
     override fun stop() {
+        if( handler!=null ) {
+            handler!!.close()
+            handler = null
+        }
+        if(socket!=null && !socket!!.isClosed) socket!!.close()
         if( running ) {
-            job.cancel()
+            readjob.cancel()
+            writejob.cancel()
         }
         managerState = ManagerState.OFF
         dispatcher.reportManagerState(managerType, managerState)
@@ -139,9 +147,11 @@ class SocketManager(service:DispatchService): CommunicationManager {
         buffer = CharArray(BUFFER_SIZE)
         running  = false
         socket   = null
-        textToSend = CompletableDeferred<String>("")
-        job = Job()
+        handler  = null
+        readjob = Job()
+        writejob = Job()
         host  = DatabaseManager.getSetting(BertConstants.BERT_HOST_IP)
         port  = DatabaseManager.getSetting(BertConstants.BERT_PORT).toInt()
+        writeChannel = Channel<String>()
     }
 }

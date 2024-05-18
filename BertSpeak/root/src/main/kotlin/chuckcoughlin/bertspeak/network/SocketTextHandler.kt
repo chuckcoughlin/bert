@@ -36,7 +36,7 @@ class SocketTextHandler(sock: Socket)  {
      * @return true on success
      */
     fun writeSocket(txt: String) :Boolean {
-        var success = true
+        var success:Boolean = true
         var text = txt.trim { it <= ' ' }
         var mtype = MessageType.ANS
         if( text.isNotEmpty()) {
@@ -60,19 +60,24 @@ class SocketTextHandler(sock: Socket)  {
      * to appear. If we get a null, then close the socket and re-listen
      * @return a deferred value for use in a select() clause.
      */
-    @DelicateCoroutinesApi
-    fun readSocket(): Deferred<String> =
-        GlobalScope.async(Dispatchers.IO) {
-            Log.i(CLSS, String.format("readSocket: reading from socket ..."))
-            val text = input.readLine() // Strips trailing new-line
-            if( text.isEmpty() ) {
-                Log.i(CLSS,"Received nothing on read. Assume client is closed.")
-            }
-            else {
-                if( DEBUG ) Log.i(CLSS,String.format("TABLET READ: %s.", text))
-            }
-            text
+    fun readSocket(): String? {
+        Log.i(CLSS, String.format("readSocket: reading from socket ..."))
+        val text = input.readLine() // Strips trailing new-line
+        if( text==null || text.isEmpty() ) {
+            Log.i(CLSS,"Received nothing on read. Assume client is closed.")
         }
+        else {
+            if( DEBUG ) Log.i(CLSS,String.format("TABLET READ: %s.", text))
+        }
+        return text
+    }
+
+    fun close() {
+        input.close()
+        output.close()
+
+    }
+
 
     private val CLSS = "SocketMessageHandler"
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs

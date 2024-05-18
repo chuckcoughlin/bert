@@ -4,22 +4,17 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.content.Context
-import android.content.Context.AUDIO_SERVICE
 import android.media.AudioManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.getSystemService
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.db.DatabaseManager
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.restoreAudio
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.suppressAudio
 import chuckcoughlin.bertspeak.speech.Annunciator
 import kotlinx.coroutines.DelicateCoroutinesApi
 import java.lang.NumberFormatException
@@ -73,7 +68,7 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 			Log.i(CLSS, "onInit: TextToSpeech initialized ...")
 			val txt = selectRandomText()
 			annunciator.speak(txt, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
-			dispatcher.receiveSpokenText(txt)
+			dispatcher.processSpokenText(txt)
 		}
 		else {
 			Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status))

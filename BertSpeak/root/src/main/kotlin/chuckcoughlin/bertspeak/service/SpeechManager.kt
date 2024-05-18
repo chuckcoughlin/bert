@@ -153,7 +153,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, RecognitionL
 			if( !matches.isEmpty()) {
 				var text = matches[0]
 				text = scrubText(text)
-				dispatcher.receiveSpokenText(text)
+				dispatcher.processSpokenText(text)
 			}
 		}
 		listening = false

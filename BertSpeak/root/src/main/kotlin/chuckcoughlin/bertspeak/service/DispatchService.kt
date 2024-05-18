@@ -6,7 +6,6 @@ package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
@@ -146,9 +145,9 @@ class DispatchService(ctx: Context){
      * to any observers.
      */
     @OptIn(DelicateCoroutinesApi::class)
-    fun receiveSpokenText(text: String) {
+    fun processSpokenText(text: String) {
         GlobalScope.launch(Dispatchers.IO) {
-            Log.i(CLSS, String.format("receiveSpokenText: %s", text))
+            Log.i(CLSS, String.format("processSpokenText: %s", text))
             textManager.processText(MessageType.ANS, text)
             socketManager.receiveTextToSend(String.format("%s:%s", MessageType.ANS.name, text))
         }

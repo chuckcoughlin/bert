@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  * This class should be identical in both Linux and Android worlds.
  */
@@ -13,7 +13,7 @@ package chuckcoughlin.bert.common.message
 enum class MessageType {
     ANS,  // Reply from the robot. The tablet should "speak" the contents
     JSN,  // Data from the robot in JSON format
-    LOG,  // A system message meant to be appended to the "Log" panel.
+    LOG,  // A system message meant to be appended to the log file.
     MSG   // Request or query from the tablet, plain english
     ;
 

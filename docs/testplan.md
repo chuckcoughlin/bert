@@ -27,11 +27,13 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
 - [x] bert-standalone: Run the robot code from the command line. (Cannot be run simultaneously with daemon).
 * ![gray](/images/ball_gray.png) ``Test Applications``  - Test features independent of the robot
 application.
-- [x] bert-client: Connect via sockets to a running version of the robot. Type commands, receive responses.
-interface for interactive testing.
 - [x] dxl_scan: Show ids of all connected DXM controllers.
 - [x] dxl_read: Read parameters of a servo motor.
 - [x] dxl_write: Set volatile values for a given motor.
+- [x] test-client: Connect via sockets to a running version of the robot. Type commands, receive responses.
+interface for interactive testing.
+- [x] test-server: Allow the tablet client to connect via sockets to a mock version of the robot. Accept commands, send responses.
+interface for interactive testing.
 
 ### b - Configuration <a id="configuration"></a>
 This section contains tests that validate the wiring and addressing of stepper motors,
