@@ -21,23 +21,32 @@ class server():
             print('Created server on port '+str(self.port))
             server_socket.bind((self.host, self.port))
             server_socket.listen()
-            client,addr = server_socket.accept()
-            with client:
-                print("   accepted client connection")
+            try:
+                client,addr = server_socket.accept()
+                print("  accepted client connection")
+                print('  receive a message of form: MSG:text, then send ANS:response')
                 while True:
                     data = client.recv(1024)
                     if not data:
                         break
                     msg = data.decode()
                     print('Received: ' + msg)  # show in terminal
+                    # An empty message will be skipped
                     message = input("robot: ")  # take input
                     if message.lower().strip() == 'q' or message.lower().strip() == 'quit':
                         break
-                    client.send(message.encode())  # send message
+                    elif len(message)>0:
+                        client.send(message.encode())  # send message
+
+            except Exception as ex:
+                print( "Exception reading ("+str(ex)+")")
+            finally:
                 client.close()
-            server_socket.close()  # close the connection
+
         except Exception as ex:
             print( "Failed to accept connection ("+str(ex)+")")
+        finally:
+            server_socket.close()  # close the connection
 
 def main():
     app = server()

@@ -22,7 +22,8 @@ class client():
 
     def execute(self):
         client_socket = socket.socket()  # instantiate
-        print('Connecting to '+self.host+' ('+str(self.port)+')')
+        print('  connecting to '+self.host+' ('+str(self.port)+')')
+        print('  send message of form: MSG:text, then wait for response')
         try:
             client_socket.connect((self.host, self.port))  # connect to the server
 
@@ -38,6 +39,7 @@ class client():
             client_socket.close()  # close the connection
         except Exception as ex:
             print( "Failed to connnect ("+str(ex)+")")
+
 def main():
     if len(sys.argv)<2 :
         host = "127.0.0.1"
