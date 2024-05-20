@@ -6,23 +6,13 @@ package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.awt.SystemColor.text
 import java.net.ServerSocket
@@ -57,6 +47,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     private var running: Boolean
     private var suppressingErrors: Boolean
     private var job: Job
+    private val startupPhrases: Array<String>
 
     /**
      * While running, read from the network (i.e. the tablet) and forward
@@ -103,11 +94,14 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                                     handler.receiveNetworkInput().onAwait() {
                                         if (it != null && it.isNotEmpty()) {
                                             val msg = processRequest(it)
-                                            if (isLocalRequest(msg)) {
-                                                handleLocalRequest(msg)
-                                            }
-                                            else {
-                                                requestChannel.send(msg)
+                                            // Ignore non-commands/requests
+                                            if( !msg.type.equals(RequestType.NONE)) {
+                                                if(isLocalRequest(msg)) {
+                                                    handleLocalRequest(msg)
+                                                }
+                                                else {
+                                                    requestChannel.send(msg)
+                                                }
                                             }
                                         }
                                         else {
@@ -241,6 +235,19 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         return false
     }
 
+    /** Send a startup message directly to the socket **/
+    fun sendStartupMessage(handler:SocketMessageHandler) {
+        val text = String.format("%s:%s",MessageType.ANS.name,selectRandomText())
+        handler.sendText(text)
+    }
+
+    /** @return a random startup phrase from the list. */
+    private fun selectRandomText(): String {
+        val rand = Math.random()
+        val index = (rand * startupPhrases.size).toInt()
+        return startupPhrases[index]
+    }
+
     private val CLSS = "Command"
     private val DELAY = 2000L
     private val DEBUG: Boolean
@@ -260,5 +267,15 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT).toInt()
         LOGGER.info(String.format("%s.init: %s on %s",CLSS,host,port))
         job = Job()
+        // Start phrases to choose from ...
+        startupPhrases = arrayOf(
+                "Bert is ready",
+                "Speak to me",
+                "I am ready for commands",
+                "I am at your service",
+                "Marj I am ready",
+                "Marj speak to me",
+                "Marj command me"
+        )
     }
 }

@@ -10,11 +10,7 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -80,6 +76,11 @@ class SocketMessageHandler(sock: Socket)  {
             text
         }
 
+    /* Send text directly to the socket */
+    fun sendText(text:String) {
+        output.println(text)
+        output.flush()
+    }
 
     private val CLSS = "SocketMessageHandler"
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs

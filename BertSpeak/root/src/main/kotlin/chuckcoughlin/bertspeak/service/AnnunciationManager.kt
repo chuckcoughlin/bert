@@ -33,7 +33,6 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 	val dispatcher: DispatchService
 	var annunciator: Annunciator
 	private val audio: AudioManager
-	private val phrases: Array<String>
 	private var vol :Int   // Current volume
 
 	override fun start() {
@@ -45,12 +44,6 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 		annunciator.stop()
 	}
 
-	/** @return a random startup phrase from the list. */
-	private fun selectRandomText(): String {
-		val rand = Math.random()
-		val index = (rand * phrases.size).toInt()
-		return phrases[index]
-	}
 	// ===================== OnInitListener ==========================
 	override fun onInit(status: Int) {
 		if(status == TextToSpeech.SUCCESS) {
@@ -66,9 +59,6 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 			annunciator.setPitch(1.6f)      //Default＝1.0
 			annunciator.setSpeechRate(1.0f) // Default=1.0
 			Log.i(CLSS, "onInit: TextToSpeech initialized ...")
-			val txt = selectRandomText()
-			annunciator.speak(txt, TextToSpeech.QUEUE_FLUSH, null, UTTERANCE_ID)
-			dispatcher.processSpokenText(txt)
 		}
 		else {
 			Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status))
@@ -150,14 +140,5 @@ class AnnunciationManager(service:DispatchService): CommunicationManager, TextTo
 			Log.i(CLSS,"init - volume in database was not an integer")
 			vol = 50
 		}
-		// Start phrases to choose from ...
-		phrases = arrayOf(
-			"My speech module is ready",
-			"The speech connection is enabled",
-			"I am ready for voice commands",
-			"The speech controller is ready",
-			"Marj I am ready",
-			"Marj speak to me"
-		)
 	}
 }
