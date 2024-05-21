@@ -21,20 +21,23 @@ class client():
         self.port = 11046      # socket server port number
 
     def execute(self):
-        client_socket = socket.socket()  # instantiate
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # instantiate
         print('  connecting to '+self.host+' ('+str(self.port)+')')
+        print('  receive an initial message then ')
         print('  send message of form: MSG:text, then wait for response')
         try:
             client_socket.connect((self.host, self.port))  # connect to the server
-
-            message = input("tablet: ")  # take input
-
+            data = client_socket.recv(1024).decode()  # receive greeting
+            print('Received: ' + data)    # show in terminal
+            message = input(" tablet: ")  # take input
             while message.lower().strip() != 'q' and message.lower().strip() != 'quit':
-                client_socket.send(message.encode())  # send message
+                message+='\n'
+                client_socket.sendall(message.encode())  # send message
                 if len(message)>3 and message[0:3]=='MSG':
                     data = client_socket.recv(1024).decode()  # receive response
                     print('Received: ' + data)    # show in terminal
                 message = input(" tablet: ")  # again read input
+                message+='\n'
 
             client_socket.close()  # close the connection
         except Exception as ex:

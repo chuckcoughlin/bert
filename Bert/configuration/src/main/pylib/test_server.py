@@ -24,7 +24,10 @@ class server():
             try:
                 client,addr = server_socket.accept()
                 print("  accepted client connection")
+                print("  send an initial greeting, then")
                 print('  receive a message of form: MSG:text, then send ANS:response')
+                message = "Connected to mock robot\n"
+                client.send(message.encode())
                 while True:
                     data = client.recv(1024)
                     if not data:
@@ -36,6 +39,7 @@ class server():
                     if message.lower().strip() == 'q' or message.lower().strip() == 'quit':
                         break
                     elif len(message)>0:
+                        message +='\n'
                         client.send(message.encode())  # send message
 
             except Exception as ex:

@@ -33,7 +33,7 @@ class Terminal(stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : C
     private val parser: StatementParser
     private val translator: MessageTranslator
     private var stdinChannel  = stdin    // Terminal->Dispatcher  (user requests)
-    private var stdoutChannel = stdout  // Dispatcher->Terminal  (dispatcher response for display)
+    private var stdoutChannel = stdout   // Dispatcher->Terminal  (dispatcher response for display)
     private var prompt: String
 
     @DelicateCoroutinesApi

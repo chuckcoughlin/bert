@@ -7,8 +7,10 @@
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/SocketMessageHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/SocketMessageHandler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/AnnunciationManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/AnnunciationManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/pylib/test_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/pylib/test_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/pylib/test_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/pylib/test_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/terminal/src/main/kotlin/chuckcoughlin/bert/term/controller/Terminal.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

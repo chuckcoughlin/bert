@@ -6,13 +6,23 @@ package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.awt.SystemColor.text
 import java.net.ServerSocket
@@ -38,8 +48,8 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     private val port:Int
     private val translator: MessageTranslator
     private val parser: StatementParser
-    private var requestChannel=req    // Dispatcher->Command  (results of user requests)
-    private var responseChannel=rsp    // Command->Dispatcher  (requests initiated by user)
+    private var requestChannel=req     // Command->Dispatcher  (requests initiated by user)
+    private var responseChannel=rsp    // Dispatcher->Command  (results of user requests)
 
     @DelicateCoroutinesApi
     private val scope=GlobalScope // For long-running coroutines
@@ -47,7 +57,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     private var running: Boolean
     private var suppressingErrors: Boolean
     private var job: Job
-    private val startupPhrases: Array<String>
+    var startMessage = "Starting ..."
 
     /**
      * While running, read from the network (i.e. the tablet) and forward
@@ -62,6 +72,10 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         if(!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
+            /* There should be a start message in the channel - but instead this hangs */
+            //val startmsg = responseChannel.receive()
+            //startMessage = startmsg.text
+
             /* First connect to the network (always LOCALHOST) */
             try {
                 val serverSocket = ServerSocket(port)
@@ -78,6 +92,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                                 socket.inetAddress.canonicalHostName, socket.port))
                             var connected = true
                             val handler = SocketMessageHandler(socket!!)
+                            sendStartupMessage(handler)
                             while (connected) {
                                 select<Unit> {
                                     /** Receive from the Dispatcher */
@@ -94,12 +109,15 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                                     handler.receiveNetworkInput().onAwait() {
                                         if (it != null && it.isNotEmpty()) {
                                             val msg = processRequest(it)
+                                            LOGGER.info(String.format("%s.execute: received from socket (%s)", CLSS,msg.type.name))
                                             // Ignore non-commands/requests
-                                            if( !msg.type.equals(RequestType.NONE)) {
+                                            if( !msg.type.equals(RequestType.NONE) &&
+                                                !msg.type.equals(RequestType.NOTIFICATION) ) {
                                                 if(isLocalRequest(msg)) {
                                                     handleLocalRequest(msg)
                                                 }
                                                 else {
+                                                    LOGGER.info(String.format("%s.execute: sending to dispatcher (%s)", CLSS,msg.type.name))
                                                     requestChannel.send(msg)
                                                 }
                                             }
@@ -159,8 +177,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
                 // We've stripped the header now analyze the rest.
                 try {
-                    LOGGER.info(String.format(" parsing %s: %s", hdr,text))
+                    if(DEBUG) LOGGER.info(String.format(" parsing %s: %s", hdr,text))
                     msg = parser.parseStatement(text)
+                    if(DEBUG) LOGGER.info(String.format(" returned %s: %s (%s)", msg.type.name,msg.text,msg.error))
                 }
                 catch (ex: Exception) {
                     msg = MessageBottle(RequestType.NOTIFICATION)
@@ -189,17 +208,18 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             msg.error = String.format("Received a short message from the tablet (%s)", text)
         }
         msg.source = ControllerType.COMMAND.name
-        if (msg.type == RequestType.NOTIFICATION ||
-            msg.type == RequestType.NONE ||
-            msg.type == RequestType.PARTIAL ||
-            !msg.error.equals(BottleConstants.NO_ERROR) ) {
+        if( msg.type == RequestType.NONE ) { // NONE simply doesn't get processed
+            if (msg.type == RequestType.NOTIFICATION ||
+                msg.type == RequestType.PARTIAL ||
+                !msg.error.equals(BottleConstants.NO_ERROR)) {
 
-            suppressingErrors = true // Suppress replies to consecutive syntax errors
-            val text: String = translator.messageToText(msg)
-            LOGGER.info(String.format("%s.SuppressedErrorMessage: %s", CLSS, text))
-        }
-        else {
-            suppressingErrors = false
+                suppressingErrors = true // Suppress replies to consecutive syntax errors
+                val text: String = translator.messageToText(msg)
+                LOGGER.info(String.format("%s.SuppressedErrorMessage: %s", CLSS, text))
+            }
+            else {
+                suppressingErrors = false
+            }
         }
         return msg
     }
@@ -237,15 +257,8 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
     /** Send a startup message directly to the socket **/
     fun sendStartupMessage(handler:SocketMessageHandler) {
-        val text = String.format("%s:%s",MessageType.ANS.name,selectRandomText())
+        val text = String.format("%s:%s",MessageType.ANS.name,startMessage)
         handler.sendText(text)
-    }
-
-    /** @return a random startup phrase from the list. */
-    private fun selectRandomText(): String {
-        val rand = Math.random()
-        val index = (rand * startupPhrases.size).toInt()
-        return startupPhrases[index]
     }
 
     private val CLSS = "Command"
@@ -267,15 +280,5 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT).toInt()
         LOGGER.info(String.format("%s.init: %s on %s",CLSS,host,port))
         job = Job()
-        // Start phrases to choose from ...
-        startupPhrases = arrayOf(
-                "Bert is ready",
-                "Speak to me",
-                "I am ready for commands",
-                "I am at your service",
-                "Marj I am ready",
-                "Marj speak to me",
-                "Marj command me"
-        )
     }
 }

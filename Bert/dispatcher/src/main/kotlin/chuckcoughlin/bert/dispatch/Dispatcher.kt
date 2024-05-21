@@ -49,13 +49,13 @@ class Dispatcher(s:Solver) : Controller {
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (wifi)
     private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (wifi)
     private val fromInternalController     : Channel<MessageBottle>    // Internal (i.e. local)  controller
-    private val toInternalController    : Channel<MessageBottle>
+    private val toInternalController       : Channel<MessageBottle>
     private val mgcRequestChannel          : Channel<MessageBottle>    // Motor group controller
     private val mgcResponseChannel         : Channel<MessageBottle>
     private val stdinChannel               : Channel<MessageBottle>    // Requests from stdin
     private val stdoutChannel              : Channel<MessageBottle>    // Responses to stdout
     // Controllers
-    private val commandController   : Controller
+    private val commandController   : Command
     private var internalController  : InternalController
     private val motorGroupController: MotorGroupController
     private var terminalController: Terminal
@@ -118,8 +118,8 @@ class Dispatcher(s:Solver) : Controller {
                             dispatchInternalResponse(it)
                         }
                         // The Command response channel contains requests that originate on the connected app (tablet)
-                        commandResponseChannel.onReceive {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: commandResponseChannel receive %s(%s) from %s",
+                        commandRequestChannel.onReceive {
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: commandRequestChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
                             dispatchCommandResponse(it)
                         }
@@ -509,7 +509,7 @@ class Dispatcher(s:Solver) : Controller {
         LOGGER.info(String.format("%s.reportStartup: Bert is ready ... (from %s)", CLSS, ControllerType.DISPATCHER.name))
         startMessage.source = ControllerType.DISPATCHER.name
         if(RobotModel.useTerminal) stdoutChannel.send(startMessage)
-        if(RobotModel.useNetwork) commandRequestChannel.send(startMessage)
+        if(RobotModel.useNetwork)  commandController.startMessage = startMessage.text  // Would be better to use channel
     }
     private fun exponentiallyWeightedMovingAverage(currentValue: Double,previousValue: Double): Double {
         return (1.0 - WEIGHT) * currentValue + WEIGHT * previousValue
@@ -536,7 +536,12 @@ class Dispatcher(s:Solver) : Controller {
         "At your command",
         "Ready",
         "I'm listening",
-        "Speak your wishes"
+        "Speak your wishes",
+        "Bert is ready for commands",
+        "Bert is at your service",
+        "Marj I am ready",
+        "Marj speak to me",
+        "Marj command me"
     )
 
     private val CLSS = "Dispatcher"
