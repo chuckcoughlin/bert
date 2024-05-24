@@ -21,12 +21,12 @@ class server():
             print('Created server on port '+str(self.port))
             server_socket.bind((self.host, self.port))
             server_socket.listen()
+            client,addr = server_socket.accept()
+            print("  accepted client connection")
+            print("  send an initial greeting, then")
+            print('  receive a message of form: MSG:text, then send ANS:response')
+            message = "Connected to mock robot\n"
             try:
-                client,addr = server_socket.accept()
-                print("  accepted client connection")
-                print("  send an initial greeting, then")
-                print('  receive a message of form: MSG:text, then send ANS:response')
-                message = "Connected to mock robot\n"
                 client.send(message.encode())
                 while True:
                     data = client.recv(1024)

@@ -5,7 +5,7 @@
 package chuckcoughlin.bertspeak.service
 
 import android.util.Log
-import chuckcoughlin.bert.command.SocketTextHandler
+import chuckcoughlin.bertspeak.network.SocketTextHandler
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
@@ -16,8 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -42,7 +40,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private val dispatcher = service
     private var handler : SocketTextHandler?
     private lateinit var serverAddress: SocketAddress
-    private lateinit var socket: Socket
+    private var socket: Socket
     private var running: Boolean
     private val host:String
     private val port:Int
@@ -58,8 +56,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
     override fun start() {
         Log.i(CLSS, "start ...")
         serverAddress = InetSocketAddress(host,port)
-        socket = Socket()
-        //socket.keepAlive = true
         running = true
         execute()
     }
@@ -77,8 +73,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
             var connected = true
             try {
                 Log.i(CLSS,String.format("execute: defined client socket for %s %d",host,port))
-                val handler = SocketTextHandler(socket)
+                socket = Socket()
                 socket.connect(serverAddress,CONNECTION_TIMEOUT)
+                val handler = SocketTextHandler(socket)
                 readjob = GlobalScope.launch(Dispatchers.IO) {
                     while(connected) {
                         val text = handler.readSocket()
@@ -146,6 +143,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     init {
         buffer = CharArray(BUFFER_SIZE)
         running  = false
+        socket   = Socket()
         handler  = null
         readjob = Job()
         writejob = Job()

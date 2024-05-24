@@ -2,7 +2,7 @@
  * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.command
+package chuckcoughlin.bertspeak.network
 
 import android.util.Log
 import chuckcoughlin.bertspeak.common.MessageType
@@ -79,7 +79,7 @@ class SocketTextHandler(sock: Socket)  {
     }
 
 
-    private val CLSS = "SocketMessageHandler"
+    private val CLSS = "SocketTextHandler"
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs
     private val DEBUG: Boolean
 
