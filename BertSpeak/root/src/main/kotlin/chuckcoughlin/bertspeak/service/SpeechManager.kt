@@ -4,219 +4,142 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.content.Intent
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
+import android.media.AudioManager
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import android.util.Log
-import chuckcoughlin.bertspeak.service.ManagerState.OFF
+import androidx.core.content.getSystemService
+import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.common.NameValue
+import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.db.DatabaseManager
+import chuckcoughlin.bertspeak.speech.Annunciator
+import kotlinx.coroutines.DelicateCoroutinesApi
+import java.lang.NumberFormatException
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
- * Analyze spoken input to the application.
- * Note that the speech recognizer must run on the main UI thread.
- * This manager gets started and stopped with the need for speech recognition.
+ * Handle the audible annunciation of results to the user. Text-to-speech.
+ * The speech components must execute on the main thread
+ * (and not in the service).
  */
-class SpeechManager(service:DispatchService): CommunicationManager, RecognitionListener {
+class SpeechManager(service:DispatchService): CommunicationManager, TextToSpeech.OnInitListener {
 	override val managerType = ManagerType.SPEECH
 	override var managerState = ManagerState.OFF
-	val dispatcher = service
-	private lateinit var sr: SpeechRecognizer
-	private var recognizerIntent: Intent
-	private var listening:Boolean
+	val dispatcher: DispatchService
+	var annunciator: Annunciator
+	private val audio: AudioManager
+	private var vol :Int   // Current volume
 
-	/** Must run on main thread */
 	override fun start() {
-		if( !SpeechRecognizer.isRecognitionAvailable(dispatcher.context) ) {
-			Log.w(CLSS, "start: ERROR (speech recognition is not supported on this device)")
-			dispatcher.reportManagerState(ManagerType.SPEECH,ManagerState.ERROR)
+		Log.i(CLSS, String.format("start: "))
+		annunciator.setOnUtteranceProgressListener(UtteranceListener())
+	}
+
+	override fun stop() {
+		annunciator.stop()
+	}
+
+	// ===================== OnInitListener ==========================
+	override fun onInit(status: Int) {
+		if(status == TextToSpeech.SUCCESS) {
+			val voices: Set<Voice> = annunciator.voices
+			for(v in voices) {
+				if(v.name.equals("en-GB-SMTm00", ignoreCase = true)) {
+					Log.i(CLSS, String.format("onInit: voice = %s %d",
+						v.name, v.describeContents()))
+					annunciator.voice = v
+				}
+			}
+			annunciator.language = Locale.UK
+			annunciator.setPitch(1.6f)      //Default＝1.0
+			annunciator.setSpeechRate(1.0f) // Default=1.0
+			Log.i(CLSS, "onInit: TextToSpeech initialized ...")
+			managerState = ManagerState.ACTIVE
 		}
 		else {
-			if( SpeechRecognizer.isOnDeviceRecognitionAvailable(dispatcher.context) ) {
-				Log.i(CLSS, "start: speechRecognizer is on-device")
-				sr = SpeechRecognizer.createOnDeviceSpeechRecognizer(dispatcher.context)
+			Log.e(CLSS, String.format("onInit: TextToSpeech ERROR - %d", status))
+			managerState = ManagerState.ERROR
+		}
+		dispatcher.reportManagerState(managerType,managerState)
+	}
+	// Annunciate the supplied text.
+	// Turn off the audio when not in use.
+	@Synchronized
+	fun speak(msg: TextData) {
+		if( managerState.equals(ManagerState.ACTIVE)) {
+			if(msg.messageType == MessageType.ANS) {
+				restoreAudio(vol)
+				annunciator.speak(msg.message)
+				suppressAudio()
 			}
-			else  {
-				Log.i(CLSS, "start: speechRecognizer is off-device")
-				sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
-			}
-			sr.setRecognitionListener(this)
-			managerState = OFF
-			dispatcher.reportManagerState(ManagerType.SPEECH,managerState)
 		}
 	}
 
+	// ================= UtteranceProgressListener ========================
+	// Use this to suppress feedback with analyzer while we're speaking
+	inner class UtteranceListener: UtteranceProgressListener() {
+		@OptIn(DelicateCoroutinesApi::class)
+		override fun onDone(utteranceId: String) {
+			dispatcher.startSpeech()
+		}
+
+		override fun onError(utteranceId: String) {
+			Log.e(CLSS, String.format("onError UtteranceListener ERROR - %s", utteranceId))
+		}
+
+		@OptIn(DelicateCoroutinesApi::class)
+		override fun onStart(utteranceId: String) {
+			dispatcher.stopSpeech()
+		}
+	}
+	fun restoreAudio() {
+		val pcnt = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toDouble()
+		val maxVol = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+		val vol = ((maxVol*pcnt)/100.0).roundToInt()
+		restoreAudio(vol)
+	}
+	private fun restoreAudio(v:Int) {
+		audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL, v, 0);
+	}
 	/**
-	 * Must run on main thread
+	 * Set the voice stream volume.
+	 * @param pcnt - volume percent of maximum (0-100)
 	 */
-	override fun stop() {
-		Log.i(CLSS, "Stop ...")
-		stopListening()
-		try {
-			sr.destroy()
-		}
-		catch(iae:IllegalArgumentException) {
-			// Happens in emulator
-			Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
-		}
+	fun setVolume(pcnt:Int) {
+		Log.i(CLSS, String.format("setVolume %d", pcnt))
+		val maxVol = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+		val vol = ((maxVol*pcnt)/100.0).roundToInt()
+		val nv = NameValue(BertConstants.BERT_VOLUME,pcnt.toString())
+		DatabaseManager.updateSetting(nv)
+		audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL,vol,AudioManager.FLAG_PLAY_SOUND)
 	}
-
-	/* Delay before we start listening to avoid feedback loop
-	 * with spoken response. Note this will be cut short by
-	 * a listener on the text-to-speech component.
-	 */
-	fun startListening() {
-		if(!listening) {
-			Log.i(CLSS, "Start listening ...")
-			sr.startListening(recognizerIntent)
-		}
-		listening = true
-	}
-	/* There is very little need for this. It should only
-	 * be called if speech is in progress
-	 */
-	fun stopListening() {
-		if( listening ) {
-			Log.i(CLSS, "Stop listening ...")
-			sr.stopListening()
-		}
-		listening = false
-	}
-
-	/*
-	 * Toggle through the three non-error states.
-	 */
-	fun toggleSpeechState() {
-		if( managerState == ManagerState.OFF) {
-			managerState = ManagerState.PENDING
-			startListening()
-		}
-		else if( managerState==ManagerState.PENDING) {
-			managerState = ManagerState.ACTIVE
-			startListening()
-		}
-		else  {
-			managerState = ManagerState.OFF
-			stopListening()
-		}
-		dispatcher.reportManagerState(ManagerType.SPEECH, managerState)
-	}
-	// ================ RecognitionListener ===============
-	override fun onReadyForSpeech(params: Bundle) {
-		Log.i(CLSS, "onReadyForSpeech")
-	}
-	override fun onBeginningOfSpeech() {
-		Log.i(CLSS, "onBeginningOfSpeech");
-	}
-	// Background level changed ...
-	override fun onRmsChanged(rmsdB: Float) {}
-	override fun onBufferReceived(buffer: ByteArray) {
-		Log.i(CLSS, "onBufferReceived")
-	}
-	override fun onEndOfSpeech() {
-		Log.i(CLSS, "onEndofSpeech")
-	}
-	override fun onError(error: Int) {
-		var reason:String =
-			when (error) {
-				SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-				SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ->
-					"Insufficient permission - Enable microphone in application"
-				SpeechRecognizer.ERROR_NO_MATCH -> "no word match. Enunciate!"
-				SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "speech timeout"
-				SpeechRecognizer.ERROR_NETWORK -> "Network error"
-				SpeechRecognizer.ERROR_CLIENT -> "client error"
-				SpeechRecognizer.ERROR_RECOGNIZER_BUSY ->
-					"recognition service is busy (started twice?)"
-				SpeechRecognizer.ERROR_SERVER -> "server error"
-				SpeechRecognizer.ERROR_TOO_MANY_REQUESTS -> "too many requests"
-				else -> String.format("ERROR (%d) ", error)
-			}
-		listening = false
-		Log.e(CLSS, String.format("onError - %s", reason))
-		dispatcher.logError(managerType,reason)
-
-		managerState = ManagerState.ERROR
-		dispatcher.reportManagerState(ManagerType.SPEECH, managerState)
-	}
-
-	override fun onResults(results: Bundle) {
-		Log.i(CLSS, "onResults \n$results")
-		if( !results.isEmpty ) {
-			// Fill the array with the strings the recognizer thought it could have heard, there should be 5
-			val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
-			for (i in matches.indices) {
-				Log.i(CLSS, "result " + matches[i])
-			}
-			// The zeroth result is usually the space-separated one
-			if( !matches.isEmpty()) {
-				var text = matches[0]
-				text = scrubText(text)
-				dispatcher.processSpokenText(text)
-			}
-		}
-		listening = false
-		if(managerState.equals(ManagerState.ACTIVE) ) {
-			startListening()
-		}
-	}
-
-	/**
-	 * We've configured the intent so all partials *should* be empty
-	 */
-	override fun onPartialResults(partialResults: Bundle) {
-		Log.i(CLSS, "onPartialResults")
-	}
-
-	override fun onEvent(eventType: Int, params: Bundle) {}
-
-	private fun createRecognizerIntent(): Intent {
-		//val locale = "us-UK"
-		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
-		/* intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
-		intent.putExtra(
-			RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME
-		)
-		*/
-		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
-		//Give a hint to the recognizer about what the user is going to say
-		intent.putExtra(
-			RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-			RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-		)
-		// Max number of results. This is two attempts at deciphering, not a 2-word limit.
-		intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
-		return intent
-	}
-
-	/**
-	 * Perform any cleanup of phrases that ease or correct the parsing.
-	 * For example, replace ° with " degrees"
-	 * @param text
-	 * @return spiffy-clean text
-	 */
-	private fun scrubText(txt: String): String {
-		var text = txt
-		text = text.replace("°", " degrees").lowercase(Locale.getDefault())
-		text = text.replace("exposition", "x position")
-		text = text.replace("fries", "freeze")
-		text = text.replace("zero", "0")
-		return text
+	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
+	// annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
+	fun suppressAudio() {
+		audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 	}
 
 	val CLSS = "SpeechManager"
-	val DELAY_TIME = 1000L
-	val SPEECH_MIN_TIME = 100     // Word must be at least this long
-	val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
+	val UTTERANCE_ID = CLSS
 
-	/**
-	 * Creating the speech recognizer must be done on the main thread.
-	 */
 	init {
-		managerState = ManagerState.OFF
-		recognizerIntent = createRecognizerIntent()
-		listening = false
+		Log.i(CLSS,"init - initializing annunciator")
+		dispatcher = service
+		audio = dispatcher.context.getSystemService<AudioManager>() as AudioManager
+		annunciator = Annunciator(dispatcher.context, this)
+		// This is handled the same way in the CoverFragment startup
+		try {
+			vol = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toInt()
+			setVolume(vol)
+		}
+		catch(nfe:NumberFormatException) {
+			// Database entry was not a number
+			Log.i(CLSS,"init - volume in database was not an integer")
+			vol = 50
+		}
 	}
 }

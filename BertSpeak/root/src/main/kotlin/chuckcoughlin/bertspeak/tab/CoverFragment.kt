@@ -178,7 +178,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
                 ManagerType.SOCKET-> {
                     updateStatusButton(networkStatusButton,type,state)
                 }
-                ManagerType.ANNUNCIATOR   -> {
+                ManagerType.SPEECH   -> {
                     updateStatusButton(speechStatusButton, type,state)
                 }
                 else                 -> {
@@ -220,7 +220,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
                 Log.i(name, String.format("onClick:%s",ManagerType.SOCKET.name))
             }
             hearingStatusButton -> {
-                Log.i(name, String.format("onClick:%s",ManagerType.ANNUNCIATOR.name))
+                Log.i(name, String.format("onClick:%s",ManagerType.HEARING.name))
             }
             // The stop button triggers an immediate shutdown
             stopStatusButton -> {

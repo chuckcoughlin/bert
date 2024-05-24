@@ -6,12 +6,14 @@ package chuckcoughlin.bertspeak.service
 
 /**
  * The following are the communication controllers embedded in this application.
- * ANNUNCIATOR handles text to speech
+ * HEARING handles speech to text
  * SOCKET handles read/write to the wifi network and robot server
- * SPEECH handles speech to text
+ * SPEECH handles text to speech
+
+
  */
 enum class ManagerType {
-    ANNUNCIATOR, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
+    HEARING, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
 
     companion object {
         /**

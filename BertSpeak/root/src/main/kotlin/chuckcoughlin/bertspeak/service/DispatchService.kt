@@ -31,9 +31,9 @@ import java.util.Locale
  */
 class DispatchService(ctx: Context){
     var context:Context
-    lateinit var annunciationManager: AnnunciationManager
+    lateinit var annunciationManager: SpeechManager
     lateinit var geometryManager: GeometryManager
-    lateinit var speechManager: SpeechManager
+    lateinit var speechManager: HearingManager
     lateinit var socketManager: SocketManager
     lateinit var statusManager: StatusManager
     lateinit var textManager: TextManager
@@ -46,10 +46,10 @@ class DispatchService(ctx: Context){
         instance = this
         statusManager = StatusManager(this)
         textManager = TextManager(this)
-        annunciationManager = AnnunciationManager(this)
+        annunciationManager = SpeechManager(this)
         geometryManager = GeometryManager(this)
         socketManager = SocketManager(this)
-        speechManager = SpeechManager(this)
+        speechManager = HearingManager(this)
     }
     /**
      * This instance is started by the Application in a background
@@ -67,7 +67,7 @@ class DispatchService(ctx: Context){
         }
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
-        GlobalScope.launch(Dispatchers.Default) {
+        GlobalScope.launch(Dispatchers.IO) {
             geometryManager.start()
             socketManager.start()
         }

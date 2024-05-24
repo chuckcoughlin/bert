@@ -79,10 +79,10 @@ class StatusManager(service:DispatchService): CommunicationManager {
      */
     init {
         map = mutableMapOf<ManagerType,ManagerState>()
-        map[ManagerType.ANNUNCIATOR] = ManagerState.OFF
+        map[ManagerType.SPEECH] = ManagerState.OFF
         map[ManagerType.GEOMETRY] = ManagerState.OFF
         map[ManagerType.SOCKET] = ManagerState.OFF
-        map[ManagerType.SPEECH] = ManagerState.OFF
+        map[ManagerType.HEARING] = ManagerState.OFF
         map[ManagerType.STATUS] = ManagerState.ACTIVE
         map[ManagerType.TEXT] = ManagerState.OFF
         observers = mutableMapOf<String,StatusDataObserver>()

@@ -11,7 +11,6 @@ import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.ERROR
 import chuckcoughlin.bertspeak.service.ManagerState.PENDING
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -20,13 +19,13 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
-import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.SocketAddress
 
 
 /**
- * This is socket client across a wifi network to the robot which acts
+ * This is socket client connects across a wifi network to the robot which acts
  * as a server. The messages are simple text strings. We prepend message
  * type code, and append a new-line on write and expect these on read.
  *
@@ -42,8 +41,8 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private val buffer: CharArray
     private val dispatcher = service
     private var handler : SocketTextHandler?
-    private lateinit var serverAddress: InetAddress
-    private var socket: Socket?
+    private lateinit var serverAddress: SocketAddress
+    private lateinit var socket: Socket
     private var running: Boolean
     private val host:String
     private val port:Int
@@ -58,16 +57,11 @@ class SocketManager(service:DispatchService): CommunicationManager {
     @DelicateCoroutinesApi
     override fun start() {
         Log.i(CLSS, "start ...")
-        serverAddress = InetAddress.getByName(host)
-        if( !serverAddress.isSiteLocalAddress ) {
-            Log.i(CLSS, String.format("start: address resolution failed for %s", host))
-            managerState = ERROR
-            dispatcher.reportManagerState(managerType, managerState)
-        }
-        else {
-            running = true
-            execute()
-        }
+        serverAddress = InetSocketAddress(host,port)
+        socket = Socket()
+        //socket.keepAlive = true
+        running = true
+        execute()
     }
 
     /**
@@ -80,11 +74,11 @@ class SocketManager(service:DispatchService): CommunicationManager {
         while(running) {
             managerState = PENDING
             dispatcher.reportManagerState(managerType, managerState)
+            var connected = true
             try {
-                socket = Socket(serverAddress, port)
-                Log.i(CLSS,String.format("execute: defined client socket for %s %d",serverAddress.hostName,port))
-                var connected = true
-                val handler = SocketTextHandler(socket!!)
+                Log.i(CLSS,String.format("execute: defined client socket for %s %d",host,port))
+                val handler = SocketTextHandler(socket)
+                socket.connect(serverAddress,CONNECTION_TIMEOUT)
                 readjob = GlobalScope.launch(Dispatchers.IO) {
                     while(connected) {
                         val text = handler.readSocket()
@@ -110,9 +104,13 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 dispatcher.reportManagerState(managerType, managerState)
             }
             catch(ex:Exception) {
-                Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",serverAddress.hostName,port,ex.localizedMessage))
+                Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
                 managerState = ERROR
                 dispatcher.reportManagerState(managerType, managerState)
+                try {
+                    Thread.sleep(SOCKET_RETRY_INTERVAL)
+                } catch(ie:InterruptedException) {}
+                connected = false
             }
         }
     }
@@ -129,7 +127,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             handler!!.close()
             handler = null
         }
-        if(socket!=null && !socket!!.isClosed) socket!!.close()
+        if(!socket.isClosed) socket.close()
         if( running ) {
             readjob.cancel()
             writejob.cancel()
@@ -142,11 +140,12 @@ class SocketManager(service:DispatchService): CommunicationManager {
     val CLSS = "SocketManager"
     val BUFFER_SIZE = 256
     val CLIENT_ATTEMPT_INTERVAL = 2000L  // 2 secs
+    val CONNECTION_TIMEOUT      = 4000   // 4 secs
+    val SOCKET_RETRY_INTERVAL   = 30000L // 30 secs
 
     init {
         buffer = CharArray(BUFFER_SIZE)
         running  = false
-        socket   = null
         handler  = null
         readjob = Job()
         writejob = Job()

@@ -81,7 +81,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         super.onStop()
     }
 
-    private fun startCamera() {
+    private fun startCamera()  {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
@@ -103,6 +103,12 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
                     requireActivity(), cameraSelector, preview)
+            }
+            catch (iae: IllegalArgumentException) {
+                Log.e(CLSS, String.format("Camera not available (%s)",iae.localizedMessage))
+            }
+            catch (ise: IllegalStateException) {
+                Log.e(CLSS, String.format("Lens validation failed (%s)",ise.localizedMessage))
             }
             catch (exc: Exception) {
                 Log.e(CLSS, "Use case binding failed", exc)

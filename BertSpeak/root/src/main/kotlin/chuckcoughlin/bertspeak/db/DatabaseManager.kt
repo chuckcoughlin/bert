@@ -7,6 +7,7 @@ package chuckcoughlin.bertspeak.db
 import android.database.DatabaseErrorHandler
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.NameValue
@@ -17,7 +18,7 @@ import chuckcoughlin.bertspeak.common.NameValue
  * version when the database is first opened within this statis class.
  * The database is a Singleton (object) opened once and never closed.
  */
-object DatabaseManager {
+object DatabaseManager  {
     private val errorHandler :DbErrorHandler
     private val database:SQLiteDatabase
 
@@ -61,10 +62,12 @@ object DatabaseManager {
                     SQL,sqle.localizedMessage))
                 return
             }
-            // Use this statement when upgrading to version 2 of the database.
-            var upgrade =
-                String.format("DELETE FROM Settings")
-            execLenient(upgrade)
+            // Use this statement when upgrading to version 2 of the database
+            if( RE_INITIALIZE ) {
+                var upgrade =
+                    String.format("DELETE FROM Settings")
+                execLenient(upgrade)
+            }
 
             // Add initial settings - fail silently if they exist. The default values make sense
             // for development.
@@ -208,6 +211,7 @@ object DatabaseManager {
     }
 
     private const val CLSS = "DatabaseManager"
+    private const val RE_INITIALIZE = false
 
 
     init {
