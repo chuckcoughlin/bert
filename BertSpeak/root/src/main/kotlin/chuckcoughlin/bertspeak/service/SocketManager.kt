@@ -100,7 +100,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 managerState = ACTIVE
                 dispatcher.reportManagerState(managerType, managerState)
             }
-            catch(ex:Exception) {
+            catch(ex:Throwable) {
                 Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
                 managerState = ERROR
                 dispatcher.reportManagerState(managerType, managerState)

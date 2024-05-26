@@ -33,7 +33,8 @@ application.
 - [x] test-client: Connect via sockets to a running version of the robot. Type commands, receive responses.
 interface for interactive testing.
 - [x] test-server: Allow the tablet client to connect via sockets to a mock version of the robot. Accept commands, send responses.
-interface for interactive testing.
+interface for interactive testing. Note: when testing with the Android emulator connect the server to *localhost*, but configure
+the emulator client as 10.0.2.2.
 
 ### b - Configuration <a id="configuration"></a>
 This section contains tests that validate the wiring and addressing of stepper motors,
