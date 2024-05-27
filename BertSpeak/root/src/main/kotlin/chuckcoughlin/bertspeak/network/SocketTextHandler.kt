@@ -22,7 +22,7 @@ import java.net.Socket
  * The robot system is the server.
  * @param sock for socket connection
  */
-class SocketTextHandler(sock: Socket)  {
+class SocketTextHandler(sock: Socket) {
     private val socket = sock
     private val input: BufferedReader
     private val output: PrintWriter
@@ -35,19 +35,22 @@ class SocketTextHandler(sock: Socket)  {
      * @param response
      * @return true on success
      */
-    fun writeSocket(txt: String) :Boolean {
-        var success:Boolean = true
+    fun writeSocket(txt: String): Boolean {
+        return writeSocket(MessageType.ANS, txt)
+    }
+
+    fun writeSocket(mtype: MessageType, txt: String): Boolean {
+        var success: Boolean = true
         var text = txt.trim { it <= ' ' }
-        var mtype = MessageType.ANS
-        if( text.isNotEmpty()) {
+        if(text.isNotEmpty()) {
             try {
                 val msgtxt = String.format("%s:%s", mtype.name, text)
-                if( DEBUG ) Log.i(CLSS,String.format("TABLET WRITE: %s.", msgtxt))
+                if(DEBUG) Log.i(CLSS, String.format("TABLET WRITE: %s.", msgtxt))
                 output.println(msgtxt)
                 output.flush()
             }
-            catch (ex: Exception) {
-                Log.i(CLSS,String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+            catch(ex: Exception) {
+                Log.i(CLSS, String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
                 success = false
             }
         }
@@ -60,17 +63,19 @@ class SocketTextHandler(sock: Socket)  {
      * to appear. If we get a null, then close the socket and re-listen
      * @return a deferred value for use in a select() clause.
      */
-    fun readSocket(): String? {
-        Log.i(CLSS, String.format("readSocket: reading from socket ..."))
-        val text = input.readLine() // Strips trailing new-line
-        if( text==null || text.isEmpty() ) {
-            Log.i(CLSS,"Received nothing on read. Assume client is closed.")
+    @DelicateCoroutinesApi
+    fun readSocket(): Deferred<String?> =
+        GlobalScope.async(Dispatchers.IO) {
+            Log.i(CLSS, String.format("readSocket: reading from socket ..."))
+            val text = input.readLine() // Strips trailing new-line
+            if(text == null || text.isEmpty()) {
+                Log.i(CLSS, "Received nothing on read. Assume client is closed.")
+            }
+            else {
+                if(DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
+            }
+            text
         }
-        else {
-            if( DEBUG ) Log.i(CLSS,String.format("TABLET READ: %s.", text))
-        }
-        return text
-    }
 
     fun close() {
         input.close()

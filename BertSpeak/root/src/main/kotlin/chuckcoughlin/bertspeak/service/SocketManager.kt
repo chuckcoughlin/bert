@@ -7,6 +7,7 @@ package chuckcoughlin.bertspeak.service
 import android.util.Log
 import chuckcoughlin.bertspeak.network.SocketTextHandler
 import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.ERROR
@@ -17,6 +18,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
@@ -44,8 +46,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private var running: Boolean
     private val host:String
     private val port:Int
-    private var readjob: Job
-    private var writejob: Job
+    private var job: Job
     private val writeChannel: Channel<String>
 
 
@@ -57,7 +58,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
         Log.i(CLSS, "start ...")
         serverAddress = InetSocketAddress(host,port)
         running = true
-        execute()
+        job = GlobalScope.launch(Dispatchers.IO) {
+            execute()
+        }
     }
 
     /**
@@ -65,7 +68,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * and robot.
      */
     @DelicateCoroutinesApi
-    fun execute() {
+    suspend fun execute() {
         Log.i(CLSS, String.format("execute: connecting to %s on %d",host,port))
         while(running) {
             managerState = PENDING
@@ -76,29 +79,31 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 socket = Socket()
                 socket.connect(serverAddress,CONNECTION_TIMEOUT)
                 val handler = SocketTextHandler(socket)
-                readjob = GlobalScope.launch(Dispatchers.IO) {
-                    while(connected) {
-                        val text = handler.readSocket()
-                        if( text==null || text.isEmpty() ) {
-                            connected = false
-                            handler.close()
-                            Log.i(CLSS, "execute: socket closed")
-                        }
-                        else {
-                            Log.i(CLSS, String.format("execute: read socket returned %s", text))
-                            dispatcher.receiveText(text)
-                        }
-                    }
-                }
-                writejob = GlobalScope.launch(Dispatchers.IO) {
-                    while(connected) {
-                        val text = writeChannel.receive()
-                        handler.writeSocket(text)
-                        Log.i(CLSS, "writeSocket returned")
-                    }
-                }
+                sendStartupMessage(handler)
                 managerState = ACTIVE
                 dispatcher.reportManagerState(managerType, managerState)
+                while(connected) {
+                    select<Unit> {
+                        handler.readSocket().onAwait {
+                            if(it == null || it.isEmpty()) {
+                                connected = false
+                                handler.close()
+                                Log.i(CLSS, "execute: socket closed")
+                            }
+                            else {
+                                Log.i(CLSS, String.format("execute: read socket returned %s", it))
+                                dispatcher.receiveText(it)
+                            }
+                        }
+
+                        writeChannel.onReceive() {
+                            Log.i(CLSS, String.format("SocketManager.write - %s",it))
+                            handler.writeSocket(it)
+
+                        }
+                    }
+                }
+
             }
             catch(ex:Throwable) {
                 Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
@@ -126,27 +131,30 @@ class SocketManager(service:DispatchService): CommunicationManager {
         }
         if(!socket.isClosed) socket.close()
         if( running ) {
-            readjob.cancel()
-            writejob.cancel()
+            job.cancel()
         }
         managerState = ManagerState.OFF
         dispatcher.reportManagerState(managerType, managerState)
     }
 
+    /** Send a startup message directly to the socket **/
+    private fun sendStartupMessage(handler:SocketTextHandler) {
+        handler.writeSocket(MessageType.LOG,START_MESSAGE)
+    }
 
     val CLSS = "SocketManager"
     val BUFFER_SIZE = 256
     val CLIENT_ATTEMPT_INTERVAL = 2000L  // 2 secs
     val CONNECTION_TIMEOUT      = 4000   // 4 secs
     val SOCKET_RETRY_INTERVAL   = 30000L // 30 secs
+    val START_MESSAGE           = "The tablet is connected"
 
     init {
         buffer = CharArray(BUFFER_SIZE)
         running  = false
         socket   = Socket()
         handler  = null
-        readjob = Job()
-        writejob = Job()
+        job = Job()
         host  = DatabaseManager.getSetting(BertConstants.BERT_HOST_IP)
         port  = DatabaseManager.getSetting(BertConstants.BERT_PORT).toInt()
         writeChannel = Channel<String>()

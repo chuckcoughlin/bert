@@ -69,7 +69,7 @@ class SocketMessageHandler(sock: Socket)  {
     @DelicateCoroutinesApi
     fun receiveNetworkInput(): Deferred<String?> =
         GlobalScope.async(Dispatchers.IO) {
-            var text: String? = input.readLine() // Strips trailing new-line
+            val text: String? = input.readLine() // Strips trailing new-line
             if (text == null || text.isEmpty()) {
                 LOGGER.info(String.format("Received nothing on read. Assume client is closed."))
             }
