@@ -4,21 +4,23 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.database.DataSetObserver
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import chuckcoughlin.bertspeak.R
+import chuckcoughlin.bertspeak.data.SettingsObserver
 import chuckcoughlin.bertspeak.databinding.FragmentSettingsBinding
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.ui.adapter.SettingsListAdapter
 
 /**
- * Display the current values of settings table and allow
- * editing.
+ * Display the current values of settings table.
+ * Allow editing.
  */
-class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
+class SettingsFragment (pos:Int): BasicAssistantListFragment(pos)  {
     val name : String
 
     // Called to have the fragment instantiate its user interface view.
@@ -30,6 +32,7 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
         val listAdapter = SettingsListAdapter(requireContext(), nvarray)
         Log.i(CLSS, String.format("onCreateView: will display %d name-values", listAdapter.count))
         setListAdapter(listAdapter)
+        listAdapter.setNotifyOnChange(true)
 
         val binding = FragmentSettingsBinding.inflate(inflater,container,false)
         binding.fragmentSettingsText.setText(R.string.fragmentSettingsLabel)
@@ -37,9 +40,8 @@ class SettingsFragment (pos:Int): BasicAssistantListFragment(pos) {
         return binding.root
     }
 
-
-
     private val CLSS = "SettingsFragment"
+
 
     init {
         name = CLSS

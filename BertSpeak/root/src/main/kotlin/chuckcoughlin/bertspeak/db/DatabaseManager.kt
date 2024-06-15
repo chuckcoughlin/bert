@@ -7,10 +7,10 @@ package chuckcoughlin.bertspeak.db
 import android.database.DatabaseErrorHandler
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.NameValue
+import chuckcoughlin.bertspeak.data.SettingsObserver
 
 
 /**
@@ -21,6 +21,7 @@ import chuckcoughlin.bertspeak.common.NameValue
 object DatabaseManager  {
     private val errorHandler :DbErrorHandler
     private val database:SQLiteDatabase
+    private val observers: MutableMap<String, SettingsObserver>
 
     @Throws(SQLException::class)
     fun execSQL(sql: String)  {
@@ -163,6 +164,7 @@ object DatabaseManager  {
             bindArgs[1] = nv.hint
             bindArgs[2] = nv.name
             database.execSQL(SQL, bindArgs)
+            notifyObservers(nv)
         }
     }
 
@@ -185,17 +187,22 @@ object DatabaseManager  {
                 bindArgs[1] = nv.hint
                 bindArgs[2] = nv.name
                 database.execSQL(SQL, bindArgs)
+                notifyObservers(nv)
                 index++
             }
         }
     }
 
+    /**
+     * The volume is an integer 0-100 representing
+     * a percentage of maximum.
+     */
     private fun validateVolume(nv:NameValue) {
         var value = nv.value.toDouble()
         if( value.isNaN() ) value = 50.0
         else if( value >100.0 )   value = 100.0
         else if( value<0.0  )   value = 0.0
-        nv.value = value.toString()
+        nv.value = value.toInt().toString()
     }
 
     // If the database is open, close it to ensure correct writable flags
@@ -210,6 +217,30 @@ object DatabaseManager  {
         return db
     }
 
+    /**
+     * When a new observer is registered, update it
+     *  with states of allmanagers.
+     * @param observer
+     */
+    fun registerSettingsObserver(observer: SettingsObserver) {
+        observers[observer.name] = observer
+        val list: List<NameValue> = getSettings()
+        observer.resetSettings(list)
+    }
+
+    fun unregisterSettingsObserver(observer: SettingsObserver) {
+        observers.remove(observer.name)
+    }
+
+    /**
+     * Notify observers of the facility-state change.
+     */
+    private fun notifyObservers(ddata: NameValue) {
+        for (observer in observers.values) {
+            observer.updateSetting(ddata)
+        }
+    }
+
     private const val CLSS = "DatabaseManager"
     private const val RE_INITIALIZE = false
 
@@ -217,6 +248,7 @@ object DatabaseManager  {
     init {
         errorHandler = DbErrorHandler()
         database = getDatabase(true)   // Writable
+        observers = mutableMapOf<String, SettingsObserver>()
     }
 
     /**

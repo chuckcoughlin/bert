@@ -13,6 +13,7 @@ import androidx.core.content.getSystemService
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.NameValue
+import chuckcoughlin.bertspeak.data.SettingsObserver
 import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.speech.Annunciator
@@ -26,21 +27,24 @@ import kotlin.math.roundToInt
  * The speech components must execute on the main thread
  * (and not in the service).
  */
-class SpeechManager(service:DispatchService): CommunicationManager, TextToSpeech.OnInitListener {
+class SpeechManager(service:DispatchService): CommunicationManager, SettingsObserver,TextToSpeech.OnInitListener {
 	override val managerType = ManagerType.SPEECH
 	override var managerState = ManagerState.OFF
 	val dispatcher: DispatchService
 	var annunciator: Annunciator
+	override val name: String
 	private val audio: AudioManager
 	private var vol :Int   // Current volume
 
 	override fun start() {
 		Log.i(CLSS, String.format("start: "))
 		annunciator.setOnUtteranceProgressListener(UtteranceListener())
+		DatabaseManager.registerSettingsObserver(this)
 	}
 
 	override fun stop() {
 		annunciator.stop()
+		DatabaseManager.unregisterSettingsObserver(this)
 	}
 
 	// ===================== OnInitListener ==========================
@@ -123,12 +127,26 @@ class SpeechManager(service:DispatchService): CommunicationManager, TextToSpeech
 		audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 	}
 
+	// ===================== SettingdObserver =====================
+	override fun resetSettings(list: List<NameValue>) {
+		for (ddata in list) {
+			updateSetting(ddata)
+		}
+	}
+
+	override fun updateSetting(data: NameValue) {
+		if(data.name.equals(BertConstants.BERT_VOLUME)) {
+			setVolume(data.value.toDouble().roundToInt())
+		}
+	}
+
 	val CLSS = "SpeechManager"
 	val UTTERANCE_ID = CLSS
 
 	init {
 		Log.i(CLSS,"init - initializing annunciator")
 		dispatcher = service
+		name = CLSS
 		audio = dispatcher.context.getSystemService<AudioManager>() as AudioManager
 		annunciator = Annunciator(dispatcher.context, this)
 		// This is handled the same way in the CoverFragment startup

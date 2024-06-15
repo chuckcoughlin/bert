@@ -9,14 +9,17 @@ import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
+import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.db.DatabaseManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlin.math.roundToInt
 
 
 /**
@@ -31,9 +34,9 @@ import java.util.Locale
  */
 class DispatchService(ctx: Context){
     var context:Context
-    lateinit var annunciationManager: SpeechManager
+    lateinit var speechManager: SpeechManager
     lateinit var geometryManager: GeometryManager
-    lateinit var speechManager: HearingManager
+    lateinit var hearingManager: HearingManager
     lateinit var socketManager: SocketManager
     lateinit var statusManager: StatusManager
     lateinit var textManager: TextManager
@@ -46,10 +49,10 @@ class DispatchService(ctx: Context){
         instance = this
         statusManager = StatusManager(this)
         textManager = TextManager(this)
-        annunciationManager = SpeechManager(this)
+        speechManager = SpeechManager(this)
         geometryManager = GeometryManager(this)
         socketManager = SocketManager(this)
-        speechManager = HearingManager(this)
+        hearingManager = HearingManager(this)
     }
     /**
      * This instance is started by the Application in a background
@@ -62,8 +65,8 @@ class DispatchService(ctx: Context){
         // Start those managers that run on the main (UI) thread
         GlobalScope.launch(Dispatchers.Main) {
             statusManager.start()
-            annunciationManager.start()
             speechManager.start()
+            hearingManager.start()
         }
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
@@ -79,10 +82,10 @@ class DispatchService(ctx: Context){
      */
    @OptIn(DelicateCoroutinesApi::class)
     fun stop() {
-        annunciationManager.stop()
+        speechManager.stop()
         geometryManager.stop()
         socketManager.stop()
-        speechManager.stop()
+        hearingManager.stop()
         statusManager.stop()
         textManager.stop()
     }
@@ -106,13 +109,13 @@ class DispatchService(ctx: Context){
     @OptIn(DelicateCoroutinesApi::class)
     fun startSpeech() {
         GlobalScope.launch(Dispatchers.Main) {
-            speechManager.startListening()
+            hearingManager.startListening()
         }
     }
     @OptIn(DelicateCoroutinesApi::class)
     fun stopSpeech() {
         GlobalScope.launch(Dispatchers.Main) {
-            speechManager.stopListening()
+            hearingManager.stopListening()
         }
     }
 
@@ -193,17 +196,13 @@ class DispatchService(ctx: Context){
         }
 
         fun restoreAudio() {
-            instance.annunciationManager.restoreAudio()
+            instance.speechManager.restoreAudio()
         }
         fun toggleSpeechState() {
-            instance.speechManager.toggleSpeechState()
-        }
-        // Volume is an integer between 0-100
-        fun setVolume(vol:Int) {
-            instance.annunciationManager.setVolume(vol)
+            instance.hearingManager.toggleSpeechState()
         }
         fun suppressAudio() {
-            instance.annunciationManager.suppressAudio()
+            instance.speechManager.suppressAudio()
         }
         fun updateManagerStatus(mgr:ManagerType,state:ManagerState) {
             instance.statusManager.updateState(mgr, state)

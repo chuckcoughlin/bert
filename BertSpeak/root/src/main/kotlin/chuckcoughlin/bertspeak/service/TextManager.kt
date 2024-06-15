@@ -113,7 +113,7 @@ class TextManager (service:DispatchService): CommunicationManager {
     /**
      * When a new log observer is registered, send a link to this manager.
      * The observer can then initialize its list, if desired. The manager
-     * reference should be cleared on "unregister".
+     * reference should be cleared on "unregisterSettingsObserver".
      * @param observer
      */
     fun registerLogViewer(observer: TextDataObserver) {

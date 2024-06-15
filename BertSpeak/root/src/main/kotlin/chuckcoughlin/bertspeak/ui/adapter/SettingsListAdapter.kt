@@ -20,6 +20,9 @@ import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import java.util.Locale
 
+/**
+ * This is a specialized adapter for entries in the database settings table.
+ */
 class SettingsListAdapter(context: Context, values: Array<NameValue>) :
     ArrayAdapter<NameValue>( context, R.layout.settings_item, values),ListAdapter   {
 
@@ -59,7 +62,7 @@ class SettingsListAdapter(context: Context, values: Array<NameValue>) :
         editText.onFocusChangeListener = OnFocusChangeListener { v, hasFocus ->
             /*
              * When focus is lost save the entered value both into the current array
-             * and database.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+             * and database.
              */
             if (!hasFocus) {
                 Log.i(CLSS,String.format("SettingsListAdapter.getView.onFocusChange %d = %s",position,(v as EditText).text.toString()))

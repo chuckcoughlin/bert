@@ -21,6 +21,8 @@ import androidx.lifecycle.Lifecycle
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.common.NameValue
+import chuckcoughlin.bertspeak.data.SettingsObserver
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.TextData
@@ -42,10 +44,11 @@ import kotlin.math.roundToInt
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar. There are three status sbuttons: Connect, Listen, Speak
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,TextDataObserver,
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,StatusDataObserver,TextDataObserver,
                                 OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
 
     override val name : String
+
     private var visualizer: Visualizer
     // This property is only valid between onCreateView and onDestroyView
     private lateinit var seekBar: VerticalSeekBar
@@ -78,7 +81,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
         waveformView.setRenderer(
             rendererFactory.createSimpleWaveformRenderer(Color.GREEN, Color.DKGRAY)
         )
-        // Seek Bar 0-100
+        // Seek Bar 0-100 - set to current database value
         seekBar = binding.verticalSeekbar
         seekBar.isClickable = true
         seekBar.setOnSeekBarChangeListener(this)
@@ -90,7 +93,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
             Log.w(name, String.format("onCreateView: non-numeric database setting for volume"))
             seekBar.progress = 50
         }
-        DispatchService.setVolume(seekBar.progress)
         Log.i(name, String.format("onCreateView: seek bar at %d.",seekBar.progress))
         DispatchService.restoreAudio()
         val pm = PermissionManager(requireActivity())
@@ -98,20 +100,23 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
         return binding.root
     }
     /**
-     * Start visualizer and register for status updates
+     * Start visualizer and registerSettingsObserver for status updates
      */
     override fun onStart() {
         super.onStart()
         Log.i(name, "onStart: registering as observer")
         DispatchService.registerForTranscripts(this)
         DispatchService.registerForStatus(this)
+        DatabaseManager.registerSettingsObserver(this)
         startVisualizer()
+
     }
 
     override fun onStop() {
         super.onStop()
         DispatchService.unregisterForTranscripts(this)
         DispatchService.unregisterForStatus(this)
+        DatabaseManager.unregisterSettingsObserver(this)
         stopVisualizer()
     }
 
@@ -155,6 +160,18 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), StatusDataObserver,T
         })
     }
 
+    // ===================== SettingdObserver =====================
+    override fun resetSettings(list: List<NameValue>) {
+        for (ddata in list) {
+            updateSetting(ddata)
+        }
+    }
+
+    override fun updateSetting(data: NameValue) {
+        if(data.name.equals(data.name.equals(BertConstants.BERT_VOLUME))) {
+            seekBar.progress = data.value.toInt()
+        }
+    }
     // ===================== StatusDataObserver =====================
     /**
      * This is called when we first establish the observer.
