@@ -26,6 +26,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
      *  with states of allmanagers.
      * @param observer
      */
+    @Synchronized
     fun register(observer: StatusDataObserver) {
         observers[observer.name] = observer
         val list: MutableList<StatusData> = ArrayList()
@@ -35,7 +36,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
         }
         observer.resetStatus(list)
     }
-
+    @Synchronized
     fun unregister(observer: StatusDataObserver) {
         observers.remove(observer.name)
     }

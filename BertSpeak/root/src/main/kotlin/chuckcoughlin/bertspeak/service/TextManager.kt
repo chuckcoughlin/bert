@@ -116,33 +116,34 @@ class TextManager (service:DispatchService): CommunicationManager {
      * reference should be cleared on "unregisterSettingsObserver".
      * @param observer
      */
+    @Synchronized
     fun registerLogViewer(observer: TextDataObserver) {
         logObservers[observer.name] = observer
         observer.resetText(logList)
     }
-
+    @Synchronized
     fun registerTableViewer(observer: TextDataObserver) {
         tableObservers[observer.name] = observer
         observer.resetText(rowList)
     }
-
+    @Synchronized
     fun registerTranscriptViewer(observer: TextDataObserver) {
         transcriptObservers[observer.name] = observer
         observer.resetText(transcriptList)
     }
-
     fun unregisterLogViewer(observer: TextDataObserver) {
         for( key in logObservers.keys ) {
             if( logObservers.get(key)!!.equals(observer) ) {
                 logObservers.remove(key,observer)
+                break
             }
         }
     }
-
     fun unregisterTableViewer(observer: TextDataObserver) {
         for( key in tableObservers.keys ) {
             if( tableObservers.get(key)!!.equals(observer) ) {
                 tableObservers.remove(key,observer)
+                break
             }
         }
     }
@@ -151,6 +152,7 @@ class TextManager (service:DispatchService): CommunicationManager {
         for( key in transcriptObservers.keys ) {
             if( transcriptObservers.get(key)!!.equals(observer) ) {
                 transcriptObservers.remove(key,observer)
+                break
             }
         }
     }

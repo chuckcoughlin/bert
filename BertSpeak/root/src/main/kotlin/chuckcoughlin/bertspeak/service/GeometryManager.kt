@@ -38,10 +38,10 @@ class GeometryManager (service:DispatchService): CommunicationManager {
         for( key in geometryObservers.keys ) {
             if( !observer.equals(geometryObservers.get(key)) ) {
                 geometryObservers.remove(key,observer)
+                break
             }
         }
     }
-
 
     private fun initializeObservers() {
         for (observer in geometryObservers.values) {

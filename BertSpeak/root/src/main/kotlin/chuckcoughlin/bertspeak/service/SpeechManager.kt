@@ -110,15 +110,13 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL, v, 0);
 	}
 	/**
-	 * Set the voice stream volume.
+	 * Set the voice stream volume (does not update database)
 	 * @param pcnt - volume percent of maximum (0-100)
 	 */
-	fun setVolume(pcnt:Int) {
+	private fun setVolume(pcnt:Int) {
 		Log.i(CLSS, String.format("setVolume %d", pcnt))
 		val maxVol = audio.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
 		val vol = ((maxVol*pcnt)/100.0).roundToInt()
-		val nv = NameValue(BertConstants.BERT_VOLUME,pcnt.toString())
-		DatabaseManager.updateSetting(nv)
 		audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL,vol,AudioManager.FLAG_PLAY_SOUND)
 	}
 	// Mute the beeps waiting for spoken input. At one point these methods were used to silence

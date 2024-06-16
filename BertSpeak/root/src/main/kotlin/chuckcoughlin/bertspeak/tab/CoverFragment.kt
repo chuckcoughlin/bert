@@ -273,7 +273,8 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     override fun onProgressChanged(seekBar: SeekBar, progress: Int,fromUser: Boolean) {
         Log.i(name, String.format("onProgressChanged: seekBar at %d",progress))
-        DispatchService.setVolume(progress)
+        val vol = NameValue(BertConstants.BERT_VOLUME,progress.toString())
+        DatabaseManager.updateSetting(vol)
     }
 
     val CLSS = "CoverFragment"
