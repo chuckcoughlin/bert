@@ -82,6 +82,7 @@ class DispatchService(ctx: Context){
      */
    @OptIn(DelicateCoroutinesApi::class)
     fun stop() {
+        Log.i(CLSS, String.format("start: stopping Dispatcher and managers"))
         speechManager.stop()
         geometryManager.stop()
         socketManager.stop()
@@ -198,8 +199,8 @@ class DispatchService(ctx: Context){
         fun restoreAudio() {
             instance.speechManager.restoreAudio()
         }
-        fun toggleSpeechState() {
-            instance.hearingManager.toggleSpeechState()
+        fun toggleListeningState() {
+            instance.hearingManager.toggleListeningState()
         }
         fun suppressAudio() {
             instance.speechManager.suppressAudio()

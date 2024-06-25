@@ -193,6 +193,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             // For now simply log responses from the tablet.
             else if (hdr.equals(MessageType.ANS.name, ignoreCase = true)) {
                 LOGGER.info(String.format("Tablet ANS: %s",text))
+                msg = parser.parseStatement(text)
             }
             // Simply send tablet log messages to our logger
             else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {

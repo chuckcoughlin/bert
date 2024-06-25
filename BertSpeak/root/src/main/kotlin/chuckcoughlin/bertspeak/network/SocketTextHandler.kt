@@ -32,21 +32,19 @@ class SocketTextHandler(sock: Socket) {
      * For straight replies, the text is expected to be understandable, an error message or
      * a value that can be formatted into plain English.
      *
-     * @param response
+     * The robot expects a message in the form TYP: payload
+     *
+     * @param txt
      * @return true on success
      */
-    fun writeSocket(txt: String): Boolean {
-        return writeSocket(MessageType.ANS, txt)
-    }
 
-    fun writeSocket(mtype: MessageType, txt: String): Boolean {
+    fun writeSocket(txt: String): Boolean {
         var success: Boolean = true
         var text = txt.trim { it <= ' ' }
         if(text.isNotEmpty()) {
             try {
-                val msgtxt = String.format("%s:%s", mtype.name, text)
-                if(DEBUG) Log.i(CLSS, String.format("TABLET WRITE: %s.", msgtxt))
-                output.println(msgtxt)
+                if(DEBUG) Log.i(CLSS, String.format("TABLET WRITE: %s.", text))
+                output.println(text)
                 output.flush()
             }
             catch(ex: Exception) {

@@ -11,7 +11,6 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
-import chuckcoughlin.bertspeak.service.ManagerState.OFF
 import java.util.Locale
 
 /**
@@ -29,6 +28,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 
 	/** Must run on main thread */
 	override fun start() {
+		Log.i(CLSS, String.format("start: "))
 		if( !SpeechRecognizer.isRecognitionAvailable(dispatcher.context) ) {
 			Log.w(CLSS, "start: ERROR (speech recognition is not supported on this device)")
 			dispatcher.reportManagerState(ManagerType.HEARING,ManagerState.ERROR)
@@ -45,6 +45,9 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			sr.setRecognitionListener(this)
 			managerState = ACTIVE
 			dispatcher.reportManagerState(ManagerType.HEARING,managerState)
+			resetSpeechRecognizer()
+			startListening()
+
 		}
 	}
 
@@ -84,11 +87,16 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		}
 		listening = false
 	}
-
+	private fun resetSpeechRecognizer() {
+		sr.destroy()
+		sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
+		sr.setRecognitionListener(this)
+		listening = false
+	}
 	/*
 	 * Toggle through the three non-error states.
 	 */
-	fun toggleSpeechState() {
+	fun toggleListeningState() {
 		if( managerState == ManagerState.OFF) {
 			managerState = ManagerState.PENDING
 			startListening()
@@ -148,7 +156,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			// Fill the array with the strings the recognizer thought it could have heard, there should be 5
 			val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
 			for (i in matches.indices) {
-				Log.i(CLSS, "result " + matches[i])
+				Log.i(CLSS, "result:" + matches[i])
 			}
 			// The zeroth result is usually the space-separated one
 			if( !matches.isEmpty()) {
@@ -189,6 +197,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		)
 		// Max number of results. This is two attempts at deciphering, not a 2-word limit.
 		intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
+		intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "chuckcoughlin.bertspeak.service");
 		return intent
 	}
 
@@ -216,7 +225,6 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 * Creating the speech recognizer must be done on the main thread.
 	 */
 	init {
-		managerState = ManagerState.OFF
 		recognizerIntent = createRecognizerIntent()
 		listening = false
 	}

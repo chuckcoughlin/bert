@@ -192,6 +192,9 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             val type = data.type
             val state= data.state
             when (type) {
+                ManagerType.HEARING   -> {
+                    updateStatusButton(hearingStatusButton, type,state)
+                }
                 ManagerType.SOCKET-> {
                     updateStatusButton(networkStatusButton,type,state)
                 }
@@ -199,7 +202,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
                     updateStatusButton(speechStatusButton, type,state)
                 }
                 else                 -> {
-                    updateStatusButton(hearingStatusButton, type,state)
                 }
             }
         }
@@ -238,6 +240,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             }
             hearingStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.HEARING.name))
+                DispatchService.toggleListeningState()
             }
             // The stop button triggers an immediate shutdown
             stopStatusButton -> {
@@ -249,7 +252,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             // This button has three states.
             speechStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SPEECH.name))
-                DispatchService.toggleSpeechState()
             }
         }
     }

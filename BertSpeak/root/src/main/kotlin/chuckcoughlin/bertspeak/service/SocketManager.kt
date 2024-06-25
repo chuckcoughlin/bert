@@ -139,7 +139,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
 
     /** Send a startup message directly to the socket **/
     private fun sendStartupMessage(handler:SocketTextHandler) {
-        handler.writeSocket(MessageType.LOG,START_MESSAGE)
+        handler.writeSocket(String.format("%s:%s",MessageType.LOG.name,START_MESSAGE))
     }
 
     val CLSS = "SocketManager"
