@@ -27,7 +27,7 @@ class SettingsListAdapter(context: Context, values: Array<NameValue>) :
     ArrayAdapter<NameValue>( context, R.layout.settings_item, values),ListAdapter   {
 
     override fun getItemId(position: Int): Long {
-        Log.i(CLSS, String.format("getItemId: %d",position))
+        //Log.i(CLSS, String.format("getItemId: %d",position))
         return getItem(position).hashCode().toLong()
     }
 

@@ -97,12 +97,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 * Toggle through the three non-error states.
 	 */
 	fun toggleListeningState() {
-		if( managerState == ManagerState.OFF) {
-			managerState = ManagerState.PENDING
+		if( managerState.equals(ManagerState.OFF)) {
+			managerState = ACTIVE
 			startListening()
 		}
-		else if( managerState==ManagerState.PENDING) {
-			managerState = ManagerState.ACTIVE
+		else if( managerState.equals(ManagerState.PENDING)) {
+			managerState = ACTIVE
 			startListening()
 		}
 		else  {
@@ -116,13 +116,14 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		Log.i(CLSS, "onReadyForSpeech")
 	}
 	override fun onBeginningOfSpeech() {
-		Log.i(CLSS, "onBeginningOfSpeech");
+		//Log.i(CLSS, "onBeginningOfSpeech");
 	}
 	// Background level changed ...
 	override fun onRmsChanged(rmsdB: Float) {}
 	override fun onBufferReceived(buffer: ByteArray) {
 		Log.i(CLSS, "onBufferReceived")
 	}
+	// Any error is reported after this ...
 	override fun onEndOfSpeech() {
 		Log.i(CLSS, "onEndofSpeech")
 	}
@@ -140,14 +141,18 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 					"recognition service is busy (started twice?)"
 				SpeechRecognizer.ERROR_SERVER -> "server error"
 				SpeechRecognizer.ERROR_TOO_MANY_REQUESTS -> "too many requests"
-				else -> String.format("ERROR (%d) ", error)
+				else -> String.format("Unrecognized error (%d) ", error)
 			}
-		listening = false
-		Log.e(CLSS, String.format("onError - %s", reason))
+		Log.e(CLSS, String.format("onError - %s", reason))  // Always log
 		dispatcher.logError(managerType,reason)
 
-		managerState = ManagerState.ERROR
-		dispatcher.reportManagerState(ManagerType.HEARING, managerState)
+		// Some errors are benign, ignore
+		if( error!= SpeechRecognizer.ERROR_NO_MATCH ) {
+			managerState = ManagerState.ERROR
+			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
+			resetSpeechRecognizer()
+		}
+		startListening()
 	}
 
 	override fun onResults(results: Bundle) {
@@ -166,7 +171,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			}
 		}
 		listening = false
-		if(managerState.equals(ManagerState.ACTIVE) ) {
+		if(!managerState.equals(ManagerState.ACTIVE) ) {
 			startListening()
 		}
 	}

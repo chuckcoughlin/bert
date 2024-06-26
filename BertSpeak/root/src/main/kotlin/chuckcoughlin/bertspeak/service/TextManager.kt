@@ -194,7 +194,6 @@ class TextManager (service:DispatchService): CommunicationManager {
         //Log.i(CLSS, String.format("notifyTranscriptObservers: %s", msg.message))
         for (observer in transcriptObservers.values) {
             Log.i(CLSS, String.format("notifyTranscript: %s", msg.message))
-            Log.i(CLSS, String.format("notifyTranscript: updating for %s", msg.message))
             observer.updateText(msg)
         }
     }

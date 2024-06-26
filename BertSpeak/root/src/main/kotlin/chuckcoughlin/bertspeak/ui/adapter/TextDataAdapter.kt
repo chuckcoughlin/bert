@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.ui.adapter
@@ -39,12 +39,12 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
      * Create a new view holder. Inflate the row layout, set the item height.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TextDataViewHolder {
-        Log.i(CLSS, String.format("onCreateViewHolder count = %d", messages.size))
+        //Log.i(CLSS, String.format("onCreateViewHolder count = %d", messages.size))
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val shouldAttachToParent = false
         val layout: LinearLayout =
             inflater.inflate(R.layout.log_item, parent, shouldAttachToParent) as LinearLayout
-        Log.i(CLSS, String.format("onCreateViewHolder inflation complete"))
+        //Log.i(CLSS, String.format("onCreateViewHolder inflation complete"))
         return TextDataViewHolder(layout)
     }
 
@@ -57,7 +57,7 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
      */
     override fun onBindViewHolder(holder: TextDataViewHolder, pos: Int) {
         var position = pos
-        Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
+        //Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
         if( messages.size == 0 ) {
             Log.w(CLSS, String.format("onBindViewHolder no messsages to bind"))
             return
@@ -127,7 +127,7 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
     // It is important that the widget and backing manager be in synch
     // with respect to item count.
     override fun getItemCount(): Int {
-        Log.i(CLSS, String.format("getItemCount = %d", messages.size))
+        //Log.i(CLSS, String.format("getItemCount = %d", messages.size))
         return messages.size
     }
 
@@ -183,7 +183,7 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
         //Log.i(CLSS, String.format("reportItemInserted SUCCESS"))
     }
 
-    private val CLSS = "TextMessageAdapter"
+    private val CLSS = "TextDataAdapter"
     private val MESSAGE_LEN = 45
     private val SOURCE_LEN = 15
     private val LOG_MSG_HEIGHT = 75

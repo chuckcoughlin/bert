@@ -152,8 +152,8 @@ class DispatchService(ctx: Context){
     fun processSpokenText(text: String) {
         GlobalScope.launch(Dispatchers.IO) {
             Log.i(CLSS, String.format("processSpokenText: %s", text))
-            textManager.processText(MessageType.ANS, text)
-            socketManager.receiveTextToSend(String.format("%s:%s", MessageType.ANS.name, text))
+            textManager.processText(MessageType.MSG, text)
+            socketManager.receiveTextToSend(String.format("%s:%s", MessageType.MSG.name, text))
         }
     }
 

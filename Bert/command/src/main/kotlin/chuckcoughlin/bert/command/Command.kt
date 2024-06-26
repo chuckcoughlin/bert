@@ -14,7 +14,6 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import chuckcoughlin.bert.speech.process.StatementParser
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -24,7 +23,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
-import java.awt.SystemColor.text
 import java.net.ServerSocket
 import java.util.logging.Logger
 
@@ -47,7 +45,6 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     private val host:String
     private val port:Int
     private val translator: MessageTranslator
-    private val parser: StatementParser
     private var requestChannel=req     // Command->Dispatcher  (requests initiated by user)
     private var responseChannel=rsp    // Dispatcher->Command  (results of user requests)
 
@@ -55,7 +52,6 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     private val scope=GlobalScope // For long-running coroutines
     private var ignoring: Boolean
     private var running: Boolean
-    private var suppressingErrors: Boolean
     private var job: Job
     var startMessage = "Starting ..."
 
@@ -91,7 +87,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                             LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
                                 socket.inetAddress.canonicalHostName, socket.port))
                             var connected = true
-                            val handler = SocketMessageHandler(socket!!)
+                            val handler = CommandMessageHandler(socket!!)
                             sendStartupMessage(handler)
                             while (connected) {
                                 select<Unit> {
@@ -107,23 +103,14 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                                      * Forward requests to the Dispatcher launcher.
                                      */
                                     handler.receiveNetworkInput().onAwait() {
-                                        if (it != null && it.isNotEmpty()) {
-                                            val msg = processRequest(it)
-                                            LOGGER.info(String.format("%s.execute: received from socket (%s)", CLSS,msg.type.name))
-                                            // Ignore non-commands/requests
-                                            if( !msg.type.equals(RequestType.NONE) &&
-                                                !msg.type.equals(RequestType.NOTIFICATION) ) {
-                                                if(isLocalRequest(msg)) {
-                                                    handleLocalRequest(msg)
-                                                }
-                                                else {
-                                                    LOGGER.info(String.format("%s.execute: sending to dispatcher (%s)", CLSS,msg.type.name))
-                                                    requestChannel.send(msg)
-                                                }
-                                            }
+                                        val msg = it
+                                        LOGGER.info(String.format("%s.execute: received from socket (%s)", CLSS,msg.type.name))
+                                        if(isLocalRequest(msg)) {
+                                            handleLocalRequest(handler,msg)
                                         }
                                         else {
-                                            connected = false
+                                            LOGGER.info(String.format("%s.execute: sending to dispatcher (%s)", CLSS, msg.type.name))
+                                            requestChannel.send(msg)
                                         }
                                     }
                                 }
@@ -159,76 +146,15 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         }
     }
 
-    /**
-     * Analyze text and use ANTLR to convert into a MessageBottle
-     * Send to the dispatcher unless this can be handled locally
-     *
-     * There are only two kinds of messages (MSG,JSN) that result in actions. Anything
-     * else is simply logged. Returning an empty string signals loss of the client.
-     * Throw an exception to force closing of the socket.
-     */
-    private fun processRequest(txt:String) : MessageBottle {
-        var msg = MessageBottle(RequestType.NONE)
-
-        if (txt.length > BottleConstants.HEADER_LENGTH) {
-            val hdr  = txt.substring(0, BottleConstants.HEADER_LENGTH - 1)
-            val text = txt.substring(BottleConstants.HEADER_LENGTH)
-            if( DEBUG ) LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
-            if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
-                // We've stripped the header now analyze the rest.
-                try {
-                    if(DEBUG) LOGGER.info(String.format(" parsing %s: %s", hdr,text))
-                    msg = parser.parseStatement(text)
-                    if(DEBUG) LOGGER.info(String.format(" returned %s: %s (%s)", msg.type.name,msg.text,msg.error))
-                }
-                catch (ex: Exception) {
-                    msg = MessageBottle(RequestType.NOTIFICATION)
-                    msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, msg.type.name)
-                }
-            }
-            else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
-                LOGGER.info(String.format(" parsing JSN: %s", text))
-                msg.error = String.format("JSON messages are not recognized from the tablet")
-            }
-            // For now simply log responses from the tablet.
-            else if (hdr.equals(MessageType.ANS.name, ignoreCase = true)) {
-                LOGGER.info(String.format("Tablet ANS: %s",text))
-                msg = parser.parseStatement(text)
-            }
-            // Simply send tablet log messages to our logger
-            else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
-                LOGGER.info(String.format("Tablet LOG: %s",text))
-            }
-            else {
-                msg = MessageBottle(RequestType.NOTIFICATION)
-                msg.error = String.format("Message has an unrecognized prefix (%s)", hdr)
-            }
+    // This must be synched with isLocalRequest()
+    private fun handleLocalRequest(handler:CommandMessageHandler,request: MessageBottle) {
+        if( !request.type.equals(RequestType.NONE)) {
+            // Do nothing
         }
-        else {
-            msg = MessageBottle(RequestType.NOTIFICATION)
-            msg.error = String.format("Received a short message from the tablet (%s)", text)
+        else if( !request.error.equals(BottleConstants.NO_ERROR)) {
+            sendResponse(handler,request.error)
         }
-        msg.source = ControllerType.COMMAND.name
-        if( msg.type == RequestType.NONE ) { // NONE simply doesn't get processed
-            if (msg.type == RequestType.NOTIFICATION ||
-                msg.type == RequestType.PARTIAL ||
-                !msg.error.equals(BottleConstants.NO_ERROR)) {
-
-                suppressingErrors = true // Suppress replies to consecutive syntax errors
-                val text: String = translator.messageToText(msg)
-                LOGGER.info(String.format("%s.SuppressedErrorMessage: %s", CLSS, text))
-            }
-            else {
-                suppressingErrors = false
-            }
-        }
-        return msg
-    }
-
-
-    // We handle the command to sleep and awake immediately.
-    private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if(request.type.equals(RequestType.COMMAND)) {
+        else if(request.type.equals(RequestType.COMMAND)) {
             val command: CommandType =request.command
             LOGGER.warning(String.format("%s.handleLocalRequest: command=%s", CLSS, command))
             if(command.equals(CommandType.SLEEP)) {
@@ -242,22 +168,42 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 request.error=msg
             }
         }
-        request.text=translator.randomAcknowledgement()
-        return request
+        else if (request.type.equals(RequestType.NOTIFICATION)) {
+            sendResponse(handler,request.text)
+        }
+        else {
+            sendResponse(handler,translator.randomAcknowledgement())
+        }
     }
-    // Local requests are those that can be handled immediately without forwarding to the dispatcher.
+    /* Local requests are those that can be handled immediately without forwarding to the dispatcher.
+     * This includes requests that contain errors or are simply notifications.
+     */
     private fun isLocalRequest(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.COMMAND)) {
+        if (request.type.equals(RequestType.NONE)) {
+            return true
+        }
+        else if( !request.error.equals(BottleConstants.NO_ERROR)) {
+            return true
+        }
+        else if (request.type.equals(RequestType.COMMAND)) {
             val cmd = request.command
             if (cmd == CommandType.SLEEP || cmd == CommandType.WAKE) {
                 return true
             }
         }
+        else if (request.type.equals(RequestType.NOTIFICATION)) {
+            return true
+        }
         return false
     }
 
+    fun sendResponse(handler:CommandMessageHandler,txt:String) {
+        val text = String.format("%s:%s",MessageType.ANS.name,txt)
+        handler.sendText(text)
+    }
+
     /** Send a startup message directly to the socket **/
-    fun sendStartupMessage(handler:SocketMessageHandler) {
+    fun sendStartupMessage(handler:CommandMessageHandler) {
         val text = String.format("%s:%s",MessageType.ANS.name,startMessage)
         handler.sendText(text)
     }
@@ -274,8 +220,6 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         ignoring = false
         running = false
-        suppressingErrors = false
-        parser = StatementParser()
         translator = MessageTranslator()
         host = LOCALHOST
         port = RobotModel.getPropertyForController(controllerType, ConfigurationConstants.PROPERTY_PORT).toInt()
