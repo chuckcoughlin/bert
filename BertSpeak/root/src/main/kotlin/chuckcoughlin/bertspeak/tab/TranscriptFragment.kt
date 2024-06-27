@@ -97,6 +97,11 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), TextDataObserve
         }
     }
 
+    // ===================== TextDataObserver =====================
+    /**
+     * This is called when we first establish the observer.
+     * Data is stored newest first
+     */
     override fun resetText(list:List<TextData>) {
         Log.i(name, "reset: message list is now ...")
         adapter.resetList(list)

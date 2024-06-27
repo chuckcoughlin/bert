@@ -65,9 +65,9 @@ class SocketTextHandler(sock: Socket) {
     fun readSocket(): Deferred<String?> =
         GlobalScope.async(Dispatchers.IO) {
             Log.i(CLSS, String.format("readSocket: reading from socket ..."))
-            val text = input.readLine() // Strips trailing new-line
+            val text = readCommand() // Strips trailing new-line
             if(text == null || text.isEmpty()) {
-                Log.i(CLSS, "Received nothing on read. Assume client is closed.")
+                Log.w(CLSS, "Received nothing on read. Is server closed?")
             }
             else {
                 if(DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
@@ -81,6 +81,26 @@ class SocketTextHandler(sock: Socket) {
 
     }
 
+    /**
+     * This is a substitute for readLine() which I've had much trouble with.
+     * @return a line of text. Null indicates a closed stream
+     */
+
+    fun readCommand():String? {
+        var text = StringBuffer()
+        while(true) {
+            val ch = input.read()
+            if( ch<0 ) {
+                return null
+            }
+            else if(ch.toChar()=='\n') {
+                break
+            }
+            if(DEBUG) Log.i(CLSS,String.format("%s.readCommand: %c", CLSS, ch))
+            text.append(ch.toChar())
+        }
+        return text.toString()
+    }
 
     private val CLSS = "SocketTextHandler"
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs

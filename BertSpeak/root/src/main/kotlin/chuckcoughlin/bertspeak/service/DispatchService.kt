@@ -9,17 +9,15 @@ import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
-import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.TextDataObserver
-import chuckcoughlin.bertspeak.db.DatabaseManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.Locale
-import kotlin.math.roundToInt
+
 
 
 /**
@@ -45,7 +43,7 @@ class DispatchService(ctx: Context){
      * The order here is important
      */
     fun initialize() {
-        Log.i(CLSS, "initialize: ... ");
+        Log.i(CLSS, "initialize: ... ")
         instance = this
         statusManager = StatusManager(this)
         textManager = TextManager(this)
@@ -108,13 +106,13 @@ class DispatchService(ctx: Context){
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun startSpeech() {
+    fun startListening() {
         GlobalScope.launch(Dispatchers.Main) {
             hearingManager.startListening()
         }
     }
     @OptIn(DelicateCoroutinesApi::class)
-    fun stopSpeech() {
+    fun stopListening() {
         GlobalScope.launch(Dispatchers.Main) {
             hearingManager.stopListening()
         }
@@ -144,7 +142,7 @@ class DispatchService(ctx: Context){
     }
 
     /**
-     * Presumeably the text originates from the speech recognizer on the tablet (or an error).
+     * Presumably the text originates from the speech recognizer on the tablet (or an error).
      * Send text to the robot for processing. Inform the text manager for dissemination
      * to any observers.
      */
@@ -161,7 +159,7 @@ class DispatchService(ctx: Context){
     /* ================================================================
      * The companion object contains methods callable in a static way
      * from components throughout the application. It is necessary
-     * to set the instance before any components are initialkized.
+     * to set the instance before any components are initialized.
      * ================================================================
      */
     companion object {
@@ -201,12 +199,6 @@ class DispatchService(ctx: Context){
         }
         fun toggleListeningState() {
             instance.hearingManager.toggleListeningState()
-        }
-        fun suppressAudio() {
-            instance.speechManager.suppressAudio()
-        }
-        fun updateManagerStatus(mgr:ManagerType,state:ManagerState) {
-            instance.statusManager.updateState(mgr, state)
         }
     }
     val CLSS = "DispatchService"

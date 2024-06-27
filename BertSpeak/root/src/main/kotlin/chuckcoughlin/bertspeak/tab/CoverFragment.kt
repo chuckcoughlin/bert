@@ -160,7 +160,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
         })
     }
 
-    // ===================== SettingdObserver =====================
+    // ===================== SettingsObserver =====================
     override fun resetSettings(list: List<NameValue>) {
         for (ddata in list) {
             updateSetting(ddata)
@@ -183,7 +183,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
     }
 
     /**
-     * We have received an update from one of the internal managers. Use the
+     * We have received a status update from one of the internal managers. Use the
      * category to determine which.
      */
     override fun updateStatus(data: StatusData) {
@@ -213,24 +213,25 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
      */
     override fun resetText(list: List<TextData>) {
         if(list.size>0) {
-            updateText(list.last())
+            updateText(list.first())
         }
     }
 
     /**
-     * We only handle MSG, VOICE. All other text types are ignored.
+     * We only handle MSG, ANS. All other text types are ignored.
      */
     override fun updateText(msg: TextData) {
         Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
-        if(msg.type.equals(MessageType.ANS)) {
+        if(msg.type.equals(MessageType.ANS)) {      // From the robot
             voiceText.text = msg.message
             voiceText.setTextColor(Color.BLUE)
         }
-        else if(msg.type.equals(MessageType.MSG)) {
+        else if(msg.type.equals(MessageType.MSG)) {  // To the robot
             voiceText.text = msg.message
             voiceText.setTextColor(Color.BLACK)
         }
     }
+
     // ================== OnClickListener ===============
     // One of the status buttons has been clicked.
     override fun onClick(v: View) {

@@ -147,11 +147,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		dispatcher.logError(managerType,reason)
 
 		// Some errors are benign, ignore
-		if( error!= SpeechRecognizer.ERROR_NO_MATCH ) {
+		if( error != SpeechRecognizer.ERROR_NO_MATCH ) {
 			managerState = ManagerState.ERROR
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 			resetSpeechRecognizer()
 		}
+		listening = false
 		startListening()
 	}
 
@@ -161,7 +162,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			// Fill the array with the strings the recognizer thought it could have heard, there should be 5
 			val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
 			for (i in matches.indices) {
-				Log.i(CLSS, "result:" + matches[i])
+				Log.i(CLSS, String.format("result %d: %s",i,matches[i]))
 			}
 			// The zeroth result is usually the space-separated one
 			if( !matches.isEmpty()) {

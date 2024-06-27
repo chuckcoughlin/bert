@@ -10,7 +10,9 @@ import chuckcoughlin.bertspeak.data.TextDataObserver
 /**
  * The text manager is a repository of text messages destined to be
  * logged and/or annunciated. The messages may originate on the tablet
- * be responses from the robot connected via a TCP network.
+ * or be responses from the robot connected via a TCP network.
+ *
+ * The transcripts and logs are stored newest first.
  *
  * Only the most recent table that has been transmitted is displayable.
  * The column list must be sent before the rows as new columns clear out
@@ -31,7 +33,7 @@ class TextManager (service:DispatchService): CommunicationManager {
     override fun start() {
         clear(MessageType.ANS)
         clear(MessageType.LOG)
-        clear(MessageType.MSG)
+        clear(MessageType.MSG)  // redundant
         clear(MessageType.TBL)
     }
 
@@ -42,7 +44,7 @@ class TextManager (service:DispatchService): CommunicationManager {
     override fun stop() {
         clear(MessageType.ANS)
         clear(MessageType.LOG)
-        clear(MessageType.MSG)
+        clear(MessageType.MSG)    // redundant
         clear(MessageType.TBL)
     }
 
@@ -84,7 +86,7 @@ class TextManager (service:DispatchService): CommunicationManager {
     fun processText(type: MessageType, text: String) {
         Log.i(CLSS, String.format("processText (%s): %s", type.name, text))
         when (type) {
-            MessageType.ANS -> {
+            MessageType.ANS -> {               // Response from the robot
                 var msg = TextData(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
@@ -193,7 +195,7 @@ class TextManager (service:DispatchService): CommunicationManager {
     private fun notifyTranscriptObservers(msg: TextData) {
         //Log.i(CLSS, String.format("notifyTranscriptObservers: %s", msg.message))
         for (observer in transcriptObservers.values) {
-            Log.i(CLSS, String.format("notifyTranscript: %s", msg.message))
+            Log.i(CLSS, String.format("notifyTranscript: %s: %s", msg.type.name,msg.message))
             observer.updateText(msg)
         }
     }

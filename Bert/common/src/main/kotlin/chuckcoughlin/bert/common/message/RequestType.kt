@@ -16,6 +16,7 @@ enum class RequestType {
     GET_METRIC,              // A local property of the robot, e.g. name
     GET_MOTOR_PROPERTY,      // Current value of a motor property
     GET_POSE,
+    HANGUP,                  // Client has disconnected
     HEARTBEAT,               // An internal message on the TimerQueue
     INITIALIZE_JOINTS,       // Make sure that all joints are in "sane" positions
     LIST_MOTOR_PROPERTIES,   // List available properties for a motor (static/dynamic) - JSON

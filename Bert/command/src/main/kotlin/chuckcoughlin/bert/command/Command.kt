@@ -105,6 +105,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                                     handler.receiveNetworkInput().onAwait() {
                                         val msg = it
                                         LOGGER.info(String.format("%s.execute: received from socket (%s)", CLSS,msg.type.name))
+                                        if(isHangup(msg) ) {
+                                            connected = false
+                                        }
                                         if(isLocalRequest(msg)) {
                                             handleLocalRequest(handler,msg)
                                         }
@@ -174,6 +177,13 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         else {
             sendResponse(handler,translator.randomAcknowledgement())
         }
+    }
+    /*
+     * The message reader has received an EOF
+     */
+    private fun isHangup(msg:MessageBottle ):Boolean {
+        if( msg.type==RequestType.HANGUP) return true
+        return false
     }
     /* Local requests are those that can be handled immediately without forwarding to the dispatcher.
      * This includes requests that contain errors or are simply notifications.

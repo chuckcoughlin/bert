@@ -79,10 +79,12 @@ class CommandMessageHandler(sock: Socket)  {
     @DelicateCoroutinesApi
     fun receiveNetworkInput(): Deferred<MessageBottle> =
         GlobalScope.async(Dispatchers.IO) {
-            var request = MessageBottle(RequestType.NONE)
-            if(DEBUG) LOGGER.info(String.format("Waiting for read from socket."))
-            val text = input.readLine()
-            if (text != null && !text.isEmpty()) {
+            var request: MessageBottle
+            val text = readCommand()
+            if( text== null ) {
+                request = MessageBottle(RequestType.HANGUP)
+            }
+            else {
                 request = processRequest(text)
             }
             request
@@ -154,7 +156,27 @@ class CommandMessageHandler(sock: Socket)  {
         return msg
     }
 
-    /* Send text directly to the socket */
+    /**
+     * This is a substitute for readLine() which I've had much trouble with.
+     * @return a line of text. Null indicates a closed stream
+     */
+
+    fun readCommand():String? {
+        var text = StringBuffer()
+        while(true) {
+            val ch = input.read()
+            if( ch<0 ) {
+                return null
+            }
+            else if(ch.toChar()=='\n') {
+                break
+            }
+            if(DEBUG) LOGGER.info(String.format("%s.readCommand: %c", CLSS, ch))
+            text.append(ch.toChar())
+        }
+        return text.toString()
+    }
+    /* Send text directly to the socket with newline */
     fun sendText(text:String) {
         output.println(text)
         output.flush()

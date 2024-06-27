@@ -22,7 +22,8 @@ import java.util.Date
 
 /**
  * This class is a link between a RecyclerView and the data backstop.
- * Each element in the list is a string, a text message.
+ * Each element in the list is a string, a text message. List is ordered
+ * newest first.
  */
 class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<TextDataViewHolder>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
