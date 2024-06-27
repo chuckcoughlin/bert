@@ -5,18 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/Command.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/CommandMessageHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/CommandMessageHandler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/RequestType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/RequestType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/network/SocketTextHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/network/SocketTextHandler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/DispatchService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/DispatchService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/HearingManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/HearingManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/SpeechManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/SpeechManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/TextManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/TextManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/tab/CoverFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/tab/CoverFragment.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/tab/TranscriptFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/tab/TranscriptFragment.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/ui/adapter/TextDataAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/ui/adapter/TextDataAdapter.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

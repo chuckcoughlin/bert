@@ -168,10 +168,10 @@ class CommandMessageHandler(sock: Socket)  {
             if( ch<0 ) {
                 return null
             }
-            else if(ch.toChar()=='\n') {
+            else if(ch==NL || ch==CR) {
                 break
             }
-            if(DEBUG) LOGGER.info(String.format("%s.readCommand: %c", CLSS, ch))
+            if(DEBUG) LOGGER.info(String.format("%s.readCommand: %c (%d)", CLSS, ch.toChar(),ch))
             text.append(ch.toChar())
         }
         return text.toString()
@@ -186,6 +186,8 @@ class CommandMessageHandler(sock: Socket)  {
     private val CLIENT_READ_ATTEMPT_INTERVAL: Long = 250  // msecs
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
+    private val CR = 13
+    private val NL = 10
 
     init {
         translator = MessageTranslator()
