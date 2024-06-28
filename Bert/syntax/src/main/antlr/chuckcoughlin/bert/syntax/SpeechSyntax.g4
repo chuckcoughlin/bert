@@ -80,7 +80,7 @@ Be: 'become'|'be';
 Do: 'do';
 Dynamic: 'dynamic';
 Goals: 'goals'|'targets';
-Greeting: 'hello'|'high'|'hi';
+Greeting: 'hello'|'high'|'hi'|'hey';
 Have: 'have'|'wear';
 Hold: 'hold';
 How: 'how';

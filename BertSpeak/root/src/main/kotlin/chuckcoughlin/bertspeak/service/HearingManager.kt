@@ -172,9 +172,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			}
 		}
 		listening = false
-		if(!managerState.equals(ManagerState.ACTIVE) ) {
-			startListening()
-		}
+		startListening()
 	}
 
 	/**

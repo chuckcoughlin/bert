@@ -215,7 +215,8 @@ class Dispatcher(s:Solver) : Controller {
         else if(isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
             val response: MessageBottle = handleLocalRequest(msg)
-            if(!response.type.equals(RequestType.NONE))replyToSource(response)
+            if(!response.type.equals(RequestType.NONE) &&
+                response.type.equals(RequestType.HANGUP ) ) replyToSource(response)
         }
         else if(isMotorRequest(msg)) {
             toInternalController.send(msg)
@@ -445,6 +446,7 @@ class Dispatcher(s:Solver) : Controller {
         if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION) ||
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
             request.type.equals(RequestType.GET_METRIC) ||
+            request.type.equals(RequestType.HANGUP)     ||
             request.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
             request.type.equals(RequestType.MAP_POSE) ||
             request.type.equals(RequestType.SAVE_POSE)) {
