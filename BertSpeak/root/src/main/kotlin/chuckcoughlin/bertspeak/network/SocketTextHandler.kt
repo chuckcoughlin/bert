@@ -86,7 +86,7 @@ class SocketTextHandler(sock: Socket) {
      * @return a line of text. Null indicates a closed stream
      */
 
-    fun readCommand():String? {
+    @Synchronized fun readCommand():String? {
         var text = StringBuffer()
         while(true) {
             val ch = input.read()

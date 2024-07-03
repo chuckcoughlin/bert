@@ -161,7 +161,7 @@ class CommandMessageHandler(sock: Socket)  {
      * @return a line of text. Null indicates a closed stream
      */
 
-    fun readCommand():String? {
+    @Synchronized fun readCommand():String? {
         var text = StringBuffer()
         while(true) {
             val ch = input.read()
@@ -178,6 +178,7 @@ class CommandMessageHandler(sock: Socket)  {
     }
     /* Send text directly to the socket with newline */
     fun sendText(text:String) {
+        if(DEBUG) LOGGER.info(String.format("%s.sendText: %s.", CLSS, text))
         output.println(text)
         output.flush()
     }

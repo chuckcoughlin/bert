@@ -122,7 +122,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                             if (!socket.isClosed) socket.close()
                         }
                         catch(ex:Exception ) {
-                            LOGGER.warning(String.format("%s: Error accepting client connection (%s)", CLSS,port,ex.localizedMessage))
+                            LOGGER.info(String.format("%s: WARNING: failed to accept client connection on %d (%s)", CLSS,port,ex.localizedMessage))
                             delay(DELAY)
                         }
                         delay(DELAY)

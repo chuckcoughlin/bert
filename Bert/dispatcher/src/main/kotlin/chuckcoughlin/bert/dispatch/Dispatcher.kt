@@ -215,8 +215,8 @@ class Dispatcher(s:Solver) : Controller {
         else if(isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
             val response: MessageBottle = handleLocalRequest(msg)
-            if(!response.type.equals(RequestType.NONE) &&
-                response.type.equals(RequestType.HANGUP ) ) replyToSource(response)
+            if( !response.type.equals(RequestType.NONE) &&
+                !response.type.equals(RequestType.HANGUP ) ) replyToSource(response)
         }
         else if(isMotorRequest(msg)) {
             toInternalController.send(msg)
@@ -317,9 +317,9 @@ class Dispatcher(s:Solver) : Controller {
     // reference to the motors. The response is simply the original request
     // with altered text to return to the user.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
         // The following two requests simply use the current positions of the motors, whatever they are
         if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             solver.setTreeState() // Forces new calculations
             val appendage = request.appendage
             val xyz: DoubleArray = solver.getPosition(appendage)
@@ -329,6 +329,7 @@ class Dispatcher(s:Solver) : Controller {
             request.text = text
         }
         else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             solver.setTreeState()
             val joint = request.joint
             val xyz: DoubleArray = solver.getPosition(joint)
@@ -338,6 +339,7 @@ class Dispatcher(s:Solver) : Controller {
             request.text = text
         }
         else if (request.type.equals(RequestType.GET_METRIC)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
             val metric: MetricType = request.metric
             var text = ""
             when (metric) {
@@ -381,6 +383,7 @@ class Dispatcher(s:Solver) : Controller {
         }
         // List the names of different kinds of properties
         else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             if(!request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
                 request.text = JointDefinitionProperty.toJSON()
             }
@@ -389,6 +392,7 @@ class Dispatcher(s:Solver) : Controller {
             }
         }
         else if (request.type.equals(RequestType.MAP_POSE)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             val command = request.command
             val poseName = request.pose
             if (!command.equals(CommandType.NONE) && !poseName.equals(BottleConstants.NO_POSE)) {
@@ -399,6 +403,7 @@ class Dispatcher(s:Solver) : Controller {
             }
         }
         else if (request.type.equals(RequestType.SAVE_POSE)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             var poseName: String = request.pose
             if (!poseName.equals(BottleConstants.NO_POSE)) {
                 Database.saveJointPositionsForPose(RobotModel.motorsByJoint, poseName)

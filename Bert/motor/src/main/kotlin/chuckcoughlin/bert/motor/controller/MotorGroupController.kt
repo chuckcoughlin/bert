@@ -217,7 +217,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         if (request.type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.RESET) ) {
             pendingMessages.clear()
-            text = "I have been reset"
+            request.text = "I have been reset"
         }
         else if( request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
             val joint = request.joint
@@ -373,7 +373,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                     JointDefinitionProperty.MOTORTYPE -> TODO()
                     JointDefinitionProperty.OFFSET -> TODO()
                     JointDefinitionProperty.ORIENTATION -> TODO()
-                    JointDefinitionProperty.NONE -> TODO()
+                    JointDefinitionProperty.NONE -> text = ""
                 }
             }
             else {
