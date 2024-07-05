@@ -61,7 +61,7 @@ class Terminal(stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : C
                 while (running) {
                     print(prompt)
                     select<MessageBottle> {
-                        stdoutChannel.onReceive() { it ->
+                        stdoutChannel.onReceive() { it
                             displayMessage(it)
                             it
                         }

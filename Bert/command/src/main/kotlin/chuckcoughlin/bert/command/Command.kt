@@ -90,21 +90,24 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                             val handler = CommandMessageHandler(socket!!)
                             sendStartupMessage(handler)
                             while (connected) {
-                                select<Unit> {
-                                    /** Receive from the Dispatcher */
-                                    responseChannel.onReceive() {
-                                        if (!it.type.equals(RequestType.NOTIFICATION) &&  // Ignore notifications
-                                            !it.type.equals(RequestType.NONE)) {          // Ignore type NONE
+                                select<MessageBottle> {
+                                    /**         Receive from the Dispatcher              */
+                                    responseChannel.onReceive() {it
+                                        if( it.type.equals(RequestType.NOTIFICATION) ) {  // Log notifications
+                                           LOGGER.info(String.format("%s.execute: Received NOTIFICATION: %s",it.text))
+                                        }
+                                        else if(!it.type.equals(RequestType.NONE)) {       // Ignore type NONE
                                             connected = handler.sendResponse(it)
                                         }
+                                        it
                                     }
                                     /**
                                      * Read from the tablet via the network. Use ANTLR to convert text into requests.
-                                     * Forward requests to the Dispatcher launcher.
+                                     * Send requests to the Dispatcher channel.
                                      */
-                                    handler.receiveNetworkInput().onAwait() {
+                                    handler.receiveNetworkInput().onAwait() { it
                                         val msg = it
-                                        LOGGER.info(String.format("%s.execute: received from socket (%s)", CLSS,msg.type.name))
+                                        LOGGER.info(String.format("%s.execute: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
                                         if(isHangup(msg) ) {
                                             connected = false
                                         }
@@ -115,6 +118,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                                             LOGGER.info(String.format("%s.execute: sending to dispatcher (%s)", CLSS, msg.type.name))
                                             requestChannel.send(msg)
                                         }
+                                        msg
                                     }
                                 }
                             }
@@ -171,8 +175,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 request.error=msg
             }
         }
+        // Actually a response via the Dispatcher - simply log
         else if (request.type.equals(RequestType.NOTIFICATION)) {
-            sendResponse(handler,request.text)
+            LOGGER.info(String.format("TABLET RESPONSE: %s",request.text))
         }
         else {
             sendResponse(handler,translator.randomAcknowledgement())

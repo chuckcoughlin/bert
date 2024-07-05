@@ -62,16 +62,11 @@ class SocketTextHandler(sock: Socket) {
      * @return a deferred value for use in a select() clause.
      */
     @DelicateCoroutinesApi
-    fun readSocket(): Deferred<String?> =
+    fun readSocket(): Deferred<String> =
         GlobalScope.async(Dispatchers.IO) {
             Log.i(CLSS, String.format("readSocket: reading from socket ..."))
             val text = readCommand() // Strips trailing new-line
-            if(text == null || text.isEmpty()) {
-                Log.w(CLSS, "Received nothing on read. Is server closed?")
-            }
-            else {
-                if(DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
-            }
+            if(DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
             text
         }
 
@@ -83,17 +78,18 @@ class SocketTextHandler(sock: Socket) {
 
     /**
      * This is a substitute for readLine() which I've had much trouble with.
-     * @return a line of text. Null indicates a closed stream
+     * @return a line of text. Empty indicates a closed stream
      */
 
-    @Synchronized fun readCommand():String? {
+    @Synchronized fun readCommand():String {
         var text = StringBuffer()
         while(true) {
             val ch = input.read()
             if( ch<0 ) {
-                return null
+                return ""
             }
             else if(ch==NL || ch==CR) {
+                if(text.length==0) text.append(" ")
                 break
             }
             if(DEBUG) Log.i(CLSS,String.format("%s.readCommand: %c (%d)", CLSS, ch.toChar(),ch))

@@ -59,6 +59,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
         serverAddress = InetSocketAddress(host,port)
         running = true
         job = GlobalScope.launch(Dispatchers.IO) {
+            Log.i(CLSS, String.format("start: launch execution"))
             execute()
         }
     }
@@ -68,24 +69,25 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * and robot.
      */
     @DelicateCoroutinesApi
-    suspend fun execute() {
+    private suspend fun execute() {
         Log.i(CLSS, String.format("execute: connecting to %s on %d",host,port))
         while(running) {
             managerState = PENDING
             dispatcher.reportManagerState(managerType, managerState)
-            var connected = true
             try {
                 Log.i(CLSS,String.format("execute: defined client socket for %s %d",host,port))
                 socket = Socket()
                 socket.connect(serverAddress,CONNECTION_TIMEOUT)
                 val handler = SocketTextHandler(socket)
+                var connected = true
                 sendStartupMessage(handler)
                 managerState = ACTIVE
                 dispatcher.reportManagerState(managerType, managerState)
                 while(connected) {
-                    select<Unit> {
-                        handler.readSocket().onAwait {
-                            if(it == null || it.isEmpty()) {
+                    Log.i(CLSS, "execute: selecting ...")
+                    select<String> {
+                        handler.readSocket().onAwait {it->
+                            if( it.isEmpty() ) {
                                 connected = false
                                 handler.close()
                                 Log.i(CLSS, "execute: socket closed")
@@ -94,16 +96,15 @@ class SocketManager(service:DispatchService): CommunicationManager {
                                 Log.i(CLSS, String.format("execute: read socket returned %s", it))
                                 dispatcher.receiveText(it)
                             }
+                            it
                         }
-
-                        writeChannel.onReceive() {
+                        writeChannel.onReceive() {it->
                             Log.i(CLSS, String.format("SocketManager.write - %s",it))
                             handler.writeSocket(it)
-
+                            it
                         }
                     }
                 }
-
             }
             catch(ex:Throwable) {
                 Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
@@ -112,11 +113,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 try {
                     Thread.sleep(SOCKET_RETRY_INTERVAL)
                 } catch(ie:InterruptedException) {}
-                connected = false
             }
         }
     }
-
 
     suspend fun receiveTextToSend(text:String) {
         writeChannel.send(text)
