@@ -144,7 +144,6 @@
             />
     </LinearLayout>
 
-
     <!-- The middle panel is the voice waveform-->
     <!-- The is a text label above the wave-form meter -->
     <TextView
@@ -169,12 +168,13 @@
         android:layout_height="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp"
+        android:layout_marginBottom="-3dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintStart_toEndOf="@+id/coverVertical1"
         app:layout_constraintEnd_toStartOf="@+id/coverVertical2"
         app:layout_constraintTop_toBottomOf="@id/waveformTitle"
         app:layout_constraintBottom_toTopOf="@id/layoutVoiceText"
-        app:layout_constraintVertical_bias="0.5"
+
         tools:context="chuckcoughlin.bertspeak.BertSpeakActivity"
         tools:showIn="@layout/fragment_cover" />
     <LinearLayout

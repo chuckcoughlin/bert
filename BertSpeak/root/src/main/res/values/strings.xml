@@ -27,7 +27,7 @@
     <string name="coverParameterHearing">Hearing</string>
     <string name="coverSeekbarTitle">Vol</string>
     <string name="coverVoiceText">Voice Text</string>
-    <string name="coverVoiceTextHint">Hit Speak to record</string>
+    <string name="coverVoiceTextHint">Wait for robot connection ...</string>
     <string name="coverWaveformTitle">Voice Waveform</string>
     <!-- Strings for FaceRec tab-->
     <string name="facesCameraTitle">Front Camera</string>
