@@ -80,7 +80,7 @@ class DispatchService(ctx: Context){
      */
    @OptIn(DelicateCoroutinesApi::class)
     fun stop() {
-        Log.i(CLSS, String.format("start: stopping Dispatcher and managers"))
+        Log.i(CLSS, String.format("stop: stopping Dispatcher and managers"))
         speechManager.stop()
         geometryManager.stop()
         socketManager.stop()

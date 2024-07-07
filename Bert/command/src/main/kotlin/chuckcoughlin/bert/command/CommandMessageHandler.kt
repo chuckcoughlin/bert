@@ -13,12 +13,6 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import java.awt.SystemColor
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -76,19 +70,17 @@ class CommandMessageHandler(sock: Socket)  {
      * to the tablet which is a client to the robot.
      * @return a deferred value for use in a select() clause.
      */
-    @DelicateCoroutinesApi
-    fun receiveNetworkInput(): Deferred<MessageBottle> =
-        GlobalScope.async(Dispatchers.IO) {
-            var request: MessageBottle
-            val text = readCommand()
-            if( text== null ) {
-                request = MessageBottle(RequestType.HANGUP)
-            }
-            else {
-                request = processRequest(text)
-            }
-            request
+    fun receiveNetworkInput(): MessageBottle {
+        val request: MessageBottle
+        val text = readCommand()
+        if( text== null ) {
+            request = MessageBottle(RequestType.HANGUP)
         }
+        else {
+            request = processRequest(text)
+        }
+        return request
+    }
 
     /**
      * Analyze text and use ANTLR to convert into a MessageBottle
@@ -98,7 +90,7 @@ class CommandMessageHandler(sock: Socket)  {
      * else is simply logged. Returning an empty string signals loss of the client.
      * Throw an exception to force closing of the socket.
      */
-    private fun processRequest(txt:String) : MessageBottle {
+    @Synchronized private fun processRequest(txt:String) : MessageBottle {
         var msg = MessageBottle(RequestType.NONE)
 
         if (txt.length > BottleConstants.HEADER_LENGTH) {
@@ -137,7 +129,7 @@ class CommandMessageHandler(sock: Socket)  {
         }
         else {
             msg = MessageBottle(RequestType.NOTIFICATION)
-            msg.error = String.format("Received a short message from the tablet (%s)", SystemColor.text)
+            msg.error = String.format("Received a short message from the tablet (%s)", txt)
         }
         msg.source = ControllerType.COMMAND.name
         if( msg.type == RequestType.NONE ) { // NONE simply doesn't get processed

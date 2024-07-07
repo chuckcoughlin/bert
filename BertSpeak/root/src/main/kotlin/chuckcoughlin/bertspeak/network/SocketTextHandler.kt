@@ -28,19 +28,17 @@ class SocketTextHandler(sock: Socket) {
     private val output: PrintWriter
 
     /**
-     * Extract text from the message and forward on to the tablet formatted appropriately.
-     * For straight replies, the text is expected to be understandable, an error message or
-     * a value that can be formatted into plain English.
-     *
+     * Send a text request or status to the robot formatted appropriately.
      * The robot expects a message in the form TYP: payload
+     *
+     * We detect socket closure on input.
      *
      * @param txt
      * @return true on success
      */
 
-    fun writeSocket(txt: String): Boolean {
-        var success: Boolean = true
-        var text = txt.trim { it <= ' ' }
+    fun writeSocket(txt: String) {
+        var text = txt.trim()
         if(text.isNotEmpty()) {
             try {
                 if(DEBUG) Log.i(CLSS, String.format("TABLET WRITE: %s.", text))
@@ -49,32 +47,23 @@ class SocketTextHandler(sock: Socket) {
             }
             catch(ex: Exception) {
                 Log.i(CLSS, String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
-                success = false
             }
         }
-        return success
     }
 
     /**
-     * The specified socket is assumed to be connected to the robot as a client.
+     * The member socket is assumed to be connected to the robot as a client.
      * Read a line of text from the socket. The read will block and wait for data
      * to appear. If we get a null, then close the socket and re-listen
      * @return a deferred value for use in a select() clause.
      */
-    @DelicateCoroutinesApi
-    fun readSocket(): Deferred<String> =
-        GlobalScope.async(Dispatchers.IO) {
-            Log.i(CLSS, String.format("readSocket: reading from socket ..."))
-            val text = readCommand() // Strips trailing new-line
-            if(DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
-            text
-        }
-
-    fun close() {
-        input.close()
-        output.close()
-
+    fun readSocket(): String {
+        Log.i(CLSS, String.format("readSocket: reading from socket ..."))
+        val text = readCommand() // Strips trailing new-line
+        if(DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
+        return text
     }
+
 
     /**
      * This is a substitute for readLine() which I've had much trouble with.

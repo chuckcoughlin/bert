@@ -14,10 +14,12 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -51,6 +53,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     @DelicateCoroutinesApi
     private val scope=GlobalScope // For long-running coroutines
     private var ignoring: Boolean
+    private var connected: Boolean
     private var running: Boolean
     private var job: Job
     var startMessage = "Starting ..."
@@ -68,10 +71,6 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         if(!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            /* There should be a start message in the channel - but instead this hangs */
-            //val startmsg = responseChannel.receive()
-            //startMessage = startmsg.text
-
             /* First connect to the network (always LOCALHOST) */
             try {
                 val serverSocket = ServerSocket(port)
@@ -86,44 +85,23 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                             val socket = serverSocket.accept()
                             LOGGER.info(String.format("%s.execute: accepted client socket %s (%d)", CLSS,
                                 socket.inetAddress.canonicalHostName, socket.port))
-                            var connected = true
+                            connected = true
                             val handler = CommandMessageHandler(socket!!)
                             sendStartupMessage(handler)
                             while (connected) {
                                 select<MessageBottle> {
-                                    /**         Receive from the Dispatcher              */
-                                    responseChannel.onReceive() {it
-                                        if( it.type.equals(RequestType.NOTIFICATION) ) {  // Log notifications
-                                           LOGGER.info(String.format("%s.execute: Received NOTIFICATION: %s",it.text))
-                                        }
-                                        else if(!it.type.equals(RequestType.NONE)) {       // Ignore type NONE
-                                            connected = handler.sendResponse(it)
-                                        }
+                                    responseChannel.onReceive() {           // Receive from dispatcher
+                                        handleRequest(it,handler)
                                         it
                                     }
-                                    /**
-                                     * Read from the tablet via the network. Use ANTLR to convert text into requests.
-                                     * Send requests to the Dispatcher channel.
-                                     */
-                                    handler.receiveNetworkInput().onAwait() { it
-                                        val msg = it
-                                        LOGGER.info(String.format("%s.execute: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
-                                        if(isHangup(msg) ) {
-                                            connected = false
-                                        }
-                                        if(isLocalRequest(msg)) {
-                                            handleLocalRequest(handler,msg)
-                                        }
-                                        else {
-                                            LOGGER.info(String.format("%s.execute: sending to dispatcher (%s)", CLSS, msg.type.name))
-                                            requestChannel.send(msg)
-                                        }
-                                        msg
-                                    }
-                                }
+                                    handleResponse(handler).onAwait() {it}  // Send to tablet
+                                }  // End select
                             }
                             LOGGER.info(String.format("%s.execute: select complete - wait for new connection", CLSS))
-                            if (!socket.isClosed) socket.close()
+                            if (!socket.isClosed) {
+                                socket.close()
+                            }
+
                         }
                         catch(ex:Exception ) {
                             LOGGER.info(String.format("%s: WARNING: failed to accept client connection on %d (%s)", CLSS,port,ex.localizedMessage))
@@ -152,6 +130,43 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             job.cancel()
         }
     }
+
+    /**
+     * We have received a message from the dispatcher. Forward it to the socket.
+     */
+    private fun handleRequest(msg:MessageBottle,handler:CommandMessageHandler)  {
+        if( msg.type.equals(RequestType.NOTIFICATION) ) {  // Log notifications
+            LOGGER.info(String.format("%s.execute: Received NOTIFICATION: %s",msg.text))
+        }
+        else if(!msg.type.equals(RequestType.NONE)) {       // Ignore type NONE
+            connected = handler.sendResponse(msg)
+        }
+    }
+
+    /**
+     * Wait to receive a message from the socket. Forward it to the dispatcher.
+     */
+    @DelicateCoroutinesApi
+    fun handleResponse(handler:CommandMessageHandler): Deferred<MessageBottle> =
+        GlobalScope.async(Dispatchers.IO) {
+            /**
+             * Read from the tablet via the network. Use ANTLR to convert text into requests.
+             * Send requests to the Dispatcher channel.
+             */
+            val msg = handler.receiveNetworkInput()
+            LOGGER.info(String.format("%s.execute: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
+            if(isHangup(msg) ) {
+                connected = false
+            }
+            if(isLocalRequest(msg)) {
+                handleLocalRequest(handler,msg)
+            }
+            else {
+                LOGGER.info(String.format("%s.execute: sending to dispatcher (%s)", CLSS, msg.type.name))
+                requestChannel.send(msg)
+            }
+            msg
+        }
 
     // This must be synched with isLocalRequest()
     private fun handleLocalRequest(handler:CommandMessageHandler,request: MessageBottle) {
@@ -234,6 +249,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         ignoring = false
+        connected = false
         running = false
         translator = MessageTranslator()
         host = LOCALHOST

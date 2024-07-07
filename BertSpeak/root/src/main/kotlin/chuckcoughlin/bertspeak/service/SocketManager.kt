@@ -12,10 +12,12 @@ import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.ERROR
 import chuckcoughlin.bertspeak.service.ManagerState.PENDING
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -40,9 +42,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
     override var managerState = ManagerState.OFF
     private val buffer: CharArray
     private val dispatcher = service
-    private var handler : SocketTextHandler?
     private lateinit var serverAddress: SocketAddress
     private var socket: Socket
+    private var connected: Boolean
     private var running: Boolean
     private val host:String
     private val port:Int
@@ -79,32 +81,22 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 socket = Socket()
                 socket.connect(serverAddress,CONNECTION_TIMEOUT)
                 val handler = SocketTextHandler(socket)
-                var connected = true
+                connected = true
                 sendStartupMessage(handler)
                 managerState = ACTIVE
                 dispatcher.reportManagerState(managerType, managerState)
                 while(connected) {
                     Log.i(CLSS, "execute: selecting ...")
                     select<String> {
-                        handler.readSocket().onAwait {it->
-                            if( it.isEmpty() ) {
-                                connected = false
-                                handler.close()
-                                Log.i(CLSS, "execute: socket closed")
-                            }
-                            else {
-                                Log.i(CLSS, String.format("execute: read socket returned %s", it))
-                                dispatcher.receiveText(it)
-                            }
+                        handleResponse(handler).onAwait{it} // Accept from socket (robot)
+
+                        writeChannel.onReceive() {
+                            handleRequest(it,handler)       // Forward to socket (robot)
                             it
                         }
-                        writeChannel.onReceive() {it->
-                            Log.i(CLSS, String.format("SocketManager.write - %s",it))
-                            handler.writeSocket(it)
-                            it
-                        }
-                    }
+                    }  // End select
                 }
+                if( !socket.isClosed ) socket.close()
             }
             catch(ex:Throwable) {
                 Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
@@ -117,6 +109,31 @@ class SocketManager(service:DispatchService): CommunicationManager {
         }
     }
 
+    /**
+     * We have received a message to send to the robot. Forward it to the socket.
+     */
+    private fun handleRequest(msg:String,handler:SocketTextHandler)  {
+        handler.writeSocket(msg)
+    }
+
+    /**
+     * Wait to receive a message from the socket. Forward it to the dispatcher.
+     */
+    @DelicateCoroutinesApi
+    fun handleResponse(handler:SocketTextHandler): Deferred<String> =
+        GlobalScope.async(Dispatchers.IO) {
+            val txt = handler.readSocket()
+            if( txt.isEmpty() ) {
+                connected = false
+                Log.i(CLSS, "execute: socket closed")
+            }
+            else {
+                Log.i(CLSS, String.format("execute: read socket returned %s", txt))
+                dispatcher.receiveText(txt)
+            }
+            txt
+        }
+
     suspend fun receiveTextToSend(text:String) {
         writeChannel.send(text)
     }
@@ -124,10 +141,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
      * Close IO streams.
      */
     override fun stop() {
-        if( handler!=null ) {
-            handler!!.close()
-            handler = null
-        }
         if(!socket.isClosed) socket.close()
         if( running ) {
             job.cancel()
@@ -150,9 +163,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
 
     init {
         buffer = CharArray(BUFFER_SIZE)
+        connected  = false
         running  = false
         socket   = Socket()
-        handler  = null
         job = Job()
         host  = DatabaseManager.getSetting(BertConstants.BERT_HOST_IP)
         port  = DatabaseManager.getSetting(BertConstants.BERT_PORT).toInt()
