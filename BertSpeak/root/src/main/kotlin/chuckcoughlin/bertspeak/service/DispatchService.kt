@@ -193,10 +193,13 @@ class DispatchService(ctx: Context){
         fun clear(type: MessageType) {
             instance.textManager.clear(type)
         }
-
-        fun restoreAudio() {
-            instance.speechManager.restoreAudio()
+        fun mute() {
+            instance.speechManager.mute()
         }
+        fun unMute() {
+            instance.speechManager.unMute()
+        }
+
         fun toggleListeningState() {
             instance.hearingManager.toggleListeningState()
         }

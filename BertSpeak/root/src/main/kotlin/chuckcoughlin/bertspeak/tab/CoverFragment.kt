@@ -65,10 +65,10 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
         Log.i(name, "onCreateView: ....")
         val binding = FragmentCoverBinding.inflate(inflater, container, false)
         networkStatusButton = binding.networkStatus  // ToggleButton
-        hearingStatusButton    = binding.hearingStatus
-        stopStatusButton      = binding.stopButton
-        speechStatusButton     = binding.speechStatus
-        voiceText             = binding.voiceEditText
+        hearingStatusButton = binding.hearingStatus
+        stopStatusButton    = binding.stopButton
+        speechStatusButton  = binding.speechStatus
+        voiceText           = binding.voiceEditText
         networkStatusButton.isClickable = true // Not really buttons, just indicators
         networkStatusButton.setOnClickListener(this)
         stopStatusButton.setOnClickListener(this)
@@ -94,7 +94,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             seekBar.progress = 50
         }
         Log.i(name, String.format("onCreateView: seek bar at %d.",seekBar.progress))
-        DispatchService.restoreAudio()
+        DispatchService.unMute()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
         return binding.root
@@ -221,14 +221,15 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
      * We only handle MSG, ANS. All other text types are ignored.
      */
     override fun updateText(msg: TextData) {
-        Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
-        if(msg.type.equals(MessageType.ANS)) {      // From the robot
-            voiceText.text = msg.message
-            voiceText.setTextColor(Color.BLUE)
-        }
-        else if(msg.type.equals(MessageType.MSG)) {  // To the robot
-            voiceText.text = msg.message
-            voiceText.setTextColor(Color.BLACK)
+        this.requireActivity().runOnUiThread {
+            Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
+            if (msg.type.equals(MessageType.ANS)) {      // From the robot
+                voiceText.text = msg.message
+                voiceText.setTextColor(Color.BLUE)
+            } else if (msg.type.equals(MessageType.MSG)) {  // To the robot
+                voiceText.text = msg.message
+                voiceText.setTextColor(Color.BLACK)
+            }
         }
     }
 
