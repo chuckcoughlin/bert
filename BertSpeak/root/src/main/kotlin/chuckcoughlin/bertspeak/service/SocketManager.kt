@@ -29,7 +29,8 @@ import java.net.SocketAddress
 /**
  * This is socket client connects across a wifi network to the robot which acts
  * as a server. The messages are simple text strings. We prepend message
- * type code, and append a new-line on write and expect these on read.
+ * type code and semi-colon as a header, plus a new-line at the end. This allows
+ * the reader to parse commands separately.
  *
  * The file descriptors are opened on "openConnections" and closed on
  * "shutdown". Change listeners are notified (in a separate Thread) when the
@@ -98,10 +99,9 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 }
                 if( !socket.isClosed ) socket.close()
             }
+            // On error we retry. Perhaps robot not ready.
             catch(ex:Throwable) {
                 Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
-                managerState = ERROR
-                dispatcher.reportManagerState(managerType, managerState)
                 try {
                     Thread.sleep(SOCKET_RETRY_INTERVAL)
                 } catch(ie:InterruptedException) {}

@@ -257,9 +257,10 @@ likewise formulated into audible sentences.
 * ![green](/images/ball_green.png) ```Cover```
 
 The cover page shows a reclining picture of
-the robot and an audio visualizer. It also contains controls to
-enable/disable speech, to adjust the
-volume, and to kill the application.
+the robot and an audio visualizer. It also contains status buttons which show the
+status of the connection to the robot, the states of speech to text and
+of text to speech processing. The right-side slider adjusts the speaking volume.
+The red button in the lower right corner kills the tablet application.
 
 * ![yellow](/images/ball_yellow.png) ```Ignoring```
 It can be annoying when the robot
