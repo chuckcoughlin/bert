@@ -181,6 +181,8 @@ speech capabilities. All speech analysis is done on the tablet hosting both text
 recognizer. At one time the tablet become stuck in headset mode. As a workaround, we bought an external
 speaker that can ultimately be located in the head.
 
+Make sure to update the language packages (Settings->General management->Language packs) and Google Speech Recognition and Synthesis application. The application is configured to speak English with a British accent. The voice is female (I'd prefer male).
+
 ### Odroid <a id="odroid"></a>
 [toc](#table-of-contents)
 

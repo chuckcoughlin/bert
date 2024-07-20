@@ -32,21 +32,21 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	override val managerType = ManagerType.SPEECH
 	override var managerState = ManagerState.OFF
 	val dispatcher: DispatchService
-	private var annunciator: TextToSpeech
+	private var textToSpeech: TextToSpeech
 	override val name: String
 	private val audioManager: AudioManager
 	private var vol :Int   // Current volume as percent max
 
 	override fun start() {
 		Log.i(CLSS, String.format("start: "))
-		annunciator.setOnUtteranceProgressListener(UtteranceListener())
+		textToSpeech.setOnUtteranceProgressListener(UtteranceListener())
 		DatabaseManager.registerSettingsObserver(this)
 		DispatchService.registerForTranscripts(this)
 	}
 
 	override fun stop() {
-		annunciator.stop()
-		annunciator.shutdown()
+		textToSpeech.stop()
+		textToSpeech.shutdown()
 		DatabaseManager.unregisterSettingsObserver(this)
 		DispatchService.unregisterForTranscripts(this)
 		managerState = ManagerState.OFF
@@ -56,17 +56,27 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	// ===================== OnInitListener ==========================
 	override fun onInit(status: Int) {
 		if(status == TextToSpeech.SUCCESS) {
-			val voices: Set<Voice> = annunciator.voices
+			val voices: Set<Voice> = textToSpeech.voices
 			for(v in voices) {
-				if(v.name.equals("en-GB-SMTm00", ignoreCase = true)) {
-					Log.i(CLSS, String.format("onInit: voice = %s %d",
-						v.name, v.describeContents()))
-					annunciator.voice = v
+				// Log the availble English names
+				if (name.startsWith("en-")) {
+					Log.i(CLSS,String.format("onInit: voice = %s %d", v.name, v.describeContents())
+					)
+					// en-GB-SMTm00 - on tablet female
+					// en-GB-SMTg02
+					// en-GB-SMTl02
+					// en-gb-x-gbd-network
+					if (v.name.startsWith("en-GB-SMTl02", ignoreCase = true)) {
+						Log.i(CLSS, String.format("onInit: voice = %s %d",v.name, v.describeContents()))
+						val result = textToSpeech.setVoice(v)
+						Log.i(CLSS, String.format("onInit: set voice (%s)",
+							if (result == TextToSpeech.SUCCESS) "SUCCESS" else "ERROR"))
+					}
 				}
 			}
-			annunciator.language = Locale.UK
-			annunciator.setPitch(1.6f)      //Default＝1.0
-			annunciator.setSpeechRate(1.0f) // Default=1.0
+			textToSpeech.language = Locale.UK
+			textToSpeech.setPitch(0.6f)      //Default＝1.0
+			textToSpeech.setSpeechRate(1.0f) // Default=1.0
 			Log.i(CLSS, "onInit: TextToSpeech initialized ...")
 			managerState = ManagerState.ACTIVE
 		}
@@ -77,16 +87,13 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		dispatcher.reportManagerState(managerType,managerState)
 	}
 	// Annunciate the supplied text. Setting the volume in the bundle has no effect.
-	// Turn off the audio when not in use.
 	@Synchronized
 	fun speak(txt:String) {
 		Log.i(CLSS, String.format("SPEAK: %s (%s)", txt,managerState.name))
 		if( managerState == ManagerState.ACTIVE) {
-			//unMute()
 			val bndl = Bundle()
 			//bndl.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME,vol.toFloat())
-			annunciator.speak(txt,TextToSpeech.QUEUE_ADD,bndl,CLSS)
-			//mute()
+			textToSpeech.speak(txt,TextToSpeech.QUEUE_ADD,bndl,CLSS)
 		}
 	}
 
@@ -101,17 +108,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		Log.i(CLSS, String.format("setVolume %d (max=%d)", vol,maxVol))
 		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,vol,AudioManager.FLAG_PLAY_SOUND)
 	}
-	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
-	// annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
-	fun mute() {
-		Log.i(CLSS, String.format("mute"))
-		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE)
-	}
-
-	fun unMute() {
-		Log.i(CLSS, String.format("unMute (vol = %d)", vol))
-		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, AudioManager.FLAG_PLAY_SOUND)
-	}
 
 	// ===================== TextDataObserver =====================
 	/**
@@ -125,12 +121,16 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	}
 
 	/**
-	 * We only annunciate messages from the robot (ANS)
+	 * We only annunciate messages from the robot (ANS).
+	 * Turn off listening while speaking
 	 */
 	override fun updateText(msg: TextData) {
 		Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
 		if(msg.messageType == MessageType.ANS) {
+			dispatcher.stopListening()
+			Thread.sleep(PRE_SPEECH_DELAY)
 			speak(msg.message)
+			dispatcher.startListening()
 		}
 	}
 
@@ -153,15 +153,8 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		}
 
 		override fun onError(utteranceId: String?, errorCode: Int) {
-			Log.e(
-				CLSS,
-				String.format(
-					"onError UtteranceListener ERROR - %s = %s (%d)",
-					utteranceId,
-					errorToText(errorCode),
-					errorCode
-				)
-			)
+			Log.e(CLSS,String.format("onError UtteranceListener ERROR - %s = %s (%d)",
+					utteranceId,errorToText(errorCode),errorCode))
 		}
 
 		private fun errorToText(err: Int): String {
@@ -175,7 +168,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 			return error
 		}
 
-		@Deprecated("Deprecated in Java")
+		@Deprecated("Deprecated, not removed")
 		override fun onError(err: String) {
 			Log.e(CLSS, String.format("onError UtteranceListener ERROR - %s", err))
 		}
@@ -185,13 +178,14 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	}
 
 	val CLSS = "SpeechManager"
+	val PRE_SPEECH_DELAY = 500L   // Millisecs delay to turn off hearing
 
 	init {
 		Log.i(CLSS,"init - initializing text to speech capability")
 		dispatcher = service
 		name = CLSS
 		audioManager = dispatcher.context.getSystemService<AudioManager>() as AudioManager
-		annunciator = TextToSpeech(dispatcher.context, this)
+		textToSpeech = TextToSpeech(dispatcher.context, this)
 		// This is handled the same way in the CoverFragment startup
 		try {
 			vol = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toInt()

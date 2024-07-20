@@ -94,7 +94,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             seekBar.progress = 50
         }
         Log.i(name, String.format("onCreateView: seek bar at %d.",seekBar.progress))
-        DispatchService.unMute()
         val pm = PermissionManager(requireActivity())
         pm.askForPermissions()
         return binding.root
@@ -152,11 +151,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
      * @param state
      */
     private fun updateStatusButton(btn: StatusImageButton, type: ManagerType,state: ManagerState) {
-        Log.i(name, String.format("updateStatusButton (%s):%s",type.name,state.name))
-            requireActivity().runOnUiThread(Runnable {
-                btn.visibility = View.INVISIBLE
-                btn.setButtonState(state)
-                btn.visibility = View.VISIBLE
+        Log.d(name, String.format("updateStatusButton (%s):%s",type.name,state.name))
+        requireActivity().runOnUiThread(Runnable {
+            btn.visibility = View.INVISIBLE
+            btn.setButtonState(state)
+            btn.visibility = View.VISIBLE
         })
     }
 
@@ -219,14 +218,20 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     /**
      * We only handle MSG, ANS. All other text types are ignored.
+     * If the tablet is disconnected, make it gray
      */
     override fun updateText(msg: TextData) {
         this.requireActivity().runOnUiThread {
             Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
-            if (msg.type.equals(MessageType.ANS)) {      // From the robot
+            if( networkStatusButton.state==ManagerState.PENDING ) {  // Unconnected
+                voiceText.text = msg.message
+                voiceText.setTextColor(Color.GRAY)
+            }
+            else if (msg.type.equals(MessageType.ANS)) {      // From the robot
                 voiceText.text = msg.message
                 voiceText.setTextColor(Color.BLUE)
-            } else if (msg.type.equals(MessageType.MSG)) {  // To the robot
+            }
+            else if (msg.type.equals(MessageType.MSG)) {  // To the robot
                 voiceText.text = msg.message
                 voiceText.setTextColor(Color.BLACK)
             }
@@ -240,9 +245,15 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             networkStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SOCKET.name))
             }
+            // Toggle listening status
             hearingStatusButton -> {
+                if( hearingStatusButton.state.equals(ManagerState.ACTIVE) ) {
+                    DispatchService.instance.stopListening()
+                }
+                else if( hearingStatusButton.state.equals(ManagerState.OFF) ) {
+                    DispatchService.instance.startListening()
+                }
                 Log.i(name, String.format("onClick:%s",ManagerType.HEARING.name))
-                DispatchService.toggleListeningState()
             }
             // The stop button triggers an immediate shutdown
             stopStatusButton -> {
@@ -251,13 +262,32 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
                 requireActivity().finishAndRemoveTask()
                 System.exit(0)
             }
-            // This button has three states.
+            // Produce a random message
             speechStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.SPEECH.name))
+                val phrase = selectRandomText(testPhrases)
+                DispatchService.speak(phrase)
             }
         }
     }
+    /**
+     * Select a random startup phrase from the list.
+     * @return the selected phrase.
+     */
+    private fun selectRandomText(phrases: Array<String>): String {
+        val rand = Math.random()
+        val index = (rand * phrases.size).toInt()
+        return phrases[index]
+    }
 
+    private val testPhrases = arrayOf(
+        "Bert is ready",
+        "Ready",
+        "I'm listening",
+        "Speak your wishes",
+        "Bert is ready for commands",
+        "Speak to me"
+    )
 
     // ================== OnDataCaptureListener ===============
     // This is valid only between view-create and destroy

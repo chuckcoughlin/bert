@@ -38,7 +38,9 @@ class BertSpeakActivity : AppCompatActivity() {
         // Temporary code to throw errors when resource leaks encountered
         StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
-                .detectLeakedClosableObjects().build()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .build()
         )
         Log.i(CLSS, "onCreate: ... checking permissions ...")
         checkPermissions()

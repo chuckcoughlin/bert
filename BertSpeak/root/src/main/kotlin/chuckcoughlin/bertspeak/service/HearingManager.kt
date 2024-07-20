@@ -5,11 +5,13 @@
 package chuckcoughlin.bertspeak.service
 
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import androidx.core.content.getSystemService
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import java.util.Locale
 
@@ -17,100 +19,70 @@ import java.util.Locale
  * Analyze spoken input to the application. Text-to-speech.
  * Note that the speech recognizer must run on the main UI thread.
  * This manager gets started and stopped with the need for speech recognition.
+ * There can be feedback between the recognizer and speech-to-text.
+ * They should not run at the same time.
  */
 class HearingManager(service:DispatchService): CommunicationManager, RecognitionListener {
 	override val managerType = ManagerType.HEARING
 	override var managerState = ManagerState.OFF
 	val dispatcher = service
-	private lateinit var sr: SpeechRecognizer
+	private val audioManager: AudioManager
+	private var sr: SpeechRecognizer?
 	private var recognizerIntent: Intent
-	private var listening:Boolean
 
-	/** Must run on main thread */
+	/** Must run on main thread. Start the recognizer */
 	override fun start() {
-		Log.i(CLSS, String.format("start: "))
-		if( !SpeechRecognizer.isRecognitionAvailable(dispatcher.context) ) {
+		if (!SpeechRecognizer.isRecognitionAvailable(dispatcher.context)) {
 			Log.w(CLSS, "start: ERROR (speech recognition is not supported on this device)")
-			dispatcher.reportManagerState(ManagerType.HEARING,ManagerState.ERROR)
+			dispatcher.reportManagerState(ManagerType.HEARING, ManagerState.ERROR)
 		}
 		else {
-			if( SpeechRecognizer.isOnDeviceRecognitionAvailable(dispatcher.context) ) {
-				Log.i(CLSS, "start: speechRecognizer is on-device")
-				sr = SpeechRecognizer.createOnDeviceSpeechRecognizer(dispatcher.context)
-			}
-			else  {
-				Log.i(CLSS, "start: speechRecognizer is off-device")
-				sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
-			}
-			sr.setRecognitionListener(this)
-			managerState = ACTIVE
-			dispatcher.reportManagerState(ManagerType.HEARING,managerState)
-			resetSpeechRecognizer()
+			Log.i(CLSS, String.format("start: "))
 			startListening()
-
 		}
 	}
-
 	/**
-	 * Must run on main thread
+	 * Must run on main thread. Shutdown the recognizer,
 	 */
 	override fun stop() {
 		Log.i(CLSS, "Stop ...")
 		stopListening()
-		try {
-			sr.destroy()
-		}
-		catch(iae:IllegalArgumentException) {
-			// Happens in emulator
-			Log.e(CLSS,String.format("stop: destroy (%s))",iae.localizedMessage))
-		}
 	}
 
-	/* Delay before we start listening to avoid feedback loop
+	/* There should be break a before we start listening to avoid feedback loop
 	 * with spoken response. Note this will be cut short by
 	 * a listener on the text-to-speech component.
 	 */
 	fun startListening() {
-		if(!listening) {
+		if(sr == null && !managerState.equals(ManagerState.ERROR)) {
 			Log.i(CLSS, "Start listening ...")
-			sr.startListening(recognizerIntent)
+			sr = createRecognizer()
+			sr!!.startListening(recognizerIntent)
 		}
-		listening = true
+		managerState = ACTIVE
+		dispatcher.reportManagerState(ManagerType.HEARING,managerState)
 	}
 	/* There is very little need for this. It should only
 	 * be called if speech is in progress
 	 */
 	fun stopListening() {
-		if( listening ) {
+		if( sr!=null ) {
 			Log.i(CLSS, "Stop listening ...")
-			sr.stopListening()
+			sr!!.stopListening()
+			try {
+				sr!!.destroy()
+			}
+			catch (iae: IllegalArgumentException) {
+				// Happens in emulator
+				Log.e(CLSS, String.format("stop: destroy (%s))", iae.localizedMessage))
+			}
 		}
-		listening = false
+		sr = null
+		managerState = ManagerState.OFF
+		dispatcher.reportManagerState(ManagerType.HEARING,managerState)
 	}
-	private fun resetSpeechRecognizer() {
-		sr.destroy()
-		sr = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
-		sr.setRecognitionListener(this)
-		listening = false
-	}
-	/*
-	 * Toggle through the three non-error states.
-	 */
-	fun toggleListeningState() {
-		if( managerState.equals(ManagerState.OFF)) {
-			managerState = ACTIVE
-			startListening()
-		}
-		else if( managerState.equals(ManagerState.PENDING)) {
-			managerState = ACTIVE
-			startListening()
-		}
-		else  {
-			managerState = ManagerState.OFF
-			stopListening()
-		}
-		dispatcher.reportManagerState(ManagerType.HEARING, managerState)
-	}
+
+
 	// ================ RecognitionListener ===============
 	override fun onReadyForSpeech(params: Bundle) {
 		Log.i(CLSS, "onReadyForSpeech")
@@ -150,10 +122,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		if( error != SpeechRecognizer.ERROR_NO_MATCH ) {
 			managerState = ManagerState.ERROR
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
-			resetSpeechRecognizer()
 		}
-		listening = false
-		startListening()
 	}
 
 	override fun onResults(results: Bundle) {
@@ -171,8 +140,6 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				dispatcher.processSpokenText(text)
 			}
 		}
-		listening = false
-		startListening()
 	}
 
 	/**
@@ -184,6 +151,22 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 
 	override fun onEvent(eventType: Int, params: Bundle) {}
 
+	private fun createRecognizer() : SpeechRecognizer {
+		Log.i(CLSS, String.format("createRecognizer: "))
+		val recognizer:SpeechRecognizer
+
+		if( SpeechRecognizer.isOnDeviceRecognitionAvailable(dispatcher.context) ) {
+			Log.i(CLSS, "start: speechRecognizer is on-device")
+			recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(dispatcher.context)
+		}
+		else  {
+			Log.i(CLSS, "start: speechRecognizer is off-device")
+			recognizer = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
+		}
+		recognizer.setRecognitionListener(this)
+
+		return recognizer
+	}
 	private fun createRecognizerIntent(): Intent {
 		//val locale = "us-UK"
 		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
@@ -204,7 +187,17 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "chuckcoughlin.bertspeak.service");
 		return intent
 	}
+	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
+	// annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
+	fun mute() {
+		Log.i(CLSS, String.format("mute"))
+		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE)
+	}
 
+	fun unMute() {
+		//Log.i(CLSS, String.format("unMute (vol = %d)", vol))
+		//audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, AudioManager.FLAG_PLAY_SOUND)
+	}
 	/**
 	 * Perform any cleanup of phrases that ease or correct the parsing.
 	 * For example, replace ° with " degrees"
@@ -229,7 +222,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 * Creating the speech recognizer must be done on the main thread.
 	 */
 	init {
+		audioManager = dispatcher.context.getSystemService<AudioManager>() as AudioManager
 		recognizerIntent = createRecognizerIntent()
-		listening = false
+		sr = null
 	}
 }

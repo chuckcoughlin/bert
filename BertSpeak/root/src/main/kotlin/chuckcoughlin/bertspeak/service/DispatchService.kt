@@ -45,12 +45,13 @@ class DispatchService(ctx: Context){
     fun initialize() {
         Log.i(CLSS, "initialize: ... ")
         instance = this
+        hearingManager = HearingManager(this)
         statusManager = StatusManager(this)
-        textManager = TextManager(this)
-        speechManager = SpeechManager(this)
+        textManager   = TextManager(this)
         geometryManager = GeometryManager(this)
         socketManager = SocketManager(this)
-        hearingManager = HearingManager(this)
+        speechManager = SpeechManager(this)
+
     }
     /**
      * This instance is started by the Application in a background
@@ -63,8 +64,9 @@ class DispatchService(ctx: Context){
         // Start those managers that run on the main (UI) thread
         GlobalScope.launch(Dispatchers.Main) {
             statusManager.start()
-            speechManager.start()
             hearingManager.start()
+            speechManager.start()
+
         }
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
@@ -193,15 +195,8 @@ class DispatchService(ctx: Context){
         fun clear(type: MessageType) {
             instance.textManager.clear(type)
         }
-        fun mute() {
-            instance.speechManager.mute()
-        }
-        fun unMute() {
-            instance.speechManager.unMute()
-        }
-
-        fun toggleListeningState() {
-            instance.hearingManager.toggleListeningState()
+        fun speak(msg:String) {
+            instance.speechManager.speak(msg)
         }
     }
     val CLSS = "DispatchService"
