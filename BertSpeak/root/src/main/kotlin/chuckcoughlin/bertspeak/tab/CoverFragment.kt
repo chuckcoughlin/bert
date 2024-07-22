@@ -247,12 +247,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             }
             // Toggle listening status
             hearingStatusButton -> {
-                if( hearingStatusButton.state.equals(ManagerState.ACTIVE) ) {
-                    DispatchService.instance.stopListening()
-                }
-                else if( hearingStatusButton.state.equals(ManagerState.OFF) ) {
-                    DispatchService.instance.startListening()
-                }
                 Log.i(name, String.format("onClick:%s",ManagerType.HEARING.name))
             }
             // The stop button triggers an immediate shutdown

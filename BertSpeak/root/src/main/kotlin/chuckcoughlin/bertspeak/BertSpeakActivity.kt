@@ -102,6 +102,7 @@ class BertSpeakActivity : AppCompatActivity() {
      */
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            Log.i(CLSS, "checkPermissions: Requesting RECORD_AUDIO ...")
             ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.RECORD_AUDIO),RCODE)
         }
     }

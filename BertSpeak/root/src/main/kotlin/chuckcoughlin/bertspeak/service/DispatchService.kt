@@ -101,23 +101,18 @@ class DispatchService(ctx: Context){
         val msg = type.name + ":" + text
         textManager.processText(LOG, msg)
     }
+    /* =================================================================
+    *  Notify the hearing manager that spoken text has just ended
+    * ==================================================================
+    */
+    // NOTE: This does not automatically set state to ERROR.
+    fun markEndOfSpeech() {
+        //hearingManager.markEndOfSpeech()
+    }
 
 
     fun reportManagerState(type: ManagerType, state: ManagerState) {
         statusManager.updateState(type, state)
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    fun startListening() {
-        GlobalScope.launch(Dispatchers.Main) {
-            hearingManager.startListening()
-        }
-    }
-    @OptIn(DelicateCoroutinesApi::class)
-    fun stopListening() {
-        GlobalScope.launch(Dispatchers.Main) {
-            hearingManager.stopListening()
-        }
     }
 
     /**

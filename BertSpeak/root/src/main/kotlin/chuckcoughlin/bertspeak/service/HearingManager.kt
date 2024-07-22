@@ -16,17 +16,19 @@ import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import java.util.Locale
 
 /**
- * Analyze spoken input to the application. Text-to-speech.
+ * Analyze spoken input to the application.Speech-to-text.
  * Note that the speech recognizer must run on the main UI thread.
- * This manager gets started and stopped with the need for speech recognition.
- * There can be feedback between the recognizer and speech-to-text.
- * They should not run at the same time.
+ * This manager continuously listens for speech.
+ * A notification facility is provided to avoid re-analyzing text
+ * spoken by the robot.
  */
 class HearingManager(service:DispatchService): CommunicationManager, RecognitionListener {
 	override val managerType = ManagerType.HEARING
 	override var managerState = ManagerState.OFF
 	val dispatcher = service
 	private val audioManager: AudioManager
+	private var startTime: Long
+	private var textTime: Long
 	private var sr: SpeechRecognizer?
 	private var recognizerIntent: Intent
 
@@ -34,10 +36,10 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	override fun start() {
 		if (!SpeechRecognizer.isRecognitionAvailable(dispatcher.context)) {
 			Log.w(CLSS, "start: ERROR (speech recognition is not supported on this device)")
-			dispatcher.reportManagerState(ManagerType.HEARING, ManagerState.ERROR)
+			managerState = ManagerState.ERROR
+			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
 		else {
-			Log.i(CLSS, String.format("start: "))
 			startListening()
 		}
 	}
@@ -48,12 +50,11 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		Log.i(CLSS, "Stop ...")
 		stopListening()
 	}
-
 	/* There should be break a before we start listening to avoid feedback loop
 	 * with spoken response. Note this will be cut short by
 	 * a listener on the text-to-speech component.
 	 */
-	fun startListening() {
+	private fun startListening() {
 		if(sr == null && !managerState.equals(ManagerState.ERROR)) {
 			Log.i(CLSS, "Start listening ...")
 			sr = createRecognizer()
@@ -65,17 +66,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	/* There is very little need for this. It should only
 	 * be called if speech is in progress
 	 */
-	fun stopListening() {
+	private fun stopListening() {
+		Log.i(CLSS, "Stop listening ...")
+		//Log.i("CLSS", Log.getStackTraceString( Exception()))
 		if( sr!=null ) {
-			Log.i(CLSS, "Stop listening ...")
-			sr!!.stopListening()
-			try {
-				sr!!.destroy()
-			}
-			catch (iae: IllegalArgumentException) {
-				// Happens in emulator
-				Log.e(CLSS, String.format("stop: destroy (%s))", iae.localizedMessage))
-			}
+			//sr!!.stopListening()
+			sr!!.destroy()
 		}
 		sr = null
 		managerState = ManagerState.OFF
@@ -88,16 +84,17 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		Log.i(CLSS, "onReadyForSpeech")
 	}
 	override fun onBeginningOfSpeech() {
-		//Log.i(CLSS, "onBeginningOfSpeech");
+		Log.i(CLSS, "onBeginningOfSpeech")
+		startTime  = System.currentTimeMillis()
 	}
 	// Background level changed ...
 	override fun onRmsChanged(rmsdB: Float) {}
 	override fun onBufferReceived(buffer: ByteArray) {
 		Log.i(CLSS, "onBufferReceived")
 	}
-	// Any error is reported after this ...
+	// Any results or error is reported after this ...
 	override fun onEndOfSpeech() {
-		Log.i(CLSS, "onEndofSpeech")
+		Log.i(CLSS, "onEndOfSpeech")
 	}
 	override fun onError(error: Int) {
 		var reason:String =
@@ -142,31 +139,20 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		}
 	}
 
-	/**
-	 * We've configured the intent so all partials *should* be empty
-	 */
+	// We've configured the intent so all partials *should* be empty
 	override fun onPartialResults(partialResults: Bundle) {
 		Log.i(CLSS, "onPartialResults")
 	}
 
 	override fun onEvent(eventType: Int, params: Bundle) {}
 
+	// We're tried the OnDevice recognizer with no luck.
 	private fun createRecognizer() : SpeechRecognizer {
-		Log.i(CLSS, String.format("createRecognizer: "))
-		val recognizer:SpeechRecognizer
-
-		if( SpeechRecognizer.isOnDeviceRecognitionAvailable(dispatcher.context) ) {
-			Log.i(CLSS, "start: speechRecognizer is on-device")
-			recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(dispatcher.context)
-		}
-		else  {
-			Log.i(CLSS, "start: speechRecognizer is off-device")
-			recognizer = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
-		}
+		val recognizer:SpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(dispatcher.context)
 		recognizer.setRecognitionListener(this)
-
 		return recognizer
 	}
+
 	private fun createRecognizerIntent(): Intent {
 		//val locale = "us-UK"
 		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
@@ -178,13 +164,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		*/
 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
 		//Give a hint to the recognizer about what the user is going to say
-		intent.putExtra(
-			RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-			RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+		intent.putExtra( RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+			             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
 		)
 		// Max number of results. This is two attempts at deciphering, not a 2-word limit.
 		intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
-		intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "chuckcoughlin.bertspeak.service");
+		//intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "chuckcoughlin.bertspeak.service");
 		return intent
 	}
 	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
@@ -197,6 +182,15 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	fun unMute() {
 		//Log.i(CLSS, String.format("unMute (vol = %d)", vol))
 		//audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, AudioManager.FLAG_PLAY_SOUND)
+	}
+	/*
+	 * Note the end time of a textToSpeech message.
+	 * If this falls during the current listening
+	 * cycle then suppress the text.
+	 */
+	fun markEndOfSpeech() {
+		Log.i(CLSS, "markEndOfSpeech ...")
+		textTime  = System.currentTimeMillis()
 	}
 	/**
 	 * Perform any cleanup of phrases that ease or correct the parsing.
@@ -225,5 +219,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		audioManager = dispatcher.context.getSystemService<AudioManager>() as AudioManager
 		recognizerIntent = createRecognizerIntent()
 		sr = null
+		startTime = System.currentTimeMillis()
+		textTime  = System.currentTimeMillis()
 	}
 }

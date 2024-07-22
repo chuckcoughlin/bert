@@ -127,10 +127,9 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	override fun updateText(msg: TextData) {
 		Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
 		if(msg.messageType == MessageType.ANS) {
-			dispatcher.stopListening()
 			Thread.sleep(PRE_SPEECH_DELAY)
 			speak(msg.message)
-			dispatcher.startListening()
+			dispatcher.markEndOfSpeech()
 		}
 	}
 
