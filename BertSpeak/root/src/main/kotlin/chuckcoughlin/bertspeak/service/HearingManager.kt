@@ -64,13 +64,11 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		dispatcher.reportManagerState(ManagerType.HEARING,managerState)
 	}
 	/* There is very little need for this. It should only
-	 * be called if speech is in progress
+	 * be called when the manager shuts down.
 	 */
 	private fun stopListening() {
 		Log.i(CLSS, "Stop listening ...")
-		//Log.i("CLSS", Log.getStackTraceString( Exception()))
 		if( sr!=null ) {
-			//sr!!.stopListening()
 			sr!!.destroy()
 		}
 		sr = null
@@ -82,10 +80,10 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	// ================ RecognitionListener ===============
 	override fun onReadyForSpeech(params: Bundle) {
 		Log.i(CLSS, "onReadyForSpeech")
+		startTime  = System.currentTimeMillis()
 	}
 	override fun onBeginningOfSpeech() {
 		Log.i(CLSS, "onBeginningOfSpeech")
-		startTime  = System.currentTimeMillis()
 	}
 	// Background level changed ...
 	override fun onRmsChanged(rmsdB: Float) {}
@@ -120,6 +118,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			managerState = ManagerState.ERROR
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
+		sr!!.startListening(recognizerIntent)
 	}
 
 	override fun onResults(results: Bundle) {
@@ -131,12 +130,19 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				Log.i(CLSS, String.format("result %d: %s",i,matches[i]))
 			}
 			// The zeroth result is usually the space-separated one
-			if( !matches.isEmpty()) {
+			if( !matches.isEmpty() ) {
 				var text = matches[0]
 				text = scrubText(text)
-				dispatcher.processSpokenText(text)
+
+				if( startTime>textTime ) {
+					dispatcher.processSpokenText(text)
+				}
+				else {
+					Log.i(CLSS, String.format("suppressed result: %s",text))
+				}
 			}
 		}
+		sr!!.startListening(recognizerIntent)
 	}
 
 	// We've configured the intent so all partials *should* be empty
@@ -157,11 +163,6 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		//val locale = "us-UK"
 		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
 		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
-		/* intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,SPEECH_MIN_TIME)
-		intent.putExtra(
-			RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME
-		)
-		*/
 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
 		//Give a hint to the recognizer about what the user is going to say
 		intent.putExtra( RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -169,7 +170,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		)
 		// Max number of results. This is two attempts at deciphering, not a 2-word limit.
 		intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
-		//intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "chuckcoughlin.bertspeak.service");
+		intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "chuckcoughlin.bertspeak.service");
 		return intent
 	}
 	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
@@ -209,7 +210,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 
 	val CLSS = "HearingManager"
 	val DELAY_TIME = 1000L
-	val SPEECH_MIN_TIME = 100     // Word must be at least this long
+	val SPEECH_MIN_TIME = 10      // Word must be at least this long
 	val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
 
 	/**

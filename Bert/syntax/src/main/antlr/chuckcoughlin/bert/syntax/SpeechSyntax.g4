@@ -17,7 +17,8 @@ statement:
 
 // Imperatives directing the robot to take an action
 command:
-	Greeting Salutation?                                        # handleGreeting
+	Salutation                                                              # handleSalutation
+	| Greeting Greeting? Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					# initializeJoints
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand1
@@ -34,6 +35,7 @@ command:
 // Request for information
 question:
       Salutation?  How Attribute Are You 						# attributeQuestion
+    | Salutation?  Are You There					            # personalQuestion
     | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion1
     | What Are Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion2
     | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis?   # handleBulkPropertyQuestion
@@ -106,7 +108,7 @@ Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';
-Salutation:'bert'|'burt'|'now'|'please';
+Salutation:'bert'|'burt'|'now'|'please'|'wake up';
 Save: 'save';
 Set: 'set';
 Side: 'left'|'right'|'other';
@@ -114,6 +116,7 @@ Static: 'static';
 Straighten: 'straighten';
 Take: 'assume' | 'take';
 Then: 'then';
+There: 'there'|'their';
 To: 'to';
 Unit: 'degrees';
 Value: (INTEGER|DECIMAL);

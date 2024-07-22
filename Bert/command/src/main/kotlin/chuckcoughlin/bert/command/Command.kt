@@ -133,12 +133,10 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
     /**
      * We have received a message from the dispatcher. Forward it to the socket.
+     * This includes notifications.
      */
     private fun handleRequest(msg:MessageBottle,handler:CommandMessageHandler)  {
-        if( msg.type.equals(RequestType.NOTIFICATION) ) {  // Log notifications
-            LOGGER.info(String.format("%s.execute: Received NOTIFICATION: %s",msg.text))
-        }
-        else if(!msg.type.equals(RequestType.NONE)) {       // Ignore type NONE
+        if(!msg.type.equals(RequestType.NONE)) {       // Ignore type NONE
             connected = handler.sendResponse(msg)
         }
     }
@@ -170,7 +168,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
     // This must be synched with isLocalRequest()
     private fun handleLocalRequest(handler:CommandMessageHandler,request: MessageBottle) {
-        if( !request.type.equals(RequestType.NONE)) {
+        if( request.type.equals(RequestType.NONE)) {
             // Do nothing
         }
         else if( !request.error.equals(BottleConstants.NO_ERROR)) {
@@ -193,6 +191,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         // Actually a response via the Dispatcher - simply log
         else if (request.type.equals(RequestType.NOTIFICATION)) {
             LOGGER.info(String.format("TABLET RESPONSE: %s",request.text))
+            sendResponse(handler,request.text)
         }
         else {
             sendResponse(handler,translator.randomAcknowledgement())

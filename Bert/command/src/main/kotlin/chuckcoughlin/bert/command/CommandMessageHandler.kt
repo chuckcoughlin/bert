@@ -133,10 +133,7 @@ class CommandMessageHandler(sock: Socket)  {
         }
         msg.source = ControllerType.COMMAND.name
         if( msg.type == RequestType.NONE ) { // NONE simply doesn't get processed
-            if (msg.type == RequestType.NOTIFICATION ||
-                msg.type == RequestType.PARTIAL ||
-                !msg.error.equals(BottleConstants.NO_ERROR)) {
-
+            if(!msg.error.equals(BottleConstants.NO_ERROR)) {
                 suppressingErrors = true // Suppress replies to consecutive syntax errors
                 val text: String = translator.messageToText(msg)
                 LOGGER.info(String.format("%s.SuppressedErrorMessage: %s", CLSS, text))

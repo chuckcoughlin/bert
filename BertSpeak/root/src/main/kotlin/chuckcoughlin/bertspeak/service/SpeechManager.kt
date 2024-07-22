@@ -57,16 +57,15 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	override fun onInit(status: Int) {
 		if(status == TextToSpeech.SUCCESS) {
 			val voices: Set<Voice> = textToSpeech.voices
-			for(v in voices) {
+			for( v in voices) {
 				// Log the availble English names
-				if (name.startsWith("en-")) {
-					Log.i(CLSS,String.format("onInit: voice = %s %d", v.name, v.describeContents())
-					)
+				if( name.startsWith("en-") ) {
+					Log.i(CLSS,String.format("onInit: voice = %s %d", v.name, v.describeContents()))
 					// en-GB-SMTm00 - on tablet female
 					// en-GB-SMTg02
 					// en-GB-SMTl02
 					// en-gb-x-gbd-network
-					if (v.name.startsWith("en-GB-SMTl02", ignoreCase = true)) {
+					if( v.name.startsWith("en-GB-SMTl02", ignoreCase = true) ) {
 						Log.i(CLSS, String.format("onInit: voice = %s %d",v.name, v.describeContents()))
 						val result = textToSpeech.setVoice(v)
 						Log.i(CLSS, String.format("onInit: set voice (%s)",

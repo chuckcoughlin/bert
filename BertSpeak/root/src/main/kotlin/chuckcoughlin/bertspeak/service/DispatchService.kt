@@ -66,7 +66,6 @@ class DispatchService(ctx: Context){
             statusManager.start()
             hearingManager.start()
             speechManager.start()
-
         }
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
@@ -107,7 +106,7 @@ class DispatchService(ctx: Context){
     */
     // NOTE: This does not automatically set state to ERROR.
     fun markEndOfSpeech() {
-        //hearingManager.markEndOfSpeech()
+        hearingManager.markEndOfSpeech()
     }
 
 

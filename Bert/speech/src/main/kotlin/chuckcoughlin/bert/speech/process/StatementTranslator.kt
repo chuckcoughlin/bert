@@ -600,6 +600,12 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
+    // Are you there?
+    override fun visitPersonalQuestion(ctx: SpeechSyntaxParser.PersonalQuestionContext?): Any? {
+        bottle.type = RequestType.NOTIFICATION
+        bottle.text = String.format("I am ready")
+        return null
+    }
     // What is your current pose?
     override fun visitPoseQuestion(ctx: SpeechSyntaxParser.PoseQuestionContext): Any? {
         val pose = sharedDictionary[SharedKey.POSE].toString()
