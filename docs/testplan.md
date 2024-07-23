@@ -12,7 +12,7 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
 ## Table of Contents <a id="table-of-contents"></a>
   * [Startup](#startup)
   * [Configuration](#configuration)
-  * [Calibration](#calibration)
+  * [Limits](#limits)
   * [Movement](#movement)
   * [Motion Planning](#planning)
   * [Tablet Communication](#tablet)
@@ -25,7 +25,7 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
 * ![green](/images/ball_green.png) ``System Scripts``  - Launch the robot code autonomously on system boot or standalone from the command-line.
 - [x] bert-server start/stop: Start/stop the "headless" version of the robot code.
 - [x] bert-standalone: Run the robot code from the command line. (Cannot be run simultaneously with daemon).
-* ![gray](/images/ball_gray.png) ``Test Applications``  - Test features independent of the robot
+* ![green](/images/ball_gray.png) ``Utilty Applications``  - Probe features independent of the robot
 application.
 - [x] dxl_scan: Show ids of all connected DXM controllers.
 - [x] dxl_read: Read parameters of a servo motor.
@@ -87,7 +87,7 @@ perform various system operations. In the list below, the check mark indicates c
   operation in the event of I/O errors.
   - [ ] shutdown: power off the robot after a clean shutdown.
 
-### c - Calibration <a id="calibration"></a>
+### c - Limits <a id="limits"></a>
 [toc](#table-of-contents)<br/>
 The purpose of this section is to validate stepper motor configuration parameters
 and to verify the correct orientation and limit values.
@@ -99,12 +99,12 @@ Typical syntax:
 ```
     what are the limits on your right knee
 ```
-* ![yellow](/images/ball_yellow.png) ``Goals`` - Use the terminal application to list
-the current goals for a joint. Goal parameters
+* ![yellow](/images/ball_yellow.png) ``Goals`` - Goals refer to target positions of commanded movements.
+While in-transit, the current position will not match the goal. Test at very slow velocities. Goal parameters
 include angle, speed and and torque limits. Results are logged. Speeds are degrees/sec and
 torques are newton-meters.
 Typical syntax:
-```
+``` move very slowly
     what are the targets for your left shoulder x
 ```
 * ![yellow](/images/ball_yellow.png) ``Positions`` - Use the terminal application to
@@ -115,6 +115,13 @@ EEPROM limits. A typical query:
 ```
     what is the position of your left elbow
     what are the limits of your left elbow
+```
+* ![yellow](/images/ball_yellow.png) ``Limit Enforcement`` - Each joint has physical control limits.
+Command each joint to positions beyond both upper and lower limits. The joint should move to a the limits
+and report an error. Typical queries are:
+```
+    move your left elbow to 0 degrees
+    move your left elbow to 190 degrees
 ```
 
 * ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
@@ -257,10 +264,10 @@ likewise formulated into audible sentences.
 * ![green](/images/ball_green.png) ```Cover```
 
 The cover page shows a reclining picture of
-the robot and an audio visualizer. It also contains status buttons which show the
-status of the connection to the robot, the states of speech to text and
-of text to speech processing. The right-side slider adjusts the speaking volume.
-The red button in the lower right corner kills the tablet application.
+the robot and an audio visualizer. It also contains controls to adjust the
+volume, and to kill the application. Pressing the Speech control button
+generates a random spoken message. The network should automatically
+connect whenever the robot is running.
 
 * ![yellow](/images/ball_yellow.png) ```Ignoring```
 It can be annoying when the robot
