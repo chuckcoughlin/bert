@@ -103,9 +103,9 @@ Typical syntax:
 ```
     what are the limits on your right knee
 ```
-* ![yellow](/images/ball_yellow.png) ``Goals`` - Use the terminal application to list
-the current goals for a joint. Goal parameters
-include angle, speed and and torque limits. Results are reported in JSON format. Speeds are degrees/sec and
+* ![yellow](/images/ball_yellow.png) ``Goals`` - Goals refer to target positions of commanded movements.
+While in-transit, the current position will not match the goal. Test at very slow velocities. Goal parameters
+include angle, speed and and torque limits.  Results are reported in JSON format. Speeds are degrees/sec and
 torques are newton-meters.
 Typical syntax:
 ```
@@ -118,7 +118,7 @@ when facing straight ahead is 0 deg. Fix the configuration file limits to be wit
 EEPROM limits. Results are in english text. A typical query:
 ```
     what is the position of your left elbow
-    what are the limits of your left elbow
+    what are the range of your left elbow
 ```
 
 * ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
