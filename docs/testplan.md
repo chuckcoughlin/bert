@@ -10,20 +10,20 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
 
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>
- * Robot(#robot)
-  * [Startup](#startup)
-  * [Configuration](#configuration)
-  * [Calibration](#calibration)
-  * [Movement](#movement)
-  * [Motion Planning](#planning)
-  * [Parameters](#parameters)
-  * [Grammar](#grammar)
- * Tablet(#tablet)
+ * [Robot](#robot)
+   * [Startup](#startup)
+   * [Configuration](#configuration)
+   * [Calibration](#calibration)
+   * [Movement](#movement)
+   * [Motion Planning](#planning)
+   * [Parameters](#parameters)
+   * [Grammar](#grammar)
+ * [Tablet](#tablet)
    * [Speech](#speech)
    * [BertSpeak](#bertspeak)
 
 *********************************************************
-## Robot
+## Robot <a id="robot"></a>
 This section describes test on the Odroid system, the robot itself.
 ### a - Startup and Test <a id="startup"></a>
 * ![green](/images/ball_green.png) ``System Scripts``  - Launch the robot code autonomously on system boot or standalone from the command-line.
