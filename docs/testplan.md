@@ -118,7 +118,7 @@ when facing straight ahead is 0 deg. Fix the configuration file limits to be wit
 EEPROM limits. Results are in english text. A typical query:
 ```
     what is the position of your left elbow
-    what are the range of your left elbow
+    what is the range of your left elbow
 ```
 
 * ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
