@@ -15,6 +15,7 @@ enum class JointDynamicProperty {
     MAXIMUMANGLE,
     MINIMUMANGLE,
     POSITION,
+    RANGE,
     SPEED,
     STATE,
     TEMPERATURE,

@@ -216,6 +216,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.type.equals(RequestType.SET_POSE) ) {
             false
         }
+        else if (msg.type.equals(RequestType.GET_MOTOR_PROPERTY) &&
+                msg.jointDynamicProperty.equals(JointDynamicProperty.RANGE)) {
+            false
+        }
         else {
             true
         }
@@ -324,10 +328,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     if (request.duration < duration) request.duration = duration
                     request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.position)
                 }
+                else if (prop.equals(JointDynamicProperty.RANGE) ) {
+                    request.error = String.format("%s minimum and maximum angles must be set separetely", Joint.toText(mc.joint))
+                }
                 else if (prop.equals(JointDynamicProperty.STATE) ) {
                     request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
-                        if (value == 0.0) "disabled" else "enabled"
-                    )
+                        if (value == 0.0) "disabled" else "enabled")
                 }
                 else {
                     request.text = String.format("My %s %s is %s",Joint.toText(mc.joint), prop.name, value)
@@ -359,7 +365,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         val type: RequestType = request.type
         if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s",
             CLSS,controllerName,type.name))
-        if (type.equals(RequestType.INITIALIZE_JOINTS)) {
+        if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {   // Range is the only legal one
+            val mc = RobotModel.motorsByJoint[request.joint]!!
+            list = ArrayList<ByteArray>()
+            list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MINIMUMANGLE))
+            list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MINIMUMANGLE))
+            request.control.responseCount[controllerName] = 2 // Status message
+        }
+        else if (type.equals(RequestType.INITIALIZE_JOINTS)) {
             list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration

@@ -27,8 +27,8 @@ command:
 	| Salutation? Move Adverb                                                   # moveSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?		# enableTorque
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
-	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off) Unit?  # setMotorProperty
-	| Salutation? Straighten (It|Article? Side? Joint Axis? )    	# straightenJoint
+	| Salutation? Set Article? Property Of Article? Side? (Joint|Limb) Axis? To (Value|On|Off|Adverb) Unit?  # setMotorProperty
+	| Salutation? Straighten (It|Article? Side? (Joint|Limb) Axis? )    	    # straightenJoint
 	| Salutation? phrase                                    		# handleArbitraryCommand
 	;
 
@@ -105,8 +105,8 @@ On: 'on';
 Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Parameters: 'properties'|'parameters'|'settings';
 Pose: 'pose';
-Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
-Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
+Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
+Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please'|'wake up';
 Save: 'save';

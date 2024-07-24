@@ -328,6 +328,7 @@ class Dispatcher(s:Solver) : Controller {
                 appendage.name.lowercase(Locale.getDefault()),xyz[0], xyz[1],xyz[2])
             request.text = text
         }
+        // The location in physical coordinates from the center of the robot.
         else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             solver.setTreeState()
@@ -446,7 +447,8 @@ class Dispatcher(s:Solver) : Controller {
         return false
     }
 
-    // Local requests are those that can be handled immediately without forwarding to the motor controllers.
+    // Local requests are those that can be handled immediately
+    // without forwarding to the motor controllers.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION) ||
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
@@ -477,8 +479,10 @@ class Dispatcher(s:Solver) : Controller {
     // proper motor controller.
     private fun isMotorRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.COMMAND) ||
+            request.type.equals(RequestType.GET_LIMITS) ||
             request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
+            request.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.SET_POSE) ||
             request.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
@@ -492,8 +496,8 @@ class Dispatcher(s:Solver) : Controller {
      */
     private suspend fun replyToSource(response: MessageBottle) {
         val source: String = response.source
-        LOGGER.info(String.format("%s.replyToSource: Received response %s for %s",
-            CLSS,response.type.name,source))
+        LOGGER.info(String.format("%s.replyToSource: Received response %s(%s) from %s",
+                    CLSS,response.type.name,response.text,source))
         if (source.equals(ControllerType.COMMAND.name, ignoreCase = true)) {
             commandResponseChannel.send(response)
         }

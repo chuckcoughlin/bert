@@ -10,22 +10,26 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
 
 ***************************************************************
 ## Table of Contents <a id="table-of-contents"></a>
+ * Robot(#robot)
   * [Startup](#startup)
   * [Configuration](#configuration)
   * [Calibration](#calibration)
   * [Movement](#movement)
   * [Motion Planning](#planning)
-  * [Tablet Communication](#tablet)
-  * [Tablet Application](#bertspeak)
   * [Parameters](#parameters)
   * [Grammar](#grammar)
+ * Tablet(#tablet)
+   * [Speech](#speech)
+   * [BertSpeak](#bertspeak)
 
 *********************************************************
+## Robot
+This section describes test on the Odroid system, the robot itself.
 ### a - Startup and Test <a id="startup"></a>
 * ![green](/images/ball_green.png) ``System Scripts``  - Launch the robot code autonomously on system boot or standalone from the command-line.
 - [x] bert-server start/stop: Start/stop the "headless" version of the robot code.
 - [x] bert-standalone: Run the robot code from the command line. (Cannot be run simultaneously with daemon).
-* ![gray](/images/ball_gray.png) ``Test Applications``  - Test features independent of the robot
+* ![green](/images/ball_green.png) ``Utility Applications``  - Exercise features independent of the robot
 application.
 - [x] dxl_scan: Show ids of all connected DXM controllers.
 - [x] dxl_read: Read parameters of a servo motor.
@@ -57,14 +61,14 @@ temperature (deg C), and voltage (volts). A typical query:
     what is the temperature of your right shoulder x
     what is the torque of your left hip x
 ```
-* ![green](/images/ball_green.png) ``Name Parameters`` - This set of commands and the next
+* ![green](/images/ball_green.png) ``Parameter Names`` - This set of commands and the next
 are designed for data communication with the tablet. Responses are formatted in JSON. Use the terminal application to list the names of properties available for each joint. There are static and
 dynamic properties. Typical requests:
 ```
-    what are your static motor parameter
+    what are your static motor parameters
     what are the dynamic properties of your joints
 ```
-* ![yellow](/images/ball_yellow.png) ``List Parameter Values`` - Use the terminal application to list
+* ![yellow](/images/ball_yellow.png) ``Parameter Value Lists`` - Use the terminal application to list
 values of a selected property for all joints. Verify conversions from raw readings
 to engineering units. Available
  parameters include: position, speed, load, voltage and temperature. Values are read directly
@@ -80,7 +84,7 @@ Typical requests:
 ```
     attention
 ```
-* ![gray](/images/ball_gray.png) ``Maintenance Commands`` - These are no-argument commands that
+* ![gray](/images/ball_gray.png) ``System Commands`` - These are no-argument commands that
 perform various system operations. In the list below, the check mark indicates completion.
   - [x] halt: stop the control processes on the robot. Leave the operating system running.
   - [ ] reset: clear any unprocessed results from the serial ports. This is an internal recovery
@@ -94,14 +98,14 @@ and to verify the correct orientation and limit values.
 
 * ![yellow](/images/ball_yellow.png) ``Hardware Limits`` - Use the terminal application to query limits
 that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
-Values include angle, speed and and torque limits. Results are logged.
+Values include angle, speed and and torque limits. Results are logged. Results are shown in JSON format for easier direct communication with the tablet.
 Typical syntax:
 ```
     what are the limits on your right knee
 ```
 * ![yellow](/images/ball_yellow.png) ``Goals`` - Use the terminal application to list
 the current goals for a joint. Goal parameters
-include angle, speed and and torque limits. Results are logged. Speeds are degrees/sec and
+include angle, speed and and torque limits. Results are reported in JSON format. Speeds are degrees/sec and
 torques are newton-meters.
 Typical syntax:
 ```
@@ -111,7 +115,7 @@ Typical syntax:
 revisit the detection of position. In particular, check that the orientation is
 proper and limits and values makes sense. E.g. a straight knee should be at 180 deg; the neck
 when facing straight ahead is 0 deg. Fix the configuration file limits to be within the actual
-EEPROM limits. A typical query:
+EEPROM limits. Results are in english text. A typical query:
 ```
     what is the position of your left elbow
     what are the limits of your left elbow
@@ -128,7 +132,7 @@ is complete, issue a response stating that the robot is ready.
 
 ### d - Movement <a id="movement"></a>
 [toc](#table-of-contents)<br/>
-This section includes the first set of tests for driving the position of the robot.
+This section describes the first set of tests for driving the position of the robot.
 It also introduces use of the database to store "poses". The tests here simply
 drive joints to a goal. There is not yet a concept of trajectory planning.
 
@@ -143,8 +147,8 @@ out-of-range are clipped . Sample command syntax:
     set the left elbow to 90
     straighten your left knee
 ```
-* ![green](/images/ball_yellow.png) ``Pronouns`` - Show the use of 'it' and 'other' as substitutions for
-the last referenced joint or side. Sample command syntax:
+* ![green](/images/ball_yellow.png) ``Pronouns`` - Show the use of 'it' as a substitution for
+the last referenced joint or side. Show the use of 'other' as a substitution for the joint on the opposite side of the previously referenced joint. Sample command syntax:
 ```
     move it to 20
     set your other elbow to 90
@@ -157,13 +161,14 @@ Sample command syntax:
 ```
     set the speed of your right elbow to 50
     set the torque of your other elbow to 50
+    set the speed of your left leg to slow
     move normally
     move quickly
     move very slowly
     move slower
     go faster
 ```
-The "move" commands set speeds for all joint movements at once.
+The "move" and "go" commands set speeds for future movements of all joints at once.
 
 * ![yellow](/images/ball_yellow.png) ``Enable torque`` - Dynamixel motors may be
 configured to be freewheeling and compliant or stiff. The term for this feature
@@ -241,22 +246,44 @@ In addition to validating that the syntax works, check numeric results for the f
   - [ ] ... likewise, follow the left hip sub-chain to the left toe.
   - [ ] NOSE: make sure that the HEAD appendage calculations are correct.
 
-### f - Tablet Communication <a id="tablet"></a>
+### f - Static Parameters <a id="parameters"></a>
 [toc](#table-of-contents)<br/>
-Test the integration of the android tablet with the robot, especially as it involves
-spoken text.
-* ![yellow](/images/ball_yellow.png) ``Speech`` - Validate that all commands and queries
-used in the previous section can be executed via speech and that responses are
-likewise formulated into audible sentences.
+Test the ability to query performance metrics from the dispatcher. These do not involve
+the stepper motors
+* ![green](/images/ball_green.png) ``Metrics`` - use the terminal application to query
+the dispatcher for: name, age, height, cadence, cycle time, duty cycle and cycles processed.
+The results should be formatted into proper english sentences. Typical syntax:
+```
+  what is your name
+  how tall are you
+  what is your age
+  what is the cycle count
+```
 
-### g - Tablet Application <a id="bertspeak"></a>
+### g - Grammar <a id="grammar"></a>
+This section includes tests of irregular or one-off speech patterns.
+* ![yellow](/images/ball_yellow.png) ``Completed``  - these are statements outside the regular
+syntax shown above that are processed in a reasonable manner.
+```
+    hi bert
+    move in slow motion
+    why do you wear mittens
+```
+
+* ![yellow](/images/ball_yellow.png) ``Desired``  - the list below consists of statements or queries
+that are useful, but not currently recognized.<br/>
+
+## Tablet <a id="tablet"></a>
+Describe tests specifically for the Android tablet application called "BertSpeak"
+
 [toc](#table-of-contents)<br/>
+### a - Tablet Application <a id="bertspeak"></a>
 
 ![Cover](/images/bertspeak_cover.png)
 
 * ![green](/images/ball_green.png) ```Cover```
 
-The cover page shows a reclining picture of
+The <b>BertSpeak</b> cover page shows a reclining picture of
 the robot and an audio visualizer. It also contains status buttons which show the
 status of the connection to the robot, the states of speech to text and
 of text to speech processing. The right-side slider adjusts the speaking volume.
@@ -306,30 +333,10 @@ that are settable on this page.
 
 Validate that the tablet keeps a record of spoken commands and corresponding responses from the robot.
 
-### h - Static Parameters <a id="parameters"></a>
-[toc](#table-of-contents)<br/>
-Test the ability to query performance metrics from the dispatcher. These do not involve
-the stepper motors
-* ![green](/images/ball_green.png) ``Metrics`` - use the terminal application to query
-the dispatcher for: name, age, height, cadence, cycle time, duty cycle and cycles processed.
-The results should be formatted into proper english sentences. Typical syntax:
-```
-  what is your name
-  how tall are you
-  what is your age
-  what is the cycle count
-```
+### b Speech <a id="speech"></a>
 
-### i - Grammar <a id="grammar"></a>
-[toc](#table-of-contents)<br/>
-This section includes tests of irregular or one-off speech patterns.
-* ![yellow](/images/ball_yellow.png) ``Completed``  - these are statements outside the regular
-syntax shown above that are processed in a reasonable manner.
-```
-    hi bert
-    move in slow motion
-    why do you wear mittens
-```
-
-* ![yellow](/images/ball_yellow.png) ``Desired``  - the list below consists of statements or queries
-that are useful, but not currently recognized.<br/>
+Test the integration of the android tablet with the robot as it involves
+spoken text.
+* ![green](/images/ball_yellow.png) ``Speech`` - Validate that all commands and queries
+used in the previous section can be executed via speech and that responses are
+likewise formulated into audible sentences.

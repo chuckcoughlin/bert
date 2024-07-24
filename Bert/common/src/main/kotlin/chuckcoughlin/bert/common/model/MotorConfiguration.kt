@@ -69,6 +69,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
             JointDynamicProperty.TEMPERATURE -> temperature = value
             JointDynamicProperty.TORQUE -> torque = value
             JointDynamicProperty.VOLTAGE -> voltage = value
+            JointDynamicProperty.RANGE -> {}  // Error - max and min must be set separately
             JointDynamicProperty.NONE-> {}
         }
     }

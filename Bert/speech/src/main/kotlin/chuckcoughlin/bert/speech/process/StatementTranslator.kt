@@ -654,6 +654,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     }
 
     // set the position of your left hip y to 45 degrees
+    // set the speed of your left leg to slow
     override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorPropertyContext) : Any?{
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Get the property
@@ -666,22 +667,27 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         var axis = sharedDictionary[SharedKey.AXIS].toString()
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
         sharedDictionary[SharedKey.AXIS] = axis
-        var joint: Joint = Joint.NONE
         if (ctx.Joint() != null) {
-            joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.joint = joint
+            bottle.joint = determineJoint(ctx.Joint().getText(), axis, side)
+            sharedDictionary[SharedKey.JOINT] = bottle.joint
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+
         }
-        if (joint.equals(Joint.NONE)) {
-            val msg = String.format("I don't have a joint like that")
-            bottle.error = msg
+        else if (ctx.Limb() != null) {
+            bottle.limb = determineLimb(ctx.Limb().getText(), side)
+            sharedDictionary[SharedKey.LIMB] = bottle.limb
+            sharedDictionary[SharedKey.IT] = SharedKey.LIMB
         }
         else {
-            sharedDictionary[SharedKey.JOINT] = joint
-            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+            val msg = String.format("I don't have a joint or limb like that")
+            bottle.error = msg
         }
 
         if (ctx.Value() != null) {
             bottle.value = ctx.Value().getText().toDouble()
+        }
+        if (ctx.Adverb() != null) {
+            bottle.text = ctx.Adverb().getText()
         }
         else if (ctx.On() != null) {
             bottle.value = BottleConstants.ON_VALUE.toDouble()
@@ -689,18 +695,23 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else if (ctx.Off() != null) {
             bottle.value = BottleConstants.OFF_VALUE.toDouble()
         }
-        if (!bottle.jointDynamicProperty.equals(JointDynamicProperty.POSITION) &&
-            !bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
-            !bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
-            !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE)) {
-
-            bottle.error = "Only position, speed, torque and state are settable for a joint"
+        // Sanity check
+        if( !bottle.joint.equals(Joint.NONE) && (
+                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.POSITION) &&
+                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
+                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
+                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
+            bottle.error = "Only position, speed, torque and state can be set for a joint"
+        }
+        else if( !bottle.limb.equals(Limb.NONE) && (!bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) )) {
+            bottle.error = "Speed is the only parameter that can be set for an entire limb."
         }
         return null
     }
 
     // If the joint is not specified, then straighten the entire body
     // straighten your left elbow.
+    /* TO-DO Handle limbs */
     override fun visitStraightenJoint(ctx: SpeechSyntaxParser.StraightenJointContext): Any? {
         // A real joint
         bottle.type = RequestType.SET_MOTOR_PROPERTY
