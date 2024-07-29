@@ -13,6 +13,7 @@ The bulk of this document addresses various design issues and approaches to thei
   *  [Target Hardware](#hardware)
   	*  [Odroid](#odroid)
   	*  [Android](#android)
+  	*  [Raspberry Pi](#raspberry)
   *  [Software Architecture](#architecture)
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
@@ -36,7 +37,12 @@ The robot's central processor is a single-board Linux computer, an Odroid N2+.
 
 #### Android <a id="android"></a>
 
-A Samsung Galaxy Tablet S8+, model SM-X800 is used as the speech processor. It onverts spoken input into command strings used to control the robot. It also converts textual responses from tne robot into audible speech. The tablet is Android version 13, SDK version 33.
+A Samsung Galaxy Tablet S8+, model SM-X800 is used as the speech processor. It converts spoken input into command strings used to control the robot. It also converts textual responses from tne robot into audible speech. The tablet is Android version 13, SDK version 33.
+
+#### Raspberry Pi <a id="raspberry"></a>
+
+A Raspberry Pi version 5 serves as a "fine motor controller". For smaller parts, currently eyes and
+eyelids.
 
 ## Software Architecture <a id="architecture"></a>
 [toc](#table-of-contents)
@@ -161,7 +167,9 @@ form a right-handed coordinate system as follows:
 | z | Vertical | Up |
 
 Note that in order to be symmetric with respect to the vertical centerline, some
-joints are defined in an inverse direction.
+joints are defined in an inverse direction. Links are
+names of the "bones" between joints. As series of joints
+and links form a "limb".
 ```
 <?xml version="1.0" encoding="utf-8"?>
 <!-- SEE: http://wiki.ros.org/urdf/XML for a description of the format
@@ -465,6 +473,12 @@ The "standing" setting defines all three parameters. Note that the ABS_Y speed i
 means that for ABS-Y the speed at which it travels to 90 degrees is the same as the last
 time the joint was used. On power-up speeds are 100% and torques are 0%. Unless specified in
 the pose, torques are automatically set to 100% whenever a joint is moved.
+
+*** Raspberry Pi ***</br>
+An additional processor, a Raspberry Pi, is placed in the
+cranium on top of the main Odroid processor. The RPi
+is a "fine motor controller" used for control of smaller
+appendages, e.g. eyes.
 
 ## Appendices <a id="appendices"></a>
 [toc](#table-of-contents)

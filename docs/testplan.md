@@ -2,10 +2,10 @@
 
 This document lays out a series of feature tests for the "Bert" project. Those tests which have passed are marked with green (![green](/images/ball_green.png)). Features that are currently in a broken state and are
 actively being debugged are marked in red (![red](/images/ball_red.png)).  A yellow (![yellow](/images/ball_yellow.png)) marker indicates a feature that has yet to be tested in the current version.
-Gray (![gray](/images/ball_gray.png)) indicates features that are not yet implemented. The collection of
+Gray (![gray](/images/ball_gray.png)) indicates features that are defined but not yet implemented. The collection of
 green markers is a pretty fair indication of completion status of the project.
 
-Unless otherwise stated, tests are run by giving typed commands to the stand-alone version of the robot.
+Unless otherwise stated, tests are run by giving typed commands to the stand-alone version of the robot control code.
 
 
 ***************************************************************
@@ -21,6 +21,9 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
  * [Tablet](#tablet)
    * [Speech](#speech)
    * [BertSpeak](#bertspeak)
+ * [Raspberry Pi](#raspberry)
+     * [Eye Tracking](#eye)
+     * [Blink](#eyelid)
 
 *********************************************************
 ## Robot <a id="robot"></a>
@@ -340,3 +343,8 @@ spoken text.
 * ![green](/images/ball_yellow.png) ``Speech`` - Validate that all commands and queries
 used in the previous section can be executed via speech and that responses are
 likewise formulated into audible sentences.
+## Rasp Piberry <a id="raspberry"></a>
+This section describes test on the Raspberry Pi auxilliary system, the subprocessor that handles
+smaller appendages.
+### a - Eye Tracking <a id="eye"></a>
+### b - Blink <a id="eyelid"></a>
