@@ -1,6 +1,6 @@
 /**
  * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
- * MIT License.
+ * MIT License
  */
 package chuckcoughlin.bert.dispatch
 
@@ -13,6 +13,7 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MetricType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
@@ -317,8 +318,26 @@ class Dispatcher(s:Solver) : Controller {
     // reference to the motors. The response is simply the original request
     // with altered text to return to the user.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
+        if (request.type.equals(RequestType.COMMAND)) {
+            val command = request.command
+            LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
+            if( command.equals(CommandType.HALT) ) {
+                request.type = RequestType.NONE  // Suppress a response
+                System.exit(0) // Rely on ShutdownHandler
+            }
+            else if (command.equals(CommandType.SHUTDOWN) ) {
+                try {
+                    val commands = arrayOf("sudo poweroff")
+                    val rt = Runtime.getRuntime()
+                    rt.exec(commands)
+                }
+                catch (ioe: IOException) {LOGGER.warning(String.format( "%s.handleLocalRequest: Powerdown error (%s)",
+                            CLSS,ioe.message))
+                }
+            }
+        }
         // The following two requests simply use the current positions of the motors, whatever they are
-        if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
+        else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             solver.setTreeState() // Forces new calculations
             val appendage = request.appendage
@@ -362,24 +381,37 @@ class Dispatcher(s:Solver) : Controller {
             }
             request.text = text
         }
-        else if (request.type.equals(RequestType.COMMAND)) {
-            val command = request.command
-            LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
-            if( command.equals(CommandType.HALT) ) {
-                request.type = RequestType.NONE  // Suppress a response
-                System.exit(0) // Rely on ShutdownHandler
+        // THese are the definition properties
+        else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
+            request.jointDynamicProperty == JointDynamicProperty.NONE )  {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if(request.jointDefinitionProperty == JointDefinitionProperty.ID) {
+                request.text = String.format("The id of my %s is %d",Joint.toText(joint),mc.id)
             }
-            else if (command.equals(CommandType.SHUTDOWN) ) {
-                try {
-                    val commands = arrayOf("sudo poweroff")
-                    val rt = Runtime.getRuntime()
-                    rt.exec(commands)
-                }
-                catch (ioe: IOException) {
-                    LOGGER.warning(
-                        String.format( "%s.handleLocalRequest: Powerdown error (%s)",
-                            CLSS,ioe.message))
-                }
+            else if(request.jointDefinitionProperty == JointDefinitionProperty.OFFSET) {
+                request.text = String.format("The angular offset of my %s is %d",Joint.toText(joint),mc.offset)
+            }
+            else if(request.jointDefinitionProperty == JointDefinitionProperty.ORIENTATION) {
+                request.text = String.format("The orientation of my %s is %s",Joint.toText(joint),
+                              if(mc.isDirect) "direct" else "indirect")
+            }
+            else if(request.jointDefinitionProperty == JointDefinitionProperty.MOTORTYPE) {
+                request.text = String.format("The motor type of my %s is %s",Joint.toText(joint),mc.type.name)
+            }
+        }
+        else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
+                 request.jointDefinitionProperty == JointDefinitionProperty.NONE ) {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if(request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE) {
+                request.text = String.format("The maximum position of my %s is %2.0f degrees",Joint.toText(joint),mc.maxAngle)
+            }
+            else if(request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE) {
+                request.text = String.format("The minimum position of my %s is %2.0f degrees",Joint.toText(joint),mc.minAngle)
+            }
+            else if(request.jointDynamicProperty == JointDynamicProperty.RANGE) {
+                request.text = String.format("I can move my %s from %2.0f to %2.0f",Joint.toText(joint),mc.minAngle,mc.maxAngle)
             }
         }
         // List the names of different kinds of properties
@@ -412,6 +444,18 @@ class Dispatcher(s:Solver) : Controller {
             else {
                 poseName = Database.saveJointPositionsAsNewPose(RobotModel.motorsByJoint)
                 request.text = "I saved the pose as $poseName"
+            }
+        }
+        // We are here because there is a range error
+        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
+            request.jointDynamicProperty == JointDynamicProperty.POSITION ) {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if( request.value>mc.maxAngle ) {
+               request.error = String.format("I can only move my %s to %d degrees", Joint.toText(joint),mc.maxAngle)
+            }
+            else if (request.value < mc.minAngle ) {
+                request.error = String.format("I can only move my %s to %d degrees", Joint.toText(joint),mc.minAngle)
             }
         }
         return request
@@ -448,7 +492,8 @@ class Dispatcher(s:Solver) : Controller {
     }
 
     // Local requests are those that can be handled immediately
-    // without forwarding to the motor controllers.
+    // without forwarding to the motor controllers. This includes some
+    // error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION) ||
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
@@ -467,6 +512,26 @@ class Dispatcher(s:Solver) : Controller {
             }
             else {
                 false
+            }
+        }
+        // THese are the definition properties
+        else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
+                 request.jointDynamicProperty == JointDynamicProperty.NONE )  {
+            return true
+        }
+        else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
+                 ( request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE ||
+                   request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE ||
+                   request.jointDynamicProperty == JointDynamicProperty.RANGE ) ) {
+            return true
+        }
+        // Some very specific errors
+        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
+                 request.jointDynamicProperty == JointDynamicProperty.POSITION ) {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if( request.value>mc.maxAngle || request.value<mc.minAngle) {
+                return true
             }
         }
         else if( request.type == RequestType.NOTIFICATION ) {

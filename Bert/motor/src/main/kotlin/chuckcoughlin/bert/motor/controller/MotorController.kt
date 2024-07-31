@@ -132,7 +132,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name));
         // Do nothing if the joint or limb isn't on this controller
         // -- a limb is on one side or the other, not both
-        if(isSingleControllerRequest(request)) {
+        if( isSingleControllerRequest(request) ) {
             val joint: Joint=request.joint
             val limb: Limb=request.limb
             if(!joint.equals(Joint.NONE)) {
@@ -150,7 +150,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             timeOfLastWrite = System.currentTimeMillis()
         }
         // Now construct the byte array to write to the port
-        if (isSingleWriteRequest(request)) {
+        if( isSingleWriteRequest(request) ) {
             val bytes = messageToBytes(request)
             if (bytes != null) {
                 if (request.control.responseCount[controllerName]!! > 0) {
@@ -216,10 +216,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.type.equals(RequestType.SET_POSE) ) {
             false
         }
-        else if (msg.type.equals(RequestType.GET_MOTOR_PROPERTY) &&
-                msg.jointDynamicProperty.equals(JointDynamicProperty.RANGE)) {
-            false
-        }
         else {
             true
         }
@@ -239,6 +235,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if (type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.FREEZE) ) {
 
+            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling sub-command %s",CLSS,controllerName,request.command.name))
             val propertyValues = request.getJointValueIterator()
             if( propertyValues.hasNext() ) {             // There should be only one entry
                 val pv = propertyValues.next()
@@ -256,19 +253,13 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else if (type.equals(RequestType.COMMAND) &&
             request.command.equals(CommandType.RELAX) ) {
-            val propertyValues = request.getJointValueIterator()
-            if( propertyValues.hasNext() ) {             // There should be only one entry
-                val pv = propertyValues.next()
-                val joint = pv.joint // This is the one we want to freeze
-                val prop = pv.property
-                for (mc in configurationsByJoint.values) {
-                    if (mc.joint.equals(joint)) {
-                        mc.isTorqueEnabled = false
-                        bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, prop)
-                        break
-                    }
-                }
+            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling sub-command %s",CLSS,controllerName,request.command.name))
+            // Set the torque-enable to false for all motors in the controller subset.
+            val pv = JointDynamicProperty.STATE
+            for (mc in configurationsByJoint.values) {
+                mc.isTorqueEnabled = false
             }
+            bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, pv)
         }
         else if (type.equals(RequestType.GET_GOALS)) {
             val joint = request.joint
@@ -329,7 +320,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.position)
                 }
                 else if (prop.equals(JointDynamicProperty.RANGE) ) {
-                    request.error = String.format("%s minimum and maximum angles must be set separetely", Joint.toText(mc.joint))
+                    request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))
                 }
                 else if (prop.equals(JointDynamicProperty.STATE) ) {
                     request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),

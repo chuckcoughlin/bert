@@ -13,6 +13,7 @@ import java.util.logging.Logger
  * This class contains methods used to convert between Dynamixel jointValues and engineering units.
  * Code is derived from Pypot dynamixel.conversion.py
  * Protocol 1 only.
+ * Range errors should be detcted before reaching this spot
  */
 object DxlConversions {
     fun degreeToDxl(mc: MotorConfiguration, arg: Double): Int {
@@ -188,6 +189,7 @@ object DxlConversions {
         var dxlValue = 0
         when(property) {
             JointDynamicProperty.POSITION -> dxlValue = degreeToDxl(mc, value)
+
             JointDynamicProperty.SPEED -> {
                 value = value * mc.maxSpeed / 100.0
                 dxlValue = speedToDxl(mc, value)

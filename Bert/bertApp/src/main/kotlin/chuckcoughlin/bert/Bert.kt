@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert
@@ -11,6 +11,7 @@ import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.dispatch.Dispatcher
+
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.runBlocking

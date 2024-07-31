@@ -1072,6 +1072,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else if (pname.equals("maximum angle", ignoreCase = true)) pname ="MAXIMUMANGLE"
         else if (pname.equals("minimum angle", ignoreCase = true)) pname ="MINIMUMANGLE"
         else if (pname.equals("motor type", ignoreCase = true))    pname ="MOTORTYPE"
+        else if (pname.equals("range", ignoreCase = true))         pname ="RANGE"
         else if (pname.equals("speed", ignoreCase = true))         pname ="SPEED"
         else if (pname.equals("state", ignoreCase = true))         pname = "STATE"
         else if (pname.equals("temp", ignoreCase = true))          pname = "TEMPERATURE"
