@@ -31,7 +31,6 @@ class CommandMessageHandler(sock: Socket)  {
     private val input: BufferedReader
     private val output: PrintWriter
     private val parser: StatementParser
-    private var suppressingErrors: Boolean
 
     /**
      * Extract text from the message and forward on to the tablet formatted appropriately.
@@ -132,15 +131,10 @@ class CommandMessageHandler(sock: Socket)  {
             msg.error = String.format("Received a short message from the tablet (%s)", txt)
         }
         msg.source = ControllerType.COMMAND.name
-        if( msg.type == RequestType.NONE ) { // NONE simply doesn't get processed
-            if(!msg.error.equals(BottleConstants.NO_ERROR)) {
-                suppressingErrors = true // Suppress replies to consecutive syntax errors
-                val text: String = translator.messageToText(msg)
-                LOGGER.info(String.format("%s.SuppressedErrorMessage: %s", CLSS, text))
-            }
-            else {
-                suppressingErrors = false
-            }
+        // In past iterations, there was the concept of suppressing consecutive similar errors.
+        // We've abandoned that idea/
+        if(!msg.error.equals(BottleConstants.NO_ERROR)) {
+            LOGGER.info(String.format("%s.processRequest: ERROR %s (%s)", CLSS, msg.type,msg.error))
         }
         return msg
     }
@@ -149,7 +143,6 @@ class CommandMessageHandler(sock: Socket)  {
      * This is a substitute for readLine() which I've had much trouble with.
      * @return a line of text. Null indicates a closed stream
      */
-
     @Synchronized fun readCommand():String? {
         var text = StringBuffer()
         while(true) {
@@ -186,7 +179,6 @@ class CommandMessageHandler(sock: Socket)  {
         LOGGER.info(String.format("%s.startup: opened socket for read",CLSS))
         output = PrintWriter(socket.getOutputStream(), true)
         LOGGER.info(String.format("%s.startup: opened socket for write",CLSS))
-        suppressingErrors = false
         parser = StatementParser()
     }
 }

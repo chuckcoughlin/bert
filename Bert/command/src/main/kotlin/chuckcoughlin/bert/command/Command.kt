@@ -169,7 +169,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     // This must be synched with isLocalRequest()
     private fun handleLocalRequest(handler:CommandMessageHandler,request: MessageBottle) {
         if( request.type.equals(RequestType.NONE)) {
-            // Do nothing
+            LOGGER.warning(String.format("%s.handleLocalRequest: %s type, doing nothing (%s)",request.type,translator.messageToText(request)))
         }
         else if( !request.error.equals(BottleConstants.NO_ERROR)) {
             sendResponse(handler,request.error)

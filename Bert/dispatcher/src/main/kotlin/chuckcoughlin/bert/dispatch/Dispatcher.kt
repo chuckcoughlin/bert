@@ -452,10 +452,10 @@ class Dispatcher(s:Solver) : Controller {
             val joint = request.joint
             val mc = RobotModel.motorsByJoint[joint]!!
             if( request.value>mc.maxAngle ) {
-               request.error = String.format("I can only move my %s to %d degrees", Joint.toText(joint),mc.maxAngle)
+               request.error = String.format("I can only move my %s to %2.0 degrees", Joint.toText(joint),mc.maxAngle)
             }
             else if (request.value < mc.minAngle ) {
-                request.error = String.format("I can only move my %s to %d degrees", Joint.toText(joint),mc.minAngle)
+                request.error = String.format("I can only move my %s to %2.0f degrees", Joint.toText(joint),mc.minAngle)
             }
         }
         return request

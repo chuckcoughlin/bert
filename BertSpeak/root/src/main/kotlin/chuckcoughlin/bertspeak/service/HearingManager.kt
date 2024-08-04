@@ -9,6 +9,7 @@ import android.media.AudioManager
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
+import android.speech.RecognizerIntent.EXTRA_MASK_OFFENSIVE_WORDS
 import android.speech.SpeechRecognizer
 import android.util.Log
 import androidx.core.content.getSystemService
@@ -161,13 +162,16 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 
 	private fun createRecognizerIntent(): Intent {
 		//val locale = "us-UK"
-		val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+		//val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+		val intent = Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE)
 		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
 		//Give a hint to the recognizer about what the user is going to say
 		intent.putExtra( RecognizerIntent.EXTRA_LANGUAGE_MODEL,
 			             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
 		)
+		intent.putExtra(RecognizerIntent.EXTRA_MASK_OFFENSIVE_WORDS,true)
+		intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME)
 		// Max number of results. This is two attempts at deciphering, not a 2-word limit.
 		intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)
 		intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "chuckcoughlin.bertspeak.service");
@@ -212,7 +216,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	val CLSS = "HearingManager"
 	val DELAY_TIME = 1000L
 	val SPEECH_MIN_TIME = 10      // Word must be at least this long
-	val END_OF_PHRASE_TIME = 2000 // Silence to indicate end-of-input
+	val END_OF_PHRASE_TIME = 1000 // Silence to indicate end-of-input
 
 	/**
 	 * Creating the speech recognizer must be done on the main thread.
