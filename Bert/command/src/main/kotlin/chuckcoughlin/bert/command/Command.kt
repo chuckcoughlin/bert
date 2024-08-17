@@ -104,7 +104,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
                         }
                         catch(ex:Exception ) {
-                            LOGGER.info(String.format("%s: WARNING: failed to accept client connection on %d (%s)", CLSS,port,ex.localizedMessage))
+                            LOGGER.info(String.format("%s: WARNING: failed to accept client connection on %d (%s)", CLSS,port,ex.message))
                             delay(DELAY)
                         }
                         delay(DELAY)
