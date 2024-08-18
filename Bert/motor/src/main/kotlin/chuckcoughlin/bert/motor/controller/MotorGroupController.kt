@@ -379,7 +379,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             else {
                 val property = request.jointDynamicProperty
                 when (property) {
-                    JointDynamicProperty.POSITION -> {
+                    JointDynamicProperty.ANGLE -> {
                         val position = 0
                         text = "The position of my $jointName is $position"
                     }

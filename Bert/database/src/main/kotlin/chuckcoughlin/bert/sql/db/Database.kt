@@ -55,8 +55,8 @@ object Database  {
      * @param mcmap contains a map of motor configurations with positions that define the pose.
      * @param poseName
      */
-    fun saveJointPositionsForPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String) {
-        pose.saveJointPositionsForPose(connection, mcmap, poseName)
+    fun saveJointAnglesForPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String) {
+        pose.saveJointLocationsForPose(connection, mcmap, poseName)
         return
     }
 
@@ -66,8 +66,8 @@ object Database  {
      * @param mcmap contains a map of motor configurations with positions that define the pose.
      * @return the new record id as a string.
      */
-    fun saveJointPositionsAsNewPose(mcmap: Map<Joint, MotorConfiguration>): String {
-        return pose.saveJointPositionsAsNewPose(connection, mcmap)
+    fun saveJointAnglesAsNewPose(mcmap: Map<Joint, MotorConfiguration>): String {
+        return pose.saveJointLocationsAsNewPose(connection, mcmap)
     }
 
     /**

@@ -567,7 +567,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.joint = joint
         }
         // Property is fixed as position
-        bottle.jointDynamicProperty = JointDynamicProperty.POSITION
+        bottle.jointDynamicProperty = JointDynamicProperty.ANGLE
         bottle.value = ctx.Value().getText().toDouble()
         return null
     }
@@ -620,7 +620,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitSetMotorPosition(ctx: SpeechSyntaxParser.SetMotorPositionContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Property is fixed as position
-        bottle.jointDynamicProperty = JointDynamicProperty.POSITION
+        bottle.jointDynamicProperty = JointDynamicProperty.ANGLE
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side()!=null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -639,7 +639,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         }
 
         val prop = bottle.jointDynamicProperty
-        if (!prop.equals(JointDynamicProperty.POSITION) &&
+        if (!prop.equals(JointDynamicProperty.ANGLE) &&
             !prop.equals(JointDynamicProperty.SPEED) &&
             !prop.equals(JointDynamicProperty.STATE) &&
             !prop.equals(JointDynamicProperty.TORQUE) ) {
@@ -697,7 +697,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         }
         // Sanity check
         if( !bottle.joint.equals(Joint.NONE) && (
-                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.POSITION) &&
+                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) &&
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
@@ -716,7 +716,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         // A real joint
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Get the property
-        val property: JointDynamicProperty = JointDynamicProperty.POSITION
+        val property: JointDynamicProperty = JointDynamicProperty.ANGLE
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)

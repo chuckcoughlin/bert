@@ -30,7 +30,7 @@ object DxlMessage {
         val outliers: MutableList<MotorConfiguration> = ArrayList<MotorConfiguration>() // Will hold the joints that need moving.
         mostRecentTravelTime = 0
         for (mc in configurationsByJoint.values) {
-            val pos: Double = mc.position
+            val pos: Double = mc.angle
             if (pos == 0.0) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s never evaluated, ignored",
                     CLSS,mc.joint.name))
@@ -38,14 +38,14 @@ object DxlMessage {
             else if (pos > mc.maxAngle ) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
                         CLSS, mc.joint.name, pos, mc.maxAngle))
-                mc.position = mc.maxAngle
+                mc.angle = mc.maxAngle
                 outliers.add(mc)
                 if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
             else if (pos < mc.minAngle ) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (min=%.0f)",
                         CLSS, mc.joint.name, pos, mc.minAngle))
-                mc.position = mc.minAngle
+                mc.angle = mc.minAngle
                 outliers.add(mc)
                 if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
@@ -54,15 +54,15 @@ object DxlMessage {
         // No knock-knees
         var leftHip: MotorConfiguration? = configurationsByJoint[Joint.LEFT_HIP_X]
         if (leftHip != null) {
-            if (leftHip.position > HIP_X_LIMIT) {
-                leftHip.position = HIP_X_LIMIT
+            if (leftHip.angle > HIP_X_LIMIT) {
+                leftHip.angle = HIP_X_LIMIT
                 outliers.add(leftHip)
             }
         }
         var rightHip: MotorConfiguration? = configurationsByJoint[Joint.RIGHT_HIP_X]
         if( rightHip!=null) {
-            if (rightHip.position > HIP_X_LIMIT) {
-                rightHip.position = HIP_X_LIMIT
+            if (rightHip.angle > HIP_X_LIMIT) {
+                rightHip.angle = HIP_X_LIMIT
                 outliers.add(rightHip)
             }
         }
@@ -70,14 +70,14 @@ object DxlMessage {
         leftHip = configurationsByJoint[Joint.LEFT_HIP_X]
         if( leftHip!=null ) {
             rightHip = configurationsByJoint[Joint.LEFT_HIP_X]
-            if (leftHip.position < HIP_Z_LIMIT) {
-                leftHip.position = HIP_Z_LIMIT
+            if (leftHip.angle < HIP_Z_LIMIT) {
+                leftHip.angle = HIP_Z_LIMIT
                 outliers.add(leftHip)
             }
         }
         if( rightHip!=null) {
-            if (rightHip.position < HIP_Z_LIMIT) {
-                rightHip.position = HIP_Z_LIMIT
+            if (rightHip.angle < HIP_Z_LIMIT) {
+                rightHip.angle = HIP_Z_LIMIT
                 outliers.add(rightHip)
             }
         }
@@ -90,13 +90,13 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.POSITION)
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.ANGLE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in outliers) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",
-                        CLSS,mc.joint.name,mc.position))
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, mc.position)
+                        CLSS,mc.joint.name,mc.angle))
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
@@ -218,7 +218,7 @@ object DxlMessage {
         // These maps contain all joints
         val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter( pose, JointDynamicProperty.TORQUE)
         val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.SPEED)
-        val positions: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.POSITION)
+        val positions: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.ANGLE)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
         val tc = torques.size
@@ -279,18 +279,18 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.POSITION)
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.ANGLE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in map.keys) {
                 val mc: MotorConfiguration = map[key]!!
-                if( mc.position.equals(positions[key]!!) ) continue
+                if( mc.angle.equals(positions[key]!!) ) continue
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.id,key,positions.get(key)));
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.POSITION, mc, positions[key]!!)
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, positions[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.position = positions[key]!!
+                mc.angle = positions[key]!!
                 if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
                 index = index + 3
             }
@@ -391,8 +391,8 @@ object DxlMessage {
             bytes[6] = dxlValue.toByte()
         }
         setChecksum(bytes)
-        if (property.equals(JointDynamicProperty.POSITION)) {
-            mc.position = value
+        if (property.equals(JointDynamicProperty.ANGLE)) {
+            mc.angle = value
             mostRecentTravelTime = mc.travelTime
         }
         else if (property.equals(JointDynamicProperty.SPEED)) {
@@ -509,11 +509,11 @@ object DxlMessage {
         if (verifyHeader(bytes)) {
             val msg = String.format("%s.updateGoalsFromBytes: %s", CLSS, dump(bytes))
             val err = bytes[4]
-            var property: JointDynamicProperty = JointDynamicProperty.POSITION
+            var property: JointDynamicProperty = JointDynamicProperty.ANGLE
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val t1 = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
             bottle.addJointValue(bottle.joint,property,v1)
-            mc.position = v1
+            mc.angle = v1
             property = JointDynamicProperty.SPEED // Non-directional
             var v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
             val t2 = DxlConversions.textForProperty(property, mc, bytes[7], bytes[8])
@@ -656,7 +656,7 @@ object DxlMessage {
                     val param = DxlConversions.valueForProperty(property, mc, bytes[index + 5], bytes[index + 6])
                     parameters[id] = String.format("%.2f", param)
                     when(property) {
-                        JointDynamicProperty.POSITION -> mc.position = param
+                        JointDynamicProperty.ANGLE -> mc.angle = param
                         JointDynamicProperty.TORQUE   -> mc.torque = param
                         JointDynamicProperty.MAXIMUMANGLE -> mc.maxAngle = param
                         JointDynamicProperty.MINIMUMANGLE -> mc.minAngle = param

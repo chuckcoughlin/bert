@@ -28,7 +28,7 @@ object DxlConversions {
                 CLSS, mc.joint.name, value, mc.minAngle))
             value = mc.minAngle
         }
-        mc.position = value
+        mc.angle = value
         value = value - mc.offset
         val r = range[mc.type]!!
         if (!mc.isDirect) value = r - value
@@ -133,7 +133,7 @@ object DxlConversions {
     fun addressForGoalProperty(property: JointDynamicProperty): Byte {
         var address: Byte
         when (property) {
-            JointDynamicProperty.POSITION -> address = GOAL_POSITION
+            JointDynamicProperty.ANGLE -> address = GOAL_POSITION
             JointDynamicProperty.SPEED    -> address = GOAL_SPEED
             JointDynamicProperty.TORQUE   -> address = GOAL_TORQUE
             JointDynamicProperty.STATE    -> address = GOAL_TORQUE_ENABLE
@@ -152,12 +152,13 @@ object DxlConversions {
         when(property) {
             JointDynamicProperty.MAXIMUMANGLE -> address = MAXIMUM_ANGLE
             JointDynamicProperty.MINIMUMANGLE -> address = MINIMUM_ANGLE
-            JointDynamicProperty.POSITION        -> address = PRESENT_POSITION
-            JointDynamicProperty.SPEED           -> address = PRESENT_SPEED
-            JointDynamicProperty.TEMPERATURE     -> address = PRESENT_TEMPERATURE
-            JointDynamicProperty.TORQUE          -> address = PRESENT_LOAD
+            JointDynamicProperty.ANGLE        -> address = CURRENT_ANGLE
+            JointDynamicProperty.RANGE           -> address = 0   // Pseudo property
+            JointDynamicProperty.SPEED           -> address = CURRENT_SPEED
+            JointDynamicProperty.TEMPERATURE     -> address = CURRENT_TEMPERATURE
+            JointDynamicProperty.TORQUE          -> address = CURRENT_LOAD
             JointDynamicProperty.STATE           -> address = GOAL_TORQUE_ENABLE
-            JointDynamicProperty.VOLTAGE         -> address = PRESENT_VOLTAGE
+            JointDynamicProperty.VOLTAGE         -> address = CURRENT_VOLTAGE
             JointDynamicProperty.NONE            -> address = 0
         }
         return address
@@ -171,7 +172,8 @@ object DxlConversions {
         when(property) {
             JointDynamicProperty.MAXIMUMANGLE -> length = 2
             JointDynamicProperty.MINIMUMANGLE -> length = 2
-            JointDynamicProperty.POSITION         -> length = 2
+            JointDynamicProperty.ANGLE         -> length = 2
+            JointDynamicProperty.RANGE         -> length = 0
             JointDynamicProperty.SPEED            -> length = 2
             JointDynamicProperty.TEMPERATURE      -> length = 1
             JointDynamicProperty.TORQUE           -> length = 2
@@ -182,14 +184,13 @@ object DxlConversions {
         return length
     }
 
-    // Convert the value into a raw setting for the motor. Position is in degrees, speed and torque are percent.
+    // Convert the value into a raw setting for the motor. Angle is in degrees, speed and torque are percent.
     // Valid for Protocol 1 only.
     fun dxlValueForProperty(property: JointDynamicProperty, mc: MotorConfiguration, arg: Double): Int {
         var value = arg
         var dxlValue = 0
         when(property) {
-            JointDynamicProperty.POSITION -> dxlValue = degreeToDxl(mc, value)
-
+            JointDynamicProperty.ANGLE -> dxlValue = degreeToDxl(mc, value)
             JointDynamicProperty.SPEED -> {
                 value = value * mc.maxSpeed / 100.0
                 dxlValue = speedToDxl(mc, value)
@@ -215,7 +216,8 @@ object DxlConversions {
         when (property ) {
             JointDynamicProperty.MAXIMUMANGLE  -> text = String.format("%.0f degrees", value)
             JointDynamicProperty.MINIMUMANGLE  -> text = String.format("%.0f degrees", value)
-            JointDynamicProperty.POSITION      -> text = String.format("%.0f degrees", value)
+            JointDynamicProperty.RANGE         -> text = String.format("%.0f degrees", value)
+            JointDynamicProperty.ANGLE         -> text = String.format("%.0f degrees", value)
             JointDynamicProperty.SPEED         -> text = String.format("%.0f degrees per second", value)
             JointDynamicProperty.TEMPERATURE   -> text = String.format("%.0f degrees centigrade", value)
             JointDynamicProperty.TORQUE        -> text = String.format("%.1f newton-meters", value)
@@ -234,7 +236,8 @@ object DxlConversions {
         when(property) {
             JointDynamicProperty.MAXIMUMANGLE   -> value = dxlToDegree(mc, b1, b2)
             JointDynamicProperty.MINIMUMANGLE   -> value = dxlToDegree(mc, b1, b2)
-            JointDynamicProperty.POSITION       -> value = dxlToDegree(mc, b1, b2)
+            JointDynamicProperty.RANGE          -> value = 0.0
+            JointDynamicProperty.ANGLE          -> value = dxlToDegree(mc, b1, b2)
             JointDynamicProperty.SPEED          -> value = dxlToSpeed(mc, b1, b2)
             JointDynamicProperty.TEMPERATURE    -> value = dxlToTemperature(b1)
             JointDynamicProperty.TORQUE         -> value = dxlToTorque(mc, b1, b2)
@@ -264,11 +267,11 @@ object DxlConversions {
     const val GOAL_TORQUE_ENABLE = 0x18.toByte()
     private const val MINIMUM_ANGLE = 0x06.toByte() // CCW
     private const val MAXIMUM_ANGLE = 0x08.toByte() // CW
-    private const val PRESENT_LOAD = 0x28.toByte() // low, high bytes
-    private const val PRESENT_POSITION = 0x24.toByte() // low, high bytes
-    private const val PRESENT_SPEED = 0x26.toByte() // low, high bytes
-    private const val PRESENT_TEMPERATURE = 0x2B.toByte() // single byte
-    private const val PRESENT_VOLTAGE = 0x2A.toByte() // single byte
+    private const val CURRENT_LOAD = 0x28.toByte() // low, high bytes
+    private const val CURRENT_ANGLE = 0x24.toByte() // low, high bytes
+    private const val CURRENT_SPEED = 0x26.toByte() // low, high bytes
+    private const val CURRENT_TEMPERATURE = 0x2B.toByte() // single byte
+    private const val CURRENT_VOLTAGE = 0x2A.toByte() // single byte
 
     init {
         // Range of motion in degrees

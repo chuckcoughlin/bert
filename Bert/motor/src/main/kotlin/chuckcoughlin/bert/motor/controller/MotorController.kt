@@ -136,7 +136,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val joint: Joint=request.joint
             val limb: Limb=request.limb
             if(!joint.equals(Joint.NONE)) {
-                val mc: MotorConfiguration=configurationsByJoint[joint] ?: return
+                if( configurationsByJoint[joint] ==null ) return
             }
             else if(!limb.equals(Limb.NONE)) {
                 val count=configurationsForLimb(limb).size
@@ -314,10 +314,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val mc = RobotModel.motorsByJoint[joint]!!
             if (mc.joint.equals(joint)) {
                 bytes = DxlMessage.bytesToSetProperty(mc, prop, value.toDouble())
-                if (prop.equals(JointDynamicProperty.POSITION) ) {
+                if (prop.equals(JointDynamicProperty.ANGLE) ) {
                     val duration = mc.travelTime
                     if (request.duration < duration) request.duration = duration
-                    request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.position)
+                    request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.angle)
                 }
                 else if (prop.equals(JointDynamicProperty.RANGE) ) {
                     request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))

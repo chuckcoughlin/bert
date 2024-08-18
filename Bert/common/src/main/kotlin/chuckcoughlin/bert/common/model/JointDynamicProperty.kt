@@ -14,7 +14,7 @@ import java.util.logging.Logger
 enum class JointDynamicProperty {
     MAXIMUMANGLE,
     MINIMUMANGLE,
-    POSITION,
+    ANGLE,
     RANGE,
     SPEED,
     STATE,

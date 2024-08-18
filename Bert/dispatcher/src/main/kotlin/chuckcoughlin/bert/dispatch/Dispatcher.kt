@@ -7,28 +7,15 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDefinitionProperty
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.control.solver.Solver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -158,7 +145,7 @@ class Dispatcher(s:Solver) : Controller {
         // Read all the joint positions (using both controllers). This fills our
         // internal buffers with the current positions.
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-        msg.jointDynamicProperty = JointDynamicProperty.POSITION
+        msg.jointDynamicProperty = JointDynamicProperty.ANGLE
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 1000 // 1 sec delay
         toInternalController.send(msg)
@@ -259,12 +246,12 @@ class Dispatcher(s:Solver) : Controller {
         if(request.type==RequestType.COMMAND &&
             request.command.equals(CommandType.FREEZE)) {
             var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.POSITION
+            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
             msg.source = ControllerType.BITBUCKET.name
             toInternalController.send(request)
 
             msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.POSITION
+            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
             msg.source = ControllerType.BITBUCKET.name
             msg.control.delay =1000 // 1 sec delay
             toInternalController.send(msg)
@@ -276,13 +263,13 @@ class Dispatcher(s:Solver) : Controller {
                 val value = jpv.value
                 if( value.equals(BottleConstants.ON_VALUE) ) {
                     var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.POSITION
+                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
                     msg.limb = request.limb
                     msg.source = ControllerType.BITBUCKET.name
                     toInternalController.send(msg)
 
                     msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.POSITION
+                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
                     msg.limb = request.limb
                     msg.source = ControllerType.BITBUCKET.name
                     msg.control.delay = 500 // 1/2 sec delay
@@ -297,13 +284,13 @@ class Dispatcher(s:Solver) : Controller {
                 val value = jpv.value
                 if( value.equals(BottleConstants.ON_VALUE) ) {
                     var msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.POSITION
+                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
                     msg.joint = request.joint
                     msg.source = ControllerType.BITBUCKET.name
                     toInternalController.send(msg)
 
                     msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.POSITION
+                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
                     msg.joint = request.joint
                     msg.source = ControllerType.BITBUCKET.name
                     msg.control.delay = 250 // 1/4 sec delay
@@ -341,7 +328,7 @@ class Dispatcher(s:Solver) : Controller {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             solver.setTreeState() // Forces new calculations
             val appendage = request.appendage
-            val xyz: DoubleArray = solver.getPosition(appendage)
+            val xyz: DoubleArray = solver.getLocation(appendage)
             val text = String.format(
                 "%s is located at %0.2f %0.2f %0.2f meters",
                 appendage.name.lowercase(Locale.getDefault()),xyz[0], xyz[1],xyz[2])
@@ -352,7 +339,7 @@ class Dispatcher(s:Solver) : Controller {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             solver.setTreeState()
             val joint = request.joint
-            val xyz: DoubleArray = solver.getPosition(joint)
+            val xyz: DoubleArray = solver.getLocation(joint)
             val text = String.format(
                 "The center of joint %s is located at %0.2f %0.2f %0.2f meters",
                 joint.name,xyz[0],xyz[1], xyz[2])
@@ -439,16 +426,16 @@ class Dispatcher(s:Solver) : Controller {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             var poseName: String = request.pose
             if (!poseName.equals(BottleConstants.NO_POSE)) {
-                Database.saveJointPositionsForPose(RobotModel.motorsByJoint, poseName)
+                Database.saveJointAnglesForPose(RobotModel.motorsByJoint, poseName)
             }
             else {
-                poseName = Database.saveJointPositionsAsNewPose(RobotModel.motorsByJoint)
+                poseName = Database.saveJointAnglesAsNewPose(RobotModel.motorsByJoint)
                 request.text = "I saved the pose as $poseName"
             }
         }
         // We are here because there is a range error
         else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-            request.jointDynamicProperty == JointDynamicProperty.POSITION ) {
+            request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
             val joint = request.joint
             val mc = RobotModel.motorsByJoint[joint]!!
             if( request.value>mc.maxAngle ) {
@@ -527,7 +514,7 @@ class Dispatcher(s:Solver) : Controller {
         }
         // Some very specific errors
         else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-                 request.jointDynamicProperty == JointDynamicProperty.POSITION ) {
+                 request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
             val joint = request.joint
             val mc = RobotModel.motorsByJoint[joint]!!
             if( request.value>mc.maxAngle || request.value<mc.minAngle) {

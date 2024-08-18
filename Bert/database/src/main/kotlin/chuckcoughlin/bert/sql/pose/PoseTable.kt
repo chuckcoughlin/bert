@@ -5,11 +5,7 @@
  */
 package chuckcoughlin.bert.sql.pose
 
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import java.sql.*
 import java.util.*
@@ -197,8 +193,8 @@ class PoseTable {
      * @param mcmap contains a map of motor configurations with positions that define the pose.
      * @return the new record id as a string.
      */
-    fun saveJointPositionsAsNewPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>): String {
-        LOGGER.info(String.format("%s.saveJointPositionsAsNewPose:", CLSS))
+    fun saveJointLocationsAsNewPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>): String {
+        LOGGER.info(String.format("%s.saveJointLocationsAsNewPose:", CLSS))
         var id: Long = SQL_NULL_CONNECTION
         if( cxn!=null ) {
             var statement: Statement? = null
@@ -213,11 +209,11 @@ class PoseTable {
                     valuesBuffer.append(",?")
                 }
                 var SQL = sb.append(") ").append(valuesBuffer).append(")").toString()
-                LOGGER.info(String.format("%s.saveJointPositionsAsNewPose:\n%s", CLSS, SQL))
+                LOGGER.info(String.format("%s.saveJointLocationsAsNewPose:\n%s", CLSS, SQL))
                 prep = cxn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)
                 var index = 1
                 for (mc in map.values) {
-                    prep.setInt(index, mc.position.toInt())
+                    prep.setInt(index, mc.angle.toInt())
                     index++
                 }
                 prep.executeUpdate()
@@ -230,7 +226,7 @@ class PoseTable {
                 statement.execute(SQL)
             }
             catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.saveJointPositionsAsNewPose: Error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.saveJointLocationsAsNewPose: Error (%s)", CLSS, e.message))
             }
             finally {
                 if (prep != null) {
@@ -258,9 +254,9 @@ class PoseTable {
      * @param mcmap contains a map of motor configurations. Joints not in the list are ignored.
      * @param pz name
      */
-    fun saveJointPositionsForPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>, pz: String) {
+    fun saveJointLocationsForPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>, pz: String) {
         if( cxn!=null ) {
-            LOGGER.info(String.format("%s.saveJointPositionsForPose: %s)", CLSS, pz))
+            LOGGER.info(String.format("%s.saveJointAnglesForPose: %s)", CLSS, pz))
             var statement: PreparedStatement? = null
             val pose = pz.lowercase(Locale.getDefault())
             var SQL = StringBuffer("UPDATE Pose SET ")
@@ -269,14 +265,14 @@ class PoseTable {
                 index++
                 SQL.append(
                     java.lang.String.format("\n'%s'=%.1f%s",
-                        mc.joint.name, mc.position,
+                        mc.joint.name, mc.angle,
                         if (index == map.size) "" else ","
                     )
                 )
             }
             SQL.append("\nWHERE name=? AND parameter='position';")
             try {
-                LOGGER.info(String.format("%s.saveJointPositionsForPose: \n%s)", CLSS, SQL.toString()))
+                LOGGER.info(String.format("%s.saveJointAnglesForPose: \n%s)", CLSS, SQL.toString()))
                 statement = cxn.prepareStatement(SQL.toString())
                 statement.setString(1, pose)
                 statement.executeUpdate()
@@ -291,19 +287,19 @@ class PoseTable {
                         valuesBuffer.append(",?")
                     }
                     SQL.append(") ").append(valuesBuffer).append(")").toString()
-                    LOGGER.info(String.format("%s.saveJointPositionsForPose: \n%s)", CLSS, SQL.toString()))
+                    LOGGER.info(String.format("%s.saveJointAnglesForPose: \n%s)", CLSS, SQL.toString()))
                     statement = cxn.prepareStatement(SQL.toString())
                     statement.setString(1, pose)
                     index = 2
                     for (mc in map.values) {
-                        statement.setInt(index, mc.position.toInt())
+                        statement.setInt(index, mc.angle.toInt())
                         index++
                     }
                     statement.executeUpdate()
                 }
             }
             catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.saveJointPositionsForPose: Database error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.saveJointAnglesForPose: Database error (%s)", CLSS, e.message))
             }
             finally {
                 if (statement != null) {

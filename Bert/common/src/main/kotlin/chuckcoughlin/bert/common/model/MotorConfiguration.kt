@@ -39,7 +39,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var commandTime: Long  // Time at which joint is commandeded from InternalController
     // When we set a new position, use the previous position and speed
     // to estimate the travel time.
-    var position = 0.0        // ~ degrees
+    var angle = 0.0        // ~ degrees
         get() = field
         set(value) {
             var delta = field - value
@@ -61,7 +61,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
      */
     fun setDynamicProperty(jp: JointDynamicProperty, value: Double) {
         when (jp) {
-            JointDynamicProperty.POSITION -> position = value
+            JointDynamicProperty.ANGLE -> angle = value
             JointDynamicProperty.MAXIMUMANGLE -> maxAngle = value
             JointDynamicProperty.MINIMUMANGLE -> minAngle = value
             JointDynamicProperty.SPEED -> speed = value
