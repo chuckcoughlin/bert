@@ -162,7 +162,6 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 
 	private fun createRecognizerIntent(): Intent {
 		//val locale = "us-UK"
-		//val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
 		val intent = Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE)
 		intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false) // Partials are always empty
 		intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")

@@ -26,6 +26,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
+import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
@@ -104,6 +105,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
                         }
                         catch(ex:Exception ) {
+                            LOGGER.log(Level.INFO, ex.message, ex);
                             LOGGER.info(String.format("%s: WARNING: failed to accept client connection on %d (%s)", CLSS,port,ex.message))
                             delay(DELAY)
                         }
@@ -152,7 +154,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
              * Send requests to the Dispatcher channel.
              */
             val msg = handler.receiveNetworkInput()
-            LOGGER.info(String.format("%s.execute: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
+            LOGGER.info(String.format("%s.handleResponse: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
             if(isHangup(msg) ) {
                 connected = false
             }
@@ -160,7 +162,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 handleLocalRequest(handler,msg)
             }
             else {
-                LOGGER.info(String.format("%s.execute: sending to dispatcher (%s)", CLSS, msg.type.name))
+                LOGGER.info(String.format("%s.handleResponse: sending to dispatcher (%s)", CLSS, msg.type.name))
                 requestChannel.send(msg)
             }
             msg
@@ -168,14 +170,16 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
 
     // This must be synched with isLocalRequest()
     private fun handleLocalRequest(handler:CommandMessageHandler,request: MessageBottle) {
-        if( request.type.equals(RequestType.NONE)) {
-            LOGGER.warning(String.format("%s.handleLocalRequest: %s type, doing nothing (%s)",request.type,translator.messageToText(request)))
-        }
-        else if( !request.error.equals(BottleConstants.NO_ERROR)) {
+        if( !request.error.equals(BottleConstants.NO_ERROR)) {
             sendResponse(handler,request.error)
         }
+        // Programming error of some kind
+        else if( request.type.equals(RequestType.NONE)) {
+            LOGGER.warning(String.format("%s.handleLocalRequest: %s type, doing nothing (%s)",CLSS,
+                                            request.type.name,translator.messageToText(request)))
+        }
         else if(request.type.equals(RequestType.COMMAND)) {
-            val command: CommandType =request.command
+            val command: CommandType = request.command
             LOGGER.warning(String.format("%s.handleLocalRequest: command=%s", CLSS, command))
             if(command.equals(CommandType.SLEEP)) {
                 ignoring=true
@@ -188,10 +192,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 request.error=msg
             }
         }
-        // Actually a response via the Dispatcher - simply log
+        // Notification - simply log
         else if (request.type.equals(RequestType.NOTIFICATION)) {
-            LOGGER.info(String.format("TABLET RESPONSE: %s",request.text))
-            sendResponse(handler,request.text)
+            LOGGER.info(String.format("TABLET LOG: %s",request.text))
         }
         else {
             sendResponse(handler,translator.randomAcknowledgement())

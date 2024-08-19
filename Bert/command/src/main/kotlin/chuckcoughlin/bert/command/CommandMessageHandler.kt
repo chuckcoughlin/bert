@@ -6,6 +6,7 @@ package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
@@ -72,8 +73,9 @@ class CommandMessageHandler(sock: Socket)  {
     fun receiveNetworkInput(): MessageBottle {
         val request: MessageBottle
         val text = readCommand()
-        if( text== null ) {
+        if( text== null || text.equals(CommandType.HALT.name,true)) {
             request = MessageBottle(RequestType.HANGUP)
+            request.source = ControllerType.COMMAND.name
         }
         else {
             request = processRequest(text)
@@ -95,7 +97,7 @@ class CommandMessageHandler(sock: Socket)  {
         if (txt.length > BottleConstants.HEADER_LENGTH) {
             val hdr  = txt.substring(0, BottleConstants.HEADER_LENGTH - 1)
             val text = txt.substring(BottleConstants.HEADER_LENGTH)
-            if( DEBUG ) LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
+            LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
                 // We've stripped the header now analyze the rest.
                 try {
@@ -119,7 +121,7 @@ class CommandMessageHandler(sock: Socket)  {
             }
             // Simply send tablet log messages to our logger
             else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
-                LOGGER.info(String.format("Tablet LOG: %s",text))
+                msg.type = RequestType.NOTIFICATION
             }
             else {
                 msg = MessageBottle(RequestType.NOTIFICATION)
