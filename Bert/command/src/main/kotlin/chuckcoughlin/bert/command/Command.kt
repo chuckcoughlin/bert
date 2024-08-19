@@ -158,7 +158,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
             if(isHangup(msg) ) {
                 connected = false
             }
-            if(isLocalRequest(msg)) {
+            else if(isLocalRequest(msg)) {
                 handleLocalRequest(handler,msg)
             }
             else {

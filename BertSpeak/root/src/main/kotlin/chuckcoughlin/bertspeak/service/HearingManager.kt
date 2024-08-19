@@ -4,17 +4,19 @@
  */
 package chuckcoughlin.bertspeak.service
 
+import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
-import android.speech.RecognizerIntent.EXTRA_MASK_OFFENSIVE_WORDS
 import android.speech.SpeechRecognizer
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.getSystemService
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import java.util.Locale
+
 
 /**
  * Analyze spoken input to the application.Speech-to-text.
@@ -218,10 +220,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	val END_OF_PHRASE_TIME = 1000 // Silence to indicate end-of-input
 
 	/**
-	 * Creating the speech recognizer must be done on the main thread.
+	 * Creating the speech recognizer must be done on the main thread..
+	 * Muting the audio manager stops the annoying beep of the SpeechRecognizer
 	 */
 	init {
 		audioManager = dispatcher.context.getSystemService<AudioManager>() as AudioManager
+		audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
 		recognizerIntent = createRecognizerIntent()
 		sr = null
 		startTime = System.currentTimeMillis()
