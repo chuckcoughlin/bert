@@ -19,7 +19,7 @@ statement:
 command:
 	Salutation                                                              # handleSalutation
 	| Greeting Greeting? Salutation?                                        # handleGreeting
-	| Salutation? Initialize Article? Motors   					# initializeJoints
+	| Salutation? Initialize Article? Motors   					            # initializeJoints
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand1
 	| Salutation? List Article? Motor? Properties                   # handleListCommand2

@@ -1064,8 +1064,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             pname = pname.substring(0, pname.length - 1).uppercase(Locale.getDefault())
         }
         var isDynamic = true
-        if (pname.equals("angle", ignoreCase = true))              pname = "POSITION"
-        else if (pname.equals("position", ignoreCase = true ))     pname = "POSITION"
+        if (pname.equals("angle", ignoreCase = true))              pname = "ANGLE"
+        else if (pname.equals("position", ignoreCase = true ))     pname = "ANGLE"
         else if (pname.equals("load", ignoreCase = true ))         pname = "TORQUE"
         else if (pname.equals("max angle", ignoreCase = true))     pname ="MAXIMUMANGLE"
         else if (pname.equals("min angle", ignoreCase = true))     pname ="MINIMUMANGLE"
