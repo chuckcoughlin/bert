@@ -68,14 +68,13 @@ class PoseTable {
         return pose
     }
 
-    /** Return a list of column names with non-null values for the indicated pose
+    /** Return a map of column names and non-null values for the indicated pose
      * property. There should only be one (or none) row returned.
      * @param pose
-     * @param parameter, e.g. "position","speed","torque"
+     * @param parameter, e.g. "angle","speed","torque"
      * @return list of upper-case joint names.
      */
-    fun getPoseJointValuesForParameter(cxn: Connection?,p: String,parameter: JointDynamicProperty
-    ): Map<Joint, Double> {
+    fun getPoseJointValuesForParameter(cxn: Connection?,p: String,parameter: JointDynamicProperty): Map<Joint, Double> {
 
         val map: MutableMap<Joint, Double> = HashMap()
         if( cxn!=null ) {
