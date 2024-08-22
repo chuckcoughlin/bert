@@ -2,10 +2,7 @@
  * Copyright 2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.model
-
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Joint
+package chuckcoughlin.bert.common.model
 
 
 /**

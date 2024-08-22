@@ -1,4 +1,4 @@
-package chuckcoughlin.bert.control.util
+package chuckcoughlin.bert.common.util
 
 /**
  * Static helper functions for computing 3D geometric transformations.

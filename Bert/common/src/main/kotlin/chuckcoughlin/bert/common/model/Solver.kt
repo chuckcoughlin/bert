@@ -1,14 +1,9 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.solver
+package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.control.model.Link
-import chuckcoughlin.bert.control.model.URDFModel
 import java.nio.file.Path
 import java.util.logging.Logger
 
@@ -19,7 +14,7 @@ import java.util.logging.Logger
  *
  * The URDFModel is the tree of links which describes the robot.
  */
-class Solver {
+object Solver {
     val model: URDFModel
     private var motorConfigurations: Map<Joint, MotorConfiguration>
 
@@ -82,18 +77,17 @@ class Solver {
         mc!!.angle = pos
     }
 
-    companion object {
-        private const val CLSS = "Solver"
-        private val LOGGER = Logger.getLogger(CLSS)
-        private val ERROR_POSITION = doubleArrayOf(0.0, 0.0, 0.0)
 
-    }
+    private const val CLSS = "Solver"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val ERROR_POSITION = doubleArrayOf(0.0, 0.0, 0.0)
+
 
     /**
      * Constructor:
      */
     init {
-        model = URDFModel()
+        model = URDFModel
         motorConfigurations = HashMap<Joint, MotorConfiguration>()
     }
 }

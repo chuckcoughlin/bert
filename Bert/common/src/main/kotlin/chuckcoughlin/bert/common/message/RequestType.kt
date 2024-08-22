@@ -21,6 +21,7 @@ enum class RequestType {
     INITIALIZE_JOINTS,       // Make sure that all joints are in "sane" positions
     LIST_MOTOR_PROPERTIES,   // List available properties for a motor (static/dynamic) - JSON
     LIST_MOTOR_PROPERTY,     // List a single property for all motors  - JSON
+    LIST_NAMES,              // List a category of attributes determined by metric type  - JSON
     MAP_POSE,                // Associate a command to a pose
     NOTIFICATION,            // Unsolicited message from server or parser
     PARTIAL,                 // Remainder of text has yet to arrive

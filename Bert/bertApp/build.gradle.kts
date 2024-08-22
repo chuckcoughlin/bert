@@ -13,7 +13,6 @@ dependencies {
     implementation("org.apache.commons:commons-text:1.10.0")
     implementation(project(":common"))
     implementation(project(":command"))
-    implementation(project(":control"))
     implementation(project(":database"))
     implementation(project(":motor"))
     implementation(project(":speech"))

@@ -38,7 +38,8 @@ question:
     | Salutation?  Are You There					            # personalQuestion
     | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion1
     | What Are Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion2
-    | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis?   # handleBulkPropertyQuestion
+    | What Are Article? Names Of Article? (Motors|Limbs|Appendages)   # bodyPartListQuestion
+    | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis?  # handleBulkPropertyQuestion
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
     | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
     | What Is Article? Property Of Article? Side? Joint Axis?   # motorPropertyQuestion2
@@ -73,6 +74,7 @@ Why: 'why';
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
 Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow'|'faster'|'slower'|'quicker';
+Appendages: 'appendages';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Are: 'are';
 As: 'as';
@@ -91,6 +93,7 @@ Isay: 'i say';
 Is: 'is';
 It: 'it';
 List: ('tell me'|'describe'|'list'|'show me');
+Limbs:'limbs';
 Limb: 'arm'|'back'|'head'|'leg'|'torso';
 Limits: 'limits';
 Means: 'means';
@@ -99,6 +102,7 @@ Mittens: 'mittens';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
+Names: 'names';
 Of: 'of'|'for';
 Off: 'off';
 On: 'on';

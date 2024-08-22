@@ -8,8 +8,8 @@ package chuckcoughlin.bert.common.message
  * These quantities are attributes of the robot as a whole.
  */
 enum class MetricType {
-    AGE, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
-    HEIGHT, MITTENS, NAME, UNDEFINED;
+    AGE, APPENDAGES, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
+    HEIGHT, JOINTS, LIMBS, MITTENS, NAME, UNDEFINED;
 
     companion object {
         /**

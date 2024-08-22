@@ -2,7 +2,7 @@
  * Copyright 2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.model
+package chuckcoughlin.bert.common.model
 
 import org.hipparchus.complex.Quaternion
 import java.util.logging.Logger

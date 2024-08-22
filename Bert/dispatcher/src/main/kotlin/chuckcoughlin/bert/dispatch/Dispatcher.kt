@@ -17,7 +17,8 @@ import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDefinitionProperty
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.control.solver.Solver
+import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
@@ -45,7 +46,7 @@ import java.util.logging.Logger
  * to send and receive message objects.
  */
 @DelicateCoroutinesApi
-class Dispatcher(s:Solver) : Controller {
+class Dispatcher() : Controller {
     // Communication channels
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (wifi)
     private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (wifi)
@@ -64,7 +65,6 @@ class Dispatcher(s:Solver) : Controller {
     private val scope = GlobalScope // For long-running coroutines
     private var running:Boolean
     private val name: String
-    private val solver: Solver = s
     private var cadence = 1000 // msecs
     private var cycleCount= 0   // messages processed
     private var cycleTime = 0.0 // msecs,    EWMA
@@ -339,9 +339,9 @@ class Dispatcher(s:Solver) : Controller {
         // The following two requests simply use the current positions of the motors, whatever they are
         else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            solver.setTreeState() // Forces new calculations
+            Solver.setTreeState() // Forces new calculations
             val appendage = request.appendage
-            val xyz: DoubleArray = solver.getLocation(appendage)
+            val xyz: DoubleArray = Solver.getLocation(appendage)
             val text = String.format(
                 "%s is located at %0.2f %0.2f %0.2f meters",
                 appendage.name.lowercase(Locale.getDefault()),xyz[0], xyz[1],xyz[2])
@@ -350,9 +350,9 @@ class Dispatcher(s:Solver) : Controller {
         // The location in physical coordinates from the center of the robot.
         else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            solver.setTreeState()
+            Solver.setTreeState()
             val joint = request.joint
-            val xyz: DoubleArray = solver.getLocation(joint)
+            val xyz: DoubleArray = Solver.getLocation(joint)
             val text = String.format(
                 "The center of joint %s is located at %0.2f %0.2f %0.2f meters",
                 joint.name,xyz[0],xyz[1], xyz[2])
@@ -377,7 +377,7 @@ class Dispatcher(s:Solver) : Controller {
                 MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
                 MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                 MetricType.NAME -> text = "My name is $name"
-                MetricType.UNDEFINED -> text = ""
+                else -> request.error = String.format("I can't get the value of %s",metric.name)
             }
             request.text = text
         }
@@ -414,7 +414,7 @@ class Dispatcher(s:Solver) : Controller {
                 request.text = String.format("I can move my %s from %2.0f to %2.0f",Joint.toText(joint),mc.minAngle,mc.maxAngle)
             }
         }
-        // List the names of different kinds of properties
+        // List the names of different kinds of motor properties
         else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             if(!request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
@@ -423,6 +423,25 @@ class Dispatcher(s:Solver) : Controller {
             else {
                 request.text = JointDynamicProperty.toJSON()
             }
+        }
+        // List various
+        else if (request.type.equals(RequestType.LIST_NAMES)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
+            val metric: MetricType = request.metric
+            var text = ""
+            when (metric) {
+                MetricType.APPENDAGES -> {
+                    text = URDFModel.chain.appendagesToJSON()
+                }
+                MetricType.JOINTS -> {
+                    text = URDFModel.chain.jointsToJSON()
+                }
+                MetricType.LIMBS -> {
+                    text = URDFModel.chain.limbsToJSON()
+                }
+                else -> request.error = String.format("I can't get the names of %s",metric.name)
+            }
+            request.text = text
         }
         else if (request.type.equals(RequestType.MAP_POSE)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
@@ -500,6 +519,7 @@ class Dispatcher(s:Solver) : Controller {
             request.type.equals(RequestType.GET_METRIC) ||
             request.type.equals(RequestType.HANGUP)     ||
             request.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
+            request.type.equals(RequestType.LIST_NAMES) ||
             request.type.equals(RequestType.MAP_POSE) ||
             request.type.equals(RequestType.SAVE_POSE)) {
             return true

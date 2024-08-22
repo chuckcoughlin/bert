@@ -51,7 +51,7 @@ the conversion of raw readings from the motors into proper engineering
 units, and the listing of various parameters in the motor control tables.  Results are shown for the robot as a whole in JSON format.
 These values are available to the tablet to when the robot status is needed. Results are also shown in textual form when using the interactive command interface.
 
-* ![yellow](/images/ball_yellow.png) ``Joint Names`` - List the names of joints, limbs or appendages.
+* ![green](/images/ball_green.png) ``Joint Names`` - List the names of joints, limbs or appendages.
 ```
     what are the names of your joints
     what are the names of your limbs

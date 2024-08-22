@@ -3,11 +3,11 @@ package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.Chain
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.Solver
 import chuckcoughlin.bert.common.util.LoggerUtility
-import chuckcoughlin.bert.control.model.Chain
-import chuckcoughlin.bert.control.solver.Solver
 import java.nio.file.Paths
 import java.util.*
 
@@ -40,9 +40,9 @@ fun main(args: Array<String>) {
     RobotModel.startup(PathConstants.CONFIG_PATH)
     RobotModel.populate() //
     setMotorPositions()
-    val solver = Solver()
-    solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
-    val chain: Chain = solver.model.chain
+
+    Solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
+    val chain: Chain = Solver.model.chain
     val root = chain.root
     println(String.format("%s: root = %s ", CLSS, root!!.name))
     // Test the links to some appendages

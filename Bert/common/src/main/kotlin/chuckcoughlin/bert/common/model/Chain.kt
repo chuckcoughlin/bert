@@ -2,10 +2,9 @@
  * Copyright 2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.model
+package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Joint
+import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
 
@@ -57,6 +56,40 @@ class Chain {
 
     val links: Collection<Link>
         get() = linksByLimbName.values
+
+    /**
+     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     */
+    fun appendagesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (appendage in linkByAppendage.keys) {
+            names.add(appendage.name)
+        }
+        return gson.toJson(names)
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     */
+    fun jointsToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (joint in jointParent.keys) {
+            names.add(joint.name)
+        }
+        return gson.toJson(names)
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     */
+    fun limbsToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (link in links) {
+            names.add(link.name)
+        }
+        return gson.toJson(names)
+    }
 
     fun getLinkForLimbName(name: String): Link? {
         return linksByLimbName[name.uppercase(Locale.getDefault())]

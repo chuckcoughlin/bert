@@ -44,6 +44,16 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
+    // What are the names of your joints
+    override fun visitBodyPartListQuestion(ctx: SpeechSyntaxParser.BodyPartListQuestionContext): Any? {
+        bottle.type = RequestType.LIST_NAMES
+        // Indicate whether we want static or dynamic properties - by setting one or the other
+        if( ctx.Appendages()!=null ) bottle.metric = MetricType.APPENDAGES
+        if( ctx.Motors()!=null  )    bottle.metric = MetricType.JOINTS
+        if( ctx.Limbs()!=null  )     bottle.metric = MetricType.LIMBS
+        return null
+    }
+
     // you are singing
     override fun visitDeclarePose1(ctx: SpeechSyntaxParser.DeclarePose1Context): Any? {
         val pose: String = visit(ctx.phrase()).toString()

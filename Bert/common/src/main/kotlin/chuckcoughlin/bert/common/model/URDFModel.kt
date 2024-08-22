@@ -1,12 +1,11 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.model
+package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.util.XMLUtility
+import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
 import java.io.IOException
 import java.nio.file.Files
@@ -18,8 +17,8 @@ import java.util.logging.Logger
  * Parse the URDF file and make its contents available as a chain of links.
  * A chain has a tree structure with a single root.
  */
-class URDFModel {
-    protected var document: Document?
+object URDFModel {
+    var document: Document?
 
     /**
      * @return the tree of links which describes the robot.

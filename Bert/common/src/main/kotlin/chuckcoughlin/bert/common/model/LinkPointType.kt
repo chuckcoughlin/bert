@@ -2,7 +2,7 @@
  * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.control.model
+package chuckcoughlin.bert.common.model
 
 /**
  * These are the possible types of "LinkPoints" or
