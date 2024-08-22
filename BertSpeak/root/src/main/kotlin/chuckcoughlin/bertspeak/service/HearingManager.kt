@@ -43,6 +43,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
 		else {
+			audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
 			startListening()
 		}
 	}
@@ -52,6 +53,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	override fun stop() {
 		Log.i(CLSS, "Stop ...")
 		stopListening()
+		audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
 	}
 	/* There should be break a before we start listening to avoid feedback loop
 	 * with spoken response. Note this will be cut short by
@@ -60,8 +62,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	private fun startListening() {
 		if(sr == null && !managerState.equals(ManagerState.ERROR)) {
 			Log.i(CLSS, "Start listening ...")
-			sr = createRecognizer()
-			sr!!.startListening(recognizerIntent)
+			//sr = createRecognizer()
+			//sr!!.startListening(recognizerIntent)
 		}
 		managerState = ACTIVE
 		dispatcher.reportManagerState(ManagerType.HEARING,managerState)
@@ -225,7 +227,6 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 */
 	init {
 		audioManager = dispatcher.context.getSystemService<AudioManager>() as AudioManager
-		audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
 		recognizerIntent = createRecognizerIntent()
 		sr = null
 		startTime = System.currentTimeMillis()
