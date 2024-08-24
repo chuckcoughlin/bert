@@ -6,11 +6,13 @@ package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.JointPropertyValue
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.common.util.NamedStringList
 import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
@@ -83,12 +85,12 @@ class MessageTranslator {
             else if(type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
                 val iterator: MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                 val gson=GsonBuilder().setPrettyPrinting().create()
-                var names=mutableListOf<String>()
+                val holder = NamedStringList("MotorPropertyNames", JsonType.MOTOR_PROP_NAMES.name)
                 while( iterator.hasNext() ) {
                     val jpv=iterator.next()
-                    names.add(jpv.value.toString())
+                    holder.add(jpv.value.toString())
                 }
-                gson.toJson(names)
+                gson.toJson(holder)
             }
             else if (type.equals(RequestType.MAP_POSE)) {
                 randomAcknowledgement()
