@@ -24,10 +24,19 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
 import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetector
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.Executor
@@ -41,13 +50,17 @@ import java.util.concurrent.Executors
  */
 class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     private val name: String
+    private val adapter: TextDataAdapter
+    private val detector: FaceDetector
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraPreview: PreviewView
     private val imageCapture: ImageCapture
     private val callback: ImageCaptureCallback
+    private val options:FaceDetectorOptions
     private lateinit var analyzeButton: Button
     private lateinit var deleteButton: Button
     private lateinit var saveButton: Button
+    private lateinit var statusButton: Button
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -61,6 +74,12 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         deleteButton.setOnClickListener { deleteButtonClicked() }
         saveButton = binding.facesSaveButton
         saveButton.setOnClickListener { saveButtonClicked() }
+        statusButton = binding.faceDetectionButton
+        var nameListView = binding.facesRecyclerView   // RecyclerView
+        nameListView.setHasFixedSize(true) // Refers to the size of the layout.
+        val layoutManager = LinearLayoutManager(nameListView.getContext())
+        nameListView.setLayoutManager(layoutManager)
+        nameListView.setAdapter(adapter)
         startCamera()
         return binding.root
     }
@@ -102,7 +121,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
                 cameraProvider.unbindAll()
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    requireActivity(), cameraSelector, preview)
+                    requireActivity(), cameraSelector, preview, imageCapture)
             }
             catch (iae: IllegalArgumentException) {
                 Log.e(CLSS, String.format("Camera not available (%s)",iae.localizedMessage))
@@ -140,17 +159,26 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         Log.i(name, "Save button clicked")
 
     }
-    class ImageCaptureCallback(): ImageCapture.OnImageCapturedCallback() {
+    class ImageCaptureCallback(detect:FaceDetector): ImageCapture.OnImageCapturedCallback() {
+        val detector = detect
 
         //============================= Image Captured Callbacks ================================
         override fun onError(exc: ImageCaptureException) {
             Log.e(CLSS, "Photo capture failed: ${exc.message}", exc)
         }
 
-        override fun onCaptureSuccess(image: ImageProxy) {
+        override fun onCaptureSuccess(imageProxy: ImageProxy) {
             Log.i(CLSS, "Image captured: ...")
+            val mediaImage = imageProxy.image
+            if(mediaImage!=null) {
+                val image = InputImage.fromMediaImage(mediaImage,imageProxy.imageInfo.rotationDegrees)
+                val result = detector.process(image)
+                if( result.isSuccessful ) {
+                    Log.i(CLSS, "Image captured: ... SUCCESS")
+                }
+            }
         }
-        val CLSS = "ImageCptureCallback"
+        val CLSS = "ImageCaptureCallback"
     }
 
     val CLSS = "FacesFragment"
@@ -158,7 +186,12 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
 
     init {
         name = CLSS
+        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_LOG_MESSAGES))
         imageCapture = ImageCapture.Builder().build()
-        callback = ImageCaptureCallback()
+        options = FaceDetectorOptions.Builder()
+            .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
+            .build()
+        detector = FaceDetection.getClient(options)
+        callback = ImageCaptureCallback(detector)
     }
 }

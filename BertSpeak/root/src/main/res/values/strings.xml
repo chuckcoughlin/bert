@@ -31,7 +31,7 @@
     <string name="coverWaveformTitle">Voice Waveform</string>
     <!-- Strings for FaceRec tab-->
     <string name="facesCameraTitle">Front Camera</string>
-    <string name="facesNameTitle">First, Last Name</string>
+    <string name="facesNameTitle">Known Faces</string>
     <!-- Strings for Poses tab -->
     <string name="posesTitle">Poses</string>
     <string name="posesDetailTitle">Detail</string>

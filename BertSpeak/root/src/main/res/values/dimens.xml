@@ -32,4 +32,5 @@
     <dimen name="button_text_field_height">20dp</dimen>
     <dimen name="button_text_field_width">120dp</dimen>
     <dimen name="button_text_field_margin">5dp</dimen>
+    <dimen name="faces_list_title_text_size">24sp</dimen>
 </resources>

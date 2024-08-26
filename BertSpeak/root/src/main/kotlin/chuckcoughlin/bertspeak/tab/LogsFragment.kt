@@ -20,6 +20,7 @@ import chuckcoughlin.bertspeak.data.TextDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentLogsBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
+import com.google.mlkit.vision.face.FaceDetection
 
 /**
  * This fragment shows log messages originating in the robot.
