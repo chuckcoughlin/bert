@@ -5,17 +5,12 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import android.media.Image
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -32,14 +27,13 @@ import chuckcoughlin.bertspeak.data.TextData
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
+import chuckcoughlin.bertspeak.ui.facerec.FaceReceiver
 import chuckcoughlin.bertspeak.ui.facerec.FacialRecognitionView
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
-import java.io.File
-import java.util.Locale
-import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -48,7 +42,7 @@ import java.util.concurrent.Executors
  * This fragment presents the front camera output and attempts to identify the primary face
  * association it with "the operator".
  */
-class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
+class FacesFragment (pos:Int): BasicAssistantFragment(pos), FaceReceiver {
     private val name: String
     private val adapter: TextDataAdapter
     private val detector: FaceDetector
@@ -80,6 +74,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         val layoutManager = LinearLayoutManager(nameListView.getContext())
         nameListView.setLayoutManager(layoutManager)
         nameListView.setAdapter(adapter)
+        callback.receiver = this
         startCamera()
         return binding.root
     }
@@ -98,6 +93,10 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
 
     override fun onStop() {
         super.onStop()
+    }
+
+    override fun acceptFace(face: Face) {
+        Log.i(name, "Got a face")
     }
 
     private fun startCamera()  {
@@ -159,8 +158,10 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         Log.i(name, "Save button clicked")
 
     }
-    class ImageCaptureCallback(detect:FaceDetector): ImageCapture.OnImageCapturedCallback() {
+
+    class ImageCaptureCallback(detect: FaceDetector): ImageCapture.OnImageCapturedCallback() {
         val detector = detect
+        var receiver:FaceReceiver? = null   // Must be set before image capture
 
         //============================= Image Captured Callbacks ================================
         override fun onError(exc: ImageCaptureException) {
@@ -173,6 +174,17 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
             if(mediaImage!=null) {
                 val image = InputImage.fromMediaImage(mediaImage,imageProxy.imageInfo.rotationDegrees)
                 val result = detector.process(image)
+                    .addOnSuccessListener { faces ->
+                        // Task completed successfully
+                        Log.i(CLSS, String.format("%d faces detected",faces.size))
+                        if(faces.size>0 && receiver!=null) {
+                            receiver!!.acceptFace(faces[0])
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        // Task failed with an exception
+                        Log.i(CLSS, String.format("Faces detection failed (%s)",e.localizedMessage))
+                    }
                 if( result.isSuccessful ) {
                     Log.i(CLSS, "Image captured: ... SUCCESS")
                 }
