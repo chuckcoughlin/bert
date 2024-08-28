@@ -25,8 +25,8 @@ import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.SettingsObserver
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusDataObserver
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService
@@ -44,7 +44,7 @@ import kotlin.math.roundToInt
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar. There are three status sbuttons: Connect, Listen, Speak
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,StatusDataObserver,TextDataObserver,
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,StatusDataObserver,LogDataObserver,
                                 OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
 
     override val name : String
@@ -210,7 +210,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
      * This is called when we first establish the observer.
      * Simply update the text
      */
-    override fun resetText(list: List<TextData>) {
+    override fun resetText(list: List<LogData>) {
         if(list.size>0) {
             updateText(list.first())
         }
@@ -220,7 +220,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
      * We only handle MSG, ANS. All other text types are ignored.
      * If the tablet is disconnected, make it gray
      */
-    override fun updateText(msg: TextData) {
+    override fun updateText(msg: LogData) {
         this.requireActivity().runOnUiThread {
             Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
             if( networkStatusButton.state==ManagerState.PENDING ) {  // Unconnected

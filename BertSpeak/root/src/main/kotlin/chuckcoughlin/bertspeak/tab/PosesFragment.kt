@@ -12,20 +12,18 @@ import android.view.ViewGroup
 import android.widget.Button
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
-import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentPosesBinding
-import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
+import chuckcoughlin.bertspeak.ui.adapter.LogDataAdapter
 
 /**
  * This fragment allows the user to select a pose stored in the robot, then
  * displays all the position settings in that pose.
  */
-class PosesFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
+class PosesFragment(pos:Int) : BasicAssistantFragment(pos), LogDataObserver {
     override val name : String
-    private var adapter: TextDataAdapter
+    private var adapter: LogDataAdapter
     private lateinit var refreshButton: Button
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
@@ -53,14 +51,14 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
     }
 
 
-    override fun resetText(list:List<TextData>) {
+    override fun resetText(list:List<LogData>) {
         Log.i(name, "reset: message list now ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
     @Synchronized
-    override fun updateText(msg: TextData) {
+    override fun updateText(msg: LogData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         adapter.reportDataSetChanged()
     }
@@ -69,6 +67,6 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
 
     init {
         name = CLSS
-        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_POSES))
+        adapter = LogDataAdapter(FixedSizeList<LogData>(BertConstants.NUM_POSES))
     }
 }

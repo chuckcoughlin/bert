@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 /**
  * Facilitates data transfer by the Recycler view.
  */
-class TextDataViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+class LogDataViewHolder(v: View) : RecyclerView.ViewHolder(v) {
     private val rowParent: ViewGroup
     val timestampView: TextView
     val sourceView:    TextView

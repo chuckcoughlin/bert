@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.data
@@ -10,7 +10,7 @@ import java.util.Date
 /**
  * Instances of this class are displayed in the log.
  */
-data class TextData(val msg: String, val type: MessageType ) {
+data class LogData(val msg: String, val type: MessageType ) {
     val timestamp: Date
     val message:String
     val messageType: MessageType

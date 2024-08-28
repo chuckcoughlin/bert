@@ -43,7 +43,7 @@
         />
 
     <!-- This is the list of names of known faces -->
-    <androidx.recyclerview.widget.RecyclerView
+    <ListView
         android:id="@+id/facesRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"

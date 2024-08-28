@@ -1,11 +1,15 @@
+/**
+ * Copyright 2024 Charles Coughlin. All rights reserved.
+ * (MIT License)
+ */
 package chuckcoughlin.bertspeak.service
 
 import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.data.LogDataObserver
 
 /**
  * The text manager is a repository of text messages destined to be
@@ -22,13 +26,13 @@ class TextManager (service:DispatchService): CommunicationManager {
     val dispatcher = service
     override val managerType = ManagerType.TEXT
     override var managerState = ManagerState.OFF
-    private val logList: FixedSizeList<TextData>
+    private val logList: FixedSizeList<LogData>
     private val columnList : MutableList<String>   // Columns in the most recent table
-    private val rowList: MutableList<TextData>  // Text is tab-delimited
-    private val transcriptList: FixedSizeList<TextData>
-    private val logObservers: MutableMap<String, TextDataObserver>
-    private val tableObservers: MutableMap<String, TextDataObserver>
-    private val transcriptObservers: MutableMap<String, TextDataObserver>
+    private val rowList: MutableList<LogData>  // Text is tab-delimited
+    private val transcriptList: FixedSizeList<LogData>
+    private val logObservers: MutableMap<String, LogDataObserver>
+    private val tableObservers: MutableMap<String, LogDataObserver>
+    private val transcriptObservers: MutableMap<String, LogDataObserver>
 
     override fun start() {
         clear(MessageType.ANS)
@@ -87,22 +91,22 @@ class TextManager (service:DispatchService): CommunicationManager {
         Log.i(CLSS, String.format("processText (%s): %s", type.name, text))
         when (type) {
             MessageType.ANS -> {               // Response from the robot
-                var msg = TextData(text,type)
+                var msg = LogData(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.LOG -> {
-                var msg = TextData(text,type)
+                var msg = LogData(text,type)
                 logList.addFirst(msg)
                 notifyLogObservers(msg)
             }
             MessageType.MSG -> {
-                var msg = TextData(text,type)
+                var msg = LogData(text,type)
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
             MessageType.ROW -> {
-                var msg = TextData(text,type)
+                var msg = LogData(text,type)
                 rowList.add(msg)
                 notifyTableObservers(msg)
             }
@@ -119,21 +123,21 @@ class TextManager (service:DispatchService): CommunicationManager {
      * @param observer
      */
     @Synchronized
-    fun registerLogViewer(observer: TextDataObserver) {
+    fun registerLogViewer(observer: LogDataObserver) {
         logObservers[observer.name] = observer
         observer.resetText(logList)
     }
     @Synchronized
-    fun registerTableViewer(observer: TextDataObserver) {
+    fun registerTableViewer(observer: LogDataObserver) {
         tableObservers[observer.name] = observer
         observer.resetText(rowList)
     }
     @Synchronized
-    fun registerTranscriptViewer(observer: TextDataObserver) {
+    fun registerTranscriptViewer(observer: LogDataObserver) {
         transcriptObservers[observer.name] = observer
         observer.resetText(transcriptList)
     }
-    fun unregisterLogViewer(observer: TextDataObserver) {
+    fun unregisterLogViewer(observer: LogDataObserver) {
         for( key in logObservers.keys ) {
             if( logObservers.get(key)!!.equals(observer) ) {
                 logObservers.remove(key,observer)
@@ -141,7 +145,7 @@ class TextManager (service:DispatchService): CommunicationManager {
             }
         }
     }
-    fun unregisterTableViewer(observer: TextDataObserver) {
+    fun unregisterTableViewer(observer: LogDataObserver) {
         for( key in tableObservers.keys ) {
             if( tableObservers.get(key)!!.equals(observer) ) {
                 tableObservers.remove(key,observer)
@@ -150,7 +154,7 @@ class TextManager (service:DispatchService): CommunicationManager {
         }
     }
 
-    fun unregisterTranscriptViewer(observer: TextDataObserver) {
+    fun unregisterTranscriptViewer(observer: LogDataObserver) {
         for( key in transcriptObservers.keys ) {
             if( transcriptObservers.get(key)!!.equals(observer) ) {
                 transcriptObservers.remove(key,observer)
@@ -179,20 +183,20 @@ class TextManager (service:DispatchService): CommunicationManager {
     /**
      * Notify log observers regarding receipt of a new message.
      */
-    private fun notifyLogObservers(msg: TextData) {
+    private fun notifyLogObservers(msg: LogData) {
         //Log.i(CLSS, String.format("notifyLogObservers: %s", msg.message))
         for (observer in logObservers.values) {
             observer.updateText(msg)
         }
     }
 
-    private fun notifyTableObservers(msg: TextData) {
+    private fun notifyTableObservers(msg: LogData) {
         for (observer in tableObservers.values) {
             observer.updateText(msg)
         }
     }
 
-    private fun notifyTranscriptObservers(msg: TextData) {
+    private fun notifyTranscriptObservers(msg: LogData) {
         //Log.i(CLSS, String.format("notifyTranscriptObservers: %s", msg.message))
         for (observer in transcriptObservers.values) {
             Log.i(CLSS, String.format("notifyTranscript: %s: %s", msg.type.name,msg.message))
@@ -214,10 +218,10 @@ class TextManager (service:DispatchService): CommunicationManager {
     init {
         logList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
         columnList     = mutableListOf<String>()
-        rowList        = mutableListOf<TextData>()
+        rowList        = mutableListOf<LogData>()
         transcriptList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
-        logObservers        = mutableMapOf<String, TextDataObserver>()
-        tableObservers      = mutableMapOf<String, TextDataObserver>()
-        transcriptObservers = mutableMapOf<String, TextDataObserver>()
+        logObservers        = mutableMapOf<String, LogDataObserver>()
+        tableObservers      = mutableMapOf<String, LogDataObserver>()
+        transcriptObservers = mutableMapOf<String, LogDataObserver>()
     }
 }

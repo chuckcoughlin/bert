@@ -15,8 +15,8 @@ import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.SettingsObserver
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -28,7 +28,7 @@ import kotlin.math.roundToInt
  * (and not in the service).
  */
 class SpeechManager(service:DispatchService): CommunicationManager, SettingsObserver,
-	                                          TextDataObserver,TextToSpeech.OnInitListener {
+	                                          LogDataObserver,TextToSpeech.OnInitListener {
 	override val managerType = ManagerType.SPEECH
 	override var managerState = ManagerState.OFF
 	val dispatcher: DispatchService
@@ -113,7 +113,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	 * This is called when we first establish the observer.
 	 * Annunciate the newest existing message
 	 */
-	override fun resetText(list: List<TextData>) {
+	override fun resetText(list: List<LogData>) {
 		if(list.isNotEmpty()) {
 			updateText(list.first())
 		}
@@ -123,7 +123,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	 * We only annunciate messages from the robot (ANS).
 	 * Turn off listening while speaking
 	 */
-	override fun updateText(msg: TextData) {
+	override fun updateText(msg: LogData) {
 		Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
 		if(msg.messageType == MessageType.ANS) {
 			Thread.sleep(PRE_SPEECH_DELAY)

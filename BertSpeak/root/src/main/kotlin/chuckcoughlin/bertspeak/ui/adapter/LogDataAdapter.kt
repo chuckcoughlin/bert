@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.data.TextData
+import chuckcoughlin.bertspeak.data.LogData
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -25,11 +25,11 @@ import java.util.Date
  * Each element in the list is a string, a text message. List is ordered
  * newest first.
  */
-class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<TextDataViewHolder>() {
+class LogDataAdapter(msgs: FixedSizeList<LogData>) : RecyclerView.Adapter<LogDataViewHolder>() {
     private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     private var expandedPosition = -1
     private var recyclerView :RecyclerView? = null
-    private var messages: FixedSizeList<TextData> = msgs
+    private var messages: FixedSizeList<LogData> = msgs
 
      override fun onAttachedToRecyclerView(view: RecyclerView) {
          super.onAttachedToRecyclerView(view)
@@ -39,14 +39,14 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
     /**
      * Create a new view holder. Inflate the row layout, set the item height.
      */
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TextDataViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogDataViewHolder {
         //Log.i(CLSS, String.format("onCreateViewHolder count = %d", messages.size))
         val inflater: LayoutInflater = LayoutInflater.from(parent.context)
         val shouldAttachToParent = false
         val layout: LinearLayout =
             inflater.inflate(R.layout.log_item, parent, shouldAttachToParent) as LinearLayout
         //Log.i(CLSS, String.format("onCreateViewHolder inflation complete"))
-        return TextDataViewHolder(layout)
+        return LogDataViewHolder(layout)
     }
 
     /**
@@ -56,7 +56,7 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
      * @param holder the viewholder that should be populated at the given position
      * @param position row that should be updated
      */
-    override fun onBindViewHolder(holder: TextDataViewHolder, pos: Int) {
+    override fun onBindViewHolder(holder: LogDataViewHolder, pos: Int) {
         var position = pos
         //Log.i(CLSS, String.format("onBindViewHolder at %d of %d", position, messages.size))
         if( messages.size == 0 ) {
@@ -65,7 +65,7 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
         }
         if(position>=messages.size) position = messages.size - 1
         val expand = position == expandedPosition
-        val msg: TextData = messages[position]
+        val msg: LogData = messages[position]
         val type: MessageType = msg.messageType
         // The timestamp is always the same
         val timestampView: TextView = holder.timestampView
@@ -141,7 +141,7 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
      * Insert a message at the beginning  for this adapter.
      * @param msgs message list, managed externally
      */
-    fun insertMessage(msg: TextData) {
+    fun insertMessage(msg: LogData) {
         messages.add(msg)
         Log.i(CLSS, String.format("insetMessage new count = %d", messages.size))
     }
@@ -150,10 +150,10 @@ class TextDataAdapter(msgs: FixedSizeList<TextData>) : RecyclerView.Adapter<Text
      * The caller should trigger reportDatasetChanged()
      * @param msgs message list, managed externally
      */
-    fun resetList(msgs: List<TextData>) {
+    fun resetList(msgs: List<LogData>) {
         val len = messages.bufferSize
-        messages = FixedSizeList<TextData>(len)
-        for(msg:TextData in msgs) {
+        messages = FixedSizeList<LogData>(len)
+        for(msg:LogData in msgs) {
             messages.add(msg)
         }
         Log.i(CLSS, String.format("resetList new count = %d", messages.size))

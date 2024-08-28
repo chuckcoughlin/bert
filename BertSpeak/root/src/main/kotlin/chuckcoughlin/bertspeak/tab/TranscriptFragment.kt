@@ -15,21 +15,21 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentTranscriptBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
+import chuckcoughlin.bertspeak.ui.adapter.LogDataAdapter
 
 /**
  * This fragment allows perusal of the robot's spoken interactions. Blue implies
  * text from the robot, pink is text from the user..
  */
-class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), TextDataObserver {
+class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), LogDataObserver {
     override val name : String
     private var frozen = false
     // These property is only valid between onCreateView and onDestroyView
-    val adapter: TextDataAdapter
+    val adapter: LogDataAdapter
     private lateinit var freezeButton: Button
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
@@ -102,14 +102,14 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), TextDataObserve
      * This is called when we first establish the observer.
      * Data is stored newest first
      */
-    override fun resetText(list:List<TextData>) {
+    override fun resetText(list:List<LogData>) {
         Log.i(name, "reset: message list is now ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
     @Synchronized
-    override fun updateText(msg: TextData) {
+    override fun updateText(msg: LogData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen || frozen) {
             adapter.insertMessage(msg)
@@ -121,6 +121,6 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), TextDataObserve
 
     init {
         name = CLSS
-        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_TRANSCRIPT_MESSAGES))
+        adapter = LogDataAdapter(FixedSizeList<LogData>(BertConstants.NUM_TRANSCRIPT_MESSAGES))
     }
 }

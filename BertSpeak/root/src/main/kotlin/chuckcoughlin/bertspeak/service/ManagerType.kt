@@ -13,7 +13,7 @@ package chuckcoughlin.bertspeak.service
 
  */
 enum class ManagerType {
-    HEARING, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
+    FACES, HEARING, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
 
     companion object {
         /**

@@ -11,7 +11,8 @@ import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.StatusDataObserver
-import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.data.LogDataObserver
+import com.google.mlkit.vision.face.Face
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -32,10 +33,11 @@ import java.util.Locale
  */
 class DispatchService(ctx: Context){
     var context:Context
-    lateinit var speechManager: SpeechManager
+    lateinit var facesManager: FacesManager
     lateinit var geometryManager: GeometryManager
     lateinit var hearingManager: HearingManager
     lateinit var socketManager: SocketManager
+    lateinit var speechManager: SpeechManager
     lateinit var statusManager: StatusManager
     lateinit var textManager: TextManager
 
@@ -45,6 +47,7 @@ class DispatchService(ctx: Context){
     fun initialize() {
         Log.i(CLSS, "initialize: ... ")
         instance = this
+        facesManager   = FacesManager(this)
         hearingManager = HearingManager(this)
         statusManager = StatusManager(this)
         textManager   = TextManager(this)
@@ -70,6 +73,7 @@ class DispatchService(ctx: Context){
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
         GlobalScope.launch(Dispatchers.IO) {
+            facesManager.start()
             geometryManager.start()
             socketManager.start()
         }
@@ -83,6 +87,7 @@ class DispatchService(ctx: Context){
     fun stop() {
         Log.i(CLSS, String.format("stop: stopping Dispatcher and managers"))
         speechManager.stop()
+        facesManager.stop()
         geometryManager.stop()
         socketManager.stop()
         hearingManager.stop()
@@ -174,20 +179,23 @@ class DispatchService(ctx: Context){
         fun unregisterForStatus(obs: StatusDataObserver) {
             instance.statusManager.unregister(obs)
         }
-        fun registerForLogs(obs: TextDataObserver) {
+        fun registerForLogs(obs: LogDataObserver) {
             instance.textManager.registerLogViewer(obs)
         }
-        fun unregisterForLogs(obs: TextDataObserver) {
+        fun unregisterForLogs(obs: LogDataObserver) {
             instance.textManager.unregisterLogViewer(obs)
         }
-        fun registerForTranscripts(obs: TextDataObserver) {
+        fun registerForTranscripts(obs: LogDataObserver) {
             instance.textManager.registerTranscriptViewer(obs)
         }
-        fun unregisterForTranscripts(obs: TextDataObserver) {
+        fun unregisterForTranscripts(obs: LogDataObserver) {
             instance.textManager.unregisterTranscriptViewer(obs)
         }
         fun clear(type: MessageType) {
             instance.textManager.clear(type)
+        }
+        fun reportFaceDetected(face:Face) {
+            instance.facesManager.reportFaceDetected(face)
         }
         fun speak(msg:String) {
             instance.speechManager.speak(msg)

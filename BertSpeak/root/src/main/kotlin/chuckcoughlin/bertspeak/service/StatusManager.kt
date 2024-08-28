@@ -1,3 +1,7 @@
+/**
+ * Copyright 2024 Charles Coughlin. All rights reserved.
+ * (MIT License)
+ */
 package chuckcoughlin.bertspeak.service
 
 import chuckcoughlin.bertspeak.common.DispatchConstants

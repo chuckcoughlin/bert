@@ -15,21 +15,20 @@ import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.data.TextData
-import chuckcoughlin.bertspeak.data.TextDataObserver
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentLogsBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.ui.adapter.TextDataAdapter
-import com.google.mlkit.vision.face.FaceDetection
+import chuckcoughlin.bertspeak.ui.adapter.LogDataAdapter
 
 /**
  * This fragment shows log messages originating in the robot.
  */
-class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
+class LogsFragment(pos:Int) : BasicAssistantFragment(pos), LogDataObserver {
 
     override val name: String
     private var frozen: Boolean
-    private val adapter: TextDataAdapter
+    private val adapter: LogDataAdapter
     private lateinit var freezeButton: Button
 
     /**
@@ -95,13 +94,13 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
         }
     }
 
-    override fun resetText(list:List<TextData>) {
+    override fun resetText(list:List<LogData>) {
         Log.i(name, "reset: message list ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
-    override fun updateText(msg: TextData) {
+    override fun updateText(msg: LogData) {
         Log.i(name, String.format("update: message = %s", msg.message))
         if (!frozen) {
             // This must take place on the UI thread
@@ -114,7 +113,7 @@ class LogsFragment(pos:Int) : BasicAssistantFragment(pos), TextDataObserver {
 
     init {
         name = CLSS
-        adapter = TextDataAdapter(FixedSizeList<TextData>(BertConstants.NUM_LOG_MESSAGES))
+        adapter = LogDataAdapter(FixedSizeList<LogData>(BertConstants.NUM_LOG_MESSAGES))
         frozen = false
     }
 }
