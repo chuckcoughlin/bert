@@ -72,7 +72,7 @@
         android:layout_marginBottom="10dp"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        android:gravity="center|bottom"
+
         app:layout_constraintTop_toBottomOf="@+id/facesHorizontalGuide"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -81,36 +81,29 @@
         android:orientation="horizontal">
         <!-- button shows status of face detection -->
         <Button
-            android:id="@+id/faceDetectionButton"
+            android:id="@+id/faceDetectionStatusButton"
             android:layout_width="145dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="50dp"
-            android:layout_gravity="left|center"
             android:background="@drawable/rounded_button" />
-        <Button
-            android:id="@+id/facesAnalyzeButton"
-            style="@style/Widget.AppCompat.Button.Colored"
-            android:layout_width="145dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|center"
-            android:background="@drawable/rounded_button"
-            android:text="@string/buttonAnalyze" />
+        <!-- Insert a greedy space between buttons -->
+        <View
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="0dp"/>
         <Button
             android:id="@+id/facesDeleteButton"
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="145dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|center"
             android:background="@drawable/rounded_button"
             android:text="@string/buttonDelete" />
         <Button
-            android:id="@+id/facesSaveButton"
+            android:id="@+id/facesAnalyzeButton"
             style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="145dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|center"
             android:background="@drawable/rounded_button"
-            android:text="@string/buttonSave" />
+            android:text="@string/buttonAnalyze" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

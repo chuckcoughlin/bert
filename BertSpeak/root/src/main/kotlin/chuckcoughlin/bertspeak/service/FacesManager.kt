@@ -4,12 +4,16 @@
  */
 package chuckcoughlin.bertspeak.service
 
+import android.graphics.PointF
 import android.util.Log
 import chuckcoughlin.bertspeak.data.GeometryData
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.data.TextObserver
+import com.google.mlkit.vision.common.PointF3D
 import com.google.mlkit.vision.face.Face
+import com.google.mlkit.vision.face.FaceContour
+import com.google.mlkit.vision.face.FaceLandmark
 
 /**
  * Accept a new face structure from the FacesFragment, then handle all
@@ -22,7 +26,9 @@ class FacesManager (service:DispatchService): CommunicationManager {
     private var faceList: MutableList<String>    // Names of face owners
     private val faceObservers: MutableMap<String, TextObserver>
 
-    override fun start() {}
+    override fun start() {
+
+    }
     /**
      * Called when main activity is stopped. Clean up any resources.
      * To use again requires re-initialization.
@@ -30,8 +36,29 @@ class FacesManager (service:DispatchService): CommunicationManager {
     override fun stop() {
     }
 
+    /**
+     * Inform the robot of the newly analyzed face.
+     * We have found all landmark points and contours to be available.
+     */
     fun reportFaceDetected(face:Face) {
-        Log.i(CLSS, "Got a face")
+        Log.i(CLSS, "======================= Got a FACE ======================================")
+        val contours = face.allContours
+        Log.i(CLSS, String.format("Face has %d contours",contours.size))
+        val bb = face.boundingBox
+        Log.i(CLSS, String.format("BoundingBox is %d x %d at %d,%d",bb.right-bb.left,bb.top-bb.bottom, bb.top,bb.left))
+        val faceContour = face.getContour(FaceContour.FACE)
+        if( faceContour!=null ) {
+            for (point: PointF in faceContour.points) {
+                Log.i(CLSS, String.format("    %.2f %.2f", point.x, point.y))
+            }
+        }
+        else {
+            Log.i(CLSS, "ERROR: No overall face countour")
+        }
+        val landmarks = face.allLandmarks
+        for(landmark: FaceLandmark in landmarks) {
+            Log.i(CLSS, String.format("Landmark type is %d at %2.2f,%2.2f",landmark.landmarkType,landmark.position.x,landmark.position.y))
+        }
     }
     /**
      * When a new log observer is registered, send a link to this manager.

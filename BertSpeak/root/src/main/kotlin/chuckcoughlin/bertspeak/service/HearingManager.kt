@@ -62,8 +62,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	private fun startListening() {
 		if(sr == null && !managerState.equals(ManagerState.ERROR)) {
 			Log.i(CLSS, "Start listening ...")
-			//sr = createRecognizer()
-			//sr!!.startListening(recognizerIntent)
+			sr = createRecognizer()
+			sr!!.startListening(recognizerIntent)
 		}
 		managerState = ACTIVE
 		dispatcher.reportManagerState(ManagerType.HEARING,managerState)

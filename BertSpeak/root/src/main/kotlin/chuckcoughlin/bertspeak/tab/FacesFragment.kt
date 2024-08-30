@@ -19,14 +19,8 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import chuckcoughlin.bertspeak.common.BertConstants
-import chuckcoughlin.bertspeak.common.FixedSizeList
-import chuckcoughlin.bertspeak.common.NameValue
-import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.ui.adapter.SettingsListAdapter
 import chuckcoughlin.bertspeak.ui.adapter.TextListAdapter
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
@@ -51,7 +45,6 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     private val faceNames: MutableList<String>
     private lateinit var analyzeButton: Button
     private lateinit var deleteButton: Button
-    private lateinit var saveButton: Button
     private lateinit var statusButton: Button
 
     // Inflate the view. It holds a fixed image of the robot
@@ -64,14 +57,12 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         analyzeButton.setOnClickListener { analyzeButtonClicked() }
         deleteButton = binding.facesDeleteButton
         deleteButton.setOnClickListener { deleteButtonClicked() }
-        saveButton = binding.facesSaveButton
-        saveButton.setOnClickListener { saveButtonClicked() }
-        statusButton = binding.faceDetectionButton
+        statusButton = binding.faceDetectionStatusButton
         val txtarray = faceNames.toTypedArray()
         val adapter = TextListAdapter(requireContext(),txtarray)
         var textListView = binding.facesRecyclerView   // RecyclerView
         textListView.setAdapter(adapter)
-        startCamera()
+        // startCamera()
         return binding.root
     }
 
@@ -159,6 +150,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
             Log.e(CLSS, "Photo capture failed: ${exc.message}", exc)
         }
 
+        @androidx.camera.core.ExperimentalGetImage
         override fun onCaptureSuccess(imageProxy: ImageProxy) {
             Log.i(CLSS, "Image captured: ...")
             val mediaImage = imageProxy.image
@@ -169,7 +161,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
                         // Task completed successfully
                         Log.i(CLSS, String.format("%d faces detected",faces.size))
                         if(faces.size>0 ) {
-                            DispatchService.reportFaceDetected(faces[0])
+                            //DispatchService.reportFaceDetected(faces[0])
                         }
                     }
                     .addOnFailureListener { e ->
@@ -192,6 +184,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         imageCapture = ImageCapture.Builder().build()
         options = FaceDetectorOptions.Builder()
             .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
             .build()
         detector = FaceDetection.getClient(options)
         callback = ImageCaptureCallback(detector)
