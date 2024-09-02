@@ -43,7 +43,6 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
 		else {
-			audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
 			startListening()
 		}
 	}

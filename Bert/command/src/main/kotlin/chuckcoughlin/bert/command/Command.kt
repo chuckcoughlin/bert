@@ -192,9 +192,10 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 request.error=msg
             }
         }
-        // Notification - simply log
+        // Notification - simply log and send to client
         else if (request.type.equals(RequestType.NOTIFICATION)) {
             LOGGER.info(String.format("TABLET LOG: %s",request.text))
+            sendResponse(handler,request.text)
         }
         else {
             sendResponse(handler,translator.randomAcknowledgement())
