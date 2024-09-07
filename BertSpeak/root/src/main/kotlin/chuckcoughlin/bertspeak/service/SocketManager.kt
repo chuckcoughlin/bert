@@ -10,7 +10,6 @@ import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
-import chuckcoughlin.bertspeak.service.ManagerState.ERROR
 import chuckcoughlin.bertspeak.service.ManagerState.PENDING
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -52,7 +51,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
     private var job: Job
     private val writeChannel: Channel<String>
 
-
     /* On start, the manager connects to the remote robot host
      * and establishes a connection as a client.
      */
@@ -90,7 +88,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
                     Log.i(CLSS, "execute: selecting ...")
                     select<String> {
                         handleResponse(handler).onAwait{it} // Accept from socket (robot)
-
                         writeChannel.onReceive() {
                             handleRequest(it,handler)       // Forward to socket (robot)
                             it
@@ -104,7 +101,8 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
                 try {
                     Thread.sleep(SOCKET_RETRY_INTERVAL)
-                } catch(ie:InterruptedException) {}
+                }
+                catch(ie:InterruptedException) {}
             }
         }
     }
@@ -129,7 +127,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             }
             else {
                 Log.i(CLSS, String.format("execute: read socket returned %s", txt))
-                dispatcher.receiveText(txt)
+                dispatcher.receiveMessage(txt)
             }
             txt
         }

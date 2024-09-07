@@ -64,12 +64,11 @@ class SocketTextHandler(sock: Socket) {
         return text
     }
 
-
     /**
      * This is a substitute for readLine() which I've had much trouble with.
-     * @return a line of text. Empty indicates a closed stream
+     * Read text until new-line or carriage-return.
+     * @return a line of text. Empty indicates a closed stream.
      */
-
     @Synchronized fun readCommand():String {
         var text = StringBuffer()
         while(true) {
@@ -81,7 +80,7 @@ class SocketTextHandler(sock: Socket) {
                 if(text.length==0) text.append(" ")
                 break
             }
-            if(DEBUG) Log.i(CLSS,String.format("%s.readCommand: %c (%d)", CLSS, ch.toChar(),ch))
+            if(DEBUG) Log.i(CLSS,String.format("readCommand: %c (%d)",ch.toChar(),ch))
             text.append(ch.toChar())
         }
         return text.toString()

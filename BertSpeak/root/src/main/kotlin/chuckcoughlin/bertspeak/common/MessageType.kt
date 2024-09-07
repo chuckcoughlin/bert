@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  * This class should be identical in both Linux and Android worlds.
  */
@@ -8,13 +8,13 @@ package chuckcoughlin.bertspeak.common
 /**
  * These are the recognized header strings for messages between the tablet
  * and robot. The header is separated from the body of the message by a ':'.
+ * Each message is terminated with a line feed or carriage return.
  */
 enum class MessageType {
     ANS,  // Reply from the robot. The tablet should "speak" the contents
+    JSN,  // Arbitrary data in JSON format
     LOG,  // A system message meant to be appended to the "Log" panel or Logcat
-    MSG,  // Request or query from the tablet, plain english  
-    ROW,  // Pipe-delimited data to be added to the most recent table          
-    TBL // Define a table for the table panel. Pipe-delimited title and column headings
+    MSG   // Request or query from the tablet, plain english
     ;
 
     companion object {

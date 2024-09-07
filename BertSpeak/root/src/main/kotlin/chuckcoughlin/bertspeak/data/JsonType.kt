@@ -9,16 +9,16 @@ package chuckcoughlin.bert.common.message
  * This is a key known to both tablet and robot that appears in a Json
  * message and indicates the class represented by the Json code. The message
  * format is like:
- *   JSN:POSENM  ... json list of known poses, e.g.
+ *   JSN:JOINT_NAMES  ... json list of joint names, e.g.
  *
- * All Json types are 8 characters
+ * The Json type is followed by a space before the remainder of the message
  */
 enum class JsonType {
     APPENDAGE_NAMES,    // Appendage names
     JOINT_NAMES,        // Joint names
     LIMB_NAMES,         // Limb names
     MOTOR_PROP_NAMES,   // Motor property names
-    MOTOR_CFGS,    // Motor configuration list
+    MOTOR_CFGS,         // Motor configuration list
     ;
 
     companion object {

@@ -6,16 +6,18 @@ package chuckcoughlin.bertspeak.service
 
 import android.util.Log
 import chuckcoughlin.bertspeak.data.GeometryData
+import chuckcoughlin.bertspeak.data.JsonData
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 
 /**
- * The geometry manager is a repository of the positional status of joints.
+ * The geometry manager receives positional information from the robot
+ * and converts it for display by the animation fragment.
  */
 class GeometryManager (service:DispatchService): CommunicationManager {
     private val dispatcher = service
     override val managerType = ManagerType.GEOMETRY
     override var managerState = ManagerState.OFF
-    private val jointList : MutableList<GeometryData>
+    private var geometry : GeometryData  // Current geometry
     private val geometryObservers: MutableMap<String, GeometryDataObserver>
 
     override fun start() {}
@@ -24,7 +26,6 @@ class GeometryManager (service:DispatchService): CommunicationManager {
      * To use again requires re-initialization.
      */
     override fun stop() {
-        jointList.clear()
     }
 
     /**
@@ -35,7 +36,7 @@ class GeometryManager (service:DispatchService): CommunicationManager {
      */
     fun register(observer: GeometryDataObserver) {
         geometryObservers[observer.name] = observer
-        observer.resetGeometry(jointList)
+        observer.resetGeometry(geometry)
     }
 
     fun unregister(observer: GeometryDataObserver) {
@@ -49,17 +50,16 @@ class GeometryManager (service:DispatchService): CommunicationManager {
 
     private fun initializeObservers() {
         for (observer in geometryObservers.values) {
-            observer.resetGeometry(jointList)
+            observer.resetGeometry(geometry)
         }
     }
 
     /**
      * Notify log observers regarding receipt of a new message.
      */
-    private fun notifyObservers(msg: GeometryData) {
-        Log.i(CLSS, String.format("notifyObservers: %s", msg.message))
+    private fun notifyObservers(geom: GeometryData) {
         for (observer in geometryObservers.values) {
-            observer.updateGeometry(msg)
+            observer.updateGeometry(geom)
         }
     }
 
@@ -75,7 +75,7 @@ class GeometryManager (service:DispatchService): CommunicationManager {
      * is sent.
      */
     init {
-        jointList     = mutableListOf<GeometryData>()
+        geometry                 =  GeometryData("")
         geometryObservers        = mutableMapOf<String, GeometryDataObserver>()
     }
 }

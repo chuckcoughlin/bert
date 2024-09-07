@@ -1,9 +1,9 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
-package chuckcoughlin.bert.sql.pose
+package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
@@ -15,7 +15,7 @@ import java.util.logging.Logger
  * A pose is a list of positions for each motor. There are up to
  * three rows in the database for each pose. A row each for:
  * position, speed and torque
- * This class serves as a Java interface to the Pose and PoseMap tables. It provides
+ * This class serves as a Kotlin interface to the Pose and PoseMap tables. It provides
  * methods for finding and reading a pose
  */
 class PoseTable {

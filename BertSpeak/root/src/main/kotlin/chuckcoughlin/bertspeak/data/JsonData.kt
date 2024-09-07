@@ -8,16 +8,17 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bertspeak.common.MessageType
 import java.util.Date
 /**
- * This class holds a enough positional information to
- * draw a rendering of the robot. The messaging is internal
- * from GeometryManager to the AnimationFragment
+ * This class holds a JSON string representing a class
+ * that is determined by the JsonType.
  */
-data class GeometryData(val data: String ) {
+data class JsonData(val data: String, val type: JsonType ) {
     val timestamp: Date
-    val geom:String
+    val json:String
+    val jsonType: JsonType
 
     init {
         timestamp = Date()
-        geom = data
+        json = data
+        jsonType = type
     }
 }

@@ -2,7 +2,7 @@
  * Copyright 2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.ui.facerec
+package chuckcoughlin.bertspeak.common
 
 /**
  * Extend Enum classes using this delegate to associate

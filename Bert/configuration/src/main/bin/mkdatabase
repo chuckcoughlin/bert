@@ -28,5 +28,4 @@ sqlite3 $DB << EOF
 .import /tmp/posemap PoseMap
 EOF
 
-mv ${DB} ${BERT_HOME}/etc/${DB}
 echo "${DB} creation compete."

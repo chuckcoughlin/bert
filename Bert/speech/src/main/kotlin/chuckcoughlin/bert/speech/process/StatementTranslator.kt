@@ -613,7 +613,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Are you there?
     override fun visitPersonalQuestion(ctx: SpeechSyntaxParser.PersonalQuestionContext?): Any? {
         bottle.type = RequestType.NOTIFICATION
-        bottle.text = String.format("I am ready")
+        bottle.text = String.format("At your service")
         return null
     }
     // What is your current pose?

@@ -8,11 +8,11 @@ package chuckcoughlin.bert.common.message
 /**
  * These are the recognized header strings for messages between the tablet
  * and robot. The header is separated from the body of the message by a ':'.
- * The message is terminated with a ';'.
+ * The message is terminated with a line feed or carriage return.
  */
 enum class MessageType {
     ANS,  // Reply from the robot. The tablet should "speak" the contents
-    JSN,  // Data from the robot in JSON format
+    JSN,  // Arbitrary data from the robot in JSON format
     LOG,  // A system message meant to be appended to the log file.
     MSG   // Request or query from the tablet, plain english
     ;

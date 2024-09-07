@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import chuckcoughlin.bertspeak.data.GeometryData
+import chuckcoughlin.bertspeak.data.JsonData
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentAnimationBinding
 import chuckcoughlin.bertspeak.service.DispatchService
@@ -17,7 +18,8 @@ import chuckcoughlin.bertspeak.ui.animate.AnimationView
 
 /**
  * This fragment displays the robot position right/front/left and allows the uesr to
- * interactively move the limbs via touch gestures.
+ * interactively move the limbs via touch gestures. It listens for robot reports of
+ * position changes.
  */
 class AnimationFragment (pos:Int): BasicAssistantFragment(pos), GeometryDataObserver {
 
@@ -56,13 +58,13 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), GeometryDataObse
     fun refreshButtonClicked() {
 
     }
-    override fun resetGeometry(list:List<GeometryData>) {
-        Log.i(name, "reset: message list ...")
+    override fun resetGeometry(geom:GeometryData) {
+        Log.i(name, "reset: geometry ...")
 
     }
 
-    override fun updateGeometry(msg: GeometryData) {
-        Log.i(name, String.format("update: message = %s", msg.message))
+    override fun updateGeometry(geom: GeometryData) {
+        Log.i(name, String.format("update: geometry "))
 
     }
 

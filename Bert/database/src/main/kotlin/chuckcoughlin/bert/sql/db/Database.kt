@@ -8,7 +8,7 @@ package chuckcoughlin.bert.sql.db
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.sql.pose.PoseTable
+import chuckcoughlin.bert.sql.tables.PoseTable
 import org.sqlite.JDBC
 import java.nio.file.Path
 import java.sql.Connection

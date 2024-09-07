@@ -8,13 +8,19 @@ import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.data.JsonData
+import chuckcoughlin.bertspeak.data.JsonDataObserver
 import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.data.LogDataObserver
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 
 /**
  * The text manager is a repository of text messages destined to be
  * logged and/or annunciated. The messages may originate on the tablet
  * or be responses from the robot connected via a TCP network.
+ *
+ * It also handles messages that are responses to requests for information
+ * and carry a JSON payload. These messages are not meant for enunciation.
  *
  * The transcripts and logs are stored newest first.
  *
@@ -26,19 +32,18 @@ class TextManager (service:DispatchService): CommunicationManager {
     val dispatcher = service
     override val managerType = ManagerType.TEXT
     override var managerState = ManagerState.OFF
+    private val dataMap: MutableMap<String, String>
     private val logList: FixedSizeList<LogData>
-    private val columnList : MutableList<String>   // Columns in the most recent table
-    private val rowList: MutableList<LogData>  // Text is tab-delimited
     private val transcriptList: FixedSizeList<LogData>
+    private val dataObservers: MutableMap<String, MutableList<JsonDataObserver>>
     private val logObservers: MutableMap<String, LogDataObserver>
-    private val tableObservers: MutableMap<String, LogDataObserver>
     private val transcriptObservers: MutableMap<String, LogDataObserver>
 
     override fun start() {
         clear(MessageType.ANS)
+        clear(MessageType.JSN)
         clear(MessageType.LOG)
         clear(MessageType.MSG)  // redundant
-        clear(MessageType.TBL)
     }
 
     /**
@@ -47,9 +52,9 @@ class TextManager (service:DispatchService): CommunicationManager {
      */
     override fun stop() {
         clear(MessageType.ANS)
+        clear(MessageType.JSN)
         clear(MessageType.LOG)
         clear(MessageType.MSG)    // redundant
-        clear(MessageType.TBL)
     }
 
     /*
@@ -71,17 +76,23 @@ class TextManager (service:DispatchService): CommunicationManager {
                 transcriptList.clear()
                 initializeTranscriptObservers()
             }
-            MessageType.ROW -> {
-                rowList.clear()
-                initializeTableObservers()
-            }
-            MessageType.TBL -> {
-                columnList.clear()
-                initializeTableObservers()
+            MessageType.JSN -> {
+                dataMap.clear()
+                for(tag in dataMap)
+                initializeDataObservers()
             }
         }
     }
-
+    /*
+	 * The data element is a String representing a JSON object.
+	 * We leave it to the subscriber to analyze. The string is
+	 * not appropriate for display to the user.
+	*/
+    @Synchronized
+    fun processJson(tag: String, json: String) {
+        dataMap.put(tag,json)
+        notifyDataObservers(tag)
+    }
     /*
      * The text has any header needed for tablet-robot communication
      * already stripped off. Place into the proper queue.
@@ -105,16 +116,16 @@ class TextManager (service:DispatchService): CommunicationManager {
                 transcriptList.addFirst(msg)
                 notifyTranscriptObservers(msg)
             }
-            MessageType.ROW -> {
-                var msg = LogData(text,type)
-                rowList.add(msg)
-                notifyTableObservers(msg)
-            }
-            MessageType.TBL -> {
-                columnList.add(text)
-                initializeTableObservers()
+            MessageType.JSN -> {
+                Log.i(CLSS, String.format("processText (%s): type should not be JSN", text))
             }
         }
+    }
+    @Synchronized
+    fun registerDataViewer(tag:String,observer: JsonDataObserver) {
+        if( dataObservers[tag] == null ) dataObservers[tag] =
+                                              mutableListOf<JsonDataObserver>()
+        dataObservers[tag]!!.add(observer)
     }
     /**
      * When a new log observer is registered, send a link to this manager.
@@ -127,11 +138,7 @@ class TextManager (service:DispatchService): CommunicationManager {
         logObservers[observer.name] = observer
         observer.resetText(logList)
     }
-    @Synchronized
-    fun registerTableViewer(observer: LogDataObserver) {
-        tableObservers[observer.name] = observer
-        observer.resetText(rowList)
-    }
+
     @Synchronized
     fun registerTranscriptViewer(observer: LogDataObserver) {
         transcriptObservers[observer.name] = observer
@@ -145,12 +152,10 @@ class TextManager (service:DispatchService): CommunicationManager {
             }
         }
     }
-    fun unregisterTableViewer(observer: LogDataObserver) {
-        for( key in tableObservers.keys ) {
-            if( tableObservers.get(key)!!.equals(observer) ) {
-                tableObservers.remove(key,observer)
-                break
-            }
+    fun unregisterDataViewer(tag:String,observer: JsonDataObserver) {
+        val observers = dataObservers.get(tag)
+        if( observers!=null ) {
+            observers.remove(observer)
         }
     }
 
@@ -168,9 +173,15 @@ class TextManager (service:DispatchService): CommunicationManager {
             observer.resetText(logList)
         }
     }
-    private fun initializeTableObservers() {
-        for (observer in tableObservers.values) {
-            observer.resetText(rowList)
+    private fun initializeDataObservers() {
+        for( tag in dataMap.keys) {
+            val observers = dataObservers.get(tag)
+            val data = dataMap.get(tag)
+            if( observers!=null && data !=null) {
+                for (observer in observers) {
+                    observer.resetItem(tag, data)
+                }
+            }
         }
     }
 
@@ -190,9 +201,13 @@ class TextManager (service:DispatchService): CommunicationManager {
         }
     }
 
-    private fun notifyTableObservers(msg: LogData) {
-        for (observer in tableObservers.values) {
-            observer.updateText(msg)
+    private fun notifyDataObservers(tag:String) {
+        val observers = dataObservers.get(tag)
+        val data = dataMap.get(tag)
+        if( observers!=null && data !=null) {
+            for (observer in observers) {
+                observer.updateItem(tag,data)
+            }
         }
     }
 
@@ -216,12 +231,11 @@ class TextManager (service:DispatchService): CommunicationManager {
      * is sent.
      */
     init {
+        dataMap = mutableMapOf<String, String>()
         logList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
-        columnList     = mutableListOf<String>()
-        rowList        = mutableListOf<LogData>()
         transcriptList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
         logObservers        = mutableMapOf<String, LogDataObserver>()
-        tableObservers      = mutableMapOf<String, LogDataObserver>()
+        dataObservers       = mutableMapOf<String, MutableList<JsonDataObserver>>()
         transcriptObservers = mutableMapOf<String, LogDataObserver>()
     }
 }

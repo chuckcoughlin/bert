@@ -254,7 +254,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
                 Log.i(name, String.format("onClick: application shutdown",))
                 DispatchService.instance.stop()
                 requireActivity().finishAndRemoveTask()
-                System.exit(0)
+                //System.exit(0)    // Don't kill before tasks shut down
             }
             // Produce a random message
             speechStatusButton -> {

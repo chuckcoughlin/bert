@@ -62,24 +62,25 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         val adapter = TextListAdapter(requireContext(),txtarray)
         var textListView = binding.facesRecyclerView   // RecyclerView
         textListView.setAdapter(adapter)
-        // startCamera()
         return binding.root
     }
 
 
     override fun onDestroy() {
         super.onDestroy()
-        cameraExecutor.shutdown()
+
     }
     /**
      *
      */
     override fun onStart() {
         super.onStart()
+        startCamera()
     }
 
     override fun onStop() {
         super.onStop()
+        cameraExecutor.shutdown()
     }
 
     private fun startCamera()  {
@@ -161,7 +162,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
                         // Task completed successfully
                         Log.i(CLSS, String.format("%d faces detected",faces.size))
                         if(faces.size>0 ) {
-                            //DispatchService.reportFaceDetected(faces[0])
+                            DispatchService.reportFaceDetected(faces[0])
                         }
                     }
                     .addOnFailureListener { e ->

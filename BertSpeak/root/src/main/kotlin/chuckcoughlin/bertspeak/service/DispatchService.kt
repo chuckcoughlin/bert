@@ -6,10 +6,13 @@ package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.common.MessageType.JSN
 import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
+import chuckcoughlin.bertspeak.data.JsonDataObserver
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.data.TextObserver
@@ -34,7 +37,7 @@ import java.util.Locale
  */
 class DispatchService(ctx: Context){
     var context:Context
-    //lateinit var facesManager: FacesManager
+    lateinit var facesManager: FacesManager
     lateinit var geometryManager: GeometryManager
     lateinit var hearingManager: HearingManager
     lateinit var socketManager: SocketManager
@@ -48,7 +51,7 @@ class DispatchService(ctx: Context){
     fun initialize() {
         Log.i(CLSS, "initialize: ... ")
         instance = this
-        //facesManager   = FacesManager(this)
+        facesManager   = FacesManager(this)
         hearingManager = HearingManager(this)
         statusManager = StatusManager(this)
         textManager   = TextManager(this)
@@ -74,7 +77,7 @@ class DispatchService(ctx: Context){
         // Start those managers that run on a background thread (no UI)
         // This includes especially network handlers
         GlobalScope.launch(Dispatchers.IO) {
-            //facesManager.start()
+            facesManager.start()
             geometryManager.start()
             socketManager.start()
         }
@@ -88,7 +91,7 @@ class DispatchService(ctx: Context){
     fun stop() {
         Log.i(CLSS, String.format("stop: stopping Dispatcher and managers"))
         speechManager.stop()
-        //facesManager.stop()
+        facesManager.stop()
         geometryManager.stop()
         socketManager.stop()
         hearingManager.stop()
@@ -108,9 +111,10 @@ class DispatchService(ctx: Context){
     }
     /* =================================================================
     *  Notify the hearing manager that spoken text has just ended
+    *   (we attempt to prevent a feedback loop analyzing text
+    *    originating from the robot).
     * ==================================================================
     */
-    // NOTE: This does not automatically set state to ERROR.
     fun markEndOfSpeech() {
         hearingManager.markEndOfSpeech()
     }
@@ -124,7 +128,7 @@ class DispatchService(ctx: Context){
      * The TCP socket reads a result from the robot. The text starts with a
      * MessageType header. We strip it and route the message accordingly.
      */
-    fun receiveText(text: String) {
+    fun receiveMessage(text: String) {
         var txt = text
         if(txt.length > 4) {
             Log.i(CLSS, String.format("receiveText: (%s)", txt))
@@ -132,14 +136,27 @@ class DispatchService(ctx: Context){
                 val hdr = txt.substring(0, BertConstants.HEADER_LENGTH)
                 val type = MessageType.valueOf(hdr.uppercase(Locale.getDefault()))
                 txt = txt.substring(BertConstants.HEADER_LENGTH + 1)
-                textManager.processText(type, txt)
+                if( type==MessageType.JSN) {
+                    val index = txt.indexOf(" ")
+                    if( index>0 ) {
+                        val tag = txt.substring(0,index)
+                        txt = txt.substring(index+1)
+                        textManager.processJson(tag,txt)
+                    }
+                    else {
+                        Log.w(CLSS, String.format("receiveMessage: Unable to process tag (%s)", txt))
+                    }
+                }
+                else {
+                    textManager.processText(type, txt)
+                }
             }
             catch(iae: IllegalArgumentException) {
-                Log.w(CLSS, String.format("receiveText: (%s) has unrecognized header", txt))
+                Log.w(CLSS, String.format("receiveMessage: (%s) has unrecognized header", txt))
             }
         }
         else {
-            Log.w(CLSS, String.format("receiveText: (%s) is too short", txt))
+            Log.w(CLSS, String.format("receiveMessage: (%s) is too short", txt))
         }
     }
 
@@ -165,30 +182,37 @@ class DispatchService(ctx: Context){
      * ================================================================
      */
     companion object {
-        lateinit var instance:DispatchService
+        lateinit var instance: DispatchService
 
         // Handle all the registrations
-        fun TextObserver.registerForFaces() {
-            // instance.facesManager.register(obs)
+        fun registerForData(key:String,obs: JsonDataObserver) {
+            instance.textManager.registerDataViewer(key,obs)
         }
-        fun TextObserver.unregisterForFaces() {
-           //instance.facesManager.unregister(obs)
+
+        fun unregisterForData(key:String,obs: JsonDataObserver) {
+            instance.textManager.unregisterDataViewer(key, obs)
         }
+
         fun registerForGeometry(obs: GeometryDataObserver) {
             instance.geometryManager.register(obs)
         }
+
         fun unregisterForGeometry(obs: GeometryDataObserver) {
             instance.geometryManager.unregister(obs)
         }
+
         fun registerForLogs(obs: LogDataObserver) {
             instance.textManager.registerLogViewer(obs)
         }
+
         fun unregisterForLogs(obs: LogDataObserver) {
             instance.textManager.unregisterLogViewer(obs)
         }
+
         fun registerForStatus(obs: StatusDataObserver) {
             instance.statusManager.register(obs)
         }
+
         fun unregisterForStatus(obs: StatusDataObserver) {
             instance.statusManager.unregister(obs)
         }
@@ -196,15 +220,18 @@ class DispatchService(ctx: Context){
         fun registerForTranscripts(obs: LogDataObserver) {
             instance.textManager.registerTranscriptViewer(obs)
         }
+
         fun unregisterForTranscripts(obs: LogDataObserver) {
             instance.textManager.unregisterTranscriptViewer(obs)
         }
+
         fun clear(type: MessageType) {
             instance.textManager.clear(type)
         }
-        fun Face.reportFaceDetected() =
-            //instance.facesManager.reportFaceDetected(face)
-            Unit
+
+        fun reportFaceDetected(face:Face) {
+            instance.facesManager.reportFaceDetected(face)
+        }
         fun speak(msg:String) {
             Log.i(DispatchService.CLSS, String.format("speak: %s",msg))
             instance.speechManager.speak(msg)

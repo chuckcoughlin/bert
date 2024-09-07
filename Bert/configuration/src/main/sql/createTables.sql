@@ -15,7 +15,38 @@ CREATE TABLE Action (
 	UNIQUE (name,executeOrder)
 );
 
-
+-- The Face table merely maps known faces to
+-- an 'id' which is used to obtain identity specifics,
+-- If not otherwise specified, SQLite will create an id on insert
+DROP TABLE IF EXISTS Face;
+CREATE TABLE Face (
+	faceid	integer PRIMARY KEY,
+	name		text NOT NULL
+);
+-- The landmark table holds normalized positions of
+-- landmarks identified with a face
+DROP TABLE IF EXISTS FaceContour;
+CREATE TABLE FaceContour (
+	faceidid	integer PRIMARY KEY,
+	contourid   integer NOT NULL,
+);
+DROP TABLE IF EXISTS FaceContourPoints;
+CREATE TABLE FaceContourPoints (
+	contourid	  integer PRIMARY KEY,
+	contourcode   integer NOT NULL,
+	index         integer NOT NULL,
+	x             float,
+    y             float
+);
+-- The landmark table holds normalized positions of
+-- landmarks identified with a face
+DROP TABLE IF EXISTS FaceLandmark;
+CREATE TABLE FaceLandmark (
+	faceidid	  integer PRIMARY KEY,
+	landmarkcode  integer NOT NULL,
+	x             float,
+	y             float
+);
 -- The Pose table shows motor positions for named "poses".
 -- Each pose is represented on a single line
 -- If not otherwise specified, SQLite will create an id on insert

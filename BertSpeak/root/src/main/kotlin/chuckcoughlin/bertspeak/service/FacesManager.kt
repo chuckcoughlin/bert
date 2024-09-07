@@ -5,12 +5,12 @@
 package chuckcoughlin.bertspeak.service
 
 import android.graphics.PointF
+import android.graphics.Rect
 import android.util.Log
-import chuckcoughlin.bertspeak.data.GeometryData
-import chuckcoughlin.bertspeak.data.GeometryDataObserver
-import chuckcoughlin.bertspeak.data.LogDataObserver
+import chuckcoughlin.bert.common.util.FaceDataHolder
+import chuckcoughlin.bert.common.util.NamedPoint
 import chuckcoughlin.bertspeak.data.TextObserver
-import com.google.mlkit.vision.common.PointF3D
+import chuckcoughlin.bertspeak.common.LandmarkTag
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceLandmark
@@ -41,7 +41,7 @@ class FacesManager (service:DispatchService): CommunicationManager {
      * We have found all landmark points and contours to be available.
      */
     fun reportFaceDetected(face:Face) {
-        Log.i(CLSS, "======================= Got a FACE ======================================")
+        Log.i(CLSS, "======================= Got a FACE =======================")
         val contours = face.allContours
         Log.i(CLSS, String.format("Face has %d contours",contours.size))
         val bb = face.boundingBox
@@ -58,6 +58,15 @@ class FacesManager (service:DispatchService): CommunicationManager {
         val landmarks = face.allLandmarks
         for(landmark: FaceLandmark in landmarks) {
             Log.i(CLSS, String.format("Landmark type is %d at %2.2f,%2.2f",landmark.landmarkType,landmark.position.x,landmark.position.y))
+        }
+
+        // ------------------ Send Face to the Robot -----------------------
+        val holder = FaceDataHolder()
+        for(landmark in landmarks) {
+            val norm = normalizePoint(bb,landmark.position)
+            val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
+            val np = NamedPoint(landmarkTag.name,norm.x,norm.y)
+            holder.addLandmark(np)
         }
     }
     /**
@@ -86,6 +95,16 @@ class FacesManager (service:DispatchService): CommunicationManager {
         }
     }
 
+    /** convert the coordinates of a point to reference the
+     * bounding box instead of the entire image.
+     */
+    private fun normalizePoint( bb: Rect, p: PointF) : PointF {
+        var x =  p.x - bb.right
+        var y = p.y-bb.top
+        x = x/bb.width()
+        y = y/bb.height()
+        return PointF(x,y)
+    }
     /**
      * Notify observers regarding receipt of a new current face
      */

@@ -3,9 +3,8 @@ plugins {
     id("bert.kotlin-common-conventions")
 }
 
-
-// Make special reference to the compiled ANTLR classes
 repositories {
+    google()
     mavenCentral()
 }
 

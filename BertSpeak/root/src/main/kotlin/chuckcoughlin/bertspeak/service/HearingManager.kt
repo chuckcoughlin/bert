@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
@@ -12,7 +11,6 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.getSystemService
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import java.util.Locale
@@ -31,7 +29,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	val dispatcher = service
 	private val audioManager: AudioManager
 	private var startTime: Long
-	private var textTime: Long
+	private var speechTime: Long
 	private var sr: SpeechRecognizer?
 	private var recognizerIntent: Intent
 
@@ -128,7 +126,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	override fun onResults(results: Bundle) {
 		Log.i(CLSS, "onResults \n$results")
 		if( !results.isEmpty ) {
-			// Fill the array with the strings the recognizer thought it could have heard, there should be 5
+			// Fill the array with the strings the recognizer thought it could have heard, there should be 2
 			val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)!!
 			for (i in matches.indices) {
 				Log.i(CLSS, String.format("result %d: %s",i,matches[i]))
@@ -138,7 +136,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				var text = matches[0]
 				text = scrubText(text)
 
-				if( startTime>textTime ) {
+				if( startTime>speechTime ) {
 					dispatcher.processSpokenText(text)
 				}
 				else {
@@ -197,7 +195,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 */
 	fun markEndOfSpeech() {
 		Log.i(CLSS, "markEndOfSpeech ...")
-		textTime  = System.currentTimeMillis()
+		speechTime  = System.currentTimeMillis()
 	}
 	/**
 	 * Perform any cleanup of phrases that ease or correct the parsing.
@@ -218,7 +216,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	val CLSS = "HearingManager"
 	val DELAY_TIME = 1000L
 	val SPEECH_MIN_TIME = 10      // Word must be at least this long
-	val END_OF_PHRASE_TIME = 1000 // Silence to indicate end-of-input
+	val END_OF_PHRASE_TIME = 500 // Silence to indicate end-of-input
 
 	/**
 	 * Creating the speech recognizer must be done on the main thread..
@@ -226,9 +224,10 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 */
 	init {
 		audioManager = dispatcher.context.getSystemService<AudioManager>() as AudioManager
+		mute()  // try to stop the beeping
 		recognizerIntent = createRecognizerIntent()
 		sr = null
 		startTime = System.currentTimeMillis()
-		textTime  = System.currentTimeMillis()
+		speechTime  = System.currentTimeMillis()
 	}
 }

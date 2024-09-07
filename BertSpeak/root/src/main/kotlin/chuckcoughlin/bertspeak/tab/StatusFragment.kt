@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023 Charles Coughlin. All rights reserved.
+ * Copyright 2019-2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -9,13 +9,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TableLayout
+import chuckcoughlin.bertspeak.R
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.data.GeometryData
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentStatusBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.ui.adapter.GeometryDataAdapter
 
 /**
  * This fragment displays servo data from the robot in tabular form. Only
@@ -24,12 +25,12 @@ import chuckcoughlin.bertspeak.ui.adapter.GeometryDataAdapter
  */
 class StatusFragment(pos:Int) : BasicAssistantFragment(pos), GeometryDataObserver {
     override val name : String
-    private val adapter: GeometryDataAdapter
 
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
         val binding = FragmentStatusBinding.inflate(inflater,container,false)
+        //val tableLayout = binding.statusTableView
 
         return binding.root
     }
@@ -46,26 +47,20 @@ class StatusFragment(pos:Int) : BasicAssistantFragment(pos), GeometryDataObserve
     }
 
 
-    override fun resetGeometry(list:List<GeometryData>) {
-        Log.i(name, "reset: message list ...")
-        adapter.resetList(list)
-        adapter.reportDataSetChanged()
+    override fun resetGeometry(geom: GeometryData) {
+        Log.i(name, "resetGeometry: ...")
     }
 
     /**
      * Should not be called as we update these all at once.
      */
-    override fun updateGeometry(msg: GeometryData) {
-        Log.i(name, String.format("update: message = %s", msg.message))
-        // This must take place on the UI thread
-        adapter.insertMessage(msg)
-        adapter.reportDataSetChanged()
+    override fun updateGeometry(geom: GeometryData) {
+        Log.i(name, String.format("update: data = %s", geom))
     }
 
     val CLSS = "StatusFragment"
 
     init {
         name = CLSS
-        adapter = GeometryDataAdapter(FixedSizeList<GeometryData>(BertConstants.NUM_JOINTS))
     }
 }

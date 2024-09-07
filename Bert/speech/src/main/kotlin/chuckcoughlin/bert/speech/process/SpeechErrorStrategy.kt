@@ -9,7 +9,6 @@
 package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.RequestType
 import org.antlr.v4.runtime.*
 import java.util.logging.Logger
 
@@ -63,18 +62,18 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
         // In each case the expected tokens are an expression. Don't bother to list
         val offender: Token = re.getOffendingToken()
         var msg: String = ""
-        if (offender.getText() != null && !offender.getText().isEmpty()) {
-            msg = String.format("I don't understand the word \"%s\"", offender.getText())
+        if (offender.getText() != null && offender.getText().startsWith("<EOF>")) {  // EOF
+            msg = String.format("Your request is incomplete")
         }
-        else if (offender.getText() != null && offender.getText().startsWith("<EOF>")) {  // EOF
-            bottle.type = RequestType.PARTIAL
+        else if (offender.getText() != null && !offender.getText().isEmpty()) {
+            msg = String.format("I don't understand the word \"%s\"", offender.getText())
         }
         else {  // Don't understand
             val rand = Math.random()
             val index = (rand * phrases.size).toInt()
             msg = phrases[index]
         }
-        LOGGER.info(String.format("WARNING: %s: %s", CLSS, msg))
+        LOGGER.info(String.format("%s: Syntax error (%s)", CLSS, msg))
         bottle.error = msg
     }
 

@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="chuckcoughlin.bertspeak.tab.TranscriptFragment"
+    tools:context="chuckcoughlin.bertspeak.tab.StatusFragment"
     android:id="@+id/fragmentStatus">
 
     <!-- Define a horizontal barrier between the image and waveform -->
@@ -19,18 +19,23 @@
         android:background="@color/black"
         app:layout_constraintGuide_percent="0.9"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/statusRecyclerView"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="5dp"
-        android:scrollbars="vertical"
-        android:isScrollContainer="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/statusHorizontalGuide"/>
+        app:layout_constraintBottom_toTopOf="@+id/statusHorizontalGuide"
+        android:scrollbars="vertical"
+        android:isScrollContainer="true">
+            <TableLayout
+                android:id="@+id/statusTableView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="5dp">
+            </TableLayout>
 
+    </ScrollView>
     <LinearLayout
         android:id="@+id/transcriptLayout"
         android:layout_width="match_parent"

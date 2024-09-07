@@ -3,6 +3,11 @@ plugins {
     id("bert.kotlin-common-conventions")
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 // It appears as if jssc requires log4j
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")

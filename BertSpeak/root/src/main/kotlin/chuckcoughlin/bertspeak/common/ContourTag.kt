@@ -2,10 +2,9 @@
  * Copyright 2024 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.ui.facerec
+package chuckcoughlin.bertspeak.common
 
 import com.google.mlkit.vision.face.FaceContour
-import com.google.mlkit.vision.face.FaceLandmark
 
 /**
  * Enumerate the potential contours available
@@ -13,7 +12,7 @@ import com.google.mlkit.vision.face.FaceLandmark
  * allows the code to be accessed, e.g.
  *     ContourType.LEFT_EAR.code
  */
-enum class ContourType(override val code:Int):CodeDelegate {
+enum class ContourTag(override val code:Int): CodeDelegate {
     FACE(FaceContour.FACE),                               // 1
     LEFT_CHEEK(FaceContour.LEFT_CHEEK),                   // 14
     LEFT_EYE(FaceContour.LEFT_EYE),                       // 6
@@ -28,16 +27,30 @@ enum class ContourType(override val code:Int):CodeDelegate {
     RIGHT_EYEBROW_BOTTOM(FaceContour.RIGHT_EYEBROW_BOTTOM),// 5
     RIGHT_EYEBROW_TOP(FaceContour.RIGHT_EYEBROW_TOP),     // 4
     UPPER_LIP_BOTTOM(FaceContour.UPPER_LIP_BOTTOM),       // 9
-    UPPER_LIP_TOP(FaceContour.UPPER_LIP_TOP);             // 8
+    UPPER_LIP_TOP(FaceContour.UPPER_LIP_TOP),             // 8
+    UNKNOWN(-1) ;                                   // Error
 
 
     companion object {
+        /**
+         * @return the contour corresponding the given code
+         */
+        fun tagForCode(code:Int) : ContourTag {
+            var tag = UNKNOWN
+            for (t in ContourTag.values()) {
+                if( t.code == code ) {
+                    tag = t
+                    break
+                }
+            }
+            return tag
+        }
         /**
          * @return  a comma-separated list of the types in a single String.
          */
         fun names(): String {
             val names = StringBuffer()
-            for (type in ContourType.values()) {
+            for (type in ContourTag.values()) {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)

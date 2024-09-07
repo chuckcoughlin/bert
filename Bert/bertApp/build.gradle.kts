@@ -5,7 +5,6 @@
 plugins {
     id("bert.kotlin-application-conventions")
 }
-
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
     implementation("io.github.java-native:jssc:2.9.4")
