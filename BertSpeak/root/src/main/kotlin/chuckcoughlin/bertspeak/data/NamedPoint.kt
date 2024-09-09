@@ -12,6 +12,5 @@ import android.graphics.PointF
  */
 class NamedPoint (val nam:String, x1:Float,x2:Float) {
     val name = nam
-    val x: Float = x1
-    val y: Float = x2
+    val point = Point2D(x1,x2)
 }

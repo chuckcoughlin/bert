@@ -6,11 +6,17 @@ package chuckcoughlin.bertspeak.service
 
 import android.graphics.PointF
 import android.graphics.Rect
+import android.nfc.Tag
 import android.util.Log
-import chuckcoughlin.bert.common.util.FaceDataHolder
+import chuckcoughlin.bert.common.message.JsonType
+import chuckcoughlin.bert.common.util.FacialDetectionDetails
 import chuckcoughlin.bert.common.util.NamedPoint
+import chuckcoughlin.bert.common.util.Point2D
+import chuckcoughlin.bertspeak.common.ContourTag
 import chuckcoughlin.bertspeak.data.TextObserver
 import chuckcoughlin.bertspeak.common.LandmarkTag
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
+import com.google.gson.Gson
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceLandmark
@@ -46,28 +52,28 @@ class FacesManager (service:DispatchService): CommunicationManager {
         Log.i(CLSS, String.format("Face has %d contours",contours.size))
         val bb = face.boundingBox
         Log.i(CLSS, String.format("BoundingBox is %d x %d at %d,%d",bb.right-bb.left,bb.top-bb.bottom, bb.top,bb.left))
-        val faceContour = face.getContour(FaceContour.FACE)
-        if( faceContour!=null ) {
-            for (point: PointF in faceContour.points) {
-                Log.i(CLSS, String.format("    %.2f %.2f", point.x, point.y))
-            }
-        }
-        else {
-            Log.i(CLSS, "ERROR: No overall face countour")
-        }
         val landmarks = face.allLandmarks
         for(landmark: FaceLandmark in landmarks) {
             Log.i(CLSS, String.format("Landmark type is %d at %2.2f,%2.2f",landmark.landmarkType,landmark.position.x,landmark.position.y))
         }
 
-        // ------------------ Send Face to the Robot -----------------------
-        val holder = FaceDataHolder()
+        // ------------------ Prepare Face to the Robot -----------------------
+        val holder = FacialDetectionDetails()
         for(landmark in landmarks) {
-            val norm = normalizePoint(bb,landmark.position)
+            val norm = normalizePoint(bb,Point2D(landmark.position.x,landmark.position.y))
             val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
             val np = NamedPoint(landmarkTag.name,norm.x,norm.y)
             holder.addLandmark(np)
         }
+        for(contour in contours) {
+            val contourTag = ContourTag.tagForCode(contour.faceContourType)
+            for(point in contour.points) {
+                val norm = normalizePoint(bb, Point2D(point.x,point.y))
+                holder.addContourPoint(contourTag.name, norm)
+            }
+        }
+        val json = Gson().toJson(holder)
+        dispatcher.reportJsonData(JsonType.FACE,json)
     }
     /**
      * When a new log observer is registered, send a link to this manager.
@@ -98,12 +104,12 @@ class FacesManager (service:DispatchService): CommunicationManager {
     /** convert the coordinates of a point to reference the
      * bounding box instead of the entire image.
      */
-    private fun normalizePoint( bb: Rect, p: PointF) : PointF {
+    private fun normalizePoint( bb: Rect, p: Point2D) : Point2D {
         var x =  p.x - bb.right
         var y = p.y-bb.top
         x = x/bb.width()
         y = y/bb.height()
-        return PointF(x,y)
+        return Point2D(x,y)
     }
     /**
      * Notify observers regarding receipt of a new current face

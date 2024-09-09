@@ -7,6 +7,7 @@ package chuckcoughlin.bertspeak.service
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.JSN
@@ -58,7 +59,6 @@ class DispatchService(ctx: Context){
         geometryManager = GeometryManager(this)
         socketManager = SocketManager(this)
         speechManager = SpeechManager(this)
-
     }
     /**
      * This instance is started by the Application in a background
@@ -118,10 +118,19 @@ class DispatchService(ctx: Context){
     fun markEndOfSpeech() {
         hearingManager.markEndOfSpeech()
     }
-
-
-    fun reportManagerState(type: ManagerType, state: ManagerState) {
-        statusManager.updateState(type, state)
+    /**
+     * Presumably the text originates from the speech recognizer on the tablet (or an error).
+     * Send text to the robot for processing. Inform the text manager for dissemination
+     * to any observers.
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun processSpokenText(text: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            Log.i(CLSS, String.format("processSpokenText: %s", text))
+            textManager.processText(MessageType.MSG, text)
+            socketManager.receiveTextToSend(String.format("%s:%s",
+                MessageType.MSG.name, text))
+        }
     }
 
     /**
@@ -159,21 +168,21 @@ class DispatchService(ctx: Context){
             Log.w(CLSS, String.format("receiveMessage: (%s) is too short", txt))
         }
     }
-
-    /**
-     * Presumably the text originates from the speech recognizer on the tablet (or an error).
-     * Send text to the robot for processing. Inform the text manager for dissemination
-     * to any observers.
-     */
-    @OptIn(DelicateCoroutinesApi::class)
-    fun processSpokenText(text: String) {
-        GlobalScope.launch(Dispatchers.IO) {
-            Log.i(CLSS, String.format("processSpokenText: %s", text))
-            textManager.processText(MessageType.MSG, text)
-            socketManager.receiveTextToSend(String.format("%s:%s", MessageType.MSG.name, text))
-        }
+    fun reportManagerState(type: ManagerType, state: ManagerState) {
+        statusManager.updateState(type, state)
     }
 
+    /**
+     * Send a Json message to the robot
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun reportJsonData(type: JsonType,json: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val msg = String.format("%s:%s %s",MessageType.JSN.name,type.name,json)
+            Log.i(CLSS, String.format("reportJsonData: %s", msg))
+            socketManager.receiveTextToSend(msg)
+        }
+    }
 
     /* ================================================================
      * The companion object contains methods callable in a static way

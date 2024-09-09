@@ -42,7 +42,7 @@ class SocketTextHandler(sock: Socket) {
         if(text.isNotEmpty()) {
             try {
                 if(DEBUG) Log.i(CLSS, String.format("TABLET WRITE: %s.", text))
-                output.println(text)
+                output.println(text)  // Ensure ends with a linefeed
                 output.flush()
             }
             catch(ex: Exception) {

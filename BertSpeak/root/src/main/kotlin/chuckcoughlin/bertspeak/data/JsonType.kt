@@ -14,11 +14,7 @@ package chuckcoughlin.bert.common.message
  * The Json type is followed by a space before the remainder of the message
  */
 enum class JsonType {
-    APPENDAGE_NAMES,    // Appendage names
-    JOINT_NAMES,        // Joint names
-    LIMB_NAMES,         // Limb names
-    MOTOR_PROP_NAMES,   // Motor property names
-    MOTOR_CFGS,         // Motor configuration list
+    FACE // Facial identity information
     ;
 
     companion object {

@@ -108,7 +108,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     }
 
     /**
-     * We have received a message to send to the robot. Forward it to the socket.
+     * We have received a message to send to the robot by forwarding it to the socket.
      */
     private fun handleRequest(msg:String,handler:SocketTextHandler)  {
         handler.writeSocket(msg)
