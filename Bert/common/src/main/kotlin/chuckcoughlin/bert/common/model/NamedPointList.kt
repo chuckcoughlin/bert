@@ -2,20 +2,18 @@
  * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bertspeak.data
+package chuckcoughlin.bert.common.model
 
 /**
  * This class is a holder for a list of strings.
  * Its purpose is to make it easy to format JSON.
  * nam - the name of the list
- * jtype  - the name as a key.
  */
-class NamedStringList (val nam:String,val jtype:String) {
+class NamedPointList (val nam:String) {
     val name = nam
-    val key  = jtype
-    val list = mutableListOf<String>()
+    val list = mutableListOf<Point2D>()
 
-    fun add(value:String) {
-        list.add(value)
+    fun add(x1:Float,x2:Float) {
+        list.add(Point2D(x1,x2))
     }
 }

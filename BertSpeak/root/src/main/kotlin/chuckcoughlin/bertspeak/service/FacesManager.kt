@@ -4,18 +4,15 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.graphics.PointF
 import android.graphics.Rect
-import android.nfc.Tag
 import android.util.Log
 import chuckcoughlin.bert.common.message.JsonType
-import chuckcoughlin.bert.common.util.FacialDetectionDetails
-import chuckcoughlin.bert.common.util.NamedPoint
-import chuckcoughlin.bert.common.util.Point2D
 import chuckcoughlin.bertspeak.common.ContourTag
 import chuckcoughlin.bertspeak.data.TextObserver
 import chuckcoughlin.bertspeak.common.LandmarkTag
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
+import chuckcoughlin.bertspeak.data.FacialDetectionDetails
+import chuckcoughlin.bertspeak.data.NamedPoint
+import chuckcoughlin.bertspeak.data.Point2D
 import com.google.gson.Gson
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceContour
@@ -60,7 +57,7 @@ class FacesManager (service:DispatchService): CommunicationManager {
         // ------------------ Prepare Face to the Robot -----------------------
         val holder = FacialDetectionDetails()
         for(landmark in landmarks) {
-            val norm = normalizePoint(bb,Point2D(landmark.position.x,landmark.position.y))
+            val norm = normalizePoint(bb, Point2D(landmark.position.x,landmark.position.y))
             val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
             val np = NamedPoint(landmarkTag.name,norm.x,norm.y)
             holder.addLandmark(np)

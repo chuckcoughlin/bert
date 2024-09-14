@@ -7,6 +7,7 @@ package chuckcoughlin.bert.command
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
@@ -50,18 +51,18 @@ class CommandMessageHandler(sock: Socket)  {
             response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
 
         if(text.isBlank()) text = response.error
-        if( text.isNotEmpty()) {
-            try {
-                val msgtxt = String.format("%s:%s", mtype.name, text)
-                if( DEBUG ) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
-                output.println(msgtxt)
-                output.flush()
-            }
-            catch (ex: Exception) {
-                LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
-                success = false
-            }
+        if(text.isBlank()) text = String.format("error from robot, response body and error are both blank")
+        try {
+            val msgtxt = String.format("%s:%s", mtype.name, text)
+            if( DEBUG ) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
+            output.println(msgtxt)
+            output.flush()
         }
+        catch (ex: Exception) {
+            LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+            success = false
+        }
+
         return success
     }
 
@@ -93,10 +94,9 @@ class CommandMessageHandler(sock: Socket)  {
      */
     @Synchronized private fun processRequest(txt:String) : MessageBottle {
         var msg = MessageBottle(RequestType.NONE)
-
         if (txt.length > BottleConstants.HEADER_LENGTH) {
             val hdr  = txt.substring(0, BottleConstants.HEADER_LENGTH - 1)
-            val text = txt.substring(BottleConstants.HEADER_LENGTH)
+            var text = txt.substring(BottleConstants.HEADER_LENGTH)
             LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
                 // We've stripped the header now analyze the rest.
@@ -111,8 +111,22 @@ class CommandMessageHandler(sock: Socket)  {
                 }
             }
             else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
-                LOGGER.info(String.format(" parsing JSN: %s", text))
-                msg.error = String.format("JSON messages are not recognized from the tablet")
+                val index = text.indexOf(" ")
+                if( index>0 ) {
+                    val type = text.substring(0,index)
+                    val jtype = JsonType.fromString(type)
+                    if( jtype!=JsonType.UNDEFINED) {
+                        LOGGER.info(String.format(" parsing JSN: %s", text))
+                        text = text.substring(index+1)
+                        msg = CommandJsonHandler.handleJson(jtype,text)
+                    }
+                    else {
+                        msg.error = String.format("JSON message from the tablet was of unknown type - %s",type)
+                    }
+                }
+                else {
+                    msg.error = String.format("JSON message from the tablet was illformed")
+                }
             }
             // For now simply log responses from the tablet.
             else if (hdr.equals(MessageType.ANS.name, ignoreCase = true)) {

@@ -2,7 +2,7 @@
  * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bertspeak.data
+package chuckcoughlin.bert.common.model
 
 /**
  * This class is a holder for a list of strings.

@@ -2,8 +2,9 @@
  * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bertspeak.data
+package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.model.NamedPoint
 
 /**
  * This class is a holder for parameters that define
@@ -19,12 +20,12 @@ class FacialDetectionDetails () {
     /**
      * The name in the NamedPoint is the contour name
      */
-    fun addContourPoint(name:String,p: Point2D) {
+    fun addContourPoint(name:String,p:Point2D) {
         if( contours[name]==null ) contours[name] = mutableListOf<Point2D>()
         val contour = contours[name]
         contour!!.add(p)
     }
-    fun addLandmark(p: NamedPoint) {
+    fun addLandmark(p:NamedPoint) {
         landmarks.add(p)
     }
 }

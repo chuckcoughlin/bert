@@ -2,9 +2,7 @@
  * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.common.util
-
-import android.graphics.PointF
+package chuckcoughlin.bertspeak.data
 
 /**
  * This class is a holder for a list of strings.

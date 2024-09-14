@@ -5,6 +5,7 @@
 package chuckcoughlin.bertspeak.tab
 
 
+import android.content.Intent
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
@@ -37,6 +38,7 @@ import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.waveform.WaveformView
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 
@@ -253,7 +255,16 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             stopStatusButton -> {
                 Log.i(name, String.format("onClick: application shutdown",))
                 DispatchService.instance.stop()
+                requireActivity().moveTaskToBack(true);
+                //requireActivity().finishAffinity()
                 requireActivity().finishAndRemoveTask()
+                //val homeIntent =  Intent(Intent.ACTION_MAIN);
+                //homeIntent.addCategory( Intent.CATEGORY_HOME );
+                //homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                //startActivity(homeIntent);
+                ///requireActivity().finish()
+
+                //android.os.Process.killProcess(android.os.Process.myPid())
                 //System.exit(0)    // Don't kill before tasks shut down
             }
             // Produce a random message

@@ -21,20 +21,20 @@ CREATE TABLE Action (
 DROP TABLE IF EXISTS Face;
 CREATE TABLE Face (
 	faceid	integer PRIMARY KEY,
-	name		text NOT NULL
+	name	text NOT NULL
 );
 -- The landmark table holds normalized positions of
 -- landmarks identified with a face
 DROP TABLE IF EXISTS FaceContour;
 CREATE TABLE FaceContour (
 	faceidid	integer PRIMARY KEY,
-	contourid   integer NOT NULL,
+	contourid   integer NOT NULL
 );
 DROP TABLE IF EXISTS FaceContourPoints;
 CREATE TABLE FaceContourPoints (
 	contourid	  integer PRIMARY KEY,
-	contourcode   integer NOT NULL,
-	index         integer NOT NULL,
+	contourcode   text    NOT NULL,
+	indx          integer NOT NULL,
 	x             float,
     y             float
 );
@@ -43,7 +43,7 @@ CREATE TABLE FaceContourPoints (
 DROP TABLE IF EXISTS FaceLandmark;
 CREATE TABLE FaceLandmark (
 	faceidid	  integer PRIMARY KEY,
-	landmarkcode  integer NOT NULL,
+	landmarkcode  text    NOT NULL,
 	x             float,
 	y             float
 );

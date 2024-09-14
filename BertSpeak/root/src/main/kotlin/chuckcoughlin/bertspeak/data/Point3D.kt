@@ -2,7 +2,7 @@
  * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.common.util
+package chuckcoughlin.bertspeak.data
 
 /**
  * Use our own class of Point to make it easier to serialize and deserialize.

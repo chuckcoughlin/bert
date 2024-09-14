@@ -6,7 +6,6 @@ package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
@@ -242,8 +241,9 @@ class DispatchService(ctx: Context){
             instance.facesManager.reportFaceDetected(face)
         }
         fun speak(msg:String) {
-            Log.i(DispatchService.CLSS, String.format("speak: %s",msg))
+            Log.i(CLSS, String.format("speak: %s",msg))
             instance.speechManager.speak(msg)
+            instance.markEndOfSpeech()
         }
         val CLSS = "DispatchService,companion"
     }

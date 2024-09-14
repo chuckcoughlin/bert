@@ -5,17 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/Point2D.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/Point3D.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/FaceDataHolder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/FacialDetectionDetails.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/CommandMessageHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/CommandMessageHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/JsonType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/JsonType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util/Geometry.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util/GeometryUtility.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/csv/PoseMap.csv" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/csv/PoseMap.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configuration/src/main/sql/createTables.sql" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/sql/createTables.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/FacialDetectionDetails.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/FacialDetectionDetails.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/JsonType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/JsonType.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/NamedPoint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/NamedPoint.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/NamedPointList.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/NamedPointList.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/network/SocketTextHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/network/SocketTextHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/NamedStringList.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/NamedStringList.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/Point2D.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/Point2D.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/Point3D.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/Point3D.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/DispatchService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/DispatchService.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/FacesManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/FacesManager.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/SocketManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/SocketManager.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,28 +116,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;18&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/chuckc/robotics/bert/Bert/common/src/main/kotlin/chuckcoughlin/bert/common/message&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.51724136&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode.Kotlin&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "jdk.selected.JAVA_MODULE": "18",
+    "last_opened_file_path": "/Users/chuckc/robotics/bert/Bert/common/src/main/kotlin/chuckcoughlin/bert/common/model",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.51724136",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.sourceCode.Kotlin"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model" />
       <recent name="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message" />
       <recent name="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util" />
       <recent name="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables" />
       <recent name="$PROJECT_DIR$/configuration/src/main/pylib" />
-      <recent name="$PROJECT_DIR$/configuration/src/main/bin" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/util" />
@@ -150,11 +154,11 @@
       <recent name="chuckcoughlin.bert" />
     </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
+      <recent name="chuckcoughlin.bert.command" />
       <recent name="chuckcoughlin.bert.sql.pose" />
       <recent name="chuckcoughlin.bert.common.util" />
       <recent name="chuckcoughlin.bert.common.message" />
       <recent name="chuckcoughlin.bert.motor.controller" />
-      <recent name="chuckcoughlin.bert.common.controller" />
     </key>
   </component>
   <component name="RunAnythingCache">

@@ -14,7 +14,12 @@ package chuckcoughlin.bert.common.message
  * The Json type is followed by a space before the remainder of the message
  */
 enum class JsonType {
-    FACE // Facial identity information
+    APPENDAGE_NAMES,  // List of appendages
+    FACE,             // Facial identification features
+    JOINT_NAMES,      // List of joint names
+    LIMB_NAMES,       // List of limb names
+    MOTOR_PROP_NAMES, // Names of motor properties
+    UNDEFINED
     ;
 
     companion object {
@@ -27,6 +32,16 @@ enum class JsonType {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+        /**
+         * The enumeration function valueOf appears to always throw an exception.
+         * This is the replacement. It is case-insensitive,
+         */
+        fun fromString(arg: String): JsonType {
+            for (type in JsonType.values()) {
+                if (type.name.equals(arg, true)) return type
+            }
+            return JsonType.UNDEFINED
         }
     }
 }
