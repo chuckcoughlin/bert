@@ -1,5 +1,5 @@
 /**
- * Copyright 2019. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.speech.process
@@ -9,10 +9,16 @@ package chuckcoughlin.bert.speech.process
  * instance to instance.
  */
 enum class SharedKey {
-    APPENDAGE, ASLEEP,  // Robot ignores requests,
-    AXIS, JOINT, LIMB, PARTIAL,  // Text of an incomplete request
-    POSE,    // Current pose
-    SIDE, IT, // Datatype of "it"
+    APPENDAGE,
+    ASLEEP,  // Robot ignores requests,
+    AXIS,
+    FACE,    // Recognized user
+    JOINT,
+    LIMB,
+    PARTIAL,  // Text of an incomplete request
+    POSE,     // Current pose
+    SIDE,
+    IT,       // Datatype of "it"
     SPEED
     ;
 

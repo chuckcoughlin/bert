@@ -7,11 +7,11 @@
 cd ${BERT_HOME}
 DB=bert.db
 CSV=${BERT_HOME}/csv
-ETC=${BERT_HOME}/etc
+DBDIR=${BERT_HOME}/db
 SQL=${BERT_HOME}/sql
 
-mkdir -p $ETC
-cd ${ETC}
+mkdir -p $DBDIR
+cd ${$DBDIR}
 rm -f $DB
 #set -x
 sqlite3 $DB < ${SQL}/createTables.sql
@@ -21,7 +21,7 @@ cd ${CSV}
 cat Pose.csv | tail -n+3|sed -e 's/	/,/g' >/tmp/pose
 cat PoseMap.csv | tail -n+2|sed -e 's/	/,/g' >/tmp/posemap
 
-cd ${ETC}
+cd ${DBDIR}
 sqlite3 $DB << EOF
 .mode csv
 .import /tmp/pose Pose

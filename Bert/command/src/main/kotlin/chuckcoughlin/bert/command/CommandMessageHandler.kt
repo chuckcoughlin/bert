@@ -5,12 +5,7 @@
 package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.JsonType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
@@ -156,7 +151,7 @@ class CommandMessageHandler(sock: Socket)  {
     }
 
     /**
-     * This is a substitute for readLine() which I've had much trouble with.
+     * This is a substitute for readLine() with which I've had much trouble.
      * @return a line of text. Null indicates a closed stream
      */
     @Synchronized fun readCommand():String? {

@@ -45,7 +45,6 @@ class StatementParser {
     /**
      * This is the method that parses a statement - one line of text. It uses the visitor pattern to
      * traverse the parse tree and generate the returned statement prototype. This method parses one line.
-     *
      * Any partial text is saved off and prepended to the next string.
      *
      * @param cmd user-entered english string

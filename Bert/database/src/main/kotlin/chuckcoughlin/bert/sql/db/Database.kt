@@ -5,9 +5,11 @@
  */
 package chuckcoughlin.bert.sql.db
 
+import chuckcoughlin.bert.common.model.FacialDetectionDetails
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.sql.tables.FaceTable
 import chuckcoughlin.bert.sql.tables.PoseTable
 import org.sqlite.JDBC
 import java.nio.file.Path
@@ -49,7 +51,13 @@ object Database  {
     fun mapCommandToPose(cmd: String, poseName: String) {
         return pose.mapCommandToPose(connection, cmd, poseName)
     }
-
+    /**
+     * @param user-entered command user
+     * @param the corresponding pose name
+     */
+    fun mapFaceNameToDetails(name: String, details: FacialDetectionDetails) {
+        return pose.mapCommandToPose(connection, cmd, poseName)
+    }
     /**
      * Save a list of motor position values as a pose.
      * @param mcmap contains a map of motor configurations with positions that define the pose.
@@ -110,12 +118,14 @@ object Database  {
     private val LOGGER = Logger.getLogger(CLSS)
     private val driver: JDBC = JDBC() // Force driver to be loaded
     private var connection: Connection? = null
+    private val face: FaceTable
     private val pose: PoseTable
 
     /**
      * Initialize the table.
      */
     init {
+        face = FaceTable()
         pose = PoseTable()
     }
 }

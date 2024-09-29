@@ -146,7 +146,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     class ImageCaptureCallback(detect: FaceDetector): ImageCapture.OnImageCapturedCallback() {
         val detector = detect
 
-        //============================= Image Captured Callbacks ================================
+        //============================= Image Captured Callbacks ============================
         override fun onError(exc: ImageCaptureException) {
             Log.e(CLSS, "Photo capture failed: ${exc.message}", exc)
         }

@@ -18,7 +18,7 @@
 
 set -e
 export NAME=bert
-export BERT_HOME=/usr/local/robot
+export BERT_HOME=/home/ber
 export BERTLOGDIR={BERT_HOME}/${NAME}
 export BERTLOG=${BERTLOGDIR}/bert.log
 export DAEMON=${BERT_HOME}/bin/${NAME}

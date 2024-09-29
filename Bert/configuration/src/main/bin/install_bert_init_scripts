@@ -1,7 +1,7 @@
 #!/bin/sh
 # Update the system init scripts using those in ${BERT_HOME}/bin.
 # Run as super-user
-export BERT_HOME=/usr/local/robot
+export BERT_HOME=/home/bert
 if [ -e /etc/init.d/bert-server ]
 then
 	/etc/init.d/bert-server stop

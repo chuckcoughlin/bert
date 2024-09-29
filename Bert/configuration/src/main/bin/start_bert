@@ -1,5 +1,5 @@
 #!/bin/sh
 # Start the robot server.
 # Run as super-user
-export BERT_HOME=/usr/local/robot
+export BERT_HOME=/home/bert
 /etc/init.d/bert-server start

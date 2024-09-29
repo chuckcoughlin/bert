@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common
@@ -23,7 +23,7 @@ object PathConstants {
     fun setHome(home: Path) {
         ROBOT_HOME = home
         CONFIG_PATH = Paths.get(ROBOT_HOME.toFile().absolutePath, "etc", "bert.xml")
-        DB_PATH = Paths.get(ROBOT_HOME.toFile().absolutePath, "etc", "bert.db")
+        DB_PATH = Paths.get(ROBOT_HOME.toFile().absolutePath, "db", "bert.db")
         LOG_DIR = Paths.get(ROBOT_HOME.toFile().absolutePath, "logs")
         URDF_PATH = Paths.get(ROBOT_HOME.toFile().absolutePath, "etc", "urdf.xml")
     }

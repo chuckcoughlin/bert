@@ -16,6 +16,7 @@ package chuckcoughlin.bert.common.message
 enum class JsonType {
     APPENDAGE_NAMES,  // List of appendages
     FACE,             // Facial identification features
+    FACE_NAMES,       // Names of people whom we know
     JOINT_NAMES,      // List of joint names
     LIMB_NAMES,       // List of limb names
     MOTOR_PROP_NAMES, // Names of motor properties

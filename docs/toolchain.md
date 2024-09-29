@@ -187,9 +187,9 @@ Make sure to update the language packages (Settings->General management->Languag
 [toc](#table-of-contents)
 
 ##### Initial Configuration
-The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Linux, described [here](https://wiki.odroid.com/odroid-n2/odroid-n2). The instructions below assume an initial board setup using an eMMC preloaded with Ubuntu Mate 22.04.
+The following sections describe setup of the main processor on the robot, an Odroid-N2+ running Linux, described [here](https://wiki.odroid.com/odroid-n2/odroid-n2). The initial board setup used an eMMC preloaded with Ubuntu Mate 22.04 purchased directly from [HardKernel](https://www.hardkernel.com/product-category/memories. Installation was very straightforward.
 
-The operating system can be purchased directly from [HardKernel](https://www.hardkernel.com/product-category/memories/) preloaded on an eMMC or dowloaded from [here](https://wiki.odroid.com/getting_started/os_installation_guide#operating_systems_we_re_providing) to be flashed using `Etcher` and an eMMC Reader board per instructions [here](https://linuxhint.com/etcher-image-writer-ubuntu-burn-images/).
+Unfortunately during an upgrade to Ubuntu 4.9.1, due to a supposed error in the kernel, we lost our wi-fi driver, effectively isolating the robot system and making it useless. To recover, we downloaded the image from [here](https://wiki.odroid.com/getting_started/os_installation_guide#operating_systems_we_re_providing), then flashed using `balenaEtcher` and an eMMC Reader board per instructions [here](https://linuxhint.com/etcher-image-writer-ubuntu-burn-images/). The Ubuntu desktop versions with Mate refused to copy to our eMMC (too big?). However the Ubuntu 22.04-4.9-minimal-odroid-n2 image flashed successfully. The text below describes setup from the minimal configuration.   
 
 The N2 has 4 USB slots that are used for:
  * Keyboard/Mouse
@@ -197,34 +197,70 @@ The N2 has 4 USB slots that are used for:
  * Bluetooth
  * USB2AX (2)
 
-A keyboard/mouse combination is useful for development and debugging, but not required for operation of the robot.
+If the boot selector switch is to the left, startup will boot into Pettiboot. To boot from the SD card, move the switch to the right. The filesystems are pre-configured with the root at 64gb, 96% free. Place all user directories under `/home`.
 
-The initial root password is `root/odroid` or `odroid/odroid`. Change passwords to provide some minimal security. Check initial filesystem sizes. Ours seemed to be okay. There seemed to be no need to extend the root partition. Follow any system upgrade suggestion.
-
-Create a user. Add it to the **sudo**, **dialout** and **uucp** groups.
+#### Users
+The initial root password is `root/odroid`. Change password to provide some minimal security. As `root` add an administrative user `odroid/odroid`.
+Create a user for the robot's use . Call it `bert`. Add these to the `sudo`, `dialout` and `uucp` groups. For example:
+```
+   adduser bert
+   usermod -aG sudo bert
+```
 Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
 ```
    PS1="\u: "
-   export BERT_HOME=/usr/local/robot
+   export BERT_HOME=/home/bert
    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
+```
+#### Initial Network
+The wi-fi connection must be configured before any additional packages can be installed. Our wireless interface is `wlan0`. The command
+```
+   nmcli device wifi connect "SSID" password "PASSWD"
+```
+should result in a wireless connection to the internet. (Substituting name and password for the local network,
+of course). A reboot may be required. As soon as the network was live, I was presented with an invitation to upgrate to release 24.04.1. I proceeded with the upgrade, only to once again lose the wifi and had to start over again. The lesson here is to avoid the temptation to upgrade to 24.04.1.
+
+Once a WiFi connection has been made, again as `root`,
+```
+  apt update
+  apt upgrade -y
+```
+
+then install the `Budgie` desktop. The use of `aptitude` is required because of a dependency issue (which appeared common to all desktops I tried).
+```
+  add-apt-repository ppa:deadsnakes/ppa
+  apt install aptitude
+  aptitude install ubuntu-budgie-desktop
+  apt install nautilus gnome-terminal
+  shutdown -r now
+
+```
+If starting from a purchased SD card, remove the `Mate` desktop.
+```
+  apt purge mate-desktop --autoremove
+```
+
+#### Further Configuration
+
+Now that a wi-fi connection is established and desktop installed, continue the configuration tasks that are required even with the pre-looaded SD card.
+
+Set the hostname to `bert`.
+```
+  hostnamectl set-hostname bert
 ```
 
 Set the timezone:
 ```
-  sudo dpkg-reconfigure tzdata
+  timedatectl set-timezone America/Denver
 ```
 
-Once a WiFi connection has been made, configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Using the MATE desktop, under the main menu, Preferences/Advanced Network Configuration, edit the WiFi connection that is live. On the IPV4 tab, change the Method: to "Manual". Add a static address, e.g. 10.0.0.42; 255.255.255.0; 10.0.0.1. In the same dialog, set Domain Name Servers, comma-separated. Depending on the network, another common address choice might be: 192.168.1.42.
+ Configure a static IP address. This allows us to connect to the robot even if it comes up "headless". Using the Budgie desktop, under the main menu network icon, Network Settings, edit the WiFi connection via settings icon. On the IPV4 tab, change the Method: to "Manual". Add a static address, e.g. 10.0.0.42; 255.255.255.0; 10.0.0.1. Depending on the network, another common address choice might be: 192.168.1.42. In the same dialog, set Domain Name Servers, comma-separated.
 ```
   75.75.75.75
   75.75.76.76
 ```
 Validate these setting by inspecting another machine on the same network.
 
-Set the hostname to "bert":
-```
-  sudo hostnamectl set-hostname bert
-```
 
 Restart the `odroid`. When running again,
 make sure you can ping the new address from a different machine.
@@ -236,7 +272,7 @@ AuthorizedKeysFile .ssh/authorized_keys
 ```
 
 
-Then on each remote, generate SSH keys (if not already done).
+Then on each development system on the network, generate SSH keys (if not already done).
 ```
   ssh-keygen  (use default location, no password)
 ```
@@ -251,32 +287,30 @@ Also on each remote system (appropriately replacing the username),
 ```
 If there are old references to `bert` in *known_hosts*, they must be deleted.
 
-When I purchased the EMMC card, it contained Ubuntu 20.04. At the time of this writing the latest LTS version was 22.0.2. Upgrade instructions can be found [here](https://jumpcloud.com/blog/how-to-upgrade-ubuntu-20-04-to-ubuntu-22-04#step1).
+Upgrade the operating system for any changes since the image was posted and install missing tools. If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute them using a direct ethernet connection. These must be run as root (or sudo).
+
+In the `Software Sources` application, enable main (canonical free and open source software)
+```
+  apt update
+  apt upgrade -y
+  apt autoremove -y
+  apt autoclean -y
+  apt install rsync
+  apt install sqlite3
+  apt install libjssc-java
+  apt install libbluetooth-dev
+  apt install build-essential
+  apt-get install manpages-dev
+```
+```
+   add-apt-repository ppa:xtradeb/apps -y
+   apt update
+   apt upgrade
+   apt install chromium
+   apt install firefox
+```
 
 
-Upgrade the operating system for any changes since the image was posted and install missing tools. If these *apt* commands repeatedly throw your wi-fi router off-line, you may be forced to execute them using a direct ethernet connection.
-```
-  sudo apt-get update
-  sudo apt-get upgrade -y
-  sudo apt-get autoremove -y
-  sudo apt-get autoclean -y
-  sudo apt install rsync
-  sudo apt install vsftpd
-  sudo apt install ftp
-  sudo apt install firefox
-  sudo apt install sqlite3
-  sudo apt install libjssc-java
-  sudo apt-get install libbluetooth-dev
-  sudo apt install build-essential
-  sudo apt-get install manpages-dev
-```
-
-The Gnome Desktop is optional.
-```
-  sudo apt -y install gnome-shell ubuntu-gnome-desktop
-  sudo shutdown -r now
-  sudo apt purge mate-desktop --autoremove
-```
 
 As super-user, set the serial port permissions by creating file `/etc/udev/rules.d/50-ttyusb.rules` with the following contents:
 ```
@@ -320,23 +354,20 @@ Once the build has been executed on the Development system (and deployed), edit 
   /usr/lib/jvm/java-18-openjdk-arm64
    /usr/local/robot/bin
 ```
-#### Network
-We use standard `Kotlin` libraries for ethernet communication over Wi-fi.
+
 
 #### PyPot <a id="pypot"></a>
-*PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Documentation may be found [here](https://github.com/poppy-project/herborist).
+*PyPot* provides demonstration code and the **herborist** tool that is used to configure Dynamixel stepper motors. Motors must be assigned unique IDs before being made part of the robot. ID's are recorded in `bert.xml`. Documentation may be found [here](https://github.com/poppy-project/herborist).
 ```
   sudo apt-get install python3-pip
   sudo apt-get install python3-pyqt5
   pip install pypot
   pip install herborist
 ```
-As a workaround we use a command-line tool from PyPot.
-```
-```
 
 ## Software Development <a id="software"/>
-The development host is an iMac running OSX Ventura (13.3). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection. Here is a diagram that summarizes the flow of the build and major tools used:
+
+The development host is an iMac running OSX Sonoma (14.3.1). The code repository resides on this machine. Code is cross-compiled and downloaded onto the robot target over a WiFi connection. Here is a diagram that summarizes the flow of the build and major tools used:
   ![Build Plan](/images/development_layoutsvg)
   ````                        Development Tools ````
 
