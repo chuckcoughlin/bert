@@ -7,11 +7,10 @@ package chuckcoughlin.bert
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.Solver
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
-import chuckcoughlin.bert.common.model.Solver
 import chuckcoughlin.bert.dispatch.Dispatcher
-
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -72,7 +71,7 @@ fun main(args: Array<String>) {
         println(app.USAGE)
         System.exit(1)
     }
-
+    // The command-line argument is ROBOT_HOME
     val path = Paths.get(arg)
     PathConstants.setHome(path)
     // Setup logging to use only a file appender to our logging directory

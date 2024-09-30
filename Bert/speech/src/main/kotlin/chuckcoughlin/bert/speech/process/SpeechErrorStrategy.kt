@@ -9,7 +9,11 @@
 package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.MessageBottle
-import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.DefaultErrorStrategy
+import org.antlr.v4.runtime.InputMismatchException
+import org.antlr.v4.runtime.Parser
+import org.antlr.v4.runtime.RecognitionException
+import org.antlr.v4.runtime.Token
 import java.util.logging.Logger
 
 /** Instead of recovering from exceptions, log the information to
@@ -61,7 +65,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
     protected fun recordError(re: RecognitionException) {
         // In each case the expected tokens are an expression. Don't bother to list
         val offender: Token = re.getOffendingToken()
-        var msg: String = ""
+        var msg: String
         if (offender.getText() != null && offender.getText().startsWith("<EOF>")) {  // EOF
             msg = String.format("Your request is incomplete")
         }

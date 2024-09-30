@@ -3,7 +3,7 @@
 # from the odroid init script (bert-server). Network (wifi) and serial
 # ports are configured, but no terminal.
 #
-cd ${BERT_HOME}
+cd ${ROBOT_HOME}
 bin/clear_logs
 cd distribution/bertApp
 export APP_HOME=`pwd`
@@ -20,4 +20,4 @@ cd bin
 # These flags turn on components of the app
 # -n - use Network
 # -s - use Serial
-./bertApp -ns -dcmd,mtr,ser ${BERT_HOME}
+./bertApp -ns -dcmd,mtr,ser ${ROBOT_HOME}

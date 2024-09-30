@@ -8,11 +8,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
- * These paths can be considered static constants once BERT_HOME has been set.
+ * These paths can be considered static constants once ROBOT_HOME has been set.
  * This should be done soon after startup.
  */
 object PathConstants {
-    var ROBOT_HOME = Paths.get(System.getProperty("user.dir")).root
+    var ROBOT_HOME = Paths.get(System.getenv("ROBOT_HOME")).root
     lateinit var CONFIG_PATH: Path
     lateinit var DB_PATH: Path
     lateinit var LOG_DIR: Path

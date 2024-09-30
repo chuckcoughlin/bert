@@ -3,7 +3,10 @@
 # GIT_REPO is the root directory of our source tree.
 
 cd ${GIT_REPO}/odroid
+USER=bert
+HOST=bert
+ROBOT_HOME=/home/bert        # Odroid
 echo "Synchronizing source files for odroid ..."
-rsync -r * bert:/home/chuckc/src
+rsync -r * ${USER}@${HOST}:${ROBOT_HOME}/src
 
 echo "Robot source update is complete."

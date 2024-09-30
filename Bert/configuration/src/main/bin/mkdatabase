@@ -4,14 +4,14 @@
 #
 #
 
-cd ${BERT_HOME}
+cd ${ROBOT_HOME}
 DB=bert.db
-CSV=${BERT_HOME}/csv
-DBDIR=${BERT_HOME}/db
-SQL=${BERT_HOME}/sql
+CSV=${ROBOT_HOME}/csv
+DBDIR=${ROBOT_HOME}/db
+SQL=${ROBOT_HOME}/sql
 
 mkdir -p $DBDIR
-cd ${$DBDIR}
+cd ${DBDIR}
 rm -f $DB
 #set -x
 sqlite3 $DB < ${SQL}/createTables.sql

@@ -1,5 +1,5 @@
 #!/bin/sh
 # Shutdown the robot
 # Run as super-user
-export BERT_HOME=/home/bert
+export ROBOT_HOME=/home/bert/robot
 /etc/init.d/bert-server stop

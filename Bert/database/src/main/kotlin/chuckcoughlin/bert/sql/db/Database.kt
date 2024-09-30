@@ -49,14 +49,14 @@ object Database  {
      * @param the corresponding pose name
      */
     fun mapCommandToPose(cmd: String, poseName: String) {
-        return pose.mapCommandToPose(connection, cmd, poseName)
+        //return pose.mapCommandToPose(connection, cmd, poseName)
     }
     /**
      * @param user-entered command user
      * @param the corresponding pose name
      */
     fun mapFaceNameToDetails(name: String, details: FacialDetectionDetails) {
-        return pose.mapCommandToPose(connection, cmd, poseName)
+        //return pose.mapCommandToPose(connection, cmd, poseName)
     }
     /**
      * Save a list of motor position values as a pose.

@@ -28,12 +28,11 @@ class FaceTable {
     fun mapFaceNameToDetails(cxn: Connection?, name: String, details: FacialDetectionDetails) {
         if( cxn!=null ) {
             var statement: PreparedStatement? = null
-            val command = cmd.lowercase(Locale.getDefault())
-            val pose = pz.lowercase(Locale.getDefault())
             var SQL = "UPDATE PoseMap SET pose=? WHERE command = ?"
             try {
-                LOGGER.info(String.format("%s.mapCommandToPose: \n%s", CLSS, SQL))
+                LOGGER.info(String.format("%s.mapFaceNameToDetails: \n%s", CLSS, SQL))
                 statement = cxn.prepareStatement(SQL)
+                /*
                 statement.setString(1, pose)
                 statement.setString(2, command)
                 statement.executeUpdate()
@@ -46,9 +45,11 @@ class FaceTable {
                     statement.setString(2, pose)
                     statement.executeUpdate()
                 }
+
+                 */
             }
             catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.mapCommandToPose: Database error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.mapFaceNameToDetails: Database error (%s)", CLSS, e.message))
             }
             finally {
                 if (statement != null) {

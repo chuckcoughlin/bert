@@ -18,15 +18,15 @@
 
 set -e
 export NAME=bert
-export BERT_HOME=/home/ber
-export BERTLOGDIR={BERT_HOME}/${NAME}
-export BERTLOG=${BERTLOGDIR}/bert.log
-export DAEMON=${BERT_HOME}/bin/${NAME}
+export ROBOT_HOME=/home/bert/robot
+export BERTLOGDIR={ROBOT_HOME}/${NAME}
+export BERTLOG=${ROBOT_HOME}/bert.log
+export DAEMON=${ROBOT_HOME}/bin/${NAME}
 export PARAMS=""
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:${BERT_HOME}/bin
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:${ROBOT_HOME}/bin
 
 . /lib/lsb/init-functions
-mkdir -p ${BERT_HOME}/logs
+mkdir -p ${ROBOT_HOME}/logs
 mkdir -p ${BERTLOGDIR}
 
 case "$1" in

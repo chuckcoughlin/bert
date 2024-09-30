@@ -5,19 +5,22 @@
 # that no more files are transferred than necessary.
 # Make sure there is a valid wi-fi connection. If the
 # init scripts have changed their install scripts must be
-# on the target system (with sudo)
-ROBOT_HOME=/home/robot
+# run on the target system (with sudo)
+USER=bert
+HOST=bert
+ROBOT_HOME=/home/bert/robot        # Odroid
+DEV_HOME=${HOME}/robot    # Dev system
 export PATH=$PATH:/usr/local/bin
 echo "Synchronizing configuration files, database ..."
-cd ${BERT_HOME}
-rsync -r etc bin csv sql  pylib bert:${ROBOT_HOME}
+cd ${DEV_HOME}
+rsync -r etc bin csv sql  pylib ${USER}@${HOST}:${ROBOT_HOME}
 
 echo "Synchronizing the distribution area ..."
-cd ${BERT_HOME}
-rsync -r distribution bert:${ROBOT_HOME}
+cd ${DEV_HOME}
+rsync -r distribution ${USER}@${HOST}:${ROBOT_HOME}
 
-#echo "Synchronizing the source area ..."
-#cd /Users/chuckc/robotics/bert/odroid
-#rsync -r blueserver herborist jssc-jni bert:/home/chuckc/src
+#echo "Synchronizing the source area ...
+#cd ${HOME}/robotics/bert/odroid
+#rsync -r blueserver herborist jssc-jni ${USER}@${HOST}:${ROBOT_HOME}/src
 
 echo "Robot update is complete."

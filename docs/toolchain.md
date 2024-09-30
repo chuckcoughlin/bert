@@ -211,6 +211,7 @@ Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/en
    PS1="\u: "
    export BERT_HOME=/home/bert
    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
+   export PATH=${PATH}:${BERT_HOME}/bin:${BERT_HOME}/.local/bin:${JAVA_HOME}/bin
 ```
 #### Initial Network
 The wi-fi connection must be configured before any additional packages can be installed. Our wireless interface is `wlan0`. The command
@@ -283,7 +284,7 @@ Also on each remote system, add to `/etc/hosts`:
 Also on each remote system (appropriately replacing the username),
 ```
   cd ~/.ssh
-  ssh-copy-id -i id_rsa.pub chuckc@bert
+  ssh-copy-id -i id_rsa.pub bert@bert
 ```
 If there are old references to `bert` in *known_hosts*, they must be deleted.
 
@@ -316,16 +317,14 @@ As super-user, set the serial port permissions by creating file `/etc/udev/rules
 ```
 KERNEL="ttyACM*",MODE="0666"
 ```
-Reboot then
+Reboot then as root:
 ```
-  sudo chmod 666 /dev/ttyACM*
-```
+  chmod 666 /dev/ttyACM*
+``
 
-The reason for ``firefox`` is that we were not able to properly configure the proxy server in ``chromium``, the default browser.
-
-In `/etc/ld.so.conf.d`, add a file named `robot.conf` containing the single line:
+In `/etc/ld.so.conf.d`, add a file named `bert.conf` containing the single line:
 ```
-  /usr/local/robot/lib
+  /home/bert/lib
 ```
 
 Edit `/lib/systemd/system/bluetooth.service`
@@ -336,15 +335,15 @@ Replace the existing similar line with:
 
 To shutdown,
 ```
-  sudo shutdown -h now
+  shutdown -h now
 ```
 Wait until the blue LED has gone out, then unplug.
 
 ##### Java
 The Java JVM is used to run the application even though it is written in Kotlin. Download the latest Java Development (JDK) version using:
 ```
-  sudo apt update
-  sudo apt install openjdk-18-jre-headless
+  apt update
+  apt install openjdk-18-jre-headless
 ```
 Installing the JDK allows us to compile on the Odroid, if necessary. Of course,
 we also need the runtime. The java version on the odroid (18) must match the JDK on the development system.
@@ -352,7 +351,7 @@ we also need the runtime. The java version on the odroid (18) must match the JDK
 Once the build has been executed on the Development system (and deployed), edit ``/etc/environment``, adding JAVA_HOME and BERT_HOME/bin to the **PATH** variable (before  */usr/bin*):
 ```
   /usr/lib/jvm/java-18-openjdk-arm64
-   /usr/local/robot/bin
+  /home/bert/bin
 ```
 
 

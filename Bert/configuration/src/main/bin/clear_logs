@@ -1,5 +1,5 @@
 #!/bin/sh
 # Remove old log files in ${BERT_HOME}/logs
-mkdir -p ${BERT_HOME}/logs
-cd ${BERT_HOME}/logs
+mkdir -p ${ROBOT_HOME}/logs
+cd ${ROBOT_HOME}/logs
 rm -f bert.* blueserver.log.bak
