@@ -5,11 +5,17 @@
 package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
 import chuckcoughlin.bert.speech.process.StatementParser
+import kotlinx.coroutines.sync.Mutex
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -28,6 +34,8 @@ class CommandMessageHandler(sock: Socket)  {
     private val input: BufferedReader
     private val output: PrintWriter
     private val parser: StatementParser
+    private val readMutex = Mutex()
+    private val writeMutex = Mutex()
 
     /**
      * Extract text from the message and forward on to the tablet formatted appropriately.
@@ -66,10 +74,10 @@ class CommandMessageHandler(sock: Socket)  {
      * to the tablet which is a client to the robot.
      * @return a deferred value for use in a select() clause.
      */
-    fun receiveNetworkInput(): MessageBottle {
-        val request: MessageBottle
+    suspend fun receiveNetworkInput(): MessageBottle {
+        val request:MessageBottle
         val text = readCommand()
-        if( text== null || text.equals(CommandType.HALT.name,true)) {
+        if( text!=null && text.equals(CommandType.HALT.name, true)) {
             request = MessageBottle(RequestType.HANGUP)
             request.source = ControllerType.COMMAND.name
         }
@@ -87,9 +95,9 @@ class CommandMessageHandler(sock: Socket)  {
      * else is simply logged. Returning an empty string signals loss of the client.
      * Throw an exception to force closing of the socket.
      */
-    @Synchronized private fun processRequest(txt:String) : MessageBottle {
+    private fun processRequest(txt:String?) : MessageBottle {
         var msg = MessageBottle(RequestType.NONE)
-        if (txt.length > BottleConstants.HEADER_LENGTH) {
+        if( txt!=null && txt.length > BottleConstants.HEADER_LENGTH ) {
             val hdr  = txt.substring(0, BottleConstants.HEADER_LENGTH - 1)
             var text = txt.substring(BottleConstants.HEADER_LENGTH)
             LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
@@ -128,9 +136,10 @@ class CommandMessageHandler(sock: Socket)  {
                 LOGGER.info(String.format("Tablet ANS: %s",text))
                 msg = parser.parseStatement(text)
             }
-            // Simply send tablet log messages to our logger
+            // Simply send log messages from tablet to our logger
             else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
-                msg.type = RequestType.NOTIFICATION
+                msg.type = RequestType.NONE
+                LOGGER.info(String.format("TABLET LOG: %s", text))
             }
             else {
                 msg = MessageBottle(RequestType.NOTIFICATION)
@@ -154,18 +163,24 @@ class CommandMessageHandler(sock: Socket)  {
      * This is a substitute for readLine() with which I've had much trouble.
      * @return a line of text. Null indicates a closed stream
      */
-    @Synchronized fun readCommand():String? {
+    private suspend fun readCommand():String? {
         var text = StringBuffer()
-        while(true) {
-            val ch = input.read()
-            if( ch<0 ) {
-                return null
+        readMutex.lock()
+        try {
+            while (true) {
+                val ch = input.read()
+                if (ch < 0) {
+                    return null
+                }
+                else if (ch == NL || ch == CR) {
+                    break
+                }
+                if (DEBUG) LOGGER.info(String.format("%s.readCommand: %c (%d)", CLSS, ch.toChar(), ch))
+                text.append(ch.toChar())
             }
-            else if(ch==NL || ch==CR) {
-                break
-            }
-            if(DEBUG) LOGGER.info(String.format("%s.readCommand: %c (%d)", CLSS, ch.toChar(),ch))
-            text.append(ch.toChar())
+        }
+        finally {
+            readMutex.unlock()
         }
         return text.toString()
     }

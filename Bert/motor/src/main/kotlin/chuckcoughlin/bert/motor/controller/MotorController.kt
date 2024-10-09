@@ -149,11 +149,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             delay(MIN_WRITE_INTERVAL - (now - timeOfLastWrite))
             timeOfLastWrite = System.currentTimeMillis()
         }
+        // Get the intended response count - zero if controller is unknown
+        var responseCount = 0
+        if( request.control.responseCount[controllerName]!=null ) responseCount=request.control.responseCount[controllerName]!!
         // Now construct the byte array to write to the port
         if( isSingleWriteRequest(request) ) {
             val bytes = messageToBytes(request)
             if (bytes != null) {
-                if (request.control.responseCount[controllerName]!! > 0) {
+                if(responseCount > 0) {
                     requestQueue.send(request)
                 }
                 writeBytesToSerial(bytes)
@@ -162,7 +165,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else {
             val byteArrayList = messageToByteList(request)
-            if (request.control.responseCount[controllerName]!! > 0) {
+            if(responseCount > 0) {
                 requestQueue.send(request)
             }
             var count = byteArrayList.size
@@ -174,7 +177,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
         }
 
-        if( request.control.responseCount[controllerName]!!>0 ) {
+        if( responseCount>0 ) {
             val response = responseQueue.receive()
             LOGGER.info(String.format("%s.processRequest: %s got response", CLSS, controllerName))
             parentResponseChannel.send(response)

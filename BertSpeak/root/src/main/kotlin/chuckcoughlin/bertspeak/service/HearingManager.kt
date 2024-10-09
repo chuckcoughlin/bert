@@ -178,10 +178,11 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		return intent
 	}
 	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
-	// annoying beeps with every onReadyForSpeech cycle. Currently they are not needed (??)
+	// annoying beeps with every onReadyForSpeech cycle.
+	// In current state beeping is suppressed, but vizualizer doesn't work.
 	fun mute() {
 		Log.i(CLSS, String.format("mute"))
-		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE)
+		audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE)
 	}
 
 	fun unMute() {

@@ -6,11 +6,13 @@ package chuckcoughlin.bertspeak.network
 
 import android.util.Log
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.sync.Mutex
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
@@ -26,6 +28,8 @@ class SocketTextHandler(sock: Socket) {
     private val socket = sock
     private val input: BufferedReader
     private val output: PrintWriter
+    private val readMutex = Mutex()
+    private val writeMutex = Mutex()
 
     /**
      * Send a text request or status to the robot formatted appropriately.
@@ -37,9 +41,10 @@ class SocketTextHandler(sock: Socket) {
      * @return true on success
      */
 
-    fun writeSocket(txt: String) {
+    suspend fun writeSocket(txt: String) {
         var text = txt.trim()
         if(text.isNotEmpty()) {
+            writeMutex.lock()
             try {
                 if(DEBUG) Log.i(CLSS, String.format("TABLET WRITE: %s.", text))
                 output.println(text)  // Ensure ends with a linefeed
@@ -47,6 +52,9 @@ class SocketTextHandler(sock: Socket) {
             }
             catch(ex: Exception) {
                 Log.i(CLSS, String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+            }
+            finally {
+                writeMutex.unlock()
             }
         }
     }
@@ -57,10 +65,10 @@ class SocketTextHandler(sock: Socket) {
      * to appear. If we get a null, then close the socket and re-listen
      * @return a deferred value for use in a select() clause.
      */
-    fun readSocket(): String {
+    suspend fun readSocket(): String {
         Log.i(CLSS, String.format("readSocket: reading from socket ..."))
         val text = readCommand() // Strips trailing new-line
-        if(DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
+        if (DEBUG) Log.i(CLSS, String.format("TABLET READ: %s.", text))
         return text
     }
 
@@ -69,19 +77,25 @@ class SocketTextHandler(sock: Socket) {
      * Read text until new-line or carriage-return.
      * @return a line of text. Empty indicates a closed stream.
      */
-    @Synchronized fun readCommand():String {
+    suspend private fun readCommand():String {
         var text = StringBuffer()
-        while(true) {
-            val ch = input.read()
-            if( ch<0 ) {
-                return ""
+        readMutex.lock()
+        try {
+            while (true) {
+                val ch = input.read()
+                if (ch < 0) {
+                    return ""
+                }
+                else if (ch == NL || ch == CR) {
+                    if (text.length == 0) text.append(" ")
+                    break
+                }
+                //if(DEBUG) Log.i(CLSS,String.format("readCommand: %c (%d)",ch.toChar(),ch))
+                text.append(ch.toChar())
             }
-            else if(ch==NL || ch==CR) {
-                if(text.length==0) text.append(" ")
-                break
-            }
-            if(DEBUG) Log.i(CLSS,String.format("readCommand: %c (%d)",ch.toChar(),ch))
-            text.append(ch.toChar())
+        }
+        finally {
+            readMutex.unlock()
         }
         return text.toString()
     }

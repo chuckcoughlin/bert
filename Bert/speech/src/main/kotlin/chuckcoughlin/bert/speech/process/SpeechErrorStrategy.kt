@@ -81,8 +81,6 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
         bottle.error = msg
     }
 
-    companion object {
-        private const val CLSS = "SpeechErrorStrategy: "
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "SpeechErrorStrategy"
+    private val LOGGER = Logger.getLogger(CLSS)
 }

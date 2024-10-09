@@ -29,7 +29,7 @@ command:
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? (Joint|Limb) Axis? To (Value|On|Off|Adverb) Unit?  # setMotorProperty
 	| Salutation? Straighten (It|Article? Side? (Joint|Limb) Axis? )    	    # straightenJoint
-	| Salutation? phrase                                    		# handleArbitraryCommand
+	| Salutation? phrase                                    		            # handleArbitraryCommand
 	;
 
 // Request for information

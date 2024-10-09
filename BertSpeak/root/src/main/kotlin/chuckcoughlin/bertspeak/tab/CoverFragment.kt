@@ -251,7 +251,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             hearingStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.HEARING.name))
             }
-            // The stop button triggers an immediate shutdown
+            // The stop button triggers an immediate shutdown (easier said than done)
             stopStatusButton -> {
                 Log.i(name, String.format("onClick: application shutdown",))
                 DispatchService.instance.stop()

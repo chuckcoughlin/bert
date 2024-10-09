@@ -24,7 +24,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     private val messageTranslator: MessageTranslator
 
     // These do the actual translations. Text->RequestBottle.
-    // NOTE: Any action, state or pose names require database access to fill in the details.
+    // NOTE: Any action, state or pose names require database access to fill in the details.c
     // ================================= Overridden Methods =====================================
     // 
     // How tall are you?
@@ -164,6 +164,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // commands.
     // carry the torch, go limp.
     override fun visitHandleArbitraryCommand(ctx: SpeechSyntaxParser.HandleArbitraryCommandContext): Any? {
+        LOGGER.info(String.format("%s.visitHandleArbitraryCommand: error=%s", CLSS, bottle.error))
         if (ctx.phrase() != null) {
             val phrase: String = visit(ctx.phrase()).toString()
             // First handle "well-known" commands
@@ -177,7 +178,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 }
                 else {
                     val msg = String.format("I do not know how to respond to \"%s\"", phrase)
-                    bottle.error = msg
+                    // We may have gotten here via an error in a different command. If there is a prior
+                    // error, use it
+                    if(bottle.error.equals(BottleConstants.NO_ERROR)) bottle.error = msg
                 }
             }
         }
@@ -585,9 +588,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // move slowly
     override fun visitMoveSpeed(ctx: SpeechSyntaxParser.MoveSpeedContext): Any? {
         bottle.type = RequestType.SET_POSE
-        val pose = poseForAdverb(ctx.Adverb().getText())
+        val pose = poseForAdverb(ctx.Adverb().text)
         bottle.pose = pose
-        bottle.text = String.format("I am moving at a %s", ctx.Adverb().getText())
+        bottle.text = String.format("I am moving %s", ctx.Adverb().text)
         return null
     }
 
@@ -1105,10 +1108,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     }
 
-    companion object {
-        private const val CLSS = "StatementTranslator"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "StatementTranslator"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val DEBUG: Boolean
 
     /**
      * @param bot a request container supplied by the framework. It is our job
@@ -1116,6 +1118,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
      * @param shared a parameter dictionary used to communicate between invocations
      */
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         bottle = bot
         messageTranslator = MessageTranslator()
     }

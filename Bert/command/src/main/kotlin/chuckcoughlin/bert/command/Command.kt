@@ -147,7 +147,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
      * Wait to receive a message from the socket. Forward it to the dispatcher.
      */
     @DelicateCoroutinesApi
-    fun handleResponse(handler:CommandMessageHandler): Deferred<MessageBottle> =
+    private fun handleResponse(handler:CommandMessageHandler): Deferred<MessageBottle> =
         GlobalScope.async(Dispatchers.IO) {
             /**
              * Read from the tablet via the network. Use ANTLR to convert text into requests.
@@ -173,10 +173,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         if( !request.error.equals(BottleConstants.NO_ERROR)) {
             sendResponse(handler,request.error)
         }
-        // Programming error of some kind
+        // LOG message from the tablet - do nothing
         else if( request.type.equals(RequestType.NONE)) {
-            LOGGER.warning(String.format("%s.handleLocalRequest: %s type, doing nothing (%s)",CLSS,
-                                            request.type.name,translator.messageToText(request)))
+            ;
         }
         else if(request.type.equals(RequestType.COMMAND)) {
             val command: CommandType = request.command
@@ -194,7 +193,7 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         }
         // Notification - simply log and send to client
         else if (request.type.equals(RequestType.NOTIFICATION)) {
-            LOGGER.info(String.format("TABLET LOG: %s",request.text))
+            LOGGER.info(String.format("NOTIFY TABLET: %s",request.text))
             sendResponse(handler,request.text)
         }
         else {

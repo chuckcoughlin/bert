@@ -110,7 +110,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     /**
      * We have received a message to send to the robot by forwarding it to the socket.
      */
-    private fun handleRequest(msg:String,handler:SocketTextHandler)  {
+    suspend private fun handleRequest(msg:String,handler:SocketTextHandler)  {
         handler.writeSocket(msg)
     }
 
@@ -148,7 +148,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
     }
 
     /** Send a startup message directly to the socket **/
-    private fun sendStartupMessage(handler:SocketTextHandler) {
+    private suspend fun sendStartupMessage(handler:SocketTextHandler) {
         handler.writeSocket(String.format("%s:%s",MessageType.LOG.name,START_MESSAGE))
     }
 

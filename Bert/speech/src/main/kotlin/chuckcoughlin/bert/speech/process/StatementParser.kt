@@ -1,20 +1,24 @@
 /**
- * Copyright 2020. Charles Coughlin. All Rights Reserved.
+ * Copyright 2020-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.speech.process
 
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.syntax.SpeechSyntaxLexer
 import chuckcoughlin.bert.syntax.SpeechSyntaxParser
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CodePointCharStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
+import java.util.logging.Logger
 
 /**
  * Parse spoken text using ANTLR classes. A context dictionary is passed
@@ -77,9 +81,15 @@ class StatementParser {
         else {
             bottle.error = "Empty"
         }
+        if(DEBUG && !bottle.error.equals(BottleConstants.NO_ERROR)) {
+            LOGGER.info(String.format("%s.parseStatement: %s ERROR %s",CLSS,txt,bottle.error))
+        }
         return bottle
     }
 
+    private val CLSS = "StatementParser"
+    private val DEBUG: Boolean
+    private val LOGGER = Logger.getLogger(CLSS)
 
     /**
      * Constructor provides parameters specific to the robot. The
@@ -87,6 +97,7 @@ class StatementParser {
      * invocations of the translator.
      */
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         context = mutableMapOf<SharedKey,Any>()
         initialize()
     }
