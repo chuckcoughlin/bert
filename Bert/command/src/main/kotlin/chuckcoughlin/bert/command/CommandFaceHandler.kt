@@ -7,7 +7,7 @@ package chuckcoughlin.bert.command
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.FacialDetectionDetails
+import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
 
@@ -17,7 +17,7 @@ import java.util.logging.Logger
  */
 object CommandFaceHandler  {
     private val msg: MessageBottle
-    private var pending: FacialDetectionDetails?
+    private var pending: FacialDetails?
 
     /**
      * The tablet has detected a face.
@@ -28,7 +28,7 @@ object CommandFaceHandler  {
      * @param response
      * @return a notification to the user.
      */
-    fun handleFace(details: FacialDetectionDetails) :MessageBottle {
+    fun handleFace(details: FacialDetails) :MessageBottle {
         var msg = MessageBottle(RequestType.NOTIFICATION)
 
         return msg

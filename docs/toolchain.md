@@ -205,11 +205,14 @@ Create a user for the robot's use . Call it `bert`. Add these to the `sudo`, `di
 ```
    adduser bert
    usermod -aG sudo bert
+   mkdir /home/bert/robot
+   mkdir /home/bert/robot/src
 ```
 Add the following to ``~/.bashrc`` and equivalent to ``~/Library/LaunchAgents/environment.plist``:
 ```
    PS1="\u: "
    export BERT_HOME=/home/bert
+   export ROBOT_HOME=/home/bert/robot
    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-armhf
    export PATH=${PATH}:${BERT_HOME}/bin:${BERT_HOME}/.local/bin:${JAVA_HOME}/bin
 ```
@@ -324,7 +327,7 @@ Reboot then as root:
 
 In `/etc/ld.so.conf.d`, add a file named `bert.conf` containing the single line:
 ```
-  /home/bert/lib
+  /home/bert/robot/lib
 ```
 
 Edit `/lib/systemd/system/bluetooth.service`

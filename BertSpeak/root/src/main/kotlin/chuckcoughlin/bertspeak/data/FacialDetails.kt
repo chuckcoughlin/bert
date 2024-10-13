@@ -12,7 +12,7 @@ package chuckcoughlin.bertspeak.data
  * nam - the name of the list
  * jtype  - the name as a 4 character key.
  */
-class FacialDetectionDetails () {
+class FacialDetails () {
     val contours  = mutableMapOf<String,MutableList<Point2D>>()
     val landmarks = mutableListOf<NamedPoint>()
 

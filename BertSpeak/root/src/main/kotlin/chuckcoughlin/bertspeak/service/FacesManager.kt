@@ -10,12 +10,11 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bertspeak.common.ContourTag
 import chuckcoughlin.bertspeak.data.TextObserver
 import chuckcoughlin.bertspeak.common.LandmarkTag
-import chuckcoughlin.bertspeak.data.FacialDetectionDetails
+import chuckcoughlin.bertspeak.data.FacialDetails
 import chuckcoughlin.bertspeak.data.NamedPoint
 import chuckcoughlin.bertspeak.data.Point2D
 import com.google.gson.Gson
 import com.google.mlkit.vision.face.Face
-import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceLandmark
 
 /**
@@ -54,8 +53,8 @@ class FacesManager (service:DispatchService): CommunicationManager {
             Log.i(CLSS, String.format("Landmark type is %d at %2.2f,%2.2f",landmark.landmarkType,landmark.position.x,landmark.position.y))
         }
 
-        // ------------------ Prepare Face to the Robot -----------------------
-        val holder = FacialDetectionDetails()
+        // ------------------ Prepare Face for the Robot -----------------------
+        val holder = FacialDetails()
         for(landmark in landmarks) {
             val norm = normalizePoint(bb, Point2D(landmark.position.x,landmark.position.y))
             val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
@@ -69,8 +68,10 @@ class FacesManager (service:DispatchService): CommunicationManager {
                 holder.addContourPoint(contourTag.name, norm)
             }
         }
-        val json = Gson().toJson(holder)
-        dispatcher.reportJsonData(JsonType.FACE,json)
+        var json = Gson().toJson(holder)
+        dispatcher.reportJsonData(JsonType.FACE_DETAILS,json)
+
+        dispatcher.reportJsonData(JsonType.FACE_LOCATION,json)
     }
     /**
      * When a new log observer is registered, send a link to this manager.

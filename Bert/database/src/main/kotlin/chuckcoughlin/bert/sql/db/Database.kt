@@ -5,7 +5,7 @@
  */
 package chuckcoughlin.bert.sql.db
 
-import chuckcoughlin.bert.common.model.FacialDetectionDetails
+import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
@@ -55,7 +55,7 @@ object Database  {
      * @param user-entered command user
      * @param the corresponding pose name
      */
-    fun mapFaceNameToDetails(name: String, details: FacialDetectionDetails) {
+    fun mapFaceNameToDetails(name: String, details: FacialDetails) {
         //return pose.mapCommandToPose(connection, cmd, poseName)
     }
     /**

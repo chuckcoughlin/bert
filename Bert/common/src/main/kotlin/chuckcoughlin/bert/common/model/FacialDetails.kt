@@ -4,8 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.NamedPoint
-
 /**
  * This class is a holder for parameters that define
  * a face.
@@ -13,7 +11,7 @@ import chuckcoughlin.bert.common.model.NamedPoint
  * nam - the name of the list
  * jtype  - the name as a 4 character key.
  */
-class FacialDetectionDetails () {
+class FacialDetails () {
     val contours  = mutableMapOf<String,MutableList<Point2D>>()
     val landmarks = mutableListOf<NamedPoint>()
 

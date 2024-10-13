@@ -210,6 +210,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		text = text.replace("exposition", "x position")
 		text = text.replace("fries", "freeze")
 		text = text.replace("what's", "what is")
+		text = text.replace("why", "y")
 		text = text.replace("zero", "0")
 		return text
 	}

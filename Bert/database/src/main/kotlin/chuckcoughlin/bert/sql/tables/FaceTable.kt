@@ -25,7 +25,7 @@ class FaceTable {
      * @param name of user associated with detection details
      * @param details facial detection details
      */
-    fun mapFaceNameToDetails(cxn: Connection?, name: String, details: FacialDetectionDetails) {
+    fun mapFaceNameToDetails(cxn: Connection?, name: String, details: FacialDetails) {
         if( cxn!=null ) {
             var statement: PreparedStatement? = null
             var SQL = "UPDATE PoseMap SET pose=? WHERE command = ?"
