@@ -103,15 +103,23 @@ temperature (deg C), and voltage (volts). A typical query:
     what is the speed of your right knee
     what is the temperature of your right shoulder x
     what is the torque of your left hip x
-```
-* ![yellow](/images/ball_yellow.png) ``Hardware Limits`` - Query limits
-that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
-Values include angle, speed and and torque limits.
-Typical syntax:
-```
     what is the range of your right knee
     what is the maximum angle of your left elbow
 ```
+* ![yellow](/images/ball_yellow.png) ``Range of Motion`` - Test limits
+that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
+Additionally these values are configured in  *bert.xml*. Test to make sure that each joint
+can be driven to the minimum and maximum of its range - and that these range values make sense
+for the movement of the robot as a whole.
+- [ ] abs (x,y,z)
+- [ ] ankle
+- [ ] arm
+- [ ] bust (x,y)
+- [ ] elbow
+- [ ] knee
+- [ ] hip (x,y,z)
+- [ ] neck (y,z)
+- [ ] shoulder (x,y,z)
 
 ### d - Utilities <a id="utilities"></a>
 
@@ -358,7 +366,8 @@ spoken text.
 * ![green](/images/ball_yellow.png) ``Speech`` - Validate that all commands and queries
 used in the previous section can be executed via speech and that responses are
 likewise formulated into audible sentences.
-## Rasp Piberry <a id="raspberry"></a>
+
+## Raspberry Pi<a id="raspberry"></a>
 This section describes test on the Raspberry Pi auxilliary system, the subprocessor that handles
 smaller appendages.
 ### a - Eye Tracking <a id="eye"></a>

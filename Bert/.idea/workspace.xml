@@ -16,8 +16,6 @@
       <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/FaceTable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/FaceTable.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/FacialDetectionDetails.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/FacialDetails.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/JsonType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/data/JsonType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/FacesManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../BertSpeak/root/src/main/kotlin/chuckcoughlin/bertspeak/service/FacesManager.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../docs/toolchain.md" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/toolchain.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

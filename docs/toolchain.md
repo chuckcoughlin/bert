@@ -1,4 +1,4 @@
-# Toolchain
+# Skeleton and Toolchain
 
 This document describes the software tools used to develop "Bert", including their procurement and configuration. It also gives a step-by-step guide to assembly of the skeleton, including visual aids.
 
@@ -40,8 +40,10 @@ The following sections contain describe modifications we've made to the original
 
 #### Legs <a id="skeleton-legs"></a>
 US child-size 8 shoes seem to fit. I used a 3D print coating, [XTC-3D](https://www.smooth-on.com/products/xtc-3d/) to effect a smooth, shiny finish on the feet.
+
 #### Arms <a id="skeleton-arms"></a>
 The hands are coated in [UreCoat](https://www.smooth-on.com/product-line/urecoat/) which gives a rather creepy-feeling soft latex covering. A flesh-toned [colorant](https://www.smooth-on.com/category/color-and-fillers/) was mixed into the coating before application.
+
 #### Torso <a id="skeleton-torso"></a>
 We used 2.5 x 12mm screws to fasten the 2 SMPS2Dynamixel boards to the torso. The video shows sticking them on with hot-glue.
 
@@ -49,6 +51,7 @@ We applied 12V power to each SMPS2Dynamixel separately from our power supply. Th
 
 We found that the hip y joints opened too far when there was no power applied. This resulted in tangled legs that interfered with each other causing excess stress on the wiring and serial connection errors.
 Rubber bungee cords are used to bring the legs to a parallel position at rest.
+
 ![Leg Supports](/images/bungee.jpg)
 ```                  Flexible Leg Supports     ```
 
