@@ -47,6 +47,11 @@ We used 2.5 x 12mm screws to fasten the 2 SMPS2Dynamixel boards to the torso. Th
 
 We applied 12V power to each SMPS2Dynamixel separately from our power supply. There is no connection between SMPS2Dynamixel boards on the RS485 ports as shown in the assembly video. The RS485 port from the upper SMPs2Dynamixel board is used to power the 12V Odroid board.
 
+We found that the hip y joints opened too far when there was no power applied. This resulted in tangled legs that interfered with each other causing excess stress on the wiring and serial connection errors.
+Rubber bungee cords are used to bring the legs to a parallel position at rest.
+![Leg Supports](/images/bungee.jpg)
+```                  Flexible Leg Supports     ```
+
 #### Head <a id="skeleton-head"></a>
 The head design was revised in our latest version to accommodate the Odroid N2+ processor.
 In the photos, the revised head is gold in color.  
