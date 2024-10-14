@@ -15,8 +15,8 @@ package chuckcoughlin.bert.common.message
  */
 enum class JsonType {
     APPENDAGE_NAMES,  // List of appendages
-    FACE_DETAILS,     // Facial identification features
-    FACE_LOCATION,    // X,Y,Z position of face
+    FACIAL_DETAILS,   // Facial identification features
+    FACE_DIRECTION,   // Angular direction of view
     FACE_NAMES,       // Names df people whom we know
     JOINT_NAMES,      // List of joint names
     LIMB_NAMES,       // List of limb names

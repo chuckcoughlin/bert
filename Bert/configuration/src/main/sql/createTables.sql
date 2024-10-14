@@ -63,7 +63,6 @@ CREATE TABLE Pose (
 	NECK_Y	integer NULL,
 	NECK_Z	integer NULL,
 	LEFT_ANKLE_Y	integer NULL,
-	LEFT_ARM_Z	integer NULL,
 	LEFT_ELBOW_Y	text NULL,
 	LEFT_HIP_X	integer NULL,
 	LEFT_HIP_Y	integer NULL,
@@ -71,8 +70,8 @@ CREATE TABLE Pose (
 	LEFT_KNEE_Y	integer NULL,
 	LEFT_SHOULDER_X	integer NULL,
 	LEFT_SHOULDER_Y	integer NULL,
+	LEFT_SHOULDER_Z	integer NULL,
 	RIGHT_ANKLE_Y	integer NULL,
-	RIGHT_ARM_Z	integer NULL,
 	RIGHT_ELBOW_Y	integer NULL,
 	RIGHT_HIP_X	integer NULL,
 	RIGHT_HIP_Y	integer NULL,
@@ -80,6 +79,7 @@ CREATE TABLE Pose (
 	RIGHT_KNEE_Y	integer NULL,
 	RIGHT_SHOULDER_X	integer NULL,
 	RIGHT_SHOULDER_Y	integer NULL,
+	RIGHT_SHOULDER_Z	integer NULL,
 	UNIQUE (name,parameter)
 );
 -- The PoseMap table maps commands to poses.

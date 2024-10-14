@@ -5,7 +5,6 @@
 package chuckcoughlin.bertspeak.tab
 
 
-import android.content.Intent
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
@@ -38,7 +37,6 @@ import chuckcoughlin.bertspeak.ui.RendererFactory
 import chuckcoughlin.bertspeak.ui.StatusImageButton
 import chuckcoughlin.bertspeak.ui.VerticalSeekBar
 import chuckcoughlin.bertspeak.ui.waveform.WaveformView
-import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 
@@ -139,7 +137,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     @Synchronized
     private fun stopVisualizer() {
-        //visualizer.enabled = false
+        visualizer.enabled = false
         visualizer.release()
         visualizer.setDataCaptureListener(null, 0, false, false)
     }

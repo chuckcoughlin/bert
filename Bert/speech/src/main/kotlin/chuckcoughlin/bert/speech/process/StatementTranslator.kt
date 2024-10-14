@@ -965,14 +965,14 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                             "Y",
                             ignoreCase = true
                         )
-                    ) Joint.LEFT_SHOULDER_Y else Joint.LEFT_ARM_Z
+                    ) Joint.LEFT_SHOULDER_Y else Joint.LEFT_SHOULDER_Z
                 }
                 else if (side.equals("right", ignoreCase = true)) {
                     result = if (axis.equals("X", ignoreCase = true)) Joint.RIGHT_SHOULDER_X else if (axis.equals(
                             "Y",
                             ignoreCase = true
                         )
-                    ) Joint.RIGHT_SHOULDER_Y else Joint.RIGHT_ARM_Z
+                    ) Joint.RIGHT_SHOULDER_Y else Joint.RIGHT_SHOULDER_Z
                 }
             }
         }

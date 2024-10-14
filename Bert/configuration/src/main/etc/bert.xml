@@ -43,14 +43,14 @@
 		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="15" min="50" max="180" orientation="direct" speed="660" load="1.9" limb="RIGHT_LEG"/>
 	</controller>
 	<controller name="upper" type="MOTOR" port="upper" device="/dev/ttyACM0" >
-		<joint name="LEFT_ARM_Z"   type="MX28" id="43" offset="-198" min="-45" max="90" orientation="indirect" speed="660" load="1.9" limb="LEFT_ARM"/>
 		<joint name="LEFT_ELBOW_Y" type="MX28" id="44" offset="17" min="45" max="180" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>
 		<joint name="LEFT_SHOULDER_X"  type="MX28" id="42" offset="-70" min="90" max="215" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>
 		<joint name="LEFT_SHOULDER_Y"  type="MX28" id="41" offset="-65" min="0" max="225" orientation="direct" speed="660" load="1.9" limb="LEFT_ARM"/>
-		<joint name="RIGHT_ARM_Z"      type="MX28" id="53" offset="-180" min="-45" max="90" orientation="direct" speed="660" load="1.9" limb="RIGHT_ARM"/>
+		<joint name="LEFT_SHOULDER_Z"   type="MX28" id="43" offset="-198" min="-45" max="90" orientation="indirect" speed="660" load="1.9" limb="LEFT_ARM"/>
 		<joint name="RIGHT_ELBOW_Y"    type="MX28" id="54" offset="4" min="45" max="180" orientation="indirect" speed="660" load="1.9" limb="RIGHT_ARM"/>
 		<joint name="RIGHT_SHOULDER_X" type="MX28" id="52" offset="-105" min="90" max="215" orientation="indirect" speed="660" load="1.9" limb="RIGHT_ARM"/>
 		<joint name="RIGHT_SHOULDER_Y" type="MX28" id="51" offset="-100" min="0" max="225" orientation="indirect" speed="660" load="1.9" limb="RIGHT_ARM"/>
+		<joint name="RIGHT_SHOULDER_Z"      type="MX28" id="53" offset="-180" min="-45" max="90" orientation="direct" speed="660" load="1.9" limb="RIGHT_ARM"/>
 		<joint name="NECK_Y"       type="AX12" id="37" offset="-120" min="-5" max="20" orientation="direct" speed="640" load="0.9" limb="HEAD"/>
 		<joint name="NECK_Z"       type="AX12" id="36" offset="-150" min="-30" max="30" orientation="indirect" speed="640" load="0.9" limb="HEAD"/>
 		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="150" max="210" orientation="direct"   speed="660" load="3.9" limb="TORSO"/>

@@ -2,11 +2,7 @@ package chuckcoughlin.bert
 
 
 import chuckcoughlin.bert.common.PathConstants
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Chain
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.util.LoggerUtility
 import java.nio.file.Paths
 import java.util.*
@@ -86,7 +82,7 @@ fun setMotorPositions() {
             Joint.NECK_Y -> mc!!.angle = 0.0
             Joint.NECK_Z -> mc!!.angle = 0.0
             Joint.LEFT_ANKLE_Y -> mc!!.angle = 90.0
-            Joint.LEFT_ARM_Z -> mc!!.angle = 0.0
+            Joint.LEFT_SHOULDER_Z -> mc!!.angle = 0.0
             Joint.LEFT_ELBOW_Y -> mc!!.angle = 180.0
             Joint.LEFT_HIP_X -> mc!!.angle = 180.0
             Joint.LEFT_HIP_Y -> mc!!.angle = 180.0
@@ -95,7 +91,7 @@ fun setMotorPositions() {
             Joint.LEFT_SHOULDER_X -> mc!!.angle = 180.0
             Joint.LEFT_SHOULDER_Y -> mc!!.angle = 180.0
             Joint.RIGHT_ANKLE_Y -> mc!!.angle = 90.0
-            Joint.RIGHT_ARM_Z -> mc!!.angle = 0.0
+            Joint.RIGHT_SHOULDER_Z -> mc!!.angle = 0.0
             Joint.RIGHT_ELBOW_Y -> mc!!.angle = 180.0
             Joint.RIGHT_HIP_X -> mc!!.angle = 180.0
             Joint.RIGHT_HIP_Y -> mc!!.angle = 180.0

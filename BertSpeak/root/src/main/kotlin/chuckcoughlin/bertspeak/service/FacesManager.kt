@@ -10,6 +10,7 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bertspeak.common.ContourTag
 import chuckcoughlin.bertspeak.data.TextObserver
 import chuckcoughlin.bertspeak.common.LandmarkTag
+import chuckcoughlin.bertspeak.data.FaceDirection
 import chuckcoughlin.bertspeak.data.FacialDetails
 import chuckcoughlin.bertspeak.data.NamedPoint
 import chuckcoughlin.bertspeak.data.Point2D
@@ -54,24 +55,29 @@ class FacesManager (service:DispatchService): CommunicationManager {
         }
 
         // ------------------ Prepare Face for the Robot -----------------------
-        val holder = FacialDetails()
+        val details = FacialDetails()
+        val direction = FaceDirection()
         for(landmark in landmarks) {
             val norm = normalizePoint(bb, Point2D(landmark.position.x,landmark.position.y))
             val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
             val np = NamedPoint(landmarkTag.name,norm.x,norm.y)
-            holder.addLandmark(np)
+            details.addLandmark(np)
         }
         for(contour in contours) {
             val contourTag = ContourTag.tagForCode(contour.faceContourType)
             for(point in contour.points) {
                 val norm = normalizePoint(bb, Point2D(point.x,point.y))
-                holder.addContourPoint(contourTag.name, norm)
+                details.addContourPoint(contourTag.name, norm)
             }
         }
-        var json = Gson().toJson(holder)
-        dispatcher.reportJsonData(JsonType.FACE_DETAILS,json)
 
-        dispatcher.reportJsonData(JsonType.FACE_LOCATION,json)
+        direction.x = face.headEulerAngleX
+        direction.y = 0.0f
+        direction.z = face.headEulerAngleZ
+        var json = Gson().toJson(details)
+        dispatcher.reportJsonData(JsonType.FACIAL_DETAILS,json)
+        json = Gson().toJson(direction)
+        dispatcher.reportJsonData(JsonType.FACE_DIRECTION,json)
     }
     /**
      * When a new log observer is registered, send a link to this manager.

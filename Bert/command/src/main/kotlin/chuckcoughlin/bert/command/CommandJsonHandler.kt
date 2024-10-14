@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.FaceDirection
 import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.RobotModel
 import com.google.gson.Gson
@@ -29,9 +30,13 @@ object CommandJsonHandler  {
      */
     fun handleJson(type:JsonType,json:String) :MessageBottle {
         var msg = MessageBottle(RequestType.NOTIFICATION)
-        if( type == JsonType.FACE_DETAILS) {
+        if( type == JsonType.FACIAL_DETAILS) {
             val fdd = gson.fromJson(json, FacialDetails::class.java)
-            msg = CommandFaceHandler.handleFace(fdd)
+            msg = CommandFaceHandler.handleDetails(fdd)
+        }
+        else if( type == JsonType.FACE_DIRECTION) {
+            val fd = gson.fromJson(json, FaceDirection::class.java)
+            msg = CommandFaceHandler.handleDirection(fd)
         }
         else {
             msg.error = String.format("data message type \"%s\" not handled",type.name)

@@ -173,7 +173,7 @@
 		<child link="LEFT_SHOULDER_LINK"></child>
 		<axis xyz="0 0 1"></axis>
 	</joint>
-	<joint name="LEFT_ARM_Z" type="revolute">
+	<joint name="LEFT_SHOULDER_Z" type="revolute">
 		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
 		<parent link="LEFT_SHOULDER_LINK"></parent>
 		<child link="LEFT_UPPER_ARM"></child>
@@ -197,7 +197,7 @@
 		<child link="RIGHT_SHOULDER_LINK"></child>
 		<axis xyz="0 0 -1"></axis>
 	</joint>
-	<joint name="RIGHT_ARM_Z" type="revolute">
+	<joint name="RIGHT_SHOULDER_Z" type="revolute">
 		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
 		<parent link="RIGHT_SHOULDER_LINK"></parent>
 		<child link="RIGHT_UPPER_ARM"></child>
