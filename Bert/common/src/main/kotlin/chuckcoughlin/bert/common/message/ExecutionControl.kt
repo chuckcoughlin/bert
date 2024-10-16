@@ -32,6 +32,9 @@ data class ExecutionControl(var delay: Long) : Cloneable {
         copy.repeatInterval = repeatInterval
         copy.originalSource = originalSource
         copy.responseCount  = mutableMapOf<String, Int>()
+        for(key in responseCount.keys) {
+            copy.responseCount[key] = responseCount[key]!!.toInt()
+        }
         copy.shouldRepeat   = shouldRepeat
         return copy
     }

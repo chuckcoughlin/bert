@@ -405,10 +405,10 @@ class Dispatcher() : Controller {
             val joint = request.joint
             val mc = RobotModel.motorsByJoint[joint]!!
             if(request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE) {
-                request.text = String.format("The maximum position of my %s is %2.0f degrees",Joint.toText(joint),mc.maxAngle)
+                request.text = String.format("The maximum angle of my %s is %2.0f degrees",Joint.toText(joint),mc.maxAngle)
             }
             else if(request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE) {
-                request.text = String.format("The minimum position of my %s is %2.0f degrees",Joint.toText(joint),mc.minAngle)
+                request.text = String.format("The minimum angle of my %s is %2.0f degrees",Joint.toText(joint),mc.minAngle)
             }
             else if(request.jointDynamicProperty == JointDynamicProperty.RANGE) {
                 request.text = String.format("I can move my %s from %2.0f to %2.0f",Joint.toText(joint),mc.minAngle,mc.maxAngle)

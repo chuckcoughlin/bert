@@ -106,26 +106,25 @@ temperature (deg C), and voltage (volts). A typical query:
     what is the range of your right knee
     what is the maximum angle of your left elbow
 ```
-* ![yellow](/images/ball_yellow.png) ``Range of Motion`` - Test limits
+* ![green](/images/ball_green.png) ``Range of Motion`` - Test limits
 that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
 Additionally these values are configured in  *bert.xml*. Test to make sure that each joint
 can be driven to the minimum and maximum of its range - and that these range values make sense
-for the movement of the robot as a whole.
-- [ ] abs (x,y,z)
-- [ ] ankle
-- [ ] arm
-- [ ] bust (x,y)
-- [ ] elbow
-- [ ] knee
-- [ ] hip (x,y,z)
-- [ ] neck (y,z)
-- [ ] shoulder (x,y,z)
+for the movement of the robot as a whole. Caution some of these settings may conflict with each other. There is no collision checking.
+- [x] abs (x,y,z)      range: (150,210),(150,200),(-60,60)
+- [x] ankle            range: (60,135)
+- [x] bust (x,y)       range: (170,190),(170,190)
+- [x] elbow            range: (45,180)
+- [x] knee             range: (50,180)
+- [x] hip (x,y,z)      range: (155,190),(75,225),(-20,45)
+- [x] neck (y,z)        ranges: (-5,20),(30,30)
+- [x] shoulder (x,y,z)  ranges: (90,215),(0,225),(-45,90)
 
 ### d - Utilities <a id="utilities"></a>
 
-* ![yellow](/images/ball_yellow.png) ``Initialization`` - set the position of each joint to its default. Visually verify the position of each joint. Use the standalone version of the robot application to enter the command:
+* ![green](/images/ball_green.png) ``Initialization`` - set the position of each joint to its default. Use the standalone version of the robot application to enter the command then visually verify the position of each joint. Note that after startup each joint is
+guaranteed to be in a sane position.
 ```
-    attention
     straighten up
 ```
 * ![gray](/images/ball_gray.png) ``System Commands`` - These are no-argument commands that
@@ -135,16 +134,6 @@ perform various system operations. In the list below, the check mark indicates c
   operation in the event of I/O errors.
   - [ ] shutdown: power off the robot after a clean shutdown.
 
-
-* ![yellow](/images/ball_yellow.png) ``Positions`` - Use the terminal application to
-revisit the detection of position. In particular, check that the orientation is
-proper and limits and values makes sense. E.g. a straight knee should be at 180 deg; the neck
-when facing straight ahead is 0 deg. Fix the configuration file limits to be within the actual
-EEPROM limits. Results are in english text. A typical query:
-```
-    what is the position of your left elbow
-    what is the range of your left elbow
-```
 
 * ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
 its limbs are in unknown positions. As part of the startup sequence, read the positions of

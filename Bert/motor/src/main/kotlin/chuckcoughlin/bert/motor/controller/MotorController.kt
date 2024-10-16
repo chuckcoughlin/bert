@@ -129,7 +129,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      */
     suspend fun processRequest() {
         val request = parentRequestChannel.receive()    //  Waits for message
-        LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name));
+        LOGGER.info(String.format("%s.processRequest:%s processing %s (count=%d)",CLSS,controllerName,request.type.name,request.control.responseCount[controllerName]))
         // Do nothing if the joint or limb isn't on this controller
         // -- a limb is on one side or the other, not both
         if( isSingleControllerRequest(request) ) {
@@ -151,10 +151,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         // Get the intended response count - zero if controller is unknown
         var responseCount = 0
-        if( request.control.responseCount[controllerName]!=null ) responseCount=request.control.responseCount[controllerName]!!
         // Now construct the byte array to write to the port
         if( isSingleWriteRequest(request) ) {
             val bytes = messageToBytes(request)
+            responseCount=request.control.responseCount[controllerName]!!
             if (bytes != null) {
                 if(responseCount > 0) {
                     requestQueue.send(request)
@@ -165,6 +165,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else {
             val byteArrayList = messageToByteList(request)
+            responseCount=request.control.responseCount[controllerName]!!
             if(responseCount > 0) {
                 requestQueue.send(request)
             }

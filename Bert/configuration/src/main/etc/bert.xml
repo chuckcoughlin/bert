@@ -32,12 +32,13 @@
     -->
 	<controller name="lower" type="MOTOR" port="lower" device="/dev/ttyACM1" >
 		<joint name="LEFT_ANKLE_Y" type="MX28" id="15" offset="-91" min="60" max="135" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
-		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="-8" min="155" max="205" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
+		<joint name="LEFT_HIP_X"   type="MX28" id="11" offset="-8" min="155" max="190" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/> <!-- MX64 max=205, interferes -->
+		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="-18" min="75" max="225" orientation="indirect" speed="660" load="3.9" limb="RIGHT_LEG"/>
 		<joint name="LEFT_HIP_Y"   type="MX64" id="13" offset="-18" min="75" max="225" orientation="direct"   speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="LEFT_HIP_Z"   type="MX28" id="12" offset="-200" min="-20" max="45" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="LEFT_KNEE_Y"      type="MX28" id="14" offset="-4" min="50" max="180" orientation="indirect" speed="660" load="1.9" limb="LEFT_LEG"/>
 		<joint name="RIGHT_ANKLE_Y"    type="MX28" id="25" offset="-108" min="60" max="135" orientation="indirect" speed="660" load="1.9" limb="RIGHT_LEG"/>
-		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="16" min="155" max="205" orientation="direct" speed="660" load="3.9" limb="RIGHT_LEG"/>
+		<joint name="RIGHT_HIP_X"      type="MX28" id="21" offset="16" min="155" max="190" orientation="direct" speed="660" load="3.9" limb="RIGHT_LEG"/> <!-- MX64 max=205, interferes -->
 		<joint name="RIGHT_HIP_Y"      type="MX64" id="23" offset="-18" min="75" max="225" orientation="indirect" speed="660" load="3.9" limb="RIGHT_LEG"/>
 		<joint name="RIGHT_HIP_Z"      type="MX28" id="22" offset="-160" min="-20" max="45" orientation="direct" speed="660" load="1.9" limb="RIGHT_LEG"/>
 		<joint name="RIGHT_KNEE_Y"     type="MX28" id="24" offset="15" min="50" max="180" orientation="direct" speed="660" load="1.9" limb="RIGHT_LEG"/>
@@ -54,9 +55,9 @@
 		<joint name="NECK_Y"       type="AX12" id="37" offset="-120" min="-5" max="20" orientation="direct" speed="640" load="0.9" limb="HEAD"/>
 		<joint name="NECK_Z"       type="AX12" id="36" offset="-150" min="-30" max="30" orientation="indirect" speed="640" load="0.9" limb="HEAD"/>
 		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="150" max="210" orientation="direct"   speed="660" load="3.9" limb="TORSO"/>
-		<joint name="ABS_Y"        type="MX64" id="31" offset="16" min="150" max="210" orientation="direct"  speed="660" load="3.9" limb="TORSO"/>
+		<joint name="ABS_Y"        type="MX64" id="31" offset="16" min="150" max="200" orientation="direct"  speed="660" load="3.9" limb="TORSO"/> <!-- MX64 150-210 can't support weight -->
 		<joint name="ABS_Z"        type="MX28" id="33" offset="-160" min="-60" max="60" orientation="direct" speed="660" load="1.9" limb="TORSO"/>
-		<joint name="BUST_X"       type="MX28" id="35" offset="5" min="150" max="210" orientation="direct"   speed="660" load="1.9" limb="TORSO"/>
-		<joint name="BUST_Y"       type="MX28" id="34" offset="24" min="150" max="210" orientation="direct"  speed="660" load="1.9" limb="TORSO"/>
+		<joint name="BUST_X"       type="MX28" id="35" offset="5" min="170" max="190" orientation="direct"   speed="660" load="1.9" limb="TORSO"/> <!-- MX64 150-210 can't support weight -->
+		<joint name="BUST_Y"       type="MX28" id="34" offset="24" min="165" max="195" orientation="direct"  speed="660" load="1.9" limb="TORSO"/> <!-- MX64 150-210 can't support weight -->
 	</controller>
 </robot>
