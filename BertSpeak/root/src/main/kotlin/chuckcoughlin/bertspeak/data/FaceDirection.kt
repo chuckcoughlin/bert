@@ -6,14 +6,12 @@ package chuckcoughlin.bertspeak.data
 
 /**
  * This class is a holder for parameters that define
- * the direction of a face in terms of sines of 2 angles.
+ * the direction to a face in terms of sines of 2 angles.
  * Its purpose is to make it easy to format JSON.
- * x - euler angle in y-z plane.
- * y - euler angle in x-z
- * z - euler angle in x-y plane (view from side-to-side)
+ * elevation - angle fron x-y plane to the face
+ * azimuth - angle in x-y plane to the face
  */
 class FaceDirection () {
-    var x = 0.0f
-    var y = 0.0f
-    var z = 0.0f
+    var elevation = 0.0
+    var azimuth = 0.0
 }

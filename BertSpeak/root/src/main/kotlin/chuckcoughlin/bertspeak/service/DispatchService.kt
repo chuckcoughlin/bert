@@ -37,6 +37,8 @@ import java.util.Locale
  */
 class DispatchService(ctx: Context){
     var context:Context
+    var screenHeight: Int   // For use by various managers
+    var screenWidth: Int
     lateinit var facesManager: FacesManager
     lateinit var geometryManager: GeometryManager
     lateinit var hearingManager: HearingManager
@@ -251,5 +253,7 @@ class DispatchService(ctx: Context){
 
     init {
         context = ctx
+        screenHeight = 1000
+        screenWidth  = 1000
     }
 }

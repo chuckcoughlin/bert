@@ -24,7 +24,7 @@ command:
 	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand1
 	| Salutation? List Article? Motor? Properties                   # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
-	| Salutation? Move Adverb                                                   # moveSpeed
+	| Salutation? Now? Move Adverb                                              # moveSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?		# enableTorque
     | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
 	| Salutation? Set Article? Property Of Article? Side? (Joint|Limb) Axis? To (Value|On|Off|Adverb) Unit?  # setMotorProperty
@@ -73,7 +73,7 @@ Why: 'why';
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
-Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow'|'faster'|'slower'|'quicker';
+Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow'|'faster'|'slower'|'quicker'|'normal';
 Appendages: 'appendages';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Are: 'are';
@@ -103,9 +103,10 @@ Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
 Names: 'names';
+Now: 'from now on'|'now';
 Of: 'of'|'for';
-Off: 'off';
-On: 'on';
+Off: 'off'|'disabled';
+On: 'on'|'enabled';
 Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Parameters: 'properties'|'parameters'|'settings';
 Pose: 'pose';

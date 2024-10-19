@@ -262,8 +262,8 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
                 //startActivity(homeIntent);
                 ///requireActivity().finish()
 
-                //android.os.Process.killProcess(android.os.Process.myPid())
-                //System.exit(0)    // Don't kill before tasks shut down
+                android.os.Process.killProcess(android.os.Process.myPid())
+                System.exit(0)    // Don't kill before tasks shut down
             }
             // Produce a random message
             speechStatusButton -> {
@@ -316,7 +316,6 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     val CLSS = "CoverFragment"
     val CAPTURE_SIZE = 256
-
 
     init {
         name = CLSS

@@ -179,7 +179,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	}
 	// Mute the beeps waiting for spoken input. At one point these methods were used to silence
 	// annoying beeps with every onReadyForSpeech cycle.
-	// In current state beeping is suppressed, but vizualizer doesn't work.
+	// In current state beeping is suppressed, and vizualizer works when volume increased
 	fun mute() {
 		Log.i(CLSS, String.format("mute"))
 		audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE)
@@ -218,7 +218,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	val CLSS = "HearingManager"
 	val DELAY_TIME = 1000L
 	val SPEECH_MIN_TIME = 10      // Word must be at least this long
-	val END_OF_PHRASE_TIME = 500 // Silence to indicate end-of-input
+	val END_OF_PHRASE_TIME = 250 // Silence to indicate end-of-input
 
 	/**
 	 * Creating the speech recognizer must be done on the main thread..

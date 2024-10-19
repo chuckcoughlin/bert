@@ -14,9 +14,11 @@ import chuckcoughlin.bertspeak.data.FaceDirection
 import chuckcoughlin.bertspeak.data.FacialDetails
 import chuckcoughlin.bertspeak.data.NamedPoint
 import chuckcoughlin.bertspeak.data.Point2D
+import kotlin.math.PI
 import com.google.gson.Gson
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceLandmark
+import kotlin.math.atan2
 
 /**
  * Accept a new face structure from the FacesFragment, then handle all
@@ -30,7 +32,6 @@ class FacesManager (service:DispatchService): CommunicationManager {
     private val faceObservers: MutableMap<String, TextObserver>
 
     override fun start() {
-
     }
     /**
      * Called when main activity is stopped. Clean up any resources.
@@ -47,18 +48,16 @@ class FacesManager (service:DispatchService): CommunicationManager {
         Log.i(CLSS, "======================= Got a FACE =======================")
         val contours = face.allContours
         Log.i(CLSS, String.format("Face has %d contours",contours.size))
-        val bb = face.boundingBox
-        Log.i(CLSS, String.format("BoundingBox is %d x %d at %d,%d",bb.right-bb.left,bb.top-bb.bottom, bb.top,bb.left))
         val landmarks = face.allLandmarks
         for(landmark: FaceLandmark in landmarks) {
-            Log.i(CLSS, String.format("Landmark type is %d at %2.2f,%2.2f",landmark.landmarkType,landmark.position.x,landmark.position.y))
+            Log.i(CLSS, String.format("reportFaceDetected: landmark type is %d at %2.2f,%2.2f",landmark.landmarkType,landmark.position.x,landmark.position.y))
         }
-
+        val facebox = face.boundingBox
+        Log.i(CLSS, String.format("reportFaceDetected: boundingBox is %d x %d at %d,%d",facebox.right-facebox.left,facebox.top-facebox.bottom, facebox.top,facebox.left))
         // ------------------ Prepare Face for the Robot -----------------------
         val details = FacialDetails()
-        val direction = FaceDirection()
         for(landmark in landmarks) {
-            val norm = normalizePoint(bb, Point2D(landmark.position.x,landmark.position.y))
+            val norm = normalizePoint(facebox, Point2D(landmark.position.x,landmark.position.y))
             val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
             val np = NamedPoint(landmarkTag.name,norm.x,norm.y)
             details.addLandmark(np)
@@ -66,16 +65,16 @@ class FacesManager (service:DispatchService): CommunicationManager {
         for(contour in contours) {
             val contourTag = ContourTag.tagForCode(contour.faceContourType)
             for(point in contour.points) {
-                val norm = normalizePoint(bb, Point2D(point.x,point.y))
+                val norm = normalizePoint(facebox, Point2D(point.x,point.y))
                 details.addContourPoint(contourTag.name, norm)
             }
         }
 
-        direction.x = face.headEulerAngleX
-        direction.y = 0.0f
-        direction.z = face.headEulerAngleZ
+
         var json = Gson().toJson(details)
         dispatcher.reportJsonData(JsonType.FACIAL_DETAILS,json)
+
+        val direction = computeFaceDirection(facebox)
         json = Gson().toJson(direction)
         dispatcher.reportJsonData(JsonType.FACE_DIRECTION,json)
     }
@@ -99,6 +98,29 @@ class FacesManager (service:DispatchService): CommunicationManager {
         }
     }
 
+    /**
+     * Use the difference in size between screen and bounding box to
+     * infer a distance from screen. Then use difference in centers
+     * of screen and bounding box to infer a direction. Compare widths.
+     */
+    private fun computeFaceDirection(faceBox:Rect):FaceDirection {
+        val faceDirection = FaceDirection()
+        /* Compute purported distance to face */
+        val screenWidth = dispatcher.screenWidth.toFloat()
+        val boxWidth = faceBox.width().toFloat()
+        val distToFace = (FOCAL_LENGTH * boxWidth)/screenWidth
+        val screenCenterX = screenWidth/2f
+        val boxCenterX = faceBox.centerX().toFloat()
+        faceDirection.azimuth = atan2(screenCenterX-boxCenterX,distToFace)*PI/180
+
+        val screenHeight = dispatcher.screenHeight.toFloat()
+        val screenCenterY = -screenHeight/2f
+        val boxCenterY = faceBox.centerY().toFloat()
+        faceDirection.elevation = atan2(screenCenterY-boxCenterY,distToFace)*PI/180
+        Log.i(CLSS, String.format("computeFaceDirection: direction is %2.0f x %2.0f",faceDirection.azimuth,faceDirection.elevation))
+
+        return faceDirection
+    }
     private fun initializeObservers() {
         for (observer in faceObservers.values) {
             observer.resetList(faceList)
@@ -126,6 +148,11 @@ class FacesManager (service:DispatchService): CommunicationManager {
     }
 
     private val CLSS = "FacesManager"
+    /* Approximate distance from the screen to the vanishing
+     * point of the face. This is used in our calculation of
+     * direction to the center of the face
+     */
+    private val FOCAL_LENGTH = 10000f  // Vanishing distance ~ mm
 
     /**
      * There should only be one text manager. owned by the dispatch service.

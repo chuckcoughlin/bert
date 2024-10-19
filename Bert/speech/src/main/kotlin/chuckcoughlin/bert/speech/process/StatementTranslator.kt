@@ -652,15 +652,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         }
 
         val prop = bottle.jointDynamicProperty
-        if (!prop.equals(JointDynamicProperty.ANGLE) &&
-            !prop.equals(JointDynamicProperty.SPEED) &&
-            !prop.equals(JointDynamicProperty.STATE) &&
-            !prop.equals(JointDynamicProperty.TORQUE) ) {
-            bottle.error = "Only position, speed, torque and state are settable for a joint"
-        }
-        else {
-            bottle.value = ctx.Value().getText().toDouble()
-        }
+        bottle.value = ctx.Value().getText().toDouble()
+
         sharedDictionary[SharedKey.JOINT] = joint
         sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         return null
@@ -671,7 +664,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorPropertyContext) : Any?{
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Get the property
-        bottle.jointDynamicProperty = JointDynamicProperty.fromString(ctx.Property().getText())
+        setJointPropertyInMessage(bottle,ctx.Property().getText().lowercase())
 
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
@@ -714,11 +707,31 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
-            bottle.error = "Only position, speed, torque and state can be set for a joint"
+            bottle.error = "Only angle, speed, torque and state can be set for a joint"
         }
-        else if( !bottle.limb.equals(Limb.NONE) && (!bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) )) {
-            bottle.error = "Speed is the only parameter that can be set for an entire limb."
+        else if( !bottle.limb.equals(Limb.NONE) &&
+                        (!bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
+                         !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
+            bottle.error = "Speed or torque are the only properties that can be set for an entire limb."
         }
+        else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) && ctx.Value()==null )  {
+            bottle.error = "The position must be specified as a numerical value"
+        }
+        else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) ) {
+            if(ctx.Adverb()!=null) {
+                setSpeedInMessage(bottle,ctx.Adverb().toString())
+            }
+            else if( ctx.Value()==null ) {
+                bottle.error = "Speed should be specified as fast, slow, normal, very fast or very slow"
+            }
+        }
+        else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE) ) {
+            if( !bottle.value.equals(BottleConstants.ON_VALUE.toDouble()) &&
+                !bottle.value.equals(BottleConstants.OFF_VALUE.toDouble()) ) {
+                bottle.error = "Torque must be specified as on or off, enabled or disabled"
+            }
+        }
+
         return null
     }
 
@@ -1107,6 +1120,19 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if( isDynamic ) msg.jointDynamicProperty = JointDynamicProperty.fromString(pname)
         else            msg.jointDefinitionProperty = JointDefinitionProperty.fromString(pname)
 
+    }
+    // If speed is specified as a word, then convert to a numeric value
+    private fun setSpeedInMessage(msg: MessageBottle, speed: String) {
+        if(speed.contains("slow")) {
+            if(speed.contains("very")) {bottle.value = 2.0}
+            else {bottle.value = 5.0}
+        }
+        else if(speed.contains("fast") ||
+            speed.contains("quick")) {
+            if(speed.contains("very")) { bottle.value = 100.0}
+            else { bottle.value = 80.0 }
+        }
+        else { bottle.value = 20.0 }   // normal
     }
 
     private val CLSS = "StatementTranslator"

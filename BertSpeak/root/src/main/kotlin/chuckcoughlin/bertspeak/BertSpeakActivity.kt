@@ -94,6 +94,8 @@ class BertSpeakActivity : AppCompatActivity() {
 
          */
         DispatchService.instance.context = this.baseContext
+        DispatchService.instance.screenHeight = height
+        DispatchService.instance.screenWidth = width
     }
 
     /**
