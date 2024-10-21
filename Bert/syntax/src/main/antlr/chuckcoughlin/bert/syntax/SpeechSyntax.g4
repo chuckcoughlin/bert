@@ -23,11 +23,11 @@ command:
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
 	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand1
 	| Salutation? List Article? Motor? Properties                   # handleListCommand2
-	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?        # moveMotor
-	| Salutation? Now? Move Adverb                                              # moveSpeed
-	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?		# enableTorque
-    | Salutation? Set Article? Side? Joint Axis? Property? To? Value Unit?		# setMotorPosition
-	| Salutation? Set Article? Property Of Article? Side? (Joint|Limb) Axis? To (Value|On|Off|Adverb) Unit?  # setMotorProperty
+	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
+	| Salutation? Now? Move Speed                                              # setSpeed
+	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	   # enableTorque
+    | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
+	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Unit?  # setMotorProperty
 	| Salutation? Straighten (It|Article? Side? (Joint|Limb) Axis? )    	    # straightenJoint
 	| Salutation? phrase                                    		            # handleArbitraryCommand
 	;
@@ -73,7 +73,6 @@ Why: 'why';
 // Pardon the license taken with some of these categories ...
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
-Adverb: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow'|'faster'|'slower'|'quicker'|'normal';
 Appendages: 'appendages';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Are: 'are';
@@ -117,6 +116,7 @@ Salutation:'bert'|'burt'|'now'|'please'|'wake up';
 Save: 'save';
 Set: 'set';
 Side: 'left'|'right'|'other';
+Speed: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow'|'faster'|'slower'|'quicker'|'normal';
 Static: 'static';
 Straighten: 'straighten';
 Take: 'assume' | 'take';

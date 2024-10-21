@@ -585,15 +585,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
-    // move slowly
-    override fun visitMoveSpeed(ctx: SpeechSyntaxParser.MoveSpeedContext): Any? {
-        bottle.type = RequestType.SET_POSE
-        val pose = poseForAdverb(ctx.Adverb().text)
-        bottle.pose = pose
-        bottle.text = String.format("I am moving %s", ctx.Adverb().text)
-        return null
-    }
-
     // What are your dynamic motor properties
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.
     // What are your static motor parameters
@@ -628,41 +619,12 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
-    // set your left hip y to 45 degrees
-    // set your left elbow torque to 1.2
-    override fun visitSetMotorPosition(ctx: SpeechSyntaxParser.SetMotorPositionContext): Any? {
-        bottle.type = RequestType.SET_MOTOR_PROPERTY
-        // Property is fixed as position
-        bottle.jointDynamicProperty = JointDynamicProperty.ANGLE
-        // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
-        if (ctx.Side()!=null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-        sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
-        sharedDictionary[SharedKey.AXIS] = axis
-        var joint: Joint = Joint.NONE
-        if (ctx.Joint()!=null) {
-            joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.joint = joint
-        }
-        if (joint.equals(Joint.NONE)) {
-            val msg = String.format("I don't have a joint like that")
-            bottle.error = msg
-        }
-
-        val prop = bottle.jointDynamicProperty
-        bottle.value = ctx.Value().getText().toDouble()
-
-        sharedDictionary[SharedKey.JOINT] = joint
-        sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-        return null
-    }
-
+    // setMotorProperty is referenced twice in the syntax file, same logic just different order
     // set the position of your left hip y to 45 degrees
-    // set the speed of your left leg to slow
-    override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorPropertyContext) : Any?{
-        bottle.type = RequestType.SET_MOTOR_PROPERTY
+    // set the left hip y position to 45 degrees
+    // set your left elbow torque to 1.2
+    override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorProperty): Any? {
+       bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Get the property
         setJointPropertyInMessage(bottle,ctx.Property().getText().lowercase())
 
@@ -679,11 +641,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
 
         }
-        else if (ctx.Limb() != null) {
-            bottle.limb = determineLimb(ctx.Limb().getText(), side)
-            sharedDictionary[SharedKey.LIMB] = bottle.limb
-            sharedDictionary[SharedKey.IT] = SharedKey.LIMB
-        }
         else {
             val msg = String.format("I don't have a joint or limb like that")
             bottle.error = msg
@@ -692,8 +649,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if (ctx.Value() != null) {
             bottle.value = ctx.Value().getText().toDouble()
         }
-        if (ctx.Adverb() != null) {
-            bottle.text = ctx.Adverb().getText()
+        if (ctx.Speed() != null) {
+            bottle.text = ctx.Speed().getText()
         }
         else if (ctx.On() != null) {
             bottle.value = BottleConstants.ON_VALUE.toDouble()
@@ -718,8 +675,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.error = "The position must be specified as a numerical value"
         }
         else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) ) {
-            if(ctx.Adverb()!=null) {
-                setSpeedInMessage(bottle,ctx.Adverb().toString())
+            if(ctx.Speed()!=null) {
+                setSpeedInMessage(bottle,ctx.Speed().toString())
             }
             else if( ctx.Value()==null ) {
                 bottle.error = "Speed should be specified as fast, slow, normal, very fast or very slow"
@@ -735,6 +692,16 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
+
+    // Set the speed for all joints to one of the standard choices.
+    // now move slowly
+    override fun visitSetSpeed(ctx: SpeechSyntaxParser.MoveSpeedContext): Any? {
+        bottle.type = RequestType.SET_POSE
+        val pose = poseForAdverb(ctx.Adverb().text)
+        bottle.pose = pose
+        bottle.text = String.format("I am moving %s", ctx.Adverb().text)
+        return null
+    }
     // If the joint is not specified, then straighten the entire body
     // straighten your left elbow.
     /* TO-DO Handle limbs */

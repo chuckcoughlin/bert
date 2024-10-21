@@ -9,9 +9,7 @@ package chuckcoughlin.bert.common.message
  */
 enum class CommandType {
     // Command contained in a message request
-    FREEZE ,
     HALT,
-    RELAX ,
     RESET,
     SHUTDOWN,
     SLEEP,
@@ -27,9 +25,7 @@ enum class CommandType {
         fun toText(command: CommandType): String {
             var text = ""
             when (command) {
-                FREEZE   -> text = "freeze"
                 HALT     -> text = "halt"
-                RELAX    -> text = "relax"
                 RESET    -> text = "reset"
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"
