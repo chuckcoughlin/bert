@@ -24,7 +24,7 @@ command:
 	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand1
 	| Salutation? List Article? Motor? Properties                   # handleListCommand2
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
-	| Salutation? Now? Move Speed                                              # setSpeed
+	| Salutation? Move Speed                                                   # setSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	   # enableTorque
     | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Unit?  # setMotorProperty
@@ -102,7 +102,6 @@ Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
 Names: 'names';
-Now: 'from now on'|'now';
 Of: 'of'|'for';
 Off: 'off'|'disabled';
 On: 'on'|'enabled';

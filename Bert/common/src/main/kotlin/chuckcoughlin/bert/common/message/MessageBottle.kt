@@ -59,7 +59,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
 
     // Use the joint-property-value list for requests that address multiple joints
     @Synchronized
-    fun addJointValue(j: Joint,prop: JointDynamicProperty, value: Number) {
+    fun addJointValue(j: Joint,prop: JointDynamicProperty, value: Double) {
         jointValues.add(JointPropertyValue(j,prop,value))
     }
 

@@ -17,13 +17,13 @@ class JointPropertyValue()  {
         private set
     var property : JointDynamicProperty
         private set
-    var value : Number
+    var value : Double
 
     constructor(j: Joint,prop:JointDynamicProperty) : this() {
        joint = j
        property = prop
     }
-    constructor(j: Joint,prop:JointDynamicProperty,valu:Number) : this(j,prop) {
+    constructor(j: Joint,prop:JointDynamicProperty,valu:Double) : this(j,prop) {
         value = valu
     }
 

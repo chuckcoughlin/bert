@@ -256,8 +256,10 @@ class Dispatcher() : Controller {
     // 1) Freezing a joint requires getting the motor position first to update the internal status dictionary
     private suspend fun handleInternalRequest(request: MessageBottle): MessageBottle {
         // Entire robot
-        if(request.type==RequestType.COMMAND &&
-            request.command.equals(CommandType.FREEZE)) {
+        if(request.type==RequestType.SET_MOTOR_PROPERTY &&
+            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
+            request.joint.equals(Joint.NONE)                                &&
+            request.value == BottleConstants.ON_VALUE    )  {
             var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.ANGLE
             msg.source = ControllerType.BITBUCKET.name
@@ -270,11 +272,11 @@ class Dispatcher() : Controller {
             toInternalController.send(msg)
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
-            request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
+                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
             val walker = request.getJointValueIterator()
             for( jpv in walker ) {
                 val value = jpv.value
-                if( value.equals(BottleConstants.ON_VALUE) ) {
+                if( value == BottleConstants.ON_VALUE ) {
                     var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
                     msg.jointDynamicProperty = JointDynamicProperty.ANGLE
                     msg.limb = request.limb
@@ -291,25 +293,21 @@ class Dispatcher() : Controller {
             }
         }
         else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
-            val walker = request.getJointValueIterator()
-            for( jpv in walker ) {
-                val value = jpv.value
-                if( value.equals(BottleConstants.ON_VALUE) ) {
-                    var msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-                    msg.joint = request.joint
-                    msg.source = ControllerType.BITBUCKET.name
-                    toInternalController.send(msg)
+                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
+                 request.value==BottleConstants.ON_VALUE ) {
 
-                    msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-                    msg.joint = request.joint
-                    msg.source = ControllerType.BITBUCKET.name
-                    msg.control.delay = 250 // 1/4 sec delay
-                    toInternalController.send(msg)
-                }
-            }
+            var msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
+            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
+            msg.joint = request.joint
+            msg.source = ControllerType.BITBUCKET.name
+            toInternalController.send(msg)
+
+            msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
+            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
+            msg.joint = request.joint
+            msg.source = ControllerType.BITBUCKET.name
+            msg.control.delay = 250 // 1/4 sec delay
+            toInternalController.send(msg)
         }
         return request
     }
@@ -485,27 +483,19 @@ class Dispatcher() : Controller {
     private fun isInternalRequest(request: MessageBottle): Boolean {
         // Never send a request launched by the internal controller back to it. That would be an infinite loop
         if( request.source.equals(ControllerType.INTERNAL.name ) ) return false
-        if (request.type.equals(RequestType.COMMAND) &&
-            request.command.equals(CommandType.FREEZE) ) {
+        // Anything that sets "torque enable" to true requires that we read
+        //  and save (in memory) current motor positions.
+        if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
+            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
+            request.value == BottleConstants.ON_VALUE ) {
             return true
         }
         else if( request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
-            request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
+                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
             val walker = request.getJointValueIterator()
             for( jpv in walker ) {
-                if( jpv.value.equals(BottleConstants.ON_VALUE )) return true
+                if( jpv.value==BottleConstants.ON_VALUE ) return true
             }
-            return false
-        }
-        // Anything that sets "torque enable" to true requires that we read
-        //  and save (in memory) current motor positions.
-        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
-            val walker = request.getJointValueIterator()
-            for( jpv in walker ) {
-                if( jpv.value.equals(BottleConstants.ON_VALUE )) return true
-            }
-            return false
         }
         return false
     }

@@ -89,6 +89,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot. "hold" is the same as "freeze".
     // relax your left arm
     override fun visitEnableTorque(ctx: SpeechSyntaxParser.EnableTorqueContext): Any? {
+        LOGGER.info(String.format("%s.visitEnableTorque: error=%s -", CLSS, bottle.error))
+        bottle.type = RequestType.SET_MOTOR_PROPERTY
+        bottle.jointDynamicProperty = JointDynamicProperty.STATE
         var axis = sharedDictionary[SharedKey.AXIS].toString()
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
         sharedDictionary[SharedKey.AXIS] = axis
@@ -98,14 +101,13 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         sharedDictionary[SharedKey.SIDE] = side
         // If both Limb() and Joint() are null, then we apply to the entire robot
         if (ctx.Freeze() != null || ctx.Relax() != null || ctx.Hold() != null) {
-            var cmd = CommandType.NONE
             if (ctx.Freeze() != null || ctx.Hold() != null) {
-                cmd = CommandType.FREEZE
+                bottle.value = BottleConstants.ON_VALUE
             }
             if (ctx.Relax() != null) {
-                cmd = CommandType.RELAX
+                bottle.value = BottleConstants.OFF_VALUE
             }
-            bottle.command = cmd
+            // No joint or limb implies the entire body
             var joint: Joint = Joint.NONE
             if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
                 joint = sharedDictionary[SharedKey.JOINT] as Joint
@@ -114,13 +116,13 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 joint = determineJoint(ctx.Joint().getText(), axis, side)
             }
             if (!joint.equals(Joint.NONE)) {
-                bottle.type = RequestType.SET_MOTOR_PROPERTY
+
                 bottle.joint= joint
                 if (ctx.Freeze() != null || ctx.Hold() != null) {
-                    bottle.addJointValue(joint, JointDynamicProperty.STATE, BottleConstants.ON_VALUE.toDouble())
+                    bottle.addJointValue(joint, JointDynamicProperty.STATE, BottleConstants.ON_VALUE)
                 }
                 else {
-                    bottle.addJointValue(joint, JointDynamicProperty.STATE,BottleConstants.OFF_VALUE.toDouble())
+                    bottle.addJointValue(joint, JointDynamicProperty.STATE,BottleConstants.OFF_VALUE)
                 }
                 sharedDictionary[SharedKey.JOINT] = joint
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
@@ -133,28 +135,19 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 if (ctx.Limb() != null) {
                     limb = determineLimb(ctx.Limb().getText(), side)
                 }
-                if (!limb.equals(Limb.NONE)) {
+                if( !limb.equals(Limb.NONE) ) {
                     bottle.type = RequestType.SET_LIMB_PROPERTY
                     bottle.limb = limb
                     if (ctx.Freeze() != null || ctx.Hold() != null) {
-                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE, BottleConstants.ON_VALUE.toDouble())
+                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE, BottleConstants.ON_VALUE)
                     }
                     else {
-                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE,BottleConstants.OFF_VALUE.toDouble())
+                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE,BottleConstants.OFF_VALUE)
                     }
                     sharedDictionary[SharedKey.LIMB] = limb
                     sharedDictionary[SharedKey.IT] = SharedKey.LIMB
                 }
-                // No joint or limb implies the entire body
-                else {
-                    bottle.type = RequestType.COMMAND
-                    if (ctx.Freeze() != null || ctx.Hold() != null) {
-                        bottle.command = CommandType.FREEZE
-                    }
-                    else {
-                        bottle.command = CommandType.RELAX
-                    }
-                }
+
             }
         }
         return null
@@ -164,7 +157,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // commands.
     // carry the torch, go limp.
     override fun visitHandleArbitraryCommand(ctx: SpeechSyntaxParser.HandleArbitraryCommandContext): Any? {
-        LOGGER.info(String.format("%s.visitHandleArbitraryCommand: error=%s", CLSS, bottle.error))
+        LOGGER.info(String.format("%s.visitHandleArbitraryCommand: LAST RESORT error=%s -", CLSS, bottle.error))
         if (ctx.phrase() != null) {
             val phrase: String = visit(ctx.phrase()).toString()
             // First handle "well-known" commands
@@ -623,7 +616,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // set the position of your left hip y to 45 degrees
     // set the left hip y position to 45 degrees
     // set your left elbow torque to 1.2
-    override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorProperty): Any? {
+    override fun visitSetMotorProperty(ctx: SpeechSyntaxParser.SetMotorPropertyContext): Any? {
        bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Get the property
         setJointPropertyInMessage(bottle,ctx.Property().getText().lowercase())
@@ -646,6 +639,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.error = msg
         }
 
+        // Vaue is numerical, "on/off", or speed name - depending on property type
         if (ctx.Value() != null) {
             bottle.value = ctx.Value().getText().toDouble()
         }
@@ -653,10 +647,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.text = ctx.Speed().getText()
         }
         else if (ctx.On() != null) {
-            bottle.value = BottleConstants.ON_VALUE.toDouble()
+            bottle.value = BottleConstants.ON_VALUE
         }
         else if (ctx.Off() != null) {
-            bottle.value = BottleConstants.OFF_VALUE.toDouble()
+            bottle.value = BottleConstants.OFF_VALUE
         }
         // Sanity check
         if( !bottle.joint.equals(Joint.NONE) && (
@@ -665,6 +659,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
                     !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
             bottle.error = "Only angle, speed, torque and state can be set for a joint"
+        }
+        else if( bottle.joint.equals(Joint.NONE) &&
+                 bottle.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) ) {
+            bottle.error = "It doesn't make sense to set all joints to the same angle"
         }
         else if( !bottle.limb.equals(Limb.NONE) &&
                         (!bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
@@ -682,10 +680,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 bottle.error = "Speed should be specified as fast, slow, normal, very fast or very slow"
             }
         }
-        else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE) ) {
-            if( !bottle.value.equals(BottleConstants.ON_VALUE.toDouble()) &&
-                !bottle.value.equals(BottleConstants.OFF_VALUE.toDouble()) ) {
-                bottle.error = "Torque must be specified as on or off, enabled or disabled"
+        else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
+            if( bottle.value != BottleConstants.ON_VALUE &&
+                bottle.value != BottleConstants.OFF_VALUE    )   {
+                bottle.error = "State must be specified as on or off, enabled or disabled"
             }
         }
 
@@ -695,11 +693,11 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // Set the speed for all joints to one of the standard choices.
     // now move slowly
-    override fun visitSetSpeed(ctx: SpeechSyntaxParser.MoveSpeedContext): Any? {
+    override fun visitSetSpeed(ctx: SpeechSyntaxParser.SetSpeedContext): Any? {
         bottle.type = RequestType.SET_POSE
-        val pose = poseForAdverb(ctx.Adverb().text)
+        val pose = poseForAdverb(ctx.Speed().text)
         bottle.pose = pose
-        bottle.text = String.format("I am moving %s", ctx.Adverb().text)
+        bottle.text = String.format("I am moving %s", ctx.Speed().text)
         return null
     }
     // If the joint is not specified, then straighten the entire body
@@ -709,7 +707,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         // A real joint
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // Get the property
-        val property: JointDynamicProperty = JointDynamicProperty.ANGLE
+        bottle.jointDynamicProperty = JointDynamicProperty.ANGLE
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -739,7 +737,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             // Straighten means 180 degrees
             val value = 180.0
             bottle.joint = joint
-            bottle.addJointValue(joint,property,value.toString().toDouble())
+            bottle.value = value
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         }
@@ -750,7 +748,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             // Straighten means 0 degrees
             val value = 0.0
             bottle.joint = joint
-            bottle.addJointValue(joint,property,value.toString().toDouble())
+            bottle.value = value
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         }
@@ -825,14 +823,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if (phrase == "die" || phrase == "exit" || phrase == "halt" || phrase == "quit" || phrase == "stop") {
             bottle.type = RequestType.COMMAND
             bottle.command = CommandType.HALT
-        }
-        else if (phrase == BottleConstants.COMMAND_RELAX || phrase.startsWith("go limp")) {
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.RELAX
-        }
-        else if (phrase == BottleConstants.COMMAND_FREEZE || phrase.startsWith("go rigid")) {
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.FREEZE
         }
         else if (phrase.startsWith("ignore") || phrase.equals("go to sleep",ignoreCase = true) ||
                  phrase.startsWith("sleep")) {
