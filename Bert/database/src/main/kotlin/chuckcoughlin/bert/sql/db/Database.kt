@@ -7,7 +7,6 @@ package chuckcoughlin.bert.sql.db
 
 import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.sql.tables.FaceTable
 import chuckcoughlin.bert.sql.tables.PoseTable
@@ -27,29 +26,56 @@ import java.util.logging.Logger
  */
 object Database  {
     /**
-     * @param command user entered string
-     * @return the corresponding pose name if it exists, otherwise NULL
+     * @param name pose name. Delete the pose and its joint map from the
+     *         database. If the pose does not exist, no action is taken.
      */
-    fun getPoseForCommand(command: String): String? {
-        return pose.getPoseForCommand(connection, command)
+    fun deletePose(name: String) {
+        return pose.deletePose(connection, name)
     }
-    /** Return a list of column names with non-null values for the indicated pose
-     * property.
-     * @param mcmap a map of configurations. Joints not present are ignored.
-     * @param pose
-     * @param parameter, e.g. "position","speed","torque"
-     * @return list of upper-case joint names.
+    /**
+     * @param name user entered pose name. If the pose does not
+     *             exist, it will be created.
+     * @return the corresponding pose id if it exists, otherwise NO_POSE
      */
-    fun getPoseJointValuesForParameter( poseName: String,parameter: JointDynamicProperty ): Map<Joint, Double> {
-        return pose.getPoseJointValuesForParameter(connection, poseName, parameter)
+    fun getPoseIdForName(name: String): Long {
+        return pose.getPoseIdForName(connection, name)
+    }
+    /**
+     * Return a map of angles by joint name
+     *
+     * @param poseid
+     * @return a map of target positions by joint for the pose
+     */
+    fun getPoseJointPositions( poseid: Long ): Map<Joint,Double > {
+        return pose.getPoseJointPositions(connection, poseid)
+    }
+    /**
+     * Return a map of speeds by joint name. These speeds may, or may not
+     * have been previously configured in the joint.
+     *
+     * @param poseid
+     * @return a map of target speeds by joint for joints in the pose
+     */
+    fun getPoseJointSpeeds( poseid: Long,map:Map<Joint, MotorConfiguration>): Map<Joint,Double > {
+        return pose.getPoseJointSpeeds(connection, poseid,map)
+    }
+    /**
+     * Return a map of speeds by joint name. These speeds may, or may not
+     * have been previously configured in the joint.
+     *
+     * @param poseid
+     * @return a map of target speeds by joint for joints in the pose
+     */
+    fun getPoseJointTorques( poseid: Long ,map:Map<Joint, MotorConfiguration>): Map<Joint,Double > {
+        return pose.getPoseJointTorques(connection, poseid,map)
     }
 
     /**
-     * @param user-entered command user
-     * @param the corresponding pose name
+     * @param posename name of an existing pose
+     * @param alias an additional name for the pose.
      */
-    fun mapCommandToPose(cmd: String, poseName: String) {
-        //return pose.mapCommandToPose(connection, cmd, poseName)
+    fun mapNameToPose(posename: String,alias:String) {
+        return pose.mapNameToPose(connection,posename,alias)
     }
     /**
      * @param user-entered command user
@@ -58,13 +84,16 @@ object Database  {
     fun mapFaceNameToDetails(name: String, details: FacialDetails) {
         //return pose.mapCommandToPose(connection, cmd, poseName)
     }
+    fun poseExists(poseName:String) :Boolean {
+        return pose.poseExists(connection,poseName)
+    }
     /**
      * Save a list of motor position values as a pose.
      * @param mcmap contains a map of motor configurations with positions that define the pose.
      * @param poseName
      */
     fun saveJointAnglesForPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String) {
-        pose.saveJointLocationsForPose(connection, mcmap, poseName)
+        pose.saveJointAnglesForPose(connection, mcmap, poseName)
         return
     }
 
@@ -75,7 +104,7 @@ object Database  {
      * @return the new record id as a string.
      */
     fun saveJointAnglesAsNewPose(mcmap: Map<Joint, MotorConfiguration>): String {
-        return pose.saveJointLocationsAsNewPose(connection, mcmap)
+        return pose.saveJointAnglesAsNewPose(connection, mcmap)
     }
 
     /**

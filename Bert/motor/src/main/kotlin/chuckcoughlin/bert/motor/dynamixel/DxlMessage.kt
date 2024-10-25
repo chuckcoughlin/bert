@@ -202,23 +202,24 @@ object DxlMessage {
     }
 
     /**
-     * A pose consists of any or all of position, speed and torque for all joints. The supplied map contains joints for
+     * A pose consists of any or all position values for the specified joints. The supplied map contains joints for
      * the single relevant controller. The database query returns values for all controllers. Skip any that do not apply.
      * There is a hardware limit of 143 bytes for each array (shouldn't be a problem).
      *
      * Skip any motors that are already at the desired conditions. This has a significant performance effect.
+     * We set speed and torque per the motor configurations for each joint that we move.
      *
      * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
      * @param pose name of the pose to be set
      * @param map of the motor configurations for subject controller keyed by joint name
-     * @return up to 3 byte arrays as required by the pose
+     * @return 3 byte arrays to drive torques, speeds and finally the positions as required by the pose
      */
-    fun byteArrayListToSetPose(pose: String,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
-        LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %s",CLSS,pose))
+    fun byteArrayListToSetPose(poseid: Long,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
+        LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %d",CLSS,poseid))
         // These maps contain all joints
-        val torques: Map<Joint, Double> = Database.getPoseJointValuesForParameter( pose, JointDynamicProperty.TORQUE)
-        val speeds: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.SPEED)
-        val angles: Map<Joint, Double> = Database.getPoseJointValuesForParameter(pose, JointDynamicProperty.ANGLE)
+        val torques: Map<Joint, Double> = Database.getPoseJointTorques( poseid, map)
+        val speeds: Map<Joint, Double> = Database.getPoseJointSpeeds(poseid, map)
+        val angles: Map<Joint, Double> = Database.getPoseJointPositions(poseid)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
         val tc = torques.size

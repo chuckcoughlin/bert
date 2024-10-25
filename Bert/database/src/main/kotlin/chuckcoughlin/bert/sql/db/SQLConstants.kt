@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.sql.db
@@ -9,4 +9,5 @@ package chuckcoughlin.bert.sql.db
  */
 object SQLConstants {
     const val SQL_NULL_CONNECTION : Long = -1
+    const val NO_POSE: Long = -1
 }

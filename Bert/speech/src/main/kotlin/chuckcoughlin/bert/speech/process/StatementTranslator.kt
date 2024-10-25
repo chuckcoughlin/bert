@@ -163,11 +163,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             // First handle "well-known" commands
             if (!determineCommandFromPhrase(phrase)) {   // Configures bottle
                 // Next check to see if this is a pose
-                val pose: String? = Database.getPoseForCommand(phrase)
-                if (pose != null) {
+                if (Database.poseExists(phrase)) {
                     bottle.type = RequestType.SET_POSE
-                    bottle.pose = pose
-                    sharedDictionary[SharedKey.POSE] = pose
+                    bottle.pose = phrase
+                    sharedDictionary[SharedKey.POSE] = phrase
                 }
                 else {
                     val msg = String.format("I do not know how to respond to \"%s\"", phrase)
@@ -1081,15 +1080,15 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // If speed is specified as a word, then convert to a numeric value
     private fun setSpeedInMessage(msg: MessageBottle, speed: String) {
         if(speed.contains("slow")) {
-            if(speed.contains("very")) {bottle.value = 2.0}
-            else {bottle.value = 5.0}
+            if(speed.contains("very")) {msg.value = 2.0}
+            else {msg.value = 5.0}
         }
         else if(speed.contains("fast") ||
             speed.contains("quick")) {
-            if(speed.contains("very")) { bottle.value = 100.0}
-            else { bottle.value = 80.0 }
+            if(speed.contains("very")) { msg.value = 100.0}
+            else { msg.value = 80.0 }
         }
-        else { bottle.value = 20.0 }   // normal
+        else { msg.value = 20.0 }   // normal
     }
 
     private val CLSS = "StatementTranslator"

@@ -12,11 +12,11 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
+import chuckcoughlin.bert.sql.db.Database
 import jssc.SerialPort
 import jssc.SerialPortException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import sun.jvm.hotspot.oops.CellTypeState.value
 import java.util.*
 import java.util.logging.Logger
 
@@ -218,19 +218,19 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * false implies that an array of serial messages are required.
      */
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
-        return if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
+        if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_POSE) ) {
-            false
+                return false
         }
         // No joint means all joints
         else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                msg.joint/equals(Joint.NONE)) {
-            false
+                msg.joint.equals(Joint.NONE)) {
+                  return false
         }
         else {
-            true
+            return true
         }
     }
 
@@ -246,22 +246,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         val type: RequestType = request.type
         if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s",CLSS,controllerName,type.name))
 
-
-        if (type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-            request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  )  {
-            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling set state = %2.0f",
-                                 CLSS,controllerName,request.value) )
-            // Set the torque-enable to false for all motors in the controller subset.
-            var enabled = false
-            if(request.value>BottleConstants.OFF_VALUE) enabled = true
-            val mc = RobotModel.motorsByJoint[request.joint]!!
-            request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
-                    if(enabled) "enabled" else "disabled")
-
-            mc.isTorqueEnabled = enabled
-            bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, JointDynamicProperty.STATE)
-        }
-        else if (type.equals(RequestType.GET_GOALS)) {
+        if (type.equals(RequestType.GET_GOALS)) {
             val joint = request.joint
             for (mc in configurationsByJoint.values) {
                 if (mc.joint.equals(joint)) {
@@ -307,24 +292,38 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 // ASYNC WRITE, no response. Let source set text.
             }
         }
+        else if (type.equals(RequestType.SET_MOTOR_PROPERTY) &&
+            request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  )  {
+            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling set %s state = %2.0f",
+                    CLSS,controllerName,request.joint.name,request.value) )
+            // Set the torque-enable to false for all motors in the controller subset.
+            var enabled = false
+            if(request.value>BottleConstants.OFF_VALUE) enabled = true
+            val mc = RobotModel.motorsByJoint[request.joint]!!
+            request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
+                    if(enabled) "enabled" else "disabled")
+
+            mc.isTorqueEnabled = enabled
+            bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, JointDynamicProperty.STATE)
+        }
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             val joint = request.joint
             val prop = request.jointDynamicProperty
             val value = request.value
             val mc = RobotModel.motorsByJoint[joint]!!
-            if (mc.joint.equals(joint)) {
-                bytes = DxlMessage.bytesToSetProperty(mc, prop, value)
-                if (prop.equals(JointDynamicProperty.ANGLE) ) {
-                    val duration = mc.travelTime
-                    if (request.duration < duration) request.duration = duration
-                    request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.angle)
-                }
-                else if (prop.equals(JointDynamicProperty.RANGE) ) {
-                    request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))
-                }
-                else {
-                    request.text = String.format("My %s %s is %s",Joint.toText(mc.joint), prop.name, value)
-                }
+
+            bytes = DxlMessage.bytesToSetProperty(mc, prop, value)
+            if (prop.equals(JointDynamicProperty.ANGLE) ) {
+                val duration = mc.travelTime
+                if (request.duration < duration) request.duration = duration
+                request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.angle)
+            }
+            else if (prop.equals(JointDynamicProperty.RANGE) ) {
+                request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))
+            }
+            else {
+                request.error = String.format("I failed to set my %s %s to %2.0f",
+                        Joint.toText(mc.joint), prop.name, value)
             }
             request.control.responseCount[controllerName] = 1 // Status message
         }
@@ -352,7 +351,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         val type: RequestType = request.type
         if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s",
             CLSS,controllerName,type.name))
-        if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {   // Range is the only legal one
+
+        if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {   // Range is the only legal one for list
             val mc = RobotModel.motorsByJoint[request.joint]!!
             list = ArrayList<ByteArray>()
             list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MINIMUMANGLE))
@@ -380,7 +380,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
         }
         // Handle set torque enable for all joints
-        else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)             &&
+        else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
             request.joint.equals(Joint.NONE)  )   {
 
@@ -392,16 +392,22 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 
             for (mc in configurationsByJoint.values) {
                 mc.isTorqueEnabled = enable
-                bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, request.jointDynamicProperty)
             }
+            list = DxlMessage.byteArrayListToListProperty(JointDynamicProperty.STATE, configurationsByJoint.values)
+            request.control.responseCount[controllerName] = configurationsByJoint.size // Status packet for each motor
         }
-    }
         else if (type==RequestType.SET_POSE) {
             val poseName: String = request.pose
-            list = DxlMessage.byteArrayListToSetPose(poseName,configurationsByJoint)
-            val duration: Long = DxlMessage.mostRecentTravelTime
-            if (request.duration < duration) request.duration = duration
-            request.control.responseCount[controllerName] = 0 // AYNC WRITE, no responses
+            if( Database.poseExists(poseName)) {
+                val poseid = Database.getPoseIdForName(poseName)
+                list=DxlMessage.byteArrayListToSetPose(poseid, configurationsByJoint)
+                val duration: Long=DxlMessage.mostRecentTravelTime
+                if(request.duration < duration) request.duration=duration
+                request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
+            }
+            else {
+                request.error = String.format("The pose \"%s\" is not configured",poseName)
+            }
         }
         else {
             LOGGER.severe(String.format("%s.messageToByteList: Unhandled request type %s",

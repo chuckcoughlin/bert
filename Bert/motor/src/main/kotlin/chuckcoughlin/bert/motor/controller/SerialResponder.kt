@@ -167,10 +167,16 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
             val mc: MotorConfiguration? = RobotModel.motorsByJoint[joint]
             val property = request.jointDynamicProperty
             DxlMessage.updateParameterFromBytes(property, mc!!, request, bytes)
-            val partial = request.text
+            val partial = request.text // Holds the value
             if (partial.isNotEmpty()) {
-                request.text = String.format("My %s %s is %s",
-                    Joint.toText(joint),property.name.lowercase(Locale.getDefault()),partial)
+                if(property.equals(JointDynamicProperty.ANGLE)) {
+                    request.text=String.format("My %s %s is %s degrees",
+                            Joint.toText(joint), property.name.lowercase(Locale.getDefault()), partial)
+                }
+                else {
+                    request.text=String.format("My most recent %s %s was %s",
+                            Joint.toText(joint), property.name.lowercase(Locale.getDefault()), partial)
+                }
             }
         }
         else if (type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
