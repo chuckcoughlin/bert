@@ -342,7 +342,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     /**
      * Convert the request message into a list of commands for the serial port. As a side
      * effect set the number of expected responses. This can vary by request type (and may
-     * be none).
+     * be none). Set the number of responses for the request.
      * @param wrapper
      * @return
      */
@@ -384,6 +384,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
             request.joint.equals(Joint.NONE)  )   {
 
+            request.control.responseCount[controllerName] = configurationsByJoint.size // Status packet for each motor
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting STATE to %2.0f for all joints" ,
                 CLSS,controllerName,request.value))
 
@@ -394,18 +395,19 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 mc.isTorqueEnabled = enable
             }
             list = DxlMessage.byteArrayListToListProperty(JointDynamicProperty.STATE, configurationsByJoint.values)
-            request.control.responseCount[controllerName] = configurationsByJoint.size // Status packet for each motor
         }
         else if (type==RequestType.SET_POSE) {
+            request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
             val poseName: String = request.pose
             if( Database.poseExists(poseName)) {
                 val poseid = Database.getPoseIdForName(poseName)
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsByJoint)
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration
-                request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
+
             }
             else {
+                request.control.responseCount[controllerName]=0 // error, no responses
                 request.error = String.format("The pose \"%s\" is not configured",poseName)
             }
         }
@@ -419,7 +421,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     CLSS,controllerName,request.type,DxlMessage.dump(bytes)))
             }
         }
-
         return list
     }
 

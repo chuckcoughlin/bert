@@ -21,7 +21,7 @@ CREATE TABLE Action (
 DROP TABLE IF EXISTS Face;
 CREATE TABLE Face (
 	name	text PRIMARY_KEY,
-	faceid	integer NOT NULL,
+	faceid	integer NOT NULL
 );
 -- The landmark table holds normalized positions of
 -- landmarks identified with a face

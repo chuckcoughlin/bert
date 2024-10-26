@@ -234,8 +234,10 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in map.keys) {
+                if( torques[key]==null ) continue    // joint not being set
+                if( map[key]==null )     continue
                 val mc: MotorConfiguration = map[key]!!
-                if( mc.torque.equals(torques[key]!!) ) continue
+                if( mc.torque.equals(torques[key]) ) continue
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -258,6 +260,8 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in map.keys) {
+                if( speeds[key]==null ) continue
+                if( map[key]==null )  continue
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: joint = %s",CLSS,key.name))
                 val mc: MotorConfiguration = map[key]!!
                 if( mc.speed.equals(speeds[key]!!) ) continue
@@ -284,7 +288,9 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (key in map.keys) {
+                if( map[key]==null ) continue
                 val mc: MotorConfiguration = map[key]!!
+                if( angles[key] == null )  continue
                 if( mc.angle.equals(angles[key]!!) ) continue
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.id,key,angles.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, angles[key]!!)
