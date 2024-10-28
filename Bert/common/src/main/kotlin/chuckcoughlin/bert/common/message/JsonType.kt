@@ -12,15 +12,18 @@ package chuckcoughlin.bert.common.message
  *   JSN:JOINT_NAMES  ... json list of joint names, e.g.
  *
  * The Json type is followed by a space before the remainder of the message
+ * in Json format. Refer to the commentary below for the data object that
+ * corresponsd to each type
  */
 enum class JsonType {
-    APPENDAGE_NAMES,  // List of appendages
-    FACIAL_DETAILS,   // Facial identification features
-    FACE_DIRECTION,   // X,Y,Z direction of view
-    FACE_NAMES,       // Names of people whom we know
-    JOINT_NAMES,      // List of joint names
-    LIMB_NAMES,       // List of limb names
-    MOTOR_PROP_NAMES, // Names of motor properties
+    APPENDAGE_NAMES,  // List of appendages               MutableList<String>
+    FACIAL_DETAILS,   // Facial identification features   FacialDetails
+    FACE_DIRECTION,   // Angular direction of view        FaceDirection
+    FACE_NAMES,       // Names df people whom we know     MutableList<String>
+    JOINT_NAMES,      // List of joint names              MutableList<String>
+    LIMB_NAMES,       // List of limb names               MutableList<String>
+    MOTOR_DYNAMIC_PROPERTIES, // Names of dynamic motor properties  MutableList<String>
+    MOTOR_STATIC_PROPERTIES,  // Names of static motor properties    MutableList<String>
     UNDEFINED
     ;
 

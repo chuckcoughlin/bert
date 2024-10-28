@@ -77,6 +77,13 @@ Typical requests:
     what are your angle ranges
     what are your position goals
 ```
+* ![yellow](/images/ball_yellow.png) ``Name Lists`` - Use the terminal application to list
+  names of entities added by the user. These values include: actions, faces and poses.  Names are bundled into a response in JSON format.
+ Typical requests:
+```
+    what are the names of your poses
+    list the names of your actions
+```
 * ![yellow](/images/ball_yellow.png) ``Goals`` - Goals refer to target positions of commanded movements.
 While in-transit, the current position will not match the goal. Test at very slow velocities. Goal parameters
 include angle, speed and and torque limits.  Speeds are degrees/sec and
@@ -123,7 +130,7 @@ for the movement of the robot as a whole. Caution some of these settings may con
 ### d - Utilities <a id="utilities"></a>
 
 * ![green](/images/ball_green.png) ``Initialization`` - set the position of each joint to its default. Use the standalone version of the robot application to enter the command then visually verify the position of each joint. Note that after startup each joint is
-guaranteed to be in a sane position.
+guaranteed to be in a sane position. This command relies on a built-in pose.
 ```
     straighten up
 ```
@@ -186,8 +193,7 @@ The "move" and "go" commands set speeds for future movements of all joints at on
 
 * ![yellow](/images/ball_yellow.png) ``Enable torque`` - Dynamixel motors may be
 configured to be freewheeling and compliant or stiff. The term for this feature
-is "torque enable". Our names are "relax" and "freeze". These commands may be applied to individual
-joints, limbs or the entire robot.
+is "torque enable". Our names are "relax" and "freeze". These commands may be applied to individual joints, limbs or the entire robot.
 Sample command syntax:
 ```
     relax your right arm
@@ -234,6 +240,11 @@ account for positional conflicts.
 
 * ![yellow](/images/ball_yellow.png) ``Define an Action`` - Actions are a series of commands (usually poses)
 executed with intervening time intervals.
+
+* ![yellow](/images/ball_yellow.png) ``Clean up`` - Remove a pose, action or user.
+```
+    forget Marj
+```
 
 ### f - Motion Planning <a id="planning"></a>
 [toc](#table-of-contents)<br/>

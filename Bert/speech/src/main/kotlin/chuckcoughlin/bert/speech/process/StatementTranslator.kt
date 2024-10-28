@@ -54,6 +54,16 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
+    // List values from the database
+    // What are the names of your poses
+    override fun visitDatabaseListQuestion(ctx: SpeechSyntaxParser.DatabaseListQuestionContext): Any? {
+        bottle.type = RequestType.LIST_NAMES
+        // Indicate whether we want static or dynamic properties - by setting one or the other
+        if( ctx.Faces()!=null ) bottle.metric = MetricType.FACES
+        if( ctx.Poses()!=null  )    bottle.metric = MetricType.POSES
+        return null
+    }
+
     // you are singing
     override fun visitDeclarePose1(ctx: SpeechSyntaxParser.DeclarePose1Context): Any? {
         val pose: String = visit(ctx.phrase()).toString()
@@ -85,7 +95,19 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.text = messageTranslator.randomAcknowledgement()
         return null
     }
-
+    // Delete a pose or user given the name
+    //    forget Chuck
+    override fun visitDeletePose(ctx: SpeechSyntaxParser.DeletePoseContext): Any? {
+        bottle.type = RequestType.COMMAND
+        val pose: String = ctx.NAME().getText()
+        bottle.command = CommandType.FORGET
+        if(pose.isBlank()) {
+            val msg = String.format("an argument is required")
+            bottle.error = msg
+        }
+        bottle.pose = pose
+        return null
+    }
     // Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot. "hold" is the same as "freeze".
     // relax your left arm
     override fun visitEnableTorque(ctx: SpeechSyntaxParser.EnableTorqueContext): Any? {
@@ -183,7 +205,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitHandleBulkPropertyQuestion(ctx: SpeechSyntaxParser.HandleBulkPropertyQuestionContext): Any? {
         if (ctx.Limits() != null) bottle.type = RequestType.GET_LIMITS
         else                      bottle.type = RequestType.GET_GOALS
-
 
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
@@ -850,14 +871,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             success = false
         }
         return success
-    }
-
-    // Determine controller from the supplied string. 
-    @Throws(IllegalArgumentException::class)
-    private fun determineController(text: String): String {
-        var controller: String = BottleConstants.CONTROLLER_UPPER
-        if (text.equals("lower", ignoreCase = true)) controller = BottleConstants.CONTROLLER_LOWER
-        return controller
     }
 
     // Determine the specific joint from the body part, side and axis. (The latter two are

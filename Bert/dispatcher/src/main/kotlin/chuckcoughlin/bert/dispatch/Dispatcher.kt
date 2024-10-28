@@ -304,7 +304,11 @@ class Dispatcher() : Controller {
         if (request.type.equals(RequestType.COMMAND)) {
             val command = request.command
             LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
-            if( command.equals(CommandType.HALT) ) {
+            if( command.equals(CommandType.FORGET) ) {
+                Database.deletePose(request.pose)
+                Database.deleteFace(request.pose)
+            }
+            else if( command.equals(CommandType.HALT) ) {
                 request.type = RequestType.NONE  // Suppress a response
                 System.exit(0) // Rely on ShutdownHandler
             }
@@ -501,8 +505,9 @@ class Dispatcher() : Controller {
         }
         else if (request.type.equals(RequestType.COMMAND)) {
             val cmd = request.command
-            return if (cmd.equals(CommandType.HALT) ||
-                cmd.equals(CommandType.SHUTDOWN)) {
+            return if (cmd.equals(CommandType.FORGET)   ||
+                       cmd.equals(CommandType.SHUTDOWN) ||
+                       cmd.equals(CommandType.SHUTDOWN)) {
                 true
             }
             else {
@@ -535,6 +540,11 @@ class Dispatcher() : Controller {
         }
         return false
     }
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other)
+    }
+
     // These are requests that can be processed directly by the group controller and sent to the
     // proper motor controller.
     private fun isMotorRequest(request: MessageBottle): Boolean {

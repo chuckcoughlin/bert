@@ -9,6 +9,7 @@ package chuckcoughlin.bert.common.message
  */
 enum class CommandType {
     // Command contained in a message request
+    FORGET,
     HALT,
     RESET,
     SHUTDOWN,
@@ -25,6 +26,7 @@ enum class CommandType {
         fun toText(command: CommandType): String {
             var text = ""
             when (command) {
+                FORGET   -> text = "forget"
                 HALT     -> text = "halt"
                 RESET    -> text = "reset"
                 SHUTDOWN -> text = "shutdown"

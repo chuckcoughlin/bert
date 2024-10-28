@@ -15,9 +15,8 @@ CREATE TABLE Action (
 	UNIQUE (name,executeOrder)
 );
 
--- The Face table merely maps known faces to
+-- The Face table merely maps names associated with faces to
 -- an 'id' which is used to obtain identity specifics,
--- If not otherwise specified, SQLite will create an id on insert
 DROP TABLE IF EXISTS Face;
 CREATE TABLE Face (
 	name	text PRIMARY_KEY,
@@ -27,29 +26,25 @@ CREATE TABLE Face (
 -- landmarks identified with a face
 DROP TABLE IF EXISTS FaceContour;
 CREATE TABLE FaceContour (
-	faceidid	integer PRIMARY KEY,
-	contourid   integer NOT NULL
-);
-DROP TABLE IF EXISTS FaceContourPoints;
-CREATE TABLE FaceContourPoints (
-	contourid	  integer PRIMARY KEY,
+	faceid		  integer NOT NULL,
 	contourcode   text    NOT NULL,
 	indx          integer NOT NULL,
 	x             float,
-    y             float
+    y             float,
+    UNIQUE (faceid,contourcode,indx)
 );
 -- The landmark table holds normalized positions of
 -- landmarks identified with a face
 DROP TABLE IF EXISTS FaceLandmark;
 CREATE TABLE FaceLandmark (
-	faceidid	  integer PRIMARY KEY,
+	faceid	      integer NOT NULL,
 	landmarkcode  text    NOT NULL,
 	x             float,
-	y             float
+	y             float,
+	UNIQUE (faceid,landmarkcode)
 );
 -- The Pose table shows motor positions for named "poses".
 -- The joint position for each pose is represented on a single row
-
 DROP TABLE IF EXISTS Pose;
 CREATE TABLE Pose (
 	poseid	integer NOT_NULL,
@@ -57,13 +52,12 @@ CREATE TABLE Pose (
 	position    integer NOT NULL,
 	UNIQUE (poseid,joint)
 );
--- The PoseNames table maps commands to poses.
+-- The PoseNames table maps aliases to poses.
 -- If not otherwise specified, SQLite will create an id on insert
 DROP TABLE IF EXISTS PoseName;
 CREATE TABLE PoseName (
-	pose text PRIMARY_KEY,
-	poseid integer NOT NULL,
-	UNIQUE (poseid,pose)
+	name text PRIMARY_KEY,
+	poseid integer NOT NULL
 );
 
 -- The MotorState table holds configurable parameters of each motor.
@@ -85,3 +79,4 @@ CREATE TABLE MotorState (
 
 -- Clean up obsolete tables
 DROP TABLE IF EXISTS PoseMap;
+DROP TABLE IF EXISTS FaceContourPoints;

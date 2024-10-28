@@ -66,8 +66,8 @@ enum class JointDynamicProperty {
         fun toJSON(): String {
             val gson = GsonBuilder().setPrettyPrinting().create()
             var names = mutableListOf<String>()
-            for (type in JointDynamicProperty.values()) {
-                if (!type.equals(JointDynamicProperty.NONE))
+            for( type in values()) {
+                if(!type.equals(NONE))
                     names.add(type.name)
             }
             return gson.toJson(names)

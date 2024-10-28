@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.sql.db.SQLConstants
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import java.sql.*
 import java.util.*
@@ -18,7 +19,60 @@ import java.util.logging.Logger
  */
 class FaceTable {
 
+    /**
+     * Delete the pose and associated joint details.
+     * @cxn an open database connection
+     * @param name pose name
+     */
+    fun deleteFace(cxn: Connection?, facename: String) {
+        if( cxn!=null ) {
+            var SQL = "select faceid from Face where name = ?"
+            var statement = cxn.prepareStatement(SQL)
+            var rs: ResultSet? = null
+            val name = facename.lowercase(Locale.getDefault())
+            var faceid = SQLConstants.NO_FACE
 
+            try {
+                statement.setQueryTimeout(10) // set timeout to 10 sec.
+                statement.setString(1, name)
+                rs = statement.executeQuery()
+                while (rs.next()) {
+                    faceid = rs.getLong("faceid")
+                    LOGGER.info(String.format("%s.deleteFace: %s is %d", CLSS, name, faceid))
+                    break
+                }
+                if( faceid== SQLConstants.NO_FACE ) return   // Didn't exist
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.getPoseIdForName: Error (%s)",CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try {
+                        rs.close()
+                        statement.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+                // Now do the deletions
+
+                var stmt=cxn.createStatement()
+                try {
+                    SQL=String.format("delete from FaceName where faceid = %d", faceid)
+                    stmt.execute(SQL)
+                    SQL=String.format("delete from FaceLandmark where faceid = %d", faceid)
+                    stmt.execute(SQL)
+                    SQL=String.format("delete from FaceContour where faceid = %d", faceid)
+                    stmt.execute(SQL)
+                }
+                finally {
+                    stmt.close()
+                }
+            }
+        }
+    }
     /**
      * Associate a name with the facial detection details. If the name is new it will be added.
      * @cxn an open database connection
@@ -187,10 +241,11 @@ class FaceTable {
             }
         }
     }
+    private val CLSS = "FaceTable"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val DEBUG: Boolean
 
-    companion object {
-        private const val CLSS = "FaceTable"
-        private val LOGGER = Logger.getLogger(CLSS)
-        private val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)
+    init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)
     }
 }

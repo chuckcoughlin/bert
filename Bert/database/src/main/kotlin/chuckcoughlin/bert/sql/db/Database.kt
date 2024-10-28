@@ -26,6 +26,13 @@ import java.util.logging.Logger
  */
 object Database  {
     /**
+     * @param name user or face name. Delete the face and assocuiated details.
+     * If the face does not exist, no action is taken.
+     */
+    fun deleteFace(name: String) {
+        return face.deleteFace(connection, name)
+    }
+    /**
      * @param name pose name. Delete the pose and its joint map from the
      *         database. If the pose does not exist, no action is taken.
      */

@@ -7,7 +7,7 @@ package chuckcoughlin.bertspeak.data
 
 /**
  * This class is a holder for parameters that define
- * a face.
+ * a face. The name of the owner of the face is separate.
  * Its purpose is to make it easy to format JSON.
  * nam - the name of the list
  * jtype  - the name as a 4 character key.

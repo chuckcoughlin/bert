@@ -25,7 +25,7 @@ class PoseTable {
      */
     fun deletePose(cxn: Connection?, name: String) {
         if( cxn!=null ) {
-            var SQL = "select poseid from PoseName where pose = ?"
+            var SQL = "select poseid from PoseName where name = ?"
             var statement = cxn.prepareStatement(SQL)
             var rs: ResultSet? = null
             val pose = name.lowercase(Locale.getDefault())
@@ -45,7 +45,7 @@ class PoseTable {
             catch (e: SQLException) {
                 // if the error message is "out of memory",
                 // it probably means no database file is found
-                LOGGER.severe(String.format("%s.getPoseIdForName: Error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.deletePose: Error (%s)", CLSS, e.message))
             }
             finally {
                 if(rs != null) {
@@ -56,9 +56,9 @@ class PoseTable {
                     catch (ignore: SQLException) {}
                 }
                 // Now do the deletions
-                SQL=String.format("delete from PoseName where poseid = %d", poseid)
                 var stmt=cxn.createStatement()
                 try {
+                    SQL=String.format("delete from PoseName where poseid = %d", poseid)
                     stmt.execute(SQL)
                     SQL=String.format("delete from Pose where poseid = %d", poseid)
                     stmt.execute(SQL)
@@ -80,7 +80,7 @@ class PoseTable {
     fun getPoseIdForName(cxn: Connection?, name: String): Long {
         var poseid: Long = SQLConstants.NO_POSE   // In case of SQL error
         if( cxn!=null ) {
-            var SQL = "select poseid from PoseName where pose = ?"
+            var SQL = "select poseid from PoseName where name = ?"
             var prepStatement: PreparedStatement = cxn.prepareStatement(SQL)
             var rs: ResultSet? = null
             val pose = name.lowercase(Locale.getDefault())
@@ -121,7 +121,7 @@ class PoseTable {
                     if( rs.next() ) {
                         poseid = rs.getLong(1)
                     }
-                    SQL = String.format("insert into PoseName(pose,poseid) values('%s',%d)",pose,poseid)
+                    SQL = String.format("insert into PoseName(name,poseid) values('%s',%d)",pose,poseid)
                     statement.executeUpdate(SQL)
                 }
                 catch (e: SQLException) {
@@ -193,10 +193,11 @@ class PoseTable {
         return map
     }
     /**
-     * Return a map of speeds by joint name
+     * Return a map of speeds by joint name. The speeds come from the current
+     * MotorConfiguration objects.
      *
      * @param poseid
-     * @return a map of target positions by joint for the pose
+     * @return a map of current speed settings by joint for the pose
      */
     fun getPoseJointSpeeds(cxn: Connection?,poseid: Long,configs:Map<Joint,MotorConfiguration>): Map<Joint, Double> {
         val map: MutableMap<Joint, Double> = HashMap()
@@ -244,10 +245,11 @@ class PoseTable {
         return map
     }
     /**
-     * Return a map of speeds by joint name
+     * Return a map of torques by joint name. The torques come from the current
+     * MotorConfiguration objects.
      *
      * @param poseid
-     * @return a map of target positions by joint for the pose
+     * @return a map of current torque values by joint for the pose
      */
     fun getPoseJointTorques(cxn: Connection?,poseid: Long,configs:Map<Joint,MotorConfiguration>): Map<Joint, Double> {
         val map: MutableMap<Joint, Double> = HashMap()
@@ -500,9 +502,12 @@ class PoseTable {
         }
     }
 
-    companion object {
-        private const val CLSS = "PoseTable"
-        private val LOGGER = Logger.getLogger(CLSS)
-        private val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)
+    private val CLSS = "PoseTable"
+    private val LOGGER = Logger.getLogger(CLSS)
+    private val DEBUG: Boolean
+
+    init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)
     }
+
 }

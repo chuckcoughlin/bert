@@ -60,8 +60,8 @@ enum class JointDefinitionProperty {
         fun toJSON(): String {
             val gson = GsonBuilder().setPrettyPrinting().create()
             var names = mutableListOf<String>()
-            for (type in values()) {
-                if (!type.equals(JointDefinitionProperty.NONE))
+            for( type in values() ) {
+                if(!type.equals(NONE))
                     names.add(type.name)
             }
             return gson.toJson(names)

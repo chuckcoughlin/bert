@@ -29,6 +29,7 @@ command:
     | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Unit?  # setMotorProperty
 	| Salutation? Straighten (It|Article? Side? (Joint|Limb) Axis? )    	    # straightenJoint
+	| Salutation? Forget NAME                                                   # deletePose
 	| Salutation? phrase                                    		            # handleArbitraryCommand
 	;
 
@@ -39,6 +40,7 @@ question:
     | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion1
     | What Are Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion2
     | What Are Article? Names Of Article? (Motors|Limbs|Appendages)   # bodyPartListQuestion
+    | What Are Article? Names Of Article? (Faces|Poses)               # databaseListQuestion
     | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis?  # handleBulkPropertyQuestion
     | What Is Article? Side? Joint Axis? Property               # jointPropertyQuestion
     | What Is Article? Axis? Property Of Article? Side? Joint   # motorPropertyQuestion1
@@ -82,6 +84,8 @@ Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
 Do: 'do';
 Dynamic: 'dynamic';
+Faces: 'faces';
+Forget: 'forget';
 Goals: 'goals'|'targets';
 Greeting: 'hello'|'high'|'hi'|'hey';
 Have: 'have'|'wear';
@@ -107,6 +111,7 @@ Off: 'off'|'disabled';
 On: 'on'|'enabled';
 Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
 Parameters: 'properties'|'parameters'|'settings';
+Poses: 'poses';
 Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';

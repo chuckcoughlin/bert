@@ -9,5 +9,6 @@ package chuckcoughlin.bert.sql.db
  */
 object SQLConstants {
     const val SQL_NULL_CONNECTION : Long = -1
+    const val NO_FACE: Long = -1
     const val NO_POSE: Long = -1
 }

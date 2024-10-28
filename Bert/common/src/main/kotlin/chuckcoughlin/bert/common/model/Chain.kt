@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.message.JsonType
-import chuckcoughlin.bert.common.util.NamedStringList
 import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
