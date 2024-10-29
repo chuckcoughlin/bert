@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.message.JsonType
 import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
@@ -63,7 +62,7 @@ class Chain {
      */
     fun appendagesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var names = NamedStringList("AppendageNames", JsonType.APPENDAGE_NAMES.name)
+        var names = mutableListOf<String>()
         for (appendage in linkByAppendage.keys) {
             names.add(appendage.name)
         }
@@ -74,7 +73,7 @@ class Chain {
      */
     fun jointsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var names = NamedStringList("JointNames", JsonType.JOINT_NAMES.name)
+        var names = mutableListOf<String>()
         for (joint in jointParent.keys) {
             names.add(joint.name)
         }
@@ -85,7 +84,7 @@ class Chain {
      */
     fun limbsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var names = NamedStringList("LimbNames", JsonType.LIMB_NAMES.name)
+        var names = mutableListOf<String>()
         for (link in links) {
             names.add(link.name)
         }

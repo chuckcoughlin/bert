@@ -7,14 +7,30 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.*
-import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointDefinitionProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
+import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -134,8 +150,9 @@ class Dispatcher() : Controller {
     suspend fun initialize() {
         if(DEBUG) LOGGER.info(String.format("%s.initialize: sending messages to establish sanity", CLSS))
         // Set the speed to "normal" rate.
-        var msg = MessageBottle(RequestType.SET_POSE)
-        msg.pose = ConfigurationConstants.POSE_NORMAL_SPEED
+        var msg = MessageBottle(RequestType.COMMAND )
+        msg.command = CommandType.SET_POSE
+        msg.arg = ConfigurationConstants.POSE_NORMAL_SPEED
         msg.source = ControllerType.BITBUCKET.name
         msg.control.delay = 500                // 1/2 sec delay
         toInternalController.send(msg)
@@ -304,9 +321,12 @@ class Dispatcher() : Controller {
         if (request.type.equals(RequestType.COMMAND)) {
             val command = request.command
             LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
-            if( command.equals(CommandType.FORGET) ) {
-                Database.deletePose(request.pose)
-                Database.deleteFace(request.pose)
+            if( command.equals(CommandType.FORGET_FACE) ) {
+                Database.deleteFace(request.arg)
+            }
+            else if( command.equals(CommandType.FORGET_POSE) ) {
+                Database.deletePose(request.arg)
+                Database.deleteFace(request.arg)
             }
             else if( command.equals(CommandType.HALT) ) {
                 request.type = RequestType.NONE  // Suppress a response
@@ -402,39 +422,38 @@ class Dispatcher() : Controller {
             }
         }
         // List the names of different kinds of motor properties
-        else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
+        else if (request.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            if(!request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
-                request.text = JointDefinitionProperty.toJSON()
-            }
-            else {
-                request.text = JointDynamicProperty.toJSON()
-            }
+            request.text = JointDynamicProperty.toJSON()
+        }
+        else if (request.jtype.equals(JsonType.MOTOR_STATIC_PROPERTIES)) {
+            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
+            request.text = JointDefinitionProperty.toJSON()
         }
         // List various
-        else if (request.type.equals(RequestType.LIST_NAMES)) {
+        else if (request.type.equals(RequestType.JSON)) {
             LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
-            val metric: MetricType = request.metric
+            val jtype: JsonType = request.jtype
             var text = ""
-            when (metric) {
-                MetricType.APPENDAGES -> {
+            when (jtype) {
+                JsonType.APPENDAGE_NAMES -> {
                     text = URDFModel.chain.appendagesToJSON()
                 }
-                MetricType.JOINTS -> {
+                JsonType.JOINT_NAMES -> {
                     text = URDFModel.chain.jointsToJSON()
                 }
-                MetricType.LIMBS -> {
+                JsonType.LIMB_NAMES -> {
                     text = URDFModel.chain.limbsToJSON()
                 }
-                else -> request.error = String.format("I can't get the names of %s",metric.name)
+                else -> request.error = String.format("I can't get the names of %s",jtype.name)
             }
             request.text = text
         }
         else if (request.type.equals(RequestType.MAP_POSE)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             val command = request.command
-            val poseName = request.pose
-            if (!command.equals(CommandType.NONE) && !poseName.equals(BottleConstants.NO_POSE)) {
+            val poseName = request.arg
+            if (!command.equals(CommandType.NONE) && !poseName.equals(BottleConstants.NO_ARG)) {
                 Database.mapNameToPose(command.name, poseName)
             }
             else {
@@ -443,8 +462,8 @@ class Dispatcher() : Controller {
         }
         else if (request.type.equals(RequestType.SAVE_POSE)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            var poseName: String = request.pose
-            if (!poseName.equals(BottleConstants.NO_POSE)) {
+            var poseName: String = request.arg
+            if (!poseName.equals(BottleConstants.NO_ARG)) {
                 Database.saveJointAnglesForPose(RobotModel.motorsByJoint, poseName)
             }
             else {
@@ -497,15 +516,16 @@ class Dispatcher() : Controller {
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
             request.type.equals(RequestType.GET_METRIC) ||
             request.type.equals(RequestType.HANGUP)     ||
-            request.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
-            request.type.equals(RequestType.LIST_NAMES) ||
+            request.jtype.equals(JsonType.FACE_NAMES) ||
+            request.jtype.equals(JsonType.JOINT_NAMES) ||
             request.type.equals(RequestType.MAP_POSE) ||
             request.type.equals(RequestType.SAVE_POSE)) {
             return true
         }
         else if (request.type.equals(RequestType.COMMAND)) {
             val cmd = request.command
-            return if (cmd.equals(CommandType.FORGET)   ||
+            return if (cmd.equals(CommandType.FORGET_FACE)   ||
+                       cmd.equals(CommandType.FORGET_POSE)   ||
                        cmd.equals(CommandType.SHUTDOWN) ||
                        cmd.equals(CommandType.SHUTDOWN)) {
                 true
@@ -552,9 +572,9 @@ class Dispatcher() : Controller {
             request.type.equals(RequestType.GET_LIMITS) ||
             request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
-            request.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            request.jtype.equals(JsonType.JOINT_POSITIONS) ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            request.type.equals(RequestType.SET_POSE) ||
+            request.command.equals(CommandType.SET_POSE) ||
             request.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
         }

@@ -33,10 +33,10 @@ object BottleConstants {
     const val OFF_VALUE = 0.0
 
     // Default values for some "empty" properties
+    const val NO_ARG    = "No Argument"
     const val NO_CONTROLLER = "No Controller"
     const val NO_DELAY = 0L
     const val NO_ERROR = "No Error"
-    const val NO_POSE  = "No Pose"
     const val NO_SOURCE = "No Source"
 
 }

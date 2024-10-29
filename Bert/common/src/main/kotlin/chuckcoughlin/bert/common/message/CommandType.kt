@@ -9,9 +9,12 @@ package chuckcoughlin.bert.common.message
  */
 enum class CommandType {
     // Command contained in a message request
-    FORGET,
+    FORGET_FACE,
+    FORGET_POSE,
     HALT,
     RESET,
+    SET_POSE,                // Position robot in the named pose
+    SET_SPEED,               // Set a speed for all joints
     SHUTDOWN,
     SLEEP,
     WAKE,
@@ -26,9 +29,12 @@ enum class CommandType {
         fun toText(command: CommandType): String {
             var text = ""
             when (command) {
-                FORGET   -> text = "forget"
+                FORGET_FACE   -> text = "forget face"
+                FORGET_POSE   -> text = "forget pose"
                 HALT     -> text = "halt"
                 RESET    -> text = "reset"
+                SET_POSE   -> text = "set pose"
+                SET_SPEED  -> text = "set speed"
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"
                 WAKE     -> text = "wake"

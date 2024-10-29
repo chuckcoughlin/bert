@@ -5,6 +5,7 @@
  */
 package chuckcoughlin.bert.motor.controller
 
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -124,7 +125,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
             msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
         }
-        else if (msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) &&
+        else if (msg.jtype.equals(JsonType.JOINT_POSITIONS) &&
             !msg.limb.equals(Limb.NONE)) {
             return true
         }
@@ -138,7 +139,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
      * (There may be only one).
      */
     private fun returnsStatusArray(msg: MessageBottle): Boolean {
-        return if(  msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+        return if(  msg.jtype.equals(JsonType.JOINT_POSITIONS) ||
                     msg.type.equals(RequestType.READ_MOTOR_PROPERTY)) {
             true
         }
@@ -179,7 +180,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                 }
             }
         }
-        else if (type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+        else if (request.jtype.equals(JsonType.JOINT_POSITIONS) ||
             type.equals(RequestType.SET_LIMB_PROPERTY) ||
             type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             val err: String = DxlMessage.errorMessageFromStatus(bytes)

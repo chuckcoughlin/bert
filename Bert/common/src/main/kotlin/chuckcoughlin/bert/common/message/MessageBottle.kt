@@ -38,9 +38,10 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     var handler: ControllerType // The subsystem to handle this message
     var id: Long             // Unique identifier (used for serial processing)
     var joint : Joint        // Request applies to this joint (if one)
+    var jtype: JsonType      // Type when message is JSON
     var limb: Limb           // Message applies to this limb
     var metric: MetricType
-    var pose: String
+    var arg: String          // Use whenever the command requires a text argument
     var jointDefinitionProperty: JointDefinitionProperty   // Possible subject of the original request
     var jointDynamicProperty: JointDynamicProperty         // Possible subject of the original request
     var source: String       // Origin of the request
@@ -80,9 +81,10 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         copy.error       = error
         copy.handler     = handler
         copy.joint       = joint
+        copy.jtype       = jtype
         copy.limb        = limb
         copy.metric      = metric
-        copy.pose        = pose
+        copy.arg         = arg
         copy.jointDefinitionProperty = jointDefinitionProperty
         copy.jointDynamicProperty    = jointDynamicProperty
         copy.source      = source
@@ -148,9 +150,10 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         handler = ControllerType.UNDEFINED
         id = 0
         joint = Joint.NONE                  // Name of relavant joint
+        jtype = JsonType.UNDEFINED
         limb  = Limb.NONE
         metric = MetricType.NAME
-        pose   = BottleConstants.NO_POSE
+        arg    = BottleConstants.NO_ARG
         jointDefinitionProperty = JointDefinitionProperty.NONE
         jointDynamicProperty = JointDynamicProperty.NONE
         source = BottleConstants.NO_SOURCE

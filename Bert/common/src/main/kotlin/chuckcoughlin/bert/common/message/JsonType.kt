@@ -9,7 +9,7 @@ package chuckcoughlin.bert.common.message
  * This is a key known to both tablet and robot that appears in a Json
  * message and indicates the class represented by the Json code. The message
  * format is like:
- *   JSN:JOINT_NAMES  ... json list of joint names, e.g.
+ *   JSN:JOINT_NAMES  json list of joint names, e.g.
  *
  * The Json type is followed by a space before the remainder of the message
  * in Json format. Refer to the commentary below for the data object that
@@ -21,9 +21,11 @@ enum class JsonType {
     FACE_DIRECTION,   // Angular direction of view        FaceDirection
     FACE_NAMES,       // Names df people whom we know     MutableList<String>
     JOINT_NAMES,      // List of joint names              MutableList<String>
+    JOINT_POSITIONS,  // Current positions of all nmotors  MutableList<JointPosition>
     LIMB_NAMES,       // List of limb names               MutableList<String>
     MOTOR_DYNAMIC_PROPERTIES, // Names of dynamic motor properties  MutableList<String>
     MOTOR_STATIC_PROPERTIES,  // Names of static motor properties    MutableList<String>
+    POSE_NAMES,       // Names df defined poses                      MutableList<String>
     UNDEFINED
     ;
 

@@ -7,6 +7,7 @@ package chuckcoughlin.bert.motor.controller
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -176,7 +177,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             return true
         }
         else if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            request.type.equals(RequestType.LIST_MOTOR_PROPERTY) ) {
+                 request.jtype.equals(JsonType.JOINT_POSITIONS) ) {
             // Certain properties are constants available from the configuration file.
             val defProp= request.jointDefinitionProperty
             if( defProp==JointDefinitionProperty.ID         ||
@@ -204,7 +205,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 return true
             }
         }
-        else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
+        else if (request.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES) ||
+                 request.jtype.equals(JsonType.MOTOR_STATIC_PROPERTIES) ) {
             return true
         }
         return false
@@ -214,12 +216,15 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // to return directly to the user. These jointValues are obtained from the initial configuration
     private fun createImmediateResponse(request: MessageBottle): MessageBottle {
         var text: String = ""
-        if (request.type.equals(RequestType.COMMAND) &&
-            request.command.equals(CommandType.RESET) ) {
+        val type = request.type
+        val command = request.command
+        val jtype = request.jtype
+        if (type.equals(RequestType.COMMAND) &&
+            command.equals(CommandType.RESET) ) {
             pendingMessages.clear()
             request.text = "I have been reset"
         }
-        else if( request.type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
+        else if( type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
             val joint = request.joint
             val jointName: String = Joint.toText(joint)
 
@@ -266,7 +271,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             }
         }
         // Return a JSON list of parameter names
-        else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTIES)) {
+        else if (type.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES)) {
             if(request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
                 text = JointDefinitionProperty.toJSON()
             }
@@ -283,7 +288,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 }
             }
         }
-        else if (request.type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+        else if (jtype.equals(JsonType.JOINT_POSITIONS)) {
             // Must be a definition property
             val definition = request.jointDefinitionProperty
             if(DEBUG)LOGGER.info(String.format("%s.createImmediateResponse: %s %s for all motors",
@@ -345,7 +350,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         if (msg.type.equals(RequestType.GET_GOALS) ||
             msg.type.equals(RequestType.GET_LIMITS) ||
             msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            msg.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES) ||
+            msg.jtype.equals(JsonType.MOTOR_STATIC_PROPERTIES) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
             msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true

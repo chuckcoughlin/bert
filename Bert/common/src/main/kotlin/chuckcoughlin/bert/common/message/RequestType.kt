@@ -8,7 +8,7 @@ package chuckcoughlin.bert.common.message
  * These are the recognized commands from command controller to launcher.
  */
 enum class RequestType {
-    COMMAND,                 // Execute a no-arg command, usually non-motor-related
+    COMMAND,                 // Execute a command may have one or no args
     GET_APPENDAGE_LOCATION,  // x,y,z location of the named appendage
     GET_GOALS,               // The current joint target settings
     GET_JOINT_LOCATION,      // x,y,z location of the center of the named joint
@@ -19,9 +19,7 @@ enum class RequestType {
     HANGUP,                  // Client has disconnected
     HEARTBEAT,               // An internal message on the TimerQueue
     INITIALIZE_JOINTS,       // Make sure that all joints are in "sane" positions
-    LIST_MOTOR_PROPERTIES,   // List available properties for a motor (static/dynamic) - JSON
-    LIST_MOTOR_PROPERTY,     // List a single property for all motors  - JSON
-    LIST_NAMES,              // List a category of attributes determined by metric type  - JSON
+    JSON,                    // Message is in Json format for computer-computer.
     MAP_POSE,                // Associate a command to a pose
     NOTIFICATION,            // Unsolicited message from server or parser
     PARTIAL,                 // Remainder of text has yet to arrive
@@ -29,7 +27,6 @@ enum class RequestType {
     READ_MOTOR_PROPERTY,     // Read a single property for all motors and record internally
     SET_LIMB_PROPERTY,       // Torque or speed for motors in a limb
     SET_MOTOR_PROPERTY,      // For a particular motor
-    SET_POSE,                // Position robot in the named pose
     NONE;
 
     companion object {

@@ -50,20 +50,33 @@ class CommandMessageHandler(sock: Socket)  {
         var text: String = translator.messageToText(response)
         text = text.trim { it <= ' ' }
         var mtype = MessageType.ANS
-        if( response.type.equals(RequestType.LIST_MOTOR_PROPERTIES) ||
-            response.type.equals(RequestType.LIST_MOTOR_PROPERTY  ) ) mtype = MessageType.JSN
+        if( response.type.equals(RequestType.JSON  ) ) {
+            mtype = MessageType.JSN
+            try {
 
-        if(text.isBlank()) text = response.error
-        if(text.isBlank()) text = String.format("error from robot, response body and error are both blank")
-        try {
-            val msgtxt = String.format("%s:%s", mtype.name, text)
-            if( DEBUG ) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
-            output.println(msgtxt)
-            output.flush()
+                val msgtxt = String.format("%s:%s %s", mtype.name, response.jtype.name,response.text)
+                if (DEBUG) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
+                output.println(msgtxt)
+                output.flush()
+            }
+            catch (ex: Exception) {
+                LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+                success = false
+            }
         }
-        catch (ex: Exception) {
-            LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
-            success = false
+        else {
+            if (text.isBlank()) text = response.error
+            if (text.isBlank()) text = String.format("error from robot, response body and error are both blank")
+            try {
+                val msgtxt = String.format("%s:%s", mtype.name, text)
+                if (DEBUG) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
+                output.println(msgtxt)
+                output.flush()
+            }
+            catch (ex: Exception) {
+                LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+                success = false
+            }
         }
 
         return success

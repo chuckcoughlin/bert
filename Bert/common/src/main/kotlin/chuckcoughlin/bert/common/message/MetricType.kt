@@ -1,15 +1,16 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.message
 
 /**
- * These quantities are attributes of the robot as a whole.
+ * These quantities are attributes of the robot as a whole
+ * and are not derived from motor parameters.
  */
 enum class MetricType {
-    ACTIONS, AGE, APPENDAGES, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
-    FACES, HEIGHT, JOINTS, LIMBS, MITTENS, NAME, POSES, UNDEFINED;
+    AGE, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
+    HEIGHT, MITTENS, NAME, UNDEFINED;
 
     companion object {
         /**

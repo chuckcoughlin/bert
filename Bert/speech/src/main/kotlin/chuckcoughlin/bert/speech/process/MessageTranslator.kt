@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.JointPropertyValue
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
@@ -12,7 +13,6 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
-import chuckcoughlin.bert.common.util.NamedStringList
 import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
@@ -47,6 +47,7 @@ class MessageTranslator {
      * @return pronounceable text
      */
     fun messageToText(msg: MessageBottle): String {
+        val jtype = msg.jtype
         var text: String = ""
         if( !msg.error.equals(BottleConstants.NO_ERROR)) {
             text = msg.error
@@ -82,10 +83,10 @@ class MessageTranslator {
                 }
             }
             // Lists are written to JSON
-            else if(type.equals(RequestType.LIST_MOTOR_PROPERTY)) {
+            else if(jtype.equals(JsonType.JOINT_POSITIONS)) {
                 val iterator: MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
                 val gson=GsonBuilder().setPrettyPrinting().create()
-                val holder = NamedStringList("MotorPropertyNames", JsonType.MOTOR_PROP_NAMES.name)
+                val holder = mutableListOf<String>()
                 while( iterator.hasNext() ) {
                     val jpv=iterator.next()
                     holder.add(jpv.value.toString())
@@ -122,8 +123,8 @@ class MessageTranslator {
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
                 randomAcknowledgement()
             }
-            else if (type.equals(RequestType.SET_POSE)) {
-                String.format("I am at %s", msg.pose.lowercase(Locale.getDefault()))
+            else if (type.equals(CommandType.SET_POSE)) {
+                String.format("I am at %s", msg.arg.lowercase(Locale.getDefault()))
             }
             else {
                 val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()

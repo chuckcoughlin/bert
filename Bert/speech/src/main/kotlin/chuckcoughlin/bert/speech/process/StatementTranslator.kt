@@ -46,21 +46,21 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // What are the names of your joints
     override fun visitBodyPartListQuestion(ctx: SpeechSyntaxParser.BodyPartListQuestionContext): Any? {
-        bottle.type = RequestType.LIST_NAMES
+        bottle.type = RequestType.JSON
         // Indicate whether we want static or dynamic properties - by setting one or the other
-        if( ctx.Appendages()!=null ) bottle.metric = MetricType.APPENDAGES
-        if( ctx.Motors()!=null  )    bottle.metric = MetricType.JOINTS
-        if( ctx.Limbs()!=null  )     bottle.metric = MetricType.LIMBS
+        if( ctx.Appendages()!=null ) bottle.jtype = JsonType.APPENDAGE_NAMES
+        if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
+        if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
         return null
     }
 
     // List values from the database
     // What are the names of your poses
     override fun visitDatabaseListQuestion(ctx: SpeechSyntaxParser.DatabaseListQuestionContext): Any? {
-        bottle.type = RequestType.LIST_NAMES
+        bottle.type = RequestType.JSON
         // Indicate whether we want static or dynamic properties - by setting one or the other
-        if( ctx.Faces()!=null ) bottle.metric = MetricType.FACES
-        if( ctx.Poses()!=null  )    bottle.metric = MetricType.POSES
+        if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
+        if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
         return null
     }
 
@@ -69,7 +69,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         val pose: String = visit(ctx.phrase()).toString()
         sharedDictionary[SharedKey.POSE] = pose
         bottle.type = RequestType.SAVE_POSE
-        bottle.pose = pose
+        bottle.arg = pose
         bottle.text = messageTranslator.randomAcknowledgement()
         return null
     }
@@ -79,7 +79,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         val pose: String = visit(ctx.phrase()).toString()
         sharedDictionary[SharedKey.POSE] = pose
         bottle.type = RequestType.SAVE_POSE
-        bottle.pose = pose
+        bottle.arg = pose
         bottle.text = messageTranslator.randomAcknowledgement()
         return null
     }
@@ -90,7 +90,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if (ctx.phrase() != null) {
             val pose: String = visit(ctx.phrase()).toString()
             sharedDictionary[SharedKey.POSE] = pose
-            bottle.pose = pose
+            bottle.arg = pose
         }
         bottle.text = messageTranslator.randomAcknowledgement()
         return null
@@ -100,12 +100,12 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitDeletePose(ctx: SpeechSyntaxParser.DeletePoseContext): Any? {
         bottle.type = RequestType.COMMAND
         val pose: String = ctx.NAME().getText()
-        bottle.command = CommandType.FORGET
+        bottle.command = CommandType.FORGET_POSE
         if(pose.isBlank()) {
             val msg = String.format("an argument is required")
             bottle.error = msg
         }
-        bottle.pose = pose
+        bottle.arg = pose
         return null
     }
     // Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot. "hold" is the same as "freeze".
@@ -186,8 +186,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             if (!determineCommandFromPhrase(phrase)) {   // Configures bottle
                 // Next check to see if this is a pose
                 if (Database.poseExists(phrase)) {
-                    bottle.type = RequestType.SET_POSE
-                    bottle.pose = phrase
+                    bottle.type = RequestType.COMMAND
+                    bottle.command = CommandType.SET_POSE
+                    bottle.arg = phrase
                     sharedDictionary[SharedKey.POSE] = phrase
                 }
                 else {
@@ -267,7 +268,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // List the properties of a joint
     override fun visitHandleListCommand1(ctx: SpeechSyntaxParser.HandleListCommand1Context): Any? {
-        bottle.type = RequestType.LIST_MOTOR_PROPERTY
+        bottle.type = RequestType.JSON
+        bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
         val pname: String = ctx.Properties().getText() // plural
         setJointPropertyInMessage(bottle,pname)
         if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
@@ -283,7 +285,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // Tell me your joint positions
     override fun visitHandleListCommand2(ctx: SpeechSyntaxParser.HandleListCommand2Context) :Any? {
-        bottle.type = RequestType.LIST_MOTOR_PROPERTY
+        bottle.type = RequestType.JSON
+        bottle.jtype= JsonType.JOINT_POSITIONS
         val pname: String = ctx.Properties().getText() // plural
         setJointPropertyInMessage(bottle,pname)
         if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
@@ -409,7 +412,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }
-            bottle.pose = visit(ctx.phrase(1)).toString()
+            bottle.arg = visit(ctx.phrase(1)).toString()
         }
         else {
             val msg = String.format("I need both a pose name and associated command")
@@ -428,7 +431,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }
-            bottle.pose = visit(ctx.phrase(1)).toString()
+            bottle.arg = visit(ctx.phrase(1)).toString()
         }
         else {
             val msg = String.format("I need both a pose name and associated command")
@@ -447,7 +450,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }
-            bottle.pose = visit(ctx.phrase(1)).toString()
+            bottle.arg = visit(ctx.phrase(1)).toString()
         }
         else {
             val msg = String.format("I need both a pose name and associated command")
@@ -466,7 +469,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 val msg = String.format("what do you mean: %s?", command)
                 bottle.error = msg
             }
-            bottle.pose = pose
+            bottle.arg = pose
         }
         else {
             val msg = String.format("This mapping requires both a pose name and associated command")
@@ -486,7 +489,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 val msg = String.format("I didn't recognize the command %s", command)
                 bottle.error = msg
             }
-            bottle.pose = pose
+            bottle.arg = pose
         }
         else {
             val msg = String.format("I need both a pose name and associated command")
@@ -602,18 +605,18 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.
     // What are your static motor parameters
     override fun visitParameterListQuestion1(ctx: SpeechSyntaxParser.ParameterListQuestion1Context): Any? {
-        bottle.type = RequestType.LIST_MOTOR_PROPERTIES
+        bottle.type = RequestType.JSON
         // Indicate whether we want static or dynamic properties - by setting one or the other
-        if( ctx.Dynamic()!=null ) bottle.jointDynamicProperty = JointDynamicProperty.STATE
-        if( ctx.Static()!=null  ) bottle.jointDefinitionProperty = JointDefinitionProperty.ID
+        if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
+        if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
         return null
     }
     // What are the dynamic properties of your joints
     override fun visitParameterListQuestion2(ctx: SpeechSyntaxParser.ParameterListQuestion2Context): Any? {
-        bottle.type = RequestType.LIST_MOTOR_PROPERTIES
+        bottle.type = RequestType.JSON
         // Indicate whether we want static or dynamic properties - by setting one or the other
-        if( ctx.Dynamic()!=null ) bottle.jointDynamicProperty = JointDynamicProperty.STATE
-        if( ctx.Static()!=null  ) bottle.jointDefinitionProperty = JointDefinitionProperty.ID
+        if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
+        if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
         return null
     }
 
@@ -627,7 +630,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitPoseQuestion(ctx: SpeechSyntaxParser.PoseQuestionContext): Any? {
         val pose = sharedDictionary[SharedKey.POSE].toString()
         bottle.type = RequestType.NOTIFICATION
-        bottle.pose = pose
+        bottle.arg = pose
         bottle.text = String.format("My current pose is %s", pose)
         return null
     }
@@ -714,9 +717,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Set the speed for all joints to one of the standard choices.
     // now move slowly
     override fun visitSetSpeed(ctx: SpeechSyntaxParser.SetSpeedContext): Any? {
-        bottle.type = RequestType.SET_POSE
-        val pose = poseForAdverb(ctx.Speed().text)
-        bottle.pose = pose
+        bottle.type = RequestType.COMMAND
+        bottle.command = CommandType.SET_SPEED
+        setSpeedInMessage(bottle,ctx.Speed().text)
         bottle.text = String.format("I am moving %s", ctx.Speed().text)
         return null
     }
@@ -864,8 +867,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.command = CommandType.RESET
         }
         else if (phrase.startsWith("straighten")) {
-            bottle.type = RequestType.SET_POSE
-            bottle.pose = ConfigurationConstants.POSE_HOME
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.SET_POSE
+            bottle.arg = ConfigurationConstants.POSE_HOME
         }
         else {
             success = false

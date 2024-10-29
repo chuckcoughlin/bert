@@ -8,6 +8,8 @@ package chuckcoughlin.bert.motor.controller
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -200,7 +202,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if (msg.type.equals(RequestType.GET_GOALS) ||
             msg.type.equals(RequestType.GET_LIMITS) ||
             msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
+            msg.jtype.equals(JsonType.JOINT_POSITIONS) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
@@ -220,8 +222,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.LIST_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_POSE) ) {
+            msg.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES) ||
+            msg.type.equals(CommandType.SET_POSE) ) {
                 return false
         }
         // No joint means all joints
@@ -349,6 +351,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun messageToByteList(request: MessageBottle): List<ByteArray> {
         var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
+        val command: CommandType = request.command
+        val jtype: JsonType = request.jtype
         if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s",
             CLSS,controllerName,type.name))
 
@@ -365,7 +369,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if (request.duration < duration) request.duration = duration
             request.control.responseCount[controllerName] = 0 // No response
         }
-        else if( type==RequestType.LIST_MOTOR_PROPERTY ||
+        else if( jtype==JsonType.JOINT_POSITIONS ||
                  type==RequestType.READ_MOTOR_PROPERTY ) {
             val limb = request.limb
             val prop = request.jointDynamicProperty
@@ -396,9 +400,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             list = DxlMessage.byteArrayListToListProperty(JointDynamicProperty.STATE, configurationsByJoint.values)
         }
-        else if (type==RequestType.SET_POSE) {
+        else if( command == CommandType.SET_POSE) {
             request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
-            val poseName: String = request.pose
+            val poseName: String = request.arg
             if( Database.poseExists(poseName)) {
                 val poseid = Database.getPoseIdForName(poseName)
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsByJoint)
@@ -436,7 +440,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun synthesizeResponse(msg: MessageBottle) {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.type.equals(RequestType.SET_POSE) ) {
+            msg.type.equals(RequestType.COMMAND) && msg.command.equals(CommandType.SET_POSE) ) {
             msg.text = ""   // Random acknowledgement added later
         }
         else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
