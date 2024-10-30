@@ -21,6 +21,8 @@ enum class JsonType {
     FACE_DIRECTION,   // Angular direction of view        FaceDirection
     FACE_NAMES,       // Names df people whom we know     MutableList<String>
     JOINT_NAMES,      // List of joint names              MutableList<String>
+    JOINT_IDS,        // Motor id for each joint        MutableList<JointAttribute>
+    JOINT_TYPES,      // Motor type for each joint        MutableList<JointAttribute>
     JOINT_POSITIONS,  // Current positions of all nmotors  MutableList<JointPosition>
     LIMB_NAMES,       // List of limb names               MutableList<String>
     MOTOR_DYNAMIC_PROPERTIES, // Names of dynamic motor properties  MutableList<String>

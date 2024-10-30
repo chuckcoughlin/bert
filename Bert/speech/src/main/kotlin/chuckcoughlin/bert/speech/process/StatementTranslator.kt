@@ -267,36 +267,32 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     }
 
     // List the properties of a joint
-    override fun visitHandleListCommand1(ctx: SpeechSyntaxParser.HandleListCommand1Context): Any? {
+    // tell me your motor speeds
+    override fun visitHandleListCommand(ctx: SpeechSyntaxParser.HandleListCommandContext): Any? {
         bottle.type = RequestType.JSON
-        bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
-        val pname: String = ctx.Properties().getText() // plural
-        setJointPropertyInMessage(bottle,pname)
-        if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
-            bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
-            val msg = String.format(
-                    "My joints don't hava a property %s, that I know of",
-                    pname.lowercase(Locale.getDefault())
-            )
-            bottle.error = msg
-        }
-        return null
-    }
+        if (ctx.Properties() != null) {
+            val pname: String = ctx.Properties().getText() // plural
+            setJointPropertyInMessage(bottle, pname)
+            if (!bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
+                when (bottle.jointDefinitionProperty) {
+                    JointDefinitionProperty.ID        -> bottle.jtype = JsonType.JOINT_IDS
+                    JointDefinitionProperty.MOTORTYPE -> bottle.jtype = JsonType.JOINT_TYPES
+                }
+            }
+            else if (!bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
 
-    // Tell me your joint positions
-    override fun visitHandleListCommand2(ctx: SpeechSyntaxParser.HandleListCommand2Context) :Any? {
-        bottle.type = RequestType.JSON
-        bottle.jtype= JsonType.JOINT_POSITIONS
-        val pname: String = ctx.Properties().getText() // plural
-        setJointPropertyInMessage(bottle,pname)
-        if (bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE) &&
-            bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
-            val msg = String.format(
-                    "My joints don't hava a property %s, that I know of",
-                    pname.lowercase(Locale.getDefault())
-            )
+            }
+            else {
+                val msg = String.format( "My joints don't hava %s, that I know of", pname.lowercase(Locale.getDefault())
+                )
+                bottle.error = msg
+            }
+        }
+        else {
+            val msg = "you must must specify a motor property like id, angle, or speed"
             bottle.error = msg
         }
+
         return null
     }
 

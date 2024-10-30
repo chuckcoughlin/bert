@@ -21,8 +21,8 @@ command:
 	| Greeting Greeting? Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					            # initializeJoints
 	| Salutation? List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
-	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand1
-	| Salutation? List Article? Motor? Properties                   # handleListCommand2
+	| Salutation? List Article? Properties Of Article? Motors       # handleListCommand
+	| Salutation? List Article? Motor? Properties                   # handleListCommand
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
 	| Salutation? Move Speed                                                   # setSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	   # enableTorque
