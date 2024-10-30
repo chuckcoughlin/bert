@@ -50,33 +50,17 @@ class CommandMessageHandler(sock: Socket)  {
         var text: String = translator.messageToText(response)
         text = text.trim { it <= ' ' }
         var mtype = MessageType.ANS
-        if( response.type.equals(RequestType.JSON  ) ) {
-            mtype = MessageType.JSN
-            try {
+        if( response.type.equals(RequestType.JSON) ) mtype = MessageType.JSN
+        try {
 
-                val msgtxt = String.format("%s:%s %s", mtype.name, response.jtype.name,response.text)
-                if (DEBUG) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
-                output.println(msgtxt)
-                output.flush()
-            }
-            catch (ex: Exception) {
-                LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
-                success = false
-            }
+            val msgtxt = String.format("%s:%s", mtype.name, text)
+            if (DEBUG) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
+            output.println(msgtxt)
+            output.flush()
         }
-        else {
-            if (text.isBlank()) text = response.error
-            if (text.isBlank()) text = String.format("error from robot, response body and error are both blank")
-            try {
-                val msgtxt = String.format("%s:%s", mtype.name, text)
-                if (DEBUG) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
-                output.println(msgtxt)
-                output.flush()
-            }
-            catch (ex: Exception) {
-                LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
-                success = false
-            }
+        catch (ex: Exception) {
+            LOGGER.info(String.format(" EXCEPTION %s writing. Assume client is closed.", ex.localizedMessage))
+            success = false
         }
 
         return success

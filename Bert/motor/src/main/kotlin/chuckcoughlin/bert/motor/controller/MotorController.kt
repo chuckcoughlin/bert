@@ -132,7 +132,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      */
     suspend fun processRequest() {
         val request = parentRequestChannel.receive()    //  Waits for message
-        LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name))
+        if( request.type==RequestType.COMMAND)
+            LOGGER.info(String.format("%s.processRequest:%s processing %s (%s)",CLSS,controllerName,request.type.name,request.command.name))
+        else if(request.type==RequestType.JSON)
+            LOGGER.info(String.format("%s.processRequest:%s processing %s (%s)",CLSS,controllerName,request.type.name,request.jtype.name))
+        else
+            LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name))
         // Do nothing if the joint or limb isn't on this controller
         // -- a limb is on one side or the other, not both
         if( isSingleControllerRequest(request) ) {
@@ -223,7 +228,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             msg.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES) ||
-            msg.type.equals(CommandType.SET_POSE) ) {
+            msg.command.equals(CommandType.SET_POSE) ) {
                 return false
         }
         // No joint means all joints

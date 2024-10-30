@@ -338,7 +338,7 @@ class PoseTable {
     fun poseExists(cxn:Connection?,poseName:String) : Boolean {
         var poseid: Long = SQLConstants.NO_POSE
         if( cxn!=null ) {
-            var SQL="select poseid from PoseName where pose = ?"
+            var SQL="select * from PoseName where name = ?"
             var prepStatement: PreparedStatement=cxn.prepareStatement(SQL)
             var rs: ResultSet?=null
             val pose=poseName.lowercase(Locale.getDefault())
@@ -349,28 +349,26 @@ class PoseTable {
                 rs=prepStatement.executeQuery()
                 while(rs.next()) {
                     poseid=rs.getLong("poseid")
-                    LOGGER.info(String.format("%s.getPoseIdForName: %s is %d", CLSS, pose, poseid))
+                    LOGGER.info(String.format("%s.poseExists: %s is %d", CLSS, pose, poseid))
                     break
                 }
             }
             catch (e: SQLException) {
                 // if the error message is "out of memory",
                 // it probably means no database file is found
-                LOGGER.severe(String.format("%s.getPoseIdForName: Error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.poseExists: Error (%s)", CLSS, e.message))
             }
             finally {
                 if(rs != null) {
                     try {
                         rs.close()
                     }
-                    catch (ignore: SQLException) {
-                    }
+                    catch (ignore: SQLException) { }
                 }
                 try {
                     prepStatement.close()
                 }
-                catch (ignore: SQLException) {
-                }
+                catch (ignore: SQLException) {}
             }
         }
         if(poseid==SQLConstants.NO_POSE) {return false}

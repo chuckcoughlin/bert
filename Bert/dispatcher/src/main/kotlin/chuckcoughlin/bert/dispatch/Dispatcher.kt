@@ -227,7 +227,10 @@ class Dispatcher() : Controller {
         else {
             LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s is unhandled",
                     CLSS,msg.type.name,msg.source))
-            msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
+            if( msg.type.equals(RequestType.JSON))
+                msg.error = String.format("internal error, %s (%s) message is unhandled in dispatcher",msg.type.name,msg.jtype.name)
+            else
+                msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
             replyToSource(msg)
         }
     }
@@ -249,7 +252,7 @@ class Dispatcher() : Controller {
         else {
             LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s is unhandled",
                     CLSS,msg.type.name,msg.source))
-            msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
+            msg.error = String.format("internal error, %s message was not handled by the dispatcher",msg.type.name)
             replyToSource(msg)
         }
     }
@@ -421,21 +424,19 @@ class Dispatcher() : Controller {
                 request.text = String.format("I can move my %s from %2.0f to %2.0f",Joint.toText(joint),mc.minAngle,mc.maxAngle)
             }
         }
-        // List the names of different kinds of motor properties
-        else if (request.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES)) {
-            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            request.text = JointDynamicProperty.toJSON()
-        }
-        else if (request.jtype.equals(JsonType.MOTOR_STATIC_PROPERTIES)) {
-            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            request.text = JointDefinitionProperty.toJSON()
-        }
         // List various
         else if (request.type.equals(RequestType.JSON)) {
-            LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
+            LOGGER.info(String.format("%s.handleLocalRequest: JSON type=%s", CLSS, request.jtype.name))
             val jtype: JsonType = request.jtype
             var text = ""
             when (jtype) {
+                // List the names of different kinds of motor properties
+                JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
+                    text = JointDynamicProperty.toJSON()
+                }
+                JsonType.MOTOR_STATIC_PROPERTIES -> {
+                    text = JointDefinitionProperty.toJSON()
+                }
                 JsonType.APPENDAGE_NAMES -> {
                     text = URDFModel.chain.appendagesToJSON()
                 }
@@ -516,8 +517,7 @@ class Dispatcher() : Controller {
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
             request.type.equals(RequestType.GET_METRIC) ||
             request.type.equals(RequestType.HANGUP)     ||
-            request.jtype.equals(JsonType.FACE_NAMES) ||
-            request.jtype.equals(JsonType.JOINT_NAMES) ||
+            request.type.equals(RequestType.JSON)     ||
             request.type.equals(RequestType.MAP_POSE) ||
             request.type.equals(RequestType.SAVE_POSE)) {
             return true
@@ -526,6 +526,7 @@ class Dispatcher() : Controller {
             val cmd = request.command
             return if (cmd.equals(CommandType.FORGET_FACE)   ||
                        cmd.equals(CommandType.FORGET_POSE)   ||
+                       cmd.equals(CommandType.HALT)   ||
                        cmd.equals(CommandType.SHUTDOWN) ||
                        cmd.equals(CommandType.SHUTDOWN)) {
                 true
@@ -586,7 +587,7 @@ class Dispatcher() : Controller {
      */
     private suspend fun replyToSource(response: MessageBottle) {
         val source: String = response.source
-        LOGGER.info(String.format("%s.replyToSource: Received response %s(%s) from %s",
+        LOGGER.info(String.format("%s.replyToSource: Forwarding response %s(%s) from %s",
                     CLSS,response.type.name,response.text,source))
         if (source.equals(ControllerType.COMMAND.name, ignoreCase = true)) {
             commandResponseChannel.send(response)

@@ -6,6 +6,7 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
@@ -47,7 +48,12 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 LOGGER.info(String.format("%s.execute: launched...", CLSS))
                 while (running) {
                     val msg = fromDispatcher.receive()
-                    if (DEBUG) LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
+                    if (DEBUG) {
+                        if(msg.type== RequestType.COMMAND)
+                            LOGGER.info(String.format("%s.execute received: %s %s", CLSS, msg.type.name,msg.command.name))
+                        else
+                            LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
+                    }
                     handleRequest(msg)
                 }
             }
@@ -99,7 +105,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
      * @param msg
      */
     override suspend fun dispatchMessage(msg:MessageBottle) {
-        if (DEBUG) LOGGER.info(String.format("%s.dispatchMessage sending to dispatcher: %s", CLSS, msg.type.name))
+        if (DEBUG) LOGGER.info(String.format("%s.dispatchMessage sending to dispatcher: %s ", CLSS, msg.type.name))
         // Mark dispatch time on motors
         val now = System.currentTimeMillis()
         if( !msg.joint.equals(Joint.NONE) ) RobotModel.motorsByJoint.get(msg.joint)!!.commandTime = now

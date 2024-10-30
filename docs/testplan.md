@@ -48,8 +48,9 @@ the emulator client as 10.0.2.2.
 ### b - Configuration <a id="configuration"></a>
 This section contains tests that validate the wiring and addressing of stepper motors,
 the conversion of raw readings from the motors into proper engineering
-units, and the listing of various parameters in the motor control tables.  Results are shown for the robot as a whole in JSON format.
-These values are available to the tablet to when the robot status is needed. Results are also shown in textual form when using the interactive command interface.
+units, and the listing of various parameters in the motor control tables.  Results are shown for the robot as a whole in JSON format and are meant for direct communication
+with the tablet.
+Values are used by the tablet when robot status is needed to populate various lists. Results are also shown in textual form when using the interactive command interface.
 
 * ![green](/images/ball_green.png) ``Joint Names`` - List the names of joints, limbs or appendages.
 ```
@@ -83,7 +84,10 @@ Typical requests:
 ```
     what are the names of your poses
     list the names of your actions
+    what poses do you know
+    who do you know
 ```
+
 * ![yellow](/images/ball_yellow.png) ``Goals`` - Goals refer to target positions of commanded movements.
 While in-transit, the current position will not match the goal. Test at very slow velocities. Goal parameters
 include angle, speed and and torque limits.  Speeds are degrees/sec and

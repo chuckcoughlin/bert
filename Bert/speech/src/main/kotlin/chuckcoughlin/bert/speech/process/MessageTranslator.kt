@@ -7,13 +7,11 @@ package chuckcoughlin.bert.speech.process
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.JointPropertyValue
-import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
-import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
 
@@ -47,7 +45,7 @@ class MessageTranslator {
      * @return pronounceable text
      */
     fun messageToText(msg: MessageBottle): String {
-        val jtype = msg.jtype
+        val type: RequestType=msg.type
         var text: String = ""
         if( !msg.error.equals(BottleConstants.NO_ERROR)) {
             text = msg.error
@@ -55,22 +53,23 @@ class MessageTranslator {
         if( text.isBlank()) {
             text = msg.text
         }
-        if (text.isBlank()) {
-            val type: RequestType=msg.type
-            text=if(type.equals(RequestType.NOTIFICATION)) {
+        LOGGER.info(String.format("%s :%s = %s",CLSS,type.name,text))
+
+        // Handle messages that have no response
+        text = if (text.isBlank()) {
+            if (type.equals(RequestType.NOTIFICATION)) {
                 "Received an empty notification."
-            }
-            else if(type.equals(RequestType.NONE)) {
-                "Received an empty message."
             }
             else if(type.equals(RequestType.COMMAND)) {
                 randomAcknowledgement()
             }
-            else if(type.equals(RequestType.GET_METRIC)) {
-                String.format("The metric %s is unknown",
-                        msg.metric.name.lowercase())
+            else {
+                String.format("Received an empty %s message.",msg.type.name)
             }
-            else if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
+        }
+        // Message has text
+        else {
+            if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
                 val property: JointDynamicProperty=msg.jointDynamicProperty
                 val joint: Joint=msg.joint
                 val iterator: MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
@@ -82,19 +81,18 @@ class MessageTranslator {
                     "The response contained no values"
                 }
             }
-            // Lists are written to JSON
-            else if(jtype.equals(JsonType.JOINT_POSITIONS)) {
-                val iterator: MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
-                val gson=GsonBuilder().setPrettyPrinting().create()
-                val holder = mutableListOf<String>()
-                while( iterator.hasNext() ) {
-                    val jpv=iterator.next()
-                    holder.add(jpv.value.toString())
-                }
-                gson.toJson(holder)
+            else if(type.equals(RequestType.INITIALIZE_JOINTS)) {
+                text
             }
-            else if (type.equals(RequestType.MAP_POSE)) {
+            // If the message type is JSON, then the text of the message has been set to the gson string
+            else if(type.equals(RequestType.JSON)) {
+                String.format("%s %s",msg.jtype.name,msg.text)
+            }
+            else if(type.equals(RequestType.MAP_POSE)) {
                 randomAcknowledgement()
+            }
+            else if(type.equals(RequestType.NOTIFICATION)) {
+                text
             }
             // A limb has a state of being rigid or not
             else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
@@ -127,24 +125,10 @@ class MessageTranslator {
                 String.format("I am at %s", msg.arg.lowercase(Locale.getDefault()))
             }
             else {
-                val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
-                if( iterator.hasNext() ) {
-                    val jpv: JointPropertyValue = iterator.next()
-                    val property: String = jpv.property.name
-                    val value: String = jpv.value.toString()
-                    String.format("Its %s is %s", property.lowercase(Locale.getDefault()), value)
-                }
-                else {
-                    "The response contained no properties"
-                }
+                text
             }
         }
-
-        if( text.isEmpty() ) {
-            text = String.format("I don't understand the response for %s",
-                    msg.type.name.lowercase().replace("_", " ")
-            )
-        }
+        LOGGER.info(String.format("%s.messageToText (%s): %s",CLSS,msg.type.name,text))
         return text
     }
     // ============================================== Helper Methods ===================================
@@ -163,8 +147,6 @@ class MessageTranslator {
         return greets[index]
     }
 
-    companion object {
-        private const val CLSS = "MessageTranslator"
-        private val LOGGER = Logger.getLogger(CLSS)
-    }
+    private val CLSS = "MessageTranslator"
+    private val LOGGER = Logger.getLogger(CLSS)
 }
