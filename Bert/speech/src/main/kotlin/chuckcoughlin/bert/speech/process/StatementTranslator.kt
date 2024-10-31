@@ -614,24 +614,17 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
-    // What are your dynamic motor properties
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.
     // What are your static motor parameters
-    override fun visitParameterListQuestion1(ctx: SpeechSyntaxParser.ParameterListQuestion1Context): Any? {
+    // What are the dynamic properties of your motors
+    override fun visitParameterListQuestion(ctx: SpeechSyntaxParser.ParameterListQuestionContext): Any? {
         bottle.type = RequestType.JSON
         // Indicate whether we want static or dynamic properties - by setting one or the other
         if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
         if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
         return null
     }
-    // What are the dynamic properties of your joints
-    override fun visitParameterListQuestion2(ctx: SpeechSyntaxParser.ParameterListQuestion2Context): Any? {
-        bottle.type = RequestType.JSON
-        // Indicate whether we want static or dynamic properties - by setting one or the other
-        if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
-        if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
-        return null
-    }
+
 
     // Are you there?
     override fun visitPersonalQuestion(ctx: SpeechSyntaxParser.PersonalQuestionContext?): Any? {

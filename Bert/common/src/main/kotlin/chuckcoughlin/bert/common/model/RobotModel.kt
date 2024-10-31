@@ -285,8 +285,18 @@ object RobotModel {
         return getPropertyForController(ctype,key,ConfigurationConstants.NO_VALUE)
     }
 
+    /** @return  a JSON pretty-printed String array of joint positions */
+    fun anglesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val motorValues = mutableListOf<JointValue>()
+        for (mc in motorsById.values) {
+            val jVal = JointValue(mc.joint,mc.angle)
+            motorValues.add(jVal)
+        }
+        return gson.toJson(motorValues)
+    }
     /** @return  a JSON pretty-printed String array of ids for all joints.*/
-    fun idsToJson(): String {
+    fun idsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var motorValues = mutableListOf<JointAttribute>()
         for (mc in motorsById.values) {
@@ -295,12 +305,82 @@ object RobotModel {
         }
         return gson.toJson(motorValues)
     }
-    /** @return  a JSON pretty-printed String array of speed settings for all joints.*/
-    fun speedsToJson(): String {
+    /** @return  a JSON pretty-printed String array of offset settings for all joints.*/
+    fun offsetsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var motorValues = mutableListOf<JointValue>()
+        val motorValues = mutableListOf<JointValue>()
+        for (mc in motorsById.values) {
+            val jVal = JointValue(mc.joint,mc.offset)
+            motorValues.add(jVal)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of direct/indirect for all joints.*/
+    fun orientationsToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var motorValues = mutableListOf<JointAttribute>()
+        for (mc in motorsById.values) {
+            val jAttribute = JointAttribute(mc.joint,if(mc.isDirect)"direct" else "indirect")
+            motorValues.add(jAttribute)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of torque enabled/disabled for all joints.*/
+    fun statesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var motorValues = mutableListOf<JointAttribute>()
+        for (mc in motorsById.values) {
+            val jAttribute = JointAttribute(mc.joint,if(mc.isTorqueEnabled)"enabled" else "disabled")
+            motorValues.add(jAttribute)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of speed settings for all joints.*/
+    fun speedsToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val motorValues = mutableListOf<JointValue>()
         for (mc in motorsById.values) {
             val jVal = JointValue(mc.joint,mc.speed)
+            motorValues.add(jVal)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of temperature readings for all joints.*/
+    fun temperaturesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val motorValues = mutableListOf<JointValue>()
+        for (mc in motorsById.values) {
+            val jVal = JointValue(mc.joint,mc.temperature)
+            motorValues.add(jVal)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of torque settings for all joints.*/
+    fun torquesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val motorValues = mutableListOf<JointValue>()
+        for (mc in motorsById.values) {
+            val jVal = JointValue(mc.joint,mc.torque)
+            motorValues.add(jVal)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of nmotor types for all joints.*/
+    fun typesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val motorValues = mutableListOf<JointAttribute>()
+        for (mc in motorsById.values) {
+            val jAttribute = JointAttribute(mc.joint,mc.type.name)
+            motorValues.add(jAttribute)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of voltage settings for all joints.*/
+    fun voltagesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val motorValues = mutableListOf<JointValue>()
+        for (mc in motorsById.values) {
+            val jVal = JointValue(mc.joint,mc.voltage)
             motorValues.add(jVal)
         }
         return gson.toJson(motorValues)

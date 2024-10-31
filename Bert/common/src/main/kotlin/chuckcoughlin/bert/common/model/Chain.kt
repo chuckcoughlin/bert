@@ -25,7 +25,8 @@ class Chain {
     private val linksByLimbName: MutableMap<String, Link>
     private var origin: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0)
     private var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
-
+    val links: Collection<Link>
+        get() = linksByLimbName.values
     /**
      * As we add origin and endpoints, the new link gets added to the various
      * maps that allow us to navigate the chain.
@@ -54,8 +55,7 @@ class Chain {
         }
     }
 
-    val links: Collection<Link>
-        get() = linksByLimbName.values
+
 
     /**
      * @return  a JSON pretty-printed String array of all property types. Exclude NONE.

@@ -15,6 +15,7 @@ import chuckcoughlin.bert.term.controller.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
+import java.awt.Robot
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -425,16 +426,40 @@ class Dispatcher() : Controller {
                     text = URDFModel.chain.appendagesToJSON()
                 }
                 JsonType.JOINT_IDS -> {
-                    text = RobotModel.idsToJson()
+                    text = RobotModel.idsToJSON()
                 }
                 JsonType.JOINT_NAMES -> {
                     text = URDFModel.chain.jointsToJSON()
                 }
+                JsonType.JOINT_OFFSETS -> {
+                    text = RobotModel.offsetsToJSON()
+                }
+                JsonType.JOINT_ORIENTATIONS -> {
+                    text = RobotModel.orientationsToJSON()
+                }
+                JsonType.JOINT_POSITIONS -> {
+                    text = RobotModel.anglesToJSON()
+                }
                 JsonType.JOINT_SPEEDS -> {
-                    text = RobotModel.speedsToJson()
+                    text = RobotModel.speedsToJSON()
+                }
+                JsonType.JOINT_STATES -> {
+                    text = RobotModel.statesToJSON()
+                }
+                JsonType.JOINT_TEMPERATURES -> {
+                    text = RobotModel.temperaturesToJSON()
+                }
+                JsonType.JOINT_TORQUES -> {
+                    text = RobotModel.torquesToJSON()
+                }
+                JsonType.JOINT_VOLTAGES -> {
+                    text = RobotModel.voltagesToJSON()
                 }
                 JsonType.LIMB_NAMES -> {
                     text = URDFModel.chain.limbsToJSON()
+                }
+                JsonType.JOINT_TYPES -> {
+                    text = RobotModel.typesToJSON()
                 }
                 else -> request.error = String.format("I can't get the names of %s",jtype.name)
             }

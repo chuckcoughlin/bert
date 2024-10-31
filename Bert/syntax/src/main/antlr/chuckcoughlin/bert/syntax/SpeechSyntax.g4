@@ -37,8 +37,8 @@ command:
 question:
       Salutation?  How Attribute Are You 						# attributeQuestion
     | Salutation?  Are You There					            # personalQuestion
-    | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion1
-    | What Are Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion2
+    | What Are Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
+    | What Are Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion
     | What Are Article? Names Of Article? (Motors|Limbs|Appendages)   # bodyPartListQuestion
     | What Are Article? Names Of Article? (Faces|Poses)               # databaseListQuestion
     | What Are Article? (Limits|Goals) Of Article? Side? Joint Axis?  # handleBulkPropertyQuestion
