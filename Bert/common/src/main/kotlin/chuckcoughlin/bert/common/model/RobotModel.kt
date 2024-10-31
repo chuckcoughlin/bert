@@ -284,7 +284,7 @@ object RobotModel {
     fun getPropertyForController(ctype:ControllerType,key:String): String {
         return getPropertyForController(ctype,key,ConfigurationConstants.NO_VALUE)
     }
-
+    // ******************************** Lists to JSON ************************************
     /** @return  a JSON pretty-printed String array of joint positions */
     fun anglesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
@@ -384,6 +384,16 @@ object RobotModel {
             motorValues.add(jVal)
         }
         return gson.toJson(motorValues)
+    }
+
+    /** ******************************** SETTERS ************************************
+     * Set speeds in the motor configuration objects to be recognized next movement
+     */
+    fun setJointSpeeds(newSpeed:Double) {
+        val motorValues = mutableListOf<JointValue>()
+        for (mc in motorsById.values) {
+            mc.speed = newSpeed
+        }
     }
     private val CLSS = "RobotModel"
     private var DEBUG: Boolean

@@ -5,7 +5,6 @@
  */
 package chuckcoughlin.bert.motor.controller
 
-import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -121,12 +120,11 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
         if (msg.type.equals(RequestType.GET_GOALS) ||
             msg.type.equals(RequestType.GET_LIMITS) ||
             msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ) {
             return true
         }
-        else if (msg.jtype.equals(JsonType.JOINT_POSITIONS) &&
-            !msg.limb.equals(Limb.NONE)) {
+        else if (msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
+            !msg.joint.equals(Joint.NONE)) {
             return true
         }
         return false
@@ -139,8 +137,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
      * (There may be only one).
      */
     private fun returnsStatusArray(msg: MessageBottle): Boolean {
-        return if(  msg.jtype.equals(JsonType.JOINT_POSITIONS) ||
-                    msg.type.equals(RequestType.READ_MOTOR_PROPERTY)) {
+        return if(  msg.type.equals(RequestType.READ_MOTOR_PROPERTY)) {
             true
         }
         else {
@@ -180,9 +177,8 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                 }
             }
         }
-        else if (request.jtype.equals(JsonType.JOINT_POSITIONS) ||
-            type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+        else if (type.equals(RequestType.SET_LIMB_PROPERTY) ||
+                 type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             val err: String = DxlMessage.errorMessageFromStatus(bytes)
             request.error = err
         }

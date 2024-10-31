@@ -34,7 +34,6 @@ enum class CommandType {
                 HALT     -> text = "halt"
                 RESET    -> text = "reset"
                 SET_POSE   -> text = "set pose"
-                SET_SPEED  -> text = "set speed"
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"
                 WAKE     -> text = "wake"

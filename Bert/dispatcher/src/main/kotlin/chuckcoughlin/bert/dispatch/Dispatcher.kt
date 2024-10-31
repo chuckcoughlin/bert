@@ -7,15 +7,30 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.*
-import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointDefinitionProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
+import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import java.awt.Robot
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -581,18 +596,20 @@ class Dispatcher() : Controller {
         return super.equals(other)
     }
 
-    // These are requests that can be processed directly by the group controller and sent to the
-    // proper motor controller.
+    // These are requests that can be processed directly by the group controller
+    // and forwarded  to the proper motor controller.
     private fun isMotorRequest(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.COMMAND) ||
-            request.type.equals(RequestType.GET_LIMITS) ||
+        if (request.type.equals(RequestType.GET_LIMITS) ||
             request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
-            request.jtype.equals(JsonType.JOINT_POSITIONS) ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             request.command.equals(CommandType.SET_POSE) ||
             request.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
+        }
+        else if (request.type.equals(RequestType.COMMAND) ) {
+            if (request.command.equals(CommandType.RESET))
+                return true
         }
         return false
     }

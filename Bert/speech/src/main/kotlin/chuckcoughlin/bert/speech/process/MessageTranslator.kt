@@ -53,7 +53,7 @@ class MessageTranslator {
         if( text.isBlank()) {
             text = msg.text
         }
-        LOGGER.info(String.format("%s :%s = %s",CLSS,type.name,text))
+        LOGGER.info(String.format("%s.messageToText:received %s = %s",CLSS,type.name,text))
 
         // Handle messages that have no response
         text = if (text.isBlank()) {
@@ -78,7 +78,7 @@ class MessageTranslator {
                     String.format("The %s of my %s is %.02f", property.name, Joint.toText(joint), value)
                 }
                 else {
-                    "The response contained no values"
+                    text
                 }
             }
             else if(type.equals(RequestType.INITIALIZE_JOINTS)) {

@@ -138,7 +138,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 joint = determineJoint(ctx.Joint().getText(), axis, side)
             }
             if (!joint.equals(Joint.NONE)) {
-
                 bottle.joint= joint
                 if (ctx.Freeze() != null || ctx.Hold() != null) {
                     bottle.addJointValue(joint, JointDynamicProperty.STATE, BottleConstants.ON_VALUE)
@@ -169,7 +168,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                     sharedDictionary[SharedKey.LIMB] = limb
                     sharedDictionary[SharedKey.IT] = SharedKey.LIMB
                 }
-
             }
         }
         return null
@@ -723,9 +721,11 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Set the speed for all joints to one of the standard choices.
     // now move slowly
     override fun visitSetSpeed(ctx: SpeechSyntaxParser.SetSpeedContext): Any? {
-        bottle.type = RequestType.COMMAND
-        bottle.command = CommandType.SET_SPEED
+        bottle.type = RequestType.SET_MOTOR_PROPERTY
+        bottle.jointDynamicProperty = JointDynamicProperty.SPEED
         setSpeedInMessage(bottle,ctx.Speed().text)
+        // Request applies to all joints
+        bottle.joint = Joint.NONE
         bottle.text = String.format("I am moving %s", ctx.Speed().text)
         return null
     }

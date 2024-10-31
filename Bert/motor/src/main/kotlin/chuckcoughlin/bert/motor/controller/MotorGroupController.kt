@@ -7,11 +7,9 @@ package chuckcoughlin.bert.motor.controller
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
-import com.google.gson.GsonBuilder
 import jssc.SerialPort
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -176,17 +174,6 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             request.command.equals(CommandType.RESET) ) {
             return true
         }
-        else if (request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-                 request.jtype.equals(JsonType.JOINT_POSITIONS) ) {
-            // Certain properties are constants available from the configuration file.
-            val defProp= request.jointDefinitionProperty
-            if( defProp==JointDefinitionProperty.ID         ||
-                defProp==JointDefinitionProperty.MOTORTYPE  ||
-                defProp==JointDefinitionProperty.OFFSET     ||
-                defProp==JointDefinitionProperty.ORIENTATION  ) {
-                return true
-            }
-        }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val prop = request.jointDynamicProperty
@@ -205,10 +192,6 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 return true
             }
         }
-        else if (request.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES) ||
-                 request.jtype.equals(JsonType.MOTOR_STATIC_PROPERTIES) ) {
-            return true
-        }
         return false
     }
 
@@ -223,113 +206,6 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             command.equals(CommandType.RESET) ) {
             pendingMessages.clear()
             request.text = "I have been reset"
-        }
-        else if( type.equals(RequestType.GET_MOTOR_PROPERTY) ) {
-            val joint = request.joint
-            val jointName: String = Joint.toText(joint)
-
-            if(DEBUG)LOGGER.info(String.format("%s.createImmediateResponse: %s in %s",
-                CLSS, request.type.name,joint.name))
-            val mc: MotorConfiguration? = RobotModel.motorsByJoint[joint]
-            if (mc != null) {
-                // The requests handled immediately are only static properties
-                val property = request.jointDefinitionProperty
-                if(DEBUG) LOGGER.info(String.format("%s.createImmediateResponse: %s %s in %s",
-                    CLSS, request.type.name, property.name, joint.name))
-                when (property) {
-                    JointDefinitionProperty.ID -> {
-                        val id: Int = mc.id
-                        text = "The id of my $jointName is $id"
-                    }
-                    JointDefinitionProperty.MOTORTYPE -> {
-                        var modelName = "A X 12"
-                        if (mc.type.equals(DynamixelType.MX28)) modelName = "M X 28"
-                        else if (mc.type.equals(DynamixelType.MX64)) {
-                            modelName = "M X 64"
-                        }
-                        text = "My $jointName is a dynamixel $modelName"
-                    }
-                    JointDefinitionProperty.OFFSET -> {
-                        val offset: Double = mc.offset
-                        text = "The offset of my $jointName is $offset"
-                    }
-                    JointDefinitionProperty.ORIENTATION -> {
-                        val orientation: String = if (mc.isDirect) "direct" else "indirect"
-                        text = "The orientation of my $jointName is $orientation"
-                    }
-
-                    JointDefinitionProperty.NONE -> {
-                        // Neither type of property is set
-                        request.error = String.format("The message does not specify a parameter (%s)",
-                            property.name)
-                    }
-                }
-                request.text = text
-            }
-            else {
-                request.error = String.format("There is no information for a joint named (%s)",jointName)
-            }
-        }
-        // Return a JSON list of parameter names
-        else if (type.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES)) {
-            if(request.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
-                text = JointDefinitionProperty.toJSON()
-            }
-            else { // Dynamic properties
-                text = JointDynamicProperty.toJSON()
-            }
-            request.text = text
-            for (controller in motorControllers.values) {
-                val list: MutableCollection<MotorConfiguration> = controller.configurations
-                for (mc in list) {
-                    if(DEBUG)LOGGER.info(String.format("Joint: %s (%d) %s min,max,offset = %f.0 %f.0 %f.0 %s",
-                        mc.joint, mc.id, mc.type.name, mc.minAngle, mc.maxAngle,mc.offset,
-                        if( mc.isDirect ) "" else "(indirect)"))
-                }
-            }
-        }
-        else if (jtype.equals(JsonType.JOINT_POSITIONS)) {
-            // Must be a definition property
-            val definition = request.jointDefinitionProperty
-            if(DEBUG)LOGGER.info(String.format("%s.createImmediateResponse: %s %s for all motors",
-                CLSS, request.type.name, definition.name))
-            val mcs: Map<Joint, MotorConfiguration> = RobotModel.motorsByJoint
-            var mcList = mutableListOf<MotorConfiguration>()
-            for (joint in mcs.keys) {
-                val mc: MotorConfiguration = mcs[joint]!!
-                mcList.add(mc)
-                when (definition) {
-                    JointDefinitionProperty.ID -> {
-                        val id: Int = mc.id
-                        text = "The id of $joint is $id"
-                    }
-                    JointDefinitionProperty.MOTORTYPE -> {
-                        var modelName = "A X 12"
-                        if (mc.type.equals(DynamixelType.MX28))      modelName = "M X 28"
-                        else if (mc.type.equals(DynamixelType.MX64)) modelName = "M X 64"
-                        text = joint.toString() + " is a dynamixel " + modelName
-                    }
-                    JointDefinitionProperty.OFFSET -> {
-                        val offset: Double = mc.offset
-                        text = "The offset of $joint is $offset"
-                    }
-                    JointDefinitionProperty.ORIENTATION -> {
-                        var orientation = "indirect"
-                        if( mc.isDirect ) orientation = "direct"
-                        text = "The orientation of $joint is $orientation"
-                    }
-                    JointDefinitionProperty.NONE -> {
-                        text = ""
-                        request.error = definition.name + " is not a property that I can look up"
-                    }
-                }
-            }
-
-            if(DEBUG) LOGGER.info(text)
-
-            val gson = GsonBuilder().setPrettyPrinting().create()
-            text = gson.toJson(mcList)
-            request.text = text
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
             val property = request.jointDynamicProperty.toString()
@@ -350,16 +226,18 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         if (msg.type.equals(RequestType.GET_GOALS) ||
             msg.type.equals(RequestType.GET_LIMITS) ||
             msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.jtype.equals(JsonType.MOTOR_DYNAMIC_PROPERTIES) ||
-            msg.jtype.equals(JsonType.MOTOR_STATIC_PROPERTIES) ||
-            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+            msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
+        }
+        else if( msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+            if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
         }
         return false
     }
 
-    // When in development mode, simulate something reasonable as a response.
+    // When in development mode with no access to actual motors, simulate something reasonable as a response.
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {
         val requestType = request.type
         var text = ""
