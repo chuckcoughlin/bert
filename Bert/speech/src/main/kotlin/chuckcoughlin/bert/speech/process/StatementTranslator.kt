@@ -275,12 +275,29 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             setJointPropertyInMessage(bottle, pname)
             if (!bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
                 when (bottle.jointDefinitionProperty) {
-                    JointDefinitionProperty.ID        -> bottle.jtype = JsonType.JOINT_IDS
-                    JointDefinitionProperty.MOTORTYPE -> bottle.jtype = JsonType.JOINT_TYPES
+                    JointDefinitionProperty.OFFSET        -> bottle.jtype = JsonType.JOINT_OFFSETS
+                    JointDefinitionProperty.ORIENTATION   -> bottle.jtype = JsonType.JOINT_ORIENTATIONS
+                    JointDefinitionProperty.ID            -> bottle.jtype = JsonType.JOINT_IDS
+                    JointDefinitionProperty.MOTORTYPE     -> bottle.jtype = JsonType.JOINT_TYPES
+                    else -> {
+                        val msg = String.format("we do not support listing %s",pname)
+                        bottle.error = msg
+                    }
                 }
             }
             else if (!bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
-
+                when (bottle.jointDynamicProperty) {
+                    JointDynamicProperty.ANGLE -> bottle.jtype = JsonType.JOINT_POSITIONS
+                    JointDynamicProperty.SPEED -> bottle.jtype = JsonType.JOINT_SPEEDS
+                    JointDynamicProperty.STATE -> bottle.jtype = JsonType.JOINT_STATES
+                    JointDynamicProperty.TORQUE -> bottle.jtype = JsonType.JOINT_TORQUES
+                    JointDynamicProperty.TEMPERATURE -> bottle.jtype = JsonType.JOINT_TEMPERATURES
+                    JointDynamicProperty.VOLTAGE -> bottle.jtype = JsonType.JOINT_VOLTAGES
+                    else -> {
+                        val msg = String.format("we do not support listing %s",pname)
+                        bottle.error = msg
+                    }
+                }
             }
             else {
                 val msg = String.format( "My joints don't hava %s, that I know of", pname.lowercase(Locale.getDefault())

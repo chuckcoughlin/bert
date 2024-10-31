@@ -6,6 +6,7 @@ package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.util.XMLUtility
+import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -284,6 +285,26 @@ object RobotModel {
         return getPropertyForController(ctype,key,ConfigurationConstants.NO_VALUE)
     }
 
+    /** @return  a JSON pretty-printed String array of ids for all joints.*/
+    fun idsToJson(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var motorValues = mutableListOf<JointAttribute>()
+        for (mc in motorsById.values) {
+            val jAttribute = JointAttribute(mc.joint,mc.id.toString())
+            motorValues.add(jAttribute)
+        }
+        return gson.toJson(motorValues)
+    }
+    /** @return  a JSON pretty-printed String array of speed settings for all joints.*/
+    fun speedsToJson(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var motorValues = mutableListOf<JointValue>()
+        for (mc in motorsById.values) {
+            val jVal = JointValue(mc.joint,mc.speed)
+            motorValues.add(jVal)
+        }
+        return gson.toJson(motorValues)
+    }
     private val CLSS = "RobotModel"
     private var DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
