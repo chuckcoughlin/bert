@@ -169,6 +169,16 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                     sharedDictionary[SharedKey.IT] = SharedKey.LIMB
                 }
             }
+
+            // Set text if all joints are affected
+            if(joint.equals(Joint.NONE)) {
+                if (ctx.Freeze() != null || ctx.Hold() != null) {
+                    bottle.text = "I am now relaxed"
+                }
+                else {
+                    bottle.text = "I am stiff"
+                }
+            }
         }
         return null
     }
@@ -726,7 +736,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         setSpeedInMessage(bottle,ctx.Speed().text)
         // Request applies to all joints
         bottle.joint = Joint.NONE
-        bottle.text = String.format("I am moving %s", ctx.Speed().text)
+        bottle.text = String.format("I will move %s", ctx.Speed().text)
         return null
     }
     // If the joint is not specified, then straighten the entire body

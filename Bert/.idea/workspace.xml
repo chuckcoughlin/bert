@@ -6,12 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/CommandType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/CommandType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/RobotModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/SerialResponder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/SerialResponder.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
     </list>
@@ -346,6 +341,11 @@
           <url>file://$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/db/Database.kt</url>
           <line>84</line>
           <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt</url>
+          <line>174</line>
+          <option name="timeStamp" value="18" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/configuration/src/main/pylib/dxl_read.py</url>

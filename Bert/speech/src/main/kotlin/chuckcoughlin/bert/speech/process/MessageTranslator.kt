@@ -119,7 +119,7 @@ class MessageTranslator {
                 }
             }
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
-                randomAcknowledgement()
+                text
             }
             else if (type.equals(CommandType.SET_POSE)) {
                 String.format("I am at %s", msg.arg.lowercase(Locale.getDefault()))

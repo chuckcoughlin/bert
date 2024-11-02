@@ -170,7 +170,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)", CLSS, controllerName, bytes.size,request.control.responseCount[controllerName]))
             }
         }
-        else {
+        else {       // Multiple write request
             val byteArrayList = messageToByteList(request)
             responseCount=request.control.responseCount[controllerName]!!
             if(responseCount > 0) {
@@ -228,18 +228,13 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.command.equals(CommandType.SET_POSE) ) {
                 return false
         }
-        // No joint means all joints
-        else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                !msg.joint.equals(Joint.NONE)) {
-                  return false
-        }
         return true
     }
 
     /**
      * Convert the request message into a command for the serial port. As a side
      * effect set the number of expected responses. This can vary by request type.
-     * These are requests that can be handled with a wingle write
+     * These are requests that can be handled with a single write
      * @param wrapper
      * @return
      */
@@ -281,9 +276,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
             val limb = request.limb
             val propertyValues = request.getJointValueIterator()
-            var count = 0
             if (propertyValues.hasNext()) {             // There should be only one entry
-                count = count+1
                 val pv = propertyValues.next()
                 val prop = pv.property
                 val value = pv.value.toDouble()
@@ -292,21 +285,19 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 for (mc in configs.values) {
                     mc.setDynamicProperty(prop,value)
                 }
-                request.control.responseCount[controllerName] = count
                 bytes =
                     DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
                                                                      // ASYNC WRITE, no response. Let source set text.
             }
         }
-        // Handle set torque enable for all joints
+        // Handle set torque enable for all joints. ASYNC_WRITE, no response
+        // Rely on the StatementTranslator to fill in the response text
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
             request.joint.equals(Joint.NONE)  )   {
 
-            request.control.responseCount[controllerName] = configurationsByJoint.size // Status packet for each motor
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting STATE to %2.0f for all joints" ,
                                     CLSS,controllerName,request.value))
-
             var enable = true
             if( request.value<BottleConstants.ON_VALUE ) enable = false
 
@@ -316,11 +307,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.STATE)
         }
         // Handle set speed for all joints
+        // Rely on the StatementTranslator to fill in the response text
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
             request.joint.equals(Joint.NONE)  )   {
 
-            request.control.responseCount[controllerName] = configurationsByJoint.size // Status packet for each motor
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting SPEED to %2.0f for all joints" ,
                 CLSS,controllerName,request.value))
 
@@ -341,7 +332,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
                     if(enabled) "enabled" else "disabled")
             mc.isTorqueEnabled = enabled
-            bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint, JointDynamicProperty.STATE)
+            bytes = DxlMessage.bytesToSetProperty(mc, JointDynamicProperty.STATE, request.value)
+            request.control.responseCount[controllerName] = 1 // Status message
         }
         // Set the requested property for the single specified joint
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
@@ -350,7 +342,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val value = request.value
             val mc = RobotModel.motorsByJoint[joint]!!
 
-            bytes = DxlMessage.bytesToSetProperty(mc, prop, value)
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
                 val duration = mc.travelTime
                 if (request.duration < duration) request.duration = duration
@@ -363,6 +354,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 request.error = String.format("I failed to set my %s %s to %2.0f",
                         Joint.toText(mc.joint), prop.name, value)
             }
+            bytes = DxlMessage.bytesToSetProperty(mc, prop, value)
             request.control.responseCount[controllerName] = 1 // Status message
         }
         else if (type.equals(RequestType.NONE)) {
@@ -404,7 +396,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if (request.duration < duration) request.duration = duration
             request.control.responseCount[controllerName] = 0 // No response
         }
-        else if(type.equals(RequestType.READ_MOTOR_PROPERTY)) {
+        else if(type.equals(RequestType.SET_MOTOR_PROPERTY)    ||
+                type.equals(RequestType.READ_MOTOR_PROPERTY)) {
             val limb = request.limb
             val prop = request.jointDynamicProperty
             if( limb.equals(Limb.NONE)) {
@@ -472,7 +465,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 	 * Use of serial ports must be configured on command line.
 	 */
     private fun writeBytesToSerial(bytes: ByteArray) {
-        LOGGER.info(String.format("%s.writeBytesToSerial: %s %d bytes to %s",CLSS,controllerName,bytes.size,port.portName))
         if( bytes.size>0 ) {
             try {
                 val success: Boolean = port.writeBytes(bytes)
