@@ -173,10 +173,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             // Set text if all joints are affected
             if(joint.equals(Joint.NONE)) {
                 if (ctx.Freeze() != null || ctx.Hold() != null) {
-                    bottle.text = "I am now relaxed"
+                    bottle.text = "I am stiff"
                 }
                 else {
-                    bottle.text = "I am stiff"
+                    bottle.text = "I am now relaxed"
                 }
             }
         }

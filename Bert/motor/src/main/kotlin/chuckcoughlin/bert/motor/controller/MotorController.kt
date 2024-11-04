@@ -345,7 +345,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
                 val duration = mc.travelTime
                 if (request.duration < duration) request.duration = duration
-                request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),mc.angle)
+                request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.RANGE) ) {
                 request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))
@@ -377,6 +377,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return
      */
     private fun messageToByteList(request: MessageBottle): List<ByteArray> {
+        request.control.responseCount[controllerName] = 0 // No response unless otherwise set
         var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
         val command: CommandType = request.command
@@ -394,7 +395,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration
-            request.control.responseCount[controllerName] = 0 // No response
         }
         else if(type.equals(RequestType.SET_MOTOR_PROPERTY)    ||
                 type.equals(RequestType.READ_MOTOR_PROPERTY)) {
@@ -420,7 +420,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 if(request.duration < duration) request.duration=duration
             }
             else {
-                request.control.responseCount[controllerName]=0 // error, no responses
                 request.error = String.format("The pose \"%s\" is not configured",poseName)
             }
         }

@@ -9,5 +9,5 @@
  ```                  Bert - Most Recent Picture     ```
 
 Video clips showing representative capabilities are available at the following links:
- * [Sample voice interaction](https://www.youtube.com/watch?v=hqrXriI27V0)
+ * [Sample voice interaction](https://www.youtube.com/watch?v=ZoP7b5YDawg)
  * [Creating a pose](https://www.youtube.com/watch?v=3lilrxy11Ac)

@@ -170,7 +170,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		intent.putExtra( RecognizerIntent.EXTRA_LANGUAGE_MODEL,
 			             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
 		)
-		intent.putExtra(RecognizerIntent.EXTRA_MASK_OFFENSIVE_WORDS,true)
+		//intent.putExtra(RecognizerIntent.EXTRA_MASK_OFFENSIVE_WORDS,true)
 		intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,END_OF_PHRASE_TIME)
 		// Max number of results. This is two attempts at deciphering, not a 2-word limit.
 		intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 2)

@@ -120,7 +120,7 @@ Salutation:'bert'|'burt'|'now'|'please'|'wake up';
 Save: 'save';
 Set: 'set';
 Side: 'left'|'right'|'other';
-Speed: 'in slow motion'|'very fast'|'fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'very slow'|'slow'|'faster'|'slower'|'quicker'|'normal';
+Speed: 'in slow motion'|'very fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'slower'|'very slow'|'slow'|'faster'|'quicker'|'fast'|'normal';
 Static: 'static';
 Straighten: 'straighten';
 Take: 'assume' | 'take';
