@@ -8,6 +8,7 @@ package chuckcoughlin.bert.sql.tables
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.sql.db.SQLConstants
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
+import com.google.gson.GsonBuilder
 import java.sql.*
 import java.util.*
 import java.util.logging.Logger
@@ -114,7 +115,7 @@ class PoseTable {
             // If the pose doesn't exist, create it
             if( poseid==SQLConstants.NO_POSE ) {
                 var statement: Statement = cxn.createStatement()
-                SQL = "select mox(poseid) from PoseName"
+                SQL = "select max(poseid) from PoseName"
                 try {
                     rs = statement.executeQuery(SQL)
                     poseid = 0L
@@ -143,6 +144,7 @@ class PoseTable {
         }
         return poseid
     }
+
     /**
      * Return a map of angles by joint name
      *
@@ -296,7 +298,39 @@ class PoseTable {
         }
         return map
     }
-
+    /**
+     * List the names of all defined poses.
+     * @cxn an open database connection
+     * @return a list of pose names, comma-separate
+     */
+    fun getPoseNames(cxn: Connection?): String {
+        val names = StringBuffer()
+        if( cxn!=null ) {
+            val SQL = "select name from PoseName"
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    names.append(rs.getString(1))
+                    names.append(", ")
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getPoseNames: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
     /**
      * Associate a new name with the specified pose. If the named pose
      * doesn't exist, create it. Then proceed to tie to second name to it.
@@ -373,6 +407,36 @@ class PoseTable {
         }
         if(poseid==SQLConstants.NO_POSE) {return false}
         else { return true }
+    }
+    /**
+     * @return the names of poses in JSON formatted string
+     */
+    fun poseNamesToJSON(cxn:Connection?) : String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        if( cxn!=null ) {
+            val SQL = "select name from PoseName"
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    names.add(rs.getString(1))
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.poseNamesToJson: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        return gson.toJson(names)
     }
     /**
      * Save a list of motor position values as a pose. Assign the pose a name equal to the

@@ -40,6 +40,18 @@ object Database  {
         return pose.deletePose(connection, name)
     }
     /**
+     * @return a Json string with the names of all known faces
+     */
+    fun faceNamesToJSON() : String {
+        return face.faceNamesToJSON(connection)
+    }
+    /**
+     * @return the names of saved faces in a comma-separated list
+     */
+    fun getFaceNames() : String {
+        return face.getFaceNames(connection)
+    }
+    /**
      * @param name user entered pose name. If the pose does not
      *             exist, it will be created.
      * @return the corresponding pose id if it exists, otherwise NO_POSE
@@ -76,7 +88,12 @@ object Database  {
     fun getPoseJointTorques( poseid: Long ,map:Map<Joint, MotorConfiguration>): Map<Joint,Double > {
         return pose.getPoseJointTorques(connection, poseid,map)
     }
-
+    /**
+     * @return the names of saved faces in a comma-separated list
+     */
+    fun getPoseNames() : String {
+        return pose.getPoseNames(connection)
+    }
     /**
      * @param posename name of an existing pose
      * @param alias an additional name for the pose.
@@ -85,14 +102,21 @@ object Database  {
         return pose.mapNameToPose(connection,posename,alias)
     }
     /**
-     * @param user-entered command user
-     * @param the corresponding pose name
+     * @param details facial details of the face we're searching for
+     * @return the face id of the match, else NO_FACE
      */
-    fun mapFaceNameToDetails(name: String, details: FacialDetails) {
-        //return pose.mapCommandToPose(connection, cmd, poseName)
+    fun matchDetailsToFace(datails:FacialDetails):Long {
+        return face.matchDetailsToFace(connection,datails)
     }
+
     fun poseExists(poseName:String) :Boolean {
         return pose.poseExists(connection,poseName)
+    }
+    /**
+     * @return a Json string with the names of all known faces
+     */
+    fun poseNamesToJSON() : String {
+        return pose.poseNamesToJSON(connection)
     }
     /**
      * Save a list of motor position values as a pose.

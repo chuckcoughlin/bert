@@ -56,9 +56,20 @@ class Chain {
     }
 
 
-
     /**
-     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     * @return  a comma-separated string of the names of all appendages.
+     */
+    fun appendageNames(): String {
+        var names = StringBuffer()
+        for (appendage in linkByAppendage.keys) {
+            names.append(appendage.name.lowercase())
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all appendaged.
      */
     fun appendagesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
@@ -67,6 +78,18 @@ class Chain {
             names.add(appendage.name)
         }
         return gson.toJson(names)
+    }
+    /**
+     * @return  a comma-separated string of the names of all joints.
+     */
+    fun jointNames(): String {
+        var names = StringBuffer()
+        for (joint in jointParent.keys) {
+            names.append(joint.name.lowercase())
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
     }
     /**
      * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
@@ -78,6 +101,18 @@ class Chain {
             names.add(joint.name)
         }
         return gson.toJson(names)
+    }
+    /**
+     * @return  a comma-separated string of the names of all joints.
+     */
+    fun limbNames(): String {
+        var names = StringBuffer()
+        for (limb in links) {
+            names.append(limb.name.lowercase())
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
     }
     /**
      * @return  a JSON pretty-printed String array of all property types. Exclude NONE.

@@ -6,11 +6,13 @@ package chuckcoughlin.bert.common.message
 
 /**
  * These quantities are attributes of the robot as a whole
- * and are not derived from motor parameters.
+ * and are not derived from motor values. If the type is "LIST",
+ * then the JSON_TYPE is used to return a comma-separated list
+ * of names
  */
 enum class MetricType {
     AGE, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
-    HEIGHT, MITTENS, NAME, UNDEFINED;
+    HEIGHT, LIST, MITTENS, NAME, UNDEFINED;
 
     companion object {
         /**

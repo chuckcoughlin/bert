@@ -8,6 +8,7 @@ package chuckcoughlin.bert.sql.tables
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.sql.db.SQLConstants
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
+import com.google.gson.GsonBuilder
 import java.sql.*
 import java.util.*
 import java.util.logging.Logger
@@ -74,33 +75,97 @@ class FaceTable {
         }
     }
     /**
-     * Associate a name with the facial detection details. If the name is new it will be added.
-     * @cxn an open database connection
-     * @param name of user associated with detection details
-     * @param details facial detection details
+     * @return the names of faces in JSON formatted string
      */
-    fun mapFaceNameToDetails(cxn: Connection?, name: String, details: FacialDetails) {
+    fun faceNamesToJSON(cxn:Connection?) : String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
         if( cxn!=null ) {
-            var statement: PreparedStatement? = null
-            var SQL = "UPDATE PoseMap SET pose=? WHERE command = ?"
+            val SQL = "select name from Face"
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
             try {
-                LOGGER.info(String.format("%s.mapFaceNameToDetails: \n%s", CLSS, SQL))
-                statement = cxn.prepareStatement(SQL)
-                /*
-                statement.setString(1, pose)
-                statement.setString(2, command)
-                statement.executeUpdate()
-                if (statement.getUpdateCount() == 0) {
-                    statement.close()
-                    SQL = "INSERT INTO PoseMap (command,pose) VALUES(?,?)"
-                    LOGGER.info(String.format("%s.mapCommandToPose: \n%s", CLSS, SQL))
-                    statement = cxn.prepareStatement(SQL)
-                    statement.setString(1, command)
-                    statement.setString(2, pose)
-                    statement.executeUpdate()
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    names.add(rs.getString(1))
                 }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.faceNamesToJson: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        return gson.toJson(names)
+    }
+    /**
+     * List the owners of all known faces
+     * @cxn an open database connection
+     * @return a list of pose names, comma-separate
+     */
+    fun getFaceNames(cxn: Connection?): String {
+        val names = StringBuffer()
+        if( cxn!=null ) {
+            val SQL = "select name from Face"
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    names.append(rs.getString(1))
+                    names.append(", ")
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getFaceNames: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
 
-                 */
+    /**
+     * Match the details from the database to the supplied object.
+     */
+    fun idMatchesDetails(id:Long,details:FacialDetails) : Boolean {
+        var result = false
+        return result
+    }
+    /**
+     * Associate a known face with the supplied facial detection details.
+     * @cxn an open database connection
+     * @param details facial detection details
+     * @return the face_id of the match, else NO_FACE
+     */
+    fun matchDetailsToFace(cxn: Connection?, details: FacialDetails) : Long {
+        var face_id = SQLConstants.NO_FACE
+        if( cxn!=null ) {
+            val SQL = "select face_id from Face"
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    val id = rs.getLong(1)
+                    if( idMatchesDetails(id,details) ) {
+                        face_id = id
+                        break
+                    }
+                }
             }
             catch (e: SQLException) {
                 LOGGER.severe(String.format("%s.mapFaceNameToDetails: Database error (%s)", CLSS, e.message))
@@ -114,6 +179,7 @@ class FaceTable {
                 }
             }
         }
+        return face_id
     }
 
     /**
@@ -244,6 +310,7 @@ class FaceTable {
     private val CLSS = "FaceTable"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean
+    private val TOLERANCE = 0.5
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)

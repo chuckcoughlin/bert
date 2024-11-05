@@ -6,7 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/CommandFaceHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/command/src/main/kotlin/chuckcoughlin/bert/command/CommandFaceHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MetricType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/MetricType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Chain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/Chain.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/db/Database.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/db/Database.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/FaceTable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/FaceTable.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/PoseTable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/PoseTable.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax/src/main/antlr/chuckcoughlin/bert/syntax/SpeechSyntax.g4" beforeDir="false" afterPath="$PROJECT_DIR$/syntax/src/main/antlr/chuckcoughlin/bert/syntax/SpeechSyntax.g4" afterDir="false" />
     </list>
@@ -339,7 +345,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/db/Database.kt</url>
-          <line>84</line>
+          <line>101</line>
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">

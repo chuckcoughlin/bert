@@ -10,6 +10,7 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.FaceDirection
 import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.sql.db.Database
 import java.util.logging.Logger
 
 /**
@@ -30,15 +31,14 @@ object CommandFaceHandler  {
      * @return a notification to the user.
      */
     fun handleDetails(details: FacialDetails) :MessageBottle {
+        var faceId = Database.matchDetailsToFace(details)
         var msg = MessageBottle(RequestType.NOTIFICATION)
 
         return msg
     }
     /**
      * The tablet has detected a face.
-     * 1) If it matches a known face ,then send a greeting
-     * 2) Otherwise save the details as pending and request
-     *    an identifying name to go with it.
+     * Turn the robot head and eyes in the direction of the face.
      *
      * @param response
      * @return a notification to the user.

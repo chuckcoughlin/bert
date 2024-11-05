@@ -387,6 +387,23 @@ class Dispatcher() : Controller {
                 MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
                 MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                 MetricType.NAME -> text = "My name is $name"
+                // LIST implies we look at the JsonType and return a comma-separated list of names
+                MetricType.LIST -> {
+                    when(request.jtype) {
+                        JsonType.FACE_NAMES ->text = Database.getFaceNames()
+                        JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.names()
+                        JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDynamicProperty.names()
+                        JsonType.APPENDAGE_NAMES ->text = URDFModel.chain.appendageNames()
+                        JsonType.JOINT_NAMES ->text = URDFModel.chain.jointNames()
+                        JsonType.LIMB_NAMES ->text = URDFModel.chain.limbNames()
+                        JsonType.POSE_NAMES ->text = Database.getPoseNames()
+                        else -> {
+                            request.error = "badly formed metric list request"
+                            text = ""
+                        }
+                    }
+                }
+
                 else -> request.error = String.format("I can't get the value of %s",metric.name)
             }
             request.text = text
@@ -431,14 +448,11 @@ class Dispatcher() : Controller {
             var text = ""
             when (jtype) {
                 // List the names of different kinds of motor properties
-                JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
-                    text = JointDynamicProperty.toJSON()
-                }
-                JsonType.MOTOR_STATIC_PROPERTIES -> {
-                    text = JointDefinitionProperty.toJSON()
-                }
                 JsonType.APPENDAGE_NAMES -> {
                     text = URDFModel.chain.appendagesToJSON()
+                }
+                JsonType.FACE_NAMES -> {
+                    text = Database.faceNamesToJSON()
                 }
                 JsonType.JOINT_IDS -> {
                     text = RobotModel.idsToJSON()
@@ -475,6 +489,15 @@ class Dispatcher() : Controller {
                 }
                 JsonType.JOINT_TYPES -> {
                     text = RobotModel.typesToJSON()
+                }
+                JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
+                    text = JointDynamicProperty.toJSON()
+                }
+                JsonType.MOTOR_STATIC_PROPERTIES -> {
+                    text = JointDefinitionProperty.toJSON()
+                }
+                JsonType.POSE_NAMES -> {
+                    text = Database.poseNamesToJSON()
                 }
                 else -> request.error = String.format("I can't get the names of %s",jtype.name)
             }
