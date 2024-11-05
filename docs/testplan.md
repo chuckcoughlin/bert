@@ -16,6 +16,7 @@ Unless otherwise stated, tests are run by giving typed commands to the stand-alo
    * [Properties](#properties)
    * [Utilities](#utilities)
    * [Movement](#movement)
+   * [Actions and Poses](#poses)
    * [Motion Planning](#planning)
    * [Parameters](#parameters)
    * [Miscellaneous](#miscellaneous)
@@ -46,44 +47,44 @@ interface for interactive testing. Note: when testing with the Android emulator 
 the emulator client as 10.0.2.2.
 
 ### b - Configuration <a id="configuration"></a>
-This section contains tests that validate the wiring and addressing of stepper motors,
-the conversion of raw readings from the motors into proper engineering
-units, and the listing of various parameters in the motor control tables.  Results are shown for the robot as a whole in JSON format and are meant for direct communication
-with the tablet.
-Values are used by the tablet when robot status is needed to populate various lists. Results are also shown in textual form when using the interactive command interface.
+This section contains tests that validate the wiring and addressing of stepper
+motors, the conversion of raw readings from the motors into proper engineering
+units, and the listing of various parameters in the motor control tables.  
+There are two sets of commands available. The first set is provided for direct
+communication from the robot to the tablet, and the second is designed for
+spoken user interaction.
 
-* ![green](/images/ball_green.png) ``Joint Names`` - List the names of joints, limbs or appendages.
+
 ```
+* ![green](/images/ball_green.png) ``JSON Lists`` - JSON is used for direct communication (unspoken) between the tablet and robot. The terminal application
+will show results in a JSON pretty-print format.
+Available parameters include: position, speed, load, voltage and temperature. For position, either current or goal values are available. Values for static parameters come directly from the XML configuration file, dynamic properties are read from the motors. The tester should verify that results are given in applicable engineering units.
+
+ Additionally user-defined quantities like face names or poses are available.
+Typical requests:
+``` list your static motor parameters
+    list the dynamic properties of your joints
+    list your joints
+    list your limbs
+    list your appendages
+    list your joint positions
+    list the speeds of your motors
+    list your motor ids
+    list your poses
+    list your face names
+```
+* ![yellow](/images/ball_yellow.png) ``Name Lists`` - Use the terminal
+  application to list
+  names of entities added by the user. These values include: actions, faces and poses.  Names are returned as a space-separated list which makes them pronounceable.
+ Typical requests:
+```
+    tell me your motor ids
+    what are your static motor parameters
+    what are the dynamic properties of your joints
     what are the names of your joints
     what are the names of your limbs
     what are the names of your appendages
-```
-
-* ![green](/images/ball_green.png) ``Parameter Names`` - List the names of properties available for each joint. There are both static and
-dynamic properties.
-```
-    what are your static motor parameters
-    what are the dynamic properties of your joints
-```
-* ![yellow](/images/ball_yellow.png) ``Parameter Value Lists`` - Use the terminal application to list
-values of a selected property for all joints. Verify conversions from raw readings
-to engineering units. Available
- parameters include: position, speed, load, voltage and temperature. For position, either current or goal values are available. Values are obtained for each motor and bundled into a response in JSON format. Values for static parameters
-come directly from the XML configuration file, dynamic properties are read from the motors.
-Typical requests:
-```
-    tell me your joint positions
-    list the speeds of your motors
-    display your motor ids
-    what are your angle ranges
-    what are your position goals
-```
-* ![yellow](/images/ball_yellow.png) ``Name Lists`` - Use the terminal application to list
-  names of entities added by the user. These values include: actions, faces and poses.  Names are bundled into a response in JSON format.
- Typical requests:
-```
     what are the names of your poses
-    list the names of your actions
     what poses do you know
     who do you know
 ```
@@ -145,14 +146,14 @@ perform various system operations. In the list below, the check mark indicates c
   operation in the event of I/O errors.
   - [ ] shutdown: power off the robot after a clean shutdown.
 
-
 * ![green](/images/ball_green.png) ``Sane Startup`` - When the robot is first powered on,
 its limbs are in unknown positions. As part of the startup sequence, read the positions of
-all joints and move those
-that are outside configured limits to the closest "legal" value. When this initialization
-is complete, issue a response stating that the robot is ready.
+all joints and move those that are outside configured limits to the closest "legal" value.
+When this initialization is complete, a response is issued stating that the robot is ready.
+
+This command may be issued at any time. It is most often needed after a *relax*
 ```
-  bert is ready
+  initialize joints
 ```
 
 ### e - Movement <a id="movement"></a>
@@ -212,45 +213,62 @@ Sample command syntax:
 Note that the Dynamixel motors automatically enable torque whenever a position is set (otherwise there
 would be no point). Additionally, whenever a joint is stiffened, the position is read and recorded as "current".
 
-* ![yellow](/images/ball_yellow.png) ``Save a Pose`` - Associate the current joint positions with
-a named pose. The pose is saved in the robot's internal database and represents a collection of joint-position pairs..
+### f - Actions and Poses <a id="poses"></a>
+A ``pose`` is a collection of joint positions which can be summoned by name. An ``action`` is a collection
+of poses executed in order with sufficient time delays to allow movement to each pose to complete. For
+clarity each pose within the same action can be given the same name plus an index that defines execution
+order. JSON versions of the commands are supplied to facilitate editing on the tablet.
+
+* ![yellow](/images/ball_yellow.png) ``Pose`` - Associate the current joint positions with
+a named pose. The pose is saved in the robot's internal database and represents a collection of joint-position pairs. The pose is given an index (1 by default) to allow poses of the same name to all be part of an action.
+
+In the examples that follow *saluting* is a pose name and *salute* is an action.
 ```
     your pose is saluting
-    you are standing
-    what is your pose
-    save your pose
-    save your pose as leaping
+    save your pose as saluting 3
+    record it as saluting 2
+    assume the pose saluting
+    take the pose saluting
 ```
-In the case where a name is not specified,
-the robot will use the most recently referenced pose name.
+In the case where an index is not specified,
+the robot will use the most recently referenced index.
 
-* ![yellow](/images/ball_yellow.png) ``Map Pose to Command`` - Associate a pose with a command to
-take that pose. Pose and command names are
+Some requests are designed for direct tablet interaction and return a JSON string
+```
+    describe the current pose
+    describe pose saluting 2
+```
+
+* ![yellow](/images/ball_yellow.png) ``Actions`` - Associate an action (command)
+with a series of pre-defined poses.  Pose and action names are
 arbitrary, but must be spelled in the same
 way as the Android text-to-speech processor. Sample syntax:
 ```
-  to salute means to take the pose saluting
-  when you sit you are sitting
-  when i say sit then take the pose sitting
-  to wave at me means you are waving at me
-  to cry means to be crying
+  define salute as a series of saluting poses
 ```
-* ![yellow](/images/ball_yellow.png) ``Pose`` - Command the robot to assume a previously stored
-pose. The command is a word or phrase taken from a previous mapping. As of yet, this movement does not
+As before some requests are designed for direct tablet interaction and return a JSON string
+```
+    describe action salute
+```
+
+* ![yellow](/images/ball_yellow.png) ``Command`` - Either the name of an action or single pose
+may be used to drive the robot to either assume a previously stored
+pose or execute some action.  As of yet, this movement does not
 account for positional conflicts.
 ```
     salute
+    saluting 2
 ```
 
-* ![yellow](/images/ball_yellow.png) ``Define an Action`` - Actions are a series of commands (usually poses)
-executed with intervening time intervals.
-
-* ![yellow](/images/ball_yellow.png) ``Clean up`` - Remove a pose, action or user.
+* ![green](/images/ball_yellow.png) ``Clean up`` - Remove a pose or action. If a pose is
+deleted any action referencing that pose is also deleted. If no pose index is given
+all poses of the specified name are deleted.
 ```
-    forget Marj
+    forget salute
+    forget saluting
 ```
 
-### f - Motion Planning <a id="planning"></a>
+### g - Motion Planning <a id="planning"></a>
 [toc](#table-of-contents)<br/>
 Plan motions so as to bring end effectors to a certain position and avoid collisions
 between different parts of the robot. A prerequisite to planning
@@ -276,7 +294,7 @@ In addition to validating that the syntax works, check numeric results for the f
   - [ ] ... likewise, follow the left hip sub-chain to the left toe.
   - [ ] NOSE: make sure that the HEAD appendage calculations are correct.
 
-### g - Static Parameters <a id="parameters"></a>
+### h - Static Parameters <a id="parameters"></a>
 [toc](#table-of-contents)<br/>
 Test the ability to query performance metrics from the dispatcher. These do not involve
 the stepper motors
@@ -290,7 +308,7 @@ The results should be formatted into proper english sentences. Typical syntax:
   what is the cycle count
 ```
 
-### h - Miscellaneous <a id="miscellaneous"></a>
+### i - Miscellaneous <a id="miscellaneous"></a>
 This section includes tests of irregular or one-off speech patterns.
 * ![yellow](/images/ball_yellow.png) ``Completed``  - these are statements outside the regular
 syntax shown above that are processed in a reasonable manner.

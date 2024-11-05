@@ -82,7 +82,7 @@ class MessageTranslator {
                 }
             }
             else if(type.equals(RequestType.INITIALIZE_JOINTS)) {
-                text
+                randomAcknowledgement()
             }
             // If the message type is JSON, then the text of the message has been set to the gson string
             else if(type.equals(RequestType.JSON)) {
