@@ -18,6 +18,7 @@ statement:
 // Imperatives directing the robot to take an action
 command:
 	Salutation                                                              # handleSalutation
+	| Describe Article? Adjective? Pose                                     # poseDescription
 	| Greeting Greeting? Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					            # initializeJoints
 	| List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
@@ -50,22 +51,18 @@ question:
     | Whats Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
     | Whats Article? Property Of Article? Side? Joint Axis?   # jointPropertyQuestion
     | Whats Article? Metric   				                # metricsQuestion
-    | Whats Article? Adjective? Pose                        # poseQuestion
     | Where Is Article? Side? (Appendage|Joint)	Axis?       # limbLocationQuestion
     | Why Do You Have Mittens								# whyMittens
 	;
 
 // Convey information to the robot.
 declaration:
-      You Are phrase								    # declarePose1
-    | Article Pose Is phrase 						    # declarePose2
-	| Save Article? Pose (As phrase)?           	    # declareNoNamePose
-	| To phrase Means To Take Article? Pose phrase	    # mapPoseToCommand1
-	| To phrase Means You Are phrase            	    # mapPoseToCommand2
-	| To phrase Is To Be phrase						    # mapPoseToCommand3
-	| When Isay phrase Then? Take Article? Pose phrase	# mapPoseToCommand4
-	| When You phrase Then You Are phrase			    # mapPoseToCommand5
-	
+	  Assume Article? Pose phrase Value?          	    # assumePose
+    | Article Pose Is phrase Value?						# declarePose
+	| Save Article? Pose phrase Value?          	    # savePose
+	| Define phrase As Article Series Of phrase Poses   # defineAction1
+	| Define phrase From phrase                         # defineAction1
+	| Use phrase Poses? To Define phrase				# defineAction2
 	;
 
 // Arbitrary string of words
@@ -85,12 +82,16 @@ Adjective: 'current';
 Appendages: 'appendages';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 As: 'as';
+Assume: 'assume'|'take';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
+Define: 'define'|'make';
+Describe: 'describe';
 Do: 'do';
 Dynamic: 'dynamic';
 Faces: 'faces';
+From: 'from';
 Forget: 'forget';
 Goals: 'goals'|'targets';
 Greeting: 'hello'|'high'|'hi'|'hey';
@@ -123,7 +124,8 @@ Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angle
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please'|'wake up'|Isaid;
-Save: 'save';
+Save: 'save'|'record';
+Series: 'series';
 Set: 'set';
 Side: 'left'|'right'|'other';
 Speed: 'in slow motion'|'very fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'slower'|'very slow'|'slow'|'faster'|'quicker'|'fast'|'normal';
@@ -134,6 +136,7 @@ Then: 'then';
 There: 'there'|'their';
 To: 'to';
 Unit: 'degrees';
+Use: 'use';
 Value: (INTEGER|DECIMAL);
 You: 'you';
 Whatre: 'What Are'|'tell me'|'show me';

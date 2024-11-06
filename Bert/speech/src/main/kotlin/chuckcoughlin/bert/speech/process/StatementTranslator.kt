@@ -26,7 +26,18 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // These do the actual translations. Text->RequestBottle.
     // NOTE: Any action, state or pose names require database access to fill in the details.c
     // ================================= Overridden Methods =====================================
-    // 
+    //
+    // assume the pose
+    override fun visitAssumePose(ctx: SpeechSyntaxParser.AssumePoseContext): Any? {
+        bottle.type = RequestType.SAVE_POSE
+        if (ctx.phrase() != null) {
+            val pose: String = visit(ctx.phrase()).toString()
+            sharedDictionary[SharedKey.POSE] = pose
+            bottle.arg = pose
+        }
+        bottle.text = messageTranslator.randomAcknowledgement()
+        return null
+    }
     // How tall are you?
     override fun visitAttributeQuestion(ctx: SpeechSyntaxParser.AttributeQuestionContext): Any? {
         bottle.type = RequestType.GET_METRIC
@@ -81,37 +92,27 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
+    // Define "salute" from "saluting"
+    override fun visitDefineAction1(ctx: SpeechSyntaxParser.DefineAction1Context): Any? {
+
+        return null
+    }
+    // Use "saluting" to define "salute"
+    override fun visitDefineAction2(ctx: SpeechSyntaxParser.DefineAction2Context): Any? {
+
+        return null
+    }
     // you are singing
-    override fun visitDeclarePose1(ctx: SpeechSyntaxParser.DeclarePose1Context): Any? {
+    override fun visitDeclarePose(ctx: SpeechSyntaxParser.DeclarePoseContext): Any? {
         val pose: String = visit(ctx.phrase()).toString()
         sharedDictionary[SharedKey.POSE] = pose
         bottle.type = RequestType.SAVE_POSE
         bottle.arg = pose
+        bottle.value = 1.0
         bottle.text = messageTranslator.randomAcknowledgement()
         return null
     }
 
-    // your pose is sitting
-    override fun visitDeclarePose2(ctx: SpeechSyntaxParser.DeclarePose2Context): Any? {
-        val pose: String = visit(ctx.phrase()).toString()
-        sharedDictionary[SharedKey.POSE] = pose
-        bottle.type = RequestType.SAVE_POSE
-        bottle.arg = pose
-        bottle.text = messageTranslator.randomAcknowledgement()
-        return null
-    }
-
-    // save your pose,  save your pose as an alternate universe
-    override fun visitDeclareNoNamePose(ctx: SpeechSyntaxParser.DeclareNoNamePoseContext): Any? {
-        bottle.type = RequestType.SAVE_POSE
-        if (ctx.phrase() != null) {
-            val pose: String = visit(ctx.phrase()).toString()
-            sharedDictionary[SharedKey.POSE] = pose
-            bottle.arg = pose
-        }
-        bottle.text = messageTranslator.randomAcknowledgement()
-        return null
-    }
     // Delete a pose or user given the name
     //    forget Chuck
     override fun visitDeletePose(ctx: SpeechSyntaxParser.DeletePoseContext): Any? {
@@ -439,103 +440,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
-    // Map a command to holding a pose
-    // to stand means to take the pose standing
-    override fun visitMapPoseToCommand1(ctx: SpeechSyntaxParser.MapPoseToCommand1Context): Any? {
-        bottle.type = RequestType.MAP_POSE
-        if (ctx.phrase().size > 1) {
-            val command:String = visit(ctx.phrase(0)).toString()
-            bottle.command = CommandType.fromString(command)
-            if(bottle.command.equals(CommandType.NONE)) {
-                val msg = String.format("I didn't recognize the command %s", command)
-                bottle.error = msg
-            }
-            bottle.arg = visit(ctx.phrase(1)).toString()
-        }
-        else {
-            val msg = String.format("I need both a pose name and associated command")
-            bottle.error = msg
-        }
-        return null
-    }
-
-    // to climb means you are climbing
-    override fun visitMapPoseToCommand2(ctx: SpeechSyntaxParser.MapPoseToCommand2Context): Any? {
-        bottle.type = RequestType.MAP_POSE
-        if (ctx.phrase().size > 1) {
-            val command:String = visit(ctx.phrase(0)).toString()
-            bottle.command = CommandType.fromString(command)
-            if(bottle.command.equals(CommandType.NONE)) {
-                val msg = String.format("I didn't recognize the command %s", command)
-                bottle.error = msg
-            }
-            bottle.arg = visit(ctx.phrase(1)).toString()
-        }
-        else {
-            val msg = String.format("I need both a pose name and associated command")
-            bottle.error = msg
-        }
-        return null
-    }
-
-    // to eat is to become eating
-    override fun visitMapPoseToCommand3(ctx: SpeechSyntaxParser.MapPoseToCommand3Context): Any? {
-        bottle.type = RequestType.MAP_POSE
-        if (ctx.phrase().size > 1) {
-            val command:String = visit(ctx.phrase(0)).toString()
-            bottle.command = CommandType.fromString(command)
-            if(bottle.command.equals(CommandType.NONE)) {
-                val msg = String.format("I didn't recognize the command %s", command)
-                bottle.error = msg
-            }
-            bottle.arg = visit(ctx.phrase(1)).toString()
-        }
-        else {
-            val msg = String.format("I need both a pose name and associated command")
-            bottle.error = msg
-        }
-        return null
-    }
-    // when i say climb take the pose climbing
-    override fun visitMapPoseToCommand4(ctx: SpeechSyntaxParser.MapPoseToCommand4Context): Any? {
-        bottle.type = RequestType.MAP_POSE
-        if (ctx.phrase().size > 1) {
-            val command: String = visit(ctx.phrase(0)).toString()
-            val pose: String = visit(ctx.phrase(1)).toString()
-            bottle.command = CommandType.fromString(command)
-            if(bottle.command.equals(CommandType.NONE)) {
-                val msg = String.format("what do you mean: %s?", command)
-                bottle.error = msg
-            }
-            bottle.arg = pose
-        }
-        else {
-            val msg = String.format("This mapping requires both a pose name and associated command")
-            bottle.error = msg
-        }
-        return null
-    }
-
-    // when you climb then you are climbing
-    override fun visitMapPoseToCommand5(ctx: SpeechSyntaxParser.MapPoseToCommand5Context): Any? {
-        bottle.type = RequestType.MAP_POSE
-        if (ctx.phrase().size > 1) {
-            val command: String = visit(ctx.phrase(0)).toString()
-            val pose: String = visit(ctx.phrase(1)).toString()
-            bottle.command = CommandType.fromString(command)
-            if(bottle.command.equals(CommandType.NONE)) {
-                val msg = String.format("I didn't recognize the command %s", command)
-                bottle.error = msg
-            }
-            bottle.arg = pose
-        }
-        else {
-            val msg = String.format("I need both a pose name and associated command")
-            bottle.error = msg
-        }
-        return null
-    }
-
     // move your left hip y to 45 degrees
     override fun visitMoveMotor(ctx: SpeechSyntaxParser.MoveMotorContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
@@ -595,15 +499,24 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.text = String.format("At your service")
         return null
     }
-    // What is your current pose?
-    override fun visitPoseQuestion(ctx: SpeechSyntaxParser.PoseQuestionContext): Any? {
-        val pose = sharedDictionary[SharedKey.POSE].toString()
-        bottle.type = RequestType.NOTIFICATION
-        bottle.arg = pose
-        bottle.text = String.format("My current pose is %s", pose)
+    // Describe your current pose
+    override fun visitPoseDescription(ctx: SpeechSyntaxParser.PoseDescriptionContext): Any? {
+        //val pose = sharedDictionary[SharedKey.POSE].toString()
+        bottle.type = RequestType.JSON
+        bottle.jtype= JsonType.JOINT_POSITIONS
         return null
     }
-
+    // save your pose
+    override fun visitSavePose(ctx: SpeechSyntaxParser.SavePoseContext): Any? {
+        bottle.type = RequestType.SAVE_POSE
+        if (ctx.phrase() != null) {
+            val pose: String = visit(ctx.phrase()).toString()
+            sharedDictionary[SharedKey.POSE] = pose
+            bottle.arg = pose
+        }
+        bottle.text = messageTranslator.randomAcknowledgement()
+        return null
+    }
     // setMotorProperty is referenced twice in the syntax file, same logic just different order
     // set the position of your left hip y to 45 degrees
     // set the left hip y position to 45 degrees
