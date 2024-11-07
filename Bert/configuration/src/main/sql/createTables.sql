@@ -1,18 +1,14 @@
--- Copyright 2019. Charles Coughlin. All rights reserved.
--- These tables are used by the robot to access poses, state
+-- Copyright 2019-2024. Charles Coughlin. All rights reserved.
+-- These tables are used by the robot to access actions and poses, state
 -- arrays and action lists.
 --
 
--- The Action table shows motor positions over time for named "actions".
--- Each row in the table represents an actioun at an instant of time.
--- The time increment between rows is unspecified, by default 1 second.
+-- Apply a series of Poses in order. The time increment between poses
+-- is specified in the pose table.
 DROP TABLE IF EXISTS Action;
 CREATE TABLE Action (
-	name	text NOT NULL,
-	executeOrder integer not null,
-	delay   integer NOT NULL,
-	poseId	integer NOT NULL,
-	UNIQUE (name,executeOrder)
+	name	text PRIMARY_KEY,
+	poseseries  text NOT NULL
 );
 
 -- The Face table merely maps names associated with faces to
@@ -43,21 +39,26 @@ CREATE TABLE FaceLandmark (
 	y             float,
 	UNIQUE (faceid,landmarkcode)
 );
--- The Pose table shows motor positions for named "poses".
--- The joint position for each pose is represented on a single row
+
+-- Each Pose has a series name which can be incorporated
+-- into an action.
 DROP TABLE IF EXISTS Pose;
 CREATE TABLE Pose (
+	poseid	integer PRIMARY_KEY,
+	series       text NOT NULL,
+	executeOrder integer NOT NULL,
+	delay        integer DEFAULT 1000
+);
+
+-- A pose is a collection of joint-positions
+DROP TABLE IF EXISTS PoseJoint;
+CREATE TABLE PoseJoint (
 	poseid	integer NOT_NULL,
 	joint		text NOT NULL,
-	position    integer NOT NULL,
+	angle       integer NOT NULL,
+	torque		real DEFAULT 50.,
+	speed		real DEFAULT 20.,
 	UNIQUE (poseid,joint)
-);
--- The PoseNames table maps aliases to poses.
--- If not otherwise specified, SQLite will create an id on insert
-DROP TABLE IF EXISTS PoseName;
-CREATE TABLE PoseName (
-	name text PRIMARY_KEY,
-	poseid integer NOT NULL
 );
 
 -- The MotorState table holds configurable parameters of each motor.
@@ -78,5 +79,6 @@ CREATE TABLE MotorState (
 );
 
 -- Clean up obsolete tables
-DROP TABLE IF EXISTS PoseMap;
+DROP TABLE IF EXISTS PoseName;
+DROP TABLE IF EXISTS PoseTable;
 DROP TABLE IF EXISTS FaceContourPoints;

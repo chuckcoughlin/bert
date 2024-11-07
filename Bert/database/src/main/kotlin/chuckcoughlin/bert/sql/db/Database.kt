@@ -8,6 +8,7 @@ package chuckcoughlin.bert.sql.db
 import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.sql.tables.ActionTable
 import chuckcoughlin.bert.sql.tables.FaceTable
 import chuckcoughlin.bert.sql.tables.PoseTable
 import org.sqlite.JDBC
@@ -25,6 +26,26 @@ import java.util.logging.Logger
  * Call shutdown() when database access is no longer required.
  */
 object Database  {
+    fun actionExists(actionName:String) :Boolean {
+        return action.actionExists(connection,actionName)
+    }
+    /**
+     * Save a list of motor position, torques and speeds as a new pose.
+     * @param mcmap contains a map of motor configurations with positions that define the pose.
+     * @param poseName
+     * @param index
+     */
+    fun createJointDataForPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String,index: Int) {
+        pose.createJointDataForPose(connection, mcmap, poseName,index)
+        return
+    }
+    /**
+     * @param name pose name. Delete the pose and its joint map from the
+     *         database. If the pose does not exist, no action is taken.
+     */
+    fun deleteAction(name: String) {
+        return action.deleteAction(connection, name)
+    }
     /**
      * @param name user or face name. Delete the face and assocuiated details.
      * If the face does not exist, no action is taken.
@@ -36,8 +57,11 @@ object Database  {
      * @param name pose name. Delete the pose and its joint map from the
      *         database. If the pose does not exist, no action is taken.
      */
-    fun deletePose(name: String) {
-        return pose.deletePose(connection, name)
+    fun deletePose(name: String,index:Int) {
+        return pose.deletePose(connection, name,index)
+    }
+    fun faceExists(actionName:String) :Boolean {
+        return face.faceExists(connection,actionName)
     }
     /**
      * @return a Json string with the names of all known faces
@@ -56,8 +80,8 @@ object Database  {
      *             exist, it will be created.
      * @return the corresponding pose id if it exists, otherwise NO_POSE
      */
-    fun getPoseIdForName(name: String): Long {
-        return pose.getPoseIdForName(connection, name)
+    fun getPoseIdForName(name: String,index:Int): Long {
+        return pose.getPoseIdForName(connection, name, index)
     }
     /**
      * Return a map of angles by joint name
@@ -94,13 +118,7 @@ object Database  {
     fun getPoseNames() : String {
         return pose.getPoseNames(connection)
     }
-    /**
-     * @param posename name of an existing pose
-     * @param alias an additional name for the pose.
-     */
-    fun mapNameToPose(posename: String,alias:String) {
-        return pose.mapNameToPose(connection,posename,alias)
-    }
+
     /**
      * @param details facial details of the face we're searching for
      * @return the face id of the match, else NO_FACE
@@ -109,33 +127,14 @@ object Database  {
         return face.matchDetailsToFace(connection,datails)
     }
 
-    fun poseExists(poseName:String) :Boolean {
-        return pose.poseExists(connection,poseName)
+    fun poseExists(poseName:String, index:Int) :Boolean {
+        return pose.poseExists(connection,poseName,index)
     }
     /**
      * @return a Json string with the names of all known faces
      */
     fun poseNamesToJSON() : String {
         return pose.poseNamesToJSON(connection)
-    }
-    /**
-     * Save a list of motor position values as a pose.
-     * @param mcmap contains a map of motor configurations with positions that define the pose.
-     * @param poseName
-     */
-    fun saveJointAnglesForPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String) {
-        pose.saveJointAnglesForPose(connection, mcmap, poseName)
-        return
-    }
-
-    /**
-     * Save a list of motor position values as a pose. Assign the pose a name equal to the
-     * id of the new database record.
-     * @param mcmap contains a map of motor configurations with positions that define the pose.
-     * @return the new record id as a string.
-     */
-    fun saveJointAnglesAsNewPose(mcmap: Map<Joint, MotorConfiguration>): String {
-        return pose.saveJointAnglesAsNewPose(connection, mcmap)
     }
 
     /**
@@ -178,6 +177,7 @@ object Database  {
     private val LOGGER = Logger.getLogger(CLSS)
     private val driver: JDBC = JDBC() // Force driver to be loaded
     private var connection: Connection? = null
+    private val action: ActionTable
     private val face: FaceTable
     private val pose: PoseTable
 
@@ -185,6 +185,7 @@ object Database  {
      * Initialize the table.
      */
     init {
+        action = ActionTable()
         face = FaceTable()
         pose = PoseTable()
     }

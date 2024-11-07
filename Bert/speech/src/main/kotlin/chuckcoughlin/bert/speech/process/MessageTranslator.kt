@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.JointPropertyValue
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -88,9 +87,6 @@ class MessageTranslator {
             else if(type.equals(RequestType.JSON)) {
                 String.format("%s %s",msg.jtype.name,msg.text)
             }
-            else if(type.equals(RequestType.MAP_POSE)) {
-                randomAcknowledgement()
-            }
             else if(type.equals(RequestType.NOTIFICATION)) {
                 text
             }
@@ -121,8 +117,8 @@ class MessageTranslator {
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
                 text
             }
-            else if (type.equals(CommandType.SET_POSE)) {
-                String.format("I am at %s", msg.arg.lowercase(Locale.getDefault()))
+            else if (type.equals(RequestType.EXECUTE_POSE)) {
+                String.format("I am %s", msg.arg.lowercase(Locale.getDefault()))
             }
             else {
                 text

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.message
@@ -9,12 +9,12 @@ package chuckcoughlin.bert.common.message
  */
 enum class CommandType {
     // Command contained in a message request
-    FORGET_FACE,
-    FORGET_POSE,
+    CREATE_ACTION,
+    CREATE_FACE,
+    CREATE_POSE,
+    DELETE_USER_DATA,
     HALT,
     RESET,
-    SET_POSE,                // Position robot in the named pose
-    SET_SPEED,               // Set a speed for all joints
     SHUTDOWN,
     SLEEP,
     WAKE,
@@ -29,11 +29,12 @@ enum class CommandType {
         fun toText(command: CommandType): String {
             var text = ""
             when (command) {
-                FORGET_FACE   -> text = "forget face"
-                FORGET_POSE   -> text = "forget pose"
+                CREATE_ACTION -> text = "delete action"
+                CREATE_FACE   -> text = "delete face"
+                CREATE_POSE   -> text = "delete pose"
+                DELETE_USER_DATA -> text = "delete action, pose or face"
                 HALT     -> text = "halt"
                 RESET    -> text = "reset"
-                SET_POSE   -> text = "set pose"
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"
                 WAKE     -> text = "wake"

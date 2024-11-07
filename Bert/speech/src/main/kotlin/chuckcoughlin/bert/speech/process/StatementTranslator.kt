@@ -29,11 +29,22 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     //
     // assume the pose
     override fun visitAssumePose(ctx: SpeechSyntaxParser.AssumePoseContext): Any? {
-        bottle.type = RequestType.SAVE_POSE
+        bottle.type = RequestType.EXECUTE_POSE
         if (ctx.phrase() != null) {
             val pose: String = visit(ctx.phrase()).toString()
             sharedDictionary[SharedKey.POSE] = pose
             bottle.arg = pose
+        }
+        if(ctx.Value() != null ) {
+            try {
+                bottle.value = ctx.Value().text.toDouble()
+            }
+            catch(ex:NumberFormatException) {
+                bottle.error = "pose index must be an integer"
+            }
+        }
+        else {
+            bottle.value = 1.0  // Default index
         }
         bottle.text = messageTranslator.randomAcknowledgement()
         return null
@@ -94,31 +105,67 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // Define "salute" from "saluting"
     override fun visitDefineAction1(ctx: SpeechSyntaxParser.DefineAction1Context): Any? {
-
+        val phrases = ctx.phrase()
+        if( phrases.size>1 ) {
+            val act = phrases[0].text
+            val series = phrases[1].text
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.CREATE_ACTION
+            bottle.arg = series
+            bottle.text = act
+        }
+        else {
+            bottle.error = "you must specify both pose series and action names"
+        }
         return null
     }
+    // The message arg is the series, the text is the action name
     // Use "saluting" to define "salute"
     override fun visitDefineAction2(ctx: SpeechSyntaxParser.DefineAction2Context): Any? {
-
+        val phrases = ctx.phrase()
+        if( phrases.size>1 ) {
+            val act = phrases[1].text
+            val series = phrases[0].text
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.CREATE_ACTION
+            bottle.arg = series
+            bottle.text = act
+        }
+        else {
+            bottle.error = "you must specify both action name and pose series name"
+        }
         return null
     }
-    // you are singing
-    override fun visitDeclarePose(ctx: SpeechSyntaxParser.DeclarePoseContext): Any? {
+    // Define a specified pose as the current position
+    // you are singing 2
+    override fun visitDefinePose(ctx: SpeechSyntaxParser.DefinePoseContext): Any? {
         val pose: String = visit(ctx.phrase()).toString()
         sharedDictionary[SharedKey.POSE] = pose
-        bottle.type = RequestType.SAVE_POSE
+        bottle.type = RequestType.COMMAND
+        bottle.command = CommandType.CREATE_POSE
         bottle.arg = pose
-        bottle.value = 1.0
+        if(ctx.Value() != null ) {
+            try {
+                bottle.value = ctx.Value().text.toDouble()
+            }
+            catch(ex:NumberFormatException) {
+                bottle.error = "pose index must be an integer"
+            }
+        }
+        else {
+            bottle.value = 1.0  // Default index
+        }
         bottle.text = messageTranslator.randomAcknowledgement()
+        sharedDictionary[SharedKey.POSE] = pose
         return null
     }
 
     // Delete a pose or user given the name
     //    forget Chuck
-    override fun visitDeletePose(ctx: SpeechSyntaxParser.DeletePoseContext): Any? {
+    override fun visitDeleteUserData(ctx: SpeechSyntaxParser.DeleteUserDataContext): Any? {
         bottle.type = RequestType.COMMAND
         val pose: String = ctx.NAME().getText()
-        bottle.command = CommandType.FORGET_POSE
+        bottle.command = CommandType.DELETE_USER_DATA
         if(pose.isBlank()) {
             val msg = String.format("an argument is required")
             bottle.error = msg
@@ -142,10 +189,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         // If both Limb() and Joint() are null, then we apply to the entire robot
         if (ctx.Freeze() != null || ctx.Relax() != null || ctx.Hold() != null) {
             if (ctx.Freeze() != null || ctx.Hold() != null) {
-                bottle.value = BottleConstants.ON_VALUE
+                bottle.value = ConfigurationConstants.ON_VALUE
             }
             if (ctx.Relax() != null) {
-                bottle.value = BottleConstants.OFF_VALUE
+                bottle.value = ConfigurationConstants.OFF_VALUE
             }
             // No joint or limb implies the entire body
             var joint: Joint = Joint.NONE
@@ -158,10 +205,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             if (!joint.equals(Joint.NONE)) {
                 bottle.joint= joint
                 if (ctx.Freeze() != null || ctx.Hold() != null) {
-                    bottle.addJointValue(joint, JointDynamicProperty.STATE, BottleConstants.ON_VALUE)
+                    bottle.addJointValue(joint, JointDynamicProperty.STATE, ConfigurationConstants.ON_VALUE)
                 }
                 else {
-                    bottle.addJointValue(joint, JointDynamicProperty.STATE,BottleConstants.OFF_VALUE)
+                    bottle.addJointValue(joint, JointDynamicProperty.STATE,ConfigurationConstants.OFF_VALUE)
                 }
                 sharedDictionary[SharedKey.JOINT] = joint
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
@@ -178,10 +225,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                     bottle.type = RequestType.SET_LIMB_PROPERTY
                     bottle.limb = limb
                     if (ctx.Freeze() != null || ctx.Hold() != null) {
-                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE, BottleConstants.ON_VALUE)
+                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE, ConfigurationConstants.ON_VALUE)
                     }
                     else {
-                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE,BottleConstants.OFF_VALUE)
+                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE,ConfigurationConstants.OFF_VALUE)
                     }
                     sharedDictionary[SharedKey.LIMB] = limb
                     sharedDictionary[SharedKey.IT] = SharedKey.LIMB
@@ -211,9 +258,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             // First handle "well-known" commands
             if (!determineCommandFromPhrase(phrase)) {   // Configures bottle
                 // Next check to see if this is a pose
-                if (Database.poseExists(phrase)) {
-                    bottle.type = RequestType.COMMAND
-                    bottle.command = CommandType.SET_POSE
+                if (Database.actionExists(phrase)) {
+                    bottle.type = RequestType.EXECUTE_ACTION
                     bottle.arg = phrase
                     sharedDictionary[SharedKey.POSE] = phrase
                 }
@@ -501,22 +547,11 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     }
     // Describe your current pose
     override fun visitPoseDescription(ctx: SpeechSyntaxParser.PoseDescriptionContext): Any? {
-        //val pose = sharedDictionary[SharedKey.POSE].toString()
         bottle.type = RequestType.JSON
         bottle.jtype= JsonType.JOINT_POSITIONS
         return null
     }
-    // save your pose
-    override fun visitSavePose(ctx: SpeechSyntaxParser.SavePoseContext): Any? {
-        bottle.type = RequestType.SAVE_POSE
-        if (ctx.phrase() != null) {
-            val pose: String = visit(ctx.phrase()).toString()
-            sharedDictionary[SharedKey.POSE] = pose
-            bottle.arg = pose
-        }
-        bottle.text = messageTranslator.randomAcknowledgement()
-        return null
-    }
+
     // setMotorProperty is referenced twice in the syntax file, same logic just different order
     // set the position of your left hip y to 45 degrees
     // set the left hip y position to 45 degrees
@@ -552,10 +587,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.text = ctx.Speed().getText()
         }
         else if (ctx.On() != null) {
-            bottle.value = BottleConstants.ON_VALUE
+            bottle.value = ConfigurationConstants.ON_VALUE
         }
         else if (ctx.Off() != null) {
-            bottle.value = BottleConstants.OFF_VALUE
+            bottle.value = ConfigurationConstants.OFF_VALUE
         }
         // Sanity check
         if( !bottle.joint.equals(Joint.NONE) && (
@@ -586,8 +621,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             }
         }
         else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
-            if( bottle.value != BottleConstants.ON_VALUE &&
-                bottle.value != BottleConstants.OFF_VALUE    )   {
+            if( bottle.value != ConfigurationConstants.ON_VALUE &&
+                bottle.value != ConfigurationConstants.OFF_VALUE    )   {
                 bottle.error = "State must be specified as on or off, enabled or disabled"
             }
         }
@@ -751,9 +786,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.command = CommandType.RESET
         }
         else if (phrase.startsWith("straighten")) {
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.SET_POSE
+            bottle.type = RequestType.EXECUTE_POSE
             bottle.arg = ConfigurationConstants.POSE_HOME
+            bottle.value = 1.0
         }
         else {
             success = false

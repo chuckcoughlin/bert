@@ -75,6 +75,48 @@ class FaceTable {
         }
     }
     /**
+     * @return true if there is a face of the given name.
+     */
+    fun faceExists(cxn:Connection?,actionName:String) : Boolean {
+        var result = false
+        if( cxn!=null ) {
+            var SQL="select * from Face where name = ?"
+            var prepStatement: PreparedStatement =cxn.prepareStatement(SQL)
+            var rs: ResultSet?=null
+            val action=actionName.lowercase(Locale.getDefault())
+
+            try {
+                prepStatement.setQueryTimeout(10) // set timeout to 10 sec.
+                prepStatement.setString(1, action)
+                rs=prepStatement.executeQuery()
+                while(rs.next()) {
+                    val series=rs.getString("series")
+                    LOGGER.info(String.format("%s.faceExists: %s is based on %s", CLSS, action,series))
+                    result = true
+                    break
+                }
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.faceExists: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) { }
+                }
+                try {
+                    prepStatement.close()
+                }
+                catch (ignore: SQLException) {}
+            }
+        }
+        return result
+    }
+    /**
      * @return the names of faces in JSON formatted string
      */
     fun faceNamesToJSON(cxn:Connection?) : String {

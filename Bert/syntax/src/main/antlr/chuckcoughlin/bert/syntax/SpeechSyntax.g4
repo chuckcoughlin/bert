@@ -34,7 +34,7 @@ command:
     | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Unit?  # setMotorProperty
 	| Salutation? Straighten (It|Article? Side? (Joint|Limb) Axis? )    	    # straightenJoint
-	| Salutation? Forget NAME                                                   # deletePose
+	| Salutation? Forget NAME                                                   # deleteUserData
 	| Salutation? phrase                                    		            # handleArbitraryCommand
 	;
 
@@ -58,8 +58,8 @@ question:
 // Convey information to the robot.
 declaration:
 	  Assume Article? Pose phrase Value?          	    # assumePose
-    | Article Pose Is phrase Value?						# declarePose
-	| Save Article? Pose phrase Value?          	    # savePose
+    | Article Pose Is phrase Value?						# definePose
+	| Save Article? Pose phrase Value?          	    # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
 	| Define phrase From phrase                         # defineAction1
 	| Use phrase Poses? To Define phrase				# defineAction2
@@ -92,7 +92,7 @@ Do: 'do';
 Dynamic: 'dynamic';
 Faces: 'faces';
 From: 'from';
-Forget: 'forget';
+Forget: 'forget'|'delete';
 Goals: 'goals'|'targets';
 Greeting: 'hello'|'high'|'hi'|'hey';
 Have: 'have'|'wear';

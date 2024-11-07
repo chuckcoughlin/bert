@@ -7,7 +7,6 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -225,7 +224,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS)   ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            msg.command.equals(CommandType.SET_POSE) ) {
+            msg.command.equals(RequestType.EXECUTE_POSE) ) {
                 return false
         }
         return true
@@ -299,7 +298,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting STATE to %2.0f for all joints" ,
                                     CLSS,controllerName,request.value))
             var enable = true
-            if( request.value<BottleConstants.ON_VALUE ) enable = false
+            if( request.value<ConfigurationConstants.ON_VALUE ) enable = false
 
             for (mc in configurationsByJoint.values) {
                 mc.isTorqueEnabled = enable
@@ -327,7 +326,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     CLSS,controllerName,request.joint.name,request.value) )
             // Set the torque-enable for all motors in the controller subset.
             var enabled = false
-            if(request.value>BottleConstants.OFF_VALUE) enabled = true
+            if(request.value>ConfigurationConstants.OFF_VALUE) enabled = true
             val mc = RobotModel.motorsByJoint[request.joint]!!
             request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
                     if(enabled) "enabled" else "disabled")
@@ -410,11 +409,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 request.control.responseCount[controllerName] = configs.size
             }
         }
-        else if( command == CommandType.SET_POSE) {
+        else if( type.equals(RequestType.EXECUTE_POSE) ) {
             request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
             val poseName: String = request.arg
-            if( Database.poseExists(poseName)) {
-                val poseid = Database.getPoseIdForName(poseName)
+            val index: Int = request.value.toInt()
+            if( Database.poseExists(poseName,index)) {
+                val poseid = Database.getPoseIdForName(poseName,index)
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsByJoint)
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration
@@ -448,7 +448,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun synthesizeResponse(msg: MessageBottle) {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.type.equals(RequestType.COMMAND) && msg.command.equals(CommandType.SET_POSE) ) {
+            msg.type.equals(RequestType.COMMAND) && msg.command.equals(RequestType.EXECUTE_POSE) ) {
             msg.text = ""   // Random acknowledgement added later
         }
         else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {

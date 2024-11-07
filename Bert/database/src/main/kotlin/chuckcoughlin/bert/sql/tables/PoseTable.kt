@@ -7,7 +7,6 @@ package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.sql.db.SQLConstants
-import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import com.google.gson.GsonBuilder
 import java.sql.*
 import java.util.*
@@ -20,13 +19,62 @@ import java.util.logging.Logger
  */
 class PoseTable {
     /**
+     * Create a new pose from a list of motor position, torque and speed values. If the pose series does
+     * not exist, create it.
+     * @param mcmap contains a map of motor configurations with positions that define the pose
+     * @param pose
+     * @param index
+     */
+    fun createJointDataForPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>,pose:String,index:Int ){
+        LOGGER.info(String.format("%s.saveJointDataForPose:", CLSS))
+        if( cxn!=null ) {
+            var statement: Statement? = null
+            val name = pose.lowercase()
+            var poseid = getPoseIdForName(cxn,name,index)
+            if( poseid == SQLConstants.NO_POSE ) {
+                poseid = getNextPoseId(cxn)
+                val SQL = String.format("insert into Pose(poseid,series,executeOrder,delay) values(%d,'%s',%d,1000)",poseid,pose,index)
+                statement = cxn.createStatement()
+                statement.executeUpdate(SQL)
+            }
+            else {
+                // Pose exists, so delete any existing data from PoseJoint table
+                val SQL = String.format("delete from PoseJoint where poseid = %d",poseid)
+                statement = cxn.createStatement()
+                statement.executeUpdate(SQL)
+            }
+
+            try {
+                val sb = StringBuffer("INSERT INTO Pose (name,parameter")
+                val valuesBuffer = StringBuffer("VALUES ('NEWPOSE','position'")
+                for (mc in map.values) {
+                    val SQL = String.format("insert into PoseJoint(poseid,joint,angle,torque,speed) values(%d,'%s',%2.0f,%2.0f",poseid,
+                        mc.joint.name,mc.angle.toInt(),mc.torque,mc.speed)
+                   statement.executeUpdate(SQL)
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.createJointDataForPose: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if (statement != null) {
+                    try {
+                        statement.close()
+                    }
+                    catch (ignore: SQLException) {
+                    }
+                }
+            }
+        }
+    }
+    /**
      * Delete the pose and associated joint details.
      * @cxn an open database connection
      * @param name pose name
      */
-    fun deletePose(cxn: Connection?, name: String) {
+    fun deletePose(cxn: Connection?, name: String,index:Int) {
         if( cxn!=null ) {
-            var SQL = "select poseid from PoseName where name = ?"
+            var SQL = "select poseid from Pose where name = ? and executeOrder = ?"
             var statement = cxn.prepareStatement(SQL)
             var rs: ResultSet? = null
             val pose = name.lowercase(Locale.getDefault())
@@ -35,6 +83,7 @@ class PoseTable {
             try {
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
                 statement.setString(1, pose)
+                statement.setInt(2,index)
                 rs = statement.executeQuery()
                 while (rs.next()) {
                     poseid = rs.getLong("poseid")
@@ -59,7 +108,7 @@ class PoseTable {
                 // Now do the deletions
                 var stmt=cxn.createStatement()
                 try {
-                    SQL=String.format("delete from PoseName where poseid = %d", poseid)
+                    SQL=String.format("delete from PoseJoint where poseid = %d", poseid)
                     stmt.execute(SQL)
                     SQL=String.format("delete from Pose where poseid = %d", poseid)
                     stmt.execute(SQL)
@@ -78,21 +127,66 @@ class PoseTable {
      * @param name user entered string
      * @return the corresponding pose name if it exists, otherwise NULL
      */
-    fun getPoseIdForName(cxn: Connection?, name: String): Long {
+    fun getNextPoseId(cxn: Connection?): Long {
+        var poseid: Long = 1
+        if( cxn!=null ) {
+            var SQL = "select max(poseid) from Pose "
+            var statement: Statement = cxn.prepareStatement(SQL)
+            var rs: ResultSet? = null
+
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    poseid = rs.getLong("poseid")
+                    poseid = poseid + 1
+                    break
+                }
+                rs.close()
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getNextPoseId: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if (rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) {
+                    }
+                }
+                try {
+                    statement.close()
+                }
+                catch (ignore: SQLException) {
+                }
+            }
+        }
+        return poseid
+    }
+
+    /**
+     * Find the pose id given pose name. If the pose does not currently
+     * exist, create it. The name is always stored in lower case.
+     * @cxn an open database connection
+     * @param name user entered string
+     * @return the corresponding pose name if it exists, otherwise NULL
+     */
+    fun getPoseIdForName(cxn: Connection?, name: String, index: Int): Long {
         var poseid: Long = SQLConstants.NO_POSE   // In case of SQL error
         if( cxn!=null ) {
-            var SQL = "select poseid from PoseName where name = ?"
+            var SQL = "select poseid from Pose where name = ? and executeOrder = ?"
             var prepStatement: PreparedStatement = cxn.prepareStatement(SQL)
             var rs: ResultSet? = null
             val pose = name.lowercase(Locale.getDefault())
 
             try {
                 prepStatement.setQueryTimeout(10) // set timeout to 10 sec.
-                prepStatement.setString(1, pose)
+                prepStatement.setString(1, pose.lowercase())
+                prepStatement.setInt(2,index)
                 rs = prepStatement.executeQuery()
                 while (rs.next()) {
                     poseid = rs.getLong("poseid")
-                    LOGGER.info(String.format("%s.getPoseIdForName: %s is %d", CLSS, pose, poseid))
+                    LOGGER.info(String.format("%s.getPoseIdForName: %s %d is %d", CLSS, pose,index, poseid))
                     break
                 }
                 rs.close()
@@ -332,47 +426,12 @@ class PoseTable {
         else return "none"
     }
     /**
-     * Associate a new name with the specified pose. If the named pose
-     * doesn't exist, create it. Then proceed to tie to second name to it.
-     * @cxn an open database connection
-     * @param pose existing pose
-     * @param name equivalent name or alias
+     * @return true if there is a pose the given name and index value.
      */
-    fun mapNameToPose(cxn: Connection?, poseName:String,name: String) {
-        if( cxn!=null ) {
-            val pose=poseName.lowercase(Locale.getDefault())
-            var poseid=getPoseIdForName(cxn, pose)
-            var SQL="inseert into PoseName(poseid,pose) values(?,?)"
-            var statement: PreparedStatement=cxn.prepareStatement(SQL)
-            val alias=name.lowercase(Locale.getDefault())
-
-            try {
-                LOGGER.info(String.format("%s.mapNameToPose: \n%s", CLSS, SQL))
-                statement.setLong(2, poseid)
-                statement.setString(2, alias)
-                statement.executeUpdate()
-            }
-            // We'll get an exception if the alias already exists.
-            catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.mapCommandToPose: Database error (%s)", CLSS, e.message))
-            }
-            finally {
-                try {
-                    statement.close()
-                }
-                catch (ignore: SQLException) {
-                }
-            }
-        }
-    }
-
-    /**
-     * @return true if there is a pose or alias of the given name.
-     */
-    fun poseExists(cxn:Connection?,poseName:String) : Boolean {
+    fun poseExists(cxn:Connection?,poseName:String,index:Int) : Boolean {
         var poseid: Long = SQLConstants.NO_POSE
         if( cxn!=null ) {
-            var SQL="select * from PoseName where name = ?"
+            var SQL="select poseid from Pose where name = ? and executeOrder = ?"
             var prepStatement: PreparedStatement=cxn.prepareStatement(SQL)
             var rs: ResultSet?=null
             val pose=poseName.lowercase(Locale.getDefault())
@@ -380,6 +439,7 @@ class PoseTable {
             try {
                 prepStatement.setQueryTimeout(10) // set timeout to 10 sec.
                 prepStatement.setString(1, pose)
+                prepStatement.setInt(2, index)
                 rs=prepStatement.executeQuery()
                 while(rs.next()) {
                     poseid=rs.getLong("poseid")
@@ -438,131 +498,7 @@ class PoseTable {
         }
         return gson.toJson(names)
     }
-    /**
-     * Save a list of motor position values as a pose. Assign the pose a name equal to the
-     * id of the new database record.
-     * @param mcmap contains a map of motor configurations with positions that define the pose.
-     * @return the new record id as a string.
-     */
-    fun saveJointAnglesAsNewPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>): String {
-        LOGGER.info(String.format("%s.saveJointAnglesAsNewPose:", CLSS))
-        var id: Long = SQL_NULL_CONNECTION
-        if( cxn!=null ) {
-            var statement: Statement? = null
-            var prep: PreparedStatement? = null
 
-            try {
-                val sb = StringBuffer("INSERT INTO Pose (name,parameter")
-                val valuesBuffer = StringBuffer("VALUES ('NEWPOSE','position'")
-                for (mc in map.values) {
-                    sb.append(",")
-                    sb.append(mc.joint.name)
-                    valuesBuffer.append(",?")
-                }
-                var SQL = sb.append(") ").append(valuesBuffer).append(")").toString()
-                LOGGER.info(String.format("%s.saveJointLocationsAsNewPose:\n%s", CLSS, SQL))
-                prep = cxn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)
-                var index = 1
-                for (mc in map.values) {
-                    prep.setInt(index, mc.angle.toInt())
-                    index++
-                }
-                prep.executeUpdate()
-                val generatedKeys: ResultSet = prep.getGeneratedKeys()
-                if (generatedKeys.next()) {
-                    id = generatedKeys.getLong(1)
-                }
-                SQL = "UPDATE Pose Set name = id WHERE name='NEWPOSE'"
-                statement = cxn.createStatement()
-                statement.execute(SQL)
-            }
-            catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.saveJointLocationsAsNewPose: Error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (prep != null) {
-                    try {
-                        prep.close()
-                    }
-                    catch (ignore: SQLException) {
-                    }
-                }
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {
-                    }
-                }
-            }
-        }
-        return id.toString()
-    }
-
-    /**
-     * Save a list of motor position values as a pose. Try an update first. If no rows are affected
-     * then do an insert.
-     * @param mcmap contains a map of motor configurations. Joints not in the list are ignored.
-     * @param pz name
-     */
-    fun saveJointAnglesForPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>, pz: String) {
-        if( cxn!=null ) {
-            LOGGER.info(String.format("%s.saveJointAnglesForPose: %s)", CLSS, pz))
-            var statement: PreparedStatement? = null
-            val pose = pz.lowercase(Locale.getDefault())
-            var SQL = StringBuffer("UPDATE Pose SET ")
-            var index = 0
-            for (mc in map.values) {
-                index++
-                SQL.append(
-                    java.lang.String.format("\n'%s'=%.1f%s",
-                        mc.joint.name, mc.angle,
-                        if (index == map.size) "" else ","
-                    )
-                )
-            }
-            SQL.append("\nWHERE name=? AND parameter='position';")
-            try {
-                LOGGER.info(String.format("%s.saveJointAnglesForPose: \n%s)", CLSS, SQL.toString()))
-                statement = cxn.prepareStatement(SQL.toString())
-                statement.setString(1, pose)
-                statement.executeUpdate()
-                if (statement.getUpdateCount() == 0) {
-                    // There was nothing to update. Do an insert. This will auto-increment primary key.
-                    statement.close()
-                    SQL = StringBuffer("INSERT INTO Pose (name,parameter")
-                    val valuesBuffer = StringBuffer("VALUES (?,'position'")
-                    for (mc in map.values) {
-                        SQL.append(",")
-                        SQL.append(mc.joint.name)
-                        valuesBuffer.append(",?")
-                    }
-                    SQL.append(") ").append(valuesBuffer).append(")").toString()
-                    LOGGER.info(String.format("%s.saveJointAnglesForPose: \n%s)", CLSS, SQL.toString()))
-                    statement = cxn.prepareStatement(SQL.toString())
-                    statement.setString(1, pose)
-                    index = 2
-                    for (mc in map.values) {
-                        statement.setInt(index, mc.angle.toInt())
-                        index++
-                    }
-                    statement.executeUpdate()
-                }
-            }
-            catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.saveJointAnglesForPose: Database error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {
-                    }
-                }
-            }
-        }
-    }
 
     private val CLSS = "PoseTable"
     private val LOGGER = Logger.getLogger(CLSS)
@@ -571,5 +507,4 @@ class PoseTable {
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)
     }
-
 }

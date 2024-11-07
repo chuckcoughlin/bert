@@ -9,21 +9,20 @@ package chuckcoughlin.bert.common.message
  */
 enum class RequestType {
     COMMAND,                 // Execute a command may have one or no args
+    EXECUTE_ACTION,          // Execute the poses in an action in sequence
+    EXECUTE_POSE,            // Drive robot motors to pre-set values
     GET_APPENDAGE_LOCATION,  // x,y,z location of the named appendage
     GET_GOALS,               // The current joint target settings
     GET_JOINT_LOCATION,      // x,y,z location of the center of the named joint
     GET_LIMITS,              // The EEPROM-resident joint limits
     GET_METRIC,              // A local property of the robot, e.g. name
     GET_MOTOR_PROPERTY,      // Current value of a motor property
-    GET_POSE,
     HANGUP,                  // Client has disconnected
     HEARTBEAT,               // An internal message on the TimerQueue
     INITIALIZE_JOINTS,       // Make sure that all joints are in "sane" positions
     JSON,                    // Message is in Json format for computer-computer.
-    MAP_POSE,                // Associate a command to a pose
     NOTIFICATION,            // Unsolicited message from server or parser
     PARTIAL,                 // Remainder of text has yet to arrive
-    PLAY_STEP, RECORD_STEP, SAVE_POSE,  // Save the current pose to the database
     READ_MOTOR_PROPERTY,     // Read a single property for all motors and record internally
     SET_LIMB_PROPERTY,       // Torque or speed for motors in a limb
     SET_MOTOR_PROPERTY,      // For a particular motor

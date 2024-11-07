@@ -40,7 +40,14 @@ object ConfigurationConstants {
 
     // Pose names (these are required to exist)
     const val POSE_HOME = "home"
-    const val POSE_NORMAL_SPEED = "normal speed"
+
+    // Nominal values for torque and speed in percent
+    const val SPEED_NORMAL = 20.0
+    const val TORQUE_NORMAL = 20.0
+
+    // For values that are boolean. Use these strings for "values"
+    const val ON_VALUE  = 1.0
+    const val OFF_VALUE = 0.0
 
     // Error valu
     const val NO_CONTROLLER  = "Not Defined"
