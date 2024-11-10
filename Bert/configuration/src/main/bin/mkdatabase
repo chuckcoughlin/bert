@@ -18,14 +18,14 @@ sqlite3 $DB < ${SQL}/createTables.sql
 
 # Change to CSV mode and load pose and action tables
 cd ${CSV}
-cat Action.csv | tail -n+3|sed -e 's/	/,/g' >/tmp/action
-cat Pose.csv | tail -n+3|sed -e 's/	/,/g' >/tmp/pose
+cat Action.csv | tail -n+2|sed -e 's/	/,/g' >/tmp/action
+cat Pose.csv | tail -n+2|sed -e 's/	/,/g' >/tmp/pose
 cat PoseJoint.csv | tail -n+2|sed -e 's/	/,/g' >/tmp/posejoint
 
 cd ${DBDIR}
 sqlite3 $DB << EOF
 .mode csv
-.import /tmp/pose Action
+.import /tmp/action Action
 .import /tmp/pose Pose
 .import /tmp/posejoint PoseJoint
 EOF

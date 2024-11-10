@@ -8,6 +8,7 @@ package chuckcoughlin.bert.sql.db
 import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.model.NameInteger
 import chuckcoughlin.bert.sql.tables.ActionTable
 import chuckcoughlin.bert.sql.tables.FaceTable
 import chuckcoughlin.bert.sql.tables.PoseTable
@@ -72,6 +73,12 @@ object Database  {
     /**
      * @return the names of saved faces in a comma-separated list
      */
+    fun getActionNames() : String {
+        return action.getActionNames(connection)
+    }
+    /**
+     * @return the names of saved faces in a comma-separated list
+     */
     fun getFaceNames() : String {
         return face.getFaceNames(connection)
     }
@@ -119,6 +126,13 @@ object Database  {
         return pose.getPoseNames(connection)
     }
 
+    /**
+     * @return an ordered list of Poses comprising an action.
+     *         The inter-pose delay is returned along with the pose name.
+     */
+    fun getPosesForAction(act:String): List<NameInteger> {
+        return action.getPosesForAction(connection,act);
+    }
     /**
      * @param details facial details of the face we're searching for
      * @return the face id of the match, else NO_FACE

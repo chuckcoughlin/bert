@@ -250,7 +250,7 @@ class PoseTable {
         if( cxn!=null ) {
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
-            val SQL = "select * from pose where poseid = ? "
+            val SQL = "select joint,angle from posejoint where poseid = ? "
             try {
                 statement = cxn.prepareStatement(SQL)
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
@@ -259,7 +259,7 @@ class PoseTable {
                 while (rs.next() ) {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
-                    val angle = rs.getDouble("position")
+                    val angle = rs.getDouble("angle")
                     map[joint] = angle
                     if(DEBUG) LOGGER.info(String.format("%s.getPoseJointPositions: %s for %d = %s",
                                     CLSS, joint.name, angle))
@@ -300,7 +300,7 @@ class PoseTable {
         if( cxn!=null ) {
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
-            val SQL = "select * from pose where poseid = ? "
+            val SQL = "select joint,speed from posejoint where poseid = ? "
             try {
                 statement = cxn.prepareStatement(SQL)
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
@@ -309,12 +309,10 @@ class PoseTable {
                 while (rs.next() ) {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
-                    val mc = configs[joint]
-                    if( mc!=null ) {   // Ignore joint if not in the configuration map
-                        map[joint] = mc.speed
-                        if(DEBUG) LOGGER.info(String.format("%s.getPoseJointSpeeds: %s for %d = %s",
-                                CLSS, joint.name, mc.speed))
-                    }
+                    val speed = rs.getDouble("speed")
+                    map[joint] = speed
+                    //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointSpeeds: %s for %d = %s",
+                    //            CLSS, joint.name, speed))
                 }
                 rs.close()
             }
@@ -352,7 +350,7 @@ class PoseTable {
         if( cxn!=null ) {
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
-            val SQL = "select * from pose where poseid = ? "
+            val SQL = "select joint,torque from posejoint where poseid = ? "
             try {
                 statement = cxn.prepareStatement(SQL)
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
@@ -361,12 +359,10 @@ class PoseTable {
                 while (rs.next() ) {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
-                    val mc = configs[joint]
-                    if( mc!=null ) {   // Ignore joint if not in the configuration map
-                        map[joint] = mc.torque
-                        if(DEBUG) LOGGER.info(String.format("%s.getPoseJointTorques: %s for %d = %s",
-                                CLSS, joint.name, mc.torque))
-                    }
+                    val torque = rs.getDouble("torque)")
+                    map[joint] = torque
+                    //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointTorques: %s for %d = %s",
+                    //            CLSS, joint.name, torque))
                 }
                 rs.close()
             }
@@ -400,7 +396,7 @@ class PoseTable {
     fun getPoseNames(cxn: Connection?): String {
         val names = StringBuffer()
         if( cxn!=null ) {
-            val SQL = "select name from PoseName"
+            val SQL = "select distinct(series) from Pose"
             var statement: Statement = cxn.createStatement()
             var rs: ResultSet? = null
             try {
@@ -431,7 +427,7 @@ class PoseTable {
     fun poseExists(cxn:Connection?,poseName:String,index:Int) : Boolean {
         var poseid: Long = SQLConstants.NO_POSE
         if( cxn!=null ) {
-            var SQL="select poseid from Pose where name = ? and executeOrder = ?"
+            var SQL="select poseid from Pose where series = ? and executeOrder = ?"
             var prepStatement: PreparedStatement=cxn.prepareStatement(SQL)
             var rs: ResultSet?=null
             val pose=poseName.lowercase(Locale.getDefault())
@@ -473,15 +469,16 @@ class PoseTable {
      */
     fun poseNamesToJSON(cxn:Connection?) : String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var names = mutableListOf<String>()
+        var names = mutableListOf<NameInteger>()
         if( cxn!=null ) {
-            val SQL = "select name from PoseName"
+            val SQL = "select series,executeOrder from Pose"
             var statement: Statement = cxn.createStatement()
             var rs: ResultSet? = null
             try {
                 rs = statement.executeQuery(SQL)
                 while (rs.next()) {
-                    names.add(rs.getString(1))
+                    val ni = NameInteger(rs.getString(1),rs.getInt(2))
+                    names.add(ni)
                 }
             }
             catch (e: SQLException) {

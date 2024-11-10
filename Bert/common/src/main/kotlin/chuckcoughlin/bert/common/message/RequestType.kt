@@ -23,6 +23,7 @@ enum class RequestType {
     JSON,                    // Message is in Json format for computer-computer.
     NOTIFICATION,            // Unsolicited message from server or parser
     PARTIAL,                 // Remainder of text has yet to arrive
+    RESET,                   // Recover after serial data error
     READ_MOTOR_PROPERTY,     // Read a single property for all motors and record internally
     SET_LIMB_PROPERTY,       // Torque or speed for motors in a limb
     SET_MOTOR_PROPERTY,      // For a particular motor

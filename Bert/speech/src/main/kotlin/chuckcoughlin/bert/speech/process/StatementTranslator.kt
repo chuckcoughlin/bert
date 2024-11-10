@@ -90,16 +90,34 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.type = RequestType.JSON
         if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
         if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
+        if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
         return null
     }
 
     // List values from the database
+    // Who do you know
+    override fun visitDatabaseFaceNamesQuestion(ctx: SpeechSyntaxParser.DatabaseFaceNamesQuestionContext): Any? {
+        bottle.type = RequestType.GET_METRIC
+        bottle.metric = MetricType.LIST
+        bottle.jtype = JsonType.FACE_NAMES
+        return null
+    }
+    // List values from the database
     // What are the names of your poses
     override fun visitDatabaseNamesQuestion(ctx: SpeechSyntaxParser.DatabaseNamesQuestionContext): Any? {
-        bottle.type = RequestType.JSON
+        bottle.type = RequestType.GET_METRIC
         bottle.metric = MetricType.LIST
         if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
         if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
+        if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
+        return null
+    }
+    // List values from the database
+    // What poses do you know
+    override fun visitDatabasePoseNamesQuestion(ctx: SpeechSyntaxParser.DatabasePoseNamesQuestionContext): Any? {
+        bottle.type = RequestType.GET_METRIC
+        bottle.metric = MetricType.LIST
+        bottle.jtype = JsonType.POSE_NAMES
         return null
     }
 
@@ -780,10 +798,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else if (phrase == "power off" || phrase == "shut down" || phrase == "shutdown") {
             bottle.type = RequestType.COMMAND
             bottle.command = CommandType.SHUTDOWN
-        }
-        else if (phrase == "reset") {
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.RESET
         }
         else if (phrase.startsWith("straighten")) {
             bottle.type = RequestType.EXECUTE_POSE

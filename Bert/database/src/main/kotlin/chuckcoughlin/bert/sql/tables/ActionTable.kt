@@ -6,11 +6,13 @@
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.NameInteger
 import chuckcoughlin.bert.common.model.RobotModel
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Statement
 import java.util.*
 import java.util.logging.Logger
 
@@ -79,7 +81,44 @@ class ActionTable {
             }
         }
     }
+    /**
+     * List the names of all defined actions.
+     * @cxn an open database connection
+     * @return a list of action names, comma-separate
+     */
+    fun getActionNames(cxn: Connection?): String {
+        val names = StringBuffer()
+        if( cxn!=null ) {
+            val SQL = "select name from Action"
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    names.append(rs.getString(1))
+                    names.append(", ")
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getActionNames: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
 
+    fun getPosesForAction(cxn: Connection?,act:String) : List<NameInteger> {
+        val list = mutableListOf<NameInteger>()
+        return list
+    }
     private val CLSS = "ActionTable"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean

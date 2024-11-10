@@ -224,7 +224,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS)   ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            msg.command.equals(RequestType.EXECUTE_POSE) ) {
+            msg.type.equals(RequestType.EXECUTE_POSE) ) {
                 return false
         }
         return true

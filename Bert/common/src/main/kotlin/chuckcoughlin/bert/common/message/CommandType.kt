@@ -5,7 +5,8 @@
 package chuckcoughlin.bert.common.message
 
 /**
- * Well-known keys for the command property inside a request/response
+ * Well-known keys for the command property inside a request/response.
+ * By design commands do not require access to the motor controller.
  */
 enum class CommandType {
     // Command contained in a message request
@@ -14,7 +15,6 @@ enum class CommandType {
     CREATE_POSE,
     DELETE_USER_DATA,
     HALT,
-    RESET,
     SHUTDOWN,
     SLEEP,
     WAKE,
@@ -34,7 +34,6 @@ enum class CommandType {
                 CREATE_POSE   -> text = "delete pose"
                 DELETE_USER_DATA -> text = "delete action, pose or face"
                 HALT     -> text = "halt"
-                RESET    -> text = "reset"
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"
                 WAKE     -> text = "wake"

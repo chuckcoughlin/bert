@@ -77,8 +77,3 @@ CREATE TABLE MotorState (
 	direct integer DEFAULT 1,
 	UNIQUE (name,id,controller)
 );
-
--- Clean up obsolete tables
-DROP TABLE IF EXISTS PoseName;
-DROP TABLE IF EXISTS PoseTable;
-DROP TABLE IF EXISTS FaceContourPoints;

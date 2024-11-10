@@ -5,23 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ccce67-ea3a-42be-8568-8a8178f32cdd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/configuration/src/main/csv/PoseJoint.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/BottleConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/BottleConstants.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/CommandType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/CommandType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/JsonType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/JsonType.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/RequestType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/message/RequestType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/kotlin/chuckcoughlin/bert/common/model/ConfigurationConstants.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configuration/src/main/bin/mkdatabase" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/bin/mkdatabase" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/csv/Action_empty.csv" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/csv/Action.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/csv/Pose.csv" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/csv/Pose.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configuration/src/main/csv/PoseName.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/configuration/src/main/sql/createTables.sql" beforeDir="false" afterPath="$PROJECT_DIR$/configuration/src/main/sql/createTables.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/db/Database.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/db/Database.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/FaceTable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/FaceTable.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/ActionTable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/ActionTable.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/PoseTable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/database/src/main/kotlin/chuckcoughlin/bert/sql/tables/PoseTable.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" beforeDir="false" afterPath="$PROJECT_DIR$/dispatcher/src/main/kotlin/chuckcoughlin/bert/dispatch/Dispatcher.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorController.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/MessageTranslator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/motor/src/main/kotlin/chuckcoughlin/bert/motor/controller/MotorGroupController.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/speech/src/main/kotlin/chuckcoughlin/bert/speech/process/StatementTranslator.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax/src/main/antlr/chuckcoughlin/bert/syntax/SpeechSyntax.g4" beforeDir="false" afterPath="$PROJECT_DIR$/syntax/src/main/antlr/chuckcoughlin/bert/syntax/SpeechSyntax.g4" afterDir="false" />
     </list>
@@ -158,8 +153,8 @@
       <recent name="chuckcoughlin.bert" />
     </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
-      <recent name="chuckcoughlin.bert.sql.tables" />
       <recent name="chuckcoughlin.bert.common.model" />
+      <recent name="chuckcoughlin.bert.sql.tables" />
       <recent name="chuckcoughlin.bert.command" />
       <recent name="chuckcoughlin.bert.sql.pose" />
       <recent name="chuckcoughlin.bert.common.util" />

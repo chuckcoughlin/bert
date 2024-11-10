@@ -27,7 +27,7 @@ command:
 	| List Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
     | List Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion
     | List Article? Article? (Motors|Limbs|Appendages)   # bodyPartListQuestion
-    | List Article? Article? (Faces|Poses)               # databaseListQuestion
+    | List Article? Article? (Actions|Faces|Poses)                             # databaseListQuestion
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
 	| Salutation? Move Speed                                                   # setSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	   # enableTorque
@@ -42,22 +42,24 @@ command:
 question:
       Salutation?  How Attribute Are You 						# attributeQuestion
     | Salutation?  Are You There					            # personalQuestion
-    | Whatre Article? (Dynamic|Static) Motor? Parameters		# parameterNamesQuestion
-    | Whatre Article? (Dynamic|Static) Parameters Of Article? Motors # parameterNamesQuestion
-    | Whatre Article? Names Of Article? (Motors|Limbs|Appendages)   # bodyPartNamesQuestion
-    | Whatre Article? Names Of Article? (Faces|Poses)               # databaseNamesQuestion
-    | Whatre Article? (Limits|Goals) Of Article? Side? Joint Axis?  # handleBulkPropertyQuestion
-    | Whats Article? Side? Joint Axis? Property               # jointPropertyQuestion
-    | Whats Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
-    | Whats Article? Property Of Article? Side? Joint Axis?   # jointPropertyQuestion
-    | Whats Article? Metric   				                # metricsQuestion
+    | (What Are|Tell Me) Article? (Dynamic|Static) Motor? Parameters		# parameterNamesQuestion
+    | (What Are|Tell Me) Article? (Dynamic|Static) Parameters Of Article? Motors # parameterNamesQuestion
+    | (What Are|Tell Me) Article? Names Of Article? (Motors|Limbs|Appendages)   # bodyPartNamesQuestion
+    | (What Are|Tell Me) Article? Names Of Article? (Actions|Faces|Poses)       # databaseNamesQuestion
+    | (What Are|Tell Me) Article? (Limits|Goals) Of Article? Side? Joint Axis?  # handleBulkPropertyQuestion
+    | (What Are|Tell Me) Article? Side? Joint Axis? Property              # jointPropertyQuestion
+    | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
+    | (What Is|Tell Me) Article? Property Of Article? Side? Joint Axis?   # jointPropertyQuestion
+    | (What Is|Tell Me) Article? Metric   				                  # metricsQuestion
     | Where Is Article? Side? (Appendage|Joint)	Axis?       # limbLocationQuestion
+    | What Poses Do You Know								# databasePoseNamesQuestion
+    | Who Do You Know										# databaseFaceNamesQuestion
     | Why Do You Have Mittens								# whyMittens
 	;
 
 // Convey information to the robot.
 declaration:
-	  Assume Article? Pose phrase Value?          	    # assumePose
+	  Take Article? Pose phrase Value?          	    # assumePose
     | Article Pose Is phrase Value?						# definePose
 	| Save Article? Pose phrase Value?          	    # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
@@ -69,20 +71,20 @@ declaration:
 phrase: (NAME|Value|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
     ;
 
-// First is a list of terms that are used below or use word that appear elsewhere
+// First is a list of terms that are used below or use words that appear elsewhere
 Are: 'are';
 Freeze: 'freeze'|'stiffen'|'tighten'|'go rigid';
 Is: 'is';
 Relax:'loosen'|'relax'|'go limp';
-What: 'what';
 Why: 'why';
+
 // Pardon the license taken with some of these categories ...
+Actions: 'actions';
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
 Appendages: 'appendages';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 As: 'as';
-Assume: 'assume'|'take';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
@@ -102,10 +104,12 @@ Initialize: 'initialize';
 Isay: 'i say';
 Isaid: 'i said';
 It: 'it';
+Know: 'know';
 List: 'list';
 Limbs:'limbs';
 Limb: 'arm'|'back'|'head'|'leg'|'torso';
 Limits: 'limits';
+Me: 'me';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|'name';
 Mittens: 'mittens';
@@ -132,6 +136,7 @@ Speed: 'in slow motion'|'very fast'|'normally'|'very quickly'|'quickly'|'very sl
 Static: 'static';
 Straighten: 'straighten';
 Take: 'assume' | 'take';
+Tell: 'tell';
 Then: 'then';
 There: 'there'|'their';
 To: 'to';
@@ -139,10 +144,10 @@ Unit: 'degrees';
 Use: 'use';
 Value: (INTEGER|DECIMAL);
 You: 'you';
-Whatre: 'What Are'|'tell me'|'show me';
-Whats: 'What Is';
+What: 'what';
 When: 'when';
 Where: 'where';
+Who: 'who';
 
 COMMA: ',';
 COLON: ':';

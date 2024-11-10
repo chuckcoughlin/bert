@@ -6,7 +6,6 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -170,8 +169,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // immediately. Results are created from the original configuration file.
     // We also create error messages some requests that are illegal
     private fun canHandleImmediately(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.COMMAND) &&
-            request.command.equals(CommandType.RESET) ) {
+        if (request.type.equals(RequestType.RESET) ) {
             return true
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
@@ -202,8 +200,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         val type = request.type
         val command = request.command
         val jtype = request.jtype
-        if (type.equals(RequestType.COMMAND) &&
-            command.equals(CommandType.RESET) ) {
+        if (type.equals(RequestType.RESET) ) {
             pendingMessages.clear()
             request.text = "I have been reset"
         }

@@ -266,15 +266,12 @@ class Dispatcher() : Controller {
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
             request.joint.equals(Joint.NONE)                                &&
             request.value == ConfigurationConstants.ON_VALUE    )  {
-            var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-            msg.source = ControllerType.BITBUCKET.name
             toInternalController.send(request)
 
-            msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
+            val msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.ANGLE
             msg.source = ControllerType.BITBUCKET.name
-            msg.control.delay =1000 // 1 sec delay
+            msg.control.delay =250 // 1/4 sec delay
             toInternalController.send(msg)
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
@@ -298,22 +295,16 @@ class Dispatcher() : Controller {
                 }
             }
         }
-        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
-                 request.value==ConfigurationConstants.ON_VALUE ) {
-
-            var msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-            msg.joint = request.joint
-            msg.source = ControllerType.BITBUCKET.name
-            toInternalController.send(msg)
-
-            msg = MessageBottle(RequestType.GET_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-            msg.joint = request.joint
-            msg.source = ControllerType.BITBUCKET.name
-            msg.control.delay = 250 // 1/4 sec delay
-            toInternalController.send(msg)
+        else if (request.type.equals(RequestType.EXECUTE_ACTION) ) {
+            // An action requires executing a series of poses with intervening delay
+            val poseList = Database.getPosesForAction(request.arg)
+            for(ni in poseList) {
+                var msg = MessageBottle(RequestType.EXECUTE_POSE)
+                msg.arg = ni.name
+                msg.control.delay = ni.index.toLong()
+                msg.source = ControllerType.BITBUCKET.name
+                toInternalController.send(msg)
+            }
         }
         return request
     }
@@ -357,9 +348,14 @@ class Dispatcher() : Controller {
                     val rt = Runtime.getRuntime()
                     rt.exec(commands)
                 }
-                catch (ioe: IOException) {LOGGER.warning(String.format( "%s.handleLocalRequest: Powerdown error (%s)",
-                            CLSS,ioe.message))
+                catch (ioe: IOException) {
+                    LOGGER.warning(String.format("%s.handleLocalRequest: Powerdown error (%s)",
+                        CLSS, ioe.message))
                 }
+            }
+            else {
+                LOGGER.warning(String.format("%s.handleLocalRequest: Unhandled command (%s)",
+                    CLSS, request.command.name))
             }
         }
         // The following two requests simply use the current positions of the motors, whatever they are
@@ -413,6 +409,7 @@ class Dispatcher() : Controller {
                         JsonType.JOINT_NAMES ->text = URDFModel.chain.jointNames()
                         JsonType.LIMB_NAMES ->text = URDFModel.chain.limbNames()
                         JsonType.POSE_NAMES ->text = Database.getPoseNames()
+                        JsonType.ACTION_NAMES ->text = Database.getActionNames()
                         else -> {
                             request.error = "badly formed metric list request"
                             text = ""
@@ -541,7 +538,7 @@ class Dispatcher() : Controller {
         if( request.source.equals(ControllerType.INTERNAL.name ) ) return false
         // Anything that sets "torque enable" to true requires that we read
         //  and save (in memory) current motor positions.
-        if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
+        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
             request.value == ConfigurationConstants.ON_VALUE ) {
             return true
@@ -553,8 +550,7 @@ class Dispatcher() : Controller {
                 if( jpv.value==ConfigurationConstants.ON_VALUE ) return true
             }
         }
-        else if( request.type.equals(RequestType.COMMAND) &&
-                 request.command.equals(RequestType.EXECUTE_ACTION)  ) {
+        else if( request.type.equals(RequestType.EXECUTE_ACTION) ) {
             return true
         }
         return false
@@ -610,13 +606,10 @@ class Dispatcher() : Controller {
             request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            request.command.equals(CommandType.CREATE_POSE) ||
+            request.type.equals(RequestType.RESET) ||
+            request.type.equals(RequestType.EXECUTE_POSE) ||
             request.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             return true
-        }
-        else if (request.type.equals(RequestType.COMMAND) ) {
-            if (request.command.equals(CommandType.RESET))
-                return true
         }
         return false
     }
