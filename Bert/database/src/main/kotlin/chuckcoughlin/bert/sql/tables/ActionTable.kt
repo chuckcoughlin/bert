@@ -6,7 +6,7 @@
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.NameInteger
+import chuckcoughlin.bert.common.model.PoseDefinition
 import chuckcoughlin.bert.common.model.RobotModel
 import java.sql.Connection
 import java.sql.PreparedStatement
@@ -115,8 +115,11 @@ class ActionTable {
         else return "none"
     }
 
-    fun getPosesForAction(cxn: Connection?,act:String) : List<NameInteger> {
-        val list = mutableListOf<NameInteger>()
+    /**
+     * @return an ordered list of poses and delay intervals
+     */
+    fun getPosesForAction(cxn: Connection?,act:String) : List<PoseDefinition> {
+        val list = mutableListOf<PoseDefinition>()
         return list
     }
     private val CLSS = "ActionTable"

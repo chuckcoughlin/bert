@@ -55,7 +55,7 @@ DROP TABLE IF EXISTS PoseJoint;
 CREATE TABLE PoseJoint (
 	poseid	integer NOT_NULL,
 	joint		text NOT NULL,
-	angle       integer NOT NULL,
+	angle       real NOT NULL,
 	torque		real DEFAULT 50.,
 	speed		real DEFAULT 20.,
 	UNIQUE (poseid,joint)

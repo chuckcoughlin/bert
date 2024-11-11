@@ -36,6 +36,7 @@ import java.time.Month
 import java.time.Period
 import java.util.*
 import java.util.logging.Logger
+import kotlin.math.roundToInt
 
 /**
  * The Dispatcher is the distribution hub of the application. Its' job is to accept requests from
@@ -305,6 +306,8 @@ class Dispatcher() : Controller {
                 msg.source = ControllerType.BITBUCKET.name
                 toInternalController.send(msg)
             }
+            // End with the original request
+            toInternalController.send(request)
         }
         return request
     }
@@ -319,7 +322,7 @@ class Dispatcher() : Controller {
             if( command.equals(CommandType.CREATE_POSE) ) {
                 val poseName: String = request.arg.lowercase()
                 val index = request.value.toInt()
-                Database.createJointDataForPose(RobotModel.motorsByJoint,poseName,index)
+                Database.createPose(RobotModel.motorsByJoint,poseName,index)
                 request.text = "I recorded pose $poseName"
             }
             // For delete, the data type is no specified.
@@ -508,6 +511,9 @@ class Dispatcher() : Controller {
                 }
                 JsonType.MOTOR_STATIC_PROPERTIES -> {
                     text = JointDefinitionProperty.toJSON()
+                }
+                JsonType.POSE_DETAILS -> {
+                    text = Database.poseDetailsToJSON(request.arg,request.value.roundToInt())
                 }
                 JsonType.POSE_NAMES -> {
                     text = Database.poseNamesToJSON()

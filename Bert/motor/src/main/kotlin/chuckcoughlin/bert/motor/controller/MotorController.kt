@@ -7,12 +7,12 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
 import chuckcoughlin.bert.sql.db.Database
+import chuckcoughlin.bert.sql.db.SQLConstants
 import jssc.SerialPort
 import jssc.SerialPortException
 import kotlinx.coroutines.*
@@ -156,7 +156,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             timeOfLastWrite = System.currentTimeMillis()
         }
         // Get the intended response count - zero if controller is unknown
-        var responseCount = 0
+        var responseCount: Int
         // Now construct the byte array to write to the port
         if( isSingleWriteRequest(request) ) {
             val bytes = messageToBytes(request)
@@ -379,7 +379,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         request.control.responseCount[controllerName] = 0 // No response unless otherwise set
         var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
-        val command: CommandType = request.command
         if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s",
                     CLSS,controllerName,type.name))
 
@@ -413,14 +412,15 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
             val poseName: String = request.arg
             val index: Int = request.value.toInt()
-            if( Database.poseExists(poseName,index)) {
+            val poseid = Database.getPoseIdForName(poseName,index)
+            if( poseid!= SQLConstants.NO_POSE) {
                 val poseid = Database.getPoseIdForName(poseName,index)
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsByJoint)
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration
             }
             else {
-                request.error = String.format("The pose \"%s\" is not configured",poseName)
+                request.error = String.format("The pose \"%s\" %d is does not exist",poseName,index)
             }
         }
         else {
@@ -448,11 +448,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun synthesizeResponse(msg: MessageBottle) {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.type.equals(RequestType.COMMAND) && msg.command.equals(RequestType.EXECUTE_POSE) ) {
+            msg.type.equals(RequestType.EXECUTE_POSE) ) {
             msg.text = ""   // Random acknowledgement added later
         }
         else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
-            // Generic return message is added by normal command processing
+            // Return message is added by normal command processing
         }
         else {
             msg.error = String.format("could not synthesize a response for message %s", msg.type.name)

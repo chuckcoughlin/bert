@@ -62,6 +62,9 @@ class MessageTranslator {
             else if(type.equals(RequestType.COMMAND)) {
                 randomAcknowledgement()
             }
+            else if (type.equals(RequestType.EXECUTE_POSE)) {
+                String.format("I am %s", msg.arg.lowercase(Locale.getDefault()))
+            }
             else {
                 String.format("Received an empty %s message.",msg.type.name)
             }
@@ -116,9 +119,6 @@ class MessageTranslator {
             }
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
                 text
-            }
-            else if (type.equals(RequestType.EXECUTE_POSE)) {
-                String.format("I am %s", msg.arg.lowercase(Locale.getDefault()))
             }
             else {
                 text

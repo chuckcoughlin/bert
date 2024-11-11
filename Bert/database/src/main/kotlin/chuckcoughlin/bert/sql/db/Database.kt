@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
@@ -8,7 +8,8 @@ package chuckcoughlin.bert.sql.db
 import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.NameInteger
+import chuckcoughlin.bert.common.model.PoseDefinition
+import chuckcoughlin.bert.common.model.PoseDetail
 import chuckcoughlin.bert.sql.tables.ActionTable
 import chuckcoughlin.bert.sql.tables.FaceTable
 import chuckcoughlin.bert.sql.tables.PoseTable
@@ -30,14 +31,16 @@ object Database  {
     fun actionExists(actionName:String) :Boolean {
         return action.actionExists(connection,actionName)
     }
+
     /**
      * Save a list of motor position, torques and speeds as a new pose.
+     * Insert or update the Pose table
      * @param mcmap contains a map of motor configurations with positions that define the pose.
      * @param poseName
      * @param index
      */
-    fun createJointDataForPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String,index: Int) {
-        pose.createJointDataForPose(connection, mcmap, poseName,index)
+    fun createPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String,index: Int) {
+        pose.createPose(connection, mcmap, poseName,index)
         return
     }
     /**
@@ -130,7 +133,7 @@ object Database  {
      * @return an ordered list of Poses comprising an action.
      *         The inter-pose delay is returned along with the pose name.
      */
-    fun getPosesForAction(act:String): List<NameInteger> {
+    fun getPosesForAction(act:String): List<PoseDefinition> {
         return action.getPosesForAction(connection,act);
     }
     /**
@@ -143,6 +146,14 @@ object Database  {
 
     fun poseExists(poseName:String, index:Int) :Boolean {
         return pose.poseExists(connection,poseName,index)
+    }
+    /**
+     * @param posename
+     * @param index
+     * @return a list of pose joint, angle,speed and torque converted to a JSON string
+     */
+    fun poseDetailsToJSON( poseName:String,index:Int): String {
+        return pose.poseDetailsToJSON(connection, poseName,index)
     }
     /**
      * @return a Json string with the names of all known faces

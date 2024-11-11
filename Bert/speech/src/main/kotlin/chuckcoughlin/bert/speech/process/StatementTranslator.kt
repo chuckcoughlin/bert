@@ -84,6 +84,12 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         return null
     }
 
+    // Describe your current pose
+    override fun visitCurrentPoseDescription(ctx: SpeechSyntaxParser.CurrentPoseDescriptionContext): Any? {
+        bottle.type = RequestType.JSON
+        bottle.jtype= JsonType.JOINT_POSITIONS
+        return null
+    }
     // List values from the database
     // List your poses
     override fun visitDatabaseListQuestion(ctx: SpeechSyntaxParser.DatabaseListQuestionContext): Any? {
@@ -566,7 +572,22 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Describe your current pose
     override fun visitPoseDescription(ctx: SpeechSyntaxParser.PoseDescriptionContext): Any? {
         bottle.type = RequestType.JSON
-        bottle.jtype= JsonType.JOINT_POSITIONS
+        bottle.jtype= JsonType.POSE_DETAILS
+        if (ctx.phrase() != null) {
+            val pose: String = visit(ctx.phrase()).toString()
+            bottle.arg = pose
+        }
+        if(ctx.Value() != null ) {
+            try {
+                bottle.value = ctx.Value().text.toDouble()
+            }
+            catch(ex:NumberFormatException) {
+                bottle.error = "pose index must be an integer"
+            }
+        }
+        else {
+            bottle.value = 1.0  // Default index
+        }
         return null
     }
 

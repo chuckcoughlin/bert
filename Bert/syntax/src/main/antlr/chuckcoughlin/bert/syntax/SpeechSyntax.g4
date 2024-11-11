@@ -18,7 +18,8 @@ statement:
 // Imperatives directing the robot to take an action
 command:
 	Salutation                                                              # handleSalutation
-	| Describe Article? Adjective? Pose                                     # poseDescription
+	| Describe Pose phrase Value          	    							# poseDescription
+	| Describe Article? Adjective? Pose                                     # currentPoseDescription
 	| Greeting Greeting? Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					            # initializeJoints
 	| List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
@@ -59,16 +60,16 @@ question:
 
 // Convey information to the robot.
 declaration:
-	  Take Article? Pose phrase Value?          	    # assumePose
-    | Article Pose Is phrase Value?						# definePose
-	| Save Article? Pose phrase Value?          	    # definePose
+	  Take Article? Pose phrase Value          	    # assumePose
+    | Article Pose Is phrase Value						# definePose
+	| Save Article? Pose phrase Value          	        # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
 	| Define phrase From phrase                         # defineAction1
 	| Use phrase Poses? To Define phrase				# defineAction2
 	;
 
-// Arbitrary string of words
-phrase: (NAME|Value|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
+// Arbitrary string of words - inclue some key words. Digits are allowed only as a suffix
+phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
     ;
 
 // First is a list of terms that are used below or use words that appear elsewhere
@@ -105,10 +106,10 @@ Isay: 'i say';
 Isaid: 'i said';
 It: 'it';
 Know: 'know';
-List: 'list';
 Limbs:'limbs';
 Limb: 'arm'|'back'|'head'|'leg'|'torso';
 Limits: 'limits';
+List: 'list';
 Me: 'me';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|'name';
@@ -153,7 +154,7 @@ COMMA: ',';
 COLON: ':';
 DECIMAL: DASH? DIGIT* PERIOD DIGIT*;
 INTEGER: DASH?DIGIT+;
-NAME:  (ALPHA+);
+NAME:   ALPHA+ (DASH|PERIOD)? DIGIT*;
 
 
 // Fragments are never evaluated,

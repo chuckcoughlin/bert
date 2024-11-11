@@ -35,6 +35,7 @@ enum class JsonType {
     LIMB_NAMES,       // List of limb names               MutableList<String>
     MOTOR_DYNAMIC_PROPERTIES, // Names of dynamic motor properties  MutableList<String>
     MOTOR_STATIC_PROPERTIES,  // Names of static motor properties    MutableList<String>
+    POSE_DETAILS,     // Details df named pose                       MutableList<PoseDetail>
     POSE_NAMES,       // Names df defined poses                      MutableList<String>
     UNDEFINED
     ;
