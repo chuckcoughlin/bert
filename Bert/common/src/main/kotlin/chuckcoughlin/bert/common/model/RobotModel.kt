@@ -31,6 +31,7 @@ object RobotModel {
     val properties: Properties   // These are the generic properties
     val propertiesByController:  MutableMap<ControllerType, Properties>
     val jointsByController:      MutableMap<String,List<Joint>>
+    val limbsByJoint: MutableMap<Joint, Limb>
     val motorsByJoint:           MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
     val motorsById:              MutableMap<Int, MotorConfiguration>   // Motor configuration by id
 
@@ -216,6 +217,7 @@ object RobotModel {
                                 try {
                                     val limb = Limb.fromString(value)
                                     motor.limb = limb
+                                    limbsByJoint[j] = limb
                                 }
                                 catch (iae: IllegalArgumentException) {
                                     LOGGER.warning( String.format("%s.analyzeMotors: %s has unknown limb %s",
@@ -224,6 +226,7 @@ object RobotModel {
                             }
                             motorsByJoint[motor.joint] = motor
                             motorsById[motor.id] = motor
+
                             if(DEBUG) LOGGER.info(String.format("%s.analyzeMotors: Found %s", CLSS, motor.joint.name))
                         }
                     }
@@ -305,6 +308,30 @@ object RobotModel {
         }
         return gson.toJson(motorValues)
     }
+    /**
+     * @return  a comma-separated string of the names of all extremities.
+     */
+    fun limbNames(): String {
+        var names = StringBuffer()
+        for (limb in limbsByJoint.values) {
+            names.append(limb.name)
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     */
+    fun limbsToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (limb in limbsByJoint.values) {
+            names.add(limb.name)
+        }
+        return gson.toJson(names)
+    }
+
     /** @return  a JSON pretty-printed String array of offset settings for all joints.*/
     fun offsetsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
@@ -407,6 +434,7 @@ object RobotModel {
         jointsByController        = mutableMapOf<String, List<Joint>>()
         propertiesByController    = mutableMapOf<ControllerType,Properties>()
         motorsById                = mutableMapOf<Int, MotorConfiguration>()
+        limbsByJoint              = mutableMapOf<Joint,Limb>()
         motorsByJoint             = mutableMapOf<Joint, MotorConfiguration>()
         debug = ""
     }

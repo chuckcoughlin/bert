@@ -8,7 +8,7 @@ package chuckcoughlin.bert.common.model
  * These are the canonical names for appendages on various limbs.
  * These are body parts where we need locations.
  */
-enum class Appendage {
+enum class Extremity {
     LEFT_EAR, LEFT_EYE, LEFT_FINGER, LEFT_HEEL, LEFT_TOE, NOSE,
     RIGHT_EAR, RIGHT_EYE, RIGHT_FINGER, RIGHT_HEEL, RIGHT_TOE, NONE;
 
@@ -18,7 +18,7 @@ enum class Appendage {
          * @param limb the enumeration
          * @return user-recognizable text
          */
-        fun toText(limb: Appendage): String {
+        fun toText(limb: Extremity): String {
             var text = ""
             when (limb) {
                 LEFT_EAR -> text = "left ear"
@@ -51,11 +51,11 @@ enum class Appendage {
          * The enumeration function valueOf appears to always throw an exception.
          * This is the replacement. It is case-insensitive,
          */
-        fun fromString(arg: String): Appendage {
-            for (type in Appendage.values()) {
+        fun fromString(arg: String): Extremity {
+            for (type in Extremity.values()) {
                 if (type.name.equals(arg, true)) return type
             }
-            return Appendage.NONE
+            return Extremity.NONE
         }
     }
 }

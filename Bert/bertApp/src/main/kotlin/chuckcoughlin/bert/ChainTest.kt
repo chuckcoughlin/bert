@@ -2,7 +2,11 @@ package chuckcoughlin.bert
 
 
 import chuckcoughlin.bert.common.PathConstants
-import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.model.Chain
+import chuckcoughlin.bert.common.model.Extremity
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.Solver
 import chuckcoughlin.bert.common.util.LoggerUtility
 import java.nio.file.Paths
 import java.util.*
@@ -40,27 +44,27 @@ fun main(args: Array<String>) {
     Solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
     val chain: Chain = Solver.model.chain
     val root = chain.root
-    println(String.format("%s: root = %s ", CLSS, root!!.name))
-    // Test the links to some appendages
+    println(String.format("%s: root = %s ", CLSS, root.bone.name))
+    // Test the links to some extremities
     println("=========================================================================")
-    var subchain = chain.partialChainToAppendage(Appendage.LEFT_EAR)
+    var subchain = chain.partialChainToExtremity(Extremity.LEFT_EAR)
     for (link in subchain) {
-        println(String.format("\t%s ", link.name))
+        println(String.format("\t%s ", link.bone.name))
     }
     println("=========================================================================")
-    subchain = chain.partialChainToAppendage(Appendage.RIGHT_FINGER)
+    subchain = chain.partialChainToExtremity(Extremity.RIGHT_FINGER)
     for (link in subchain) {
-        println(String.format("\t%s ", link.name))
+        println(String.format("\t%s ", link.bone.name))
     }
     println("=========================================================================")
-    subchain = chain.partialChainToAppendage(Appendage.RIGHT_TOE)
+    subchain = chain.partialChainToExtremity(Extremity.RIGHT_TOE)
     for (link in subchain) {
-        println(String.format("\t%s ", link.name))
+        println(String.format("\t%s ", link.bone.name))
     }
     println("=========================================================================")
     subchain = chain.partialChainToJoint(Joint.ABS_Y)
     for (link in subchain) {
-        println(String.format("\t%s ", link.name))
+        println(String.format("\t%s ", link.bone.name))
     }
 }
 

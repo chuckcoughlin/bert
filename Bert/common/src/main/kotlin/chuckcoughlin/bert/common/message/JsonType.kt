@@ -16,8 +16,8 @@ package chuckcoughlin.bert.common.message
  * corresponsd to each type
  */
 enum class JsonType {
-    ACTION_NAMES,  // List of appendages                  MutableList<String>
-    APPENDAGE_NAMES,  // List of appendages               MutableList<String>
+    ACTION_NAMES,  // List of actions                     MutableList<String>
+    EXTREMITY_NAMES,  // List of extremeties              MutableList<String>
     FACIAL_DETAILS,   // Facial identification features   FacialDetails
     FACE_DIRECTION,   // Angular direction of view        FaceDirection
     FACE_NAMES,       // Names df people whom we know     MutableList<String>

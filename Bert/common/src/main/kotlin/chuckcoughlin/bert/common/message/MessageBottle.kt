@@ -32,7 +32,7 @@ import java.util.logging.Logger
 */
 data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     private var jointValues : MutableList<JointPropertyValue>   // Property values for one or more motors
-    var appendage: Appendage // Message applies to this appendage
+    var extremity: Extremity // Message applies to this extremity
     var command : CommandType
     var error : String       // Error message if not blank
     var handler: ControllerType // The subsystem to handle this message
@@ -76,7 +76,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     override public fun clone(): MessageBottle {
         val copy = MessageBottle(type)
         copy.jointValues  = jointValues.toMutableList()
-        copy.appendage   = appendage
+        copy.extremity   = extremity
         copy.command     = command
         copy.error       = error
         copy.handler     = handler
@@ -143,7 +143,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
      * Set initiial values for all message parameters
      */
     init {
-        appendage   = Appendage.NONE
+        extremity   = Extremity.NONE
         jointValues = mutableListOf<JointPropertyValue>()
         command     = CommandType.NONE
         error   =  BottleConstants.NO_ERROR   // No error

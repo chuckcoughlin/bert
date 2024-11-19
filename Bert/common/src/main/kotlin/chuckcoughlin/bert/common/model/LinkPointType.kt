@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -9,7 +9,7 @@ package chuckcoughlin.bert.common.model
  * connection locations on a link.
  */
 enum class LinkPointType {
-    APPENDAGE, ORIGIN, REVOLUTE;
+    EXTREMITY, ORIGIN, REVOLUTE;
 
     companion object {
         /**

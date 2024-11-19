@@ -27,7 +27,7 @@ command:
 	| List Article? Motor? Properties                   	# handleListCommand
 	| List Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
     | List Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion
-    | List Article? Article? (Motors|Limbs|Appendages)   # bodyPartListQuestion
+    | List Article? Article? (Motors|Limbs|Extremities)   # bodyPartListQuestion
     | List Article? Article? (Actions|Faces|Poses)                             # databaseListQuestion
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
 	| Salutation? Move Speed                                                   # setSpeed
@@ -45,14 +45,14 @@ question:
     | Salutation?  Are You There					            # personalQuestion
     | (What Are|Tell Me) Article? (Dynamic|Static) Motor? Parameters		# parameterNamesQuestion
     | (What Are|Tell Me) Article? (Dynamic|Static) Parameters Of Article? Motors # parameterNamesQuestion
-    | (What Are|Tell Me) Article? Names Of Article? (Motors|Limbs|Appendages)   # bodyPartNamesQuestion
+    | (What Are|Tell Me) Article? Names Of Article? (Motors|Limbs|Extremities)   # bodyPartNamesQuestion
     | (What Are|Tell Me) Article? Names Of Article? (Actions|Faces|Poses)       # databaseNamesQuestion
     | (What Are|Tell Me) Article? (Limits|Goals) Of Article? Side? Joint Axis?  # handleBulkPropertyQuestion
     | (What Are|Tell Me) Article? Side? Joint Axis? Property              # jointPropertyQuestion
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property Of Article? Side? Joint Axis?   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Metric   				                  # metricsQuestion
-    | Where Is Article? Side? (Appendage|Joint)	Axis?       # limbLocationQuestion
+    | Where Is Article? Side? (Extremity|Joint)	Axis?       # limbLocationQuestion
     | What Poses Do You Know								# databasePoseNamesQuestion
     | Who Do You Know										# databaseFaceNamesQuestion
     | Why Do You Have Mittens								# whyMittens
@@ -69,7 +69,7 @@ declaration:
 	;
 
 // Arbitrary string of words - inclue some key words. Digits are allowed only as a suffix
-phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
+phrase: (NAME|Extremity|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
     ;
 
 // First is a list of terms that are used below or use words that appear elsewhere
@@ -83,8 +83,6 @@ Why: 'why';
 Actions: 'actions';
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
-Appendages: 'appendages';
-Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
@@ -93,6 +91,8 @@ Define: 'define'|'make';
 Describe: 'describe';
 Do: 'do';
 Dynamic: 'dynamic';
+Extremities: 'extremities';
+Extremity: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Faces: 'faces';
 From: 'from';
 Forget: 'forget'|'delete';

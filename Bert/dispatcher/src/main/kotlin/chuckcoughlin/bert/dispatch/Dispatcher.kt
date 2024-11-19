@@ -362,10 +362,10 @@ class Dispatcher() : Controller {
             }
         }
         // The following two requests simply use the current positions of the motors, whatever they are
-        else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
+        else if (request.type.equals(RequestType.GET_EXTREMITY_LOCATION)) {
             LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
             Solver.setTreeState() // Forces new calculations
-            val appendage = request.appendage
+            val appendage = request.extremity
             val xyz: DoubleArray = Solver.getLocation(appendage)
             val text = String.format(
                 "%s is located at %0.2f %0.2f %0.2f meters",
@@ -408,7 +408,7 @@ class Dispatcher() : Controller {
                         JsonType.FACE_NAMES ->text = Database.getFaceNames()
                         JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.names()
                         JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDynamicProperty.names()
-                        JsonType.APPENDAGE_NAMES ->text = URDFModel.chain.appendageNames()
+                        JsonType.EXTREMITY_NAMES ->text = URDFModel.chain.extremityNames()
                         JsonType.JOINT_NAMES ->text = URDFModel.chain.jointNames()
                         JsonType.LIMB_NAMES ->text = URDFModel.chain.limbNames()
                         JsonType.POSE_NAMES ->text = Database.getPoseNames()
@@ -464,8 +464,8 @@ class Dispatcher() : Controller {
             var text = ""
             when (jtype) {
                 // List the names of different kinds of motor properties
-                JsonType.APPENDAGE_NAMES -> {
-                    text = URDFModel.chain.appendagesToJSON()
+                JsonType.EXTREMITY_NAMES -> {
+                    text = URDFModel.chain.extremitiesToJSON()
                 }
                 JsonType.FACE_NAMES -> {
                     text = Database.faceNamesToJSON()
@@ -567,7 +567,7 @@ class Dispatcher() : Controller {
     // database queries and some error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.COMMAND) ||
-            request.type.equals(RequestType.GET_APPENDAGE_LOCATION) ||
+            request.type.equals(RequestType.GET_EXTREMITY_LOCATION) ||
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
             request.type.equals(RequestType.GET_METRIC) ||
             request.type.equals(RequestType.HANGUP)     ||

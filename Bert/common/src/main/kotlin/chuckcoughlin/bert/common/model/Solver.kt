@@ -23,12 +23,16 @@ object Solver {
      * motor configurations. Mark the links as "dirty".
      */
     fun setTreeState() {
-        val links: Collection<Link> = model.chain.links
+        val links: Collection<Link> = model.chain.linksByBone.values
         for (link in links) {
-            link.setDirty()
-            val joint: Joint = link.linkPoint.joint
-            val mc: MotorConfiguration? = motorConfigurations[joint]
-            link.jointAngle = mc!!.angle
+            for( endPoint in link.linkPoints) {
+                link.setDirty()
+                if( endPoint.type.equals(LinkPointType.REVOLUTE)) {
+                    val joint = endPoint.joint
+                    val mc: MotorConfiguration? = motorConfigurations[joint]
+                    link.jointAngle = mc!!.angle
+                }
+            }
         }
     }
 
@@ -48,8 +52,8 @@ object Solver {
      * Return the location of a specified appendage in x,y,z coordinates in meters from the
      * robot origin in the pelvis.
      */
-    fun getLocation(appendage: Appendage): DoubleArray {
-        val subchain: List<Link> = model.chain.partialChainToAppendage(appendage)
+    fun getLocation(extremity: Extremity): DoubleArray {
+        val subchain: List<Link> = model.chain.partialChainToExtremity(extremity)
         return if (subchain.size > 0) subchain[0].coordinates else ERROR_POSITION
     }
 

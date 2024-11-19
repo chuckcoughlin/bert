@@ -1,9 +1,10 @@
 /**
- * Copyright 2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2023-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.model.RobotModel.limbsByJoint
 import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
@@ -19,50 +20,86 @@ import java.util.logging.Logger
  * are all handled here.
  */
 class Chain {
-    var root: Link? = null
-    private val linkByAppendage: MutableMap<Appendage, Link>
-    private val jointParent: MutableMap<Joint, Link>
-    private val linksByLimbName: MutableMap<String, Link>
+    var root: Link
+    val linksByBone: MutableMap<Bone, Link>
+    private val linksByExtremity: MutableMap<Extremity, Link>
+
+    private val linksByJoint: MutableMap<Joint, Link>
     private var origin: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0)
     private var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
-    val links: Collection<Link>
-        get() = linksByLimbName.values
+
     /**
      * As we add origin and endpoints, the new link gets added to the various
-     * maps that allow us to navigate the chain.
-     * @param name the new link or limb name.
+     * maps that allow us to navigate the chain. For now we just add
+     * to the main
+     *
+     * @param the new link.
      */
-    fun createLink(name: String) {
-        val link = Link(name.uppercase(Locale.getDefault()))
-        linksByLimbName[link.name] = link
+    fun addLink(link:Link) {
+        LOGGER.info(String.format("%s.addLink: Added link %s",CLSS,link.bone.name))
+        linksByBone[link.bone] = link
     }
 
-    fun setEndPoint(name: String, lp: LinkPoint) {
-        val link = linksByLimbName[name]
-        if (link != null) {
-            if (lp.type == LinkPointType.APPENDAGE) {
-                linkByAppendage[lp.appendage] = link
-            }
-            else if (lp.type == LinkPointType.REVOLUTE) {
-                val j: Joint = lp.joint
-                //LOGGER.info(String.format("Chain.setEndPoint: add joint %s", j.name()));
-                jointParent[j] = link
-            }
-            link.setEndPoint(lp)
-        }
-        else {
-            LOGGER.warning(String.format("%s.setEndPoint: No link %s found", CLSS, name))
-        }
+    fun linkForBoneName(name:String) : Link? {
+        val bone = Bone.fromString(name)
+        val link = linksByBone[bone]
+        return link
     }
 
+    fun setLimb(joint:Joint,limb:Limb) {
+        limbsByJoint[joint] = limb
+    }
+    fun setLinkForJoint(joint:Joint,link:Link) {
+        linksByJoint[joint] = link
+    }
+    /**
+     * Once all links have been created, call this methods to update our maps of links
+     * by joint, and links by extremity. These maps will facilitate navigation through
+     * the linkage with joints and extremities as starting points.
+     */
+    fun updateMaps() {
+        for( link in linksByBone.values) {
+            for(endPoint in link.linkPoints) {
+                if(endPoint.type.equals(LinkPointType.EXTREMITY)) {
+                    linksByExtremity[endPoint.extremity] = link
+                }
+                else if(endPoint.type.equals(LinkPointType.REVOLUTE)) {
+                    linksByJoint[endPoint.joint] = link
+                }
+            }
+        }
+    }
 
     /**
-     * @return  a comma-separated string of the names of all appendages.
+     * @return  a comma-separated string of the names of all links.
      */
-    fun appendageNames(): String {
+    fun boneNames(): String {
         var names = StringBuffer()
-        for (appendage in linkByAppendage.keys) {
-            names.append(appendage.name.lowercase())
+        for (bone in linksByBone.keys) {
+            names.append(bone.name)
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     */
+    fun bonesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (bone in linksByBone.keys) {
+            names.add(bone.name)
+        }
+        return gson.toJson(names)
+    }
+    /**
+     * @return  a comma-separated string of the names of all extremities.
+     */
+    fun extremityNames(): String {
+        var names = StringBuffer()
+        for (extremity in linksByExtremity.keys) {
+            names.append(extremity.name.lowercase())
             names.append(", ")
         }
         if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
@@ -71,11 +108,11 @@ class Chain {
     /**
      * @return  a JSON pretty-printed String array of all appendaged.
      */
-    fun appendagesToJSON(): String {
+    fun extremitiesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
-        for (appendage in linkByAppendage.keys) {
-            names.add(appendage.name)
+        for (extremity in linksByExtremity.keys) {
+            names.add(extremity.name)
         }
         return gson.toJson(names)
     }
@@ -84,7 +121,7 @@ class Chain {
      */
     fun jointNames(): String {
         var names = StringBuffer()
-        for (joint in jointParent.keys) {
+        for (joint in linksByJoint.keys) {
             names.append(joint.name.lowercase())
             names.append(", ")
         }
@@ -97,61 +134,35 @@ class Chain {
     fun jointsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
-        for (joint in jointParent.keys) {
+        for (joint in linksByJoint.keys) {
             names.add(joint.name)
         }
         return gson.toJson(names)
     }
-    /**
-     * @return  a comma-separated string of the names of all joints.
-     */
-    fun limbNames(): String {
-        var names = StringBuffer()
-        for (limb in links) {
-            names.append(limb.name.lowercase())
-            names.append(", ")
-        }
-        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
-        else return "none"
-    }
-    /**
-     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
-     */
-    fun limbsToJSON(): String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        var names = mutableListOf<String>()
-        for (link in links) {
-            names.add(link.name)
-        }
-        return gson.toJson(names)
-    }
 
-    fun getLinkForLimbName(name: String): Link? {
-        return linksByLimbName[name.uppercase(Locale.getDefault())]
-    }
 
     /**
      * There may be multiple joints with the same parent, but only one parent per joint.
      * @param jointName
      * @return the parent link of the named joint. If not found, return null.
      */
-    fun getParentLinkForJoint(jointName: String): Link? {
-        val joint: Joint = Joint.fromString(jointName)
-        return jointParent[joint]
+    fun linkForJoint(joint: Joint): Link? {
+        return linksByJoint[joint]
     }
 
     /**
-     * Work back toward the root from the specified appendage. The chain
-     * is ordered to start from the root.
-     * @param appendage
+     * Work back toward the root from the specified extremity. The chain
+     * is ordered beginning from the root.
+     * @param extremity
      * @return
      */
-    fun partialChainToAppendage(appendage: Appendage?): List<Link> {
+    fun partialChainToExtremity(extremity: Extremity?): List<Link> {
         val partial: LinkedList<Link> = LinkedList<Link>()
-        var link = linkByAppendage[appendage]
+        var link = linksByExtremity[extremity]
         while (link != null) {
             partial.addFirst(link)
-            link = link.parent
+            if( link.source.type.equals(LinkPointType.ORIGIN)) break
+            link = linkForJoint(link.source.joint)
         }
         return partial
     }
@@ -164,10 +175,11 @@ class Chain {
      */
     fun partialChainToJoint(joint: Joint): List<Link> {
         val partial: LinkedList<Link> = LinkedList<Link>()
-        var link = jointParent[joint]
+        var link = linksByJoint[joint]
         while (link != null) {
             partial.addFirst(link)
-            link = link.parent
+            if( link.source.type.equals(LinkPointType.ORIGIN)) break
+            link = linkForJoint(link.source.joint)
         }
         return partial
     }
@@ -188,23 +200,14 @@ class Chain {
         origin = o
     }
 
-    /**
-     * Connect the child link to its parent.
-     * @param childName
-     * @param parentName
-     */
-    fun setParent(childName: String, parentName: String) {
-        val parent = linksByLimbName[parentName]
-        val child = linksByLimbName[childName]
-        if (parent != null && child != null) child.parent = parent
-    }
 
     private val CLSS = "Chain"
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        jointParent = HashMap<Joint, Link>()
-        linkByAppendage = HashMap<Appendage, Link>()
-        linksByLimbName = HashMap()
+        linksByExtremity = mutableMapOf<Extremity, Link>()
+        linksByBone      = mutableMapOf<Bone,Link>()
+        linksByJoint     = HashMap<Joint,Link>()
+        root = Link(Bone.NONE)    // Must be reset to be useful
     }
 }

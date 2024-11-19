@@ -1,12 +1,12 @@
 /**
- * Copyright 2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
 
 
 /**
- * A LinkPoint is a hinged joint (as they all are).
+ * A LinkPoint is either a hinged joint or a fixed extremity.
  * The coordinates are a 3D location of the joint
  * with respect to the origin of the link.
  *
@@ -17,29 +17,25 @@ package chuckcoughlin.bert.common.model
  * is along the z axis.
  */
 class LinkPoint {
-    val name: String
-        get() = joint.name
-    var offset : DoubleArray // Joint offset
-        private set
+    var offset : DoubleArray
     var orientation: DoubleArray
-    val type: LinkPointType
-    val appendage: Appendage
+    val extremity: Extremity
     val joint: Joint
+    val type:LinkPointType
 
     /**
-     * Special constructor for
-     * a LinkPoint representing the origin of the link chain.
+     * Special constructor for a LinkPoint representing the origin of the link chain.
      */
     constructor() {
         type = LinkPointType.ORIGIN
-        appendage = Appendage.NONE
+        extremity = Extremity.NONE
         joint = Joint.NONE
         offset = doubleArrayOf(0.0, 0.0, 0.0)
         orientation = doubleArrayOf(0.0, 0.0, 0.0)
     }
-    constructor(app: Appendage, rot: DoubleArray, pos: DoubleArray) {
-        type = LinkPointType.APPENDAGE
-        appendage = app
+    constructor(ext: Extremity, rot: DoubleArray, pos: DoubleArray) {
+        type = LinkPointType.EXTREMITY
+        extremity = ext
         joint = Joint.NONE
         offset = pos
         orientation = degreesToRadians(rot)
@@ -47,10 +43,10 @@ class LinkPoint {
 
     constructor(j: Joint, rot: DoubleArray, pos: DoubleArray) {
         type = LinkPointType.REVOLUTE
-        appendage = Appendage.NONE
+        extremity = Extremity.NONE
         joint = j
-        offset = pos
         orientation = degreesToRadians(rot)
+        offset = pos
     }
 
     private fun degreesToRadians(array: DoubleArray): DoubleArray {

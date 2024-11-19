@@ -7,8 +7,8 @@ package chuckcoughlin.bert.speech.process
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Extremity
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.RobotModel
@@ -32,7 +32,7 @@ class StatementParser {
      */
     private fun initialize() {
         context[SharedKey.ASLEEP] = "false"
-        context[SharedKey.APPENDAGE] = Appendage.NONE
+        context[SharedKey.EXTREMITY] = Extremity.NONE
         context[SharedKey.AXIS] = "x"
         context[SharedKey.JOINT] = Joint.NONE
         context[SharedKey.LIMB] = Limb.NONE

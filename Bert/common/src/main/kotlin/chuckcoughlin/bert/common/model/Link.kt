@@ -8,29 +8,32 @@ import org.hipparchus.complex.Quaternion
 import java.util.logging.Logger
 
 /**
- * A Link is a solid member between two "LinkPoints" called the "origin"
- * and "linkPoint". Multiple links may be connected to the same source.
+ * A link is roughly analogous to a bone. A Link is a solid member between
+ * two "LinkPoints" called the "parent" and a set of "linkPoints". Multiple
+ * links  may be connected to the same parent.
+ *
  * The joints are always "revolutes", that is rotational only. There
  * is no translation. The joint axis is always at 0 or 90 degrees to a
  * line from the origin to linkPoint.
  *
  * Links with no destination joint are called "end effectors" and can
- * be expected to have one or more "appendages" for which 3D locations
+ * be expected to have one or more "extremities" for which 3D locations
  * can be calculated.
  *
  * Within the linkPoint object, coordinates are with respect to the
- * link's origin and are static. Coordinates within the link object are
+ * link's parent and are static. Coordinates within the link object are
  * temporary and are calculated with respect to the inertial frame of
  * reference. Any corrections due to IMU readings are handled externally.
  *
- * Define a link given the name. The name must be unique.
- * @param name either a limb or appendage name
+ * Define a link given the bone name. This name must be unique.
+ * A single bone may hold several joints and/or extremities.
+ * @param name bone or extremity name
  */
-class Link(val name: String) {
-    lateinit var linkPoint: LinkPoint
-        private set
+class Link( bone: Bone) {
+    val linkPoints: MutableList<LinkPoint>
+    val bone = bone
     private var initialized = false // Requires calculations
-    var parent: Link? = null        // This is never set
+    var source: LinkPoint
     private var angle: Double
     var coordinates = doubleArrayOf(0.0, 0.0, 0.0)
 
@@ -53,13 +56,16 @@ class Link(val name: String) {
             angle = a * Math.PI / 180.0
         }
 
-    fun setEndPoint(end: LinkPoint) {
-        linkPoint = end
+    /**
+     * An endpoint is an extremity or a RESOLUTE link
+     */
+    fun addEndPoint(end: LinkPoint) {
+        linkPoints.add(end)
     }
 
     /**
      * Return the coordinates of the endpoint relative to inertial frame. The endpoint is
-     * either a joint or appendage.
+     * either a joint or extremity.
      *
      * 1) Get the parent's rotation, add the orientation of the origin. This represents
      * the rotation angle in the inertial frame.
@@ -74,31 +80,24 @@ class Link(val name: String) {
      * @return the coordinates of the joint/appendage associated with this link in meters
      * with respect to the inertial frame of reference.
      */
-    fun getEndPointCoordinates(): DoubleArray {
+    fun updateEndPointCoordinates(endPoint:LinkPoint): DoubleArray {
         var coords: DoubleArray // Coordinates in progress
         var rotation: DoubleArray
-        var alpha: Double // = 0.0
+
         if( !initialized ) {
-            if (parent != null) {
-                coords = parent!!.getEndPointCoordinates()
-                alpha = parent!!.jointAngle
-                val orient = parent!!.linkPoint.orientation
+                coords = source.offset
+                val orient = source.orientation
                 rotation = rotationFromCoordinates(coords)
                 rotation[0] = rotation[0] + orient[0]
                 rotation[1] = rotation[1] + orient[1]
                 rotation[2] = rotation[2] + orient[2]
-            }
-            else {  // Reference the origin
-                coords = LinkPoint().offset
-                rotation = LinkPoint().orientation
-                alpha = Math.PI
-            }
-            LOGGER.info(String.format("%s.getCoordinates: %s (%s) ---------------",
-                    CLSS,name,linkPoint.joint.name ))
+
+            LOGGER.info(String.format("%s.updateEndPointCoordinates: %s (%s) ---------------",
+                    CLSS,endPoint.type.name,if(endPoint.type.equals(LinkPointType.EXTREMITY)) endPoint.extremity.name else endPoint.joint.name))
             LOGGER.info(String.format("           rotation = %.2f,%.2f,%.2f", rotation[0], rotation[1], rotation[2]))
-            val offset = linkPoint.offset
+            val offset = endPoint.offset
             LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f", offset[0], offset[1], offset[2]))
-            val q0 = Quaternion(alpha, rotation[0], rotation[1], rotation[2])
+            val q0 = Quaternion(angle, rotation[0], rotation[1], rotation[2])
             LOGGER.info(String.format("           q0       = %.2f,%.2f,%.2f,%.2f",
                     q0.getQ0(),
                     q0.getQ1(),
@@ -145,7 +144,6 @@ class Link(val name: String) {
         return rot
     }
 
-
     private val CLSS = "Link"
     private val LOGGER = Logger.getLogger(CLSS)
 
@@ -154,5 +152,7 @@ class Link(val name: String) {
     init {
         angle = Math.PI
         initialized = false
+        linkPoints = mutableListOf<LinkPoint>()
+        source = LinkPoint()   // Origin, for now
     }
 }

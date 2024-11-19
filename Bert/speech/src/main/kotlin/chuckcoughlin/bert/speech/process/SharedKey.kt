@@ -9,9 +9,9 @@ package chuckcoughlin.bert.speech.process
  * instance to instance.
  */
 enum class SharedKey {
-    APPENDAGE,
     ASLEEP,  // Robot ignores requests,
     AXIS,
+    EXTREMITY,
     FACE,    // Recognized user
     JOINT,
     LIMB,
