@@ -75,25 +75,27 @@ object URDFModel {
             }
 
             // ================================== Links ===============================================
-            // Links correspond to Bone datatypes. Links can have extremities and/or joints.
+            // Links correspond to Bone datatypes. Links can have extremities and/or joints, plus a
+            // source (parent).
+            //      ---------------------------- First Pass ----------------------------------
+            // Create all the links and their LinkPoints. A LinkPoint encompasses a joint
             val links = document!!.getElementsByTagName("link")
             var count = links.length
             var index = 0
             while (index < count) {
                 val linkNode = links.item(index)
                 val name: String = XMLUtility.attributeValue(linkNode, "name")
-                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: Link %s ...",CLSS,name));
+                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: first pass ink %s ...",CLSS,name));
                 try {
-                    val type: String = XMLUtility.attributeValue(linkNode, "type")
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
                         val link = Link(bone)
                         chain.addLink(link)
-                        val extremities = linkNode.childNodes
-                        val acount = extremities.length
+                        val children = linkNode.childNodes
+                        val acount = children.length
                         var aindex = 0
                         while (aindex < acount) {
-                            val node = extremities.item(aindex)
+                            val node = children.item(aindex)
                             if ("extremity".equals(node.localName, ignoreCase = true)) {
                                 val aname: String = XMLUtility.attributeValue(node, "name")
                                 val childNodes = node.childNodes
@@ -116,6 +118,31 @@ object URDFModel {
                                 val end = LinkPoint(extremity, ijk, xyz)
                                 link.addEndPoint(end)
                             }
+                            else if ("joint".equals(node.localName, ignoreCase = true)) {
+                                val aname: String = XMLUtility.attributeValue(node, "name")
+                                val joint = Joint.fromString(aname)
+                                val childNodes = node.childNodes
+                                val childCount = childNodes.length
+                                var childIndex = 0
+                                var xyz: DoubleArray? = null
+                                var ijk: DoubleArray? = null
+                                while (childIndex < childCount) {
+                                    val childNode = childNodes.item(childIndex)
+                                    if ("origin".equals(childNode.localName, ignoreCase = true)) {
+                                        xyz = doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz"))
+                                    }
+                                    else if ("axis".equals(childNode.localName,ignoreCase = true)) {
+                                        ijk = doubleArrayFromDirectionString(XMLUtility.attributeValue(childNode, "xyz"))
+                                    }
+                                    childIndex++
+                                }
+
+                                val rev = LinkPoint(joint, ijk!!, xyz!!)
+                                if (DEBUG) LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
+                                            joint.name,xyz[0],xyz[1],xyz[2]))
+                                link.addEndPoint(rev)
+                                chain.setLinkForJoint(joint,link)
+                            }
                             aindex++
                         }
                     }
@@ -124,79 +151,49 @@ object URDFModel {
                     }
                 }
                 catch (iae: IllegalArgumentException) {
-                    LOGGER.warning(String.format("%s.analyzeChain: link or extremity has unknown name: %s, ignored (%s)",
-                                    CLSS,name,iae.localizedMessage))
+                    LOGGER.warning(String.format("%s.analyzeChain: link exception on first pass %s, ignored (%s)",
+                            CLSS,name,iae.localizedMessage))
                     iae.printStackTrace()
                 }
                 index++
             }
-            // ================================== Joints ===============================================
-            // There should be an element for each joint - each with a parent (source) and child.
-            // Each link is resolute type.
-            // --------- First pass:
-            val joints = document!!.getElementsByTagName("joint")
-            var currentLimb = Limb.NONE
-            count = joints.length
+
+            //      ---------------------------- Second Pass ----------------------------------
+            // Define the parent
             index = 0
             while (index < count) {
-                val jointNode = joints.item(index)
-                val name: String = XMLUtility.attributeValue(jointNode, "name")
-                val limbName = XMLUtility.attributeValue(jointNode, "limb")
-                if( !limbName.isBlank() ) currentLimb = Limb.fromString(limbName)
-                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: Joint %s ...",CLSS,name));
+                val linkNode = links.item(index)
+                val name: String = XMLUtility.attributeValue(linkNode, "name")
+                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: second pass ink %s ...",CLSS,name));
                 try {
-                    val joint: Joint = Joint.fromString(name)
-                    val childNodes = jointNode.childNodes
-                    val childCount = childNodes.length
-                    var childIndex = 0
-                    var xyz: DoubleArray? = null
-                    var ijk: DoubleArray? = null
-                    var child: Link? = null
-                    var parent: Link? = null
-                    var boneName = "none"
-                    var sourceName = "none"
-                    // It is required that the Link have a parent and a child
-                    while (childIndex < childCount) {
-                        val childNode = childNodes.item(childIndex)
-                        if ("origin".equals(childNode.localName, ignoreCase = true)) {
-                            xyz = doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz"))
+                    val bone = Bone.fromString(name)
+                    if( !bone.equals(Bone.NONE)) {
+                        val link = chain.linksByBone[bone]
+                        val children = linkNode.childNodes
+                        val acount = children.length
+                        var aindex = 0
+                        while (aindex < acount) {
+                            val node = children.item(aindex)
+                            // The only node we care about is the parent link
+                            if ("parent".equals(node.localName, ignoreCase = true)) {
+                                val jname: String = XMLUtility.attributeValue(node, "joint")
+                                val parent = chain.linkForJointName(jname)
+                                if( parent!=null) {
+                                    val parentPoint=parent!!.linkPointByJointName(jname)
+                                    if(parentPoint != null) link!!.parent=parentPoint
+                                }
+                            }
+                            aindex++
                         }
-                        else if ("axis".equals(childNode.localName,ignoreCase = true)) {
-                            ijk = doubleArrayFromDirectionString(XMLUtility.attributeValue(childNode, "xyz"))
-                        }
-                        else if ("parent" == childNode.localName) {
-                            boneName = XMLUtility.attributeValue(childNode, "link")
-                            parent = chain.linkForBoneName(boneName)
-                        }
-                        else if ("child" == childNode.localName) {
-                            sourceName = XMLUtility.attributeValue(childNode, "link")
-                            child = chain.linkForBoneName(sourceName)
-                        }
-                        childIndex++
-                    }
-
-                    val rev = LinkPoint(joint, ijk!!, xyz!!)
-                    if( parent!=null ) {
-                        if (DEBUG) LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
-                            joint.name,xyz[0],xyz[1],xyz[2]))
-                        parent.addEndPoint(rev)
-                        chain.setLimb(rev.joint,currentLimb)
-                        chain.setLinkForJoint(joint,parent)
                     }
                     else {
-                        LOGGER.warning(String.format("%s.analyzeChain: bone %s has no parent joint %s",CLSS,boneName,joint.name))
-                    }
-
-                    if( child!=null ) {
-                        child.source = rev
-                    }
-                    else {
-                        LOGGER.warning(String.format("%s.analyzeChain: no child defined for bone %s",CLSS,boneName))
+                        LOGGER.warning(String.format("%s.analyzeChain: second pass link refers to an unknown bone: %s, ignored",CLSS,name))
                     }
                 }
                 catch (iae: IllegalArgumentException) {
-                    LOGGER.warning(String.format("%s.analyzeChains: link element has illegal name (%s), ignored\n%s",
-                            CLSS,name,iae.printStackTrace()))
+                    LOGGER.warning(String.format("%s.analyzeChain: link exception on second pass %s, ignored (%s)",
+                                CLSS,name,iae.localizedMessage))
+                    iae.printStackTrace()
                 }
                 index++
             }
@@ -204,14 +201,13 @@ object URDFModel {
             // Search for origin aka root. Choose any random link and follow to root.
             val linkWalker: Iterator<Link?> = chain.linksByBone.values.iterator()
             if (linkWalker.hasNext()) {
-                var link = linkWalker.next()   // Just get the first one
-                while(link != null) {
-                    if( link.source.type.equals(LinkPointType.ORIGIN)) {
-                        link.source = origin
-                        chain.root = link
+                while(linkWalker.hasNext()) {
+                    val link = linkWalker.next()
+                    if( link!!.parent.type.equals(LinkPointType.ORIGIN)) {
+                        link!!.parent = origin
+                        chain.root = link!!
                         break
                     }
-                    link = chain.linkForJoint(link.source.joint)
                 }
             }
             else {
@@ -219,7 +215,6 @@ object URDFModel {
             }
 
         }
-        chain.updateMaps()
     }
 
     // ============================================= Helper Methods ==============================================

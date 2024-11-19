@@ -25,9 +25,9 @@ object Solver {
     fun setTreeState() {
         val links: Collection<Link> = model.chain.linksByBone.values
         for (link in links) {
-            for( endPoint in link.linkPoints) {
+            for( endPoint in link.linkPointsByJoint.values) {
                 link.setDirty()
-                if( endPoint.type.equals(LinkPointType.REVOLUTE)) {
+                if( endPoint.type.equals(LinkPointType.REVOLUTE)) {  //redundant
                     val joint = endPoint.joint
                     val mc: MotorConfiguration? = motorConfigurations[joint]
                     link.jointAngle = mc!!.angle

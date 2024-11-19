@@ -23,7 +23,6 @@ class Chain {
     var root: Link
     val linksByBone: MutableMap<Bone, Link>
     private val linksByExtremity: MutableMap<Extremity, Link>
-
     private val linksByJoint: MutableMap<Joint, Link>
     private var origin: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0)
     private var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
@@ -45,29 +44,17 @@ class Chain {
         val link = linksByBone[bone]
         return link
     }
+    fun linkForJointName(name:String) : Link? {
+        val joint = Joint.fromString(name)
+        val link = linksByJoint[joint]
+        return link
+    }
 
     fun setLimb(joint:Joint,limb:Limb) {
         limbsByJoint[joint] = limb
     }
     fun setLinkForJoint(joint:Joint,link:Link) {
         linksByJoint[joint] = link
-    }
-    /**
-     * Once all links have been created, call this methods to update our maps of links
-     * by joint, and links by extremity. These maps will facilitate navigation through
-     * the linkage with joints and extremities as starting points.
-     */
-    fun updateMaps() {
-        for( link in linksByBone.values) {
-            for(endPoint in link.linkPoints) {
-                if(endPoint.type.equals(LinkPointType.EXTREMITY)) {
-                    linksByExtremity[endPoint.extremity] = link
-                }
-                else if(endPoint.type.equals(LinkPointType.REVOLUTE)) {
-                    linksByJoint[endPoint.joint] = link
-                }
-            }
-        }
     }
 
     /**
@@ -161,8 +148,8 @@ class Chain {
         var link = linksByExtremity[extremity]
         while (link != null) {
             partial.addFirst(link)
-            if( link.source.type.equals(LinkPointType.ORIGIN)) break
-            link = linkForJoint(link.source.joint)
+            if( link.parent.type.equals(LinkPointType.ORIGIN)) break
+            link = linkForJoint(link.parent.joint)
         }
         return partial
     }
@@ -178,8 +165,8 @@ class Chain {
         var link = linksByJoint[joint]
         while (link != null) {
             partial.addFirst(link)
-            if( link.source.type.equals(LinkPointType.ORIGIN)) break
-            link = linkForJoint(link.source.joint)
+            if( link.parent.type.equals(LinkPointType.ORIGIN)) break
+            link = linkForJoint(link.parent.joint)
         }
         return partial
     }

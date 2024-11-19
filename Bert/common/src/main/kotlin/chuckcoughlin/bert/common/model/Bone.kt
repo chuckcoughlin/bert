@@ -11,8 +11,8 @@ package chuckcoughlin.bert.common.model
  *  A bone translates to a "link" for purposes of location computations
  */
 enum class Bone {
-    CERVICAL, LEFT_CLAVICLE, LEFT_FOOT, LEFT_FOREARM, LEFT_HIP_LINK, LEFT_HIP_SOCKET, LEFT_ILLIUM, LEFT_SHIN, LEFT_SHOULDER_SOCKET,LEFT_SHOULDER_LINK, LEFT_THIGH, LEFT_UPPER_ARM,
-    LOWER_SPINE, LUMBAR, NECK, PELVIS, RIGHT_CLAVICLE, RIGHT_FOOT, RIGHT_FOREARM, RIGHT_HIP_LINK, RIGHT_HIP_SOCKET, RIGHT_ILLIUM, RIGHT_SHIN, RIGHT_SHOULDER_SOCKET,RIGHT_SHOULDER_LINK,
+    CERVICAL, LEFT_CLAVICLE, LEFT_FOOT, LEFT_FOREARM, LEFT_HIP_LINK, LEFT_HIP_SOCKET, LEFT_ILLIUM, LEFT_SHIN, LEFT_SHOULDER_SOCKET, LEFT_THIGH, LEFT_UPPER_ARM,
+    LOWER_SPINE, LUMBAR, NECK, PELVIS, RIGHT_CLAVICLE, RIGHT_FOOT, RIGHT_FOREARM, RIGHT_HIP_LINK, RIGHT_HIP_SOCKET, RIGHT_ILLIUM, RIGHT_SHIN, RIGHT_SHOULDER_SOCKET,
     RIGHT_THIGH, RIGHT_UPPER_ARM, SKULL, SPINE, THORACIC,
     NONE;
 
@@ -33,7 +33,6 @@ enum class Bone {
                 LEFT_HIP_SOCKET -> text = "left hip socket"
                 LEFT_ILLIUM -> text = "left illium"
                 LEFT_SHIN -> text = "left shin"      // shin
-                LEFT_SHOULDER_LINK -> text = "left shoulder link"
                 LEFT_SHOULDER_SOCKET -> text = "left shoulder socket"
                 LEFT_THIGH -> text = "left thigh"
                 LEFT_UPPER_ARM -> text = "left upper arm"
@@ -48,7 +47,6 @@ enum class Bone {
                 RIGHT_HIP_SOCKET -> text = "right hip socket"
                 RIGHT_ILLIUM -> text = "right illium"
                 RIGHT_SHIN -> text = "right shin"      // shin
-                RIGHT_SHOULDER_LINK -> text = "right shoulder link"
                 RIGHT_SHOULDER_SOCKET -> text = "right shoulder socket"
                 RIGHT_THIGH -> text = "right thigh"
                 RIGHT_UPPER_ARM -> text = "right upper arm"

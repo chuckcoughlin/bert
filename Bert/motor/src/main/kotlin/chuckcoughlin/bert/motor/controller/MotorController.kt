@@ -414,7 +414,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val index: Int = request.value.toInt()
             val poseid = Database.getPoseIdForName(poseName,index)
             if( poseid!= SQLConstants.NO_POSE) {
-                val poseid = Database.getPoseIdForName(poseName,index)
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsByJoint)
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration

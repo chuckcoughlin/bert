@@ -196,10 +196,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // The requests handled heere must correspond exactly with those listed in canHandleImmediately.
     // to return directly to the user. These jointValues are obtained from the initial configuration
     private fun createImmediateResponse(request: MessageBottle): MessageBottle {
-        var text: String = ""
         val type = request.type
-        val command = request.command
-        val jtype = request.jtype
         if (type.equals(RequestType.RESET) ) {
             pendingMessages.clear()
             request.text = "I have been reset"

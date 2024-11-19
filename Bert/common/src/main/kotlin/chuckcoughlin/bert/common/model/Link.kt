@@ -30,10 +30,11 @@ import java.util.logging.Logger
  * @param name bone or extremity name
  */
 class Link( bone: Bone) {
-    val linkPoints: MutableList<LinkPoint>
+    val linkPointsByJoint: MutableMap<Joint,LinkPoint>
+    val linkPointsByExtremity: MutableMap<Extremity,LinkPoint>
     val bone = bone
     private var initialized = false // Requires calculations
-    var source: LinkPoint
+    var parent: LinkPoint
     private var angle: Double
     var coordinates = doubleArrayOf(0.0, 0.0, 0.0)
 
@@ -60,7 +61,17 @@ class Link( bone: Bone) {
      * An endpoint is an extremity or a RESOLUTE link
      */
     fun addEndPoint(end: LinkPoint) {
-        linkPoints.add(end)
+        if( end.type.equals(LinkPointType.EXTREMITY)) {
+            linkPointsByExtremity[end.extremity] = end
+        }
+        else if( end.type.equals(LinkPointType.REVOLUTE)) {
+            linkPointsByJoint[end.joint] = end
+        }
+
+    }
+    fun linkPointByJointName(name:String) : LinkPoint? {
+        val joint = Joint.fromString(name)
+        return linkPointsByJoint[joint]
     }
 
     /**
@@ -85,8 +96,8 @@ class Link( bone: Bone) {
         var rotation: DoubleArray
 
         if( !initialized ) {
-                coords = source.offset
-                val orient = source.orientation
+                coords = parent.offset
+                val orient = parent.orientation
                 rotation = rotationFromCoordinates(coords)
                 rotation[0] = rotation[0] + orient[0]
                 rotation[1] = rotation[1] + orient[1]
@@ -152,7 +163,8 @@ class Link( bone: Bone) {
     init {
         angle = Math.PI
         initialized = false
-        linkPoints = mutableListOf<LinkPoint>()
-        source = LinkPoint()   // Origin, for now
+        linkPointsByExtremity = mutableMapOf<Extremity,LinkPoint>()
+        linkPointsByJoint = mutableMapOf<Joint,LinkPoint>()
+        parent = LinkPoint()   // Origin, for now
     }
 }

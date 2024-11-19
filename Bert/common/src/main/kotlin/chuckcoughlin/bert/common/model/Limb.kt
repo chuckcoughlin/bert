@@ -8,7 +8,7 @@ package chuckcoughlin.bert.common.model
  * Limbs represent groups of joints/bones.
  */
 enum class Limb {
-    BACK, HEAD,  // These represent groups of joints ...
+    HEAD,  // These represent groups of joints ...
     LEFT_ARM, RIGHT_ARM, LEFT_LEG, RIGHT_LEG, TORSO, NONE;
 
     companion object {

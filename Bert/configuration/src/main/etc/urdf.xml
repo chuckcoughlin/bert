@@ -12,33 +12,147 @@
 		<axis xyz="0 0 9" />
 	</imu>>
 
-	<link name="PELVIS">        <!-- root -->
+	<!-- A link is equivalent to a bone. Each link may have several attachments,
+	     either joints or extremities, but only a single parent. The parent is
+	     a joint. The link with no parent is the origin.
 
-	</link>>
-	<link name="RIGHT_HIP_SOCKET"/>
-	<link name="RIGHT_HIP_LINK"/>
-	<link name="RIGHT_ILLIUM"/>
-	<link name="RIGHT_THIGH"/>
-	<link name="RIGHT_SHIN"/>
+	     Joint names must match the names in bert.xml.
+				origin is position of joint in parent frame,
+				axis is orientation of joint in joint frame.
+
+		Links form a chain from the robot origin, PELVIS,
+		terminating in one or more extremities.
+	  -->
+	<link name="PELVIS">        <!-- root -->
+		<joint name="RIGHT_HIP_X">
+			<origin xyz="-0.0225417390633467 0 0" rpy="1.5707963267949 0 0"/>
+			<axis xyz="0 0 -1"/>
+		</joint>
+		<joint name="LEFT_HIP_X">
+			<origin xyz="0.0225417390633466 0 0" rpy="1.5707963267949 0 0"/>
+			<axis xyz="0 0 -1"/>
+		</joint>
+		<joint name="ABS_Y">
+			<origin xyz="0.017 0.0 0.114"/>
+			<axis xyz="0 -1 0"/>
+		</joint>
+	</link>
+	<link name="RIGHT_HIP_SOCKET">
+		<joint name="RIGHT_HIP_Z" >
+			<origin xyz="-0.0439986111539757 0 0.005" rpy="0 0 0"/>
+			<axis xyz="0 -1 0"/>
+		</joint>
+		<parent joint="RIGHT_HIP_X"/>
+	</link>
+	<link name="RIGHT_HIP_LINK">
+		<joint name="RIGHT_HIP_Y" >
+			<origin xyz="0 -0.024 0" rpy="0 0 0"/>
+			<axis xyz="-1 0 0"/>
+		</joint>
+		<parent joint="RIGHT_HIP_Z"/>
+	</link>
+	<link name="RIGHT_THIGH">
+		<joint name="RIGHT_KNEE_Y">
+			<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"/>
+			<axis xyz="0 0 -1"/>
+		</joint>
+		<parent joint="RIGHT_HIP_Y"/>
+	</link>
+	<link name="RIGHT_SHIN">
+		<joint name="RIGHT_ANKLE_Y">
+			<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"/>
+			<axis xyz="-1 0 0"/>
+		</joint>
+		<parent joint="RIGHT_KNEE_Y"/>
+	</link>
 	<link name="RIGHT_FOOT">
 		<extremity name="RIGHT_TOE"/>
 		<extremity name="RIGHT_HEEL"/>
+		<parent joint="RIGHT_ANKLE_Y"/>
 	</link>
-	<link name="LEFT_HIP_SOCKET"/>
-	<link name="LEFT_HIP_LINK"/>
-	<link name="LEFT_ILLIUM"/>
-	<link name="LEFT_THIGH"/>
-	<link name="LEFT_SHIN"/>
+	<link name="LEFT_HIP_SOCKET">
+		<joint name="LEFT_HIP_Z">
+			<origin xyz="0.0439986111539757 0 0.005" rpy="0 0 0"/>
+			<axis xyz="0 -1 0"/>
+		</joint>
+		<parent joint="LEFT_HIP_X"/>
+	</link>
+	<link name="LEFT_HIP_LINK">
+		<joint name="LEFT_HIP_Y">
+			<origin xyz="0 -0.024 0" rpy="0 0 0"/>
+			<axis xyz="1 0 0"/>
+		</joint>
+		<parent joint="LEFT_HIP_Z"/>
+	</link>
+	<link name="LEFT_THIGH">
+		<joint name="LEFT_KNEE_Y">
+			<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"/>
+			<axis xyz="0 0 -1"/>
+		</joint>
+		<parent joint="LEFT_HIP_Y"/>
+	</link>
+	<link name="LEFT_SHIN">
+		<joint name="LEFT_ANKLE_Y">
+			<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"/>
+			<axis xyz="1 0 0"/>
+		</joint>
+		<parent joint="LEFT_KNEE_Y"/>
+	</link>
 	<link name="LEFT_FOOT">
 		<extremity name="LEFT_TOE"/>
 		<extremity name="LEFT_HEEL"/>
+		<parent joint="LEFT_ANKLE_Y"/>
 	</link>
-	<link name="LUMBAR"/>
-	<link name="LOWER_SPINE"/>
-	<link name="SPINE"/>
-	<link name="THORACIC"/>
-	<link name="CERVICAL"/>
-	<link name="NECK"/>
+	<link name="LUMBAR">
+		<joint name="ABS_X">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<axis xyz="0 0 1"/>
+		</joint>
+		<parent joint="ABS_Y"/>
+	</link>
+	<link name="LOWER_SPINE">
+		<joint name="ABS_Z">
+			<origin xyz="0 0.0516374742048976 0" rpy="0 0 0"/>
+			<axis xyz="0 1 0"/>
+		</joint>
+		<parent joint="ABS_X"/>
+	</link>
+	<link name="SPINE">
+		<joint name="BUST_Y" >
+			<origin xyz="0 0.07985 0.0028" rpy="0 0 0"/>
+			<axis xyz="-1 0 0"/>
+		</joint>
+		<parent joint="ABS_Z"/>
+	</link>
+	<link name="THORACIC">
+		<joint name="BUST_X">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<axis xyz="0 0 1"/>
+		</joint>
+		<parent joint="BUST_Y"/>
+	</link>
+	<link name="CERVICAL">
+		<joint name="NECK_Z">
+			<origin xyz="0 0.084 0.005" rpy="0 0 0"/>
+			<axis xyz="0 1 0"/>
+		</joint>
+		<joint name="LEFT_SHOULDER_Y">
+			<origin xyz="0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"/>
+			<axis xyz="1 0 0"/>
+		</joint>
+		<joint name="RIGHT_SHOULDER_Y">
+			<origin xyz="-0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"/>
+			<axis xyz="-1 0 0"/>
+		</joint>
+		<parent joint="BUST_X"/>
+	</link>
+	<link name="NECK">
+		<joint name="NECK_Y" >
+			<origin xyz="0 0.02 0" rpy="-0.349065850398866 0 0"/>
+			<axis xyz="-1 0 0"/>
+		</joint>
+		<parent joint="NECK_Z"/>
+	</link>
 	<link name="SKULL">
 		<extremity name="LEFT_EYE"/>
 		<extremity name="RIGHT_EYE"/>
@@ -48,179 +162,56 @@
 			<origin xyz="-0.0225417390633467 0 0" />
 			<axis xyz="0 0 -1"/>
 		</extremity>
+		<parent joint="NECK_Y"/>
 	</link>
-	<link name="LEFT_CLAVICLE"/>
-	<link name="LEFT_SHOULDER_LINK"/>
-	<link name="LEFT_SHOULDER_SOCKET"/>
-	<link name="LEFT_UPPER_ARM"/>
+	<link name="LEFT_CLAVICLE">
+		<joint name="LEFT_SHOULDER_X">
+			<origin xyz="0.0284 0 0" rpy="3.14159265358979 0 1.5707963267949"/>
+			<axis xyz="0 0 1"/>
+		</joint>
+		<parent joint="LEFT_SHOULDER_Y"/>
+	</link>
+	<link name="LEFT_SHOULDER_SOCKET">
+		<joint name="LEFT_SHOULDER_Z">
+			<origin xyz="0 0.03625 0.0185" rpy="0 0 0"/>
+			<axis xyz="0 1 0"/>
+		</joint>
+		<parent joint="LEFT_SHOULDER_X"/>
+	</link>
+	<link name="LEFT_UPPER_ARM">
+		<joint name="LEFT_ELBOW_Y" limb="LEFT_ARM">
+			<origin xyz="0 0.11175 -0.01" rpy="0 0 0"/>
+			<axis xyz="1 0 0"/>
+		</joint>
+		<parent joint="LEFT_SHOULDER_Z"/>
+	</link>
 	<link name="LEFT_FOREARM">
 		<extremity name="LEFT_FINGER"/>
+		<parent joint="LEFT_ELBOW_Y"/>
 	</link>
-	<link name="RIGHT_CLAVICLE"/>
-	<link name="RIGHT_SHOULDER_LINK"/>
-	<link name="RIGHT_SHOULDER_SOCKET"/>
-	<link name="RIGHT_UPPER_ARM"/>
+	<link name="RIGHT_CLAVICLE">
+		<joint name="RIGHT_SHOULDER_X">
+			<origin xyz="-0.0284 0 0" rpy="3.14159265358979 0 -1.5707963267949"/>
+			<axis xyz="0 0 -1"/>
+		</joint>
+		<parent joint="RIGHT_SHOULDER_Y"/>
+	</link>
+	<link name="RIGHT_SHOULDER_SOCKET">
+		<joint name="RIGHT_SHOULDER_Z">
+			<origin xyz="0 0.03625 0.0185" rpy="0 0 0"/>
+			<axis xyz="0 1 0"/>
+		</joint>
+		<parent joint="RIGHT_SHOULDER_X"/>
+	</link>
+	<link name="RIGHT_UPPER_ARM">
+		<joint name="RIGHT_ELBOW_Y">
+			<origin xyz="0 0.11175 -0.01" rpy="0 0 0"/>
+			<axis xyz="-1 0 0"/>
+		</joint>
+		<parent joint="RIGHT_SHOULDER_Z"/>
+	</link>
 	<link name="RIGHT_FOREARM">
 		<extremity name="RIGHT_FINGER"/>
+		<parent joint="RIGHT_ELBOW_Y"/>
 	</link>
-	<!-- Joint names must match the names in bert.xml.
-		origin is position of joint in parent frame,
-		axis is orientation of joint in joint frame.
-
-		Links form a chain from the robot origin, PELVIS,
-		terminating in one or more extremities.
-
-		A limb is simply a grouping mechanism so that we
-		can refer to all links in a limb at once.
-	-->
-	<joint name="RIGHT_HIP_X"  limb="RIGHT_LEG">
-		<origin xyz="-0.0225417390633467 0 0" rpy="1.5707963267949 0 0"></origin>
-		<parent link="PELVIS"></parent>
-		<child link="RIGHT_HIP_SOCKET"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="RIGHT_HIP_Z" limb="RIGHT_LEG">
-		<origin xyz="-0.0439986111539757 0 0.005" rpy="0 0 0"></origin>
-		<parent link="RIGHT_HIP_SOCKET"></parent>
-		<child link="RIGHT_HIP_LINK"></child>
-		<axis xyz="0 -1 0"></axis>
-	</joint>
-	<joint name="RIGHT_HIP_Y" limb="RIGHT_LEG">
-		<origin xyz="0 -0.024 0" rpy="0 0 0"></origin>
-		<parent link="RIGHT_HIP_LINK"></parent>
-		<child link="RIGHT_THIGH"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="RIGHT_KNEE_Y" limb="RIGHT_LEG">
-		<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"></origin>
-		<parent link="RIGHT_THIGH"></parent>
-		<child link="RIGHT_SHIN"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="RIGHT_ANKLE_Y" limb="RIGHT_LEG">
-		<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"></origin>
-		<parent link="RIGHT_SHIN"></parent>
-		<child link="RIGHT_FOOT"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_HIP_X" limb="LEFT_LEG">
-		<origin xyz="0.0225417390633466 0 0" rpy="1.5707963267949 0 0"></origin>
-		<parent link="PELVIS"></parent>
-		<child link="LEFT_HIP_SOCKET"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="LEFT_HIP_Z" limb="LEFT_LEG">
-		<origin xyz="0.0439986111539757 0 0.005" rpy="0 0 0"></origin>
-		<parent link="LEFT_HIP_SOCKET"></parent>
-		<child link="LEFT_HIP_LINK"></child>
-		<axis xyz="0 -1 0"></axis>
-	</joint>
-	<joint name="LEFT_HIP_Y" limb="LEFT_LEG">
-		<origin xyz="0 -0.024 0" rpy="0 0 0"></origin>
-		<parent link="LEFT_HIP_LINK"></parent>
-		<child link="LEFT_THIGH"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_KNEE_Y" limb="LEFT_LEG">
-		<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"></origin>
-		<parent link="LEFT_THIGH"></parent>
-		<child link="LEFT_SHIN"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="LEFT_ANKLE_Y" limb="LEFT_LEG">
-		<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"></origin>
-		<parent link="LEFT_SHIN"></parent>
-		<child link="LEFT_FOOT"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="ABS_Y" limb="TORSO">
-		<origin xyz="0.017 0.0 0.114"/>
-		<axis xyz="0 -1 0"/>
-		<parent link="PELVIS"/>
-		<child link="LUMBAR"/>
-	</joint>
-	<joint name="ABS_X" limb="TORSO">
-		<origin xyz="0 0 0" rpy="0 0 0"></origin>
-		<parent link="LUMBAR"></parent>
-		<child link="LOWER_SPINE"></child>
-		<axis xyz="0 0 1"></axis>
-	</joint>
-	<joint name="ABS_Z" limb="TORSO">
-		<origin xyz="0 0.0516374742048976 0" rpy="0 0 0"></origin>
-		<parent link="LOWER_SPINE"></parent>
-		<child link="SPINE"></child>
-		<axis xyz="0 1 0"></axis>
-	</joint>
-	<joint name="BUST_Y" limb="TORSO">
-		<origin xyz="0 0.07985 0.0028" rpy="0 0 0"></origin>
-		<parent link="SPINE"></parent>
-		<child link="THORACIC"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="BUST_X" limb="TORSO">
-		<origin xyz="0 0 0" rpy="0 0 0"/>
-		<parent link="THORACIC"/>
-		<child link="CERVICLE"/>
-		<axis xyz="0 0 1"/>
-	</joint>
-	<joint name="NECK_Z" limb="HEAD">
-		<origin xyz="0 0.084 0.005" rpy="0 0 0"/>
-		<parent link="CERVICLE"/>
-		<child link="NECK"/>
-		<axis xyz="0 1 0"/>
-	</joint>
-	<joint name="NECK_Y" limb="HEAD">
-		<origin xyz="0 0.02 0" rpy="-0.349065850398866 0 0"></origin>
-		<parent link="NECK"></parent>
-		<child link="SKULL"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_SHOULDER_Y" limb="LEFT_ARM">
-		<origin xyz="0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"></origin>
-		<parent link="CERVICLE"></parent>
-		<child link="LEFT_CLAVICLE"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_SHOULDER_X" limb="LEFT_ARM">
-		<origin xyz="0.0284 0 0" rpy="3.14159265358979 0 1.5707963267949"></origin>
-		<parent link="LEFT_CLAVICLE"></parent>
-		<child link="LEFT_SHOULDER_LINK"></child>
-		<axis xyz="0 0 1"></axis>
-	</joint>
-	<joint name="LEFT_SHOULDER_Z" limb="LEFT_ARM">
-		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
-		<parent link="LEFT_SHOULDER_LINK"></parent>
-		<child link="LEFT_UPPER_ARM"></child>
-		<axis xyz="0 1 0"></axis>
-	</joint>
-	<joint name="LEFT_ELBOW_Y" limb="LEFT_ARM">
-		<origin xyz="0 0.11175 -0.01" rpy="0 0 0"></origin>
-		<parent link="LEFT_UPPER_ARM"></parent>
-		<child link="LEFT_FOREARM"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="RIGHT_SHOULDER_Y" limb="RIGHT_ARM">
-		<origin xyz="-0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"></origin>
-		<parent link="CERVICLE"></parent>
-		<child link="RIGHT_CLAVICLE"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="RIGHT_SHOULDER_X" limb="RIGHT_ARM">
-		<origin xyz="-0.0284 0 0" rpy="3.14159265358979 0 -1.5707963267949"></origin>
-		<parent link="RIGHT_CLAVICLE"></parent>
-		<child link="RIGHT_SHOULDER_LINK"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="RIGHT_SHOULDER_Z" limb="RIGHT_ARM">
-		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
-		<parent link="RIGHT_SHOULDER_LINK"></parent>
-		<child link="RIGHT_UPPER_ARM"></child>
-		<axis xyz="0 1 0"></axis>
-	</joint>
-	<joint name="RIGHT_ELBOW_Y" limb="RIGHT_ARM">
-		<origin xyz="0 0.11175 -0.01" rpy="0 0 0"></origin>
-		<parent link="RIGHT_UPPER_ARM"></parent>
-		<child link="RIGHT_FOREARM"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
 </robot>
