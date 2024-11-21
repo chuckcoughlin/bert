@@ -200,7 +200,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot. "hold" is the same as "freeze".
     // relax your left arm
     override fun visitEnableTorque(ctx: SpeechSyntaxParser.EnableTorqueContext): Any? {
-        LOGGER.info(String.format("%s.visitEnableTorque: error=%s -", CLSS, bottle.error))
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         bottle.jointDynamicProperty = JointDynamicProperty.STATE
         var axis = sharedDictionary[SharedKey.AXIS].toString()
@@ -210,65 +209,66 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        // If both Limb() and Joint() are null, then we apply to the entire robot
-        if (ctx.Freeze() != null || ctx.Relax() != null || ctx.Hold() != null) {
+        if (ctx.Freeze() != null || ctx.Hold() != null) {
+            bottle.value = ConfigurationConstants.ON_VALUE
+        }
+        else if (ctx.Relax() != null) {
+            bottle.value = ConfigurationConstants.OFF_VALUE
+        }
+        // If both Limb() and Joint() are missing, then we apply to the entire robot
+        var joint: Joint = Joint.NONE
+        var limb = Limb.NONE
+        if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
+            joint = sharedDictionary[SharedKey.JOINT] as Joint
+        }
+        if (ctx.Joint() != null) {
+            joint = determineJoint(ctx.Joint().getText(), axis, side)
+        }
+        if (!joint.equals(Joint.NONE)) {
+            bottle.joint= joint
             if (ctx.Freeze() != null || ctx.Hold() != null) {
-                bottle.value = ConfigurationConstants.ON_VALUE
-            }
-            if (ctx.Relax() != null) {
-                bottle.value = ConfigurationConstants.OFF_VALUE
-            }
-            // No joint or limb implies the entire body
-            var joint: Joint = Joint.NONE
-            if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
-                joint = sharedDictionary[SharedKey.JOINT] as Joint
-            }
-            if (ctx.Joint() != null) {
-                joint = determineJoint(ctx.Joint().getText(), axis, side)
-            }
-            if (!joint.equals(Joint.NONE)) {
-                bottle.joint= joint
-                if (ctx.Freeze() != null || ctx.Hold() != null) {
-                    bottle.addJointValue(joint, JointDynamicProperty.STATE, ConfigurationConstants.ON_VALUE)
-                }
-                else {
-                    bottle.addJointValue(joint, JointDynamicProperty.STATE,ConfigurationConstants.OFF_VALUE)
-                }
-                sharedDictionary[SharedKey.JOINT] = joint
-                sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+                bottle.addJointValue(joint, JointDynamicProperty.STATE, ConfigurationConstants.ON_VALUE)
             }
             else {
-                var limb: Limb = Limb.NONE
-                if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.LIMB) {
-                    limb = sharedDictionary[SharedKey.LIMB] as Limb
+                bottle.addJointValue(joint, JointDynamicProperty.STATE,ConfigurationConstants.OFF_VALUE)
+            }
+            sharedDictionary[SharedKey.JOINT] = joint
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+        }
+        else {
+            if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.LIMB) {
+                limb = sharedDictionary[SharedKey.LIMB] as Limb
+            }
+            if (ctx.Limb() != null) {
+                limb = determineLimb(ctx.Limb().getText(), side)
+            }
+            if( !limb.equals(Limb.NONE) ) {
+                bottle.type = RequestType.SET_LIMB_PROPERTY
+                bottle.limb = limb
+
+                var value = ConfigurationConstants.OFF_VALUE
+                if (ctx.Freeze() != null || ctx.Hold() != null) value = ConfigurationConstants.ON_VALUE
+                bottle.value = value
+                for( joint in RobotModel.limbsByJoint.keys) {
+                    bottle.addJointValue(joint, JointDynamicProperty.STATE,value)
                 }
-                if (ctx.Limb() != null) {
-                    limb = determineLimb(ctx.Limb().getText(), side)
-                }
-                if( !limb.equals(Limb.NONE) ) {
-                    bottle.type = RequestType.SET_LIMB_PROPERTY
-                    bottle.limb = limb
-                    if (ctx.Freeze() != null || ctx.Hold() != null) {
-                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE, ConfigurationConstants.ON_VALUE)
-                    }
-                    else {
-                        bottle.addJointValue(Joint.NONE, JointDynamicProperty.STATE,ConfigurationConstants.OFF_VALUE)
-                    }
-                    sharedDictionary[SharedKey.LIMB] = limb
-                    sharedDictionary[SharedKey.IT] = SharedKey.LIMB
-                }
+                sharedDictionary[SharedKey.LIMB] = limb
+                sharedDictionary[SharedKey.IT] = SharedKey.LIMB
             }
 
-            // Set text if all joints are affected
-            if(joint.equals(Joint.NONE)) {
-                if (ctx.Freeze() != null || ctx.Hold() != null) {
-                    bottle.text = "I am stiff"
-                }
-                else {
-                    bottle.text = "I am now relaxed"
-                }
+            LOGGER.info(String.format("%s.visitEnableTorque: %s %s %s", CLSS, bottle.limb.name,bottle.joint.name,bottle.value.toString()))
+        }
+
+        // Set text if all joints are affected
+        if(joint.equals(Joint.NONE) && limb.equals(Limb.NONE)) {
+            if (ctx.Freeze() != null || ctx.Hold() != null) {
+                bottle.text = "I am stiff"
+            }
+            else {
+                bottle.text = "I am now relaxed"
             }
         }
+
         return null
     }
 

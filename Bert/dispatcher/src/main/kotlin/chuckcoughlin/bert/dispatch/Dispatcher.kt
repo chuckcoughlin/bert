@@ -7,14 +7,29 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.*
-import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MetricType
+import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointDefinitionProperty
+import chuckcoughlin.bert.common.model.JointDynamicProperty
+import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -197,23 +212,20 @@ class Dispatcher() : Controller {
      */
     private suspend fun dispatchCommandResponse(msg : MessageBottle) {
         if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s",CLSS,msg.type.name,msg.source))
-        // "internal" requests are those that need to be queued on the internal controller
-        if( isInternalRequest(msg) ) {
-            val response: MessageBottle = handleInternalRequest(msg)
-            toInternalController.send(response)
-        }
-        else if(isLocalRequest(msg)) {
+        if(isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
             val response: MessageBottle = handleLocalRequest(msg)
             if( !response.type.equals(RequestType.NONE) &&
                 !response.type.equals(RequestType.HANGUP ) ) replyToSource(response)
         }
-        else if(isMotorRequest(msg)) {
-            toInternalController.send(msg)
+        // "internal" requests are those that need to be queued on the internal controller
+        else if( isInternalRequest(msg) ) {
+            val response: MessageBottle = handleInternalRequest(msg)
+            toInternalController.send(response)
         }
         else {
             LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s is unhandled",
-                    CLSS,msg.type.name,msg.source))
+                                        CLSS,msg.type.name,msg.source))
             if( msg.type.equals(RequestType.JSON))
                 msg.error = String.format("internal error, %s (%s) message is unhandled in dispatcher",msg.type.name,msg.jtype.name)
             else
@@ -245,41 +257,30 @@ class Dispatcher() : Controller {
     }
 
     // The response is simply the request. A generic acknowledgement will be relayed to the user.
+    // Create precursor messages, if needed. The original message is processed outside this method no matter what,
     // 1) Freezing a joint requires getting the motor position first to update the internal status dictionary
     private suspend fun handleInternalRequest(request: MessageBottle): MessageBottle {
-        // Entire robot
+        // Read joint positions before freezing
         if(request.type==RequestType.SET_MOTOR_PROPERTY &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
-            request.joint.equals(Joint.NONE)                                &&
             request.value == ConfigurationConstants.ON_VALUE    )  {
-            toInternalController.send(request)
 
             val msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.ANGLE
+            msg.joint = request.joint
             msg.source = ControllerType.BITBUCKET.name
             msg.control.delay =250 // 1/4 sec delay
             toInternalController.send(msg)
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
-            val walker = request.getJointValueIterator()
-            for( jpv in walker ) {
-                val value = jpv.value
-                if( value == ConfigurationConstants.ON_VALUE ) {
-                    var msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-                    msg.limb = request.limb
-                    msg.source = ControllerType.BITBUCKET.name
-                    toInternalController.send(msg)
+                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
+            request.value == ConfigurationConstants.ON_VALUE    ) {
 
-                    msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-                    msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-                    msg.limb = request.limb
-                    msg.source = ControllerType.BITBUCKET.name
-                    msg.control.delay = 500 // 1/2 sec delay
-                    toInternalController.send(msg)
-                }
-            }
+            val msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
+            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
+            msg.limb = request.limb
+            msg.source = ControllerType.BITBUCKET.name
+            toInternalController.send(msg)
         }
         else if (request.type.equals(RequestType.EXECUTE_ACTION) ) {
             // An action requires executing a series of poses with intervening delay
@@ -291,8 +292,6 @@ class Dispatcher() : Controller {
                 msg.source = ControllerType.BITBUCKET.name
                 toInternalController.send(msg)
             }
-            // End with the original request
-            toInternalController.send(request)
         }
         return request
     }
@@ -522,28 +521,13 @@ class Dispatcher() : Controller {
         return request
     }
 
-    // These are complex requests that require that several messages be created and processed
+    // These are complex requests that may require that several messages be created and processed
     // on the internal controller - or otherwise requests that cannot execute too closely in time.
     private fun isInternalRequest(request: MessageBottle): Boolean {
-        // Never send a request launched by the internal controller back to it. That would be an infinite loop
-        if( request.source.equals(ControllerType.INTERNAL.name ) ) return false
-        // Anything that sets "torque enable" to true requires that we read
-        //  and save (in memory) current motor positions.
-        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
-            request.value == ConfigurationConstants.ON_VALUE ) {
-            return true
-        }
-        else if( request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  ) {
-            val walker = request.getJointValueIterator()
-            for( jpv in walker ) {
-                if( jpv.value==ConfigurationConstants.ON_VALUE ) return true
-            }
-        }
-        else if( request.type.equals(RequestType.EXECUTE_ACTION) ) {
-            return true
-        }
+        // By default all motor requests need to be processed by the internal
+        // controller for sequencing and spacing
+        if( isMotorRequest(request)) return true
+        if (request.type.equals(RequestType.EXECUTE_ACTION)) return true
         return false
     }
 
@@ -586,12 +570,9 @@ class Dispatcher() : Controller {
         return false
     }
 
-    override fun equals(other: Any?): Boolean {
-        return super.equals(other)
-    }
-
     // These are requests that can be processed directly by the group controller
-    // and forwarded  to the proper motor controller.
+    // to be forwarded to the proper motor controller. They have needed pre-processing
+    // by the internal controller
     private fun isMotorRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.GET_LIMITS) ||
             request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
@@ -599,7 +580,8 @@ class Dispatcher() : Controller {
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.RESET) ||
             request.type.equals(RequestType.EXECUTE_POSE) ||
-            request.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+            request.type.equals(RequestType.SET_LIMB_PROPERTY) ||
+            request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             return true
         }
         return false

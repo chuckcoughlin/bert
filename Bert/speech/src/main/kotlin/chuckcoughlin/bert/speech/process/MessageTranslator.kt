@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.JointPropertyValue
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
@@ -93,7 +94,8 @@ class MessageTranslator {
             else if(type.equals(RequestType.NOTIFICATION)) {
                 text
             }
-            // A limb has a state of being rigid or not
+            // A limb has a state of being rigid or not. We look at the first joint in the list
+            // to determine
             else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
                 val limb: Limb = msg.limb
                 val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
@@ -101,8 +103,7 @@ class MessageTranslator {
                     val jpv: JointPropertyValue = iterator.next()
                     val propertyName: String = jpv.property.name
                     if (propertyName.equals(JointDynamicProperty.STATE.name, ignoreCase = true)) {
-                        val value: String = jpv.value.toString()
-                        if (value == "0") {
+                        if (jpv.value == ConfigurationConstants.OFF_VALUE) {
                             String.format("My %s is flexible ", Limb.toText(limb))
                         }
                         else {
@@ -114,7 +115,7 @@ class MessageTranslator {
                     }
                 }
                 else {
-                    ""
+                    text
                 }
             }
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {

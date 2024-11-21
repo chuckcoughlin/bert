@@ -74,9 +74,9 @@ phrase: (NAME|Extremity|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|R
 
 // First is a list of terms that are used below or use words that appear elsewhere
 Are: 'are';
-Freeze: 'freeze'|'stiffen'|'tighten'|'go rigid';
+Freeze: 'freeze'|'stiffen'|'tighten up'|'go rigid';
 Is: 'is';
-Relax:'loosen'|'relax'|'go limp';
+Relax:'loosen up'|'relax'|'go limp';
 Why: 'why';
 
 // Pardon the license taken with some of these categories ...
@@ -107,7 +107,8 @@ Isaid: 'i said';
 It: 'it';
 Know: 'know';
 Limbs:'limbs';
-Limb: 'arm'|'back'|'head'|'leg'|'torso';
+// Note legs and arms must be modified by a side
+Limb: 'arm'|'head'|'leg'|'torso';
 Limits: 'limits';
 List: 'list';
 Me: 'me';

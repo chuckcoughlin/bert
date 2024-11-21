@@ -287,9 +287,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 bytes =
                     DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
                                                                      // ASYNC WRITE, no response. Let source set text.
+                var enabled = true
+                if( request.value<ConfigurationConstants.ON_VALUE ) enabled = false
+                request.text = String.format("My %s is %s", Limb.toText(limb),
+                    if(enabled) "rigid" else "limp")
             }
         }
         // Handle set torque enable for all joints. ASYNC_WRITE, no response
+        // NOTE: When enabling torque, a read is required
         // Rely on the StatementTranslator to fill in the response text
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
@@ -328,8 +333,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             var enabled = false
             if(request.value>ConfigurationConstants.OFF_VALUE) enabled = true
             val mc = RobotModel.motorsByJoint[request.joint]!!
-            request.text = String.format("My %s state is torque-%s", Joint.toText(mc.joint),
-                    if(enabled) "enabled" else "disabled")
+            request.text = String.format("My %s is %s", Joint.toText(mc.joint),
+                    if(enabled) "rigid" else "relaxed")
             mc.isTorqueEnabled = enabled
             bytes = DxlMessage.bytesToSetProperty(mc, JointDynamicProperty.STATE, request.value)
             request.control.responseCount[controllerName] = 1 // Status message
@@ -394,13 +399,22 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration
         }
-        else if(type.equals(RequestType.SET_MOTOR_PROPERTY)    ||
-                type.equals(RequestType.READ_MOTOR_PROPERTY)) {
+        else if(type.equals(RequestType.READ_MOTOR_PROPERTY)) {
+            val joint = request.joint
             val limb = request.limb
             val prop = request.jointDynamicProperty
             if( limb.equals(Limb.NONE)) {
-                list = DxlMessage.byteArrayListToListProperty(prop,configurationsByJoint.values)
-                request.control.responseCount[controllerName] = configurationsByJoint.size
+                if( joint.equals(Joint.NONE) ) {  // All joints
+                    list = DxlMessage.byteArrayListToListProperty(prop,configurationsByJoint.values)
+                    request.control.responseCount[controllerName] = configurationsByJoint.size
+                }
+                else {
+                    val mc = configurationsByJoint[joint]
+                    val lst = mutableListOf<MotorConfiguration>()
+                    lst.add(mc!!)
+                    list = DxlMessage.byteArrayListToListProperty(prop,lst)
+                    request.control.responseCount[controllerName] = 1
+                }
             }
             else {
                 val configs:Map<Joint,MotorConfiguration> = configurationsForLimb(limb)
