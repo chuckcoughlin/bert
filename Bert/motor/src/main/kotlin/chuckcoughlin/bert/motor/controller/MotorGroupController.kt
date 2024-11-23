@@ -169,7 +169,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // immediately. Results are created from the original configuration file.
     // We also create error messages some requests that are illegal
     private fun canHandleImmediately(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.RESET) ) {
+        if (request.type.equals(RequestType.EXECUTE_ACTION) ||
+            request.type.equals(RequestType.RESET) ) {
             return true
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
@@ -197,7 +198,12 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // to return directly to the user. These jointValues are obtained from the initial configuration
     private fun createImmediateResponse(request: MessageBottle): MessageBottle {
         val type = request.type
-        if (type.equals(RequestType.RESET) ) {
+        // This just marks the end of executing the poses.
+        if (type.equals(RequestType.EXECUTE_ACTION) ) {
+            pendingMessages.clear()
+            request.text = String.format("%s complete",request.arg)
+        }
+        else if (type.equals(RequestType.RESET) ) {
             pendingMessages.clear()
             request.text = "I have been reset"
         }

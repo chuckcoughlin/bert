@@ -66,6 +66,30 @@ class MessageTranslator {
             else if (type.equals(RequestType.EXECUTE_POSE)) {
                 String.format("I am %s", msg.arg.lowercase(Locale.getDefault()))
             }
+            // A limb has a state of being rigid or not. We look at the first joint in the list
+            // to determine
+            else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
+                val limb: Limb = msg.limb
+                val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
+                if( iterator.hasNext() ) {
+                    val jpv: JointPropertyValue = iterator.next()
+                    val propertyName: String = jpv.property.name
+                    if (propertyName.equals(JointDynamicProperty.STATE.name, ignoreCase = true)) {
+                        if (jpv.value == ConfigurationConstants.OFF_VALUE) {
+                            String.format("My %s is now flexible ", Limb.toText(limb))
+                        }
+                        else {
+                            String.format("My %s is rigid ", Limb.toText(limb))
+                        }
+                    }
+                    else {
+                        String.format("My %s is set ", Limb.toText(limb))
+                    }
+                }
+                else {
+                    text
+                }
+            }
             else {
                 String.format("Received an empty %s message.",msg.type.name)
             }
@@ -93,30 +117,6 @@ class MessageTranslator {
             }
             else if(type.equals(RequestType.NOTIFICATION)) {
                 text
-            }
-            // A limb has a state of being rigid or not. We look at the first joint in the list
-            // to determine
-            else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
-                val limb: Limb = msg.limb
-                val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
-                if( iterator.hasNext() ) {
-                    val jpv: JointPropertyValue = iterator.next()
-                    val propertyName: String = jpv.property.name
-                    if (propertyName.equals(JointDynamicProperty.STATE.name, ignoreCase = true)) {
-                        if (jpv.value == ConfigurationConstants.OFF_VALUE) {
-                            String.format("My %s is flexible ", Limb.toText(limb))
-                        }
-                        else {
-                            String.format("My %s is rigid ", Limb.toText(limb))
-                        }
-                    }
-                    else {
-                        String.format("My %s is set ", Limb.toText(limb))
-                    }
-                }
-                else {
-                    text
-                }
             }
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
                 text

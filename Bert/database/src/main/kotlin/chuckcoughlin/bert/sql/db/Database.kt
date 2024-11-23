@@ -9,7 +9,6 @@ import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.PoseDefinition
-import chuckcoughlin.bert.common.model.PoseDetail
 import chuckcoughlin.bert.sql.tables.ActionTable
 import chuckcoughlin.bert.sql.tables.FaceTable
 import chuckcoughlin.bert.sql.tables.PoseTable
@@ -31,7 +30,16 @@ object Database  {
     fun actionExists(actionName:String) :Boolean {
         return action.actionExists(connection,actionName)
     }
-
+    /**
+     * Save a list of motor position, torques and speeds as a new pose.
+     * Insert or update the Pose table
+     * @param mcmap contains a map of motor configurations with positions that define the pose.
+     * @param poseName
+     * @param index
+     */
+    fun createAction(name:String,series: String) {
+        action.createAction(connection, name,series)
+    }
     /**
      * Save a list of motor position, torques and speeds as a new pose.
      * Insert or update the Pose table
@@ -41,7 +49,6 @@ object Database  {
      */
     fun createPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String,index: Int) {
         pose.createPose(connection, mcmap, poseName,index)
-        return
     }
     /**
      * @param name pose name. Delete the pose and its joint map from the

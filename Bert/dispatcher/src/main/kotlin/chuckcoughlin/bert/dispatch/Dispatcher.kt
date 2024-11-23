@@ -285,10 +285,13 @@ class Dispatcher() : Controller {
         else if (request.type.equals(RequestType.EXECUTE_ACTION) ) {
             // An action requires executing a series of poses with intervening delay
             val poseList = Database.getPosesForAction(request.arg)
-            for(ni in poseList) {
+            LOGGER.info(String.format("%s.handleInternalRequest %s = %s",
+                CLSS,request.type.name,request.arg))
+            for(pose in poseList) {
+                LOGGER.info(String.format("%s     got %s %d", CLSS,pose.name,pose.index))
                 var msg = MessageBottle(RequestType.EXECUTE_POSE)
-                msg.arg = ni.name
-                msg.control.delay = ni.index.toLong()
+                msg.arg = pose.name
+                msg.control.delay = pose.index.toLong()
                 msg.source = ControllerType.BITBUCKET.name
                 toInternalController.send(msg)
             }
@@ -303,7 +306,13 @@ class Dispatcher() : Controller {
         if (request.type.equals(RequestType.COMMAND)) {
             val command = request.command
             LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
-            if( command.equals(CommandType.CREATE_POSE) ) {
+            if( command.equals(CommandType.CREATE_ACTION) ) {
+                val actName: String = request.text.lowercase()
+                val series = request.arg.lowercase()
+                Database.createAction(actName,series)
+                request.text = String.format("To %s is to execute a series of %s poses",actName,series)
+            }
+            else if( command.equals(CommandType.CREATE_POSE) ) {
                 val poseName: String = request.arg.lowercase()
                 val index = request.value.toInt()
                 Database.createPose(RobotModel.motorsByJoint,poseName,index)
@@ -574,12 +583,13 @@ class Dispatcher() : Controller {
     // to be forwarded to the proper motor controller. They have needed pre-processing
     // by the internal controller
     private fun isMotorRequest(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.GET_LIMITS) ||
+        if (request.type.equals(RequestType.EXECUTE_ACTION) ||
+            request.type.equals(RequestType.EXECUTE_POSE) ||
+            request.type.equals(RequestType.GET_LIMITS) ||
             request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.RESET) ||
-            request.type.equals(RequestType.EXECUTE_POSE) ||
             request.type.equals(RequestType.SET_LIMB_PROPERTY) ||
             request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             return true

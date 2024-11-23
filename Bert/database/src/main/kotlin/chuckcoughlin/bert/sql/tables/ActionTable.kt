@@ -37,7 +37,7 @@ class ActionTable {
                 prepStatement.setString(1, action)
                 rs=prepStatement.executeQuery()
                 while(rs.next()) {
-                    val series=rs.getString("series")
+                    val series=rs.getString("poseseries")
                     LOGGER.info(String.format("%s.actionExists: %s is based on %s", CLSS, action,series))
                     result = true
                     break
@@ -64,6 +64,27 @@ class ActionTable {
         return result
     }
     /**
+     * Create the action.
+     * @cxn an open database connection
+     * @param name action name
+     * @param series
+     */
+    fun createAction(cxn: Connection?, name: String,series:String) {
+        if( cxn!=null ) {
+            val action = name.lowercase(Locale.getDefault())
+            deleteAction(cxn,action)   // In case it exists already
+            val posesseries = series.lowercase(Locale.getDefault())
+            var stmt=cxn.createStatement()
+            try {
+                val SQL=String.format("insert into Action(name,poseseries) values('%s','%s') ", action,posesseries)
+                stmt.execute(SQL)
+            }
+            finally {
+                stmt.close()
+            }
+        }
+    }
+    /**
      * Delete the action.
      * @cxn an open database connection
      * @param name action name
@@ -73,7 +94,7 @@ class ActionTable {
             val action = name.lowercase(Locale.getDefault())
             var stmt=cxn.createStatement()
             try {
-                val SQL=String.format("delete from Action where name = %s", action)
+                val SQL=String.format("delete from Action where name = '%s'", action)
                 stmt.execute(SQL)
             }
             finally {
@@ -120,6 +141,36 @@ class ActionTable {
      */
     fun getPosesForAction(cxn: Connection?,act:String) : List<PoseDefinition> {
         val list = mutableListOf<PoseDefinition>()
+        if( cxn!=null ) {
+            var statement: Statement = cxn.createStatement()
+            val action = act.lowercase()
+            var SQL = String.format("select poseseries from Action where name = '%s'",action)
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                if (rs.next()) {
+                    val series = rs.getString(1)
+
+                    SQL = String.format("select executeOrder,delay from Pose where series = '%s' order by executeOrder",series)
+                    rs = statement.executeQuery(SQL)
+                    while (rs.next()) {
+                        val pd = PoseDefinition(series,rs.getInt(1),rs.getLong(2))
+                        list.add(pd)
+                    }
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getPosesForAction: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
         return list
     }
     private val CLSS = "ActionTable"
