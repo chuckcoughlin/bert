@@ -214,7 +214,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
 
     /**
      * @param msg the request
-     * @return true if this is the type of request satisfied by a single controller.
+     * @return true if this is the type of request satisfied by a motor single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
         if (msg.type.equals(RequestType.GET_GOALS) ||
@@ -223,7 +223,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+                 msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
                 return true
             }

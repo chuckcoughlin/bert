@@ -81,20 +81,23 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     private suspend fun handleRequest(msg: MessageBottle) {
         val now = System.currentTimeMillis()
         var delayTime = LATENCY + msg.control.delay
-        if( !msg.joint.equals(Joint.NONE) ) {
+        if (!msg.joint.equals(Joint.NONE)) {
             val mc = RobotModel.motorsByJoint.get(msg.joint)!!
             val required = mc.commandTime + mc.travelTime - now
-            if( required > delayTime) delayTime=required
+            if (required > delayTime) delayTime = required
         }
         val jvWalker = msg.getJointValueIterator()
-        while( jvWalker.hasNext() ) {
+        while (jvWalker.hasNext()) {
             val jv = jvWalker.next()
             val mc = RobotModel.motorsByJoint.get(jv.joint)!!
             val required = mc.commandTime + mc.travelTime - now
-            if( required > delayTime) delayTime=required
+            if (required > delayTime) delayTime = required
         }
         delay(delayTime)
-        dispatchMessage(msg)
+        // Run in background
+        GlobalScope.launch {
+            dispatchMessage(msg)
+        }
     }
 
 

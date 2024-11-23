@@ -54,13 +54,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private val responder: SerialResponder
     private var timeOfLastWrite: Long
 
-    val configurations: MutableCollection<MotorConfiguration>
-        get() = configurationsByJoint.values
 
-    fun getMotorConfiguration(joint: Joint): MotorConfiguration? {
-        return configurationsByJoint[joint]
-    }
-
+    /**
+     * Motors are assigned to controller by the RobotModel on startup
+     */
     fun putMotorConfiguration(joint: Joint, mc: MotorConfiguration) {
         configurationsByJoint[joint] = mc
     }
@@ -141,14 +138,15 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if( isSingleControllerRequest(request) ) {
             val joint: Joint=request.joint
             val limb: Limb=request.limb
-            if(!joint.equals(Joint.NONE)) {
-                if( configurationsByJoint[joint] ==null ) return
+            if( !joint.equals(Joint.NONE) ) {
+                if( configurationsByJoint[joint]==null ) return
             }
             else if(!limb.equals(Limb.NONE)) {
                 val count=configurationsForLimb(limb).size
                 if(count == 0) { return }
             }
         }
+
         // Make sure that there is MIN_WRITE_INTERVAL between writes
         val now = System.currentTimeMillis()
         if( now - timeOfLastWrite < MIN_WRITE_INTERVAL ) {
@@ -208,9 +206,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                 !msg.joint.equals(Joint.NONE)) {
-            return true
+        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+                msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
+            if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
         }
         return false
     }
@@ -411,9 +411,15 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 else {
                     val mc = configurationsByJoint[joint]
                     val lst = mutableListOf<MotorConfiguration>()
-                    lst.add(mc!!)
-                    list = DxlMessage.byteArrayListToListProperty(prop,lst)
-                    request.control.responseCount[controllerName] = 1
+                    if( mc!=null ) {
+                        lst.add(mc)
+                        list = DxlMessage.byteArrayListToListProperty(prop,lst)
+                        request.control.responseCount[controllerName] = 1
+                    }
+                    else {
+                       LOGGER.severe((String.format("%s.messageToByteList: No motor configuration for %s on %s",
+                                        CLSS,joint.name,controllerName)))
+                    }
                 }
             }
             else {
