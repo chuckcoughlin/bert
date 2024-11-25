@@ -3,11 +3,11 @@ package chuckcoughlin.bert.common.message
 
 /**
  * This is a nested class for MessageBottles that contains control parameters for processing
- * by an InternalController. The processing comes in two flavors - messages that wait on a queue and
- * those wait on a timer. The queued messages may optionally have a timed delay as well.
+ * by an InternalController. Messages that wait on a queue (one queue per limb) and
+ * then optionally  wait for a specified delay.
  *
  * @param delay an idle interval between when this message is
- * first placed on the timer queue and when it should execute (~msecs). Any time
+ * first placed on the sequential queue and when it should execute (~msecs). Any time
  *  spent waiting on the sequential queue is counted toward the delay
  * ("time served").
 */

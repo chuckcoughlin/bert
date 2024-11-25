@@ -9,6 +9,7 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.RobotModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -35,7 +36,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     private var running:Boolean
     private var index:Long          // Sequence of a message
     private var job:Job
-
+    private val queues : MutableMap<Limb,SequentialQueue>
     @DelicateCoroutinesApi
     override suspend fun execute() {
         if (!running) {
@@ -69,6 +70,9 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             running = false
             job.cancel()
             if (DEBUG) println(String.format("%s.shutdown: cancelled job ", CLSS))
+            for( queue in queues.values ) {
+                queue.shutdown()
+            }
         }
     }
 
@@ -119,6 +123,13 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         }
         toDispatcher.send(msg)
     }
+    private fun initializeQueues() {
+        for( limb in Limb.values() ) {
+            val queue = SequentialQueue(limb,toDispatcher)
+            queue.execute()
+            queues[limb] = queue
+        }
+    }
 
     private val CLSS = "InternalController"
     private val DEBUG : Boolean
@@ -132,5 +143,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         running = false
         index = 0
         job = Job() // Parent job
+        queues = mutableMapOf<Limb,SequentialQueue>()
+        initializeQueues()
     }
 }

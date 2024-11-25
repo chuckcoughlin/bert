@@ -75,7 +75,6 @@ class Terminal(stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : C
         }
     }
 
-
     override suspend fun shutdown() {
         if (running) {
             running = false
