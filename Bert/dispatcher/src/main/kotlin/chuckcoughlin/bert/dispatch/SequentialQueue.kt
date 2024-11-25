@@ -7,7 +7,12 @@ package chuckcoughlin.bert.dispatch
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointDynamicProperty
 import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.common.model.MotorConfiguration
+import chuckcoughlin.bert.common.model.RobotModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.*
@@ -18,41 +23,41 @@ import java.util.logging.Logger
  * queue for each robot limb. It should be noted that all joints on a given limb
  * are on the same robot sub-chain of motors.
  *
- * The inProgress flag true means that there is a message from the queue
- * currently being executed by the dispatcher. This is used to prevent
- * immediate execution of a new request if inappropriate.
+ * The nextAllowedExecutionTime takes into account the movement time
+ * of the prior movement on the same limb..
  */
-class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,) : LinkedList<MessageBottle>() {
+class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,configMap: Map<Joint,MotorConfiguration>) : LinkedList<MessageBottle>() {
     private val channel = sender
     private val limb = lim
-    private var nextAllowedExecuteTime: Long=0
+    private val motorMap = configMap
+    private var nextAllowedExecuteTime: Long
     private var job: Job
 
+    fun start() {
+        LOGGER.info(String.format("%s.start: %s = %d %s.", CLSS,limb.name,size,if(job.isActive) "ACTIVE" else "INACTIVE"))
+        if( !job.isActive ) {
+            job = GlobalScope.launch(Dispatchers.IO) {
+                execute()
+            }
+        }
+    }
     /*
      * Coroutine to send  messages in order to the dispatcher.
      * Calculate a time for the motion and also respect any user
      * defined delay.
      */
     @OptIn(DelicateCoroutinesApi::class)
-    fun suspend execute() {
-        if(this.size > 0) {  // If there are no waiting messages, do nothing
-            while(this.size > 0) {
-                LOGGER.info(String.format("%s.execute: launched...", CLSS))
-                job=GlobalScope.async(Dispatchers.IO) {
-                    while(running) {
-                        val msg=removeFirst()
-                        val
-                                channel.onSend {
-
-                        }
-
-                    }
-                }
-            }
-
-            else {
-                LOGGER.warning(String.format("%s.execute: attempted to start, but already running...", CLSS))
-            }
+    suspend fun execute() {
+        while(size > 0) {
+            val msg = removeFirst()
+            val now=System.nanoTime() / 1000000
+            LOGGER.info(String.format("%s.execute: %s on %s.", CLSS,msg.type.name,limb.name))
+            if(nextAllowedExecuteTime < now) nextAllowedExecuteTime=now
+            nextAllowedExecuteTime = nextAllowedExecuteTime + msg.control.delay
+            delay(nextAllowedExecuteTime-now)
+            msg.control.executionTime = nextAllowedExecuteTime
+            nextAllowedExecuteTime = nextAllowedExecuteTime + travelTime(msg)
+            channel.send(msg)
         }
     }
 
@@ -61,10 +66,9 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,) : LinkedList<Mes
      * respecting the delay setting. Start the execute() function.
      */
     override fun addLast(msg: MessageBottle) {
+        if(DEBUG) LOGGER.info(String.format("%s.addLast: %s on %s.", CLSS,msg.type.name,limb.name))
         super.addLast(msg)
-        val now=System.nanoTime() / 1000000
-        msg.control.executionTime=now + msg.control.delay
-        execute()
+        start()
     }
 
     /**
@@ -73,13 +77,6 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,) : LinkedList<Mes
      */
     override fun removeFirst(): MessageBottle {
         val msg=super.removeFirst()
-        val now=System.nanoTime() / 1000000
-        if(nextAllowedExecuteTime < now) nextAllowedExecuteTime=now
-        if(msg.control.executionTime < nextAllowedExecuteTime) {
-            msg.control.executionTime=nextAllowedExecuteTime
-        }
-        nextAllowedExecuteTime=msg.control.executionTime
-        delay(nextAllowedExecuteTime-now)
         return msg
     }
 
@@ -87,11 +84,45 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,) : LinkedList<Mes
         if( job.isActive ) job.cancel()
     }
 
+    // Compute the time the limb takes to move when executing
+    // this request, if applicable.
+    fun travelTime(msg:MessageBottle) : Long {
+        var period = ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL
+
+        if(msg.type.equals(RequestType.SET_LIMB_PROPERTY) &&
+            !limb.equals(Limb.NONE)) {
+            for( mc in motorMap.values ) {
+                var motionTime = ((msg.value - mc.angle)/mc.speed).toLong()
+                if(motionTime<0) motionTime = -motionTime
+                if(motionTime>period) period = motionTime
+            }
+        }
+        else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
+                msg.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) ) {
+            for( mc in motorMap.values ) {
+                if( mc.joint.equals(msg.joint)) {
+                    var motionTime = ((msg.value - mc.angle) / mc.speed).toLong()
+                    if (motionTime < 0) motionTime = -motionTime
+                    if (motionTime > period) period = motionTime
+                    break
+                }
+            }
+        }
+        // This applies to the NONE queue - and may interfere with other limbs
+        else if(msg.type.equals(RequestType.EXECUTE_POSE) ) {
+
+        }
+        return period
+    }
+
     private val CLSS="SequentialQueue"
     private val LOGGER = Logger.getLogger(CLSS)
+    private val DEBUG : Boolean
 
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_INTERNAL)
         nextAllowedExecuteTime=System.nanoTime() / 1000000 // Work in milliseconds
         job=Job()
+        job.cancel()
     }
 }

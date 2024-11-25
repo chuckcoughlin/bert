@@ -149,8 +149,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 
         // Make sure that there is MIN_WRITE_INTERVAL between writes
         val now = System.currentTimeMillis()
-        if( now - timeOfLastWrite < MIN_WRITE_INTERVAL ) {
-            delay(MIN_WRITE_INTERVAL - (now - timeOfLastWrite))
+        if( now - timeOfLastWrite < ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL ) {
+            delay(ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL - (now - timeOfLastWrite))
             timeOfLastWrite = System.currentTimeMillis()
         }
         // Get the intended response count - zero if controller is unknown
@@ -177,7 +177,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (bytes in byteArrayList) {
                 writeBytesToSerial(bytes)
                 count--
-                if(count>0) delay(MIN_WRITE_INTERVAL)    // This could be significant
+                if(count>0) delay(ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL)    // This could be significant
                 LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)", CLSS, controllerName, bytes.size,request.control.responseCount[controllerName]))
             }
         }
@@ -521,7 +521,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
     private val BAUD_RATE = 1000000
-    private val MIN_WRITE_INTERVAL = 100L   // msecs between writes (50 was too short)
 
     override val controllerType = ControllerType.MOTOR
 

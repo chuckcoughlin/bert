@@ -60,7 +60,7 @@ question:
 
 // Convey information to the robot.
 declaration:
-	  Take Article? Pose phrase Value          	    # assumePose
+	  Take Article? Pose phrase Value          	        # assumePose
     | Article Pose Is phrase Value						# definePose
 	| Save Article? Pose phrase Value          	        # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
@@ -137,7 +137,7 @@ Side: 'left'|'right'|'other';
 Speed: 'in slow motion'|'very fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'slower'|'very slow'|'slow'|'faster'|'quicker'|'fast'|'normal';
 Static: 'static';
 Straighten: 'straighten';
-Take: 'assume' | 'take';
+Take: 'assume' | 'execute' | 'take';
 Tell: 'tell';
 Then: 'then';
 There: 'there'|'their';

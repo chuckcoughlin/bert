@@ -41,7 +41,10 @@ object ConfigurationConstants {
     // Pose names (these are required to exist)
     const val POSE_HOME = "home"
 
-    // Nominal values for torque and speed in percent
+    // Minimum spacing between serial writes ~ msec
+    const val MIN_SERIAL_WRITE_INTERVAL = 100L   // (50 was too short)
+
+    // Nominal values for torque and speed
     const val SPEED_NORMAL = 20.0
     const val TORQUE_NORMAL = 20.0
 

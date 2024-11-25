@@ -13,7 +13,11 @@ package chuckcoughlin.bert.common.message
 */
 data class ExecutionControl(var delay: Long) : Cloneable {
      /*
-     * The execution time is the earliest time at which this message is allowed
+     * executionTime - the time at which the message leaves the internal controller
+     *                 and is sent to the serial controller. For non-serial
+     *                 messges this is simply the request creation time
+     * delay         - a wait period from a message is ready to be executed and
+     *                 when it is actually sent off.
      * to be sent to the Dispatcher. The time is calculated as the message
      * is placed on the timer queue.
      */

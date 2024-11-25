@@ -10,9 +10,11 @@ import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.Limb
+import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.RobotModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import java.util.HashMap
 import java.util.logging.Logger
 
 /**
@@ -121,14 +123,24 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             val jv = jvWalker.next()
             RobotModel.motorsByJoint.get(jv.joint)!!.commandTime = now
         }
-        toDispatcher.send(msg)
+        val queue = queues[msg.limb]!!
+        queue.addLast(msg)
     }
     private fun initializeQueues() {
         for( limb in Limb.values() ) {
-            val queue = SequentialQueue(limb,toDispatcher)
-            queue.execute()
+            val queue = SequentialQueue(limb,toDispatcher,configurationsForLimb(limb))
             queues[limb] = queue
         }
+    }
+    private fun configurationsForLimb(limb: Limb): Map<Joint,MotorConfiguration> {
+        val map: MutableMap<Joint,MotorConfiguration> = mutableMapOf<Joint,MotorConfiguration>()
+        for (joint in RobotModel.motorsByJoint.keys) {
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if (mc.limb.equals(limb) || limb.equals(Limb.NONE)) {
+                map[joint]=mc
+            }
+        }
+        return map
     }
 
     private val CLSS = "InternalController"
