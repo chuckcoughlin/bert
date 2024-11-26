@@ -79,11 +79,8 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         isTorqueEnabled = state != 0
     }
 
-    companion object {
-        private const val CLSS = "MotorConfiguration"
-        private val LOGGER = Logger.getLogger(CLSS)
-        private const val serialVersionUID = -3452548869138158183L
-    }
+    private val CLSS = "MotorConfiguration"
+    private val LOGGER = Logger.getLogger(CLSS)
 
     /**
      * Set initial values for both definition and runtime parameters.

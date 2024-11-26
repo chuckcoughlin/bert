@@ -31,7 +31,6 @@ import java.util.logging.Logger
  *  Sets bottle type. The rest are settable
 */
 data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
-    private var jointValues : MutableList<JointPropertyValue>   // Property values for one or more motors
     var extremity: Extremity // Message applies to this extremity
     var command : CommandType
     var error : String       // Error message if not blank
@@ -44,7 +43,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
     var arg: String          // Use whenever the command requires a text argument
     var jointDefinitionProperty: JointDefinitionProperty   // Possible subject of the original request
     var jointDynamicProperty: JointDynamicProperty         // Possible subject of the original request
-    var source: String       // Origin of the request
+    var source: ControllerType       // Origin of the request
     var text : String        // Pronounceable text of a response
     var value: Double
     var control : ExecutionControl  // Parameters dealing with execution of the message
@@ -58,24 +57,8 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
      */
     var duration: Long = 0 // ~msecs
 
-    // Use the joint-property-value list for requests that address multiple joints
-    @Synchronized
-    fun addJointValue(j: Joint,prop: JointDynamicProperty, value: Double) {
-        jointValues.add(JointPropertyValue(j,prop,value))
-    }
-
-    fun clearJointValues() {
-        jointValues.clear()
-    }
-
-    // Return an iterator for pose joint-values within a single message
-    fun getJointValueIterator() : MutableListIterator<JointPropertyValue> {
-        return jointValues.listIterator()
-    }
-
     override public fun clone(): MessageBottle {
         val copy = MessageBottle(type)
-        copy.jointValues  = jointValues.toMutableList()
         copy.extremity   = extremity
         copy.command     = command
         copy.error       = error
@@ -144,7 +127,6 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
      */
     init {
         extremity   = Extremity.NONE
-        jointValues = mutableListOf<JointPropertyValue>()
         command     = CommandType.NONE
         error   =  BottleConstants.NO_ERROR   // No error
         handler = ControllerType.UNDEFINED
@@ -156,7 +138,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         arg    = BottleConstants.NO_ARG
         jointDefinitionProperty = JointDefinitionProperty.NONE
         jointDynamicProperty = JointDynamicProperty.NONE
-        source = BottleConstants.NO_SOURCE
+        source = ControllerType.UNDEFINED
         text  = ""   // Text is the printable response
         value = Double.NaN
         control = ExecutionControl(BottleConstants.NO_DELAY)

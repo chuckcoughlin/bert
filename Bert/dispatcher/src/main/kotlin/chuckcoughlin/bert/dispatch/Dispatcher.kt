@@ -7,29 +7,14 @@ package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.command.Command
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.JsonType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MetricType
-import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDefinitionProperty
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.Solver
-import chuckcoughlin.bert.common.model.URDFModel
+import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.Terminal
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -65,6 +50,7 @@ class Dispatcher() : Controller {
     private var terminalController: Terminal
 
     private val scope = GlobalScope // For long-running coroutines
+    private val readyMesssage: MessageBottle
     private var running:Boolean
     private val name: String
     private var cadence = 1000 // msecs
@@ -109,9 +95,11 @@ class Dispatcher() : Controller {
                     if(DEBUG) LOGGER.info(String.format("%s.execute: Entering select for cycle %d ...", CLSS, cycleCount))
                     select<Unit> {
                         // Reply to the original requester when we get a result from the motor controller
+                        // Also send a synchronization message to the internal controller freeing it to continue
                         mgcResponseChannel.onReceive {     // Handle a serial response
                             if(DEBUG) LOGGER.info(String.format("%s.execute: bgcResponseChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
+                            toInternalController.send(readyMesssage)
                             replyToSource(it)
                         }
                         // When we get a response from the internal controller, dispatch the original request.
@@ -155,22 +143,22 @@ class Dispatcher() : Controller {
         msg.jointDynamicProperty = JointDynamicProperty.SPEED
         msg.joint = Joint.NONE
         msg.value = ConfigurationConstants.SPEED_NORMAL
-        msg.source = ControllerType.BITBUCKET.name
-        msg.control.delay = 500                // 1/2 sec delay
+        msg.source = ControllerType.BITBUCKET
+        //msg.control.delay = 500                // 1/2 sec delay
         toInternalController.send(msg)
 
         // Read all the joint positions (using both controllers). This fills our
         // internal buffers with the current positions.
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-        msg.source = ControllerType.BITBUCKET.name
-        msg.control.delay = 1000 // 1 sec delay
+        msg.source = ControllerType.BITBUCKET
+        //msg.control.delay = 1000 // 1 sec delay
         toInternalController.send(msg)
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
-        msg.source = ControllerType.BITBUCKET.name
-        msg.control.delay = 2000 // 2 sec delay
+        msg.source = ControllerType.BITBUCKET
+        //msg.control.delay = 2000 // 2 sec delay
         toInternalController.send(msg)
     }
 
@@ -219,9 +207,9 @@ class Dispatcher() : Controller {
                 !response.type.equals(RequestType.HANGUP ) ) replyToSource(response)
         }
         // "internal" requests are those that need to be queued on the internal controller
+        // and, perhaps preprocessed into multiple messages (by limb, for example)
         else if( isInternalRequest(msg) ) {
-            val response: MessageBottle = handleInternalRequest(msg)
-            toInternalController.send(response)
+            toInternalController.send(msg)
         }
         else {
             LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s is unhandled",
@@ -256,48 +244,6 @@ class Dispatcher() : Controller {
         }
     }
 
-    // The response is simply the request. A generic acknowledgement will be relayed to the user.
-    // Create precursor messages, if needed. The original message is processed outside this method no matter what,
-    // 1) Freezing a joint requires getting the motor position first to update the internal status dictionary
-    private suspend fun handleInternalRequest(request: MessageBottle): MessageBottle {
-        // Read joint positions before freezing
-        if(request.type==RequestType.SET_MOTOR_PROPERTY &&
-            request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
-            request.value == ConfigurationConstants.ON_VALUE    )  {
-
-            val msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-            msg.joint = request.joint
-            msg.source = ControllerType.BITBUCKET.name
-            msg.control.delay =250 // 1/4 sec delay
-            toInternalController.send(msg)
-        }
-        else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
-            request.value == ConfigurationConstants.ON_VALUE    ) {
-
-            val msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
-            msg.jointDynamicProperty = JointDynamicProperty.ANGLE
-            msg.limb = request.limb
-            msg.source = ControllerType.BITBUCKET.name
-            toInternalController.send(msg)
-        }
-        else if (request.type.equals(RequestType.EXECUTE_ACTION) ) {
-            // An action requires executing a series of poses with intervening delay
-            val poseList = Database.getPosesForAction(request.arg)
-            LOGGER.info(String.format("%s.handleInternalRequest %s = %s",
-                CLSS,request.type.name,request.arg))
-            for(pose in poseList) {
-                LOGGER.info(String.format("%s     got %s %d", CLSS,pose.name,pose.index))
-                var msg = MessageBottle(RequestType.EXECUTE_POSE)
-                msg.arg = pose.name
-                msg.control.delay = pose.index.toLong()
-                msg.source = ControllerType.BITBUCKET.name
-                toInternalController.send(msg)
-            }
-        }
-        return request
-    }
 
     // Create a response for a request that can be handled immediately, that is without
     // reference to the motors. The response is simply the original request
@@ -536,7 +482,7 @@ class Dispatcher() : Controller {
         // By default all motor requests need to be processed by the internal
         // controller for sequencing and spacing
         if( isMotorRequest(request)) return true
-        if (request.type.equals(RequestType.EXECUTE_ACTION)) return true
+        else if (request.type.equals(RequestType.EXECUTE_ACTION)) return true
         return false
     }
 
@@ -573,7 +519,7 @@ class Dispatcher() : Controller {
             }
         }
         else if( request.type == RequestType.NOTIFICATION ) {
-            request.source = ControllerType.DISPATCHER.name
+            request.source = ControllerType.DISPATCHER
             return true
         }
         return false
@@ -585,7 +531,6 @@ class Dispatcher() : Controller {
     private fun isMotorRequest(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.EXECUTE_ACTION) ||
             request.type.equals(RequestType.EXECUTE_POSE) ||
-            request.type.equals(RequestType.GET_LIMITS) ||
             request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
             request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
@@ -594,6 +539,13 @@ class Dispatcher() : Controller {
             request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             return true
         }
+        else if(request.type.equals(RequestType.JSON) ) {
+            if( request.jtype.equals(JsonType.MOTOR_LIMITS) ||
+                request.jtype.equals(JsonType.MOTOR_GOALS) ) {
+                return true
+            }
+        }
+
         return false
     }
     /**
@@ -601,16 +553,16 @@ class Dispatcher() : Controller {
      * that had originated the request.
      */
     private suspend fun replyToSource(response: MessageBottle) {
-        val source: String = response.source
+        val source = response.source
         LOGGER.info(String.format("%s.replyToSource: Forwarding response %s(%s) from %s",
                     CLSS,response.type.name,response.text,source))
-        if (source.equals(ControllerType.COMMAND.name, ignoreCase = true)) {
+        if (source.equals(ControllerType.COMMAND)) {
             commandResponseChannel.send(response)
         }
-        else if (source.equals(ControllerType.TERMINAL.name, ignoreCase = true)) {
+        else if (source.equals(ControllerType.TERMINAL)) {
             stdoutChannel.send(response)
         }
-        else if (source.equals(ControllerType.BITBUCKET.name, ignoreCase = true)) {
+        else if (source.equals(ControllerType.BITBUCKET)) {
             ;   // Do nothing
         }
         else {
@@ -624,7 +576,7 @@ class Dispatcher() : Controller {
         val startMessage = MessageBottle(RequestType.NOTIFICATION)
         startMessage.text = selectRandomText(startPhrases)
         LOGGER.info(String.format("%s.reportStartup: Bert is ready ... (from %s)", CLSS, ControllerType.DISPATCHER.name))
-        startMessage.source = ControllerType.DISPATCHER.name
+        startMessage.source = ControllerType.DISPATCHER
         if(RobotModel.useTerminal) stdoutChannel.send(startMessage)
         if(RobotModel.useNetwork)  commandController.startMessage = startMessage.text  // Would be better to use channel
     }
@@ -692,6 +644,7 @@ class Dispatcher() : Controller {
         motorGroupController  = MotorGroupController(mgcRequestChannel,mgcResponseChannel)
         terminalController    = Terminal(stdinChannel,stdoutChannel)
 
+        readyMesssage = MessageBottle(RequestType.READY)  // Reusable synchronization message
         running = false
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
         val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs

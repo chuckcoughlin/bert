@@ -29,6 +29,5 @@ object BottleConstants {
     const val NO_CONTROLLER = "No Controller"
     const val NO_DELAY = 0L
     const val NO_ERROR = "No Error"
-    const val NO_SOURCE = "No Source"
 
 }

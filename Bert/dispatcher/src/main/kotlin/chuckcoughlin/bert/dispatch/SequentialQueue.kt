@@ -7,12 +7,7 @@ package chuckcoughlin.bert.dispatch
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.JointDynamicProperty
-import chuckcoughlin.bert.common.model.Limb
-import chuckcoughlin.bert.common.model.MotorConfiguration
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.*
@@ -33,6 +28,10 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,configMap: Map<Joi
     private var nextAllowedExecuteTime: Long
     private var job: Job
 
+    /**
+     * The co-routine runs until there are no more messages in the queue
+     * and then quits.
+     */
     fun start() {
         LOGGER.info(String.format("%s.start: %s = %d %s.", CLSS,limb.name,size,if(job.isActive) "ACTIVE" else "INACTIVE"))
         if( !job.isActive ) {
@@ -52,10 +51,15 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,configMap: Map<Joi
             val msg = removeFirst()
             val now=System.nanoTime() / 1000000
             LOGGER.info(String.format("%s.execute: %s on %s.", CLSS,msg.type.name,limb.name))
+            while( !SequentialQueue.ready ) {
+                delay(POLL_INTERVAL)
+            }
+            SequentialQueue.ready = false
             if(nextAllowedExecuteTime < now) nextAllowedExecuteTime=now
             nextAllowedExecuteTime = nextAllowedExecuteTime + msg.control.delay
             delay(nextAllowedExecuteTime-now)
             msg.control.executionTime = nextAllowedExecuteTime
+            markDispatchTime(nextAllowedExecuteTime)
             nextAllowedExecuteTime = nextAllowedExecuteTime + travelTime(msg)
             channel.send(msg)
         }
@@ -92,18 +96,14 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,configMap: Map<Joi
         if(msg.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             !limb.equals(Limb.NONE)) {
             for( mc in motorMap.values ) {
-                var motionTime = ((msg.value - mc.angle)/mc.speed).toLong()
-                if(motionTime<0) motionTime = -motionTime
-                if(motionTime>period) period = motionTime
+                if(mc.travelTime>period) period = mc.travelTime
             }
         }
         else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
                 msg.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) ) {
             for( mc in motorMap.values ) {
                 if( mc.joint.equals(msg.joint)) {
-                    var motionTime = ((msg.value - mc.angle) / mc.speed).toLong()
-                    if (motionTime < 0) motionTime = -motionTime
-                    if (motionTime > period) period = motionTime
+                    if (mc.travelTime > period) period = mc.travelTime
                     break
                 }
             }
@@ -112,12 +112,27 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,configMap: Map<Joi
         else if(msg.type.equals(RequestType.EXECUTE_POSE) ) {
 
         }
+        if(DEBUG) LOGGER.info(String.format("%s.travelTime: on %s = %d.", CLSS,limb.name,period))
         return period
+    }
+
+    fun markDispatchTime(time:Long) {
+        for(mc in motorMap.values ) {
+            mc.commandTime = time
+        }
     }
 
     private val CLSS="SequentialQueue"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG : Boolean
+    private val POLL_INTERVAL = 100L // While waiting for ready
+
+    /**
+     * Treat the ready flag as a class-side variable
+     */
+    companion object {
+        var ready = true
+    }
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_INTERNAL)

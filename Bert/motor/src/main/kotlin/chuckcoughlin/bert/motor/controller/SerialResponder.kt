@@ -5,6 +5,7 @@
  */
 package chuckcoughlin.bert.motor.controller
 
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -83,7 +84,6 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                         for (key in map.keys) {
                             val param = map[key]
                             val joint = RobotModel.motorsById[key]!!.joint
-                            request.addJointValue(joint,prop, param!!.toDouble())
                             request.control.responseCount[name] = request.control.responseCount[name]!! - 1
                             LOGGER.info(String.format("%s.serialEvent: %s received %s (%d remaining) = %s",
                                             CLSS, name, joint.name, request.control.responseCount[name]!!, param) )
@@ -113,19 +113,26 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
 
     // ============================= Private Helper Methods =============================
     /**
+     * NOTE: Identical code in MotorGroupController and MotorController
      * @param msg the request
-     * @return true if this is the type of request satisfied by a single controller.
+     * @return true if this is the type of request satisfied by a motor single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if (msg.type.equals(RequestType.GET_GOALS) ||
-            msg.type.equals(RequestType.GET_LIMITS) ||
-            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ) {
+        if( msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if (msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-            !msg.joint.equals(Joint.NONE)) {
-            return true
+        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+            msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
+            if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
+        }
+        else if( msg.type.equals(RequestType.JSON) ) {
+            if( msg.jtype.equals(JsonType.MOTOR_GOALS) ||
+                msg.jtype.equals(JsonType.MOTOR_LIMITS)) {
+                return true
+            }
         }
         return false
     }
@@ -150,12 +157,13 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
     @Synchronized
     private fun updateRequestFromBytes(request: MessageBottle, bytes: ByteArray) {
         val type: RequestType = request.type
-        if (type.equals(RequestType.GET_GOALS)) {
+        val jtype: JsonType = request.jtype
+        if (jtype.equals(JsonType.MOTOR_GOALS)) {
             val joint = request.joint
             val mc: MotorConfiguration? = RobotModel.motorsByJoint[joint]
             DxlMessage.updateGoalsFromBytes(mc!!, request, bytes)
         }
-        else if (type.equals(RequestType.GET_LIMITS)) {
+        else if (jtype.equals(JsonType.MOTOR_LIMITS)) {
             val joint = request.joint
             val mc: MotorConfiguration? = RobotModel.motorsByJoint[joint]
             DxlMessage.updateLimitsFromBytes(mc!!, request, bytes)

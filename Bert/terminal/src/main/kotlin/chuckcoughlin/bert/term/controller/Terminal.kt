@@ -105,7 +105,7 @@ class Terminal(stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : C
             if (DEBUG) LOGGER.info(String.format("%s.handleUserInput: %s", CLSS, text))
             if (text.isNotEmpty()) {
                 request = parser.parseStatement(text)
-                request.source = controllerName
+                request.source = ControllerType.TERMINAL
                 if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsed %s", CLSS, text))
             }
             if (!request.error.equals(BottleConstants.NO_ERROR)) {

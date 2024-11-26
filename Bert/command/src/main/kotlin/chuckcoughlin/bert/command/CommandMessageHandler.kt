@@ -5,12 +5,7 @@
 package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.JsonType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
@@ -76,7 +71,7 @@ class CommandMessageHandler(sock: Socket)  {
         val text = readCommand()
         if( text!=null && text.equals(CommandType.HALT.name, true)) {
             request = MessageBottle(RequestType.HANGUP)
-            request.source = ControllerType.COMMAND.name
+            request.source = ControllerType.COMMAND
         }
         else {
             request = processRequest(text)
@@ -147,7 +142,7 @@ class CommandMessageHandler(sock: Socket)  {
             msg = MessageBottle(RequestType.NOTIFICATION)
             msg.error = String.format("Received a short message from the tablet (%s)", txt)
         }
-        msg.source = ControllerType.COMMAND.name
+        msg.source = ControllerType.COMMAND
         // In past iterations, there was the concept of suppressing consecutive similar errors.
         // We've abandoned that idea/
         if(!msg.error.equals(BottleConstants.NO_ERROR)) {

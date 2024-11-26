@@ -7,6 +7,7 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -200,15 +201,19 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if (msg.type.equals(RequestType.GET_GOALS) ||
-            msg.type.equals(RequestType.GET_LIMITS) ||
-            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+        if( msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
         else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
                 msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
+        }
+        else if( msg.type.equals(RequestType.JSON) ) {
+            if( msg.jtype.equals(JsonType.MOTOR_GOALS) ||
+                msg.jtype.equals(JsonType.MOTOR_LIMITS)) {
                 return true
             }
         }
@@ -238,60 +243,58 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return
      */
     private fun messageToBytes(request: MessageBottle): ByteArray? {
-        request.control.responseCount[controllerName] = 0 // No response, unless specified otherwise
-        var bytes: ByteArray  = ByteArray(0)
-        val type: RequestType = request.type
-        if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s",CLSS,controllerName,type.name))
+        request.control.responseCount[controllerName]=0 // No response, unless specified otherwise
+        var bytes: ByteArray=ByteArray(0)
+        val type: RequestType=request.type
+        val jtype: JsonType=request.jtype
+        if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s", CLSS, controllerName, type.name))
 
-        if (type.equals(RequestType.GET_GOALS)) {
-            val joint = request.joint
+        if(type.equals(RequestType.JSON) &&
+            jtype.equals(JsonType.MOTOR_GOALS)) {
+            val joint=request.joint
             for (mc in configurationsByJoint.values) {
-                if (mc.joint.equals(joint)) {
-                    bytes = DxlMessage.bytesToGetGoals(mc.id)
-                    request.control.responseCount[controllerName] = 1 // Status message
+                if(mc.joint.equals(joint)) {
+                    bytes=DxlMessage.bytesToGetGoals(mc.id)
+                    request.control.responseCount[controllerName]=1 // Status message
                     break
                 }
             }
         }
-        else if (type.equals(RequestType.GET_LIMITS)) {
-            val joint = request.joint
+        else if(type.equals(RequestType.JSON) &&
+            jtype.equals(JsonType.MOTOR_LIMITS)) {
+            val joint=request.joint
             for (mc in configurationsByJoint.values) {
-                if (mc.joint.equals(joint)) {
-                    bytes = DxlMessage.bytesToGetLimits(mc.id)
-                    request.control.responseCount[controllerName] = 1 // Status message
+                if(mc.joint.equals(joint)) {
+                    bytes=DxlMessage.bytesToGetLimits(mc.id)
+                    request.control.responseCount[controllerName]=1 // Status message
                     break
                 }
             }
         }
         // Assume a dynamic property
-        else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if (mc.joint.equals(joint)) {
-                bytes = DxlMessage.bytesToGetProperty(mc.id,request.jointDynamicProperty)
-                request.control.responseCount[controllerName] = 1 // Status message
+        else if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
+            val joint=request.joint
+            val mc=RobotModel.motorsByJoint[joint]!!
+            if(mc.joint.equals(joint)) {
+                bytes=DxlMessage.bytesToGetProperty(mc.id, request.jointDynamicProperty)
+                request.control.responseCount[controllerName]=1 // Status message
             }
         }
-        else if (type.equals(RequestType.SET_LIMB_PROPERTY))  {
-            val limb = request.limb
-            val propertyValues = request.getJointValueIterator()
-            if (propertyValues.hasNext()) {             // There should be only one entry
-                val pv = propertyValues.next()
-                val prop = pv.property
-                val value = pv.value.toDouble()
-                // Loop over motor config map, set the property
-                val configs = configurationsForLimb(limb)
-                for (mc in configs.values) {
-                    mc.setDynamicProperty(prop,value)
-                }
-                bytes =
-                    DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
-                                                                     // ASYNC WRITE, no response. Let source set text.
-                var enabled = true
-                if( request.value<ConfigurationConstants.ON_VALUE ) enabled = false
-                request.text = String.format("My %s is %s", Limb.toText(limb),
-                    if(enabled) "rigid" else "limp")
+        // Property value must be the same for every joint in limb
+        else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
+            val limb=request.limb
+            val prop=request.jointDynamicProperty
+            // Loop over motor config map, set the property
+            val configs=configurationsForLimb(limb)
+            for (mc in configs.values) {
+                mc.setDynamicProperty(prop, request.value)
             }
+            bytes=DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
+            // ASYNC WRITE, no response. Let source set text.
+            var enabled=true
+            if(request.value < ConfigurationConstants.ON_VALUE) enabled=false
+            request.text=String.format("My %s is %s", Limb.toText(limb),
+                    if(enabled) "rigid" else "limp")
         }
         // Handle set torque enable for all joints. ASYNC_WRITE, no response
         // NOTE: When enabling torque, a read is required

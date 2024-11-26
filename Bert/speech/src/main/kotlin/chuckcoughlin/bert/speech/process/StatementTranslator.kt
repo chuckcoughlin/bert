@@ -227,10 +227,10 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if (!joint.equals(Joint.NONE)) {
             bottle.joint= joint
             if (ctx.Freeze() != null || ctx.Hold() != null) {
-                bottle.addJointValue(joint, JointDynamicProperty.STATE, ConfigurationConstants.ON_VALUE)
+                bottle.value = ConfigurationConstants.ON_VALUE
             }
             else {
-                bottle.addJointValue(joint, JointDynamicProperty.STATE,ConfigurationConstants.OFF_VALUE)
+                bottle.value = ConfigurationConstants.OFF_VALUE
             }
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
@@ -249,9 +249,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 var value = ConfigurationConstants.OFF_VALUE
                 if (ctx.Freeze() != null || ctx.Hold() != null) value = ConfigurationConstants.ON_VALUE
                 bottle.value = value
-                for( joint in RobotModel.limbsByJoint.keys) {
-                    bottle.addJointValue(joint, JointDynamicProperty.STATE,value)
-                }
+
                 sharedDictionary[SharedKey.LIMB] = limb
                 sharedDictionary[SharedKey.IT] = SharedKey.LIMB
             }
@@ -300,8 +298,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // list the limits of your left hip y? (same logic as "handleBulkPropertyRequest)
     override fun visitHandleBulkPropertyQuestion(ctx: SpeechSyntaxParser.HandleBulkPropertyQuestionContext): Any? {
-        if (ctx.Limits() != null) bottle.type = RequestType.GET_LIMITS
-        else                      bottle.type = RequestType.GET_GOALS
+        bottle.type = RequestType.JSON
+        if (ctx.Limits() != null) bottle.jtype = JsonType.MOTOR_LIMITS
+        else                      bottle.jtype = JsonType.MOTOR_GOALS
 
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
@@ -332,8 +331,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
     // what are the limits of your left hip y? (same logic as "handleBulkPropertyQuestion)
     override fun visitHandleBulkPropertyRequest(ctx: SpeechSyntaxParser.HandleBulkPropertyRequestContext): Any? {
-        if (ctx.Limits() != null) bottle.type = RequestType.GET_LIMITS
-        else                      bottle.type = RequestType.GET_GOALS
+        bottle.type = RequestType.JSON
+        if (ctx.Limits() != null) bottle.jtype = JsonType.MOTOR_LIMITS
+        else                      bottle.jtype = JsonType.MOTOR_GOALS
 
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()

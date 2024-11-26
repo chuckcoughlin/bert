@@ -6,6 +6,7 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -113,8 +114,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * for example requesting status or commanding control of a single joint.
      * In this case, we blindly send the request to all port handlers, but
      * expect a reply from only one.
-     * 3) Global commands or requests. These apply to all motor groups. Examples
-     * include setting a pose or commanding an action, requesting positional state.
+     * 3) Global commands or requests. These apply to all motor groups. There
+     * are a small number of these messages as they must be synchronized globally.
      * These requests are satisfied by sending the same request to all port handlers.
      * The single unique request object collects partial results from all
      * controllers. When complete, it is passed here and forwarded to the dispatcher.
@@ -223,15 +224,19 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * @return true if this is the type of request satisfied by a motor single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if (msg.type.equals(RequestType.GET_GOALS) ||
-            msg.type.equals(RequestType.GET_LIMITS) ||
-            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+        if( msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
         else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-                 msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
+            msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
+        }
+        else if( msg.type.equals(RequestType.JSON) ) {
+            if( msg.jtype.equals(JsonType.MOTOR_GOALS) ||
+                msg.jtype.equals(JsonType.MOTOR_LIMITS)) {
                 return true
             }
         }

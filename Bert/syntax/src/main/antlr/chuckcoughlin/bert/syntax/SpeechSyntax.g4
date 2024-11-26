@@ -22,7 +22,7 @@ command:
 	| Describe Article? Adjective? Pose                                     # currentPoseDescription
 	| Greeting Greeting? Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					            # initializeJoints
-	| List Article? (Limits|Goals) Of Article? Side? Joint Axis?    # handleBulkPropertyRequest
+	| List Article? (Limits|Goals) Of Article? Side? Joint Axis?    		# handleBulkPropertyRequest
 	| List Article? Properties Of Article? Motors       	# handleListCommand
 	| List Article? Motor? Properties                   	# handleListCommand
 	| List Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
@@ -96,7 +96,7 @@ Extremity: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Faces: 'faces';
 From: 'from';
 Forget: 'forget'|'delete';
-Goals: 'goals'|'targets';
+Goals: 'goals'|'target positions'|'targets';
 Greeting: 'hello'|'high'|'hi'|'hey';
 Have: 'have'|'wear';
 Hold: 'hold';

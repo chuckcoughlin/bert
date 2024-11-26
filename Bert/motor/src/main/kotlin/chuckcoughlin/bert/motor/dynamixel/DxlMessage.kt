@@ -7,6 +7,7 @@ package chuckcoughlin.bert.motor.dynamixel
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.sql.db.Database
+import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
 /**
@@ -519,33 +520,36 @@ object DxlMessage {
                 LOGGER.info(msg)
             }
             val err = bytes[4]
+            val gson = GsonBuilder().setPrettyPrinting().create()
+            var motorValues = mutableListOf<JointPropertyValue>()
             var property: JointDynamicProperty = JointDynamicProperty.ANGLE
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val t1 = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
-            bottle.addJointValue(bottle.joint,property,v1)
+            motorValues.add(JointPropertyValue(bottle.joint,property,v1))
             mc.angle = v1
             property = JointDynamicProperty.SPEED // Non-directional
             var v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
             val t2 = DxlConversions.textForProperty(property, mc, bytes[7], bytes[8])
-            bottle.addJointValue(bottle.joint,property,v2)
+            motorValues.add(JointPropertyValue(bottle.joint,property,v2))
             v2 = v2 * 100.0 / DxlConversions.velocity.get(mc.type)!! // Convert to percent
             mc.speed = v2
             property = JointDynamicProperty.TORQUE // Non-directional
             var v3 = DxlConversions.valueForProperty(property, mc, bytes[9], bytes[10])
             val t3 = DxlConversions.textForProperty(property, mc, bytes[9], bytes[10])
-            bottle.addJointValue(bottle.joint,property,v3)
+            motorValues.add(JointPropertyValue(bottle.joint,property,v3))
             v3 = v2 * 100.0 / DxlConversions.torque.get(mc.type)!! // Convert to percent
             mc.torque = v3
             val text = String.format("Goal angle, speed and torque are : %s, %s, %s", t1, t2, t3)
             if (err.toInt() == 0) {
-                bottle.text = text
+                LOGGER.info(text)
             }
             else {
-                val msg = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",
+                val errText = String.format("%s.updateGoalsFromBytes: message returned error %d (%s)",
                     CLSS,err,descriptionForError(err))
-                bottle.error = msg
-                LOGGER.severe(msg)
+                bottle.error = errText
+                LOGGER.severe(errText)
             }
+            bottle.text = gson.toJson(motorValues)
         }
         else {
             val msg = String.format("%s.updateGoalsFromBytes: Illegal message: %s", CLSS, dump(bytes))
@@ -571,21 +575,23 @@ object DxlMessage {
             // val msg = String.format("%s.updateLimitsFromBytes: %s", CLSS, dump(bytes))
             // val id = bytes[2].toInt()
             val err = bytes[4]
+            val gson = GsonBuilder().setPrettyPrinting().create()
+            var motorValues = mutableListOf<JointPropertyValue>()
             var property: JointDynamicProperty = JointDynamicProperty.MAXIMUMANGLE // CW
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val t1 = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
-            bottle.addJointValue(bottle.joint,property,v1)
+            motorValues.add(JointPropertyValue(bottle.joint,property,v1))
             property = JointDynamicProperty.MINIMUMANGLE // CCW
             val v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
             val t2 = DxlConversions.textForProperty(property, mc, bytes[7], bytes[8])
-            bottle.addJointValue(bottle.joint,property,v2)
+            motorValues.add(JointPropertyValue(bottle.joint,property,v2))
             property = JointDynamicProperty.TORQUE // Non-directional
             val v3 = DxlConversions.valueForProperty(property, mc, bytes[12], bytes[13])
             val t3 = DxlConversions.textForProperty(property, mc, bytes[12], bytes[13])
-            bottle.addJointValue(bottle.joint,property,v3)
+            motorValues.add(JointPropertyValue(bottle.joint,property,v3))
             val text = String.format("min, max angle and torque limits are : %s, %s, %s", t2, t1, t3)
             if (err.toInt() == 0) {
-                bottle.text = text
+                LOGGER.info(text)
             }
             else {
                 val msg = String.format("%s.updateLimitsFromBytes: message returned error %d (%s)",
@@ -593,6 +599,7 @@ object DxlMessage {
                 bottle.error = msg
                 LOGGER.severe(msg)
             }
+            bottle.text = gson.toJson(motorValues)
         }
         else {
             val msg = String.format("%s.updateLimitsFromBytes: Illegal message: %s", CLSS, dump(bytes))
@@ -620,7 +627,9 @@ object DxlMessage {
             val value = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val text = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
             if (err.toInt() == 0) {
-                bottle.addJointValue(Joint.NONE,property,value)
+                bottle.joint = mc.joint
+                bottle.jointDynamicProperty = property
+                bottle.value = value
                 bottle.text = text
                 LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.2f",
                         CLSS,mc.joint,property,value)

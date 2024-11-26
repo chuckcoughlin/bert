@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.JointPropertyValue
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
@@ -57,33 +56,26 @@ class MessageTranslator {
 
         // Handle messages that have no response
         text = if (text.isBlank()) {
-            if (type.equals(RequestType.NOTIFICATION)) {
+            if(type.equals(RequestType.NOTIFICATION)) {
                 "Received an empty notification."
             }
             else if(type.equals(RequestType.COMMAND)) {
                 randomAcknowledgement()
             }
-            else if (type.equals(RequestType.EXECUTE_POSE)) {
+            else if(type.equals(RequestType.EXECUTE_POSE)) {
                 String.format("I am %s", msg.arg.lowercase(Locale.getDefault()))
             }
             // A limb has a state of being rigid or not. We look at the first joint in the list
             // to determine
-            else if (type.equals(RequestType.SET_LIMB_PROPERTY)) {
-                val limb: Limb = msg.limb
-                val iterator:MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
-                if( iterator.hasNext() ) {
-                    val jpv: JointPropertyValue = iterator.next()
-                    val propertyName: String = jpv.property.name
-                    if (propertyName.equals(JointDynamicProperty.STATE.name, ignoreCase = true)) {
-                        if (jpv.value == ConfigurationConstants.OFF_VALUE) {
-                            String.format("My %s is now flexible ", Limb.toText(limb))
-                        }
-                        else {
-                            String.format("My %s is rigid ", Limb.toText(limb))
-                        }
+            else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
+                val limb: Limb=msg.limb
+                val property=msg.jointDynamicProperty
+                if(property.equals(JointDynamicProperty.STATE)) {
+                    if(msg.value == ConfigurationConstants.OFF_VALUE) {
+                        String.format("My %s is now flexible ", Limb.toText(limb))
                     }
                     else {
-                        String.format("My %s is set ", Limb.toText(limb))
+                        String.format("My %s is rigid ", Limb.toText(limb))
                     }
                 }
                 else {
@@ -91,7 +83,7 @@ class MessageTranslator {
                 }
             }
             else {
-                String.format("Received an empty %s message.",msg.type.name)
+                String.format("Received an empty %s.",msg.type.name)
             }
         }
         // Message has text
@@ -99,14 +91,8 @@ class MessageTranslator {
             if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
                 val property: JointDynamicProperty=msg.jointDynamicProperty
                 val joint: Joint=msg.joint
-                val iterator: MutableListIterator<JointPropertyValue> = msg.getJointValueIterator()
-                if(iterator.hasNext()) {
-                    val value: Double=iterator.next().value.toDouble()
-                    String.format("The %s of my %s is %.02f", property.name, Joint.toText(joint), value)
-                }
-                else {
-                    text
-                }
+                String.format("The %s of my %s is %.02f", property.name, Joint.toText(joint), msg.value)
+
             }
             else if(type.equals(RequestType.INITIALIZE_JOINTS)) {
                 randomAcknowledgement()

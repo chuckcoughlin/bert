@@ -1,5 +1,8 @@
 package chuckcoughlin.bert.common.message
 
+import chuckcoughlin.bert.common.controller.ControllerType
+import java.lang.ModuleLayer.Controller
+
 
 /**
  * This is a nested class for MessageBottles that contains control parameters for processing
@@ -23,7 +26,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
      */
     var executionTime : Long   // ~msecs
     var repeatInterval: Long   // ~msecs
-    var originalSource: String
+    var originalSource: ControllerType
     /* While processing within the MotorController attach a serial message response count to the
     * request so that we can determine when the response is complete.
     */
@@ -59,7 +62,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
         repeatInterval = 0
         responseCount  = mutableMapOf<String, Int>()
         shouldRepeat = false
-        originalSource = BottleConstants.NO_SOURCE
+        originalSource = ControllerType.UNDEFINED
         id = nextId
     }
 }

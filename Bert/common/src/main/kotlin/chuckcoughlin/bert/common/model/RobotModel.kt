@@ -31,7 +31,7 @@ object RobotModel {
     val properties: Properties   // These are the generic properties
     val propertiesByController:  MutableMap<ControllerType, Properties>
     val jointsByController:      MutableMap<String,List<Joint>>
-    val limbsByJoint: MutableMap<Joint, Limb>
+    val limbsByJoint:            MutableMap<Joint, Limb>
     val motorsByJoint:           MutableMap<Joint, MotorConfiguration> // Motor configuration by joint
     val motorsById:              MutableMap<Int, MotorConfiguration>   // Motor configuration by id
 
