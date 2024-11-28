@@ -247,8 +247,8 @@ object RobotModel {
         return joints
     }
     /**
-     * @return a named String property. If the requested property is not defined,
-     *         return the string PROPERTY_NONE.
+     * @return the serial port device name. If it is not defined,
+     *         return the string NO_DEVICE.
      */
     fun getDeviceForMotorController(name:String): String {
         var device =  motorControllerDevices[name]

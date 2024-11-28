@@ -201,12 +201,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if( msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+        if( msg.type.equals(RequestType.EXECUTE_ACTION) ||
+            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-                msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
+        else if( msg.type.equals(RequestType.EXECUTE_POSE) ||
+                 msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+                 msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
                 return true
             }
@@ -228,8 +230,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      */
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS)   ||
-            msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.EXECUTE_POSE) ) {
+            msg.type.equals(RequestType.READ_MOTOR_PROPERTY)  ) {
                 return false
         }
         return true
@@ -435,9 +436,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
             val poseName: String = request.arg
             val index: Int = request.value.toInt()
+            val limb = request.limb
             val poseid = Database.getPoseIdForName(poseName,index)
             if( poseid!= SQLConstants.NO_POSE) {
-                list=DxlMessage.byteArrayListToSetPose(poseid, configurationsByJoint)
+                list=DxlMessage.byteArrayListToSetPose(poseid, configurationsForLimb(limb))
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration
             }

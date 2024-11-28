@@ -224,11 +224,13 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * @return true if this is the type of request satisfied by a motor single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if( msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
+        if( msg.type.equals(RequestType.EXECUTE_ACTION) ||
+            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+        else if( msg.type.equals(RequestType.EXECUTE_POSE) ||
+            msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
                 return true
@@ -242,7 +244,6 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         }
         return false
     }
-
     // When in development mode with no access to actual motors, simulate something reasonable as a response.
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {
         val requestType = request.type

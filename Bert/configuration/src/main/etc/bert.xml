@@ -25,7 +25,8 @@
 	<!-- These controllers manage groups of joints. Requests are sent the entire group at once across
 	     a serial connection. The names must exist in the enumeration chuckcoughlin.bert.common.model.Joint.
 	     There is an upper body group and a lower body group. Joints are organized into
-	     "limbs" for purposes of setting torques and speeds as a group.
+	     "limbs" for purposes of setting torques and speeds as a group. It is important that limbs
+	     not span controllers as control of limbs is assumed to be independent.
 	     
 	     Loads and speeds are software-enforced limits and are used to compute percents of maximum.
 	     Spec loads are: 6.0,2.5,1.2; spec speeds are: 700,700,684 for MX-64, MX-28,AT-12, respectively.
