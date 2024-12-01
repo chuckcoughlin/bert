@@ -40,6 +40,7 @@ object ConfigurationConstants {
 
     // Pose names (these are required to exist)
     const val POSE_HOME = "home"
+    const val POSE_HOME_INDEX = 1.0
 
     // Minimum spacing between serial writes ~ msec
     const val MIN_SERIAL_WRITE_INTERVAL = 100L   // (50 was too short)

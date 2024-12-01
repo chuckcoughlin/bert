@@ -73,6 +73,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
         copy.source      = source
         copy.text        = text
         copy.control     = control.clone()
+        copy.value       = value
         return copy
     }
 

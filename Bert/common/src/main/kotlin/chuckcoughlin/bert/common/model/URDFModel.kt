@@ -52,7 +52,7 @@ object URDFModel {
             val origin = LinkPoint()
             val imus = document!!.getElementsByTagName("imu")
             if (imus.length > 0) {
-                //LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS));
+                LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS));
                 val imuNode = imus.item(0) // Should only be one
                 val childNodes = imuNode.childNodes
                 val childCount = childNodes.length
@@ -138,8 +138,7 @@ object URDFModel {
                                 }
 
                                 val rev = LinkPoint(joint, ijk!!, xyz!!)
-                                if (DEBUG) LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f",
-                                            joint.name,xyz[0],xyz[1],xyz[2]))
+                                //if (DEBUG) LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f", joint.name,xyz[0],xyz[1],xyz[2]))
                                 link.addEndPoint(rev)
                                 chain.setLinkForJoint(joint,link)
                             }
@@ -164,7 +163,7 @@ object URDFModel {
             while (index < count) {
                 val linkNode = links.item(index)
                 val name: String = XMLUtility.attributeValue(linkNode, "name")
-                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: second pass ink %s ...",CLSS,name));
+                //if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: second pass ink %s ...",CLSS,name));
                 try {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
@@ -230,7 +229,7 @@ object URDFModel {
                         CLSS,text,nfe.localizedMessage ) )
             }
         }
-        if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]));
+        //if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]));
         if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]));
         return result
     }
@@ -257,7 +256,7 @@ object URDFModel {
 
 
     private val CLSS = "URDFModel"
-    private val DEBUG = true
+    private val DEBUG = false
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {

@@ -113,9 +113,9 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
 
     // ============================= Private Helper Methods =============================
     /**
-     * NOTE: Identical code in MotorGroupController and MotorController
+     * NOTE: Require same logic in MotorController, MotorGroupController and SerialResponder
      * @param msg the request
-     * @return true if this is the type of request satisfied by a motor single controller.
+     * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
         if( msg.type.equals(RequestType.EXECUTE_ACTION) ||
@@ -123,10 +123,14 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.EXECUTE_POSE) ||
-            msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
+        }
+        else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
+            if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
                 return true
             }
         }

@@ -42,6 +42,8 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,configMap: Map<Joi
     }
     /*
      * Coroutine to send  messages in order to the dispatcher.
+     * The Limb.NONE queue synchronzes on the MotorController READY message.
+     * The other limbs do not synchronize.
      * Calculate a time for the motion and also respect any user
      * defined delay.
      */
@@ -70,7 +72,7 @@ class SequentialQueue(lim: Limb,sender:Channel<MessageBottle>,configMap: Map<Joi
      * respecting the delay setting. Start the execute() function.
      */
     override fun addLast(msg: MessageBottle) {
-        if(DEBUG) LOGGER.info(String.format("%s.addLast: %s on %s.", CLSS,msg.type.name,limb.name))
+        //if(DEBUG) LOGGER.info(String.format("%s.addLast: %s on %s.", CLSS,msg.type.name,limb.name))
         super.addLast(msg)
         start()
     }

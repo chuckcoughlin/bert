@@ -91,8 +91,7 @@ class MessageTranslator {
             if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
                 val property: JointDynamicProperty=msg.jointDynamicProperty
                 val joint: Joint=msg.joint
-                String.format("The %s of my %s is %.02f", property.name, Joint.toText(joint), msg.value)
-
+                text
             }
             else if(type.equals(RequestType.INITIALIZE_JOINTS)) {
                 randomAcknowledgement()

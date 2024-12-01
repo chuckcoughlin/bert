@@ -139,10 +139,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if( isSingleControllerRequest(request) ) {
             val joint: Joint=request.joint
             val limb: Limb=request.limb
-            if( !joint.equals(Joint.NONE) ) {
+            if( joint!=Joint.NONE ) {
                 if( configurationsByJoint[joint]==null ) return
             }
-            else if(!limb.equals(Limb.NONE)) {
+            else if( limb!=Limb.NONE) {
                 val count=configurationsForLimb(limb).size
                 if(count == 0) { return }
             }
@@ -197,6 +197,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 
     // ============================= Private Helper Methods =============================
     /**
+     * NOTE: Require same logic in MotorController, MotorGroupController and SerialResponder
      * @param msg the request
      * @return true if this is the type of request satisfied by a single controller.
      */
@@ -206,10 +207,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.EXECUTE_POSE) ||
-                 msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
                  msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
+        }
+        else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
+            if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
                 return true
             }
         }
@@ -229,7 +234,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * false implies that an array of serial messages are required.
      */
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
-        if (msg.type.equals(RequestType.INITIALIZE_JOINTS)   ||
+        if (msg.type.equals(RequestType.EXECUTE_POSE) ||
+            msg.type.equals(RequestType.INITIALIZE_JOINTS)   ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY)  ) {
                 return false
         }
@@ -438,7 +444,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val index: Int = request.value.toInt()
             val limb = request.limb
             val poseid = Database.getPoseIdForName(poseName,index)
-            if( poseid!= SQLConstants.NO_POSE) {
+            LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d, poseid ´%d",
+                                        CLSS,controllerName,poseName,index,poseid))
+            if( poseid != SQLConstants.NO_POSE) {
+                LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s on %s with %d joints",
+                                            CLSS,controllerName,poseName,limb.name,configurationsForLimb(limb).size))
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsForLimb(limb))
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration

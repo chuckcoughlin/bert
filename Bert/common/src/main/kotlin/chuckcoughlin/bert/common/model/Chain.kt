@@ -35,7 +35,7 @@ class Chain {
      * @param the new link.
      */
     fun addLink(link:Link) {
-        LOGGER.info(String.format("%s.addLink: Added link %s",CLSS,link.bone.name))
+        //LOGGER.info(String.format("%s.addLink: Added link %s",CLSS,link.bone.name))
         linksByBone[link.bone] = link
     }
 

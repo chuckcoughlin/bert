@@ -50,7 +50,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     private val upperResponseChannel = Channel<MessageBottle>()
     private val motorNameById: MutableMap<Int, String>
     private var messageId: Long
-    private var pendingMessages: MutableMap<Long,MutableList<String>>
+    private val pendingMessages: MutableMap<Long,MutableList<String>>
     var running: Boolean
     private var job: Job
     var controllerCount: Int = 0
@@ -124,7 +124,13 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * @return the response, usually containing current joint positions.
      */
     suspend fun processRequest(request: MessageBottle):MessageBottle {
-        LOGGER.info(String.format("%s.processRequest: processing %s",CLSS,request.type.name))
+        if(!request.limb.equals(Limb.NONE)) {
+            LOGGER.info(String.format("%s.processRequest: processing %s on %s",CLSS,request.type.name,request.limb.name))
+        }
+        else {
+            LOGGER.info(String.format("%s.processRequest: processing %s on %s",CLSS,request.type.name,request.joint.name))
+        }
+
         if (canHandleImmediately(request) ) {
             parentResponseChannel.send(createImmediateResponse(request))
         }
@@ -161,6 +167,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 parentResponseChannel.send(response)
                 pendingMessages.remove(id)
             }
+
         }
         return response
     }
@@ -172,6 +179,10 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     private fun canHandleImmediately(request: MessageBottle): Boolean {
         if (request.type.equals(RequestType.EXECUTE_ACTION) ||
             request.type.equals(RequestType.RESET) ) {
+            return true
+        }
+        else if (request.type.equals(RequestType.EXECUTE_POSE) &&
+            request.limb.equals(Limb.NONE) ) {
             return true
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
@@ -204,6 +215,11 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             pendingMessages.clear()
             request.text = String.format("%s complete",request.arg)
         }
+        else if (type.equals(RequestType.EXECUTE_POSE) &&
+                request.limb.equals(Limb.NONE) ) {
+            pendingMessages.clear()
+            request.text = String.format("%s complete",request.arg)
+        }
         else if (type.equals(RequestType.RESET) ) {
             pendingMessages.clear()
             request.text = "I have been reset"
@@ -220,8 +236,9 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     }
 
     /**
+     * NOTE: Require same logic in MotorController, MotorGroupController and SerialResponder
      * @param msg the request
-     * @return true if this is the type of request satisfied by a motor single controller.
+     * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
         if( msg.type.equals(RequestType.EXECUTE_ACTION) ||
@@ -229,10 +246,14 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.EXECUTE_POSE) ||
-            msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
+        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
             msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
             if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+                return true
+            }
+        }
+        else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
+            if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
                 return true
             }
         }
