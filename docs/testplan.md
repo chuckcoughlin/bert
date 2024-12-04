@@ -73,12 +73,11 @@ Typical requests:
     list your poses
     list your face names
 ```
-* ![yellow](/images/ball_yellow.png) ``Name Lists`` - Use the terminal
+* ![green](/images/ball_green.png) ``Name Lists`` - Use the terminal
   application to list
-  names of entities added by the user. These values include: actions, faces and poses.  Names are returned as a space-separated list which makes them pronounceable.
+  names of entities added by the user. These values include: actions, faces and poses.  Names are returned as a comma-separated string which makes them pronounceable.
  Typical requests:
 ```
-    tell me your motor ids
     what are your static motor parameters
     what are the dynamic properties of your joints
     what are the names of your joints
@@ -89,13 +88,13 @@ Typical requests:
     who do you know
 ```
 
-* ![yellow](/images/ball_yellow.png) ``Goals`` - Goals refer to target positions of commanded movements.
-While in-transit, the current position will not match the goal. Test at very slow velocities. Goal parameters
-include angle, speed and and torque limits.  Speeds are degrees/sec and
+* ![green](/images/ball_green.png) ``Goals`` - Goals refer to target positions of commanded movements.
+While in-transit, the current position will not match the goal. Test at very slow velocities to verify.  Parameters include angle, speed and and torque.  Speeds are degrees/sec and
 torques are newton-meters.
 Typical syntax:
 ```
-    what is are your target positions
+    what are the goals of your right ankle
+    what your left elbow limits
 ```
 
 ### c - Properties <a id="properties"></a>
@@ -219,15 +218,15 @@ of poses executed in order with sufficient time delays to allow movement to each
 clarity each pose within the same action can be given the same name plus an index that defines execution
 order. JSON versions of the commands are supplied to facilitate editing on the tablet.
 
-* ![yellow](/images/ball_yellow.png) ``Pose`` - Associate the current joint positions with
+* ![green](/images/ball_green.png) ``Pose`` - Associate the current joint positions with
 a named pose. The pose is saved in the robot's internal database and represents a collection of joint-position pairs. The pose is given an index (1 by default) to allow poses of the same name to all be part of an action.
 
 In the examples that follow *saluting* is a pose name and *salute* is an action.
 ```
-    your pose is saluting
+    your pose is saluting 1
     save your pose as saluting 3
     record it as saluting 2
-    assume the pose saluting
+    assume the pose saluting 1
     take the pose saluting
 ```
 In the case where an index is not specified,
@@ -244,7 +243,8 @@ with a series of pre-defined poses.  Pose and action names are
 arbitrary, but must be spelled in the same
 way as the Android text-to-speech processor. Sample syntax:
 ```
-  define salute as a series of saluting poses
+  define salute from saluting
+  use saluting poses to define salute
 ```
 As before some requests are designed for direct tablet interaction and return a JSON string
 ```
@@ -257,7 +257,6 @@ pose or execute some action.  As of yet, this movement does not
 account for positional conflicts.
 ```
     salute
-    saluting 2
 ```
 
 * ![green](/images/ball_yellow.png) ``Clean up`` - Remove a pose or action. If a pose is
@@ -337,7 +336,7 @@ status of the connection to the robot, the states of speech to text and
 of text to speech processing. The right-side slider adjusts the speaking volume.
 The red button in the lower right corner kills the tablet application.
 
-* ![yellow](/images/ball_yellow.png) ```Ignoring```
+* ![gray](/images/ball_gray.png) ```Ignoring```
 It can be annoying when the robot
 attempts to interpret (and fails) background speech not directed  towards it. The
 commands below place the robot into a state where it ignores ambient speech until specifically directed to be attentive.

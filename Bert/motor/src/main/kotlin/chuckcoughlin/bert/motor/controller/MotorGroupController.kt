@@ -14,6 +14,7 @@ import jssc.SerialPort
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
+import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 
@@ -182,7 +183,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             return true
         }
         else if (request.type.equals(RequestType.EXECUTE_POSE) &&
-            request.limb.equals(Limb.NONE) ) {
+            request.limb == Limb.NONE ) {
+            // This is just a marker for end-of-pose
             return true
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
@@ -211,14 +213,17 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     private fun createImmediateResponse(request: MessageBottle): MessageBottle {
         val type = request.type
         // This just marks the end of executing the poses.
-        if (type.equals(RequestType.EXECUTE_ACTION) ) {
+        if (type == RequestType.EXECUTE_ACTION ) {
             pendingMessages.clear()
             request.text = String.format("%s complete",request.arg)
         }
         else if (type.equals(RequestType.EXECUTE_POSE) &&
-                request.limb.equals(Limb.NONE) ) {
+                 request.limb == Limb.NONE ) {
             pendingMessages.clear()
+
             request.text = String.format("%s complete",request.arg)
+            LOGGER.info(String.format("%s.createImmediateResponse: %s %s %s (%s)",
+                CLSS,request.type.name,request.arg,request.limb.name,request.text))
         }
         else if (type.equals(RequestType.RESET) ) {
             pendingMessages.clear()

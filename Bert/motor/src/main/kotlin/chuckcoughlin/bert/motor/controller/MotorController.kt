@@ -394,8 +394,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         request.control.responseCount[controllerName] = 0 // No response unless otherwise set
         var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
-        if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s",
-                    CLSS,controllerName,type.name))
+        val limb: Limb = request.limb
+        if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s on %s",
+                    CLSS,controllerName,type.name,limb.name))
 
         if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {   // Range is the only legal one for list
             val mc = RobotModel.motorsByJoint[request.joint]!!
@@ -444,7 +445,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val index: Int = request.value.toInt()
             val limb = request.limb
             val poseid = Database.getPoseIdForName(poseName,index)
-            LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d, poseid ´%d",
+            LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d, poseid %d",
                                         CLSS,controllerName,poseName,index,poseid))
             if( poseid != SQLConstants.NO_POSE) {
                 LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s on %s with %d joints",

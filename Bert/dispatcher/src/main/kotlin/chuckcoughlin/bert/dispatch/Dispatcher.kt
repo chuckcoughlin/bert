@@ -15,6 +15,7 @@ import chuckcoughlin.bert.term.controller.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
+import java.awt.font.TextAttribute.WEIGHT
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -448,6 +449,12 @@ class Dispatcher() : Controller {
                 JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
                     text = JointDynamicProperty.toJSON()
                 }
+                JsonType.MOTOR_GOALS -> {
+                    text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
+                }
+                JsonType.MOTOR_LIMITS -> {
+                    text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
+                }
                 JsonType.MOTOR_STATIC_PROPERTIES -> {
                     text = JointDefinitionProperty.toJSON()
                 }
@@ -494,9 +501,18 @@ class Dispatcher() : Controller {
             request.type.equals(RequestType.GET_EXTREMITY_LOCATION) ||
             request.type.equals(RequestType.GET_JOINT_LOCATION) ||
             request.type.equals(RequestType.GET_METRIC) ||
-            request.type.equals(RequestType.HANGUP)     ||
-            request.type.equals(RequestType.JSON)     ) {
+            request.type.equals(RequestType.HANGUP)    ) {
             return true
+        }
+        // THese are the definition properties
+        else if( request.type == RequestType.JSON ) {
+            if( request.jtype==JsonType.MOTOR_GOALS ||
+                request.jtype==JsonType.MOTOR_LIMITS ) {
+                    return false
+            }
+            else {
+                return true
+            }
         }
         // THese are the definition properties
         else if( request.type == RequestType.GET_MOTOR_PROPERTY &&

@@ -52,7 +52,7 @@ data class MessageBottle (var type:RequestType) : Cloneable,Serializable {
      * Set the number of millisecs that the motion commanded by this
      * request is expected to last. Often this represents the required
      * time buffer between subsequent commands, especially those affecting
-     * the same sub-chain.
+     * the same limbn.
      * @param period ~ msecs
      */
     var duration: Long = 0 // ~msecs

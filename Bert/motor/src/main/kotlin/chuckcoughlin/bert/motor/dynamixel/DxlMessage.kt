@@ -6,6 +6,8 @@ package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.CLSS
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import com.google.gson.GsonBuilder
 import java.util.logging.Logger
@@ -217,10 +219,10 @@ object DxlMessage {
      */
     fun byteArrayListToSetPose(poseid: Long,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
         LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %d",CLSS,poseid))
-        // These maps contain all joints
+        // These maps contain joints for the subject limbs
         val torques: Map<Joint, Double> = Database.getPoseJointTorques( poseid, map)
         val speeds: Map<Joint, Double> = Database.getPoseJointSpeeds(poseid, map)
-        val angles: Map<Joint, Double> = Database.getPoseJointPositions(poseid)
+        val angles: Map<Joint, Double> = Database.getPoseJointPositions(poseid,map)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
         val tc = torques.size
@@ -234,11 +236,13 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.TORQUE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
+            var isChanged = false
             for (key in map.keys) {
                 if( torques[key]==null ) continue    // joint not being set
                 if( map[key]==null )     continue
                 val mc: MotorConfiguration = map[key]!!
                 if( mc.torque.equals(torques[key]) ) continue
+                isChanged = true
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -246,8 +250,10 @@ object DxlMessage {
                 mc.torque = torques[key]!! // percent of max
                 index = index + 3
             }
-            setChecksum(bytes)
-            messages.add(bytes)
+            if( isChanged ) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
         }
         val sc = speeds.size
         // Speed
@@ -260,9 +266,11 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.SPEED)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
+            var isChanged = false
             for (key in map.keys) {
                 if( speeds[key]==null ) continue
                 if( map[key]==null )  continue
+                isChanged = true
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: joint = %s",CLSS,key.name))
                 val mc: MotorConfiguration = map[key]!!
                 if( mc.speed.equals(speeds[key]!!) ) continue
@@ -273,8 +281,10 @@ object DxlMessage {
                 mc.speed = speeds[key]!! // percent of max
                 index = index + 3
             }
-            setChecksum(bytes)
-            messages.add(bytes)
+            if( isChanged ) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
         }
         val pc = angles.size
         // Positions
@@ -288,12 +298,14 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.ANGLE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
+            var isChanged = false
             for (key in map.keys) {
                 if( map[key]==null ) continue
                 val mc: MotorConfiguration = map[key]!!
                 if( angles[key] == null )  continue
                 if( mc.angle.equals(angles[key]!!) ) continue
-                LOGGER.info(String.format("%s.byteArrayListToSetPose: Id = %d - set position for %s to %.0f",CLSS,mc.id,key,angles.get(key)));
+                isChanged = true
+                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %.0f",CLSS,key,angles.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, angles[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -302,8 +314,10 @@ object DxlMessage {
                 if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
                 index = index + 3
             }
-            setChecksum(bytes)
-            messages.add(bytes)
+            if( isChanged ) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
         }
         return messages
     }

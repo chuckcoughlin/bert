@@ -113,8 +113,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             dispatchMessage(msg)
         }
         else if (request.type == RequestType.EXECUTE_POSE ) {
-            LOGGER.info(String.format("%s.handleRequest %s pose = %s %02f",
-                        CLSS,request.type.name,request.arg,request.value))
+            LOGGER.info(String.format("%s.handleRequest %s pose = %s %2.0f (%s)",
+                        CLSS,request.type.name,request.arg,request.value,request.source))
             distributePose(request)
         }
         else if (request.type == RequestType.EXECUTE_ACTION ) {
@@ -141,13 +141,13 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     private suspend fun distributePose(request:MessageBottle) {
         for( limb in Limb.values()) {
             var msg : MessageBottle
-            if(!limb.equals(Limb.NONE)) {
+            if( limb!=Limb.NONE ) {
                 msg = request.clone()
-
                 msg.source = ControllerType.BITBUCKET
             }
             else {
                 msg = request
+                //LOGGER.info(String.format("%s.distribute pose %s  source = %s", CLSS,msg.arg,msg.source))
             }
             msg.limb = limb
             dispatchMessage(msg)
@@ -162,7 +162,10 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
      * @param msg
      */
     override suspend fun dispatchMessage(msg:MessageBottle) {
-        if (DEBUG) LOGGER.info(String.format("%s.dispatchMessage sending to dispatcher: %s (%s)", CLSS, msg.type.name,msg.arg))
+        if (DEBUG) {
+            if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)", CLSS, msg.type.name,msg.arg))
+            else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
+        }
         // Mark dispatch time on motors
         val queue = queues[msg.limb]!!
         queue.addLast(msg)

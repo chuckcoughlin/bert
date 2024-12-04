@@ -213,12 +213,13 @@ class PoseTable {
     }
 
     /**
-     * Return a map of angles by joint name
+     * Return a map of angles by joint name. The configuration map that is supplied
+     * contains the motors of interest. Other motors are ingnored.
      *
      * @param poseid
      * @return a map of target positions by joint for the pose
      */
-    fun getPoseJointPositions(cxn: Connection?,poseid: Long): Map<Joint, Double> {
+    fun getPoseJointPositions(cxn: Connection?,poseid: Long, configs:Map<Joint,MotorConfiguration>): Map<Joint, Double> {
         val map: MutableMap<Joint, Double> = HashMap()
         if( cxn!=null ) {
             var statement: PreparedStatement? = null
@@ -233,10 +234,12 @@ class PoseTable {
                 while (rs.next() ) {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
-                    val angle = rs.getDouble("angle")
-                    map[joint] = angle
-                    //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointPositions: for %s = %2.0f",
-                    //                CLSS, joint.name, angle))
+                    if( configs[joint] != null ) {
+                        val angle = rs.getDouble("angle")
+                        map[joint] = angle
+                        //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointPositions: for %s = %2.0f",
+                        //                CLSS, joint.name, angle))
+                    }
                 }
                 rs.close()
             }
@@ -263,8 +266,7 @@ class PoseTable {
         return map
     }
     /**
-     * Return a map of speeds by joint name. The speeds come from the current
-     * MotorConfiguration objects.
+     * Return a map of speeds in the pose  by joint name. Motors not in the supplied list are ignored
      *
      * @param poseid
      * @return a map of current speed settings by joint for the pose
@@ -284,10 +286,12 @@ class PoseTable {
                 while (rs.next() ) {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
-                    val speed = rs.getDouble("speed")
-                    map[joint] = speed
-                    //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointSpeeds: for %s = %2.0f",
-                    //            CLSS, joint.name, speed))
+                    if( configs[joint]!=null ) {
+                        val speed = rs.getDouble("speed")
+                        map[joint] = speed
+                        //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointSpeeds: for %s = %2.0f",
+                        //            CLSS, joint.name, speed))
+                    }
                 }
                 rs.close()
             }
@@ -315,7 +319,7 @@ class PoseTable {
     }
     /**
      * Return a map of torques by joint name. The torques come from the current
-     * MotorConfiguration objects.
+     * MotorConfiguration objects. Motors not in the supplied list are ignored.
      *
      * @param poseid
      * @return a map of current torque values by joint for the pose
@@ -335,10 +339,12 @@ class PoseTable {
                 while (rs.next() ) {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
-                    val torque = rs.getDouble("torque")
-                    map[joint] = torque
-                    //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointTorques: for %s = %2.0f",
-                    //            CLSS, joint.name, torque))
+                    if( configs[joint]!=null ) {
+                        val torque = rs.getDouble("torque")
+                        map[joint] = torque
+                        //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointTorques: for %s = %2.0f",
+                        //            CLSS, joint.name, torque))
+                    }
                 }
                 rs.close()
             }
