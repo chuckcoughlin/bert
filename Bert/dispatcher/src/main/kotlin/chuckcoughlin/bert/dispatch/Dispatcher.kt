@@ -105,8 +105,16 @@ class Dispatcher() : Controller {
                         }
                         // When we get a response from the internal controller, dispatch the original request.
                         fromInternalController.onReceive { // The internal controller has completed
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
-                                CLSS, it.type.name,it.text,it.source))
+                            if(DEBUG) {
+                                if(it.type==RequestType.EXECUTE_POSE) {
+                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
+                                        CLSS, it.type.name,it.text,it.source))
+                                }
+                                else {
+                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s %2.0f) from %s",
+                                        CLSS, it.type.name,it.arg,it.value,it.source))
+                                }
+                            }
                             dispatchInternalResponse(it)
                         }
                         // The Command response channel contains requests that originate on the connected app (tablet)
@@ -117,8 +125,16 @@ class Dispatcher() : Controller {
                         }
                         // The Terminal stdin channel contains requests typed at the terminal
                         stdinChannel.onReceive {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
-                                CLSS, it.type.name,it.text,it.source))
+                            if(DEBUG) {
+                                if(it.type==RequestType.EXECUTE_POSE) {
+                                    LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
+                                        CLSS, it.type.name,it.text,it.source))
+                                }
+                                else {
+                                    LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s %2.0f) from %s",
+                                        CLSS, it.type.name,it.arg,it.value,it.source))
+                                }
+                            }
                             dispatchCommandResponse(it)
                         }
                     }

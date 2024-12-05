@@ -143,6 +143,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             var msg : MessageBottle
             if( limb!=Limb.NONE ) {
                 msg = request.clone()
+                msg.text = ""
                 msg.source = ControllerType.BITBUCKET
             }
             else {
@@ -152,7 +153,6 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.limb = limb
             dispatchMessage(msg)
         }
-
     }
 
     /**

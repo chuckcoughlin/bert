@@ -56,16 +56,19 @@ class Terminal(stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : C
         if (!running) {
             LOGGER.info(String.format("%s.execute: started...", CLSS))
             running = true
-            /* select() in coroutine to balance sends/receives from Dispatcher */
+            /* select{} in coroutine to balance sends/receives from Dispatcher */
             job = scope.launch(Dispatchers.IO) {
+                print(prompt)
                 while (running) {
-                    print(prompt)
                     select<MessageBottle> {
                         stdoutChannel.onReceive() {
                             displayMessage(it)
+                            print(prompt)
                             it
                         }
-                        handleUserInput().onAwait{it}
+                        handleUserInput().onAwait{
+                            it
+                        }
                     } // End select
                 }
             }
@@ -107,28 +110,33 @@ class Terminal(stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : C
                 request = parser.parseStatement(text)
                 request.source = ControllerType.TERMINAL
                 if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsed %s", CLSS, text))
+
+                if (!request.error.equals(BottleConstants.NO_ERROR)) {
+                    if (DEBUG) LOGGER.info(
+                        String.format("%s.execute ERROR = %s (%s)", CLSS, request.error, request.text))
+                    displayMessage(request)   // Show the error
+                    print(prompt)           // Prompt for new input
+                }
+                else if (isLocalRequest(request)) {
+                    if (DEBUG) LOGGER.info(String.format("%s.handleLocalRequest:%s", CLSS, request.text));
+                    request = handleLocalRequest(request)
+                    print(prompt)
+                }
+                else if( request.type==RequestType.NOTIFICATION ) {
+                    if (DEBUG) LOGGER.info(
+                        String.format("%s.execute notification = %s", CLSS, request.text)
+                    )
+                    displayMessage(request)   // Write local notification to stdout
+                    print(prompt)
+                }
+                else {
+                    if (DEBUG) LOGGER.info(String.format("%s.execute request sent to dispatcher", CLSS))
+                    stdinChannel.send(request)
+                }
             }
-            if (!request.error.equals(BottleConstants.NO_ERROR)) {
-                if (DEBUG) LOGGER.info(
-                    String.format("%s.execute ERROR = %s (%s)", CLSS, request.error, request.text))
-                displayMessage(request)   // Show the error
-                print(prompt)           // Prompt for new input
-            }
-            else if (isLocalRequest(request)) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest:%s",CLSS,request.text));
-                request = handleLocalRequest(request)
-            }
-            else if (request.type.equals(RequestType.NOTIFICATION)) {
-                if (DEBUG) LOGGER.info(
-                    String.format("%s.execute notification = %s", CLSS, request.text)
-                )
-                displayMessage(request)   // Write local notification to stdout
-                print(prompt)
-            }
+            // Empty text
             else {
-                if (DEBUG) LOGGER.info(
-                        String.format("%s.execute request sent to dispatcher", CLSS))
-                stdinChannel.send(request)
+                print(prompt)
             }
             request
         }

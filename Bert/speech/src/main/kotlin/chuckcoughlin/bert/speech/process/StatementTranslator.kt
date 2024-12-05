@@ -824,6 +824,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.type = RequestType.EXECUTE_POSE
             bottle.arg = ConfigurationConstants.POSE_HOME
             bottle.value = ConfigurationConstants.POSE_HOME_INDEX
+            sharedDictionary[SharedKey.POSE] = ConfigurationConstants.POSE_HOME
         }
         else {
             success = false

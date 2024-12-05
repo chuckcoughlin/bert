@@ -221,11 +221,11 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                  request.limb == Limb.NONE ) {
             pendingMessages.clear()
 
-            request.text = String.format("%s complete",request.arg)
+            //request.text = String.format("%s complete",request.arg)
             LOGGER.info(String.format("%s.createImmediateResponse: %s %s %s (%s)",
                 CLSS,request.type.name,request.arg,request.limb.name,request.text))
         }
-        else if (type.equals(RequestType.RESET) ) {
+        else if( type==RequestType.RESET ) {
             pendingMessages.clear()
             request.text = "I have been reset"
         }
