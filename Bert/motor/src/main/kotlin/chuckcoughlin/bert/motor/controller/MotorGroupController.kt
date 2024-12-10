@@ -178,16 +178,16 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // immediately. Results are created from the original configuration file.
     // We also create error messages some requests that are illegal
     private fun canHandleImmediately(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.EXECUTE_ACTION) ||
-            request.type.equals(RequestType.RESET) ) {
+        if (request.type==RequestType.EXECUTE_ACTION ||
+            request.type==RequestType.RESET ) {
             return true
         }
-        else if (request.type.equals(RequestType.EXECUTE_POSE) &&
-            request.limb == Limb.NONE ) {
+        else if (request.type==RequestType.EXECUTE_POSE &&
+                 request.limb==Limb.NONE ) {
             // This is just a marker for end-of-pose
             return true
         }
-        else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
+        else if (request.type==RequestType.SET_LIMB_PROPERTY) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val prop = request.jointDynamicProperty
             if (prop==JointDynamicProperty.MAXIMUMANGLE ||
@@ -195,7 +195,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 return true
             }
         }
-        else if (request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+        else if (request.type==RequestType.SET_MOTOR_PROPERTY) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
             val prop = request.jointDefinitionProperty
             if( prop == JointDefinitionProperty.ID ||

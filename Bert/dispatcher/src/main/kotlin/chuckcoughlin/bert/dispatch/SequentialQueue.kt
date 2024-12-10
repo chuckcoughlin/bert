@@ -21,11 +21,11 @@ import java.util.logging.Logger
  * The nextAllowedExecutionTime takes into account the movement time
  * of the prior command on the same limb.
  */
+@DelicateCoroutinesApi
 class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>() {
     private val channel = sender
     private var job: Job
     private var ready:Boolean
-
 
     /*
      * Coroutine to send  a message to the dispatcher with a proper delay to
@@ -33,12 +33,12 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      * Calculate a time for the motion and also respect any user
      * defined delay.
      */
-    @OptIn(DelicateCoroutinesApi::class)
     suspend fun dispatch(msg:MessageBottle) {
-        val now=System.nanoTime() / 1000000
-        val limb = msg.limb
-        LOGGER.info(String.format("%s.dispatch: %s on %s.", CLSS,msg.type.name,limb.name))
+        val now=System.currentTimeMillis()
+        var text = msg.joint.name
+        if( text.equals(Joint.NONE.name)) text = msg.limb.name
         var earliestTime = computeEarliestTime(msg)
+        LOGGER.info(String.format("%s.dispatch: %s on %s after %d msecs.", CLSS,msg.type.name,text,earliestTime-now))
         if(earliestTime > now) {
             delay(earliestTime-now)
         }
@@ -47,7 +47,6 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         }
         setExecutionTimes(msg,earliestTime)
         channel.send(msg)
-        ready = false
     }
 
     /**
@@ -56,6 +55,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      */
     override fun addLast(msg: MessageBottle) {
         if( ready && size==0 ) {
+            ready=false
             job = GlobalScope.launch(Dispatchers.IO) {
                 dispatch(msg)
             }
@@ -73,12 +73,15 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         if( ready==true || job.isActive ) {
             LOGGER.info(String.format("%s.markReady: ERROR - controller is already ready",CLSS))
         }
-        ready = true
         if( size>0 ) {
+            ready = false
             val msg = removeFirst()
             job = GlobalScope.launch(Dispatchers.IO) {
                 dispatch(msg)
             }
+        }
+        else {
+            ready = true
         }
     }
     /**
@@ -114,8 +117,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
     }
     private fun configurationForJoint(joint: Joint): List<MotorConfiguration> {
         val list: MutableList<MotorConfiguration> = mutableListOf<MotorConfiguration>()
-        for (joint in RobotModel.motorsByJoint.keys) {
-            val mc = RobotModel.motorsByJoint[joint]!!
+        for (mc in RobotModel.motorsByJoint.values) {
             if (mc.joint==joint) {
                 list.add(mc)
             }
@@ -124,9 +126,8 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
     }
     private fun configurationsForLimb(limb: Limb): List<MotorConfiguration> {
         val list: MutableList<MotorConfiguration> = mutableListOf<MotorConfiguration>()
-        for (joint in RobotModel.motorsByJoint.keys) {
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if (mc.limb.equals(limb) || limb.equals(Limb.NONE)) {
+        for (mc in RobotModel.motorsByJoint.values) {
+            if (mc.limb==limb || limb==Limb.NONE) {
                 list.add(mc)
             }
         }

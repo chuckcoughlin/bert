@@ -17,6 +17,7 @@ import chuckcoughlin.bert.speech.process.StatementParser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
+import java.awt.SystemColor.text
 import java.util.logging.Logger
 
 /**
@@ -93,6 +94,7 @@ class Terminal(stdin: Channel<MessageBottle>,stdout: Channel<MessageBottle>) : C
      */
     fun displayMessage(msg: MessageBottle) {
         val text: String = translator.messageToText(msg)
+        if (DEBUG) LOGGER.info(String.format("%s.displayMessage: %s", CLSS, text))
         println(text)
     }
 

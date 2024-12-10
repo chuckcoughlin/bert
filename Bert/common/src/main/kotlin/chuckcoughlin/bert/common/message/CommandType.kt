@@ -29,9 +29,9 @@ enum class CommandType {
         fun toText(command: CommandType): String {
             var text = ""
             when (command) {
-                CREATE_ACTION -> text = "delete action"
-                CREATE_FACE   -> text = "delete face"
-                CREATE_POSE   -> text = "delete pose"
+                CREATE_ACTION -> text = "create action"
+                CREATE_FACE   -> text = "create face"
+                CREATE_POSE   -> text = "create pose"
                 DELETE_USER_DATA -> text = "delete action, pose or face"
                 HALT     -> text = "halt"
                 SHUTDOWN -> text = "shutdown"

@@ -179,7 +179,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else {
             bottle.value = 1.0  // Default index
         }
-        bottle.text = messageTranslator.randomAcknowledgement()
         sharedDictionary[SharedKey.POSE] = pose
         return null
     }

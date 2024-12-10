@@ -97,7 +97,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     CLSS, port.portName, controllerName, spe.getLocalizedMessage()))
                 return
             }
-            LOGGER.info(String.format("%s.execute: Initialized port %s)", CLSS, port.getPortName()))
+            //LOGGER.info(String.format("%s.execute: Initialized port %s)", CLSS, port.getPortName()))
         }
         // Port is open, now use it. Simply run in a loop getting the next request.
         running = true

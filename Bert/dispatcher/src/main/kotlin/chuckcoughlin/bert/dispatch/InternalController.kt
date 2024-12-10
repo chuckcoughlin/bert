@@ -48,15 +48,15 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 while (running) {
                     val msg = fromDispatcher.receive()
                     if (DEBUG) {
-                        if(msg.type== RequestType.COMMAND)
+                        if( msg.type==RequestType.COMMAND)
                             LOGGER.info(String.format("%s.execute received: %s %s", CLSS, msg.type.name,msg.command.name))
-                        else if(msg.type== RequestType.EXECUTE_POSE)
+                        else if( msg.type==RequestType.EXECUTE_POSE)
                             LOGGER.info(String.format("%s.execute received: %s (%s %2.0f)", CLSS, msg.type.name,msg.arg,msg.value))
                         else
                             LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
                     }
                     // The motor controller is ready to accept another command - the message does not propagate
-                    if(msg.type.equals(RequestType.READY) ) {
+                    if( msg.type==RequestType.READY ) {
                         queue.markReady()
                     }
                     else {

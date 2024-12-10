@@ -51,7 +51,7 @@ class Dispatcher() : Controller {
     private var terminalController: Terminal
 
     private val scope = GlobalScope // For long-running coroutines
-    private val readyMesssage: MessageBottle
+    private val readyMessage: MessageBottle
     private var running:Boolean
     private val name: String
     private var cadence = 1000 // msecs
@@ -100,7 +100,7 @@ class Dispatcher() : Controller {
                         mgcResponseChannel.onReceive {     // Handle a serial response
                             if(DEBUG) LOGGER.info(String.format("%s.execute: bgcResponseChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
-                            toInternalController.send(readyMesssage)
+                            toInternalController.send(readyMessage)
                             replyToSource(it)
                         }
                         // When we get a response from the internal controller, dispatch the original request.
@@ -279,7 +279,7 @@ class Dispatcher() : Controller {
                 val poseName: String = request.arg.lowercase()
                 val index = request.value.toInt()
                 Database.createPose(RobotModel.motorsByJoint,poseName,index)
-                request.text = "I recorded pose $poseName"
+                request.text = "I recorded pose $poseName $index"
             }
             // For delete, the data type is no specified.
             else if( command.equals(CommandType.DELETE_USER_DATA) ) {
@@ -676,7 +676,7 @@ class Dispatcher() : Controller {
         motorGroupController  = MotorGroupController(mgcRequestChannel,mgcResponseChannel)
         terminalController    = Terminal(stdinChannel,stdoutChannel)
 
-        readyMesssage = MessageBottle(RequestType.READY)  // Reusable synchronization message
+        readyMessage = MessageBottle(RequestType.READY)  // Reusable synchronization message
         running = false
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
         val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs
