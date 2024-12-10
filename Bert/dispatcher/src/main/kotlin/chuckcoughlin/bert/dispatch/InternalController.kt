@@ -34,7 +34,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     private var running:Boolean
     private var index:Long          // Sequence of a message
     private var job:Job
-    private val queues : MutableMap<Limb,SequentialQueue>
+    private val queue : SequentialQueue
     @DelicateCoroutinesApi
     override suspend fun execute() {
         if (!running) {
@@ -55,9 +55,9 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                         else
                             LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
                     }
-                    // The motor controller is ready to accept another command
+                    // The motor controller is ready to accept another command - the message does not propagate
                     if(msg.type.equals(RequestType.READY) ) {
-                        SequentialQueue.ready = true
+                        queue.markReady()
                     }
                     else {
                         handleRequest(msg)
@@ -76,9 +76,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             running = false
             job.cancel()
             if (DEBUG) println(String.format("%s.shutdown: cancelled job ", CLSS))
-            for( queue in queues.values ) {
-                queue.shutdown()
-            }
+            queue.shutdown()
         }
     }
 
@@ -131,6 +129,9 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 distributePose(msg)   // All responses will got to the bit bucket
             }
         }
+        else if (request.type == RequestType.RESET ) {
+            queue.reset()   // The procede to reset controllers
+        }
 
         // Finally process the original message
         dispatchMessage(request)
@@ -166,27 +167,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)", CLSS, msg.type.name,msg.arg))
             else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
         }
-        // Mark dispatch time on motors
-        val queue = queues[msg.limb]!!
         queue.addLast(msg)
-    }
-
-
-    private fun initializeQueues() {
-        for( limb in Limb.values() ) {
-            val queue = SequentialQueue(limb,toDispatcher,configurationsForLimb(limb))
-            queues[limb] = queue
-        }
-    }
-    private fun configurationsForLimb(limb: Limb): Map<Joint,MotorConfiguration> {
-        val map: MutableMap<Joint,MotorConfiguration> = mutableMapOf<Joint,MotorConfiguration>()
-        for (joint in RobotModel.motorsByJoint.keys) {
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if (mc.limb.equals(limb) || limb.equals(Limb.NONE)) {
-                map[joint]=mc
-            }
-        }
-        return map
     }
 
     private val CLSS = "InternalController"
@@ -201,8 +182,6 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         running = false
         index = 0
         job = Job() // Parent job
-        queues = mutableMapOf<Limb,SequentialQueue>()
-        initializeQueues()
-        SequentialQueue.ready = true
+        queue = SequentialQueue(toDispatcher)
     }
 }

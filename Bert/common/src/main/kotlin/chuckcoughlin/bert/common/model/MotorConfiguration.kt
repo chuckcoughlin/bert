@@ -36,7 +36,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var maxTorque : Double
     var offset : Double // Configured position correction
     var isDirect: Boolean
-    var commandTime: Long  // Time at which joint is commandeded from InternalController
+    var commandTime: Long  // Time at which joint is last commandeded from InternalController
     // When we set a new position, use the previous position and speed
     // to estimate the travel time.
     var angle = 0.0        // ~ degrees

@@ -225,7 +225,6 @@ class PoseTable {
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
             val SQL = "select joint,angle from posejoint where poseid = ? "
-            if( DEBUG ) LOGGER.info( String.format("%s.getPoseJointPositions: %s", CLSS,SQL))
             try {
                 statement = cxn.prepareStatement(SQL)
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
@@ -277,7 +276,6 @@ class PoseTable {
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
             val SQL = "select joint,speed from posejoint where poseid = ? "
-            if( DEBUG ) LOGGER.info( String.format("%s.getPoseJointSpeeds: %s", CLSS,SQL))
             try {
                 statement = cxn.prepareStatement(SQL)
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
@@ -330,7 +328,6 @@ class PoseTable {
             var statement: PreparedStatement? = null
             var rs: ResultSet? = null
             val SQL = "select joint,torque from posejoint where poseid = ? "
-            if( DEBUG ) LOGGER.info( String.format("%s.getPoseJointTorques: %s", CLSS,SQL))
             try {
                 statement = cxn.prepareStatement(SQL)
                 statement.setQueryTimeout(10) // set timeout to 10 sec.
