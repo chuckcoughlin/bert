@@ -55,8 +55,14 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      * respecting the delay setting. Start the execute() function.
      */
     override fun addLast(msg: MessageBottle) {
-        //if(DEBUG) LOGGER.info(String.format("%s.addLast: %s on %s.", CLSS,msg.type.name,limb.name))
-        super.addLast(msg)
+        if( ready && size==0 ) {
+            job = GlobalScope.launch(Dispatchers.IO) {
+                dispatch(msg)
+            }
+        }
+        else {
+            super.addLast(msg)
+        }
     }
 
     /**
@@ -68,7 +74,6 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
             LOGGER.info(String.format("%s.markReady: ERROR - controller is already ready",CLSS))
         }
         ready = true
-
         if( size>0 ) {
             val msg = removeFirst()
             job = GlobalScope.launch(Dispatchers.IO) {
@@ -100,8 +105,12 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
 
     private fun computeEarliestTime(msg:MessageBottle) : Long {
         var earliestTime = System.currentTimeMillis()
-
-        return earliestTime
+        var maxTime = earliestTime + msg.control.delay
+        for( mc in configurationsForMessage(msg)) {
+            val workTime = mc.commandTime + mc.travelTime
+            if( workTime>maxTime ) maxTime = workTime
+        }
+        return maxTime
     }
     private fun configurationForJoint(joint: Joint): List<MotorConfiguration> {
         val list: MutableList<MotorConfiguration> = mutableListOf<MotorConfiguration>()
@@ -127,7 +136,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      * Return a list of the motor configurations applicable for a message.
      * The list may be empty, especially if the message does not involve a write.
      */
-    private fun listConfigurationsForMessage(msg:MessageBottle) : List<MotorConfiguration> {
+    private fun configurationsForMessage(msg:MessageBottle) : List<MotorConfiguration> {
         var list = listOf<MotorConfiguration>()
         if( msg.type==RequestType.SET_MOTOR_PROPERTY) {
             list = configurationForJoint(msg.joint)
@@ -147,39 +156,10 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      */
     fun setExecutionTimes(msg:MessageBottle,executionTime:Long) {
         msg.control.executionTime = executionTime
-        val list = listConfigurationsForMessage(msg)
+        val list = configurationsForMessage(msg)
         for(mc in list ) {
             mc.commandTime = executionTime
         }
-    }
-    // Compute the time the limb takes to move when executing
-    // this request, if applicable.
-    fun travelTime(msg:MessageBottle) : Long {
-        var period = ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL
-        var maxTime = System.currentTimeMillis() + period
-        val list = 
-
-        if(msg.type.equals(RequestType.SET_LIMB_PROPERTY) &&
-            msg.limb!=Limb.NONE) {
-            for( mc in motorMap.values ) {
-                if(mc.travelTime>period) period = mc.travelTime
-            }
-        }
-        else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                msg.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) ) {
-            for( mc in motorMap.values ) {
-                if( mc.joint.equals(msg.joint)) {
-                    if (mc.travelTime > period) period = mc.travelTime
-                    break
-                }
-            }
-        }
-        // This applies to the NONE queue - and may interfere with other limbs
-        else if(msg.type.equals(RequestType.EXECUTE_POSE) ) {
-
-        }
-        if(DEBUG) LOGGER.info(String.format("%s.travelTime: on %s = %d.", CLSS,limb.name,period))
-        return period
     }
 
     /**
