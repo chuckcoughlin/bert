@@ -113,6 +113,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         else if (request.type == RequestType.EXECUTE_POSE ) {
             LOGGER.info(String.format("%s.handleRequest %s pose = %s %2.0f (%s)",
                         CLSS,request.type.name,request.arg,request.value,request.source))
+            request.limb = Limb.NONE   // Just used to synchronize
             distributePose(request)
         }
         else if (request.type == RequestType.EXECUTE_ACTION ) {
@@ -126,8 +127,9 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 msg.arg = pose.name
                 msg.control.delay = pose.index.toLong()
                 msg.source = ControllerType.BITBUCKET
-                distributePose(msg)   // All responses will got to the bit bucket
+                distributePose(msg)   // All responses will go to the bit bucket
             }
+            request.limb = Limb.NONE   // Message is used to synch the MotorGroupController
         }
         else if (request.type == RequestType.RESET ) {
             queue.reset()   // The procede to reset controllers
@@ -137,22 +139,17 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         dispatchMessage(request)
     }
 
-    // Duplicate the pose message for each limb. The final NONE limb
-    // is the original message and serves to synchronize the pose
+    // Duplicate the pose message for each limb. The NONE limb
+    // is the original message and serves to synchronize the pose.
     private suspend fun distributePose(request:MessageBottle) {
         for( limb in Limb.values()) {
-            var msg : MessageBottle
             if( limb!=Limb.NONE ) {
-                msg = request.clone()
+                val msg = request.clone()
+                msg.limb = limb
                 msg.text = ""
                 msg.source = ControllerType.BITBUCKET
+                dispatchMessage(msg)
             }
-            else {
-                msg = request
-                //LOGGER.info(String.format("%s.distribute pose %s  source = %s", CLSS,msg.arg,msg.source))
-            }
-            msg.limb = limb
-            dispatchMessage(msg)
         }
     }
 

@@ -71,8 +71,11 @@ object Database  {
     fun deletePose(name: String,index:Int) {
         return pose.deletePose(connection, name,index)
     }
-    fun faceExists(actionName:String) :Boolean {
-        return face.faceExists(connection,actionName)
+    fun faceExists(name:String) :Boolean {
+        return face.faceExists(connection,name)
+    }
+    fun getFaceName(faceId:Long) :String {
+        return face.getFaceName(connection,faceId)
     }
     /**
      * @return a Json string with the names of all known faces

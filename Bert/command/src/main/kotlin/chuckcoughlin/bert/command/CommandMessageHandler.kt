@@ -47,7 +47,6 @@ class CommandMessageHandler(sock: Socket)  {
         var mtype = MessageType.ANS
         if( response.type.equals(RequestType.JSON) ) mtype = MessageType.JSN
         try {
-
             val msgtxt = String.format("%s:%s", mtype.name, text)
             if (DEBUG) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))
             output.println(msgtxt)

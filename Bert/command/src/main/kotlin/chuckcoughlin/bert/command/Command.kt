@@ -6,24 +6,12 @@ package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
-import chuckcoughlin.bert.common.message.CommandType
-import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.MessageType
-import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.process.MessageTranslator
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.net.ServerSocket
 import java.util.logging.Level
@@ -92,10 +80,10 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                             while (connected) {
                                 select<MessageBottle> {
                                     responseChannel.onReceive() {           // Receive from dispatcher
-                                        handleRequest(it,handler)
+                                        handleResponse(it,handler)
                                         it
                                     }
-                                    handleResponse(handler).onAwait() {it}  // Send to tablet
+                                    handleRequest(handler).onAwait() {it}  // From tablet
                                 }  // End select
                             }
                             LOGGER.info(String.format("%s.execute: select complete - wait for new connection", CLSS))
@@ -134,10 +122,10 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
     }
 
     /**
-     * We have received a message from the dispatcher. Forward it to the socket.
+     * We have received a response from the dispatcher. Forward it to the socket.
      * This includes notifications.
      */
-    private fun handleRequest(msg:MessageBottle,handler:CommandMessageHandler)  {
+    private fun handleResponse(msg:MessageBottle,handler:CommandMessageHandler)  {
         if(!msg.type.equals(RequestType.NONE)) {       // Ignore type NONE
             connected = handler.sendResponse(msg)
         }
@@ -147,14 +135,14 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
      * Wait to receive a message from the socket. Forward it to the dispatcher.
      */
     @DelicateCoroutinesApi
-    private fun handleResponse(handler:CommandMessageHandler): Deferred<MessageBottle> =
+    private fun handleRequest(handler:CommandMessageHandler): Deferred<MessageBottle> =
         GlobalScope.async(Dispatchers.IO) {
             /**
              * Read from the tablet via the network. Use ANTLR to convert text into requests.
              * Send requests to the Dispatcher channel.
              */
             val msg = handler.receiveNetworkInput()
-            LOGGER.info(String.format("%s.handleResponse: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
+            LOGGER.info(String.format("%s.handleRequest: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
             if(isHangup(msg) ) {
                 connected = false
             }
@@ -162,13 +150,14 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
                 handleLocalRequest(handler,msg)
             }
             else {
-                LOGGER.info(String.format("%s.handleResponse: sending to dispatcher (%s)", CLSS, msg.type.name))
+                LOGGER.info(String.format("%s.handleRequest: sending to dispatcher (%s)", CLSS, msg.type.name))
                 requestChannel.send(msg)
             }
             msg
         }
 
-    // This must be synched with isLocalRequest()
+    // This must be synched with isLocalRequest(). Take care of requests that
+    // can be handled locally/immediately
     private fun handleLocalRequest(handler:CommandMessageHandler,request: MessageBottle) {
         if( !request.error.equals(BottleConstants.NO_ERROR)) {
             sendResponse(handler,request.error)
@@ -229,6 +218,9 @@ class Command(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>) :Control
         return false
     }
 
+    /**
+     * Respond to the tablet using the text of the message directly..
+     */
     fun sendResponse(handler:CommandMessageHandler,txt:String) {
         val text = String.format("%s:%s",MessageType.ANS.name,txt)
         handler.sendText(text)

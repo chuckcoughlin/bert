@@ -7,11 +7,7 @@ package chuckcoughlin.bert.speech.process
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.Extremity
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.Limb
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.syntax.SpeechSyntaxLexer
 import chuckcoughlin.bert.syntax.SpeechSyntaxParser
 import org.antlr.v4.runtime.CharStreams
@@ -21,29 +17,29 @@ import org.antlr.v4.runtime.tree.ParseTree
 import java.util.logging.Logger
 
 /**
- * Parse spoken text using ANTLR classes. A context dictionary is passed
+ * Parse spoken text using ANTLR classes. A shared dictionary is passed
  * between invocations of the parser.
  */
 class StatementParser {
-    private val context: MutableMap<SharedKey, Any>
+    private val dictionary: MutableMap<SharedKey, Any>
 
     /**
-     * Initialize the shared dictionary
+     * Initialize the shared dictionary.
      */
     private fun initialize() {
-        context[SharedKey.ASLEEP] = "false"
-        context[SharedKey.EXTREMITY] = Extremity.NONE
-        context[SharedKey.AXIS] = "x"
-        context[SharedKey.JOINT] = Joint.NONE
-        context[SharedKey.LIMB] = Limb.NONE
-        context[SharedKey.POSE] = "home"
-        context[SharedKey.SIDE] = "right"
-        context[SharedKey.SPEED] = "normal speed"
-        context[SharedKey.IT] = SharedKey.JOINT
+        dictionary[SharedKey.ASLEEP] = "false"
+        dictionary[SharedKey.EXTREMITY] = Extremity.NONE
+        dictionary[SharedKey.AXIS] = "x"
+        dictionary[SharedKey.JOINT] = Joint.NONE
+        dictionary[SharedKey.LIMB] = Limb.NONE
+        dictionary[SharedKey.POSE] = "home"
+        dictionary[SharedKey.SIDE] = "right"
+        dictionary[SharedKey.SPEED] = "normal speed"
+        dictionary[SharedKey.IT] = SharedKey.JOINT
     }
 
     fun setSharedProperty(key: SharedKey, value: Any) {
-        context[key] = value
+        dictionary[key] = value
     }
 
     /**
@@ -59,9 +55,9 @@ class StatementParser {
         var text = txt
         val bottle = MessageBottle(RequestType.NONE)
         if ( !text.isBlank() ) {
-            if (context[SharedKey.PARTIAL] != null) {
-                text = String.format("%s %s", context[SharedKey.PARTIAL], text)
-                context.remove(SharedKey.PARTIAL)
+            if (dictionary[SharedKey.PARTIAL] != null) {
+                text = String.format("%s %s", dictionary[SharedKey.PARTIAL], text)
+                dictionary.remove(SharedKey.PARTIAL)
             }
             val stream: CodePointCharStream = CharStreams.fromString(text)
             val lexer: SpeechSyntaxLexer = QuietLexer(stream)
@@ -72,10 +68,10 @@ class StatementParser {
             parser.addErrorListener(SpeechErrorListener(bottle))
             parser.setErrorHandler(SpeechErrorStrategy(bottle))
             val tree: ParseTree = parser.line() // Start with a line
-            val visitor = StatementTranslator(bottle, context)
+            val visitor = StatementTranslator(bottle, dictionary)
             visitor.visit(tree)
             if (bottle.type.equals(RequestType.PARTIAL)) {
-                context[SharedKey.PARTIAL] = text
+                dictionary[SharedKey.PARTIAL] = text
             }
         }
         else {
@@ -98,7 +94,7 @@ class StatementParser {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
-        context = mutableMapOf<SharedKey,Any>()
+        dictionary = mutableMapOf<SharedKey,Any>()
         initialize()
     }
 }

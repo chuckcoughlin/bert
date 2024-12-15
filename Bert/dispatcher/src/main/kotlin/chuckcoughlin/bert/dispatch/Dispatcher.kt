@@ -15,7 +15,6 @@ import chuckcoughlin.bert.term.controller.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
-import java.awt.font.TextAttribute.WEIGHT
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -616,7 +615,7 @@ class Dispatcher() : Controller {
         return (1.0 - WEIGHT) * currentValue + WEIGHT * previousValue
     }
     /**
-     * Select a random startup phrase from the list.
+     * Select a random phrase from the list.
      * @return the selected phrase.
      */
     private fun selectRandomText(phrases: Array<String>): String {

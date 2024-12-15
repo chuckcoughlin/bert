@@ -15,7 +15,8 @@ import com.google.gson.Gson
 import java.util.logging.Logger
 
 /**
- * We have received a JSON message from the tablet. Handle it.
+ * We have received a JSON message from the tablet. This is a
+ * direct tablet-to-robot interaction.
  * @param sock for socket connection
  */
 object CommandJsonHandler  {
@@ -23,7 +24,8 @@ object CommandJsonHandler  {
     private val msg: MessageBottle
 
     /**
-     * We have received a JsonString. Analyze it and create a response message
+     * We have received a JsonString. Analyze it and create a response message.
+     * Ultimately, the response text is bundled into a message to the tablet.
      *
      * @param response
      * @return true on success

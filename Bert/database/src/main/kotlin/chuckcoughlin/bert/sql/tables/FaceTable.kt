@@ -77,21 +77,20 @@ class FaceTable {
     /**
      * @return true if there is a face of the given name.
      */
-    fun faceExists(cxn:Connection?,actionName:String) : Boolean {
+    fun faceExists(cxn:Connection?,faceName:String) : Boolean {
         var result = false
         if( cxn!=null ) {
-            var SQL="select * from Face where name = ?"
+            var SQL="select faceId from Face where name = ?"
             var prepStatement: PreparedStatement =cxn.prepareStatement(SQL)
             var rs: ResultSet?=null
-            val action=actionName.lowercase(Locale.getDefault())
+            val name=faceName.lowercase(Locale.getDefault())
 
             try {
                 prepStatement.setQueryTimeout(10) // set timeout to 10 sec.
-                prepStatement.setString(1, action)
+                prepStatement.setString(1, name)
                 rs=prepStatement.executeQuery()
                 while(rs.next()) {
-                    val series=rs.getString("series")
-                    LOGGER.info(String.format("%s.faceExists: %s is based on %s", CLSS, action,series))
+                    LOGGER.info(String.format("%s.faceExists: %s", CLSS,name))
                     result = true
                     break
                 }
@@ -146,6 +145,40 @@ class FaceTable {
         }
         return gson.toJson(names)
     }
+
+    /**
+     * Given a faceId, retrieve the name corresponding to a faceId
+     * @cxn an open database connection
+     * @faceId
+     * @return the name
+     */
+    fun getFaceName(cxn: Connection?,id:Long): String {
+        var name = ConfigurationConstants.NO_NAME
+        if( cxn!=null ) {
+            val SQL = String.format("select name from Face where FaceId = %d",id)
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    name = rs.getString(1)
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getFaceName: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        return name
+    }
+
     /**
      * List the owners of all known faces
      * @cxn an open database connection
@@ -183,8 +216,37 @@ class FaceTable {
     /**
      * Match the details from the database to the supplied object.
      */
-    fun idMatchesDetails(id:Long,details:FacialDetails) : Boolean {
+    fun idMatchesDetails(cxn: Connection?,id:Long,details:FacialDetails) : Boolean {
         var result = false
+        if( cxn!=null ) {
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            val SQL1 = String.format(
+                    "select contourcode,indx,x,y from FaceContour where faceid=%d order by contourcode,indx",id)
+            val SQL2 = String.format(
+                    "select landmarkcode,x,y from FaceLandmark where faceid=%d order by landmarkcode",id)
+            try {
+                rs = statement.executeQuery(SQL1)
+                while (rs.next()) {
+
+                }
+                rs = statement.executeQuery(SQL2)
+                while (rs.next()) {
+
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.idMatchesDetails: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
         return result
     }
     /**
@@ -196,14 +258,14 @@ class FaceTable {
     fun matchDetailsToFace(cxn: Connection?, details: FacialDetails) : Long {
         var face_id = SQLConstants.NO_FACE
         if( cxn!=null ) {
-            val SQL = "select face_id from Face"
+            val SQL = "select faceid from Face"
             var statement: Statement = cxn.createStatement()
-            var rs: ResultSet? = null
+            var rs: ResultSet?
             try {
                 rs = statement.executeQuery(SQL)
                 while (rs.next()) {
                     val id = rs.getLong(1)
-                    if( idMatchesDetails(id,details) ) {
+                    if( idMatchesDetails(cxn,id,details) ) {
                         face_id = id
                         break
                     }
@@ -213,12 +275,10 @@ class FaceTable {
                 LOGGER.severe(String.format("%s.mapFaceNameToDetails: Database error (%s)", CLSS, e.message))
             }
             finally {
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {}
+                try {
+                    statement.close()
                 }
+                catch (ignore: SQLException) {}
             }
         }
         return face_id
