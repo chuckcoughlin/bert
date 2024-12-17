@@ -265,7 +265,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
                 bottle.text = "I am now relaxed"
             }
         }
-
         return null
     }
 
@@ -278,8 +277,12 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             val phrase: String = visit(ctx.phrase()).toString()
             // First handle "well-known" commands
             if (!determineCommandFromPhrase(phrase)) {   // Configures bottle
+                // Not a command
+                if( phrase.equals("reset",ignoreCase = true) ) {
+                    bottle.type = RequestType.RESET
+                }
                 // Next check to see if this is a pose
-                if (Database.actionExists(phrase)) {
+                else if (Database.actionExists(phrase)) {
                     bottle.type = RequestType.EXECUTE_ACTION
                     bottle.arg = phrase
                     sharedDictionary[SharedKey.POSE] = phrase

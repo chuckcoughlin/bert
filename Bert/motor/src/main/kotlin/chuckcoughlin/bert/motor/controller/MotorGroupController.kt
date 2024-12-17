@@ -6,6 +6,7 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -178,10 +179,10 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // immediately. Results are created from the original configuration file.
     // We also create error messages some requests that are illegal
     private fun canHandleImmediately(request: MessageBottle): Boolean {
-        if (request.type==RequestType.EXECUTE_ACTION ||
-            request.type==RequestType.RESET ) {
-            return true
-        }
+        if (request.type== RequestType.EXECUTE_ACTION ||
+            request.type == RequestType.RESET ) {
+                return true
+            }
         else if (request.type==RequestType.EXECUTE_POSE &&
                  request.limb==Limb.NONE ) {
             // This is just a marker for end-of-pose
@@ -225,7 +226,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
             LOGGER.info(String.format("%s.createImmediateResponse: %s %s %s (%s)",
                 CLSS,request.type.name,request.arg,request.limb.name,request.text))
         }
-        else if( type==RequestType.RESET ) {
+        else if( request.type == RequestType.RESET) {
             pendingMessages.clear()
             request.text = "I have been reset"
         }
@@ -240,20 +241,22 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         return request
     }
 
+    // ============================= Private Helper Methods =============================
     /**
      * NOTE: Require same logic in MotorController, MotorGroupController and SerialResponder
      * @param msg the request
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if( msg.type.equals(RequestType.EXECUTE_ACTION) ||
-            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
+        if( msg.type==RequestType.EXECUTE_ACTION ||
+            msg.type==RequestType.GET_MOTOR_PROPERTY ||
+            msg.type==RequestType.SET_LIMB_PROPERTY  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
-            if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+        else if( msg.type==RequestType.READ_MOTOR_PROPERTY  ||
+            msg.type==RequestType.SET_MOTOR_PROPERTY ) {
+            if( msg.joint!=Joint.NONE ||      // Applies to all joints
+                msg.limb!=Limb.NONE      ) {
                 return true
             }
         }
@@ -270,6 +273,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         }
         return false
     }
+
     // When in development mode with no access to actual motors, simulate something reasonable as a response.
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {
         val requestType = request.type

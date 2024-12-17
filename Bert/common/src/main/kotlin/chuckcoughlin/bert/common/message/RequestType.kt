@@ -22,8 +22,8 @@ enum class RequestType {
     NOTIFICATION,            // Unsolicited message from server or parser
     PARTIAL,                 // Remainder of text has yet to arrive
     READY,                   // Synchronization message for internal controller
-    RESET,                   // Recover after serial data error
-    READ_MOTOR_PROPERTY,     // Read a single property for all motors and record internally
+    RESET,                   // Reset synchronization for serial response and internal controller
+    READ_MOTOR_PROPERTY,     // Read a single property for a motor or all motors and record internally
     SET_LIMB_PROPERTY,       // Torque or speed for motors in a limb
     SET_MOTOR_PROPERTY,      // For a particular motor
     NONE;

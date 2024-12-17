@@ -32,6 +32,9 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      * account for joint travel time, if appropriate.
      * Calculate a time for the motion and also respect any user
      * defined delay.
+     *
+     * There may be a delay before the message is sent.
+     * During this time ready should be false.
      */
     suspend fun dispatch(msg:MessageBottle) {
         val now=System.currentTimeMillis()
@@ -70,10 +73,11 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      * to receive the next command. If we have a request pending, send it.
      */
     fun markReady() {
-        if( ready==true || job.isActive ) {
+        if( ready==true ) {
             LOGGER.info(String.format("%s.markReady: ERROR - controller is already ready",CLSS))
+            return
         }
-        if( size>0 ) {
+        if( size>0 ) {    // Dispatch waiting message
             ready = false
             val msg = removeFirst()
             job = GlobalScope.launch(Dispatchers.IO) {
@@ -85,8 +89,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         }
     }
     /**
-     * Remove the next holder from the queue in preparation for adding it
-     * to the timed delay queue. Update the time at which we are allowed to trigger the next message.
+     * Remove the next message from the queue in preparation for dispatching it.
      */
     override fun removeFirst(): MessageBottle {
         val msg = super.removeFirst()

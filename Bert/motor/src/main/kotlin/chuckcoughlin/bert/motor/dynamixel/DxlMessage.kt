@@ -395,7 +395,7 @@ object DxlMessage {
      * position, speed, torque and torque_enable. All except torque enable are two byte parameters.
      * @param id of the motor
      * @param property the desired property
-     * @return byte array with command to read the property
+     * @return byte array with command to set the property
      */
     fun bytesToSetProperty(mc: MotorConfiguration, property: JointDynamicProperty, value: Double): ByteArray {
         val dxlValue = DxlConversions.dxlValueForProperty(property, mc, value)

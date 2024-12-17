@@ -202,14 +202,15 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if( msg.type.equals(RequestType.EXECUTE_ACTION) ||
-            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
+        if( msg.type==RequestType.EXECUTE_ACTION ||
+            msg.type==RequestType.GET_MOTOR_PROPERTY ||
+            msg.type==RequestType.SET_LIMB_PROPERTY  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-                 msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
-            if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+        else if( msg.type==RequestType.READ_MOTOR_PROPERTY  ||
+                 msg.type==RequestType.SET_MOTOR_PROPERTY ) {
+            if( msg.joint!=Joint.NONE ||      // Applies to all joints
+                msg.limb!=Limb.NONE      ) {
                 return true
             }
         }
@@ -237,7 +238,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if (msg.type.equals(RequestType.EXECUTE_POSE) ||
             msg.type.equals(RequestType.INITIALIZE_JOINTS)   ||
             msg.type.equals(RequestType.READ_MOTOR_PROPERTY)  ) {
-                return false
+               return false
         }
         return true
     }
@@ -365,7 +366,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))
             }
             else {
-                request.error = String.format("I failed to set my %s %s to %2.0f",
+                request.error = String.format("I failed to set my %s %s to %.0f",
                         Joint.toText(mc.joint), prop.name, value)
             }
             bytes = DxlMessage.bytesToSetProperty(mc, prop, value)
@@ -410,32 +411,34 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration
         }
+        // One motor, all motors or all on a limb
         else if(type.equals(RequestType.READ_MOTOR_PROPERTY)) {
-            val joint = request.joint
             val limb = request.limb
+            val joint = request.joint
             val prop = request.jointDynamicProperty
-            if( limb.equals(Limb.NONE)) {
-                if( joint.equals(Joint.NONE) ) {  // All joints
-                    list = DxlMessage.byteArrayListToListProperty(prop,configurationsByJoint.values)
+
+            if( limb==Limb.NONE ) {
+                if( joint==Joint.NONE ) {      // All joints
+                    list = DxlMessage.byteArrayListToListProperty(prop, configurationsByJoint.values)
                     request.control.responseCount[controllerName] = configurationsByJoint.size
                 }
                 else {
                     val mc = configurationsByJoint[joint]
                     val lst = mutableListOf<MotorConfiguration>()
-                    if( mc!=null ) {
+                    if(mc!=null ) {
                         lst.add(mc)
-                        list = DxlMessage.byteArrayListToListProperty(prop,lst)
+                        list = DxlMessage.byteArrayListToListProperty(prop, lst)
                         request.control.responseCount[controllerName] = 1
                     }
                     else {
-                       LOGGER.severe((String.format("%s.messageToByteList: No motor configuration for %s on %s",
-                                        CLSS,joint.name,controllerName)))
+                        LOGGER.severe(String.format("%s.messageToByteList: no motor configuration for %s on %s",
+                                            CLSS,joint.name,controllerName))
                     }
                 }
             }
             else {
-                val configs:Map<Joint,MotorConfiguration> = configurationsForLimb(limb)
-                list = DxlMessage.byteArrayListToListProperty(prop,configs.values)
+                val configs: Map<Joint, MotorConfiguration> = configurationsForLimb(limb)
+                list = DxlMessage.byteArrayListToListProperty(prop, configs.values)
                 request.control.responseCount[controllerName] = configs.size
             }
         }
@@ -481,6 +484,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @param msg the request
      */
     private fun synthesizeResponse(msg: MessageBottle) {
+        msg.control.responseCount[controllerName]=0 // No serial response to wait for ...
         if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
             msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
             msg.type.equals(RequestType.EXECUTE_POSE) ) {

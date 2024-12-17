@@ -118,14 +118,15 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if( msg.type.equals(RequestType.EXECUTE_ACTION) ||
-            msg.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_LIMB_PROPERTY)  ) {
+        if( msg.type==RequestType.EXECUTE_ACTION ||
+            msg.type==RequestType.GET_MOTOR_PROPERTY ||
+            msg.type==RequestType.SET_LIMB_PROPERTY  ) {
             return true
         }
-        else if( msg.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            msg.type.equals(RequestType.SET_MOTOR_PROPERTY)  ) {
-            if( !msg.joint.equals(Joint.NONE)) {   // Applies to all joints
+        else if( msg.type==RequestType.READ_MOTOR_PROPERTY  ||
+            msg.type==RequestType.SET_MOTOR_PROPERTY ) {
+            if( msg.joint!=Joint.NONE ||      // Applies to all joints
+                msg.limb!=Limb.NONE      ) {
                 return true
             }
         }

@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
+import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -87,8 +88,9 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         if( request.limb==Limb.NONE && request.joint!=Joint.NONE ) {
             request.limb = RobotModel.limbsByJoint[request.joint]!!
         }
+
         // Read joint positions before freezing to update the current internal status directory.
-        if(request.type==RequestType.SET_MOTOR_PROPERTY &&
+        else if(request.type==RequestType.SET_MOTOR_PROPERTY &&
             request.jointDynamicProperty == JointDynamicProperty.STATE &&
             request.value == ConfigurationConstants.ON_VALUE    )  {
 
@@ -132,7 +134,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             request.limb = Limb.NONE   // Message is used to synch the MotorGroupController
         }
         else if (request.type == RequestType.RESET ) {
-            queue.reset()   // The procede to reset controllers
+            queue.reset()   // Then procede to reset controllers
         }
 
         // Finally process the original message

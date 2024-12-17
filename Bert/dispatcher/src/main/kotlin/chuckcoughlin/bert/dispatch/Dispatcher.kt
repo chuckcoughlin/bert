@@ -106,12 +106,12 @@ class Dispatcher() : Controller {
                         fromInternalController.onReceive { // The internal controller has completed
                             if(DEBUG) {
                                 if(it.type==RequestType.EXECUTE_POSE) {
-                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
-                                        CLSS, it.type.name,it.text,it.source))
-                                }
-                                else {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s %2.0f) from %s",
                                         CLSS, it.type.name,it.arg,it.value,it.source))
+                                }
+                                else {
+                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
+                                        CLSS, it.type.name,it.text,it.source))
                                 }
                             }
                             dispatchInternalResponse(it)
@@ -126,12 +126,12 @@ class Dispatcher() : Controller {
                         stdinChannel.onReceive {
                             if(DEBUG) {
                                 if(it.type==RequestType.EXECUTE_POSE) {
-                                    LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
-                                        CLSS, it.type.name,it.text,it.source))
-                                }
-                                else {
                                     LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s %2.0f) from %s",
                                         CLSS, it.type.name,it.arg,it.value,it.source))
+                                }
+                                else {
+                                    LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
+                                        CLSS, it.type.name,it.text,it.source))
                                 }
                             }
                             dispatchCommandResponse(it)
@@ -160,22 +160,23 @@ class Dispatcher() : Controller {
         msg.joint = Joint.NONE
         msg.value = ConfigurationConstants.SPEED_NORMAL
         msg.source = ControllerType.BITBUCKET
-        //msg.control.delay = 500                // 1/2 sec delay
         toInternalController.send(msg)
 
         // Read all the joint positions (using both controllers). This fills our
         // internal buffers with the current positions.
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.ANGLE
+        msg.limb = Limb.NONE
+        msg.joint = Joint.NONE
         msg.source = ControllerType.BITBUCKET
-        //msg.control.delay = 1000 // 1 sec delay
+        msg.control.delay = 1000 // 1 sec delay
         toInternalController.send(msg)
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
         msg.source = ControllerType.BITBUCKET
-        //msg.control.delay = 2000 // 2 sec delay
-        toInternalController.send(msg)
+        msg.control.delay = 2000 // 2 sec delay
+        //toInternalController.send(msg)
     }
 
     /**
