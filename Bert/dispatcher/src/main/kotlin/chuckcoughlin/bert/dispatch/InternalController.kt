@@ -84,13 +84,9 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     // Preprocess the message. It may result in several precursor requests. Messages with BITBUCKET as the
     // source will not produce a response to the original requester.
     suspend private fun handleRequest(request: MessageBottle) {
-        // Find limb for a single joint
-        if( request.limb==Limb.NONE && request.joint!=Joint.NONE ) {
-            request.limb = RobotModel.limbsByJoint[request.joint]!!
-        }
 
         // Read joint positions before freezing to update the current internal status directory.
-        else if(request.type==RequestType.SET_MOTOR_PROPERTY &&
+        if(request.type==RequestType.SET_MOTOR_PROPERTY &&
             request.jointDynamicProperty == JointDynamicProperty.STATE &&
             request.value == ConfigurationConstants.ON_VALUE    )  {
 

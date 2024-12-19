@@ -8,14 +8,6 @@ package chuckcoughlin.bert.common.message
  * Define strings used in requests and responses between server and client.
  */
 object BottleConstants {
-    // Command names
-    const val COMMAND_FREEZE = "freeze"
-    const val COMMAND_HALT = "halt"
-    const val COMMAND_RELAX = "relax"
-    const val COMMAND_RESET = "reset"
-    const val COMMAND_SHUTDOWN = "shutdown"
-    const val COMMAND_SLEEP = "sleep"
-    const val COMMAND_WAKE = "wake"
 
     // Controller names
     const val CONTROLLER_LOWER = "lower"

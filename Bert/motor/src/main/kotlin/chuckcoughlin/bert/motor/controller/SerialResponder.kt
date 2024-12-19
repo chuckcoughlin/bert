@@ -25,7 +25,7 @@ import java.util.logging.Logger
  * Since the same request object is processed in parallel by multiple MotorControl
  * and SerialResponder objects, it is imperative that any object updates be synchronized.
  *
- * @param name - the serial port name used to identify the instance
+ * @param nam - the serial port name used to identify the instance
  * @param req - channel for requests from the parent motor controller
  * @param rsp - channel for responses sent to the parent motor controller
  */
@@ -46,8 +46,10 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
     override fun serialEvent(event: SerialPortEvent) {
         LOGGER.info(String.format("%s.serialEvent for %s (pending %s)", CLSS, name,if(pending==null) "none" else "yes"))
         if (event.isRXCHAR()) {
-            var request =
-                if(pending==null) runBlocking(Dispatchers.IO) { inChannel.receive() }
+            val request =
+                if(pending==null) {
+                    runBlocking(Dispatchers.IO) {inChannel.receive()}
+                }
                 else pending!!
 
             // The value is the number of bytes in the read buffer
@@ -72,7 +74,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                                 CLSS,name,DxlMessage.errorMessageFromStatus(bytes)) )
                         if (request.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
                     }
-                    if(returnsStatusArray(request)) {  // Some requests return a message for each motor
+                    if(returnsStatusArray(request)) {  // Some requests return a message for each motor, e.g. READ_MOTOR_PROPERTY
                         var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
                         if (nmsgs > request.control.responseCount[name]!!) nmsgs = request.control.responseCount[name]!!
                         nbytes = nmsgs * STATUS_RESPONSE_LENGTH
@@ -93,7 +95,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                         request.control.responseCount[name] = request.control.responseCount[name]!! - 1
                     }
                     if (request.control.responseCount[name]!! <= 0) {
-                        if (isSingleControllerRequest(request)) {
+                        if(isSingleControllerRequest(request)) {
                             updateRequestFromBytes(request, bytes)
                         }
                         pending = null
@@ -111,6 +113,9 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
         }
     }
 
+    fun reset() {
+        pending = null
+    }
     // ============================= Private Helper Methods =============================
     /**
      * NOTE: Require same logic in MotorController, MotorGroupController and SerialResponder
@@ -125,10 +130,11 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
         }
         else if( msg.type==RequestType.READ_MOTOR_PROPERTY  ||
             msg.type==RequestType.SET_MOTOR_PROPERTY ) {
-            if( msg.joint!=Joint.NONE ||      // Applies to all joints
-                msg.limb!=Limb.NONE      ) {
-                return true
+            if( msg.joint==Joint.NONE &&      // Applies to all joints
+                msg.limb==Limb.NONE      ) {
+                return false
             }
+            return true
         }
         else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
             if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
@@ -148,15 +154,14 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
      * @param msg the request
      * @return true if this is the type of message that returns a separate
      * status response for every motor referenced in the request.
-     * (There may be only one).
+     * (There may be only one). The object is to update the internal
+     * motor configuration objects.
      */
     private fun returnsStatusArray(msg: MessageBottle): Boolean {
-        return if(  msg.type.equals(RequestType.READ_MOTOR_PROPERTY)) {
-            true
+        if(  msg.type==RequestType.READ_MOTOR_PROPERTY ) {
+            return true
         }
-        else {
-            false
-        }
+        return false
     }
 
     // We update the properties in the request from our serial message.
@@ -192,8 +197,10 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                 }
             }
         }
-        else if (type.equals(RequestType.SET_LIMB_PROPERTY) ||
-                 type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+        // These messages do not get updated with serial status
+        else if (type==RequestType.READ_MOTOR_PROPERTY ||
+                 type==RequestType.SET_LIMB_PROPERTY ||
+                 type==RequestType.SET_MOTOR_PROPERTY ) {
             val err: String = DxlMessage.errorMessageFromStatus(bytes)
             request.error = err
         }
@@ -231,7 +238,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
      * Create a remainder from extra bytes at the end of the array.
      * Remainder should always be null as we enter this routine.
      * @param bytes
-     * @param nbytes count of bytes we need.
+     * @param nb count of bytes we need.
      * @return
      */
     private fun truncateByteArray(bytes: ByteArray, nb: Int): ByteArray {

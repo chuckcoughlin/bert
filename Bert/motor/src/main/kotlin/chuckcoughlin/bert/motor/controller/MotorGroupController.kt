@@ -126,7 +126,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * @return the response, usually containing current joint positions.
      */
     suspend fun processRequest(request: MessageBottle):MessageBottle {
-        if(!request.limb.equals(Limb.NONE)) {
+        if(request.limb!=Limb.NONE) {
             LOGGER.info(String.format("%s.processRequest: processing %s on %s",CLSS,request.type.name,request.limb.name))
         }
         else {
@@ -228,6 +228,9 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         }
         else if( request.type == RequestType.RESET) {
             pendingMessages.clear()
+            for(controller in motorControllers.values) {
+                controller.reset()
+            }
             request.text = "I have been reset"
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY)) {
@@ -255,10 +258,11 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         }
         else if( msg.type==RequestType.READ_MOTOR_PROPERTY  ||
             msg.type==RequestType.SET_MOTOR_PROPERTY ) {
-            if( msg.joint!=Joint.NONE ||      // Applies to all joints
-                msg.limb!=Limb.NONE      ) {
-                return true
+            if( msg.joint==Joint.NONE &&      // Applies to all joints
+                msg.limb==Limb.NONE      ) {
+                return false
             }
+            return true
         }
         else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
             if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
@@ -273,6 +277,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         }
         return false
     }
+
 
     // When in development mode with no access to actual motors, simulate something reasonable as a response.
     private fun simulateResponseForRequest(request: MessageBottle): MessageBottle {

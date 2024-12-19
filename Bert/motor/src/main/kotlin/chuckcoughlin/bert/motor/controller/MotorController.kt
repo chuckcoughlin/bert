@@ -168,17 +168,15 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)", CLSS, controllerName, bytes.size,request.control.responseCount[controllerName]))
             }
         }
-        else {       // Multiple write request
+        else {       // Multiple write requests
             val byteArrayList = messageToByteList(request)
             responseCount=request.control.responseCount[controllerName]!!
             if(responseCount > 0) {
                 requestQueue.send(request)
             }
-            var count = byteArrayList.size
             for (bytes in byteArrayList) {
+                delay(ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL)    // This could be significant
                 writeBytesToSerial(bytes)
-                count--
-                if(count>0) delay(ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL)    // This could be significant
                 LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)", CLSS, controllerName, bytes.size,request.control.responseCount[controllerName]))
             }
         }
@@ -209,10 +207,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else if( msg.type==RequestType.READ_MOTOR_PROPERTY  ||
                  msg.type==RequestType.SET_MOTOR_PROPERTY ) {
-            if( msg.joint!=Joint.NONE ||      // Applies to all joints
-                msg.limb!=Limb.NONE      ) {
-                return true
+            if( msg.joint==Joint.NONE &&      // Applies to all joints
+                msg.limb==Limb.NONE      ) {
+                return false
             }
+            return true
         }
         else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
             if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
@@ -227,6 +226,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         return false
     }
+
 
     /**
      * The list of NOT single requests here should match the request types in messageToByteList().
@@ -411,14 +411,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val duration: Long = DxlMessage.mostRecentTravelTime
             if (request.duration < duration) request.duration = duration
         }
-        // One motor, all motors or all on a limb
+        // One motor, all motors or all on a limb - one response per motor
         else if(type.equals(RequestType.READ_MOTOR_PROPERTY)) {
             val limb = request.limb
             val joint = request.joint
             val prop = request.jointDynamicProperty
 
             if( limb==Limb.NONE ) {
-                if( joint==Joint.NONE ) {      // All joints
+                if( joint==Joint.NONE ) {      // All joints - (MX12 not returned in list)
                     list = DxlMessage.byteArrayListToListProperty(prop, configurationsByJoint.values)
                     request.control.responseCount[controllerName] = configurationsByJoint.size
                 }
@@ -466,9 +466,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 CLSS,type.name))
         }
         if(DEBUG) {
+            var count = 1
             for (bytes in list) {
-                LOGGER.info(String.format( "%s.messageToByteList: %s %s = \n%s",
-                    CLSS,controllerName,request.type,DxlMessage.dump(bytes)))
+                LOGGER.info(String.format( "%s.messageToByteList: %s %s %d = \n%s",
+                    CLSS,controllerName,request.type,count,DxlMessage.dump(bytes)))
+                count = count + 1
             }
         }
         return list
@@ -534,7 +536,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     // Attempt to recover from an error
     // NOTE: If there is an error on the controller itself, we need to recycle power
     fun reset() {
-
+        responder.reset()
     }
 
     private val CLSS = "MotorController"

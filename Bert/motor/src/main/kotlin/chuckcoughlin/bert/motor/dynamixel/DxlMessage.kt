@@ -133,6 +133,8 @@ object DxlMessage {
                 bytes[6] = DxlConversions.dataBytesForProperty(property)
                 setChecksum(bytes)
                 messages.add(bytes)
+                LOGGER.info(String.format("%s.byteArrayListToListProperty: single read %s",
+                    CLSS,mc.joint.name))
                 count--
             }
         }
@@ -145,15 +147,20 @@ object DxlMessage {
         bytes[4] = BULK_READ
         bytes[5] = 0
         var addr = 6
+        var names = StringBuilder()
         for (mc in configurations) {
             if (mc.type.equals(DynamixelType.AX12)) continue
             bytes[addr] = DxlConversions.dataBytesForProperty(property)
             bytes[addr + 1] = mc.id.toByte()
             bytes[addr + 2] = DxlConversions.addressForPresentProperty(property)
             addr += 3
+            names.append(mc.joint.name)
+            names.append(",")
         }
         setChecksum(bytes)
         messages.add(bytes)
+        LOGGER.info(String.format("%s.byteArrayListToListProperty: bulk read %s",
+            CLSS,names.toString()))
         return messages
     }
 

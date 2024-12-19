@@ -22,6 +22,7 @@ import java.time.Period
 import java.util.*
 import java.util.logging.Logger
 import kotlin.math.roundToInt
+import kotlin.system.exitProcess
 
 /**
  * The Dispatcher is the distribution hub of the application. Its' job is to accept requests from
@@ -33,7 +34,7 @@ import kotlin.math.roundToInt
  * to send and receive message objects.
  */
 @DelicateCoroutinesApi
-class Dispatcher() : Controller {
+class Dispatcher : Controller {
     // Communication channels
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (wifi)
     private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (wifi)
@@ -152,7 +153,7 @@ class Dispatcher() : Controller {
     }
 
     // Send preliminary messages to ensure a sane starting configuration
-    suspend fun initialize() {
+    private suspend fun initialize() {
         if(DEBUG) LOGGER.info(String.format("%s.initialize: sending messages to establish sanity", CLSS))
         // Set the speed to "normal" rate.
         var msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
@@ -171,6 +172,7 @@ class Dispatcher() : Controller {
         msg.source = ControllerType.BITBUCKET
         msg.control.delay = 1000 // 1 sec delay
         toInternalController.send(msg)
+
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
@@ -220,18 +222,19 @@ class Dispatcher() : Controller {
         if(isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
             val response: MessageBottle = handleLocalRequest(msg)
-            if( !response.type.equals(RequestType.NONE) &&
-                !response.type.equals(RequestType.HANGUP ) ) replyToSource(response)
+            if( response.type!=RequestType.NONE &&
+                response.type!=RequestType.HANGUP  ) replyToSource(response)
         }
-        // "internal" requests are those that need to be queued on the internal controller
+        // "motor" requests are those that need to be queued on the internal controller
         // and, perhaps preprocessed into multiple messages (by limb, for example)
-        else if( isInternalRequest(msg) ) {
+        // before sending on to the MotorGroupController
+        else if( isMotorRequest(msg) ) {
             toInternalController.send(msg)
         }
         else {
             LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s is unhandled",
                                         CLSS,msg.type.name,msg.source))
-            if( msg.type.equals(RequestType.JSON))
+            if( msg.type==RequestType.JSON)
                 msg.error = String.format("internal error, %s (%s) message is unhandled in dispatcher",msg.type.name,msg.jtype.name)
             else
                 msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
@@ -250,7 +253,7 @@ class Dispatcher() : Controller {
         if(isMotorRequest(msg)) {
             mgcRequestChannel.send(msg)
         }
-        else if(msg.type.equals(RequestType.HEARTBEAT)) {
+        else if(msg.type==RequestType.HEARTBEAT) {
             // Do nothing
         }
         else {
@@ -266,23 +269,23 @@ class Dispatcher() : Controller {
     // reference to the motors. The response is simply the original request
     // with altered text to return to the user.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.type.equals(RequestType.COMMAND)) {
+        if (request.type==RequestType.COMMAND) {
             val command = request.command
             LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
-            if( command.equals(CommandType.CREATE_ACTION) ) {
+            if( command==CommandType.CREATE_ACTION ) {
                 val actName: String = request.text.lowercase()
                 val series = request.arg.lowercase()
                 Database.createAction(actName,series)
                 request.text = String.format("To %s is to execute a series of %s poses",actName,series)
             }
-            else if( command.equals(CommandType.CREATE_POSE) ) {
+            else if( command==CommandType.CREATE_POSE ) {
                 val poseName: String = request.arg.lowercase()
                 val index = request.value.toInt()
                 Database.createPose(RobotModel.motorsByJoint,poseName,index)
                 request.text = "I recorded pose $poseName $index"
             }
             // For delete, the data type is no specified.
-            else if( command.equals(CommandType.DELETE_USER_DATA) ) {
+            else if( command==CommandType.DELETE_USER_DATA ) {
                 val name = request.arg
                 if( Database.actionExists(name)) {
                     Database.deleteAction(name)
@@ -297,11 +300,11 @@ class Dispatcher() : Controller {
                     }
                 }
             }
-            else if( command.equals(CommandType.HALT) ) {
+            else if( command==CommandType.HALT ) {
                 request.type = RequestType.NONE  // Suppress a response
-                System.exit(0) // Rely on ShutdownHandler
+                exitProcess(0) // Rely on ShutdownHandler
             }
-            else if (command.equals(CommandType.SHUTDOWN) ) {
+            else if (command==CommandType.SHUTDOWN ) {
                 try {
                     val commands = arrayOf("sudo poweroff")
                     val rt = Runtime.getRuntime()
@@ -499,25 +502,16 @@ class Dispatcher() : Controller {
         return request
     }
 
-    // These are complex requests that may require that several messages be created and processed
-    // on the internal controller - or otherwise requests that cannot execute too closely in time.
-    private fun isInternalRequest(request: MessageBottle): Boolean {
-        // By default all motor requests need to be processed by the internal
-        // controller for sequencing and spacing
-        if( isMotorRequest(request)) return true
-        else if (request.type.equals(RequestType.EXECUTE_ACTION)) return true
-        return false
-    }
 
     // Local requests are those that can be handled immediately
     // without forwarding to the motor controllers. This includes
     // database queries and some error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.COMMAND) ||
-            request.type.equals(RequestType.GET_EXTREMITY_LOCATION) ||
-            request.type.equals(RequestType.GET_JOINT_LOCATION) ||
-            request.type.equals(RequestType.GET_METRIC) ||
-            request.type.equals(RequestType.HANGUP)    ) {
+        if (request.type==RequestType.COMMAND ||
+            request.type==RequestType.GET_EXTREMITY_LOCATION ||
+            request.type==RequestType.GET_JOINT_LOCATION ||
+            request.type==RequestType.GET_METRIC ||
+            request.type==RequestType.HANGUP    ) {
             return true
         }
         // THese are the definition properties
@@ -595,7 +589,7 @@ class Dispatcher() : Controller {
             stdoutChannel.send(response)
         }
         else if (source.equals(ControllerType.BITBUCKET)) {
-            ;   // Do nothing
+              // Do nothing
         }
         else {
             // There should be no routes to Dispatcher, Internal or MotorController
