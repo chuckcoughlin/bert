@@ -4,8 +4,6 @@
  */
 package chuckcoughlin.bertspeak.data
 
-import chuckcoughlin.bert.common.message.JsonType
-import chuckcoughlin.bertspeak.common.MessageType
 import java.util.Date
 /**
  * This class holds a enough positional information to

@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bertspeak.data
 
-import chuckcoughlin.bert.common.message.JsonType
+import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.common.MessageType
 import java.util.Date
 /**

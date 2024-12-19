@@ -213,14 +213,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             return true
         }
-        else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
-            if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
+        else if( msg.type== RequestType.EXECUTE_POSE  ) {
+            if( msg.limb!=Limb.NONE ) {   // Applies to only one limb
                 return true
             }
         }
-        else if( msg.type.equals(RequestType.JSON) ) {
-            if( msg.jtype.equals(JsonType.MOTOR_GOALS) ||
-                msg.jtype.equals(JsonType.MOTOR_LIMITS)) {
+        else if( msg.type==RequestType.JSON ) {
+            if( msg.jtype==JsonType.MOTOR_GOALS ||
+                msg.jtype==JsonType.MOTOR_LIMITS ) {
                 return true
             }
         }
@@ -235,9 +235,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * false implies that an array of serial messages are required.
      */
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
-        if (msg.type.equals(RequestType.EXECUTE_POSE) ||
-            msg.type.equals(RequestType.INITIALIZE_JOINTS)   ||
-            msg.type.equals(RequestType.READ_MOTOR_PROPERTY)  ) {
+        if (msg.type==RequestType.EXECUTE_POSE  ||
+            msg.type==RequestType.INITIALIZE_JOINTS  ||
+            msg.type==RequestType.READ_MOTOR_PROPERTY  ) {
                return false
         }
         return true
@@ -448,11 +448,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val index: Int = request.value.toInt()
             val limb = request.limb
             val poseid = Database.getPoseIdForName(poseName,index)
-            LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d, poseid %d",
-                                        CLSS,controllerName,poseName,index,poseid))
             if( poseid != SQLConstants.NO_POSE) {
-                LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s on %s with %d joints",
-                                            CLSS,controllerName,poseName,limb.name,configurationsForLimb(limb).size))
+                LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d on %s with %d joints",
+                                            CLSS,controllerName,poseName,index,limb.name,configurationsForLimb(limb).size))
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsForLimb(limb))
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration

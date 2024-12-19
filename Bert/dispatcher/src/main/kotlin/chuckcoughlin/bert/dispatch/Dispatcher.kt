@@ -178,7 +178,7 @@ class Dispatcher : Controller {
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)
         msg.source = ControllerType.BITBUCKET
         msg.control.delay = 2000 // 2 sec delay
-        //toInternalController.send(msg)
+        toInternalController.send(msg)
     }
 
     /**

@@ -6,12 +6,12 @@ package chuckcoughlin.bertspeak.service
 
 import android.graphics.Rect
 import android.util.Log
-import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bertspeak.common.ContourTag
 import chuckcoughlin.bertspeak.data.TextObserver
 import chuckcoughlin.bertspeak.common.LandmarkTag
 import chuckcoughlin.bertspeak.data.FaceDirection
 import chuckcoughlin.bertspeak.data.FacialDetails
+import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.NamedPoint
 import chuckcoughlin.bertspeak.data.Point2D
 import kotlin.math.PI

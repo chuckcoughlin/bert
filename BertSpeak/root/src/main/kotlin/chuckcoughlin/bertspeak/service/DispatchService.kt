@@ -6,16 +6,14 @@ package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
-import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.common.MessageType.JSN
 import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.GeometryDataObserver
 import chuckcoughlin.bertspeak.data.JsonDataObserver
+import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.StatusDataObserver
 import chuckcoughlin.bertspeak.data.LogDataObserver
-import chuckcoughlin.bertspeak.data.TextObserver
 import com.google.mlkit.vision.face.Face
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -177,7 +175,7 @@ class DispatchService(ctx: Context){
      * Send a Json message to the robot
      */
     @OptIn(DelicateCoroutinesApi::class)
-    fun reportJsonData(type: JsonType,json: String) {
+    fun reportJsonData(type: JsonType, json: String) {
         GlobalScope.launch(Dispatchers.IO) {
             val msg = String.format("%s:%s %s",MessageType.JSN.name,type.name,json)
             Log.i(CLSS, String.format("reportJsonData: %s", msg))

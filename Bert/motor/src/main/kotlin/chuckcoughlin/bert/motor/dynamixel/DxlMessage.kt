@@ -133,8 +133,6 @@ object DxlMessage {
                 bytes[6] = DxlConversions.dataBytesForProperty(property)
                 setChecksum(bytes)
                 messages.add(bytes)
-                LOGGER.info(String.format("%s.byteArrayListToListProperty: single read %s",
-                    CLSS,mc.joint.name))
                 count--
             }
         }
@@ -147,20 +145,15 @@ object DxlMessage {
         bytes[4] = BULK_READ
         bytes[5] = 0
         var addr = 6
-        var names = StringBuilder()
         for (mc in configurations) {
             if (mc.type.equals(DynamixelType.AX12)) continue
             bytes[addr] = DxlConversions.dataBytesForProperty(property)
             bytes[addr + 1] = mc.id.toByte()
             bytes[addr + 2] = DxlConversions.addressForPresentProperty(property)
             addr += 3
-            names.append(mc.joint.name)
-            names.append(",")
         }
         setChecksum(bytes)
         messages.add(bytes)
-        LOGGER.info(String.format("%s.byteArrayListToListProperty: bulk read %s",
-            CLSS,names.toString()))
         return messages
     }
 
@@ -221,7 +214,7 @@ object DxlMessage {
      *
      * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
      * @param pose name of the pose to be set
-     * @param map of the motor configurations for subject controller keyed by joint name
+     * @param map of the motor configurations to be changed for subject controller keyed by joint name
      * @return 3 byte arrays to drive torques, speeds and finally the positions as required by the pose
      */
     fun byteArrayListToSetPose(poseid: Long,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
@@ -248,7 +241,7 @@ object DxlMessage {
                 if( torques[key]==null ) continue    // joint not being set
                 if( map[key]==null )     continue
                 val mc: MotorConfiguration = map[key]!!
-                if( mc.torque.equals(torques[key]) ) continue
+                if( mc.torque==torques[key]) continue
                 isChanged = true
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
                 bytes[index] = mc.id.toByte()
@@ -277,10 +270,9 @@ object DxlMessage {
             for (key in map.keys) {
                 if( speeds[key]==null ) continue
                 if( map[key]==null )  continue
-                isChanged = true
-                LOGGER.info(String.format("%s.byteArrayListToSetPose: joint = %s",CLSS,key.name))
                 val mc: MotorConfiguration = map[key]!!
-                if( mc.speed.equals(speeds[key]!!) ) continue
+                if( mc.speed==speeds[key]!! ) continue
+                isChanged = true
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, speeds[key]!!)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -310,7 +302,7 @@ object DxlMessage {
                 if( map[key]==null ) continue
                 val mc: MotorConfiguration = map[key]!!
                 if( angles[key] == null )  continue
-                if( mc.angle.equals(angles[key]!!) ) continue
+                if( mc.angle==angles[key]!! ) continue
                 isChanged = true
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %.0f",CLSS,key,angles.get(key)));
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, angles[key]!!)
