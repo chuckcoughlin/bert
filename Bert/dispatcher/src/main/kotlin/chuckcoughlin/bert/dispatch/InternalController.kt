@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
-import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
@@ -112,7 +111,12 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             LOGGER.info(String.format("%s.handleRequest %s pose = %s %2.0f (%s)",
                         CLSS,request.type.name,request.arg,request.value,request.source))
             request.limb = Limb.NONE   // Just used to synchronize
-            distributePose(request)
+            if( Database.poseExists(request.arg,request.value.toInt())) {
+                distributePose(request)
+            }
+            else {
+                request.error = String.format("pose \"%s %d\" does not exist",request.arg,request.value.toInt())
+            }
         }
         else if (request.type == RequestType.EXECUTE_ACTION ) {
             // An action requires executing a series of poses with intervening delay
@@ -123,6 +127,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 LOGGER.info(String.format("%s     got %s %d", CLSS,pose.name,pose.index))
                 var msg = MessageBottle(RequestType.EXECUTE_POSE)
                 msg.arg = pose.name
+                msg.value = pose.index.toDouble()
                 msg.control.delay = pose.index.toLong()
                 msg.source = ControllerType.BITBUCKET
                 distributePose(msg)   // All responses will go to the bit bucket
@@ -159,7 +164,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
      */
     override suspend fun dispatchMessage(msg:MessageBottle) {
         if (DEBUG) {
-            if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)", CLSS, msg.type.name,msg.arg))
+            if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s %d) on %s",
+                                                        CLSS, msg.type.name,msg.arg,msg.value.toInt(),msg.limb.name))
             else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
         }
         queue.addLast(msg)

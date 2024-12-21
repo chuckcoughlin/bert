@@ -7,6 +7,7 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -170,17 +171,17 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         else {       // Multiple write requests
             val byteArrayList = messageToByteList(request)
-            responseCount=request.control.responseCount[controllerName]!!
-            if(responseCount > 0) {
+            responseCount = request.control.responseCount[controllerName]!!
+            if (responseCount > 0) {
                 requestQueue.send(request)
             }
             for (bytes in byteArrayList) {
                 delay(ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL)    // This could be significant
                 writeBytesToSerial(bytes)
-                LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)", CLSS, controllerName, bytes.size,request.control.responseCount[controllerName]))
-            }
+                LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)",CLSS,
+                        controllerName,bytes.size,request.control.responseCount[controllerName]))
+                }
         }
-
         if( responseCount>0 ) {
             val response = responseQueue.receive()
             LOGGER.info(String.format("%s.processRequest: %s got response", CLSS, controllerName))
@@ -366,7 +367,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))
             }
             else {
-                request.error = String.format("I failed to set my %s %s to %.0f",
+                request.error = String.format("I failed to set my %s %s to %2.0f",
                         Joint.toText(mc.joint), prop.name, value)
             }
             bytes = DxlMessage.bytesToSetProperty(mc, prop, value)
@@ -448,15 +449,13 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val index: Int = request.value.toInt()
             val limb = request.limb
             val poseid = Database.getPoseIdForName(poseName,index)
+            // If the pose doesn't exist, just return an empty list
             if( poseid != SQLConstants.NO_POSE) {
                 LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d on %s with %d joints",
                                             CLSS,controllerName,poseName,index,limb.name,configurationsForLimb(limb).size))
                 list=DxlMessage.byteArrayListToSetPose(poseid, configurationsForLimb(limb))
                 val duration: Long=DxlMessage.mostRecentTravelTime
                 if(request.duration < duration) request.duration=duration
-            }
-            else {
-                request.error = String.format("The pose \"%s\" %d is does not exist",poseName,index)
             }
         }
         else {

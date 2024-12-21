@@ -19,12 +19,12 @@ object DxlConversions {
     fun degreeToDxl(mc: MotorConfiguration, arg: Double): Int {
         var value = arg
         if (value > mc.maxAngle) {
-            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (max = %.0f)",
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.0f (max = %2.0f)",
                 CLSS, mc.joint.name, value, mc.maxAngle))
             value = mc.maxAngle
         }
         if (value < mc.minAngle) {
-            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %.0f (min = %.0f)",
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.0f (min = %2.0f)",
                 CLSS, mc.joint.name, value, mc.minAngle))
             value = mc.minAngle
         }
@@ -53,7 +53,7 @@ object DxlConversions {
         var result = raw.toDouble() * r / res
         if (!mc.isDirect) result = r - result
         result = result + mc.offset
-        //LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %.0f %s result %.0f",CLSS,mc.joint.name,b1,b2,
+        //LOGGER.info(String.format("%s.dxlToDegree: %s b1,b2: %02X,%02X, offset %2.0f %s result %2.0f",CLSS,mc.joint.name,b1,b2,
         //    mc.offset,if(mc.isDirect)"DIRECT" else "INDIRECT",result))
         return result
     }
@@ -214,15 +214,15 @@ object DxlConversions {
         var text = ""
         val value = valueForProperty(property, mc, b1, b2)
         when (property ) {
-            JointDynamicProperty.MAXIMUMANGLE  -> text = String.format("%.0f degrees", value)
-            JointDynamicProperty.MINIMUMANGLE  -> text = String.format("%.0f degrees", value)
-            JointDynamicProperty.RANGE         -> text = String.format("%.0f degrees", value)
-            JointDynamicProperty.ANGLE         -> text = String.format("%.0f degrees", value)
-            JointDynamicProperty.SPEED         -> text = String.format("%.0f degrees per second", value)
-            JointDynamicProperty.TEMPERATURE   -> text = String.format("%.0f degrees centigrade", value)
-            JointDynamicProperty.TORQUE        -> text = String.format("%.1f newton-meters", value)
+            JointDynamicProperty.MAXIMUMANGLE  -> text = String.format("%2.0f degrees", value)
+            JointDynamicProperty.MINIMUMANGLE  -> text = String.format("%2.0f degrees", value)
+            JointDynamicProperty.RANGE         -> text = String.format("%2.0f degrees", value)
+            JointDynamicProperty.ANGLE         -> text = String.format("%2.0f degrees", value)
+            JointDynamicProperty.SPEED         -> text = String.format("%2.0f degrees per second", value)
+            JointDynamicProperty.TEMPERATURE   -> text = String.format("%2.0f degrees centigrade", value)
+            JointDynamicProperty.TORQUE        -> text = String.format("%2.1f newton-meters", value)
             JointDynamicProperty.STATE         -> text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
-            JointDynamicProperty.VOLTAGE       -> text = String.format("%.1f volts", value)
+            JointDynamicProperty.VOLTAGE       -> text = String.format("%2.1f volts", value)
             JointDynamicProperty.NONE          -> text = ""
         }
         return text

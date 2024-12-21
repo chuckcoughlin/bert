@@ -39,14 +39,14 @@ object DxlMessage {
                     CLSS,mc.joint.name))
             }
             else if (pos > mc.maxAngle ) {
-                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (max=%.0f)",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.0f (max=%2.0f)",
                         CLSS, mc.joint.name, pos, mc.maxAngle))
                 mc.angle = mc.maxAngle
                 outliers.add(mc)
                 if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
             else if (pos < mc.minAngle ) {
-                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %.0f (min=%.0f)",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.0f (min=%2.0f)",
                         CLSS, mc.joint.name, pos, mc.minAngle))
                 mc.angle = mc.minAngle
                 outliers.add(mc)
@@ -97,7 +97,7 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in outliers) {
-                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %.0f",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %2.0f",
                         CLSS,mc.joint.name,mc.angle))
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
                 bytes[index] = mc.id.toByte()
@@ -286,7 +286,7 @@ object DxlMessage {
             }
         }
         val pc = angles.size
-        // Positions
+        // Positions - correct any that are outside legal limits.
         if (pc > 0) {
             mostRecentTravelTime = 0
             val len = 3 * pc + 8 //  3 bytes per motor + address + byte count + header + checksum
@@ -304,12 +304,23 @@ object DxlMessage {
                 if( angles[key] == null )  continue
                 if( mc.angle==angles[key]!! ) continue
                 isChanged = true
-                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %.0f",CLSS,key,angles.get(key)));
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, angles[key]!!)
+                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.0f",CLSS,key,angles.get(key)));
+                mc.angle = angles[key]!!
+                if(mc.angle>mc.maxAngle)  {
+                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has %2.0f greater than the maximium %2.0f",
+                        CLSS,poseid,mc.joint.name,mc.angle,mc.maxAngle));
+                    mc.angle = mc.maxAngle
+                }
+                else if(mc.angle<mc.minAngle) {
+                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has angle %2.0f less than the minimium of %2.0f",
+                        CLSS,poseid,mc.joint.name,mc.angle,mc.minAngle));
+                    mc.angle = mc.minAngle
+                }
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.angle = angles[key]!!
+
                 if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
                 index = index + 3
             }
@@ -699,7 +710,7 @@ object DxlMessage {
                         JointDynamicProperty.VOLTAGE      -> mc.voltage = param
                         JointDynamicProperty.NONE         -> {}
                     }
-                    LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%.0f",
+                    LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%2.0f",
                             CLSS,mc.joint.name,property,param))
                 }
                 else if (err.toInt() != 0) {
