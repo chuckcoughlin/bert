@@ -99,7 +99,14 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
         return null
     }
-
+    // List values from the database
+    // What actions do you know
+    override fun visitDatabaseActionNamesQuestion(ctx: SpeechSyntaxParser.DatabasePoseNamesQuestionContext): Any? {
+        bottle.type = RequestType.GET_METRIC
+        bottle.metric = MetricType.LIST
+        bottle.jtype = JsonType.ACTION_NAMES
+        return null
+    }
     // List values from the database
     // Who do you know
     override fun visitDatabaseFaceNamesQuestion(ctx: SpeechSyntaxParser.DatabaseFaceNamesQuestionContext): Any? {
