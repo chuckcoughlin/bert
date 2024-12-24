@@ -95,8 +95,8 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
 
         limb = Limb.NONE
         offset = 0.0
-        minAngle = -90.0
-        maxAngle = 90.0
+        minAngle = -180.0
+        maxAngle = 180.0
         maxSpeed = 600.0
         maxTorque = 1.9
         commandTime = System.currentTimeMillis()

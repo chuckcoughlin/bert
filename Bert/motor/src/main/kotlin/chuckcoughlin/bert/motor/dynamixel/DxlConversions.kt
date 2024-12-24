@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.dynamixel
@@ -13,7 +13,8 @@ import java.util.logging.Logger
  * This class contains methods used to convert between Dynamixel jointValues and engineering units.
  * Code is derived from Pypot dynamixel.conversion.py
  * Protocol 1 only.
- * Range errors should be detcted before reaching this spot
+ * Range errors are handled silently. The requested value is automatically converted.
+ * NOTE: Any motor configuration is treated as read-only.
  */
 object DxlConversions {
     fun degreeToDxl(mc: MotorConfiguration, arg: Double): Int {
@@ -28,7 +29,6 @@ object DxlConversions {
                 CLSS, mc.joint.name, value, mc.minAngle))
             value = mc.minAngle
         }
-        mc.angle = value
         value = value - mc.offset
         val r = range[mc.type]!!
         if (!mc.isDirect) value = r - value
@@ -59,9 +59,14 @@ object DxlConversions {
     }
 
     // Speed is deg/sec
-    fun speedToDxl(mc: MotorConfiguration, value: Double): Int {
+    fun speedToDxl(mc: MotorConfiguration, arg: Double): Int {
         var cw: Boolean = mc.isDirect
-        if (value < 0.0) cw = !cw
+        var value = arg
+        if (value < 0.0) {
+            cw = !cw
+            value = -value
+        }
+        if( value>mc.maxSpeed ) value = mc.maxSpeed
         var intVal = (value * 1023.0 / velocity[mc.type]!!).toInt()
         if (!cw) intVal = intVal or 0x400
         return intVal
@@ -79,9 +84,14 @@ object DxlConversions {
 
     // N-m (assumes EEPROM max torque is 1023)
     // Positive number is CCW. Each unit represents .1%.
-    fun torqueToDxl(mc: MotorConfiguration, value: Double): Int {
+    fun torqueToDxl(mc: MotorConfiguration, arg: Double): Int {
         var cw: Boolean = mc.isDirect
-        if (value < 0.0) cw = !cw
+        var value = arg
+        if (value < 0.0) {
+            cw = !cw
+            value = -value
+        }
+        if( value>mc.maxTorque ) value = mc.maxTorque
         var intVal = (value * 1023.0 / torque[mc.type]!!).toInt()
         if (cw) intVal = intVal or 0x400
         return intVal

@@ -489,7 +489,7 @@ class Dispatcher : Controller {
         }
         // We are here because there is a range error
         else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-            request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
+                 request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
             val joint = request.joint
             val mc = RobotModel.motorsByJoint[joint]!!
             if( request.value>mc.maxAngle ) {
@@ -497,6 +497,22 @@ class Dispatcher : Controller {
             }
             else if (request.value < mc.minAngle ) {
                 request.error = String.format("I can only move my %s to %2.0f degrees", Joint.toText(joint),mc.minAngle)
+            }
+        }
+        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
+                 request.jointDynamicProperty == JointDynamicProperty.SPEED ) {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if( request.value>mc.maxSpeed ) {
+                request.error = String.format("I can only move my %s %2.0f degrees per second", Joint.toText(joint),mc.maxSpeed)
+            }
+        }
+        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
+                 request.jointDynamicProperty == JointDynamicProperty.TORQUE ) {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if( request.value>mc.maxTorque ) {
+                request.error = String.format("I can only press my %s at %2.0f newton-meters", Joint.toText(joint),mc.maxTorque)
             }
         }
         return request
