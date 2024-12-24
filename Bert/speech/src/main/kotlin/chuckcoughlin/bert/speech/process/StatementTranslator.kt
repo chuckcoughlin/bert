@@ -101,7 +101,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     }
     // List values from the database
     // What actions do you know
-    override fun visitDatabaseActionNamesQuestion(ctx: SpeechSyntaxParser.DatabasePoseNamesQuestionContext): Any? {
+    override fun visitDatabaseActionNamesQuestion(ctx: SpeechSyntaxParser.DatabaseActionNamesQuestionContext): Any? {
         bottle.type = RequestType.GET_METRIC
         bottle.metric = MetricType.LIST
         bottle.jtype = JsonType.ACTION_NAMES
