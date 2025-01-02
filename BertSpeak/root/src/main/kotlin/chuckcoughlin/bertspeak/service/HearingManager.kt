@@ -209,6 +209,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		text = text.replace("°", " degrees").lowercase(Locale.getDefault())
 		text = text.replace("exposition", "x position")
 		text = text.replace("fries", "freeze")
+		text = text.replace("too", "2")
 		text = text.replace("what's", "what is")
 		text = text.replace("why", "y")
 		text = text.replace("zero", "0")

@@ -89,8 +89,6 @@ class MessageTranslator {
         // Message has text
         else {
             if(type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-                val property: JointDynamicProperty=msg.jointDynamicProperty
-                val joint: Joint=msg.joint
                 text
             }
             else if(type.equals(RequestType.INITIALIZE_JOINTS)) {

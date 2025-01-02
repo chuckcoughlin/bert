@@ -53,6 +53,7 @@ question:
     | (What Is|Tell Me) Article? Property Of Article? Side? Joint Axis?   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Metric   				                  # metricsQuestion
     | Where Is Article? Side? (Extremity|Joint)	Axis?       # limbLocationQuestion
+    | What Actions Do You Know								# databaseActionNamesQuestion
     | What Poses Do You Know								# databasePoseNamesQuestion
     | Who Do You Know										# databaseFaceNamesQuestion
     | Why Do You Have Mittens								# whyMittens
@@ -64,7 +65,7 @@ declaration:
     | Article Pose Is phrase Value						# definePose
 	| Save Article? Pose phrase Value          	        # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
-	| Define phrase From phrase                         # defineAction1
+	| Define phrase (From|As) phrase                    # defineAction1
 	| Use phrase Poses? To Define phrase				# defineAction2
 	;
 
@@ -87,7 +88,7 @@ As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
-Define: 'define'|'make';
+Define: 'create'|'define'|'make';
 Describe: 'describe';
 Do: 'do';
 Dynamic: 'dynamic';
