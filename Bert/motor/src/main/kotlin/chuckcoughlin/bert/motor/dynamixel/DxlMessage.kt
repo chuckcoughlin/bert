@@ -13,7 +13,7 @@ import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
 /**
- * This object contains utility methods used to create and interpret different varieties \
+ * This object contains utility methods used to create and interpret different varieties
  * of Dynamixel serial messages. Code is derived from Pypot dynamixel.v2.py and the Dynamixel
  * documentation at http://emanual.robotis.com. Applies to MX64, MX28, AX12A models.
  * The documentation is unclear about the protocol version for AX-12 models, but it appears
@@ -23,7 +23,8 @@ object DxlMessage {
 
     /**
      * Iterate through the list of motor configurations to determine which, if any, are outside the max-min
-     * angle ranges. For those outside, move the position to a legal value.
+     * angle ranges. For those outside, move the position to a legal value. We rely on READ_MOTOR_PROPERTY
+     * having been executed to initialize the motor configuration objects.
      * WARNING: SYNC_WRITE requests do not generate responses.
      * Discount any current readings of zero, it probably means that the motor positions were never evaluated.
      * @param configurations a list of motor configuration objects
@@ -34,11 +35,7 @@ object DxlMessage {
         mostRecentTravelTime = 0
         for (mc in configurationsByJoint.values) {
             val pos: Double = mc.angle
-            if (pos == 0.0) {
-                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s never evaluated, ignored",
-                    CLSS,mc.joint.name))
-            }
-            else if (pos > mc.maxAngle ) {
+            if (pos > mc.maxAngle ) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.0f (max=%2.0f)",
                         CLSS, mc.joint.name, pos, mc.maxAngle))
                 mc.angle = mc.maxAngle
@@ -238,8 +235,7 @@ object DxlMessage {
             var index = 7
             var isChanged = false
             for (key in map.keys) {
-                if( torques[key]==null ) continue    // joint not being set
-                if( map[key]==null )     continue
+                if( torques[key]==null ) continue    // joint not being set in pose
                 val mc: MotorConfiguration = map[key]!!
                 if( mc.torque==torques[key]) continue
                 isChanged = true
@@ -269,7 +265,6 @@ object DxlMessage {
             var isChanged = false
             for (key in map.keys) {
                 if( speeds[key]==null ) continue
-                if( map[key]==null )  continue
                 val mc: MotorConfiguration = map[key]!!
                 if( mc.speed==speeds[key]!! ) continue
                 isChanged = true
@@ -286,7 +281,8 @@ object DxlMessage {
             }
         }
         val pc = angles.size
-        // Positions - correct any that are outside legal limits.
+        // Positions - correct any that are outside legal limits
+        // Engage any motors that are about to be moved.
         if (pc > 0) {
             mostRecentTravelTime = 0
             val len = 3 * pc + 8 //  3 bytes per motor + address + byte count + header + checksum
@@ -299,11 +295,18 @@ object DxlMessage {
             var index = 7
             var isChanged = false
             for (key in map.keys) {
-                if( map[key]==null ) continue
-                val mc: MotorConfiguration = map[key]!!
                 if( angles[key] == null )  continue
+                val mc: MotorConfiguration = map[key]!!
                 if( mc.angle==angles[key]!! ) continue
                 isChanged = true
+                if( !mc.isTorqueEnabled ) {
+                    mc.isTorqueEnabled = true
+                    val stateValue=1  // True
+                    bytes[index]=mc.id.toByte()
+                    bytes[index + 1]=(stateValue and 0xFF).toByte()
+                    bytes[index + 2]=(stateValue shr 8).toByte()
+                    index=index + 3
+                }
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.0f",CLSS,key,angles.get(key)));
                 mc.angle = angles[key]!!
                 if(mc.angle>mc.maxAngle)  {

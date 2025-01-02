@@ -163,6 +163,14 @@ class Dispatcher : Controller {
         msg.source = ControllerType.BITBUCKET
         toInternalController.send(msg)
 
+        // Make sure that all motors are engaged
+        msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
+        msg.jointDynamicProperty = JointDynamicProperty.STATE
+        msg.joint = Joint.NONE
+        msg.value = ConfigurationConstants.ON_VALUE
+        msg.source = ControllerType.BITBUCKET
+        toInternalController.send(msg)
+
         // Read all the joint positions (using both controllers). This fills our
         // internal buffers with the current positions.
         msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
@@ -172,7 +180,6 @@ class Dispatcher : Controller {
         msg.source = ControllerType.BITBUCKET
         msg.control.delay = 1000 // 1 sec delay
         toInternalController.send(msg)
-
 
         // Bring any joints that are outside sane limits into compliance
         msg = MessageBottle(RequestType.INITIALIZE_JOINTS)

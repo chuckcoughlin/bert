@@ -233,7 +233,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * The list of NOT single requests here should match the request types in messageToByteList().
      * @param msg the request
      * @return true if this request translates into a single serial message.
-     * false implies that an array of serial messages are required.
+     * false implies that an array of serial messages is required.
      */
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         if (msg.type==RequestType.EXECUTE_POSE  ||
@@ -269,8 +269,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 }
             }
         }
-        else if(type.equals(RequestType.JSON) &&
-            jtype.equals(JsonType.MOTOR_LIMITS)) {
+        else if(type.equals(RequestType.JSON) && jtype.equals(JsonType.MOTOR_LIMITS)) {
             val joint=request.joint
             for (mc in configurationsByJoint.values) {
                 if(mc.joint.equals(joint)) {

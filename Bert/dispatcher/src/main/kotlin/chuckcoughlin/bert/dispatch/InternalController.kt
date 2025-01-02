@@ -97,6 +97,17 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.control.delay =250 // 1/4 sec delay
             dispatchMessage(msg)
         }
+        // Make sure the motor is engaged before moving
+        else if(request.type==RequestType.SET_MOTOR_PROPERTY &&
+            request.jointDynamicProperty == JointDynamicProperty.ANGLE   )  {
+
+            val msg = request.clone()
+            msg.jointDynamicProperty = JointDynamicProperty.STATE
+            msg.value = ConfigurationConstants.ON_VALUE
+            msg.source = ControllerType.BITBUCKET
+            msg.control.delay =250 // 1/4 sec delay
+            dispatchMessage(msg)
+        }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
             request.value == ConfigurationConstants.ON_VALUE    ) {
