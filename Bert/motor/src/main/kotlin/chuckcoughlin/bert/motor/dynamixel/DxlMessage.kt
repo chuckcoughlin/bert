@@ -838,18 +838,19 @@ object DxlMessage {
     val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
 
     // Constants for the instructions
-    const val BROADCAST_ID = 0xFE.toByte() // ID to transmit to all devices connected to port
-    const val PING: Byte = 0x01 // Instruction that checks whether the Packet has arrived
-    const val READ: Byte = 0x02 // Instruction to read data from the Device
-    const val WRITE: Byte = 0x03 // Instruction to write data on the Device const val REG_WRITE: Byte = 0x04 // Register the Instruction Packet to a standby status;
-    const val ACTION: Byte = 0x05 // Execute the Packet that was registered beforehand using REQ_WRITE
-    const val FACTORY_RESET: Byte = 0x06 // Reset the Control Table to its initial factory default settings
-    const val REBOOT: Byte = 0x08 // Instruction to reboot the Device
+    const val BROADCAST_ID = 0xFE.toByte() // Use this ID to transmit to all devices connected to port
+    const val PING: Byte = 0x01 // Instruction that checks whether the packet has arrived
+    const val READ: Byte = 0x02 // Instruction to read data from the device
+    const val WRITE: Byte = 0x03 // Instruction to write data on the device
+    const val REG_WRITE: Byte = 0x04 // Register the instruction packet with a standby status;
+    const val ACTION: Byte = 0x05 // Execute the packet that was registered beforehand using REQ_WRITE
+    const val FACTORY_RESET: Byte = 0x06 // Reset the control table to its initial factory default settings
+    const val REBOOT: Byte = 0x08 // Instruction to reboot the device
     const val CLEAR: Byte = 0x10 // Instruction to reset certain information
-    const val STATUS_RETURN: Byte = 0x55 // Return Instruction for the Instruction Packet
-    const val SYNC_READ = 0x82.toByte() // For multiple devices, Instruction to read data from the same Address with the same length at once
-    const val SYNC_WRITE = 0x83.toByte() // For multiple devices, Instruction to write data on the same Address with the same length at once
-    const val BULK_READ = 0x92.toByte() // For multiple devices, Instruction to read data from different Addresses with different lengths at once
+    const val STATUS_RETURN: Byte = 0x55 // Return instruction for the instruction packet
+    const val SYNC_READ = 0x82.toByte() // For multiple devices, instruction to read data from the same address with the same length at once
+    const val SYNC_WRITE = 0x83.toByte() // For multiple devices, instruction to write data on the same address with the same length at once
+    const val BULK_READ = 0x92.toByte() // For multiple devices, instruction to read data from different addresses with different lengths at once
     const val HIP_X_LIMIT = 190.0         // Reasonable hip limit
     const val HIP_Z_LIMIT = -8.0
 }
