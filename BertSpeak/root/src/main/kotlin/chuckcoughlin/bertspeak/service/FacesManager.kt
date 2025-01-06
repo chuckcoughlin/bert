@@ -12,7 +12,6 @@ import chuckcoughlin.bertspeak.common.LandmarkTag
 import chuckcoughlin.bertspeak.data.FaceDirection
 import chuckcoughlin.bertspeak.data.FacialDetails
 import chuckcoughlin.bertspeak.data.JsonType
-import chuckcoughlin.bertspeak.data.NamedPoint
 import chuckcoughlin.bertspeak.data.Point2D
 import kotlin.math.PI
 import com.google.gson.Gson
@@ -59,14 +58,16 @@ class FacesManager (service:DispatchService): CommunicationManager {
         for(landmark in landmarks) {
             val norm = normalizePoint(facebox, Point2D(landmark.position.x,landmark.position.y))
             val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
-            val np = NamedPoint(landmarkTag.name,norm.x,norm.y)
-            details.addLandmark(np)
+            val p = Point2D(norm.x,norm.y)
+            details.addLandmark(landmarkTag.name,p)
         }
         for(contour in contours) {
             val contourTag = ContourTag.tagForCode(contour.faceContourType)
+            var index = 0
             for(point in contour.points) {
                 val norm = normalizePoint(facebox, Point2D(point.x,point.y))
-                details.addContourPoint(contourTag.name, norm)
+                details.addContourPoint(contourTag.name, index, norm)
+                index = index+1
             }
         }
 

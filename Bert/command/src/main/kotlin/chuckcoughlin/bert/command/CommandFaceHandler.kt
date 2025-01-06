@@ -80,8 +80,9 @@ object CommandFaceHandler  {
     // Phrases to choose from ... (randomly)
     private val helloPhrases = arrayOf(
             "Hi %s",
+            "hello %s, I'm glad to see you",
             "%s, glad to see you",
-            "%s, you are in charge"
+            "%s, I'm listening"
     )
     private val whoPhrases = arrayOf(
             "Who are you",

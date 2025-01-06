@@ -9,22 +9,17 @@ package chuckcoughlin.bertspeak.data
  * This class is a holder for parameters that define
  * a face. The name of the owner of the face is separate.
  * Its purpose is to make it easy to format JSON.
- * nam - the name of the list
- * jtype  - the name as a 4 character key.
  */
 class FacialDetails () {
-    val contours  = mutableMapOf<String,MutableList<Point2D>>()
-    val landmarks = mutableListOf<NamedPoint>()
+    val contours  = mutableMapOf<String,MutableMap<Int,Point2D>>()
+    val landmarks = mutableMapOf<String,Point2D>()
 
-    /**
-     * The name in the NamedPoint is the contour name
-     */
-    fun addContourPoint(name:String,p: Point2D) {
-        if( contours[name]==null ) contours[name] = mutableListOf<Point2D>()
+    fun addContourPoint(name:String,index:Int,p: Point2D) {
+        if( contours[name]==null ) contours[name] = mutableMapOf<Int,Point2D>()
         val contour = contours[name]
-        contour!!.add(p)
+        contour!!.set(index,p)
     }
-    fun addLandmark(p: NamedPoint) {
-        landmarks.add(p)
+    fun addLandmark(name:String,p: Point2D) {
+        landmarks.set(name,p)
     }
 }

@@ -58,7 +58,6 @@ class FaceTable {
                     catch (ignore: SQLException) {}
                 }
                 // Now do the deletions
-
                 var stmt=cxn.createStatement()
                 try {
                     SQL=String.format("delete from FaceName where faceid = %d", faceid)
@@ -226,13 +225,24 @@ class FaceTable {
             val SQL2 = String.format(
                     "select landmarkcode,x,y from FaceLandmark where faceid=%d order by landmarkcode",id)
             try {
-                rs = statement.executeQuery(SQL1)
-                while (rs.next()) {
-
-                }
+                // For starters simply compare landmarks
                 rs = statement.executeQuery(SQL2)
+                var err = 0.0
+                var count = 0
                 while (rs.next()) {
-
+                    val name = rs.getString(1)
+                    val x = rs.getDouble(2)
+                    val y = rs.getDouble(3)
+                    val pnt = details.landmarks[name]
+                    if( pnt!=null ) {
+                        count = count+1
+                        err = err + (x-pnt.x)*(x-pnt.x) + (y-pnt.y)*(y-pnt.y)
+                    }
+                }
+                if( count>0 ) {
+                    err = Math.sqrt(err/(2.0*count))
+                    LOGGER.info(String.format("%s.idMatchesDetails: Computed error: %0.2f vs %0.2f", CLSS, err,TOLERANCE))
+                    if( err<TOLERANCE ) result = true
                 }
             }
             catch (e: SQLException) {
