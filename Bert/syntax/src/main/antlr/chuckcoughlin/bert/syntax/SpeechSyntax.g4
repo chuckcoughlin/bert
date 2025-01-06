@@ -63,7 +63,7 @@ question:
 declaration:
 	  Take Article? Pose phrase Value          	        # assumePose
     | Article Pose Is phrase Value						# definePose
-	| Save Article? Pose phrase Value          	        # definePose
+	| Save Article? Pose As? phrase Value          	    # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
 	| Define phrase (From|As) phrase                    # defineAction1
 	| Use phrase Poses? To Define phrase				# defineAction2

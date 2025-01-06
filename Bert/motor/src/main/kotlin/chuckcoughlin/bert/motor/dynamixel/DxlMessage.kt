@@ -281,11 +281,38 @@ object DxlMessage {
             }
         }
         val pc = angles.size
+        // Torque enable - enable torque for any motor about to be moved
+        if( pc>0 ) {
+            val len = 3 * pc + 8 //  6 bytes per motor + address + byte count + header + checksum
+            val bytes = ByteArray(len)
+            setSyncWriteHeader(bytes)
+            bytes[3] = (len - 4).toByte()
+            bytes[4] = SYNC_WRITE
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.STATE)
+            bytes[6] = 0x2 // 2 bytes
+            var index = 7
+            var isChanged = false
+            for (key in map.keys) {
+                if( angles[key] == null )  continue
+                val mc: MotorConfiguration = map[key]!!
+                if( mc.angle==angles[key]!! ) continue
+                isChanged = true
+                mc.isTorqueEnabled = true
+                val stateValue=1  // True
+                bytes[index]=mc.id.toByte()
+                bytes[index + 1]=(stateValue and 0xFF).toByte()
+                bytes[index + 2]=(stateValue shr 8).toByte()
+                index=index + 3
+            }
+            if( isChanged ) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
+        }
         // Positions - correct any that are outside legal limits
-        // Engage any motors that are about to be moved.
         if (pc > 0) {
             mostRecentTravelTime = 0
-            val len = 3 * pc + 8 //  3 bytes per motor + address + byte count + header + checksum
+            val len = 3 * pc + 8 //  6 bytes per motor + address + byte count + header + checksum
             val bytes = ByteArray(len)
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
@@ -299,14 +326,15 @@ object DxlMessage {
                 val mc: MotorConfiguration = map[key]!!
                 if( mc.angle==angles[key]!! ) continue
                 isChanged = true
-                if( !mc.isTorqueEnabled ) {
-                    mc.isTorqueEnabled = true
-                    val stateValue=1  // True
-                    bytes[index]=mc.id.toByte()
-                    bytes[index + 1]=(stateValue and 0xFF).toByte()
-                    bytes[index + 2]=(stateValue shr 8).toByte()
-                    index=index + 3
-                }
+                /*
+                mc.isTorqueEnabled = true
+                val stateValue=1  // True
+                bytes[index]=mc.id.toByte()
+                bytes[index + 1]=(stateValue and 0xFF).toByte()
+                bytes[index + 2]=(stateValue shr 8).toByte()
+                index=index + 3
+                 */
+
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.0f",CLSS,key,angles.get(key)));
                 mc.angle = angles[key]!!
                 if(mc.angle>mc.maxAngle)  {
