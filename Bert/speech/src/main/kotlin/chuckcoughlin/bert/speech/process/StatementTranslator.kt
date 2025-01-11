@@ -1040,8 +1040,8 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
 
         if (pname.equals("id", ignoreCase = true))               pname = "ID"
         else if (pname.equals("motor type", ignoreCase = true))  pname = "MOTORTYPE"
-        else if (pname.equals("offset", ignoreCase = true))      pname ="OFFSET"
-        else if (pname.equals("orientation", ignoreCase = true)) pname ="ORIENTATION"
+        else if (pname.equals("offset", ignoreCase = true))      pname = "OFFSET"
+        else if (pname.equals("orientation", ignoreCase = true)) pname = "ORIENTATION"
 
         if( isDynamic ) msg.jointDynamicProperty = JointDynamicProperty.fromString(pname)
         else            msg.jointDefinitionProperty = JointDefinitionProperty.fromString(pname)

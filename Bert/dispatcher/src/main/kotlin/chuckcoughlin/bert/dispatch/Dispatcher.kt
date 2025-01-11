@@ -229,6 +229,8 @@ class Dispatcher : Controller {
         if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s",CLSS,msg.type.name,msg.source))
         if(isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
+            if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s is local (%s %s)",
+                    CLSS,msg.type.name,msg.jointDefinitionProperty.name,msg.jointDynamicProperty.name))
             val response: MessageBottle = handleLocalRequest(msg)
             if( response.type!=RequestType.NONE &&
                 response.type!=RequestType.HANGUP  ) replyToSource(response)
@@ -583,11 +585,11 @@ class Dispatcher : Controller {
                 return true
             }
         }
-        // These are the definition properties
         else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
-                 request.jointDynamicProperty == JointDynamicProperty.NONE )  {
+                 request.jointDefinitionProperty != JointDefinitionProperty.NONE )  {
             return true
         }
+        // These "dynamic" properties are gettable from bert.xml
         else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
                  ( request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE ||
                    request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE ||
@@ -596,7 +598,7 @@ class Dispatcher : Controller {
         }
         // Some very specific boundary errors --- set the error text
         else if( request.type == RequestType.SET_LIMB_PROPERTY &&
-            request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
+                 request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
             val joint = request.joint
             if( joint==Joint.NONE ) {
                 request.error = String.format("setting the same angle to all motors on a limb is not allowed")

@@ -328,14 +328,6 @@ object DxlMessage {
                 val mc: MotorConfiguration = map[key]!!
                 if( mc.angle==angles[key]!! ) continue
                 isChanged = true
-                /*
-                mc.isTorqueEnabled = true
-                val stateValue=1  // True
-                bytes[index]=mc.id.toByte()
-                bytes[index + 1]=(stateValue and 0xFF).toByte()
-                bytes[index + 2]=(stateValue shr 8).toByte()
-                index=index + 3
-                 */
 
                 LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.0f",CLSS,key,angles.get(key)));
                 mc.angle = angles[key]!!
@@ -666,8 +658,8 @@ object DxlMessage {
     }
 
     /**
-     * Analyze a response buffer for some parameter of a motor. Update the
-     * motor configuration accordingly and configure results in the request message
+     * Analyze a response buffer for some parameter of a motor. Use the
+     * motor configuration (altrady updated) cto onfigure results in the request message
      * @param property the requested parameter
      * @param mc the motor configuration
      * @param bottle the request
