@@ -10,6 +10,8 @@ import chuckcoughlin.bert.motor.dynamixel.DxlConversions.CLSS
 import chuckcoughlin.bert.motor.dynamixel.DxlConversions.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import com.google.gson.GsonBuilder
+import java.awt.SystemColor.text
+import java.io.ObjectInputFilter.Config
 import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.ArrayList
@@ -556,13 +558,12 @@ object DxlMessage {
      * Analyze a response buffer returned from a request for goal values for a motor. Goals
      * parameters are: position, speed, torque. Results will be entered in the properties map.
      * Convert speeds and torques to percent of max disregarding direction.
-     * @param type the model of the motor
-     * @param isDirect the orientation of the motor
-     * @param bottle a MessageBottle in which we set properties
+     * @param mc the motor configuration - parameters are not modified here
+     * @param bottle the request
      * @param bytes status response from the controller
      */
     @Synchronized
-    fun updateGoalsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
+    fun updateGoalsRequestFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
         if (verifyHeader(bytes)) {
             if(DEBUG) {
                 val msg = String.format("%s.updateGoalsFromBytes: %s", CLSS, dump(bytes))
@@ -611,13 +612,12 @@ object DxlMessage {
      * Analyze a response buffer returned from a request for EEPROM limits for a motor. Limit
      * parameters are: angles, temperature, voltage and torque. Of these we extract only the
      * angles and torque. These are NOT corrected for offset or orientation.
-     * @param type the model of the motor
-     * @param isDirect the orientation of the motor
-     * @param bottle a MessageBottle in which we set properties
+     * @param mc the motor configuration - parameters are not modified here
+     * @param bottle the request
      * @param bytes status response from the controller
      */
     @Synchronized
-    fun updateLimitsFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
+    fun updateLimitsRequestFromBytes(mc: MotorConfiguration, bottle: MessageBottle, bytes: ByteArray) {
         mc.isDirect = true
         mc.offset = 0.0
         if (verifyHeader(bytes)) {
@@ -659,9 +659,9 @@ object DxlMessage {
 
     /**
      * Analyze a response buffer for some parameter of a motor. Use the
-     * motor configuration (altrady updated) cto onfigure results in the request message
+     * motor configuration (already updated) to configure results in the request message
      * @param property the requested parameter
-     * @param mc the motor configuration
+     * @param mc the motor configuration - parameters are not modified here
      * @param bottle the request
      * @param bytes status response from the controller
      */
@@ -672,21 +672,32 @@ object DxlMessage {
             // val id = bytes[2].toInt()
             val err = bytes[4]
             val value = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
-            val text = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
+            val propertyValue   = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
             if (err.toInt() == 0) {
                 bottle.joint = mc.joint
                 bottle.jointDynamicProperty = property
                 bottle.value = value
-                bottle.text = text
                 LOGGER.info(String.format("%s.updatePropertyRequestFromBytes: %s %s=%.2f",
                         CLSS,mc.joint,property,value))
                 if(property.equals(JointDynamicProperty.ANGLE)) {
-                    bottle.text=String.format("My %s %s is %2.0f degrees",
-                        Joint.toText(bottle.joint), property.name.lowercase(Locale.getDefault()), value)
+                    bottle.text=String.format("My %s is at %s",
+                        Joint.toText(bottle.joint), propertyValue)
+                }
+                else if(property.equals(JointDynamicProperty.SPEED)) {
+                    bottle.text=String.format("My current %s %s is %s",
+                        Joint.toText(bottle.joint), property.name.lowercase(), propertyValue)
+                }
+                else if(property.equals(JointDynamicProperty.TORQUE)) {
+                    bottle.text=String.format("My %s %s is %s",
+                        Joint.toText(bottle.joint), property.name.lowercase(), propertyValue)
+                }
+                else if(property.equals(JointDynamicProperty.STATE)) {
+                    bottle.text=String.format("My %s %s is currently %s",
+                        Joint.toText(bottle.joint), property.name.lowercase(),propertyValue)
                 }
                 else {
-                    bottle.text=String.format("My most recent %s %s was %2.0f",
-                        Joint.toText(bottle.joint), property.name.lowercase(Locale.getDefault()), value)
+                    bottle.text=String.format("My %s %s is %2.0f",
+                        Joint.toText(bottle.joint), property.name.lowercase(),propertyValue)
                 }
             }
             else {
@@ -735,7 +746,7 @@ object DxlMessage {
                         JointDynamicProperty.MINIMUMANGLE -> mc.minAngle = param
                         JointDynamicProperty.RANGE -> {}
                         JointDynamicProperty.SPEED        -> mc.speed = param
-                        JointDynamicProperty.STATE        -> {}
+                        JointDynamicProperty.STATE        -> mc.setState(param)
                         JointDynamicProperty.TEMPERATURE  -> mc.temperature = param
                         JointDynamicProperty.VOLTAGE      -> mc.voltage = param
                         JointDynamicProperty.NONE         -> {}

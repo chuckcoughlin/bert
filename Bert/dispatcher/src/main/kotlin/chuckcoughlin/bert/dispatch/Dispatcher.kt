@@ -645,7 +645,7 @@ class Dispatcher : Controller {
             return true
         }
         // If there was any error caught by the parser
-        else if( !request.equals(BottleConstants.NO_ERROR)) {
+        else if( !request.error.equals(BottleConstants.NO_ERROR)) {
             return true
         }
         return false

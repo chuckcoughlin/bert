@@ -372,7 +372,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             else if (prop.equals(JointDynamicProperty.STATE) ) {
                 var enabled = false
                 if(request.value>ConfigurationConstants.OFF_VALUE) enabled = true
-                val mc = RobotModel.motorsByJoint[request.joint]!!
                 mc.isTorqueEnabled = enabled
                 request.text = String.format("My %s is %s", Joint.toText(mc.joint),
                     if(enabled) "rigid" else "relaxed")
@@ -432,7 +431,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         // One motor, all motors or all on a limb - one response per motor
         else if(type.equals(RequestType.READ_MOTOR_PROPERTY)) {
-            val limb = request.limb
             val joint = request.joint
             val prop = request.jointDynamicProperty
 
@@ -465,7 +463,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
             val poseName: String = request.arg
             val index: Int = request.value.toInt()
-            val limb = request.limb
             val poseid = Database.getPoseIdForName(poseName,index)
             // If the pose doesn't exist, just return an empty list
             if( poseid != SQLConstants.NO_POSE) {
