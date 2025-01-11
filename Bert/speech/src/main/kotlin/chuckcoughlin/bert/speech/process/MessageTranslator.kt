@@ -101,6 +101,7 @@ class MessageTranslator {
             else if(type.equals(RequestType.NOTIFICATION)) {
                 text
             }
+            // Text is set by the MotorController
             else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
                 text
             }

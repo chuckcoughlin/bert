@@ -289,6 +289,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
         }
         // Property value must be the same for every joint in limb
+        // Those that don't make sense are trapped by the Dispatcher
         else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
             val limb=request.limb
             val prop=request.jointDynamicProperty
@@ -305,8 +306,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     if(enabled) "rigid" else "limp")
         }
         // Handle set torque enable for all joints. ASYNC_WRITE, no response
-        // NOTE: When enabling torque, a read is required
-        // Rely on the StatementTranslator to fill in the response text
+        // NOTE: When enabling torque, a read is required. The extra request is handled by the InternalController
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
             request.joint.equals(Joint.NONE)  )   {
@@ -315,6 +315,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                                     CLSS,controllerName,request.value))
             var enable = true
             if( request.value<ConfigurationConstants.ON_VALUE ) enable = false
+            if( enable ) request.text = "I am now rigid"
+            else         request.text = "I am relaxed"
 
             for (mc in configurationsByJoint.values) {
                 mc.isTorqueEnabled = enable
@@ -322,33 +324,33 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.STATE)
         }
         // Handle set speed for all joints
-        // Rely on the StatementTranslator to fill in the response text
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
             request.joint.equals(Joint.NONE)  )   {
 
-            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting SPEED to %2.0f for all joints" ,
+            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting speed to %2.0f for all joints" ,
                 CLSS,controllerName,request.value))
 
             for (mc in configurationsByJoint.values) {
                 mc.speed = request.value
             }
+            request.text = String.format("all movements will be %2.0f degrees per second", request.value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
-        // Set the torque-enable
-        else if (type.equals(RequestType.SET_MOTOR_PROPERTY) &&
-                 request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  )  {
-            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling set %s state = %2.0f",
-                    CLSS,controllerName,request.joint.name,request.value) )
-            // Set the torque-enable for all motors in the controller subset.
-            var enabled = false
-            if(request.value>ConfigurationConstants.OFF_VALUE) enabled = true
-            val mc = RobotModel.motorsByJoint[request.joint]!!
-            request.text = String.format("My %s is %s", Joint.toText(mc.joint),
-                    if(enabled) "rigid" else "relaxed")
-            mc.isTorqueEnabled = enabled
-            bytes = DxlMessage.bytesToSetProperty(mc, JointDynamicProperty.STATE, request.value)
-            request.control.responseCount[controllerName] = 1 // Status message
+        // Handle set torque for all joints
+        // NOTE: This is dangerous because not all motors have the same torque limits
+        else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
+            request.jointDynamicProperty.equals(JointDynamicProperty.TORQUE) &&
+            request.joint.equals(Joint.NONE)  )   {
+
+            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting torque to %2.0f N-m for all joints" ,
+                CLSS,controllerName,request.value))
+
+            for (mc in configurationsByJoint.values) {
+                mc.torque = request.value
+            }
+            request.text = String.format("all motors are set to %2.0f newton meters", request.value)
+            bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
         // Set the requested property for the single specified joint
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
@@ -361,6 +363,23 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 val duration = mc.travelTime
                 if (request.duration < duration) request.duration = duration
                 request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),value)
+            }
+            else if (prop.equals(JointDynamicProperty.SPEED) ) {
+                val duration = mc.travelTime
+                if (request.duration < duration) request.duration = duration
+                request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),value)
+            }
+            else if (prop.equals(JointDynamicProperty.STATE) ) {
+                var enabled = false
+                if(request.value>ConfigurationConstants.OFF_VALUE) enabled = true
+                val mc = RobotModel.motorsByJoint[request.joint]!!
+                mc.isTorqueEnabled = enabled
+                request.text = String.format("My %s is %s", Joint.toText(mc.joint),
+                    if(enabled) "rigid" else "relaxed")
+                mc.isTorqueEnabled = enabled
+            }
+            if (prop.equals(JointDynamicProperty.TORQUE) ) {
+                request.text = String.format("My %s torque is at %.0f newton meters", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.RANGE) ) {
                 request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License
  */
 package chuckcoughlin.bert.dispatch
@@ -15,6 +15,7 @@ import chuckcoughlin.bert.term.controller.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
+import java.awt.font.TextAttribute.WEIGHT
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -276,252 +277,287 @@ class Dispatcher : Controller {
     // reference to the motors. The response is simply the original request
     // with altered text to return to the user.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if (request.type==RequestType.COMMAND) {
-            val command = request.command
-            LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
-            if( command==CommandType.CREATE_ACTION ) {
-                val actName: String = request.text.lowercase()
-                val series = request.arg.lowercase()
-                Database.createAction(actName,series)
-                request.text = String.format("To %s is to execute a series of %s poses",actName,series)
-            }
-            else if( command==CommandType.CREATE_POSE ) {
-                val poseName: String = request.arg.lowercase()
-                val index = request.value.toInt()
-                Database.createPose(RobotModel.motorsByJoint,poseName,index)
-                request.text = "I recorded pose $poseName $index"
-            }
-            // For delete, the data type is no specified.
-            else if( command==CommandType.DELETE_USER_DATA ) {
-                val name = request.arg
-                if( Database.actionExists(name)) {
-                    Database.deleteAction(name)
+        if( request.error.equals(BottleConstants.NO_ERROR)) {
+            if (request.type == RequestType.COMMAND) {
+                val command = request.command
+                LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
+                if (command == CommandType.CREATE_ACTION) {
+                    val actName: String = request.text.lowercase()
+                    val series = request.arg.lowercase()
+                    Database.createAction(actName, series)
+                    request.text = String.format("To %s is to execute a series of %s poses", actName, series)
                 }
-                else if( Database.faceExists(name)) {
-                    Database.deleteFace(name)
-                }
-                else {
+                else if (command == CommandType.CREATE_POSE) {
+                    val poseName: String = request.arg.lowercase()
                     val index = request.value.toInt()
-                    if( Database.poseExists(name,index)) {
-                        Database.deletePose(name,index)
+                    Database.createPose(RobotModel.motorsByJoint, poseName, index)
+                    request.text = "I recorded pose $poseName $index"
+                }
+                // For delete, the data type is no specified.
+                else if (command == CommandType.DELETE_USER_DATA) {
+                    val name = request.arg
+                    if (Database.actionExists(name)) {
+                        Database.deleteAction(name)
                     }
-                }
-            }
-            else if( command==CommandType.HALT ) {
-                request.type = RequestType.NONE  // Suppress a response
-                exitProcess(0) // Rely on ShutdownHandler
-            }
-            else if (command==CommandType.SHUTDOWN ) {
-                try {
-                    val commands = arrayOf("sudo poweroff")
-                    val rt = Runtime.getRuntime()
-                    rt.exec(commands)
-                }
-                catch (ioe: IOException) {
-                    LOGGER.warning(String.format("%s.handleLocalRequest: Powerdown error (%s)",
-                        CLSS, ioe.message))
-                }
-            }
-            else {
-                LOGGER.warning(String.format("%s.handleLocalRequest: Unhandled command (%s)",
-                    CLSS, request.command.name))
-            }
-        }
-        // The following two requests simply use the current positions of the motors, whatever they are
-        else if (request.type.equals(RequestType.GET_EXTREMITY_LOCATION)) {
-            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            Solver.setTreeState() // Forces new calculations
-            val appendage = request.extremity
-            val xyz: DoubleArray = Solver.getLocation(appendage)
-            val text = String.format(
-                "%s is located at %0.2f %0.2f %0.2f meters",
-                appendage.name.lowercase(Locale.getDefault()),xyz[0], xyz[1],xyz[2])
-            request.text = text
-        }
-        // The location in physical coordinates from the center of the robot.
-        else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
-            LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-            Solver.setTreeState()
-            val joint = request.joint
-            val xyz: DoubleArray = Solver.getLocation(joint)
-            val text = String.format(
-                "The center of joint %s is located at %0.2f %0.2f %0.2f meters",
-                joint.name,xyz[0],xyz[1], xyz[2])
-            request.text = text
-        }
-        else if (request.type.equals(RequestType.GET_METRIC)) {
-            LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
-            val metric: MetricType = request.metric
-            var text = ""
-            when (metric) {
-                MetricType.AGE -> {
-                    val today = LocalDate.now()
-                    val birthday: LocalDate = LocalDate.of(2019, Month.JANUARY, 1)
-                    val p = Period.between(birthday, today)
-                    text = "I am " + p.years + " years, " + p.months +
-                            " months, and " + p.days + " days old"
-                }
-                MetricType.CADENCE -> text = "The cadence is "+cadence+" milliseconds"
-                MetricType.CYCLECOUNT -> text = "I've processed "+cycleCount+" requests"
-                MetricType.CYCLETIME -> text = "The average cycle time is "+cycleTime.toInt()+" milliseconds"
-                MetricType.DUTYCYCLE -> text = "My average duty cycle is "+(100.0 * dutyCycle).toInt()+" percent"
-                MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
-                MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
-                MetricType.NAME -> text = "My name is $name"
-                // LIST implies we look at the JsonType and return a comma-separated list of names
-                MetricType.LIST -> {
-                    when(request.jtype) {
-                        JsonType.FACE_NAMES ->text = Database.getFaceNames()
-                        JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.names()
-                        JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDynamicProperty.names()
-                        JsonType.EXTREMITY_NAMES ->text = URDFModel.chain.extremityNames()
-                        JsonType.JOINT_NAMES ->text = URDFModel.chain.jointNames()
-                        JsonType.LIMB_NAMES ->text = RobotModel.limbNames()
-                        JsonType.POSE_NAMES ->text = Database.getPoseNames()
-                        JsonType.ACTION_NAMES ->text = Database.getActionNames()
-                        else -> {
-                            request.error = "badly formed metric list request"
-                            text = ""
+                    else if (Database.faceExists(name)) {
+                        Database.deleteFace(name)
+                    }
+                    else {
+                        val index = request.value.toInt()
+                        if (Database.poseExists(name, index)) {
+                            Database.deletePose(name, index)
                         }
                     }
                 }
+                else if (command == CommandType.HALT) {
+                    request.type = RequestType.NONE  // Suppress a response
+                    exitProcess(0) // Rely on ShutdownHandler
+                }
+                else if (command == CommandType.SHUTDOWN) {
+                    try {
+                        val commands = arrayOf("sudo poweroff")
+                        val rt = Runtime.getRuntime()
+                        rt.exec(commands)
+                    }
+                    catch (ioe: IOException) {
+                        LOGGER.warning(String.format("%s.handleLocalRequest: Powerdown error (%s)",
+                            CLSS, ioe.message))
+                    }
+                }
+                else {
+                    LOGGER.warning(String.format("%s.handleLocalRequest: Unhandled command (%s)",
+                        CLSS, request.command.name))
+                }
+            }
+            // The following two requests simply use the current positions of the motors, whatever they are
+            else if (request.type.equals(RequestType.GET_EXTREMITY_LOCATION)) {
+                LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
+                Solver.setTreeState() // Forces new calculations
+                val appendage = request.extremity
+                val xyz: DoubleArray = Solver.getLocation(appendage)
+                val text = String.format(
+                    "%s is located at %0.2f %0.2f %0.2f meters",
+                    appendage.name.lowercase(Locale.getDefault()), xyz[0], xyz[1], xyz[2])
+                request.text = text
+            }
+            // The location in physical coordinates from the center of the robot.
+            else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
+                LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
+                Solver.setTreeState()
+                val joint = request.joint
+                val xyz: DoubleArray = Solver.getLocation(joint)
+                val text = String.format(
+                    "The center of joint %s is located at %0.2f %0.2f %0.2f meters",
+                    joint.name, xyz[0], xyz[1], xyz[2])
+                request.text = text
+            }
+            else if (request.type.equals(RequestType.GET_METRIC)) {
+                LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
+                val metric: MetricType = request.metric
+                var text = ""
+                when (metric) {
+                    MetricType.AGE -> {
+                        val today = LocalDate.now()
+                        val birthday: LocalDate = LocalDate.of(2019, Month.JANUARY, 1)
+                        val p = Period.between(birthday, today)
+                        text = "I am " + p.years + " years, " + p.months +
+                                " months, and " + p.days + " days old"
+                    }
 
-                else -> request.error = String.format("I can't get the value of %s",metric.name)
+                    MetricType.CADENCE -> text = "The cadence is " + cadence + " milliseconds"
+                    MetricType.CYCLECOUNT -> text = "I've processed " + cycleCount + " requests"
+                    MetricType.CYCLETIME -> text = "The average cycle time is " + cycleTime.toInt() + " milliseconds"
+                    MetricType.DUTYCYCLE -> text = "My average duty cycle is " + (100.0 * dutyCycle).toInt() + " percent"
+                    MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
+                    MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
+                    MetricType.NAME -> text = "My name is $name"
+                    // LIST implies we look at the JsonType and return a comma-separated list of names
+                    MetricType.LIST -> {
+                        when (request.jtype) {
+                            JsonType.FACE_NAMES -> text = Database.getFaceNames()
+                            JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.names()
+                            JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDynamicProperty.names()
+                            JsonType.EXTREMITY_NAMES -> text = URDFModel.chain.extremityNames()
+                            JsonType.JOINT_NAMES -> text = URDFModel.chain.jointNames()
+                            JsonType.LIMB_NAMES -> text = RobotModel.limbNames()
+                            JsonType.POSE_NAMES -> text = Database.getPoseNames()
+                            JsonType.ACTION_NAMES -> text = Database.getActionNames()
+                            else -> {
+                                request.error = "badly formed metric list request"
+                                text = ""
+                            }
+                        }
+                    }
+
+                    else -> request.error = String.format("I can't get the value of %s", metric.name)
+                }
+                request.text = text
             }
-            request.text = text
-        }
-        // THese are the definition properties
-        else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
-            request.jointDynamicProperty == JointDynamicProperty.NONE )  {
-            val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if(request.jointDefinitionProperty == JointDefinitionProperty.ID) {
-                request.text = String.format("The id of my %s is %d",Joint.toText(joint),mc.id)
+            // THese are the definition properties
+            else if (request.type == RequestType.GET_MOTOR_PROPERTY &&
+                     request.jointDynamicProperty == JointDynamicProperty.NONE) {
+                val joint = request.joint
+                val mc = RobotModel.motorsByJoint[joint]!!
+                if (request.jointDefinitionProperty == JointDefinitionProperty.ID) {
+                    request.text = String.format("The id of my %s is %d", Joint.toText(joint), mc.id)
+                }
+                else if (request.jointDefinitionProperty == JointDefinitionProperty.OFFSET) {
+                    request.text = String.format("The angular offset of my %s is %d", Joint.toText(joint), mc.offset)
+                }
+                else if (request.jointDefinitionProperty == JointDefinitionProperty.ORIENTATION) {
+                    request.text = String.format("The orientation of my %s is %s", Joint.toText(joint),
+                        if (mc.isDirect) "direct" else "indirect")
+                }
+                else if (request.jointDefinitionProperty == JointDefinitionProperty.MOTORTYPE) {
+                    request.text = String.format("The motor type of my %s is %s", Joint.toText(joint), mc.type.name)
+                }
             }
-            else if(request.jointDefinitionProperty == JointDefinitionProperty.OFFSET) {
-                request.text = String.format("The angular offset of my %s is %d",Joint.toText(joint),mc.offset)
-            }
-            else if(request.jointDefinitionProperty == JointDefinitionProperty.ORIENTATION) {
-                request.text = String.format("The orientation of my %s is %s",Joint.toText(joint),
-                              if(mc.isDirect) "direct" else "indirect")
-            }
-            else if(request.jointDefinitionProperty == JointDefinitionProperty.MOTORTYPE) {
-                request.text = String.format("The motor type of my %s is %s",Joint.toText(joint),mc.type.name)
-            }
-        }
-        else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
-                 request.jointDefinitionProperty == JointDefinitionProperty.NONE ) {
-            val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if(request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE) {
-                request.text = String.format("The maximum angle of my %s is %2.0f degrees",Joint.toText(joint),mc.maxAngle)
-            }
-            else if(request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE) {
-                request.text = String.format("The minimum angle of my %s is %2.0f degrees",Joint.toText(joint),mc.minAngle)
-            }
-            else if(request.jointDynamicProperty == JointDynamicProperty.RANGE) {
-                request.text = String.format("I can move my %s from %2.0f to %2.0f",Joint.toText(joint),mc.minAngle,mc.maxAngle)
-            }
-        }
-        // List various entities
-        else if (request.type.equals(RequestType.JSON)) {
-            LOGGER.info(String.format("%s.handleLocalRequest: JSON type=%s", CLSS, request.jtype.name))
-            val jtype: JsonType = request.jtype
-            var text = ""
-            when (jtype) {
-                // List the names of different kinds of motor properties
-                JsonType.EXTREMITY_NAMES -> {
-                    text = URDFModel.chain.extremitiesToJSON()
+            else if (request.type == RequestType.GET_MOTOR_PROPERTY) {
+                    val joint = request.joint
+                    val mc = RobotModel.motorsByJoint[joint]!!
+                    if (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE) {
+                        request.text = String.format("The maximum angle of my %s is %2.0f degrees",
+                            Joint.toText(joint), mc.maxAngle)
+                    }
+                    else if (request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE) {
+                        request.text = String.format("The minimum angle of my %s is %2.0f degrees",
+                            Joint.toText(joint), mc.minAngle)
+                    }
+                    else if (request.jointDynamicProperty == JointDynamicProperty.RANGE) {
+                        request.text = String.format("I can move my %s from %2.0f to %2.0f",
+                            Joint.toText(joint),
+                            mc.minAngle,
+                            mc.maxAngle)
+                    }
                 }
-                JsonType.FACE_NAMES -> {
-                    text = Database.faceNamesToJSON()
+               // List various entities
+               else if (request.type.equals(RequestType.JSON)) {
+                    LOGGER.info(String.format("%s.handleLocalRequest: JSON type=%s", CLSS, request.jtype.name))
+                    val jtype: JsonType = request.jtype
+                    var text = ""
+                    when (jtype) {
+                        // List the names of different kinds of motor properties
+                        JsonType.EXTREMITY_NAMES -> {
+                            text = URDFModel.chain.extremitiesToJSON()
+                        }
+
+                        JsonType.FACE_NAMES -> {
+                            text = Database.faceNamesToJSON()
+                        }
+
+                        JsonType.JOINT_IDS -> {
+                            text = RobotModel.idsToJSON()
+                        }
+
+                        JsonType.JOINT_NAMES -> {
+                            text = URDFModel.chain.jointsToJSON()
+                        }
+
+                        JsonType.JOINT_OFFSETS -> {
+                            text = RobotModel.offsetsToJSON()
+                        }
+
+                        JsonType.JOINT_ORIENTATIONS -> {
+                            text = RobotModel.orientationsToJSON()
+                        }
+
+                        JsonType.JOINT_POSITIONS -> {
+                            text = RobotModel.anglesToJSON()
+                        }
+
+                        JsonType.JOINT_SPEEDS -> {
+                            text = RobotModel.speedsToJSON()
+                        }
+
+                        JsonType.JOINT_STATES -> {
+                            text = RobotModel.statesToJSON()
+                        }
+
+                        JsonType.JOINT_TEMPERATURES -> {
+                            text = RobotModel.temperaturesToJSON()
+                        }
+
+                        JsonType.JOINT_TORQUES -> {
+                            text = RobotModel.torquesToJSON()
+                        }
+
+                        JsonType.JOINT_VOLTAGES -> {
+                            text = RobotModel.voltagesToJSON()
+                        }
+
+                        JsonType.LIMB_NAMES -> {
+                            text = RobotModel.limbsToJSON()
+                        }
+
+                        JsonType.JOINT_TYPES -> {
+                            text = RobotModel.typesToJSON()
+                        }
+
+                        JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
+                            text = JointDynamicProperty.toJSON()
+                        }
+
+                        JsonType.MOTOR_GOALS -> {
+                            text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
+                        }
+
+                        JsonType.MOTOR_LIMITS -> {
+                            text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
+                        }
+
+                        JsonType.MOTOR_STATIC_PROPERTIES -> {
+                            text = JointDefinitionProperty.toJSON()
+                        }
+
+                        JsonType.POSE_DETAILS -> {
+                            text = Database.poseDetailsToJSON(request.arg, request.value.roundToInt())
+                        }
+
+                        JsonType.POSE_NAMES -> {
+                            text = Database.poseNamesToJSON()
+                        }
+
+                        else -> request.error = String.format("I can't get the names of %s", jtype.name)
+                    }
+                    request.text = text
                 }
-                JsonType.JOINT_IDS -> {
-                    text = RobotModel.idsToJSON()
+                // We are here because there is a range error
+                else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
+                    request.jointDynamicProperty == JointDynamicProperty.ANGLE) {
+                    val joint = request.joint
+                    val mc = RobotModel.motorsByJoint[joint]!!
+                    if (request.value > mc.maxAngle) {
+                        request.error = String.format("I can only move my %s to %2.0f degrees",
+                            Joint.toText(joint),
+                            mc.maxAngle)
+                    }
+                    else if (request.value < mc.minAngle) {
+                        request.error = String.format("I can only move my %s to %2.0f degrees",
+                            Joint.toText(joint),
+                            mc.minAngle)
+                    }
                 }
-                JsonType.JOINT_NAMES -> {
-                    text = URDFModel.chain.jointsToJSON()
+                else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
+                    request.jointDynamicProperty == JointDynamicProperty.SPEED) {
+                    val joint = request.joint
+                    val mc = RobotModel.motorsByJoint[joint]!!
+                    if (request.value > mc.maxSpeed) {
+                        request.error = String.format("I can only move my %s %2.0f degrees per second",
+                            Joint.toText(joint),
+                            mc.maxSpeed)
+                    }
                 }
-                JsonType.JOINT_OFFSETS -> {
-                    text = RobotModel.offsetsToJSON()
+                else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
+                    request.jointDynamicProperty == JointDynamicProperty.TORQUE) {
+                    val joint = request.joint
+                    val mc = RobotModel.motorsByJoint[joint]!!
+                    if (request.value > mc.maxTorque) {
+                        request.error = String.format("I can only press my %s at %2.0f newton-meters",
+                            Joint.toText(joint),
+                            mc.maxTorque)
+                    }
                 }
-                JsonType.JOINT_ORIENTATIONS -> {
-                    text = RobotModel.orientationsToJSON()
                 }
-                JsonType.JOINT_POSITIONS -> {
-                    text = RobotModel.anglesToJSON()
-                }
-                JsonType.JOINT_SPEEDS -> {
-                    text = RobotModel.speedsToJSON()
-                }
-                JsonType.JOINT_STATES -> {
-                    text = RobotModel.statesToJSON()
-                }
-                JsonType.JOINT_TEMPERATURES -> {
-                    text = RobotModel.temperaturesToJSON()
-                }
-                JsonType.JOINT_TORQUES -> {
-                    text = RobotModel.torquesToJSON()
-                }
-                JsonType.JOINT_VOLTAGES -> {
-                    text = RobotModel.voltagesToJSON()
-                }
-                JsonType.LIMB_NAMES -> {
-                    text = RobotModel.limbsToJSON()
-                }
-                JsonType.JOINT_TYPES -> {
-                    text = RobotModel.typesToJSON()
-                }
-                JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
-                    text = JointDynamicProperty.toJSON()
-                }
-                JsonType.MOTOR_GOALS -> {
-                    text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
-                }
-                JsonType.MOTOR_LIMITS -> {
-                    text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
-                }
-                JsonType.MOTOR_STATIC_PROPERTIES -> {
-                    text = JointDefinitionProperty.toJSON()
-                }
-                JsonType.POSE_DETAILS -> {
-                    text = Database.poseDetailsToJSON(request.arg,request.value.roundToInt())
-                }
-                JsonType.POSE_NAMES -> {
-                    text = Database.poseNamesToJSON()
-                }
-                else -> request.error = String.format("I can't get the names of %s",jtype.name)
-            }
-            request.text = text
-        }
-        // We are here because there is a range error
-        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-                 request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
-            val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if( request.value>mc.maxAngle ) {
-               request.error = String.format("I can only move my %s to %2.0f degrees", Joint.toText(joint),mc.maxAngle)
-            }
-            else if (request.value < mc.minAngle ) {
-                request.error = String.format("I can only move my %s to %2.0f degrees", Joint.toText(joint),mc.minAngle)
-            }
-        }
-        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-                 request.jointDynamicProperty == JointDynamicProperty.SPEED ) {
-            val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if( request.value>mc.maxSpeed ) {
-                request.error = String.format("I can only move my %s %2.0f degrees per second", Joint.toText(joint),mc.maxSpeed)
-            }
-        }
-        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-                 request.jointDynamicProperty == JointDynamicProperty.TORQUE ) {
-            val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if( request.value>mc.maxTorque ) {
-                request.error = String.format("I can only press my %s at %2.0f newton-meters", Joint.toText(joint),mc.maxTorque)
-            }
-        }
         return request
     }
 
@@ -547,7 +583,7 @@ class Dispatcher : Controller {
                 return true
             }
         }
-        // THese are the definition properties
+        // These are the definition properties
         else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
                  request.jointDynamicProperty == JointDynamicProperty.NONE )  {
             return true
@@ -558,17 +594,56 @@ class Dispatcher : Controller {
                    request.jointDynamicProperty == JointDynamicProperty.RANGE ) ) {
             return true
         }
-        // Some very specific errors
+        // Some very specific boundary errors --- set the error text
+        else if( request.type == RequestType.SET_LIMB_PROPERTY &&
+            request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
+            val joint = request.joint
+            if( joint==Joint.NONE ) {
+                request.error = String.format("setting the same angle to all motors on a limb is not allowed")
+                return true
+            }
+        }
         else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
                  request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
             val joint = request.joint
+            if( joint==Joint.NONE ) {
+                request.error = String.format("setting the same angle to all motors is not allowed")
+                return true
+            }
             val mc = RobotModel.motorsByJoint[joint]!!
-            if( request.value>mc.maxAngle || request.value<mc.minAngle) {
+            if( request.value>mc.maxAngle ) {
+                request.error = String.format("the maximum angle for %s is %2.0f degrees",joint.name,mc.maxAngle)
+                return true
+            }
+            else if( request.value<mc.minAngle) {
+                request.error = String.format("the minimum angle for %s is %2.0f degrees",joint.name,mc.minAngle)
+                return true
+            }
+        }
+        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
+            request.jointDynamicProperty == JointDynamicProperty.SPEED ) {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if( request.value>mc.maxSpeed ) {
+                request.error = String.format("the maximum speed for %s is %2.0f degrees per second",joint.name,mc.maxSpeed)
+                return true
+            }
+        }
+        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
+            request.jointDynamicProperty == JointDynamicProperty.TORQUE ) {
+            val joint = request.joint
+            val mc = RobotModel.motorsByJoint[joint]!!
+            if( request.value>mc.maxTorque ) {
+                request.error = String.format("the maximum torque for %s is %2.0f newton meters",joint.name,mc.maxTorque)
                 return true
             }
         }
         else if( request.type == RequestType.NOTIFICATION ) {
             request.source = ControllerType.DISPATCHER
+            return true
+        }
+        // If there was any error caught by the parser
+        else if( !request.equals(BottleConstants.NO_ERROR)) {
             return true
         }
         return false

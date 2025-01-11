@@ -10,7 +10,9 @@ import chuckcoughlin.bert.motor.dynamixel.DxlConversions.CLSS
 import chuckcoughlin.bert.motor.dynamixel.DxlConversions.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import com.google.gson.GsonBuilder
+import java.util.*
 import java.util.logging.Logger
+import kotlin.collections.ArrayList
 
 /**
  * This object contains utility methods used to create and interpret different varieties
@@ -664,19 +666,17 @@ object DxlMessage {
     }
 
     /**
-     * Analyze a response buffer for some parameter of a motor. Augment the
-     * supplied Properties with the result (possibly an error).
+     * Analyze a response buffer for some parameter of a motor. Update the
+     * motor configuration accordingly and configure results in the request message
      * @param property the requested parameter
-     * @param type the model of the motor
-     * @param isDirect the orientation of the motor
-     * @param props properties from a MessageBottle
+     * @param mc the motor configuration
+     * @param bottle the request
      * @param bytes status response from the controller
      */
     @Synchronized
-    fun updateParameterFromBytes(property: JointDynamicProperty,mc: MotorConfiguration,
-            bottle: MessageBottle,bytes: ByteArray) {
+    fun updatePropertyRequestFromBytes(property: JointDynamicProperty,mc: MotorConfiguration,bottle: MessageBottle,bytes: ByteArray) {
         if (verifyHeader(bytes)) {
-            // var msg = String.format("%s.updateParameterFromBytes: %s", CLSS, dump(bytes))
+            // var msg = String.format("%s.updatePropertyRequestFromBytes: %s", CLSS, dump(bytes))
             // val id = bytes[2].toInt()
             val err = bytes[4]
             val value = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
@@ -686,19 +686,26 @@ object DxlMessage {
                 bottle.jointDynamicProperty = property
                 bottle.value = value
                 bottle.text = text
-                LOGGER.info(String.format("%s.updateParameterFromBytes: %s %s=%.2f",
-                        CLSS,mc.joint,property,value)
-                )
+                LOGGER.info(String.format("%s.updatePropertyRequestFromBytes: %s %s=%.2f",
+                        CLSS,mc.joint,property,value))
+                if(property.equals(JointDynamicProperty.ANGLE)) {
+                    bottle.text=String.format("My %s %s is %2.0f degrees",
+                        Joint.toText(bottle.joint), property.name.lowercase(Locale.getDefault()), value)
+                }
+                else {
+                    bottle.text=String.format("My most recent %s %s was %2.0f",
+                        Joint.toText(bottle.joint), property.name.lowercase(Locale.getDefault()), value)
+                }
             }
             else {
-                val msg = String.format("%s.updateParameterFromBytes: message returned error %d (%s)",
+                val msg = String.format("%s.updatePropertyRequestFromBytes: message returned error %d (%s)",
                     CLSS,err, descriptionForError(err))
                 bottle.error = msg
                 LOGGER.severe(msg)
             }
         }
         else {
-            val msg = String.format("%s.updateParameterFromBytes: Illegal message: %s", CLSS, dump(bytes))
+            val msg = String.format("%s.updatePropertyRequestFromBytes: Illegal message: %s", CLSS, dump(bytes))
             bottle.error = msg
             LOGGER.severe(msg)
         }
@@ -714,13 +721,13 @@ object DxlMessage {
      * @param parameters an array of positions by id, supplied. This is augmented by the method.
      */
     @Synchronized
-    fun updateParameterArrayFromBytes(property: JointDynamicProperty,configurations: Map<Int, MotorConfiguration>,
+    fun updatePropertyInMotorsFromBytes(property: JointDynamicProperty,configurations: Map<Int, MotorConfiguration>,
             bytes: ByteArray, parameters: MutableMap<Int, String> ) {
         var msg: String
         var length = 7
         var index = 0
         while (index < bytes.size) {
-            // LOGGER.info(String.format("%s.updateParameterArrayFromBytes: index %d of %d",CLSS,index,bytes.length));
+            // LOGGER.info(String.format("%s.updatePropertyInMotorsFromBytes: index %d of %d",CLSS,index,bytes.length));
             if (verifyHeader(bytes, index)) {
                 val id = bytes[index + 2].toInt()
                 length = bytes[index + 3] + 4 // Takes care of fixed bytes pre-length
@@ -741,33 +748,31 @@ object DxlMessage {
                         JointDynamicProperty.VOLTAGE      -> mc.voltage = param
                         JointDynamicProperty.NONE         -> {}
                     }
-                    LOGGER.info(String.format("%s.updateParameterArrayFromBytes: %s %s=%2.0f",
+                    LOGGER.info(String.format("%s.updatePropertyInMotorsFromBytes: %s %s=%2.0f",
                             CLSS,mc.joint.name,property,param))
                 }
                 else if (err.toInt() != 0) {
-                    msg = String.format( "%s.updateParameterArrayFromBytes: motor %d returned error %d (%s)",
+                    msg = String.format( "%s.updatePropertyInMotorsFromBytes: motor %d returned error %d (%s)",
                         CLSS, id, err, descriptionForError(err))
                     LOGGER.severe(msg)
                 }
                 else if (mc == null) {
-                    msg = String.format(
-                        "%s.updateParameterArrayFromBytes: motor %d not supplied in motor configurations",
+                    msg = String.format("%s.updatePropertyInMotorsFromBytes: motor %d not supplied in motor configurations",
                         CLSS,id,dump(bytes))
                     LOGGER.severe(msg)
                 }
                 else if (bytes.size <= index + 6) {
-                    msg = String.format("%s.updateParameterArrayFromBytes: motor %d input truncated (%s)",
+                    msg = String.format("%s.updatePropertyInMotorsFromBytes: motor %d input truncated (%s)",
                         CLSS,id,)
                     LOGGER.severe(msg)
                 }
                 else {
-                    LOGGER.severe(String.format("%s.updateParameterArrayFromBytes: programming error at id=%d",
+                    LOGGER.severe(String.format("%s.updatePropertyInMotorsFromBytes: programming error at id=%d",
                         CLSS,id,dump(bytes)))
                 }
             }
             else {
-                LOGGER.severe( String.format("%s.updateParameterArrayFromBytes: Header not found: %s",
-                        CLSS,dump(bytes)))
+                LOGGER.severe( String.format("%s.updatePropertyInMotorsFromBytes: Header not found: %s",CLSS,dump(bytes)))
             }
             index = index + length
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.speech.process
@@ -261,16 +261,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             }
 
             LOGGER.info(String.format("%s.visitEnableTorque: %s %s %s", CLSS, bottle.limb.name,bottle.joint.name,bottle.value.toString()))
-        }
-
-        // Set text if all joints are affected
-        if(joint.equals(Joint.NONE) && limb.equals(Limb.NONE)) {
-            if (ctx.Freeze() != null || ctx.Hold() != null) {
-                bottle.text = "I am stiff"
-            }
-            else {
-                bottle.text = "I am now relaxed"
-            }
         }
         return null
     }
@@ -627,7 +617,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.error = msg
         }
 
-        // Vaue is numerical, "on/off", or speed name - depending on property type
+        // Value is numerical, "on/off", or speed name - depending on property type
         if (ctx.Value() != null) {
             bottle.value = ctx.Value().getText().toDouble()
         }
@@ -641,20 +631,20 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.value = ConfigurationConstants.OFF_VALUE
         }
         // Sanity check
-        if( !bottle.joint.equals(Joint.NONE) && (
-                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) &&
-                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
-                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
-                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
+        if( bottle.joint!=Joint.NONE &&
+            bottle.jointDynamicProperty!=JointDynamicProperty.ANGLE &&
+            bottle.jointDynamicProperty!=JointDynamicProperty.SPEED &&
+            bottle.jointDynamicProperty!=JointDynamicProperty.STATE &&
+            bottle.jointDynamicProperty!=JointDynamicProperty.TORQUE  ) {
             bottle.error = "Only angle, speed, torque and state can be set for a joint"
         }
-        else if( bottle.joint.equals(Joint.NONE) &&
-                 bottle.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) ) {
+        else if( bottle.joint==Joint.NONE &&
+                 bottle.jointDynamicProperty==JointDynamicProperty.ANGLE ) {
             bottle.error = "It doesn't make sense to set all joints to the same angle"
         }
-        else if( !bottle.limb.equals(Limb.NONE) &&
-                        (!bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
-                         !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
+        else if( !bottle.limb.equals(Limb.NONE) && (
+                    !bottle.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
+                            !bottle.jointDynamicProperty.equals(JointDynamicProperty.TORQUE))) {
             bottle.error = "Speed or torque are the only properties that can be set for an entire limb."
         }
         else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.ANGLE) && ctx.Value()==null )  {
@@ -687,7 +677,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         setSpeedInMessage(bottle,ctx.Speed().text)
         // Request applies to all joints
         bottle.joint = Joint.NONE
-        bottle.text = String.format("I will move %s", ctx.Speed().text)
         return null
     }
     // If the joint is not specified, then straighten the entire body

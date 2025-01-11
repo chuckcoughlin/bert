@@ -94,6 +94,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                     else {
                         request.control.responseCount[name] = request.control.responseCount[name]!! - 1
                     }
+
                     if (request.control.responseCount[name]!! <= 0) {
                         if(isSingleControllerRequest(request)) {
                             updateRequestFromBytes(request, bytes)
@@ -177,25 +178,14 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
         }
         else if (jtype.equals(JsonType.MOTOR_LIMITS)) {
             val joint = request.joint
-            val mc: MotorConfiguration? = RobotModel.motorsByJoint[joint]
-            DxlMessage.updateLimitsFromBytes(mc!!, request, bytes)
+            val mc: MotorConfiguration = RobotModel.motorsByJoint[joint]!!
+            DxlMessage.updateLimitsFromBytes(mc, request, bytes)
         }
         else if (type.equals(RequestType.GET_MOTOR_PROPERTY)) {
-            val joint = request.joint
-            val mc: MotorConfiguration? = RobotModel.motorsByJoint[joint]
             val property = request.jointDynamicProperty
-            DxlMessage.updateParameterFromBytes(property, mc!!, request, bytes)
-            val partial = request.text // Holds the value
-            if (partial.isNotEmpty()) {
-                if(property.equals(JointDynamicProperty.ANGLE)) {
-                    request.text=String.format("My %s %s is %s degrees",
-                            Joint.toText(joint), property.name.lowercase(Locale.getDefault()), partial)
-                }
-                else {
-                    request.text=String.format("My most recent %s %s was %s",
-                            Joint.toText(joint), property.name.lowercase(Locale.getDefault()), partial)
-                }
-            }
+            val joint = request.joint
+            val mc: MotorConfiguration = RobotModel.motorsByJoint[joint]!!
+            DxlMessage.updatePropertyRequestFromBytes(property,mc,request, bytes)
         }
         // These messages do not get updated with serial status
         else if (type==RequestType.READ_MOTOR_PROPERTY ||
@@ -210,13 +200,12 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
         }
     }
 
-    // The bytes array contains the results of a request for status. It may be the concatenation
-    // of several responses. Update the loacal motor configuration map and return a map keyed by motor
-    // id to be aggregated by the MotorManager with similar responses from other motors.
+    // The byte array contains the results of a request for status. It may be the concatenation
+    // of several responses. Update global motor configurations accordingly.
     // 
     private fun updateStatusFromBytes(property: JointDynamicProperty, bytes: ByteArray): Map<Int, String> {
         val props: MutableMap<Int, String> = HashMap()
-        DxlMessage.updateParameterArrayFromBytes(property, RobotModel.motorsById, bytes, props)
+        DxlMessage.updatePropertyInMotorsFromBytes(property, RobotModel.motorsById, bytes, props)
         return props
     }
 
