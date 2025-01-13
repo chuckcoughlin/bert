@@ -30,6 +30,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     // Setting torque enable is essentially powering the motor on/off
     var isTorqueEnabled : Boolean// Torque-enable - on/off
     var limb: Limb
+    var load: Double
     var minAngle : Double
     var maxAngle : Double
     var maxSpeed : Double
@@ -62,6 +63,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     fun setDynamicProperty(jp: JointDynamicProperty, value: Double) {
         when (jp) {
             JointDynamicProperty.ANGLE -> angle = value
+            JointDynamicProperty.LOAD -> load = value
             JointDynamicProperty.MAXIMUMANGLE -> maxAngle = value
             JointDynamicProperty.MINIMUMANGLE -> minAngle = value
             JointDynamicProperty.SPEED -> speed = value
@@ -94,6 +96,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         type = motorType
 
         limb = Limb.NONE
+        load = 0.0
         offset = 0.0
         minAngle = -180.0
         maxAngle = 180.0

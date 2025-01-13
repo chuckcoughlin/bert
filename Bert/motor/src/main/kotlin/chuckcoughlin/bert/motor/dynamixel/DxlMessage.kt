@@ -745,6 +745,7 @@ object DxlMessage {
                         JointDynamicProperty.MAXIMUMANGLE -> mc.maxAngle = param
                         JointDynamicProperty.MINIMUMANGLE -> mc.minAngle = param
                         JointDynamicProperty.RANGE -> {}
+                        JointDynamicProperty.LOAD         -> mc.load = param
                         JointDynamicProperty.SPEED        -> mc.speed = param
                         JointDynamicProperty.STATE        -> mc.setState(param)
                         JointDynamicProperty.TEMPERATURE  -> mc.temperature = param

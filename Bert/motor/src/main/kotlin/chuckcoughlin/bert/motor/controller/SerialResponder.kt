@@ -174,7 +174,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
         if (jtype.equals(JsonType.MOTOR_GOALS)) {
             val joint = request.joint
             val mc: MotorConfiguration = RobotModel.motorsByJoint[joint]!!
-            DxlMessage.updateGoalsRequestFromBytes(mc!!, request, bytes)
+            DxlMessage.updateGoalsRequestFromBytes(mc, request, bytes)
         }
         else if (jtype.equals(JsonType.MOTOR_LIMITS)) {
             val joint = request.joint

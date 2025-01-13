@@ -309,6 +309,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                         val position = 0
                         text = "The position of my $jointName is $position"
                     }
+                    JointDynamicProperty.LOAD -> TODO()
                     JointDynamicProperty.MAXIMUMANGLE -> TODO()
                     JointDynamicProperty.MINIMUMANGLE -> TODO()
                     JointDynamicProperty.RANGE -> TODO()

@@ -111,18 +111,18 @@ object DxlConversions {
 
     // The torque-limit values in the EEPROM don't make sense. AX-12 has 8C FF. M-28/64 A0 FF.
     // For these values we'll just return the spec limit. Limit/goals are always positive.
-    fun dxlToTorque(mc: MotorConfiguration, b1: Byte, b2: Byte): Double {
-        var result = torque[mc.type]!! // Spec value
+    fun dxlToTorqueLimit(type:DynamixelType, b1: Byte, b2: Byte): Double {
+        var limit = torque[type]!! // Spec value
         if (b2.toInt() != 0xFF) {
             var raw = b1 + 256 * b2
             raw = raw and 0x3FF
-            result = raw * result / 0x3FF
+            limit = raw * limit / 0x3FF
         }
-        return result
+        return limit
     }
 
     // This is really a boolean. Take 0.0 to be false, 1.0 to be true
-    fun dxlToTorqueEnable(mc: MotorConfiguration, b1: Byte): Double {
+    fun dxlToTorqueEnable(b1: Byte): Double {
         var result = 1.0
         if (b1.toInt() == 0x0) result = 0.0
         return result
@@ -163,6 +163,7 @@ object DxlConversions {
             JointDynamicProperty.MAXIMUMANGLE -> address = MAXIMUM_ANGLE
             JointDynamicProperty.MINIMUMANGLE -> address = MINIMUM_ANGLE
             JointDynamicProperty.ANGLE        -> address = CURRENT_ANGLE
+            JointDynamicProperty.LOAD          -> address = CURRENT_LOAD
             JointDynamicProperty.RANGE           -> address = 0   // Pseudo property
             JointDynamicProperty.SPEED           -> address = CURRENT_SPEED
             JointDynamicProperty.TEMPERATURE     -> address = CURRENT_TEMPERATURE
@@ -180,16 +181,17 @@ object DxlConversions {
     fun dataBytesForProperty(property: JointDynamicProperty): Byte {
         var length: Byte = 0
         when(property) {
-            JointDynamicProperty.MAXIMUMANGLE -> length = 2
-            JointDynamicProperty.MINIMUMANGLE -> length = 2
+            JointDynamicProperty.MAXIMUMANGLE  -> length = 2
+            JointDynamicProperty.MINIMUMANGLE  -> length = 2
             JointDynamicProperty.ANGLE         -> length = 2
+            JointDynamicProperty.LOAD          -> length = 2
             JointDynamicProperty.RANGE         -> length = 0
-            JointDynamicProperty.SPEED            -> length = 2
-            JointDynamicProperty.TEMPERATURE      -> length = 1
-            JointDynamicProperty.TORQUE           -> length = 2
-            JointDynamicProperty.STATE            -> length = 1
-            JointDynamicProperty.VOLTAGE          -> length = 1
-            JointDynamicProperty.NONE             -> length = 0
+            JointDynamicProperty.SPEED         -> length = 2
+            JointDynamicProperty.TEMPERATURE   -> length = 1
+            JointDynamicProperty.TORQUE        -> length = 2
+            JointDynamicProperty.STATE         -> length = 1
+            JointDynamicProperty.VOLTAGE       -> length = 1
+            JointDynamicProperty.NONE          -> length = 0
         }
         return length
     }
@@ -205,15 +207,15 @@ object DxlConversions {
                 value = value * mc.maxSpeed / 100.0
                 dxlValue = speedToDxl(mc, value)
             }
-            JointDynamicProperty.TORQUE -> {
-                value = value * mc.maxTorque / 100.0
-                dxlValue = torqueToDxl(mc, value)
-            }
             JointDynamicProperty.STATE -> {
                 dxlValue = 1
                 if (value == 0.0) dxlValue = 0
             }
-            JointDynamicProperty.NONE -> { }
+            JointDynamicProperty.TORQUE -> {
+                value = value * mc.maxTorque / 100.0
+                dxlValue = torqueToDxl(mc, value)
+            }
+            else -> {}      // Remainder of properties are read-only
         }
         return dxlValue
     }
@@ -228,6 +230,7 @@ object DxlConversions {
             JointDynamicProperty.MINIMUMANGLE  -> text = String.format("%2.0f degrees", value)
             JointDynamicProperty.RANGE         -> text = String.format("%2.0f degrees", value)
             JointDynamicProperty.ANGLE         -> text = String.format("%2.0f degrees", value)
+            JointDynamicProperty.LOAD          -> text = String.format("%2.1f newton-meters", value)
             JointDynamicProperty.SPEED         -> text = String.format("%2.0f degrees per second", value)
             JointDynamicProperty.TEMPERATURE   -> text = String.format("%2.0f degrees centigrade", value)
             JointDynamicProperty.TORQUE        -> text = String.format("%2.1f newton-meters", value)
@@ -248,10 +251,11 @@ object DxlConversions {
             JointDynamicProperty.MINIMUMANGLE   -> value = dxlToDegree(mc, b1, b2)
             JointDynamicProperty.RANGE          -> value = 0.0
             JointDynamicProperty.ANGLE          -> value = dxlToDegree(mc, b1, b2)
+            JointDynamicProperty.LOAD           -> value = dxlToLoad(mc, b1, b2)
             JointDynamicProperty.SPEED          -> value = dxlToSpeed(mc, b1, b2)
             JointDynamicProperty.TEMPERATURE    -> value = dxlToTemperature(b1)
-            JointDynamicProperty.TORQUE         -> value = dxlToTorque(mc, b1, b2)
-            JointDynamicProperty.STATE          -> value = dxlToTorqueEnable(mc, b1)
+            JointDynamicProperty.TORQUE         -> value = dxlToTorqueLimit(mc.type, b1, b2)
+            JointDynamicProperty.STATE          -> value = dxlToTorqueEnable(b1)
             JointDynamicProperty.VOLTAGE        -> value = dxlToVoltage(b1)
             JointDynamicProperty.NONE           -> value = 0.0
         }

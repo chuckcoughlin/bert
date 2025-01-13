@@ -15,11 +15,12 @@ enum class JointDynamicProperty {
     MAXIMUMANGLE,
     MINIMUMANGLE,
     ANGLE,
+    LOAD,
     RANGE,
     SPEED,
     STATE,
     TEMPERATURE,
-    TORQUE,
+    TORQUE,       // Limit
     VOLTAGE,
     NONE;
 
