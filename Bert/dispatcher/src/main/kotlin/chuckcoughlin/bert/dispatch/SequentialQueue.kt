@@ -48,7 +48,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         else {
             earliestTime = now
         }
-        setExecutionTimes(msg,earliestTime)
+        setDispatchTimes(msg,earliestTime)
         channel.send(msg)
     }
 
@@ -108,17 +108,20 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         if( job.isActive ) job.cancel()
     }
 
-
+    /**
+     * Compute earliest time the command can be executed without interfering
+     * with the previous command. NOTE: travel time can be excessive if the speed is incorrect.
+     */
     private fun computeEarliestTime(msg:MessageBottle) : Long {
         var earliestTime = System.currentTimeMillis()
-        var maxTime = earliestTime + msg.control.delay
-        for( mc in configurationsForMessage(msg)) {
-            val workTime = mc.commandTime + mc.travelTime
-            if( workTime>maxTime ) maxTime = workTime
+        for( mc in motorsForMessage(msg)) {
+            val readyTime = mc.dispatchTime + mc.travelTime
+            if( readyTime>earliestTime ) earliestTime = readyTime
         }
-        return maxTime
+        earliestTime = earliestTime + msg.control.delay
+        return earliestTime
     }
-    private fun configurationForJoint(joint: Joint): List<MotorConfiguration> {
+    private fun motorsForJoint(joint: Joint): List<MotorConfiguration> {
         val list: MutableList<MotorConfiguration> = mutableListOf<MotorConfiguration>()
         for (mc in RobotModel.motorsByJoint.values) {
             if (mc.joint==joint) {
@@ -127,7 +130,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         }
         return list
     }
-    private fun configurationsForLimb(limb: Limb): List<MotorConfiguration> {
+    private fun motorsForLimb(limb: Limb): List<MotorConfiguration> {
         val list: MutableList<MotorConfiguration> = mutableListOf<MotorConfiguration>()
         for (mc in RobotModel.motorsByJoint.values) {
             if (mc.limb==limb || limb==Limb.NONE) {
@@ -140,40 +143,27 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      * Return a list of the motor configurations applicable for a message.
      * The list may be empty, especially if the message does not involve a write.
      */
-    private fun configurationsForMessage(msg:MessageBottle) : List<MotorConfiguration> {
+    private fun motorsForMessage(msg:MessageBottle) : List<MotorConfiguration> {
         var list = listOf<MotorConfiguration>()
-        if( msg.type==RequestType.SET_MOTOR_PROPERTY) {
-            list = configurationForJoint(msg.joint)
+        if( msg.joint==Joint.NONE && msg.limb==Limb.NONE ) { // All joints
+            list = RobotModel.motorsByJoint.values.toList()
         }
-        else if(msg.type==RequestType.EXECUTE_POSE ) {
-            if( msg.limb!=Limb.NONE) {
-                list = configurationsForLimb(msg.limb)
-            }
+        else if( msg.limb!=Limb.NONE) {
+            list = motorsForLimb(msg.limb)
         }
-        else {
-            list = mutableListOf<MotorConfiguration>() // Empty
+        else if( msg.limb!=Limb.NONE) {
+            list = motorsForJoint(msg.joint)
         }
         return list
     }
     /**
      *
      */
-    fun setExecutionTimes(msg:MessageBottle,executionTime:Long) {
+    fun setDispatchTimes(msg:MessageBottle,executionTime:Long) {
         msg.control.executionTime = executionTime
-        val list = configurationsForMessage(msg)
+        val list = motorsForMessage(msg)
         for(mc in list ) {
-            mc.commandTime = executionTime
-        }
-    }
-
-    /**
-     * These are the earliest times that the controllers
-     * could have been last dispatched. Set all motors
-     */
-    fun markDispatchTimes() {
-        val now = System.currentTimeMillis()
-        for(mc in RobotModel.motorsByJoint.values ) {
-            mc.commandTime = now
+            mc.dispatchTime = executionTime
         }
     }
 
@@ -185,7 +175,6 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_INTERNAL)
-        markDispatchTimes()
         job=Job()
         job.cancel()
         ready = true  // Initially the motor controller is ready

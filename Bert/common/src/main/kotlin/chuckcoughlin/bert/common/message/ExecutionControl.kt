@@ -18,7 +18,7 @@ data class ExecutionControl(var delay: Long) : Cloneable {
      /*
      * executionTime - the time at which the message leaves the internal controller
      *                 and is sent to the serial controller. For non-serial
-     *                 messges this is simply the request creation time
+     *                 messages this is simply the request creation time
      * delay         - a wait period from a message is ready to be executed and
      *                 when it is actually sent off.
      * to be sent to the Dispatcher. The time is calculated as the message

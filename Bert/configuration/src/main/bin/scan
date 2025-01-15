@@ -1,0 +1,5 @@
+#!/bin/sh
+# Convenience script to run the DXL scanner
+mkdir -p ${ROBOT_HOME}/pyib
+cd ${ROBOT_HOME}/pylib
+python3 dxl_scan.py

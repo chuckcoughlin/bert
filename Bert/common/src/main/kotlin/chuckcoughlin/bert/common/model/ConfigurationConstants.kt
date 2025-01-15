@@ -43,11 +43,12 @@ object ConfigurationConstants {
     const val POSE_HOME_INDEX = 1.0
 
     // Minimum spacing between serial writes ~ msec
-    const val MIN_SERIAL_WRITE_INTERVAL = 100L   // (50 was too short)
+    const val MIN_SERIAL_WRITE_INTERVAL = 100L   // 50 was too short
+    const val LONG_TME_AGO = 10000L              // 10 seconds
 
     // Nominal values for torque and speed
-    const val SPEED_NORMAL = 20.0
-    const val TORQUE_NORMAL = 20.0
+    const val SPEED_NORMAL = 300.0
+    const val TORQUE_NORMAL = 1.9
 
     // For values that are boolean. Use these strings for "values"
     const val ON_VALUE  = 1.0

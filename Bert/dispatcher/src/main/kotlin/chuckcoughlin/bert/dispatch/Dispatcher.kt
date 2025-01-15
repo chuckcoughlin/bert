@@ -229,8 +229,8 @@ class Dispatcher : Controller {
         if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s",CLSS,msg.type.name,msg.source))
         if(isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
-            if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s is local (%s %s)",
-                    CLSS,msg.type.name,msg.jointDefinitionProperty.name,msg.jointDynamicProperty.name))
+            //if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s is local (%s %s)",
+            //        CLSS,msg.type.name,msg.jointDefinitionProperty.name,msg.jointDynamicProperty.name))
             val response: MessageBottle = handleLocalRequest(msg)
             if( response.type!=RequestType.NONE &&
                 response.type!=RequestType.HANGUP  ) replyToSource(response)
@@ -559,7 +559,7 @@ class Dispatcher : Controller {
                             mc.maxTorque)
                     }
                 }
-                }
+        }
         return request
     }
 
@@ -623,21 +623,29 @@ class Dispatcher : Controller {
             }
         }
         else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-            request.jointDynamicProperty == JointDynamicProperty.SPEED ) {
+                 request.jointDynamicProperty == JointDynamicProperty.SPEED ) {
             val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if( request.value>mc.maxSpeed ) {
-                request.error = String.format("the maximum speed for %s is %2.0f degrees per second",joint.name,mc.maxSpeed)
-                return true
+            for( mc in RobotModel.motorsByJoint.values ) {
+                if( joint==Joint.NONE || mc.joint==joint) {
+                    if (request.value > mc.maxSpeed) {
+                        request.error = String.format("the maximum speed for %s is %2.0f degrees per second",
+                            joint.name,mc.maxSpeed)
+                        return true
+                    }
+                }
             }
         }
         else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
-            request.jointDynamicProperty == JointDynamicProperty.TORQUE ) {
+                 request.jointDynamicProperty == JointDynamicProperty.TORQUE ) {
             val joint = request.joint
-            val mc = RobotModel.motorsByJoint[joint]!!
-            if( request.value>mc.maxTorque ) {
-                request.error = String.format("the maximum torque for %s is %2.0f newton meters",joint.name,mc.maxTorque)
-                return true
+            for( mc in RobotModel.motorsByJoint.values ) {
+                if( joint==Joint.NONE || mc.joint==joint) {
+                    if (request.value > mc.maxTorque) {
+                        request.error = String.format("the maximum torque for %s is %2.0f newton meters",
+                            joint.name,mc.maxTorque)
+                        return true
+                    }
+                }
             }
         }
         else if( request.type == RequestType.NOTIFICATION ) {
