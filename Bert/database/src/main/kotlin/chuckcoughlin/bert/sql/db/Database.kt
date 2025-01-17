@@ -47,6 +47,16 @@ object Database  {
      * @param poseName
      * @param index
      */
+    fun createFace(faceName: String,details: FacialDetails) {
+        face.createFace(connection, faceName,details)
+    }
+    /**
+     * Save a list of motor position, torques and speeds as a new pose.
+     * Insert or update the Pose table
+     * @param mcmap contains a map of motor configurations with positions that define the pose.
+     * @param poseName
+     * @param index
+     */
     fun createPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String,index: Int) {
         pose.createPose(connection, mcmap, poseName,index)
     }
@@ -90,6 +100,14 @@ object Database  {
         return action.getActionNames(connection)
     }
     /**
+     * @param name user entered face name. If the face does not
+     *             exist, it will be created.
+     * @return the corresponding face id if it exists, otherwise NO_FACE
+     */
+    fun getFaceIdForName(name: String): Long {
+        return face.getFaceIdForName(connection, name)
+    }
+    /**
      * @return the names of saved faces in a comma-separated list
      */
     fun getFaceNames() : String {
@@ -98,6 +116,7 @@ object Database  {
     /**
      * @param name user entered pose name. If the pose does not
      *             exist, it will be created.
+     * @pRm index of the pose in a set of poses with the same name
      * @return the corresponding pose id if it exists, otherwise NO_POSE
      */
     fun getPoseIdForName(name: String,index:Int): Long {

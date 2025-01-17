@@ -2,7 +2,7 @@
  * Copyright 2020-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.speech.process
+package chuckcoughlin.bert.speech.translate
 
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle

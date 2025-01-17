@@ -6,7 +6,7 @@
  * We make no guarantees that this code is fit for any purpose.
  * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
  */
-package chuckcoughlin.bert.speech.process
+package chuckcoughlin.bert.speech.translate
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import org.antlr.v4.runtime.BaseErrorListener

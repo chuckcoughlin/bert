@@ -12,12 +12,11 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.speech.process.MessageTranslator
-import chuckcoughlin.bert.speech.process.StatementParser
+import chuckcoughlin.bert.speech.translate.MessageTranslator
+import chuckcoughlin.bert.speech.translate.StatementParser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
-import java.awt.SystemColor.text
 import java.util.logging.Logger
 
 /**

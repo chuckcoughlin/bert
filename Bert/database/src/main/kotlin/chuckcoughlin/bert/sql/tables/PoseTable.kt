@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
@@ -19,19 +19,18 @@ import java.util.logging.Logger
  * methods for finding and reading a pose
  */
 class PoseTable {
-
     /**
      * Create a new pose or update an existing one from a list of motor position, torque and speed values.
-     * @param mcmap contains a map of motor configurations with positions that define the pose
+     * @param mcmap is a map of motor configurations with positions that define the pose
      * @param pose
      * @param index
      */
-    fun createPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>,pose:String,index:Int ){
+    fun createPose(cxn: Connection?, mcmap: Map<Joint, MotorConfiguration>,pose:String,index:Int ){
         if( cxn!=null ) {
             var statement: Statement? = null
             val name = pose.lowercase()
             var poseid = getPoseIdForName(cxn,name,index)
-            LOGGER.info(String.format("%s.createPose: %d %s %s", CLSS,poseid,name,index))
+            LOGGER.info(String.format("%s.createPose: %s %d is id %d", CLSS,name,index,poseid))
             statement = cxn.createStatement()
             if( poseid == SQLConstants.NO_POSE ) {
                 poseid = getNextPoseId(cxn)
@@ -48,7 +47,7 @@ class PoseTable {
 
             try {
                 // For an unknown reason, mc.speed has been ending up as zero ... doesn't make sense as part of a pose
-                for (mc in map.values) {
+                for (mc in mcmap.values) {
                     if( mc.speed < 1.0 ) mc.speed = ConfigurationConstants.SPEED_NORMAL
                     val SQL = String.format("insert into PoseJoint(poseid,joint,angle,torque,speed) values(%d,'%s',%2.0f,%2.0f,%2.0f)",poseid,
                         mc.joint.name,mc.angle,mc.torque,mc.speed)
@@ -124,11 +123,9 @@ class PoseTable {
     }
 
     /**
-     * Find the pose id given pose name. If the pose does not currently
-     * exist, create it. The name is always stored in lower case.
+     * Find a pose id one larger than the current maximum.
      * @cxn an open database connection
-     * @param name user entered string
-     * @return the corresponding pose name if it exists, otherwise NULL
+     * @return an unused pose id
      */
     private fun getNextPoseId(cxn: Connection?): Long {
         var poseid: Long = 1
@@ -173,7 +170,7 @@ class PoseTable {
      * @cxn an open database connection
      * @param name user entered string
      * @param index series order
-     * @return the corresponding pose name if it exists, otherwise NULL
+     * @return the corresponding pose id if it exists, otherwise NO_POSE
      */
     fun getPoseIdForName(cxn: Connection?, name: String, index: Int): Long {
         var poseid: Long = SQLConstants.NO_POSE

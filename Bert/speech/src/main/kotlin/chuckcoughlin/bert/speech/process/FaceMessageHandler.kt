@@ -1,8 +1,8 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.command
+package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -15,13 +15,28 @@ import chuckcoughlin.bert.sql.db.SQLConstants
 import java.util.logging.Logger
 
 /**
- * We have received a JSON message from the tablet. Handle it.
- * @param sock for socket connection
+ * Handle tablet messages dealing with facial recognition.
  */
-object CommandFaceHandler  {
+object FaceMessageHandler  {
     private var currentFace: FacialDetails
     private var currentName: String
+    private var idIsPending: Boolean   // When true we have face details, no name
 
+    /**
+     * Associate the supplied name with the current facial details
+     */
+    fun associateNameWithFace(name:String):Boolean {
+        var result = true
+        if(!currentFace.landmarks.isEmpty()) {
+            Database.createFace(name,currentFace)
+            idIsPending = false
+        }
+        else {
+            result = false
+            LOGGER.warning(String.format("%s.associateNameWithFace: Tried to assign %s a face, but no details pending",CLSS,name))
+        }
+        return result
+    }
     /**
      * The tablet has detected a face.
      * 1) If it matches a known face ,then send a greeting
@@ -38,6 +53,7 @@ object CommandFaceHandler  {
         if( faceId== SQLConstants.NO_FACE ) {
             val text = selectRandomText(whoPhrases)
             msg.text = text
+            idIsPending = true
         }
         else {
             val name = Database.getFaceName(faceId)
@@ -58,13 +74,6 @@ object CommandFaceHandler  {
         var msg = MessageBottle(RequestType.NOTIFICATION)
 
         return msg
-    }
-
-    /**
-     * We are given the name that belongs to the pending details
-     */
-    fun handleFaceName(name:String) {
-
     }
 
     /**
@@ -90,13 +99,12 @@ object CommandFaceHandler  {
             "Who is controlling me"
     )
 
-    private val CLSS = "CommandFaceHandler"
-    private val DEBUG: Boolean
+    private val CLSS = "FaceMessageHandler"
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         currentName = ConfigurationConstants.NO_NAME
         currentFace = FacialDetails()
+        idIsPending = false
     }
 }

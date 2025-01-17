@@ -27,16 +27,15 @@ command:
 	| List Article? Motor? Properties                   	# handleListCommand
 	| List Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
     | List Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion
-    | List Article? Article? (Motors|Limbs|Extremities)   # bodyPartListQuestion
-    | List Article? Article? (Actions|Faces|Poses)                             # databaseListQuestion
+    | List Article? Article? (Motors|Limbs|Extremities)     # bodyPartListQuestion
+    | List Article? Article? (Actions|Faces|Poses)          # databaseListQuestion
+    | Straighten (It|Article? Side? (Joint|Limb) Axis? )    # straightenJoint
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
 	| Salutation? Move Speed                                                   # setSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	   # enableTorque
     | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Unit?  # setMotorProperty
-	| Salutation? Straighten (It|Article? Side? (Joint|Limb) Axis? )    	    # straightenJoint
-	| Salutation? Forget NAME                                                   # deleteUserData
-	| Salutation? phrase                                    		            # handleArbitraryCommand
+	| Salutation? phrase                                    		            # handleArbitraryCommandOrResponse
 	;
 
 // Request for information
@@ -61,7 +60,9 @@ question:
 
 // Convey information to the robot.
 declaration:
-	  Take Article? Pose phrase Value          	        # assumePose
+	  Forget phrase                                     # deleteUserData
+	| My Name Is phrase                                 # setUserName
+	| Take Article? Pose phrase Value          	        # assumePose
     | Article Pose Is phrase Value						# definePose
 	| Save Article? Pose As? phrase Value          	    # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
@@ -119,7 +120,9 @@ Mittens: 'mittens';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
+My: 'my';
 Names: 'names';
+Name: 'name';
 Of: 'of'|'for';
 Off: 'off'|'disabled';
 On: 'on'|'enabled';

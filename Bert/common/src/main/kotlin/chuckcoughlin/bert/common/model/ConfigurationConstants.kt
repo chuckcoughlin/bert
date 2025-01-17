@@ -35,6 +35,7 @@ object ConfigurationConstants {
     const val DEBUG_INTERNAL   = "int"
     const val DEBUG_MOTOR      = "mtr"
     const val DEBUG_SERIAL     = "ser"
+    const val DEBUG_MESSAGE    = "msg"
     const val DEBUG_DATABASE   = "sql"
     const val DEBUG_TERMINAL   = "ter"
 

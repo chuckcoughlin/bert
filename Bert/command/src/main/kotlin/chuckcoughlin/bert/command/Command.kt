@@ -9,7 +9,7 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.speech.process.MessageTranslator
+import chuckcoughlin.bert.speech.translate.MessageTranslator
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select

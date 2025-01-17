@@ -2,7 +2,7 @@
  * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.speech.process
+package chuckcoughlin.bert.speech.translate
 
 /**
  * These are properties in the shared dictionary that can be shared from

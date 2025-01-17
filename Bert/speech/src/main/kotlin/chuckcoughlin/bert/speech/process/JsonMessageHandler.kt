@@ -2,7 +2,7 @@
  * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.command
+package chuckcoughlin.bert.speech.process
 
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
@@ -15,11 +15,10 @@ import com.google.gson.Gson
 import java.util.logging.Logger
 
 /**
- * We have received a JSON message from the tablet. This is a
+ * Handle a JSON message from the tablet. This is a
  * direct tablet-to-robot interaction.
- * @param sock for socket connection
  */
-object CommandJsonHandler  {
+object JsonMessageHandler  {
     private val gson: Gson
     private val msg: MessageBottle
 
@@ -34,11 +33,11 @@ object CommandJsonHandler  {
         var msg = MessageBottle(RequestType.NOTIFICATION)
         if( type == JsonType.FACIAL_DETAILS) {
             val fdd = gson.fromJson(json, FacialDetails::class.java)
-            msg = CommandFaceHandler.handleDetails(fdd)
+            msg = FaceMessageHandler.handleDetails(fdd)
         }
         else if( type == JsonType.FACE_DIRECTION) {
             val fd = gson.fromJson(json, FaceDirection::class.java)
-            msg = CommandFaceHandler.handleDirection(fd)
+            msg = FaceMessageHandler.handleDirection(fd)
         }
         else {
             msg.error = String.format("data message type \"%s\" not handled",type.name)
@@ -48,12 +47,10 @@ object CommandJsonHandler  {
 
 
 
-    private val CLSS = "CommandJsonHandler"
-    private val DEBUG: Boolean
+    private val CLSS = "JsonMessageHandler"
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         gson = Gson()
         msg = MessageBottle(RequestType.NONE)
     }

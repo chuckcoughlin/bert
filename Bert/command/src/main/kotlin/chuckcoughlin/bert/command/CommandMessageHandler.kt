@@ -8,8 +8,9 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.speech.process.MessageTranslator
-import chuckcoughlin.bert.speech.process.StatementParser
+import chuckcoughlin.bert.speech.process.JsonMessageHandler
+import chuckcoughlin.bert.speech.translate.MessageTranslator
+import chuckcoughlin.bert.speech.translate.StatementParser
 import kotlinx.coroutines.sync.Mutex
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -112,7 +113,7 @@ class CommandMessageHandler(sock: Socket)  {
                     if( jtype!=JsonType.UNDEFINED) {
                         LOGGER.info(String.format(" parsing JSN: %s", text))
                         text = text.substring(index+1)
-                        msg = CommandJsonHandler.handleJson(jtype,text)
+                        msg = JsonMessageHandler.handleJson(jtype,text)
                     }
                     else {
                         msg.error = String.format("JSON message from the tablet was of unknown type - %s",type)
@@ -191,7 +192,7 @@ class CommandMessageHandler(sock: Socket)  {
 
     init {
         translator = MessageTranslator()
-        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MESSAGE)
         input = BufferedReader(InputStreamReader(socket.getInputStream()))
         LOGGER.info(String.format("%s.startup: opened socket for read",CLSS))
         output = PrintWriter(socket.getOutputStream(), true)

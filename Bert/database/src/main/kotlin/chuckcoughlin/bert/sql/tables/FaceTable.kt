@@ -1,11 +1,12 @@
 /**
- * Copyright 2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2024-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.sql.db.Database.getPoseIdForName
 import chuckcoughlin.bert.sql.db.SQLConstants
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import com.google.gson.GsonBuilder
@@ -15,15 +16,66 @@ import java.util.logging.Logger
 
 /**
  * Handle the storage and retrieval of parameters for recognized faces.
- * This class serves as a Kotlin interface to the Face and FaceContour tables. It provides
+ * This class serves as a Kotlin interface to the Face, FaceLandmark and FaceContour tables. It provides
  * methods for finding and reading a face for purposes of comparison
  */
 class FaceTable {
 
     /**
-     * Delete the pose and associated joint details.
+     * Add new face details to the database. For now use just the landmarks.
+     * If the name alrady exists, then update the existing details.
+     */
+    fun createFace(cxn: Connection?, facename:String,details: FacialDetails ) {
+        if( cxn!=null ) {
+            var statement: Statement? = null
+            val name = facename.lowercase()
+            var faceid = getFaceIdForName(cxn,name)
+            LOGGER.info(String.format("%s.createFace: %s is id %d", CLSS,name,faceid))
+            statement = cxn.createStatement()
+            if( faceid == SQLConstants.NO_FACE ) {
+                faceid = getNextFaceId(cxn)
+                val SQL = String.format("insert into Face(name,faceid) values('%s',%d)",name,faceid)
+                if(DEBUG) LOGGER.info(String.format("%s.createFace: executing %s)", CLSS, SQL))
+                statement.executeUpdate(SQL)
+            }
+            else {
+                // Face exists, so delete any existing data from FaceContour and FaceLandmark tables
+                var SQL = String.format("delete from FaceContour where faceid = %d",faceid)
+                if(DEBUG) LOGGER.info(String.format("%s.createFace: executing %s)", CLSS, SQL))
+                statement.executeUpdate(SQL)
+                SQL = String.format("delete from FaceLandmark where faceid = %d",faceid)
+                if(DEBUG) LOGGER.info(String.format("%s.createFace: executing %s)", CLSS, SQL))
+                statement.executeUpdate(SQL)
+            }
+
+            try {
+                // Define the face as a collection of landmarks
+                for (landmarkName in details.landmarks.keys) {
+                    val point=details.landmarks.get(landmarkName)!!
+                    val SQL = String.format("insert into FaceLandmark(faceid,landmarkCode,x,y) values(%d,'%s',%2.0f,%2.0f)",
+                            faceid,landmarkName,point.x,point.y)
+                    if(DEBUG) LOGGER.info(String.format("%s.createPose: executing %s)", CLSS, SQL))
+                    statement.executeUpdate(SQL)
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.createFace: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if (statement != null) {
+                    try {
+                        statement.close()
+                    }
+                    catch (ignore: SQLException) {
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Delete the face and associated landmarks.
      * @cxn an open database connection
-     * @param name pose name
+     * @param name face name
      */
     fun deleteFace(cxn: Connection?, facename: String) {
         if( cxn!=null ) {
@@ -47,7 +99,7 @@ class FaceTable {
             catch (e: SQLException) {
                 // if the error message is "out of memory",
                 // it probably means no database file is found
-                LOGGER.severe(String.format("%s.getPoseIdForName: Error (%s)",CLSS, e.message))
+                LOGGER.severe(String.format("%s.getFaceIdForName: Error (%s)",CLSS, e.message))
             }
             finally {
                 if(rs != null) {
@@ -146,6 +198,48 @@ class FaceTable {
     }
 
     /**
+     * Find the face id given face name. If the face does not
+     * exist, return NO_POSE. The name is always stored in lower case.
+     * @cxn an open database connection
+     * @param name user entered string
+     * @return the corresponding face id if it exists, otherwise NO_FACE
+     */
+    fun getFaceIdForName(cxn: Connection?, name: String): Long {
+        var faceid: Long = SQLConstants.NO_FACE
+        if( cxn!=null ) {
+            val facename = name.lowercase(Locale.getDefault())
+            var SQL = String.format("select faceid from Face where name = '%s'",facename)
+            val statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    faceid = rs.getLong("faceid")
+                    LOGGER.info(String.format("%s.getFaceIdForName: %s is %d", CLSS, facename,faceid))
+                    break
+                }
+                rs.close()
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.getFaceIdForName: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        return faceid
+    }
+
+    /**
      * Given a faceId, retrieve the name corresponding to a faceId
      * @cxn an open database connection
      * @faceId
@@ -211,9 +305,50 @@ class FaceTable {
         if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
         else return "none"
     }
-
     /**
-     * Match the details from the database to the supplied object.
+     * Find an unused face id (one larger than the current maximum).
+     * @cxn an open database connection
+     * @return the corresponding pose name if it exists, otherwise NULL
+     */
+    private fun getNextFaceId(cxn: Connection?): Long {
+        var faceid: Long = 1
+        if( cxn!=null ) {
+            var SQL = "select max(faceid) from Facw"
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    faceid = rs.getLong(1)
+                    faceid = faceid + 1
+                    break
+                }
+                rs.close()
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getNextFaceId: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if (rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) {
+                    }
+                }
+                try {
+                    statement.close()
+                }
+                catch (ignore: SQLException) {
+                }
+            }
+        }
+        return faceid
+    }
+    /**
+     * Compare details from the database to the supplied object.
+     * @return true if the comparison scores less than the tolerance
      */
     fun idMatchesDetails(cxn: Connection?,id:Long,details:FacialDetails) : Boolean {
         var result = false
@@ -294,131 +429,7 @@ class FaceTable {
         return face_id
     }
 
-    /**
-     * Save a list of motor position values as a pose. Assign the pose a name equal to the
-     * id of the new database record.
-     * @param mcmap contains a map of motor configurations with positions that define the pose.
-     * @return the new record id as a string.
-     */
-    fun saveJointLocationsAsNewPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>): String {
-        LOGGER.info(String.format("%s.saveJointLocationsAsNewPose:", CLSS))
-        var id: Long = SQL_NULL_CONNECTION
-        if( cxn!=null ) {
-            var statement: Statement? = null
-            var prep: PreparedStatement? = null
 
-            try {
-                val sb = StringBuffer("INSERT INTO Pose (name,parameter")
-                val valuesBuffer = StringBuffer("VALUES ('NEWPOSE','position'")
-                for (mc in map.values) {
-                    sb.append(",")
-                    sb.append(mc.joint.name)
-                    valuesBuffer.append(",?")
-                }
-                var SQL = sb.append(") ").append(valuesBuffer).append(")").toString()
-                LOGGER.info(String.format("%s.saveJointLocationsAsNewPose:\n%s", CLSS, SQL))
-                prep = cxn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)
-                var index = 1
-                for (mc in map.values) {
-                    prep.setInt(index, mc.angle.toInt())
-                    index++
-                }
-                prep.executeUpdate()
-                val generatedKeys: ResultSet = prep.getGeneratedKeys()
-                if (generatedKeys.next()) {
-                    id = generatedKeys.getLong(1)
-                }
-                SQL = "UPDATE Pose Set name = id WHERE name='NEWPOSE'"
-                statement = cxn.createStatement()
-                statement.execute(SQL)
-            }
-            catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.saveJointLocationsAsNewPose: Error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (prep != null) {
-                    try {
-                        prep.close()
-                    }
-                    catch (ignore: SQLException) {
-                    }
-                }
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {
-                    }
-                }
-            }
-        }
-        return id.toString()
-    }
-
-    /**
-     * Save a list of motor position values as a pose. Try an update first. If no rows are affected
-     * then do an insert.
-     * @param mcmap contains a map of motor configurations. Joints not in the list are ignored.
-     * @param pz name
-     */
-    fun saveJointLocationsForPose(cxn: Connection?, map: Map<Joint, MotorConfiguration>, pz: String) {
-        if( cxn!=null ) {
-            LOGGER.info(String.format("%s.saveJointAnglesForPose: %s)", CLSS, pz))
-            var statement: PreparedStatement? = null
-            val pose = pz.lowercase(Locale.getDefault())
-            var SQL = StringBuffer("UPDATE Pose SET ")
-            var index = 0
-            for (mc in map.values) {
-                index++
-                SQL.append(
-                    java.lang.String.format("\n'%s'=%.1f%s",
-                        mc.joint.name, mc.angle,
-                        if (index == map.size) "" else ","
-                    )
-                )
-            }
-            SQL.append("\nWHERE name=? AND parameter='position';")
-            try {
-                LOGGER.info(String.format("%s.saveJointAnglesForPose: \n%s)", CLSS, SQL.toString()))
-                statement = cxn.prepareStatement(SQL.toString())
-                statement.setString(1, pose)
-                statement.executeUpdate()
-                if (statement.getUpdateCount() == 0) {
-                    // There was nothing to update. Do an insert. This will auto-increment primary key.
-                    statement.close()
-                    SQL = StringBuffer("INSERT INTO Pose (name,parameter")
-                    val valuesBuffer = StringBuffer("VALUES (?,'position'")
-                    for (mc in map.values) {
-                        SQL.append(",")
-                        SQL.append(mc.joint.name)
-                        valuesBuffer.append(",?")
-                    }
-                    SQL.append(") ").append(valuesBuffer).append(")").toString()
-                    LOGGER.info(String.format("%s.saveJointAnglesForPose: \n%s)", CLSS, SQL.toString()))
-                    statement = cxn.prepareStatement(SQL.toString())
-                    statement.setString(1, pose)
-                    index = 2
-                    for (mc in map.values) {
-                        statement.setInt(index, mc.angle.toInt())
-                        index++
-                    }
-                    statement.executeUpdate()
-                }
-            }
-            catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.saveJointAnglesForPose: Database error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {
-                    }
-                }
-            }
-        }
-    }
     private val CLSS = "FaceTable"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean
