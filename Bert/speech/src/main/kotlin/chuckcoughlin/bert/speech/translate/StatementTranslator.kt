@@ -688,13 +688,23 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         bottle.joint = Joint.NONE
         return null
     }
-    // Associate a name with the current facial details. This is not a request
+    // Associate a name with the current facial details. This is not a request.
+    // My name is charlie
     override fun visitSetUserName(ctx: SpeechSyntaxParser.SetUserNameContext): Any? {
         bottle.type = RequestType.NONE
-        if (ctx.phrase() != null) {
-            val phrase: String=visit(ctx.phrase()).toString()
-            FaceMessageHandler.associateNameWithFace(phrase)
+        if (ctx.Metric() != null) {
+            val metric = ctx.Metric().toString()
+            if( metric.equals("name")) {
+                if (ctx.phrase() != null) {
+                    val phrase: String=visit(ctx.phrase()).toString()
+                    FaceMessageHandler.associateNameWithFace(phrase)
+                }
+            }
+            else {
+                bottle.error = "I only care about your name"
+            }
         }
+
         return null
     }
     // If the joint is not specified, then straighten the entire body

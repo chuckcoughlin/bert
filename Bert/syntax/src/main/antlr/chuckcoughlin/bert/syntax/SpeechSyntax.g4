@@ -61,7 +61,7 @@ question:
 // Convey information to the robot.
 declaration:
 	  Forget phrase                                     # deleteUserData
-	| My Name Is phrase                                 # setUserName
+	| My Metric Is phrase                                 # setUserName
 	| Take Article? Pose phrase Value          	        # assumePose
     | Article Pose Is phrase Value						# definePose
 	| Save Article? Pose As? phrase Value          	    # definePose
@@ -122,7 +122,6 @@ Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
 My: 'my';
 Names: 'names';
-Name: 'name';
 Of: 'of'|'for';
 Off: 'off'|'disabled';
 On: 'on'|'enabled';
