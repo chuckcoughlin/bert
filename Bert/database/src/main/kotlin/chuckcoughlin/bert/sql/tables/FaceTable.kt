@@ -313,7 +313,7 @@ class FaceTable {
     private fun getNextFaceId(cxn: Connection?): Long {
         var faceid: Long = 1
         if( cxn!=null ) {
-            var SQL = "select max(faceid) from Facw"
+            var SQL = "select max(faceid) from Face"
             var statement: Statement = cxn.createStatement()
             var rs: ResultSet? = null
 
@@ -376,7 +376,7 @@ class FaceTable {
                 }
                 if( count>0 ) {
                     err = Math.sqrt(err/(2.0*count))
-                    LOGGER.info(String.format("%s.idMatchesDetails: Computed error: %0.2f vs %0.2f", CLSS, err,TOLERANCE))
+                    LOGGER.info(String.format("%s.idMatchesDetails: Computed error: %3.2f vs %3.2f", CLSS, err,TOLERANCE))
                     if( err<TOLERANCE ) result = true
                 }
             }
