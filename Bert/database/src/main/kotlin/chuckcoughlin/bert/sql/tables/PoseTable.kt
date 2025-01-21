@@ -493,7 +493,7 @@ class PoseTable {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<PoseDefinition>()
         if( cxn!=null ) {
-            val SQL = "select series,executeOrder from Pose"
+            val SQL = "select series,executeOrder,delay from Pose"
             var statement: Statement = cxn.createStatement()
             var rs: ResultSet? = null
             try {

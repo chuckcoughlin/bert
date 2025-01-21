@@ -17,7 +17,6 @@ import java.util.logging.LogRecord
  * Format a logger record
  */
 class BertFormatter() : Formatter() {
-
     override fun format(record: LogRecord): String {
         val sb = StringBuilder()
         sb.append(dateFormatter.format(Date(record.millis)))

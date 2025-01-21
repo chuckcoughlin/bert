@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.util.TextUtility
 import chuckcoughlin.bert.sql.db.Database.getPoseIdForName
 import chuckcoughlin.bert.sql.db.SQLConstants
 import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
@@ -112,7 +113,7 @@ class FaceTable {
                 // Now do the deletions
                 var stmt=cxn.createStatement()
                 try {
-                    SQL=String.format("delete from FaceName where faceid = %d", faceid)
+                    SQL=String.format("delete from Face where faceid = %d", faceid)
                     stmt.execute(SQL)
                     SQL=String.format("delete from FaceLandmark where faceid = %d", faceid)
                     stmt.execute(SQL)
@@ -278,7 +279,7 @@ class FaceTable {
      * @return a list of pose names, comma-separate
      */
     fun getFaceNames(cxn: Connection?): String {
-        val names = StringBuffer()
+        val names = mutableListOf<String>()
         if( cxn!=null ) {
             val SQL = "select name from Face"
             var statement: Statement = cxn.createStatement()
@@ -286,8 +287,7 @@ class FaceTable {
             try {
                 rs = statement.executeQuery(SQL)
                 while (rs.next()) {
-                    names.append(rs.getString(1))
-                    names.append(", ")
+                    names.add(rs.getString(1))
                 }
             }
             catch (e: SQLException) {
@@ -302,8 +302,7 @@ class FaceTable {
                 catch (ignore: SQLException) {}
             }
         }
-        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
-        else return "none"
+        return TextUtility.createTextForSpeakingFromList(names)
     }
     /**
      * Find an unused face id (one larger than the current maximum).

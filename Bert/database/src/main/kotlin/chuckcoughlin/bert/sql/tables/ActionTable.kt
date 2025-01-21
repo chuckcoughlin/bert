@@ -8,6 +8,7 @@ package chuckcoughlin.bert.sql.tables
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.PoseDefinition
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.util.TextUtility
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -108,7 +109,7 @@ class ActionTable {
      * @return a list of action names, comma-separate
      */
     fun getActionNames(cxn: Connection?): String {
-        val names = StringBuffer()
+        val names = mutableListOf<String>()
         if( cxn!=null ) {
             val SQL = "select name from Action"
             var statement: Statement = cxn.createStatement()
@@ -116,8 +117,7 @@ class ActionTable {
             try {
                 rs = statement.executeQuery(SQL)
                 while (rs.next()) {
-                    names.append(rs.getString(1))
-                    names.append(", ")
+                    names.add(rs.getString(1))
                 }
             }
             catch (e: SQLException) {
@@ -132,8 +132,7 @@ class ActionTable {
                 catch (ignore: SQLException) {}
             }
         }
-        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
-        else return "none"
+        return TextUtility.createTextForSpeakingFromList(names)
     }
 
     /**

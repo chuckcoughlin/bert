@@ -376,13 +376,13 @@ class Dispatcher : Controller {
                     // LIST implies we look at the JsonType and return a comma-separated list of names
                     MetricType.LIST -> {
                         when (request.jtype) {
-                            JsonType.FACE_NAMES -> text = Database.getFaceNames()
+                            JsonType.FACE_NAMES -> text = "I know " + Database.getFaceNames()
                             JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.names()
                             JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDynamicProperty.names()
                             JsonType.EXTREMITY_NAMES -> text = URDFModel.chain.extremityNames()
-                            JsonType.JOINT_NAMES -> text = URDFModel.chain.jointNames()
-                            JsonType.LIMB_NAMES -> text = RobotModel.limbNames()
-                            JsonType.POSE_NAMES -> text = Database.getPoseNames()
+                            JsonType.JOINT_NAMES -> text = "My joints are " + URDFModel.chain.jointNames()
+                            JsonType.LIMB_NAMES -> text = "My limbs are " + RobotModel.limbNames()
+                            JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = Database.getActionNames()
                             else -> {
                                 request.error = "badly formed metric list request"

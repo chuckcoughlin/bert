@@ -7,5 +7,5 @@ package chuckcoughlin.bert.common.model
 /**
  * This class is a holder for the definition of a Pose
  */
-class PoseDefinition (val name:String, val index:Int, val delay:Long) {
+class PoseDefinition (val name:String, val index:Int,val delay:Long) {
 }
