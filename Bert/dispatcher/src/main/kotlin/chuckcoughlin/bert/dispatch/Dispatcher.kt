@@ -377,13 +377,13 @@ class Dispatcher : Controller {
                     MetricType.LIST -> {
                         when (request.jtype) {
                             JsonType.FACE_NAMES -> text = "I know " + Database.getFaceNames()
-                            JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.names()
-                            JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDynamicProperty.names()
-                            JsonType.EXTREMITY_NAMES -> text = URDFModel.chain.extremityNames()
-                            JsonType.JOINT_NAMES -> text = "My joints are " + URDFModel.chain.jointNames()
-                            JsonType.LIMB_NAMES -> text = "My limbs are " + RobotModel.limbNames()
+                            JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = "Each joint has " + JointDynamicProperty.names()
+                            JsonType.MOTOR_STATIC_PROPERTIES -> text = "Each joint has a " + JointDynamicProperty.names()
+                            JsonType.EXTREMITY_NAMES -> text = "I have these extremities:  " + Extremity.nameList()
+                            JsonType.JOINT_NAMES -> text = "My joints are " + Joint.nameList()
+                            JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
-                            JsonType.ACTION_NAMES -> text = Database.getActionNames()
+                            JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
                             else -> {
                                 request.error = "badly formed metric list request"
                                 text = ""

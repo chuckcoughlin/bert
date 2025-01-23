@@ -4,6 +4,8 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.util.TextUtility
+
 /**
  * Limbs represent groups of joints/bones.
  */
@@ -40,6 +42,17 @@ enum class Limb {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+
+        /** @return  a comma-separated list of common names for the joints.
+         */
+        fun nameList(): String {
+            val list = mutableListOf<String>()
+            for (limb in Limb.values()) {
+                if( limb==Limb.NONE) continue
+                list.add(Limb.toText(limb))
+            }
+            return TextUtility.createTextForSpeakingFromList(list)
         }
 
         /**

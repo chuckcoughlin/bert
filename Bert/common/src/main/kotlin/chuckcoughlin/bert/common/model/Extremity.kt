@@ -4,6 +4,8 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.util.TextUtility
+
 /**
  * These are the canonical names for appendages on various limbs.
  * These are body parts where we need locations.
@@ -46,6 +48,16 @@ enum class Extremity {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+        /** @return  a comma-separated list of common names for the extremities.
+         */
+        fun nameList(): String {
+            val list = mutableListOf<String>()
+            for (ext in Extremity.values()) {
+                if( ext==Extremity.NONE) continue
+                list.add(Extremity.toText(ext))
+            }
+            return TextUtility.createTextForSpeakingFromList(list)
         }
         /**
          * The enumeration function valueOf appears to always throw an exception.

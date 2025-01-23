@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.util.TextUtility
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.sql.db.SQLConstants
 import com.google.gson.GsonBuilder
@@ -372,7 +373,7 @@ class PoseTable {
      * @return a list of pose names, comma-separate
      */
     fun getPoseNames(cxn: Connection?): String {
-        val names = StringBuffer()
+        val names = mutableListOf<String>()
         if( cxn!=null ) {
             val SQL = "select distinct(series) from Pose"
             var statement: Statement = cxn.createStatement()
@@ -380,8 +381,7 @@ class PoseTable {
             try {
                 rs = statement.executeQuery(SQL)
                 while (rs.next()) {
-                    names.append(rs.getString(1))
-                    names.append(", ")
+                    names.add(rs.getString(1))
                 }
             }
             catch (e: SQLException) {
@@ -396,8 +396,7 @@ class PoseTable {
                 catch (ignore: SQLException) {}
             }
         }
-        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
-        else return "none"
+        return TextUtility.createTextForSpeakingFromList(names)
     }
     /**
      * @return true if there is a pose the given name and index value.

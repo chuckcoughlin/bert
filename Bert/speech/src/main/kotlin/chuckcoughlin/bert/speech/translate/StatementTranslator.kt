@@ -454,7 +454,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     }
 
     // where is your left ear
-    override fun visitLimbLocationQuestion(ctx: SpeechSyntaxParser.LimbLocationQuestionContext): Any? {
+    override fun visitJointLocationQuestion(ctx: SpeechSyntaxParser.JointLocationQuestionContext): Any? {
         // If axis was set previously, use it as default
         var axis = sharedDictionary[SharedKey.AXIS].toString()
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
@@ -490,6 +490,33 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             else {
                 sharedDictionary[SharedKey.EXTREMITY] = extremity
             }
+        }
+        return null
+    }
+
+    // where is your left ear
+    override fun visitLimbLocationList(ctx: SpeechSyntaxParser.LimbLocationListContext): Any? {
+        bottle.type = RequestType.JSON
+        bottle.jtype = JsonType.LIMB_LOCATIONS
+        // If side was set previously, use it as default
+        var side = sharedDictionary[SharedKey.SIDE].toString()
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var limb : Limb
+        if (ctx.Limb() == null) {
+            limb = sharedDictionary[SharedKey.LIMB] as Limb
+        }
+        else {
+            limb=determineLimb(ctx.Limb().toString(), side)
+        }
+        bottle.limb = limb
+        if (limb.equals(Limb.NONE)) {
+            val msg = String.format("I don't have a limb like that")
+            bottle.error = msg
+        }
+        else {
+            sharedDictionary[SharedKey.LIMB] = limb
+            sharedDictionary[SharedKey.IT] = SharedKey.LIMB
         }
         return null
     }

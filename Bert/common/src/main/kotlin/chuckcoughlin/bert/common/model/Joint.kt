@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.util.TextUtility
 import java.util.logging.Logger
 
 /**
@@ -57,8 +58,7 @@ enum class Joint {
             return text
         }
 
-        /**
-         * @return  a comma-separated list of all block states in a single String.
+        /** @return  a comma-separated string of all joints
          */
         fun names(): String {
             val names = StringBuffer()
@@ -66,6 +66,17 @@ enum class Joint {
                 names.append(type.name + ", ")
             }
             return names.substring(0, names.length - 2)
+        }
+
+        /** @return  a comma-separated list of common names for the joints.
+        */
+        fun nameList(): String {
+            val list = mutableListOf<String>()
+            for (joint in values()) {
+                if( joint==Joint.NONE) continue
+                list.add(Joint.toText(joint))
+            }
+            return TextUtility.createTextForSpeakingFromList(list)
         }
 
         /**

@@ -5,6 +5,9 @@
 package chuckcoughlin.bertspeak.tab
 
 
+import android.app.Activity
+import android.app.ActivityManager
+import android.content.Context
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener

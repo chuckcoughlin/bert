@@ -26,6 +26,7 @@ command:
 	| List Article? Properties Of Article? Motors       	# handleListCommand
 	| List Article? Motor? Properties                   	# handleListCommand
 	| List Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
+	| List Article? Location Article? Side? Limb		    # limbLocationList
     | List Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion
     | List Article? Article? (Motors|Limbs|Extremities)     # bodyPartListQuestion
     | List Article? Article? (Actions|Faces|Poses)          # databaseListQuestion
@@ -51,7 +52,7 @@ question:
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property Of Article? Side? Joint Axis?   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Metric   				                  # metricsQuestion
-    | Where Is Article? Side? (Extremity|Joint)	Axis?       # limbLocationQuestion
+    | Where Is Article? Side? (Extremity|Joint)	Axis?       # jointLocationQuestion
     | What Actions Do You Know								# databaseActionNamesQuestion
     | What Poses Do You Know								# databasePoseNamesQuestion
     | Who Do You Know										# databaseFaceNamesQuestion
@@ -113,6 +114,7 @@ Limbs:'limbs';
 Limb: 'arm'|'head'|'leg'|'torso';
 Limits: 'limits';
 List: 'list';
+Location: 'location';
 Me: 'me';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|'name';

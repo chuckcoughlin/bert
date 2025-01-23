@@ -66,18 +66,18 @@ class CommandMessageHandler(sock: Socket)  {
      * to the tablet which is a client to the robot.
      * @return a deferred value for use in a select() clause.
      */
-    @Synchronized
+
     suspend fun receiveNetworkInput(): MessageBottle {
-        val request:MessageBottle
-        val text = readCommand()
-        if( text==null ||
-            text.equals(CommandType.HALT.name, true) ) {
-            request = MessageBottle(RequestType.HANGUP)
-            request.source = ControllerType.COMMAND
-        }
-        else {
-            request = processRequest(text)
-        }
+            val request: MessageBottle
+            val text=readCommand()
+            if(text == null ||
+                text.equals(CommandType.HALT.name, true)) {
+                request=MessageBottle(RequestType.HANGUP)
+                request.source=ControllerType.COMMAND
+            }
+            else {
+                request=processRequest(text)
+            }
         return request
     }
 
