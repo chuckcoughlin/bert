@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Charles Coughlin. All rights reserved.
+ * Copyright 2024-2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  * @see https://medium.com/swlh/how-to-create-a-simple-camera-app-using-android-camerax-library-7367778498e0
  */

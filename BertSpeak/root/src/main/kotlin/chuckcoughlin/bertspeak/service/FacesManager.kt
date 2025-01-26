@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Charles Coughlin. All rights reserved.
+ * Copyright 2024-2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
@@ -79,6 +79,14 @@ class FacesManager (service:DispatchService): CommunicationManager {
         json = Gson().toJson(direction)
         dispatcher.reportJsonData(JsonType.FACE_DIRECTION,json)
     }
+
+    /**
+     * Ask the robot for a list of known face names
+     */
+    private fun requestFaceNames() {
+        dispatcher.sendRequest("list your faces")
+    }
+
     /**
      * When a new log observer is registered, send a link to this manager.
      * The observer can then initialize its list, if desired. The manager

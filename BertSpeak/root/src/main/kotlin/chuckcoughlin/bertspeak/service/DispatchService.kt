@@ -183,6 +183,18 @@ class DispatchService(ctx: Context){
         }
     }
 
+    /**
+     * Send a text message to the robot
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun sendRequest(text: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val msg = String.format("%s:%s %s",MessageType.MSG.name,text)
+            Log.i(CLSS, String.format("reportRequest: %s", msg))
+            socketManager.receiveTextToSend(msg)
+        }
+    }
+
     /* ================================================================
      * The companion object contains methods callable in a static way
      * from components throughout the application. It is necessary

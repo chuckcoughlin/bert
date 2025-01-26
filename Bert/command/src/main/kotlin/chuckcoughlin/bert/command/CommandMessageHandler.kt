@@ -70,8 +70,10 @@ class CommandMessageHandler(sock: Socket)  {
     suspend fun receiveNetworkInput(): MessageBottle {
             val request: MessageBottle
             val text=readCommand()
-            if(text == null ||
-                text.equals(CommandType.HALT.name, true)) {
+            if(text == null ) {
+                request = MessageBottle(RequestType.NONE)
+            }
+            else if( text.equals(CommandType.HALT.name, true)) {
                 request=MessageBottle(RequestType.HANGUP)
                 request.source=ControllerType.COMMAND
             }
