@@ -1,12 +1,12 @@
 /**
- * Copyright 2024 Charles Coughlin. All rights reserved.
+ * Copyright 2024-2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.data
 
 /**
  * Interface for listeners for generic JSON data. The JSON
- * object is determined by a tag that accompanies the data.
+ * object is determined by a type tag that accompanies the data.
  * Listeners are free to ignore data with tags that are not
  * of interest.
  */
@@ -20,16 +20,14 @@ interface JsonDataObserver {
     /**
      * Call this method after an observer newly registers. The
      * intention is to allow the observer to "catch-up" with the
-     * state of settings table all at oncw.
-     * @param key data type
-     * @param json data as a JSON string
+     * state of the Json data table all at oncw.
+     * @param map Json string by type
      */
-    fun resetItem(key: String, json:String)
+    fun resetItem(map:Map<JsonType,String>)
 
     /**
-     * Update the status of the particular data object
-     * @param key data type
-     * @param json data as a JSON string
+     * Allow the observer to pick whatever type(s) are appropriate.
+     * @param map Json string by type
      */
-    fun updateItem(key: String, json: String)
+    fun updateItem(map:Map<JsonType,String>)
 }

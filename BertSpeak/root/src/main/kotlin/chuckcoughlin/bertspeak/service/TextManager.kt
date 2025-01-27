@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Charles Coughlin. All rights reserved.
+ * Copyright 2024-2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
@@ -10,6 +10,7 @@ import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.JsonData
 import chuckcoughlin.bertspeak.data.JsonDataObserver
+import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
@@ -32,10 +33,10 @@ class TextManager (service:DispatchService): CommunicationManager {
     val dispatcher = service
     override val managerType = ManagerType.TEXT
     override var managerState = ManagerState.OFF
-    private val dataMap: MutableMap<String, String>
+    private val dataMap: MutableMap<JsonType, String>
     private val logList: FixedSizeList<LogData>
     private val transcriptList: FixedSizeList<LogData>
-    private val dataObservers: MutableMap<String, MutableList<JsonDataObserver>>
+    private val dataObservers: MutableMap<String, JsonDataObserver>
     private val logObservers: MutableMap<String, LogDataObserver>
     private val transcriptObservers: MutableMap<String, LogDataObserver>
 
@@ -78,7 +79,6 @@ class TextManager (service:DispatchService): CommunicationManager {
             }
             MessageType.JSN -> {
                 dataMap.clear()
-                for(tag in dataMap)
                 initializeDataObservers()
             }
         }
@@ -89,9 +89,9 @@ class TextManager (service:DispatchService): CommunicationManager {
 	 * not appropriate for display to the user.
 	*/
     @Synchronized
-    fun processJson(tag: String, json: String) {
+    fun processJson(tag: JsonType, json: String) {
         dataMap.put(tag,json)
-        notifyDataObservers(tag)
+        notifyDataObservers()
     }
     /*
      * The text has any header needed for tablet-robot communication
@@ -122,10 +122,8 @@ class TextManager (service:DispatchService): CommunicationManager {
         }
     }
     @Synchronized
-    fun registerDataViewer(tag:String,observer: JsonDataObserver) {
-        if( dataObservers[tag] == null ) dataObservers[tag] =
-                                              mutableListOf<JsonDataObserver>()
-        dataObservers[tag]!!.add(observer)
+    fun registerDataViewer(observer: JsonDataObserver) {
+        dataObservers[observer.name] = observer
     }
     /**
      * When a new log observer is registered, send a link to this manager.
@@ -152,10 +150,12 @@ class TextManager (service:DispatchService): CommunicationManager {
             }
         }
     }
-    fun unregisterDataViewer(tag:String,observer: JsonDataObserver) {
-        val observers = dataObservers.get(tag)
-        if( observers!=null ) {
-            observers.remove(observer)
+    fun unregisterDataViewer(observer: JsonDataObserver) {
+        for( key in dataObservers.keys ) {
+            if( dataObservers.get(key)!!.equals(observer) ) {
+                dataObservers.remove(key,observer)
+                break
+            }
         }
     }
 
@@ -167,21 +167,14 @@ class TextManager (service:DispatchService): CommunicationManager {
             }
         }
     }
-
     private fun initializeLogObservers() {
         for (observer in logObservers.values) {
             observer.resetText(logList)
         }
     }
     private fun initializeDataObservers() {
-        for( tag in dataMap.keys) {
-            val observers = dataObservers.get(tag)
-            val data = dataMap.get(tag)
-            if( observers!=null && data !=null) {
-                for (observer in observers) {
-                    observer.resetItem(tag, data)
-                }
-            }
+        for (observer in dataObservers.values) {
+            observer.resetItem(dataMap)
         }
     }
 
@@ -201,13 +194,9 @@ class TextManager (service:DispatchService): CommunicationManager {
         }
     }
 
-    private fun notifyDataObservers(tag:String) {
-        val observers = dataObservers.get(tag)
-        val data = dataMap.get(tag)
-        if( observers!=null && data !=null) {
-            for (observer in observers) {
-                observer.updateItem(tag,data)
-            }
+    private fun notifyDataObservers() {
+        for (observer in dataObservers.values) {
+            observer.updateItem(dataMap)
         }
     }
 
@@ -231,11 +220,11 @@ class TextManager (service:DispatchService): CommunicationManager {
      * is sent.
      */
     init {
-        dataMap = mutableMapOf<String, String>()
+        dataMap = mutableMapOf<JsonType, String>()
         logList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
         transcriptList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
         logObservers        = mutableMapOf<String, LogDataObserver>()
-        dataObservers       = mutableMapOf<String, MutableList<JsonDataObserver>>()
+        dataObservers       = mutableMapOf<String, JsonDataObserver>()
         transcriptObservers = mutableMapOf<String, LogDataObserver>()
     }
 }

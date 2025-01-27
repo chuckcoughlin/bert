@@ -19,9 +19,13 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import chuckcoughlin.bertspeak.data.JsonDataObserver
+import chuckcoughlin.bertspeak.data.JsonType
+import chuckcoughlin.bertspeak.data.JsonType.FACE_NAMES
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.adapter.TextListAdapter
+import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
@@ -34,8 +38,10 @@ import java.util.concurrent.Executors
  * This fragment presents the front camera output and attempts to identify the primary face
  * association it with "the operator".
  */
-class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
-    private val name: String
+class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
+    override val name: String
+
+    private val adapter: TextListAdapter
     private val detector: FaceDetector
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraPreview: PreviewView
@@ -45,7 +51,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     private val faceNames: MutableList<String>
     private lateinit var analyzeButton: Button
     private lateinit var deleteButton: Button
-    private lateinit var statusButton: Button
+    private val gson: Gson
 
     // Inflate the view. It holds a fixed image of the robot
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -57,11 +63,10 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         analyzeButton.setOnClickListener { analyzeButtonClicked() }
         deleteButton = binding.facesDeleteButton
         deleteButton.setOnClickListener { deleteButtonClicked() }
-        statusButton = binding.faceDetectionStatusButton
         val txtarray = faceNames.toTypedArray()
         val adapter = TextListAdapter(requireContext(),txtarray)
-        var textListView = binding.facesRecyclerView   // RecyclerView
-        textListView.setAdapter(adapter)
+        var namesListView = binding.facesRecyclerView   // RecyclerView
+        namesListView.setAdapter(adapter)
         return binding.root
     }
 
@@ -76,10 +81,13 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
     override fun onStart() {
         super.onStart()
         startCamera()
+        DispatchService.registerForData(this)
+        DispatchService.sendRequest("list your faces")
     }
 
     override fun onStop() {
         super.onStop()
+        DispatchService.unregisterForData(this)
         cameraExecutor.shutdown()
     }
 
@@ -138,9 +146,31 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         Log.i(name, "Delete button clicked")
 
     }
-    fun saveButtonClicked() {
-        Log.i(name, "Save button clicked")
+    //========================= JsonDataObserver =====================================
+    override fun resetItem(map:Map<JsonType,String>) {
+        var json = map.get(FACE_NAMES)
+        adapter.clear()
+        if( json!=null && !json.isEmpty() ) {
+            val list = gson.fromJson(json, MutableList::class.java) as MutableList<*>
+            val stringList = mutableListOf<String>()
+            for(data in list) {
+                stringList.add(data.toString())
+            }
+            adapter.addAll(stringList)
+        }
+    }
 
+    override fun updateItem(map:Map<JsonType,String>) {
+        var json = map.get(FACE_NAMES)
+        adapter.clear()
+        if( json!=null && !json.isEmpty() ) {
+            val list = gson.fromJson(json, MutableList::class.java) as MutableList<*>
+            val stringList = mutableListOf<String>()
+            for(data in list) {
+                stringList.add(data.toString())
+            }
+            adapter.addAll(stringList)
+        }
     }
 
     class ImageCaptureCallback(detect: FaceDetector): ImageCapture.OnImageCapturedCallback() {
@@ -190,5 +220,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos) {
         detector = FaceDetection.getClient(options)
         callback = ImageCaptureCallback(detector)
         faceNames = ArrayList<String>()
+        adapter = TextListAdapter(this.requireContext(), arrayOf<String>())
+        gson = Gson()
     }
 }

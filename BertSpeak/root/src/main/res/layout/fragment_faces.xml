@@ -79,12 +79,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:background="@color/navigationBarColor"
         android:orientation="horizontal">
-        <!-- button shows status of face detection -->
-        <Button
-            android:id="@+id/faceDetectionStatusButton"
-            android:layout_width="145dp"
-            android:layout_height="wrap_content"
-            android:background="@drawable/rounded_button" />
         <!-- Insert a greedy space between buttons -->
         <View
             android:layout_width="0dp"
@@ -97,6 +91,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_button"
             android:text="@string/buttonDelete" />
+        <!-- find a face from the camera image -->
         <Button
             android:id="@+id/facesAnalyzeButton"
             style="@style/Widget.AppCompat.Button.Colored"

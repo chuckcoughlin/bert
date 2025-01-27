@@ -56,7 +56,8 @@ class FacesManager (service:DispatchService): CommunicationManager {
         // ------------------ Prepare Face for the Robot -----------------------
         val details = FacialDetails()
         for(landmark in landmarks) {
-            val norm = normalizePoint(facebox, Point2D(landmark.position.x,landmark.position.y))
+            val norm = normalizePoint(facebox, Point2D(landmark.position.x.toDouble(),
+                                                       landmark.position.y.toDouble()))
             val landmarkTag = LandmarkTag.tagForCode(landmark.landmarkType)
             val p = Point2D(norm.x,norm.y)
             details.addLandmark(landmarkTag.name,p)
@@ -65,7 +66,7 @@ class FacesManager (service:DispatchService): CommunicationManager {
             val contourTag = ContourTag.tagForCode(contour.faceContourType)
             var index = 0
             for(point in contour.points) {
-                val norm = normalizePoint(facebox, Point2D(point.x,point.y))
+                val norm = normalizePoint(facebox, Point2D(point.x.toDouble(),point.y.toDouble()))
                 details.addContourPoint(contourTag.name, index, norm)
                 index = index+1
             }
@@ -78,13 +79,6 @@ class FacesManager (service:DispatchService): CommunicationManager {
         val direction = computeFaceDirection(facebox)
         json = Gson().toJson(direction)
         dispatcher.reportJsonData(JsonType.FACE_DIRECTION,json)
-    }
-
-    /**
-     * Ask the robot for a list of known face names
-     */
-    private fun requestFaceNames() {
-        dispatcher.sendRequest("list your faces")
     }
 
     /**
@@ -140,8 +134,8 @@ class FacesManager (service:DispatchService): CommunicationManager {
      * bounding box instead of the entire image.
      */
     private fun normalizePoint( bb: Rect, p: Point2D) : Point2D {
-        var x =  p.x - bb.right
-        var y = p.y-bb.top
+        var x:Double =  p.x - bb.right
+        var y:Double = p.y-bb.top
         x = x/bb.width()
         y = y/bb.height()
         return Point2D(x,y)

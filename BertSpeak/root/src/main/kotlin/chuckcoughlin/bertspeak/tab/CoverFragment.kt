@@ -47,7 +47,8 @@ import kotlin.math.roundToInt
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar. There are three status sbuttons: Connect, Listen, Speak
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,StatusDataObserver,LogDataObserver,
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,StatusDataObserver,
+                                LogDataObserver,
                                 OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
 
     override val name : String

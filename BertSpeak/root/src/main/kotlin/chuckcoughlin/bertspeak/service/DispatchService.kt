@@ -147,7 +147,7 @@ class DispatchService(ctx: Context){
                 if( type==MessageType.JSN) {
                     val index = txt.indexOf(" ")
                     if( index>0 ) {
-                        val tag = txt.substring(0,index)
+                        val tag = JsonType.valueOf(txt.substring(0,index))
                         txt = txt.substring(index+1)
                         textManager.processJson(tag,txt)
                     }
@@ -205,12 +205,12 @@ class DispatchService(ctx: Context){
         lateinit var instance: DispatchService
 
         // Handle all the registrations
-        fun registerForData(key:String,obs: JsonDataObserver) {
-            instance.textManager.registerDataViewer(key,obs)
+        fun registerForData(obs: JsonDataObserver) {
+            instance.textManager.registerDataViewer(obs)
         }
 
-        fun unregisterForData(key:String,obs: JsonDataObserver) {
-            instance.textManager.unregisterDataViewer(key, obs)
+        fun unregisterForData(obs: JsonDataObserver) {
+            instance.textManager.unregisterDataViewer(obs)
         }
 
         fun registerForGeometry(obs: GeometryDataObserver) {
@@ -252,11 +252,17 @@ class DispatchService(ctx: Context){
         fun reportFaceDetected(face:Face) {
             instance.facesManager.reportFaceDetected(face)
         }
+
+        fun sendRequest(text:String) {
+            instance.sendRequest(text)
+        }
+
         fun speak(msg:String) {
-            Log.i(CLSS, String.format("speak: %s",msg))
+            Log.i(CLSS, String.format("speak: %s", msg))
             instance.speechManager.speak(msg)
             instance.markEndOfSpeech()
         }
+
         val CLSS = "DispatchService,companion"
     }
     val CLSS = "DispatchService"
