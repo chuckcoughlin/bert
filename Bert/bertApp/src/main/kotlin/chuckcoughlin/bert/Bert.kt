@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.dispatch.Dispatcher
@@ -90,7 +91,7 @@ fun main(args: Array<String>) {
     RobotModel.useTerminal  = terminal
 
     Database.startup(PathConstants.DB_PATH)
-    Solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
+    URDFModel.analyzePath(PathConstants.URDF_PATH)
     val dispatcher = Dispatcher()
     Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
     runBlocking {

@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.common.util.LoggerUtility
 import java.nio.file.Paths
 import java.util.*
@@ -33,10 +34,10 @@ fun main(args: Array<String>) {
     // Analyze the xml for motor configurations. Initialize the motor configurations.
     RobotModel.startup(PathConstants.CONFIG_PATH)
     RobotModel.populate() //
-    Solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
+    URDFModel.analyzePath(PathConstants.URDF_PATH)
 
     //solver.setJointPosition(Joint.ABS_Y,90.);
-    val xyz = Solver.getLocation(Joint.ABS_Y) // Just to top of pelvis
+    val xyz = Solver.computeLocation(Joint.ABS_Y) // Just to top of pelvis
     println(String.format("%s (0.2,0,.114): xyz = %.2f,%.2f,%.2f ",
-        Joint.ABS_Y.name,xyz[0],xyz[1],xyz[2]))
+        Joint.ABS_Y.name,xyz.x,xyz.y,xyz.z))
 }

@@ -62,7 +62,8 @@ question:
 // Convey information to the robot.
 declaration:
 	  Forget phrase                                     # deleteUserData
-	| My Metric Is phrase                                 # setUserName
+	| My Metric Is phrase                               # setUserName
+	| Iam phrase                                        # setUserName
 	| Take Article? Pose phrase Value          	        # assumePose
     | Article Pose Is phrase Value						# definePose
 	| Save Article? Pose As? phrase Value          	    # definePose
@@ -105,6 +106,7 @@ Have: 'have'|'wear';
 Hold: 'hold';
 How: 'how';
 Initialize: 'initialize';
+Iam: 'i am';
 Isay: 'i say';
 Isaid: 'i said';
 It: 'it';

@@ -41,10 +41,10 @@ import java.util.concurrent.Executors
 class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
     override val name: String
 
-    private val adapter: TextListAdapter
     private val detector: FaceDetector
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var cameraPreview: PreviewView
+    private lateinit var adapter: TextListAdapter
     private val imageCapture: ImageCapture
     private val callback: ImageCaptureCallback
     private val options:FaceDetectorOptions
@@ -64,7 +64,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
         deleteButton = binding.facesDeleteButton
         deleteButton.setOnClickListener { deleteButtonClicked() }
         val txtarray = faceNames.toTypedArray()
-        val adapter = TextListAdapter(requireContext(),txtarray)
+        adapter = TextListAdapter(requireContext(),txtarray)
         var namesListView = binding.facesRecyclerView   // RecyclerView
         namesListView.setAdapter(adapter)
         return binding.root
@@ -220,7 +220,6 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
         detector = FaceDetection.getClient(options)
         callback = ImageCaptureCallback(detector)
         faceNames = ArrayList<String>()
-        adapter = TextListAdapter(this.requireContext(), arrayOf<String>())
         gson = Gson()
     }
 }

@@ -7,6 +7,7 @@ import chuckcoughlin.bert.common.model.Extremity
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.common.util.LoggerUtility
 import java.nio.file.Paths
 import java.util.*
@@ -41,28 +42,27 @@ fun main(args: Array<String>) {
     RobotModel.populate() //
     setMotorPositions()
 
-    Solver.configure(RobotModel.motorsByJoint, PathConstants.URDF_PATH)
-    val chain: Chain = Solver.model.chain
-    val root = chain.root
+    URDFModel.analyzePath(PathConstants.URDF_PATH)
+    val root = Chain.root
     println(String.format("%s: root = %s ", CLSS, root.bone.name))
     // Test the links to some extremities
     println("=========================================================================")
-    var subchain = chain.partialChainToExtremity(Extremity.LEFT_EAR)
+    var subchain = Chain.partialChainToExtremity(Extremity.LEFT_EAR)
     for (link in subchain) {
         println(String.format("\t%s ", link.bone.name))
     }
     println("=========================================================================")
-    subchain = chain.partialChainToExtremity(Extremity.RIGHT_FINGER)
+    subchain = Chain.partialChainToExtremity(Extremity.RIGHT_FINGER)
     for (link in subchain) {
         println(String.format("\t%s ", link.bone.name))
     }
     println("=========================================================================")
-    subchain = chain.partialChainToExtremity(Extremity.RIGHT_TOE)
+    subchain = Chain.partialChainToExtremity(Extremity.RIGHT_TOE)
     for (link in subchain) {
         println(String.format("\t%s ", link.bone.name))
     }
     println("=========================================================================")
-    subchain = chain.partialChainToJoint(Joint.ABS_Y)
+    subchain = Chain.partialChainToJoint(Joint.ABS_Y)
     for (link in subchain) {
         println(String.format("\t%s ", link.bone.name))
     }

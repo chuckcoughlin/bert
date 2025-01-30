@@ -15,7 +15,6 @@ import chuckcoughlin.bert.term.controller.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
-import java.awt.font.TextAttribute.WEIGHT
 import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
@@ -334,23 +333,23 @@ class Dispatcher : Controller {
             // The following two requests simply use the current positions of the motors, whatever they are
             else if (request.type.equals(RequestType.GET_EXTREMITY_LOCATION)) {
                 LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-                Solver.setTreeState() // Forces new calculations
+                Solver.updateLinkAngles() // Forces new calculations
                 val appendage = request.extremity
-                val xyz: DoubleArray = Solver.getLocation(appendage)
+                val xyz: Point3D = Solver.computeLocation(appendage)
                 val text = String.format(
-                    "%s is located at %0.2f %0.2f %0.2f meters",
-                    appendage.name.lowercase(Locale.getDefault()), xyz[0], xyz[1], xyz[2])
+                    "my %s is located at %0.2f %0.2f %0.2f meters",
+                    appendage.name.lowercase(Locale.getDefault()), xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
             // The location in physical coordinates from the center of the robot.
             else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
                 LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
-                Solver.setTreeState()
+                Solver.updateLinkAngles()
                 val joint = request.joint
-                val xyz: DoubleArray = Solver.getLocation(joint)
+                val xyz: Point3D = Solver.computeLocation(joint)
                 val text = String.format(
-                    "The center of joint %s is located at %0.2f %0.2f %0.2f meters",
-                    joint.name, xyz[0], xyz[1], xyz[2])
+                    "The center of my %s is located at %0.2f %0.2f %0.2f meters",
+                    joint.name, xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
             else if (request.type.equals(RequestType.GET_METRIC)) {
@@ -439,8 +438,11 @@ class Dispatcher : Controller {
                     var text = ""
                     when (jtype) {
                         // List the names of different kinds of motor properties
+                        JsonType.EXTREMITY_LOCATION -> {
+                            text = Solver.extremityLocationToJSON(request.extremity)
+                        }
                         JsonType.EXTREMITY_NAMES -> {
-                            text = URDFModel.chain.extremitiesToJSON()
+                            text = Chain.extremitiesToJSON()
                         }
 
                         JsonType.FACE_NAMES -> {
@@ -452,7 +454,7 @@ class Dispatcher : Controller {
                         }
 
                         JsonType.JOINT_NAMES -> {
-                            text = URDFModel.chain.jointsToJSON()
+                            text = Chain.jointsToJSON()
                         }
 
                         JsonType.JOINT_OFFSETS -> {
@@ -487,12 +489,16 @@ class Dispatcher : Controller {
                             text = RobotModel.voltagesToJSON()
                         }
 
-                        JsonType.LIMB_NAMES -> {
-                            text = RobotModel.limbsToJSON()
-                        }
-
                         JsonType.JOINT_TYPES -> {
                             text = RobotModel.typesToJSON()
+                        }
+
+                        JsonType.LIMB_LOCATIONS -> {
+                            text = Solver.limbLocationsToJSON(request.limb)
+                        }
+
+                        JsonType.LIMB_NAMES -> {
+                            text = RobotModel.limbsToJSON()
                         }
 
                         JsonType.MOTOR_DYNAMIC_PROPERTIES -> {

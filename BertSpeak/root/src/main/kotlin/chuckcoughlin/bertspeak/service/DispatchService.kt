@@ -189,7 +189,7 @@ class DispatchService(ctx: Context){
     @OptIn(DelicateCoroutinesApi::class)
     fun sendRequest(text: String) {
         GlobalScope.launch(Dispatchers.IO) {
-            val msg = String.format("%s:%s %s",MessageType.MSG.name,text)
+            val msg = String.format("%s:%s",MessageType.MSG.name,text)
             Log.i(CLSS, String.format("reportRequest: %s", msg))
             socketManager.receiveTextToSend(msg)
         }

@@ -20,24 +20,27 @@ import java.util.logging.Logger
  * be expected to have one or more "extremities" for which 3D locations
  * can be calculated.
  *
- * Within the linkPoint object, coordinates are with respect to the
+ * Within the linkPin object, coordinates are with respect to the
  * link's parent and are static. Coordinates within the link object are
  * temporary and are calculated with respect to the inertial frame of
  * reference. Any corrections due to IMU readings are handled externally.
  *
- * Define a link given the bone name. This name must be unique.
- * A single bone may hold several joints and/or extremities.
- * @param name bone or extremity name
+ * Define a link with a bone reference. Its name must be unique.
+ * A single link may hold several joints and/or extremities.
+ * @param bone bone
  */
 class Link( bone: Bone) {
-    val linkPointsByJoint: MutableMap<Joint,LinkPoint>
-    val linkPointsByExtremity: MutableMap<Extremity,LinkPoint>
+    val linkPinsByJoint: MutableMap<Joint,LinkPin>
+    val linkPinsByExtremity: MutableMap<Extremity,LinkPin>
     val bone = bone
     private var initialized = false // Requires calculations
-    var parent: LinkPoint
+    var parent: LinkPin
     private var angle: Double
     var coordinates = doubleArrayOf(0.0, 0.0, 0.0)
 
+    fun coordinatesToPoint():Point3D {
+        return Point3D(coordinates[0],coordinates[1],coordinates[2])
+    }
     /**
      * Mark link as needing new calculations. We do this because sub-chains
      * that share links can avoid redundant computations.
@@ -60,18 +63,18 @@ class Link( bone: Bone) {
     /**
      * An endpoint is an extremity or a RESOLUTE link
      */
-    fun addEndPoint(end: LinkPoint) {
-        if( end.type.equals(LinkPointType.EXTREMITY)) {
-            linkPointsByExtremity[end.extremity] = end
+    fun addEndPoint(end: LinkPin) {
+        if( end.type.equals(PinType.EXTREMITY)) {
+            linkPinsByExtremity[end.extremity] = end
         }
-        else if( end.type.equals(LinkPointType.REVOLUTE)) {
-            linkPointsByJoint[end.joint] = end
+        else if( end.type.equals(PinType.REVOLUTE)) {
+            linkPinsByJoint[end.joint] = end
         }
 
     }
-    fun linkPointByJointName(name:String) : LinkPoint? {
+    fun linkPinByJointName(name:String) : LinkPin? {
         val joint = Joint.fromString(name)
-        return linkPointsByJoint[joint]
+        return linkPinsByJoint[joint]
     }
 
     /**
@@ -91,7 +94,7 @@ class Link( bone: Bone) {
      * @return the coordinates of the joint/appendage associated with this link in meters
      * with respect to the inertial frame of reference.
      */
-    fun updateEndPointCoordinates(endPoint:LinkPoint): DoubleArray {
+    fun updateEndPointCoordinates(endPoint:LinkPin): DoubleArray {
         var coords: DoubleArray // Coordinates in progress
         var rotation: DoubleArray
 
@@ -104,7 +107,7 @@ class Link( bone: Bone) {
                 rotation[2] = rotation[2] + orient[2]
 
             LOGGER.info(String.format("%s.updateEndPointCoordinates: %s (%s) ---------------",
-                    CLSS,endPoint.type.name,if(endPoint.type.equals(LinkPointType.EXTREMITY)) endPoint.extremity.name else endPoint.joint.name))
+                    CLSS,endPoint.type.name,if(endPoint.type.equals(PinType.EXTREMITY)) endPoint.extremity.name else endPoint.joint.name))
             LOGGER.info(String.format("           rotation = %.2f,%.2f,%.2f", rotation[0], rotation[1], rotation[2]))
             val offset = endPoint.offset
             LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f", offset[0], offset[1], offset[2]))
@@ -163,8 +166,8 @@ class Link( bone: Bone) {
     init {
         angle = Math.PI
         initialized = false
-        linkPointsByExtremity = mutableMapOf<Extremity,LinkPoint>()
-        linkPointsByJoint = mutableMapOf<Joint,LinkPoint>()
-        parent = LinkPoint()   // Origin, for now
+        linkPinsByExtremity = mutableMapOf<Extremity,LinkPin>()
+        linkPinsByJoint = mutableMapOf<Joint,LinkPin>()
+        parent = LinkPin()   // Origin, for now
     }
 }

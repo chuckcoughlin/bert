@@ -1,5 +1,5 @@
 /**
- * Copyright 2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2024-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -7,7 +7,7 @@ package chuckcoughlin.bert.common.model
 
 /**
  * A LinkPoint is either a hinged joint or a fixed extremity.
- * The coordinates are a 3D location of the joint
+ * The coordinates are a 3D location of the joint/extremity
  * with respect to the origin of the link.
  *
  * The orientation array shows the direction of the
@@ -16,25 +16,25 @@ package chuckcoughlin.bert.common.model
  * to the link origin. In most cases, the linkPoint
  * is along the z axis.
  */
-class LinkPoint {
+class LinkPin {
     var offset : DoubleArray
     var orientation: DoubleArray
     val extremity: Extremity
     val joint: Joint
-    val type:LinkPointType
+    val type:PinType
 
     /**
      * Special constructor for a LinkPoint representing the origin of the link chain.
      */
     constructor() {
-        type = LinkPointType.ORIGIN
+        type = PinType.ORIGIN
         extremity = Extremity.NONE
         joint = Joint.NONE
         offset = doubleArrayOf(0.0, 0.0, 0.0)
         orientation = doubleArrayOf(0.0, 0.0, 0.0)
     }
     constructor(ext: Extremity, rot: DoubleArray, pos: DoubleArray) {
-        type = LinkPointType.EXTREMITY
+        type = PinType.EXTREMITY
         extremity = ext
         joint = Joint.NONE
         offset = pos
@@ -42,7 +42,7 @@ class LinkPoint {
     }
 
     constructor(j: Joint, rot: DoubleArray, pos: DoubleArray) {
-        type = LinkPointType.REVOLUTE
+        type = PinType.REVOLUTE
         extremity = Extremity.NONE
         joint = j
         orientation = degreesToRadians(rot)
@@ -58,7 +58,6 @@ class LinkPoint {
         return array
     }
 
-    companion object {
-        private const val CLSS = "LinkPoint"
-    }
+    private val CLSS =  "LinkPoint"
+
 }

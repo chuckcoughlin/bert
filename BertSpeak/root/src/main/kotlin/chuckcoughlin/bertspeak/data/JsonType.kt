@@ -17,6 +17,7 @@ package chuckcoughlin.bertspeak.data
  */
 enum class JsonType {
     ACTION_NAMES,  // List of actions                     MutableList<String>
+    EXTREMITY_LOCATION, // x,y,z coordinates of an extremity ExtremityLocation
     EXTREMITY_NAMES,  // List of extremeties              MutableList<String>
     FACIAL_DETAILS,   // Facial identification features   FacialDetails
     FACE_DIRECTION,   // Angular direction of view        FaceDirection
@@ -32,7 +33,7 @@ enum class JsonType {
     JOINT_TEMPERATURES,// Motor temps for each joint      MutableList<JointValue>
     JOINT_TYPES,      // Motor type for each joint        MutableList<JointAttribute>
     JOINT_VOLTAGES,   // Motor volts for each joint       MutableList<JointValue>
-    LIMB_LOCATIONS,   // x,y,z coordinates for each joint MutableList<Point3D>
+    LIMB_LOCATIONS,   // x,y,z coordinates for each joint MutableList<JointLocation>
     LIMB_NAMES,       // List of limb names               MutableList<String>
     MOTOR_DYNAMIC_PROPERTIES, // Names of dynamic motor properties  MutableList<String>
     MOTOR_STATIC_PROPERTIES,  // Names of static motor properties    MutableList<String>

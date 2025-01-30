@@ -4,22 +4,22 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.RobotModel.limbsByJoint
 import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
 
 /**
- * A Chain represents a tree of Links starting with the
+ * The Chain is a tree of Links starting with the
  * "root" link. The position of links within the chain are
- * all relative to the root link (i.e. origin). The URDF
- * file format doesn't define things in the most convenient
- * order.
+ * all relative to the root link (i.e. origin).
+ *
+ * The URDF file format doesn't define things in the most convenient
+ * order and so is not strictly followed.
  *
  * Changes to the "inertial frame" as detected by the IMU
  * are all handled here.
  */
-class Chain {
+object Chain {
     var root: Link
     val linksByBone: MutableMap<Bone, Link>
     private val linksByExtremity: MutableMap<Extremity, Link>
@@ -50,9 +50,6 @@ class Chain {
         return link
     }
 
-    fun setLimb(joint:Joint,limb:Limb) {
-        limbsByJoint[joint] = limb
-    }
     fun setLinkForJoint(joint:Joint,link:Link) {
         linksByJoint[joint] = link
     }
@@ -148,7 +145,7 @@ class Chain {
         var link = linksByExtremity[extremity]
         while (link != null) {
             partial.addFirst(link)
-            if( link.parent.type.equals(LinkPointType.ORIGIN)) break
+            if( link.parent.type.equals(PinType.ORIGIN)) break
             link = linkForJoint(link.parent.joint)
         }
         return partial
@@ -165,7 +162,7 @@ class Chain {
         var link = linksByJoint[joint]
         while (link != null) {
             partial.addFirst(link)
-            if( link.parent.type.equals(LinkPointType.ORIGIN)) break
+            if( link.parent.type.equals(PinType.ORIGIN)) break
             link = linkForJoint(link.parent.joint)
         }
         return partial

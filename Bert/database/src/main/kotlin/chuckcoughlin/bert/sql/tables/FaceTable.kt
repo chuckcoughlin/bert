@@ -53,7 +53,7 @@ class FaceTable {
                 // Define the face as a collection of landmarks
                 for (landmarkName in details.landmarks.keys) {
                     val point=details.landmarks.get(landmarkName)!!
-                    val SQL = String.format("insert into FaceLandmark(faceid,landmarkCode,x,y) values(%d,'%s',%2.0f,%2.0f)",
+                    val SQL = String.format("insert into FaceLandmark(faceid,landmarkCode,x,y) values(%d,'%s',%2.4f,%2.4f)",
                             faceid,landmarkName,point.x,point.y)
                     if(DEBUG) LOGGER.info(String.format("%s.createPose: executing %s)", CLSS, SQL))
                     statement.executeUpdate(SQL)

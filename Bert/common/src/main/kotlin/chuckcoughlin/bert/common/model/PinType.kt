@@ -5,10 +5,10 @@
 package chuckcoughlin.bert.common.model
 
 /**
- * These are the possible types of "LinkPoints" or
+ * These are the possible types of "LinkPins" or
  * connection locations on a link.
  */
-enum class LinkPointType {
+enum class PinType {
     EXTREMITY, ORIGIN, REVOLUTE;
 
     companion object {

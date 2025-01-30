@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
-import java.nio.file.Path
+import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
 /**
@@ -16,75 +16,106 @@ import java.util.logging.Logger
  */
 object Solver {
     val model: URDFModel
-    private var motorConfigurations: Map<Joint, MotorConfiguration>
+
+    /**
+     * Return the location of a specified appendage in x,y,z coordinates in meters from the
+     * robot origin in the pelvis. he named extremity is
+     * last in the chain.
+     */
+    fun computeLocation(extremity: Extremity): Point3D {
+        val subchain: List<Link> = Chain.partialChainToExtremity(extremity)
+        for(link in subchain) {
+
+        }
+        return if (subchain.size > 0) subchain[0].coordinatesToPoint() else ERROR_POSITION
+    }
+
+    /**
+     * Return the location of a specified joint in x,y,z coordinates in meters from the
+     * robot origin in the pelvis in the inertial reference frame. The named joint is
+     * last in the chain.
+     */
+    fun computeLocation(joint: Joint): Point3D {
+        val subchain: List<Link> = Chain.partialChainToJoint(joint)
+        for(link in subchain) {
+
+        }
+        return if (subchain.size > 0) subchain[0].coordinatesToPoint() else ERROR_POSITION
+    }
+
+    /**
+     */
+    fun extremityLocationToJSON(extremity:Extremity):String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val loc = ExtremityLocation(extremity,computeLocation(extremity))
+        return gson.toJson(loc)
+    }
+
+    /**
+     *
+     */
+    fun limbLocationsToJSON(limb:Limb):String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val list = mutableListOf<Location>()
+        // If the limb type is NONE, get all locations.
+        if( limb==Limb.NONE ) {
+            fillLocations(list)
+        }
+        else {
+            for(mc:MotorConfiguration in RobotModel.motorsByJoint.values) {
+                val lim = mc.limb
+                if( lim==limb ) {
+
+                }
+            }
+        }
+        return gson.toJson(list)
+    }
 
     /**
      * Traverse the tree, setting the current angles from the
-     * motor configurations. Mark the links as "dirty".
+     * motor configurations. If the angle has changed, mark the
+     * link as "dirty". This should be called before any computation
+     * of limb location.
      */
-    fun setTreeState() {
-        val links: Collection<Link> = model.chain.linksByBone.values
+    fun updateLinkAngles() {
+        val links: Collection<Link> = Chain.linksByBone.values
         for (link in links) {
-            for( endPoint in link.linkPointsByJoint.values) {
-                link.setDirty()
-                if( endPoint.type.equals(LinkPointType.REVOLUTE)) {  //redundant
+            for( endPoint in link.linkPinsByJoint.values) {
+                if( endPoint.type.equals(PinType.REVOLUTE)) {  //redundant
                     val joint = endPoint.joint
-                    val mc: MotorConfiguration? = motorConfigurations[joint]
-                    link.jointAngle = mc!!.angle
+                    val mc: MotorConfiguration = RobotModel.motorsByJoint[joint]!!
+                    if(link.jointAngle!=mc.angle)  {
+                        link.jointAngle = mc.angle
+                        link.setDirty()
+                    }
                 }
             }
         }
     }
 
     /**
-     * Analyze the URDF file for robot geometry. This must be called before
-     * we set a tree state.
-     * @param mc a map of MotorConfigurations
-     * @param urdfPath
+     * Populate a list of locations for all joints and extremities
      */
-    fun configure(mc: Map<Joint, MotorConfiguration>, urdfPath: Path) {
-        motorConfigurations = mc
-        LOGGER.info(String.format("%s.configure: URDF file(%s)", CLSS, urdfPath.toAbsolutePath().toString()))
-        model.analyzePath(urdfPath)
-    }
-
-    /**
-     * Return the location of a specified appendage in x,y,z coordinates in meters from the
-     * robot origin in the pelvis.
-     */
-    fun getLocation(extremity: Extremity): DoubleArray {
-        val subchain: List<Link> = model.chain.partialChainToExtremity(extremity)
-        return if (subchain.size > 0) subchain[0].coordinates else ERROR_POSITION
-    }
-
-    /**
-     * Return the location of a specified joint in x,y,z coordinates in meters from the
-     * robot origin in the pelvis in the inertial reference frame.
-     */
-    fun getLocation(joint: Joint): DoubleArray {
-        val subchain: List<Link> = model.chain.partialChainToJoint(joint)
-        return if (subchain.size > 0) subchain[0].coordinates else ERROR_POSITION
-    }
-
-    fun getMotorConfigurations(): Map<Joint, MotorConfiguration> {
-        return motorConfigurations
-    }
-
-    /**
-     * Set the position of a joint. This is primarily for testing. It does not
-     * cause a serial write to the motor.
-     * @param joint
-     * @param pos
-     */
-    fun setJointPosition(joint: Joint?, pos: Double) {
-        val mc: MotorConfiguration? = motorConfigurations[joint]
-        mc!!.angle = pos
+    private fun fillLocations(list:MutableList<Location>) {
+        for(joint in Joint.values()) {
+            if(joint!=Joint.NONE) {
+                val loc = JointLocation(joint,computeLocation(joint))
+                list.add(loc)
+            }
+        }
+        for(extremity in Extremity.values()) {
+            if(extremity!=Extremity.NONE) {
+                val loc = ExtremityLocation(extremity,computeLocation(extremity))
+                list.add(loc)
+            }
+        }
     }
 
 
     private const val CLSS = "Solver"
     private val LOGGER = Logger.getLogger(CLSS)
-    private val ERROR_POSITION = doubleArrayOf(0.0, 0.0, 0.0)
+    private val ERROR_POSITION = Point3D(0.0, 0.0, 0.0)
 
 
     /**
@@ -92,6 +123,5 @@ object Solver {
      */
     init {
         model = URDFModel
-        motorConfigurations = HashMap<Joint, MotorConfiguration>()
     }
 }

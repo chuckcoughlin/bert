@@ -19,10 +19,6 @@ object URDFModel {
     var document: Document?
     var rootName:String
 
-    /**
-     * @return the tree of links which describes the robot.
-     */
-    val chain: Chain
 
     /**
      * Expand the supplied path as the URDF XML file.
@@ -49,7 +45,7 @@ object URDFModel {
     private fun analyzeChain() {
         if (document != null) {
             // ================================== IMU ===============================================
-            val origin = LinkPoint()
+            val origin = LinkPin()
             val imus = document!!.getElementsByTagName("imu")
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS));
@@ -90,7 +86,7 @@ object URDFModel {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
                         val link = Link(bone)
-                        chain.addLink(link)
+                        Chain.addLink(link)
                         val children = linkNode.childNodes
                         val acount = children.length
                         var aindex = 0
@@ -115,7 +111,7 @@ object URDFModel {
                                     childIndex++
                                 }
                                 val extremity: Extremity = Extremity.fromString(aname)
-                                val end = LinkPoint(extremity, ijk, xyz)
+                                val end = LinkPin(extremity, ijk, xyz)
                                 link.addEndPoint(end)
                             }
                             else if ("joint".equals(node.localName, ignoreCase = true)) {
@@ -137,10 +133,10 @@ object URDFModel {
                                     childIndex++
                                 }
 
-                                val rev = LinkPoint(joint, ijk!!, xyz!!)
+                                val rev = LinkPin(joint, ijk!!, xyz!!)
                                 //if (DEBUG) LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f", joint.name,xyz[0],xyz[1],xyz[2]))
                                 link.addEndPoint(rev)
-                                chain.setLinkForJoint(joint,link)
+                                Chain.setLinkForJoint(joint,link)
                             }
                             aindex++
                         }
@@ -167,7 +163,7 @@ object URDFModel {
                 try {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
-                        val link = chain.linksByBone[bone]
+                        val link = Chain.linksByBone[bone]
                         val children = linkNode.childNodes
                         val acount = children.length
                         var aindex = 0
@@ -176,9 +172,9 @@ object URDFModel {
                             // The only node we care about is the parent link
                             if ("parent".equals(node.localName, ignoreCase = true)) {
                                 val jname: String = XMLUtility.attributeValue(node, "joint")
-                                val parent = chain.linkForJointName(jname)
+                                val parent = Chain.linkForJointName(jname)
                                 if( parent!=null) {
-                                    val parentPoint=parent!!.linkPointByJointName(jname)
+                                    val parentPoint=parent.linkPinByJointName(jname)
                                     if(parentPoint != null) link!!.parent=parentPoint
                                 }
                             }
@@ -198,13 +194,13 @@ object URDFModel {
             }
 
             // Search for origin aka root. Choose any random link and follow to root.
-            val linkWalker: Iterator<Link?> = chain.linksByBone.values.iterator()
+            val linkWalker: Iterator<Link?> = Chain.linksByBone.values.iterator()
             if (linkWalker.hasNext()) {
                 while(linkWalker.hasNext()) {
                     val link = linkWalker.next()
-                    if( link!!.parent.type.equals(LinkPointType.ORIGIN)) {
-                        link!!.parent = origin
-                        chain.root = link!!
+                    if( link!!.parent.type.equals(PinType.ORIGIN)) {
+                        link.parent = origin
+                        Chain.root = link
                         break
                     }
                 }
@@ -260,7 +256,6 @@ object URDFModel {
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        chain = Chain()
         document = null
         rootName = ""
     }
