@@ -24,10 +24,8 @@ object Solver {
      */
     fun computeLocation(extremity: Extremity): Point3D {
         val subchain: List<Link> = Chain.partialChainToExtremity(extremity)
-        for(link in subchain) {
-
-        }
-        return if (subchain.size > 0) subchain[0].coordinatesToPoint() else ERROR_POSITION
+        updateLocationsInChain(subchain)
+        return if (subchain.size > 0) subchain.last().coordinatesToPoint() else ERROR_POSITION
     }
 
     /**
@@ -35,12 +33,19 @@ object Solver {
      * robot origin in the pelvis in the inertial reference frame. The named joint is
      * last in the chain.
      */
-    fun computeLocation(joint: Joint): Point3D {
+    fun computeLocation(joint:Joint): Point3D {
         val subchain: List<Link> = Chain.partialChainToJoint(joint)
-        for(link in subchain) {
+        updateLocationsInChain(subchain)
+        return if (subchain.size > 0) subchain.last().coordinatesToPoint() else ERROR_POSITION
+    }
 
+    /**
+     * Update the link coordinates based on its parent
+     */
+    private fun updateLocationsInChain(subchain: List<Link>) {
+        for(link in subchain) {
+            link.updateCoordinates()
         }
-        return if (subchain.size > 0) subchain[0].coordinatesToPoint() else ERROR_POSITION
     }
 
     /**
@@ -79,9 +84,9 @@ object Solver {
      * of limb location.
      */
     fun updateLinkAngles() {
-        val links: Collection<Link> = Chain.linksByBone.values
+        val links: Collection<Link> = URDFModel.linkForBone.values
         for (link in links) {
-            for( endPoint in link.linkPinsByJoint.values) {
+            for( endPoint in link.destinationPinForJoint.values) {
                 if( endPoint.type.equals(PinType.REVOLUTE)) {  //redundant
                     val joint = endPoint.joint
                     val mc: MotorConfiguration = RobotModel.motorsByJoint[joint]!!

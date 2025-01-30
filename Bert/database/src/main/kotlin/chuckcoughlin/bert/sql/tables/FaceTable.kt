@@ -28,11 +28,10 @@ class FaceTable {
      */
     fun createFace(cxn: Connection?, facename:String,details: FacialDetails ) {
         if( cxn!=null ) {
-            var statement: Statement? = null
             val name = facename.lowercase()
             var faceid = getFaceIdForName(cxn,name)
             LOGGER.info(String.format("%s.createFace: %s is id %d", CLSS,name,faceid))
-            statement = cxn.createStatement()
+            var statement = cxn.createStatement()
             if( faceid == SQLConstants.NO_FACE ) {
                 faceid = getNextFaceId(cxn)
                 val SQL = String.format("insert into Face(name,faceid) values('%s',%d)",name,faceid)
@@ -354,8 +353,8 @@ class FaceTable {
         if( cxn!=null ) {
             var statement: Statement = cxn.createStatement()
             var rs: ResultSet? = null
-            val SQL1 = String.format(
-                    "select contourcode,indx,x,y from FaceContour where faceid=%d order by contourcode,indx",id)
+            //val SQL1 = String.format(
+            //        "select contourcode,indx,x,y from FaceContour where faceid=%d order by contourcode,indx",id)
             val SQL2 = String.format(
                     "select landmarkcode,x,y from FaceLandmark where faceid=%d order by landmarkcode",id)
             try {

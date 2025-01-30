@@ -8,9 +8,10 @@ import org.hipparchus.complex.Quaternion
 import java.util.logging.Logger
 
 /**
- * A link is roughly analogous to a bone. A Link is a solid member between
- * two "LinkPoints" called the "parent" and a set of "linkPoints". Multiple
- * links  may be connected to the same parent.
+ * A link is a skeletal structure analagous to a bone and is named for it.
+ * A Link has "pins" or connection points with other links or end points.
+ * There is also a link called the "parent" which describes the root
+ * connection to the current link.
  *
  * The joints are always "revolutes", that is rotational only. There
  * is no translation. The joint axis is always at 0 or 90 degrees to a
@@ -30,23 +31,24 @@ import java.util.logging.Logger
  * @param bone bone
  */
 class Link( bone: Bone) {
-    val linkPinsByJoint: MutableMap<Joint,LinkPin>
-    val linkPinsByExtremity: MutableMap<Extremity,LinkPin>
+    val destinationPinForJoint: MutableMap<Joint,LinkPin>
+    val destinationPinForExtremity: MutableMap<Extremity,LinkPin>
     val bone = bone
-    private var initialized = false // Requires calculations
-    var parent: LinkPin
+    private var dirty = true // Requires calculations
+    var sourcePin: LinkPin
     private var angle: Double
     var coordinates = doubleArrayOf(0.0, 0.0, 0.0)
 
     fun coordinatesToPoint():Point3D {
         return Point3D(coordinates[0],coordinates[1],coordinates[2])
     }
+
     /**
      * Mark link as needing new calculations. We do this because sub-chains
      * that share links can avoid redundant computations.
      */
     fun setDirty() {
-        initialized = false
+        dirty = true
     }
 
     /**
@@ -65,18 +67,24 @@ class Link( bone: Bone) {
      */
     fun addEndPoint(end: LinkPin) {
         if( end.type.equals(PinType.EXTREMITY)) {
-            linkPinsByExtremity[end.extremity] = end
+            destinationPinForExtremity[end.extremity] = end
         }
         else if( end.type.equals(PinType.REVOLUTE)) {
-            linkPinsByJoint[end.joint] = end
+            destinationPinForJoint[end.joint] = end
         }
 
     }
-    fun linkPinByJointName(name:String) : LinkPin? {
-        val joint = Joint.fromString(name)
-        return linkPinsByJoint[joint]
-    }
 
+    /**
+     * Recalculate the position of this link from an updated location of the parent of the source link
+     */
+    fun updateCoordinates() {
+        if( dirty ) {
+            if(sourcePin.type==PinType.REVOLUTE) {
+            }
+        }
+        dirty = false
+    }
     /**
      * Return the coordinates of the endpoint relative to inertial frame. The endpoint is
      * either a joint or extremity.
@@ -98,9 +106,9 @@ class Link( bone: Bone) {
         var coords: DoubleArray // Coordinates in progress
         var rotation: DoubleArray
 
-        if( !initialized ) {
-                coords = parent.offset
-                val orient = parent.orientation
+        if( dirty ) {
+                coords = sourcePin.offset
+                val orient = sourcePin.orientation
                 rotation = rotationFromCoordinates(coords)
                 rotation[0] = rotation[0] + orient[0]
                 rotation[1] = rotation[1] + orient[1]
@@ -143,7 +151,7 @@ class Link( bone: Bone) {
             coordinates[2] = coords[2] + result.getQ3()
             LOGGER.info(String.format("      coordinates   = %.2f,%.2f,%.2f",
                     coordinates[0],coordinates[1],coordinates[2]))
-            initialized = true
+            dirty = false
         }
         return coordinates
     }
@@ -165,9 +173,9 @@ class Link( bone: Bone) {
      */
     init {
         angle = Math.PI
-        initialized = false
-        linkPinsByExtremity = mutableMapOf<Extremity,LinkPin>()
-        linkPinsByJoint = mutableMapOf<Joint,LinkPin>()
-        parent = LinkPin()   // Origin, for now
+        dirty = true
+        destinationPinForExtremity = mutableMapOf<Extremity,LinkPin>()
+        destinationPinForJoint = mutableMapOf<Joint,LinkPin>()
+        sourcePin = LinkPin()   // Origin, for now
     }
 }

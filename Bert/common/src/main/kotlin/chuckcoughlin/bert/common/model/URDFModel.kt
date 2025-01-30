@@ -4,11 +4,18 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.model.URDFModel.document
+import chuckcoughlin.bert.common.model.URDFModel.linkForBone
+import chuckcoughlin.bert.common.model.URDFModel.linkForExtremity
+import chuckcoughlin.bert.common.model.URDFModel.linkForJoint
+import chuckcoughlin.bert.common.model.URDFModel.linkForSourcePin
 import chuckcoughlin.bert.common.util.XMLUtility
+import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.HashMap
 import java.util.logging.Logger
 
 /**
@@ -17,7 +24,10 @@ import java.util.logging.Logger
  */
 object URDFModel {
     var document: Document?
-    var rootName:String
+    val linkForSourcePin : MutableMap<LinkPin,Link>
+    val linkForBone: MutableMap<Bone, Link>
+    val linkForExtremity: MutableMap<Extremity, Link>
+    val linkForJoint: MutableMap<Joint, Link>
 
 
     /**
@@ -74,7 +84,7 @@ object URDFModel {
             // Links correspond to Bone datatypes. Links can have extremities and/or joints, plus a
             // source (parent).
             //      ---------------------------- First Pass ----------------------------------
-            // Create all the links and their LinkPoints. A LinkPoint encompasses a joint
+            // Create all the Links and their LinkPins. A LinkPin encompasses the connecting joint
             val links = document!!.getElementsByTagName("link")
             var count = links.length
             var index = 0
@@ -86,7 +96,7 @@ object URDFModel {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
                         val link = Link(bone)
-                        Chain.addLink(link)
+                        linkForBone[bone] = link
                         val children = linkNode.childNodes
                         val acount = children.length
                         var aindex = 0
@@ -136,7 +146,7 @@ object URDFModel {
                                 val rev = LinkPin(joint, ijk!!, xyz!!)
                                 //if (DEBUG) LOGGER.info(String.format(" %s    xyz   = %.2f,%.2f,%.2f", joint.name,xyz[0],xyz[1],xyz[2]))
                                 link.addEndPoint(rev)
-                                Chain.setLinkForJoint(joint,link)
+                                linkForJoint[joint] = link
                             }
                             aindex++
                         }
@@ -163,19 +173,20 @@ object URDFModel {
                 try {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
-                        val link = Chain.linksByBone[bone]
+                        val link = linkForBone[bone]
                         val children = linkNode.childNodes
                         val acount = children.length
                         var aindex = 0
                         while (aindex < acount) {
                             val node = children.item(aindex)
                             // The only node we care about is the parent link
-                            if ("parent".equals(node.localName, ignoreCase = true)) {
+                            if ("source".equals(node.localName, ignoreCase = true)) {
                                 val jname: String = XMLUtility.attributeValue(node, "joint")
-                                val parent = Chain.linkForJointName(jname)
+                                val joint = Joint.fromString(jname)
+                                val parent = linkForJoint[joint]
                                 if( parent!=null) {
-                                    val parentPoint=parent.linkPinByJointName(jname)
-                                    if(parentPoint != null) link!!.parent=parentPoint
+                                    val parentPin=parent.sourcePin
+                                    linkForSourcePin[parentPin] = link!!
                                 }
                             }
                             aindex++
@@ -193,13 +204,13 @@ object URDFModel {
                 index++
             }
 
-            // Search for origin aka root. Choose any random link and follow to root.
-            val linkWalker: Iterator<Link?> = Chain.linksByBone.values.iterator()
+            // Search for origin aka root.
+            val linkWalker: Iterator<Link?> = linkForBone.values.iterator()
             if (linkWalker.hasNext()) {
                 while(linkWalker.hasNext()) {
                     val link = linkWalker.next()
-                    if( link!!.parent.type.equals(PinType.ORIGIN)) {
-                        link.parent = origin
+                    if( link!!.sourcePin.type.equals(PinType.ORIGIN)) {
+                        link.sourcePin = origin
                         Chain.root = link
                         break
                     }
@@ -212,6 +223,76 @@ object URDFModel {
         }
     }
 
+
+    /**
+     * @return  a comma-separated string of the names of all links.
+     */
+    fun boneNames(): String {
+        var names = StringBuffer()
+        for (bone in linkForBone.keys) {
+            names.append(bone.name)
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     */
+    fun bonesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (bone in linkForBone.keys) {
+            names.add(bone.name)
+        }
+        return gson.toJson(names)
+    }
+    /**
+     * @return  a comma-separated string of the names of all extremities.
+     */
+    fun extremityNames(): String {
+        var names = StringBuffer()
+        for (extremity in linkForExtremity.keys) {
+            names.append(extremity.name.lowercase())
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all appendaged.
+     */
+    fun extremitiesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (extremity in linkForExtremity.keys) {
+            names.add(extremity.name)
+        }
+        return gson.toJson(names)
+    }
+    /**
+     * @return  a comma-separated string of the names of all joints.
+     */
+    fun jointNames(): String {
+        var names = StringBuffer()
+        for (joint in linkForJoint.keys) {
+            names.append(joint.name.lowercase())
+            names.append(", ")
+        }
+        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
+        else return "none"
+    }
+    /**
+     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
+     */
+    fun jointsToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var names = mutableListOf<String>()
+        for (joint in linkForJoint.keys) {
+            names.add(joint.name)
+        }
+        return gson.toJson(names)
+    }
     // ============================================= Helper Methods ==============================================
     private fun doubleArrayFromString(text: String): DoubleArray {
         val result = DoubleArray(3)
@@ -251,12 +332,16 @@ object URDFModel {
     }
 
 
+
     private val CLSS = "URDFModel"
     private val DEBUG = false
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
         document = null
-        rootName = ""
+        linkForSourcePin = mutableMapOf<LinkPin,Link>()
+        linkForExtremity = mutableMapOf<Extremity, Link>()
+        linkForBone      = mutableMapOf<Bone,Link>()
+        linkForJoint     = HashMap<Joint,Link>()
     }
 }

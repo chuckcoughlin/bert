@@ -758,8 +758,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             bottle.joint = joint
         }
         if (joint.equals(Joint.NONE)) {
-            val msg = String.format("" +
-                    " am i supposed to straighten?")
+            val msg = "what am i supposed to straighten?"
             bottle.error = msg
         }
         else if (joint.equals(Joint.LEFT_ELBOW_Y) ||

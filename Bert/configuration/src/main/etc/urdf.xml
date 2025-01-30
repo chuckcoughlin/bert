@@ -20,8 +20,8 @@
 				origin is position of joint in parent frame,
 				axis is orientation of joint in joint frame.
 
-		Links form a chain from the robot origin, PELVIS,
-		terminating in one or more extremities.
+		Links form a tree from the robot origin, PELVIS,
+		terminating in links or one or more extremities.
 	  -->
 	<link name="PELVIS">        <!-- root -->
 		<joint name="RIGHT_HIP_X">
@@ -42,94 +42,94 @@
 			<origin xyz="-0.0439986111539757 0 0.005" rpy="0 0 0"/>
 			<axis xyz="0 -1 0"/>
 		</joint>
-		<parent joint="RIGHT_HIP_X"/>
+		<source joint="RIGHT_HIP_X"/>
 	</link>
 	<link name="RIGHT_ILLIUM">
 		<joint name="RIGHT_HIP_Y" >
 			<origin xyz="0 -0.024 0" rpy="0 0 0"/>
 			<axis xyz="-1 0 0"/>
 		</joint>
-		<parent joint="RIGHT_HIP_Z"/>
+		<source joint="RIGHT_HIP_Z"/>
 	</link>
 	<link name="RIGHT_THIGH">
 		<joint name="RIGHT_KNEE_Y">
 			<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"/>
 			<axis xyz="0 0 -1"/>
 		</joint>
-		<parent joint="RIGHT_HIP_Y"/>
+		<source joint="RIGHT_HIP_Y"/>
 	</link>
 	<link name="RIGHT_SHIN">
 		<joint name="RIGHT_ANKLE_Y">
 			<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"/>
 			<axis xyz="-1 0 0"/>
 		</joint>
-		<parent joint="RIGHT_KNEE_Y"/>
+		<source joint="RIGHT_KNEE_Y"/>
 	</link>
 	<link name="RIGHT_FOOT">
 		<extremity name="RIGHT_TOE"/>
 		<extremity name="RIGHT_HEEL"/>
-		<parent joint="RIGHT_ANKLE_Y"/>
+		<source joint="RIGHT_ANKLE_Y"/>
 	</link>
 	<link name="LEFT_HIP_SOCKET">
 		<joint name="LEFT_HIP_Z">
 			<origin xyz="0.0439986111539757 0 0.005" rpy="0 0 0"/>
 			<axis xyz="0 -1 0"/>
 		</joint>
-		<parent joint="LEFT_HIP_X"/>
+		<source joint="LEFT_HIP_X"/>
 	</link>
 	<link name="LEFT_ILLIUM">
 		<joint name="LEFT_HIP_Y">
 			<origin xyz="0 -0.024 0" rpy="0 0 0"/>
 			<axis xyz="1 0 0"/>
 		</joint>
-		<parent joint="LEFT_HIP_Z"/>
+		<source joint="LEFT_HIP_Z"/>
 	</link>
 	<link name="LEFT_THIGH">
 		<joint name="LEFT_KNEE_Y">
 			<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"/>
 			<axis xyz="0 0 -1"/>
 		</joint>
-		<parent joint="LEFT_HIP_Y"/>
+		<source joint="LEFT_HIP_Y"/>
 	</link>
 	<link name="LEFT_SHIN">
 		<joint name="LEFT_ANKLE_Y">
 			<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"/>
 			<axis xyz="1 0 0"/>
 		</joint>
-		<parent joint="LEFT_KNEE_Y"/>
+		<source joint="LEFT_KNEE_Y"/>
 	</link>
 	<link name="LEFT_FOOT">
 		<extremity name="LEFT_TOE"/>
 		<extremity name="LEFT_HEEL"/>
-		<parent joint="LEFT_ANKLE_Y"/>
+		<source joint="LEFT_ANKLE_Y"/>
 	</link>
 	<link name="LUMBAR">
 		<joint name="ABS_X">
 			<origin xyz="0 0 0" rpy="0 0 0"/>
 			<axis xyz="0 0 1"/>
 		</joint>
-		<parent joint="ABS_Y"/>
+		<source joint="ABS_Y"/>
 	</link>
 	<link name="LOWER_SPINE">
 		<joint name="ABS_Z">
 			<origin xyz="0 0.0516374742048976 0" rpy="0 0 0"/>
 			<axis xyz="0 1 0"/>
 		</joint>
-		<parent joint="ABS_X"/>
+		<source joint="ABS_X"/>
 	</link>
 	<link name="SPINE">
 		<joint name="BUST_Y" >
 			<origin xyz="0 0.07985 0.0028" rpy="0 0 0"/>
 			<axis xyz="-1 0 0"/>
 		</joint>
-		<parent joint="ABS_Z"/>
+		<source joint="ABS_Z"/>
 	</link>
 	<link name="THORACIC">
 		<joint name="BUST_X">
 			<origin xyz="0 0 0" rpy="0 0 0"/>
 			<axis xyz="0 0 1"/>
 		</joint>
-		<parent joint="BUST_Y"/>
+		<source joint="BUST_Y"/>
 	</link>
 	<link name="CERVICAL">
 		<joint name="NECK_Z">
@@ -144,14 +144,14 @@
 			<origin xyz="-0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"/>
 			<axis xyz="-1 0 0"/>
 		</joint>
-		<parent joint="BUST_X"/>
+		<source joint="BUST_X"/>
 	</link>
 	<link name="NECK">
 		<joint name="NECK_Y" >
 			<origin xyz="0 0.02 0" rpy="-0.349065850398866 0 0"/>
 			<axis xyz="-1 0 0"/>
 		</joint>
-		<parent joint="NECK_Z"/>
+		<source joint="NECK_Z"/>
 	</link>
 	<link name="SKULL">
 		<extremity name="LEFT_EYE"/>
@@ -162,56 +162,56 @@
 			<origin xyz="-0.0225417390633467 0 0" />
 			<axis xyz="0 0 -1"/>
 		</extremity>
-		<parent joint="NECK_Y"/>
+		<source joint="NECK_Y"/>
 	</link>
 	<link name="LEFT_CLAVICLE">
 		<joint name="LEFT_SHOULDER_X">
 			<origin xyz="0.0284 0 0" rpy="3.14159265358979 0 1.5707963267949"/>
 			<axis xyz="0 0 1"/>
 		</joint>
-		<parent joint="LEFT_SHOULDER_Y"/>
+		<source joint="LEFT_SHOULDER_Y"/>
 	</link>
 	<link name="LEFT_SHOULDER_SOCKET">
 		<joint name="LEFT_SHOULDER_Z">
 			<origin xyz="0 0.03625 0.0185" rpy="0 0 0"/>
 			<axis xyz="0 1 0"/>
 		</joint>
-		<parent joint="LEFT_SHOULDER_X"/>
+		<source joint="LEFT_SHOULDER_X"/>
 	</link>
 	<link name="LEFT_UPPER_ARM">
 		<joint name="LEFT_ELBOW_Y" limb="LEFT_ARM">
 			<origin xyz="0 0.11175 -0.01" rpy="0 0 0"/>
 			<axis xyz="1 0 0"/>
 		</joint>
-		<parent joint="LEFT_SHOULDER_Z"/>
+		<source joint="LEFT_SHOULDER_Z"/>
 	</link>
 	<link name="LEFT_FOREARM">
 		<extremity name="LEFT_FINGER"/>
-		<parent joint="LEFT_ELBOW_Y"/>
+		<source joint="LEFT_ELBOW_Y"/>
 	</link>
 	<link name="RIGHT_CLAVICLE">
 		<joint name="RIGHT_SHOULDER_X">
 			<origin xyz="-0.0284 0 0" rpy="3.14159265358979 0 -1.5707963267949"/>
 			<axis xyz="0 0 -1"/>
 		</joint>
-		<parent joint="RIGHT_SHOULDER_Y"/>
+		<source joint="RIGHT_SHOULDER_Y"/>
 	</link>
 	<link name="RIGHT_SHOULDER_SOCKET">
 		<joint name="RIGHT_SHOULDER_Z">
 			<origin xyz="0 0.03625 0.0185" rpy="0 0 0"/>
 			<axis xyz="0 1 0"/>
 		</joint>
-		<parent joint="RIGHT_SHOULDER_X"/>
+		<source joint="RIGHT_SHOULDER_X"/>
 	</link>
 	<link name="RIGHT_UPPER_ARM">
 		<joint name="RIGHT_ELBOW_Y">
 			<origin xyz="0 0.11175 -0.01" rpy="0 0 0"/>
 			<axis xyz="-1 0 0"/>
 		</joint>
-		<parent joint="RIGHT_SHOULDER_Z"/>
+		<source joint="RIGHT_SHOULDER_Z"/>
 	</link>
 	<link name="RIGHT_FOREARM">
 		<extremity name="RIGHT_FINGER"/>
-		<parent joint="RIGHT_ELBOW_Y"/>
+		<source joint="RIGHT_ELBOW_Y"/>
 	</link>
 </robot>

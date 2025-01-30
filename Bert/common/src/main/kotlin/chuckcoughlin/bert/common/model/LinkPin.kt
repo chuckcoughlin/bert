@@ -58,6 +58,6 @@ class LinkPin {
         return array
     }
 
-    private val CLSS =  "LinkPoint"
+    private val CLSS =  "LinkPin"
 
 }
