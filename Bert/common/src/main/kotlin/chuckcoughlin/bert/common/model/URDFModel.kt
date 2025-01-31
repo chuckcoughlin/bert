@@ -173,7 +173,7 @@ object URDFModel {
                 try {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
-                        val link = linkForBone[bone]
+                        val link:Link? = linkForBone[bone]
                         val children = linkNode.childNodes
                         val acount = children.length
                         var aindex = 0

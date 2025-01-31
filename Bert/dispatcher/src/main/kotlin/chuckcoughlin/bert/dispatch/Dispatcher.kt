@@ -442,7 +442,7 @@ class Dispatcher : Controller {
                             text = Solver.extremityLocationToJSON(request.extremity)
                         }
                         JsonType.EXTREMITY_NAMES -> {
-                            text = Chain.extremitiesToJSON()
+                            text = URDFModel.extremitiesToJSON()
                         }
 
                         JsonType.FACE_NAMES -> {
@@ -454,7 +454,7 @@ class Dispatcher : Controller {
                         }
 
                         JsonType.JOINT_NAMES -> {
-                            text = Chain.jointsToJSON()
+                            text = URDFModel.jointsToJSON()
                         }
 
                         JsonType.JOINT_OFFSETS -> {
