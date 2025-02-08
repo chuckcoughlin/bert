@@ -338,7 +338,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
         // Handle set torque for all joints
-        // NOTE: The specification of torque is a percentage
+        // NOTE: torque is specified as a percentage of max
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.TORQUE) &&
             request.joint.equals(Joint.NONE)  )   {
@@ -351,6 +351,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             request.text = String.format("all motor are set to %2.0f%% of maximum torque", request.value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
+        }
+        else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
+            request.joint.equals(Joint.NONE)  )   {
+            request.error = String.format("setting %s for all motors is not allowed", request.jointDynamicProperty.name)
         }
         // Set the requested property for the single specified joint
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {

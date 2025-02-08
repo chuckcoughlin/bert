@@ -76,8 +76,10 @@ object Chain {
 
     private val CLSS = "Chain"
     private val LOGGER = Logger.getLogger(CLSS)
+    private val DEBUG: Boolean
 
     init {
+        DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         root = Link(Bone.NONE)    // Must be reset to be useful
     }
 }

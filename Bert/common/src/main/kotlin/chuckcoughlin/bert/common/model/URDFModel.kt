@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -334,10 +334,11 @@ object URDFModel {
 
 
     private val CLSS = "URDFModel"
-    private val DEBUG = false
+    private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
+        DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_CONFIGURATION)
         document = null
         linkForSourcePin = mutableMapOf<LinkPin,Link>()
         linkForExtremity = mutableMapOf<Extremity, Link>()

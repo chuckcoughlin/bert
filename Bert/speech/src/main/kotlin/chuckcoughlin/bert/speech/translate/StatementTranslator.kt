@@ -1075,7 +1075,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         var isDynamic = true
         if (pname.equals("angle", ignoreCase = true))              pname = "ANGLE"
         else if (pname.equals("position", ignoreCase = true ))     pname = "ANGLE"
-        else if (pname.equals("load", ignoreCase = true ))         pname = "TORQUE"
+        else if (pname.equals("load", ignoreCase = true ))         pname = "LOAD"
         else if (pname.equals("max angle", ignoreCase = true))     pname ="MAXIMUMANGLE"
         else if (pname.equals("min angle", ignoreCase = true))     pname ="MINIMUMANGLE"
         else if (pname.equals("maximum angle", ignoreCase = true)) pname ="MAXIMUMANGLE"
@@ -1111,10 +1111,10 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         else if(speed.contains("fast") ||
             speed.contains("quick")) {
-            if(speed.contains("very")) { msg.value = 100.0}
-            else { msg.value = 80.0 }
+            if(speed.contains("very")) { msg.value = 150.0}
+            else { msg.value = 100.0 }
         }
-        else { msg.value = 20.0 }   // normal
+        else { msg.value = 40.0 }   // normal
     }
 
     private val CLSS = "StatementTranslator"

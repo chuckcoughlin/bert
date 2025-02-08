@@ -121,12 +121,13 @@ object Solver {
     private const val CLSS = "Solver"
     private val LOGGER = Logger.getLogger(CLSS)
     private val ERROR_POSITION = Point3D(0.0, 0.0, 0.0)
-
+    private val DEBUG: Boolean
 
     /**
      * Constructor:
      */
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         model = URDFModel
     }
 }

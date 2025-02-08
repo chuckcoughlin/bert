@@ -56,7 +56,7 @@ object RobotModel {
     }
     /**
      * Analyze the XML configuration document in its entirety. This must be called before the model is accessed.
-     * The debug string is set externally
+     * The debug string is set externally.
      */
     fun populate() {
         DEBUG = debug.contains(ConfigurationConstants.DEBUG_CONFIGURATION)
@@ -227,7 +227,8 @@ object RobotModel {
                             motorsByJoint[motor.joint] = motor
                             motorsById[motor.id] = motor
 
-                            if(DEBUG) LOGGER.info(String.format("%s.analyzeMotors: Found %s", CLSS, motor.joint.name))
+                            if(DEBUG) LOGGER.info(String.format("%s.analyzeMotors: Found %d %s %2.2f-%2.2f %2.2f %2.2f", CLSS, motor.id,motor.joint.name,
+                                            motor.minAngle,motor.maxAngle,motor.maxSpeed,motor.maxTorque))
                         }
                     }
                     node = node.nextSibling
@@ -423,11 +424,10 @@ object RobotModel {
         }
     }
     private val CLSS = "RobotModel"
-    private var DEBUG: Boolean
+    private var DEBUG = false
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        DEBUG = false
         properties = Properties()
         motorControllerDevices    = mutableMapOf<String, String>()
         motorControllerNames      = mutableListOf<String>()

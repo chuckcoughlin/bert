@@ -571,7 +571,8 @@ class Dispatcher : Controller {
                 val joint = request.joint
                 val mc = RobotModel.motorsByJoint[joint]!!
                 if (request.value > ConfigurationConstants.TORQUE_MAX) {
-                    request.error = String.format("%s torque cannot exceed 100% ",Joint.toText(joint))
+                    request.error = String.format("%s torque cannot exceed %2.0f% ",Joint.toText(joint),
+                                                                        ConfigurationConstants.TORQUE_MAX)
                 }
             }
             else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
