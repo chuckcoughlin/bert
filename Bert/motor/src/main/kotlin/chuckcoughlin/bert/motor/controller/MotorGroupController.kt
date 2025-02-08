@@ -163,7 +163,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
         else {
             val list = pendingMessages.get(id)!!
             list.add(cname)
-            if (DEBUG) LOGGER.info(String.format("%s.handleControllerResponse: pending %s ( at %d of %d)",
+            if (DEBUG) LOGGER.info(String.format("%s.handleControllerResponse: pending %s (%d of %d)",
                 CLSS, response.type.name, list.size, controllerCount))
             if(list.size >= controllerCount) {
                 parentResponseChannel.send(response)

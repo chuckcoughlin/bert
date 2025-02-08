@@ -70,8 +70,13 @@ class CommandMessageHandler(sock: Socket)  {
     suspend fun receiveNetworkInput(): MessageBottle {
         val request: MessageBottle
         val text=readCommand()
+        // We receive  null every milli-sec if the tablet goes to sleep
+        // then it stops when the tablet is woken up. Here we force it to
+        // re-connect.
         if(text == null ) {
-            request = MessageBottle(RequestType.NONE)
+            //request = MessageBottle(RequestType.NONE)
+            request=MessageBottle(RequestType.HANGUP)
+            request.source=ControllerType.COMMAND
         }
         else if( text.equals(CommandType.HALT.name, true)) {
             request=MessageBottle(RequestType.HANGUP)

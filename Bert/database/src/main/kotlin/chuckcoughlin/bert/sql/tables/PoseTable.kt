@@ -50,7 +50,7 @@ class PoseTable {
                 // For an unknown reason, mc.speed has been ending up as zero ... doesn't make sense as part of a pose
                 for (mc in mcmap.values) {
                     if( mc.speed < 1.0 ) mc.speed = ConfigurationConstants.SPEED_NORMAL
-                    val SQL = String.format("insert into PoseJoint(poseid,joint,angle,torque,speed) values(%d,'%s',%2.2f,%2.2f,%2.2f)",poseid,
+                    val SQL = String.format("insert into PoseJoint(poseid,joint,angle,torque,speed) values(%d,'%s',%2.3f,%2.3f,%2.1f)",poseid,
                         mc.joint.name,mc.angle,mc.torque,mc.speed)
                     if(DEBUG) LOGGER.info(String.format("%s.createPose: executing %s)", CLSS, SQL))
                     statement.executeUpdate(SQL)

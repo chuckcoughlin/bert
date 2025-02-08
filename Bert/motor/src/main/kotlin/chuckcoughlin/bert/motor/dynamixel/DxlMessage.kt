@@ -752,7 +752,7 @@ object DxlMessage {
                         JointDynamicProperty.VOLTAGE      -> mc.voltage = param
                         JointDynamicProperty.NONE         -> {}
                     }
-                    LOGGER.info(String.format("%s.updatePropertyInMotorsFromBytes: %s %s=%2.0f",
+                    LOGGER.info(String.format("%s.updatePropertyInMotorsFromBytes: %s %s=%2.2f",
                             CLSS,mc.joint.name,property,param))
                 }
                 else if (err.toInt() != 0) {

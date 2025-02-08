@@ -210,7 +210,7 @@ object RobotModel {
                             if( !value.isEmpty()) motor.maxAngle = value.toDouble()
                             value = XMLUtility.attributeValue(joint, "speed")
                             if( !value.isEmpty()) motor.maxSpeed = value.toDouble()
-                            value = XMLUtility.attributeValue(joint, "torque")
+                            value = XMLUtility.attributeValue(joint, "load")
                             if( !value.isEmpty()) motor.maxTorque = value.toDouble()
                             value = XMLUtility.attributeValue(joint, "limb")
                             if( !value.isEmpty()) {

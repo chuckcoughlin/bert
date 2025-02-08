@@ -19,7 +19,7 @@ import java.util.logging.Logger
  * "Message Bottles" (requests). Note that the "visit" methods all return null,
  * an indicator that there is no further traversing the parse tree.
  */
-class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<SharedKey, Any>) :
+class StatementTranslator(bot: MessageBottle, private val sharedDictionary: MutableMap<SharedKey, Any>) :
     SpeechSyntaxBaseVisitor<Any>() {
     private val bottle: MessageBottle
     private val messageTranslator: MessageTranslator
@@ -70,6 +70,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     // List your joints
     override fun visitBodyPartListQuestion(ctx: SpeechSyntaxParser.BodyPartListQuestionContext): Any? {
         bottle.type = RequestType.JSON
+        if( ctx.Bones()!=null )       bottle.jtype = JsonType.BONE_NAMES
         if( ctx.Extremities()!=null ) bottle.jtype = JsonType.EXTREMITY_NAMES
         if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
         if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
@@ -79,6 +80,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     override fun visitBodyPartNamesQuestion(ctx: SpeechSyntaxParser.BodyPartNamesQuestionContext): Any? {
         bottle.type = RequestType.GET_METRIC
         bottle.metric = MetricType.LIST
+        if( ctx.Bones()!=null ) bottle.jtype = JsonType.BONE_NAMES
         if( ctx.Extremities()!=null ) bottle.jtype = JsonType.EXTREMITY_NAMES
         if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
         if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
@@ -468,7 +470,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
             if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
             bottle.joint = joint
-            if (joint.equals(Joint.NONE)) {
+            if( joint==Joint.NONE ) {
                 val msg = String.format("I don't have a joint like that")
                 bottle.error = msg
             }
@@ -482,9 +484,9 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
             var extremity = Extremity.NONE
             if (ctx.Extremity() != null) extremity = determineExtremity(ctx.Extremity().getText(), side)
             bottle.extremity = extremity
-            if (extremity.equals(Extremity.NONE)) {
+            if( extremity==Extremity.NONE ) {
                 val msg = String.format("I don't have a body part %s, that I know of",
-                                     ctx.Extremity().getText())
+                                     ctx.Extremity().text )
                 bottle.error = msg
             }
             else {
@@ -842,7 +844,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else if (bodyPart.equals("NOSE", ignoreCase = true)) {
             result = Extremity.NOSE
         }
-        if (result.equals(RequestType.NONE)) {
+        if( result==Extremity.NONE ) {
             LOGGER.info(String.format("WARNING: StatementTranslator.determineExtremity did not find a match for %s",
                     bodyPart ))
         }
@@ -999,7 +1001,7 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
         else if (bodyPart.equals("head", ignoreCase = true)) {
             result = Limb.HEAD
         }
-        if (result.equals(Limb.NONE)) {
+        if( result==Limb.NONE ) {
             LOGGER.info(String.format("WARNING: StatementTranslator.determineLimb did not find a match for %s",
                     bodyPart))
         }
@@ -1120,9 +1122,6 @@ class StatementTranslator(bot: MessageBottle, val sharedDictionary: MutableMap<S
     private val DEBUG: Boolean
 
     /**
-     * @param bot a request container supplied by the framework. It is our job
-     * to fully configure it.
-     * @param shared a parameter dictionary used to communicate between invocations
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)

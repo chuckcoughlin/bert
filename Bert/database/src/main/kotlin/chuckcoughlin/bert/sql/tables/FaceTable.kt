@@ -374,7 +374,7 @@ class FaceTable {
                 }
                 if( count>0 ) {
                     err = Math.sqrt(err/(2.0*count))
-                    LOGGER.info(String.format("%s.idMatchesDetails: Computed error: %3.2f vs %3.2f", CLSS, err,TOLERANCE))
+                    LOGGER.info(String.format("%s.idMatchesDetails: Computed error: %3.3f vs %3.3f", CLSS, err,TOLERANCE))
                     if( err<TOLERANCE ) result = true
                 }
             }
@@ -431,7 +431,7 @@ class FaceTable {
     private val CLSS = "FaceTable"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean
-    private val TOLERANCE = 0.5
+    private val TOLERANCE = 0.1
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)

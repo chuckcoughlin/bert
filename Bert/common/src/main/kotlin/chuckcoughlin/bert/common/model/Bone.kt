@@ -4,6 +4,8 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.util.TextUtility
+
 /**
  * These are the canonical names for the skeletal sections ("bones")
  * of the humanoid. We try to be anatomically correct, but don't always succeed.
@@ -76,6 +78,16 @@ enum class Bone {
                 if (bone.name.equals(arg, true)) return bone
             }
             return Bone.NONE
+        }
+        /** @return  a comma-separated list of common names for the extremities.
+         */
+        fun nameList(): String {
+            val list = mutableListOf<String>()
+            for (bone in Bone.values()) {
+                if( bone==Bone.NONE) continue
+                list.add(Bone.toText(bone))
+            }
+            return TextUtility.createTextForSpeakingFromList(list)
         }
     }
 }

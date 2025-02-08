@@ -48,8 +48,8 @@ object ConfigurationConstants {
     const val LONG_TME_AGO = 10000L              // 10 seconds
 
     // Nominal values for torque and speed
-    const val SPEED_NORMAL = 300.0
-    const val TORQUE_NORMAL = 1.9
+    const val SPEED_NORMAL = 200.0        // Was 300
+    const val TORQUE_MAX = 100.0          // ~percent
 
     // For values that are boolean. Use these strings for "values"
     const val ON_VALUE  = 1.0

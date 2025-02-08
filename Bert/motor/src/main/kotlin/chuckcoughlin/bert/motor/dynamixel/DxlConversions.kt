@@ -20,12 +20,12 @@ object DxlConversions {
     fun degreeToDxl(mc: MotorConfiguration, arg: Double): Int {
         var value = arg
         if (value > mc.maxAngle) {
-            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.0f (max = %2.0f)",
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.1f (max = %2.0f)",
                 CLSS, mc.joint.name, value, mc.maxAngle))
             value = mc.maxAngle
         }
         if (value < mc.minAngle) {
-            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.0f (min = %2.0f)",
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.1f (min = %2.0f)",
                 CLSS, mc.joint.name, value, mc.minAngle))
             value = mc.minAngle
         }

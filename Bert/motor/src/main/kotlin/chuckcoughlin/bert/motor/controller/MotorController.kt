@@ -338,25 +338,25 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
         // Handle set torque for all joints
-        // NOTE: This is dangerous because not all motors have the same torque limits
+        // NOTE: The specification of torque is a percentage
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.TORQUE) &&
             request.joint.equals(Joint.NONE)  )   {
 
-            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting torque to %2.0f N-m for all joints" ,
+            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting torque to %2.0f percent for all joints" ,
                 CLSS,controllerName,request.value))
 
             for (mc in configurationsByJoint.values) {
-                mc.torque = request.value
+                mc.torque = request.value*mc.maxTorque/100.0
             }
-            request.text = String.format("all motors are set to %2.0f newton meters", request.value)
+            request.text = String.format("all motor are set to %2.0f%% of maximum torque", request.value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
         // Set the requested property for the single specified joint
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             val joint = request.joint
             val prop = request.jointDynamicProperty
-            val value = request.value
+            var value = request.value
             val mc = RobotModel.motorsByJoint[joint]!!
 
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
@@ -377,7 +377,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     if(enabled) "rigid" else "relaxed")
                 mc.isTorqueEnabled = enabled
             }
-            if (prop.equals(JointDynamicProperty.TORQUE) ) {
+            else if (prop.equals(JointDynamicProperty.TORQUE) ) {
+                value = value*mc.maxTorque/100.0
                 request.text = String.format("My %s torque is at %.0f newton meters", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.RANGE) ) {
