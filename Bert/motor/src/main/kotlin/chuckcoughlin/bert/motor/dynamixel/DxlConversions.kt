@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.dynamixel
@@ -20,12 +20,12 @@ object DxlConversions {
     fun degreeToDxl(mc: MotorConfiguration, arg: Double): Int {
         var value = arg
         if (value > mc.maxAngle) {
-            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.1f (max = %2.0f)",
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.1f (max = %2.1f)",
                 CLSS, mc.joint.name, value, mc.maxAngle))
             value = mc.maxAngle
         }
         if (value < mc.minAngle) {
-            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.1f (min = %2.0f)",
+            LOGGER.warning(String.format("%s.degreeToDxl: %s attempted move to %2.1f (min = %2.1f)",
                 CLSS, mc.joint.name, value, mc.minAngle))
             value = mc.minAngle
         }
@@ -218,27 +218,6 @@ object DxlConversions {
             else -> {}      // Remainder of properties are read-only
         }
         return dxlValue
-    }
-
-    // Convert the raw data bytes text describing the value and units. It may or may not use the second byte.
-    // Presumably the ultimate will have more context.
-    fun textForProperty(property: JointDynamicProperty, mc: MotorConfiguration, b1: Byte, b2: Byte): String {
-        var text = ""
-        val value = valueForProperty(property, mc, b1, b2)
-        when (property ) {
-            JointDynamicProperty.MAXIMUMANGLE  -> text = String.format("%2.0f degrees", value)
-            JointDynamicProperty.MINIMUMANGLE  -> text = String.format("%2.0f degrees", value)
-            JointDynamicProperty.RANGE         -> text = String.format("%2.0f degrees", value)
-            JointDynamicProperty.ANGLE         -> text = String.format("%2.0f degrees", value)
-            JointDynamicProperty.LOAD          -> text = String.format("%2.1f newton-meters", value)
-            JointDynamicProperty.SPEED         -> text = String.format("%2.0f degrees per second", value)
-            JointDynamicProperty.TEMPERATURE   -> text = String.format("%2.0f degrees centigrade", value)
-            JointDynamicProperty.TORQUE        -> text = String.format("%2.1f newton-meters", value)
-            JointDynamicProperty.STATE         -> text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
-            JointDynamicProperty.VOLTAGE       -> text = String.format("%2.1f volts", value)
-            JointDynamicProperty.NONE          -> text = ""
-        }
-        return text
     }
 
     // Convert the raw data bytes into a double value. It may or may not use the second byte.

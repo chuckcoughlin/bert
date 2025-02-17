@@ -6,15 +6,10 @@ package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.motor.dynamixel.DxlConversions.CLSS
-import chuckcoughlin.bert.motor.dynamixel.DxlConversions.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import com.google.gson.GsonBuilder
-import java.awt.SystemColor.text
-import java.io.ObjectInputFilter.Config
 import java.util.*
 import java.util.logging.Logger
-import kotlin.collections.ArrayList
 
 /**
  * This object contains utility methods used to create and interpret different varieties
@@ -31,7 +26,7 @@ object DxlMessage {
      * having been executed to initialize the motor configuration objects.
      * WARNING: SYNC_WRITE requests do not generate responses.
      * Discount any current readings of zero, it probably means that the motor positions were never evaluated.
-     * @param configurations a list of motor configuration objects
+     * @param configurationsByJoint a list of motor configuration objects
      * @return list of byte arrays with bulk read plus extras for any AX-12.
      */
     fun byteArrayListToInitializePositions(configurationsByJoint: Map<Joint, MotorConfiguration>): List<ByteArray> {
@@ -40,14 +35,14 @@ object DxlMessage {
         for (mc in configurationsByJoint.values) {
             val pos: Double = mc.angle
             if (pos > mc.maxAngle ) {
-                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.0f (max=%2.0f)",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.2f (max=%2.2f)",
                         CLSS, mc.joint.name, pos, mc.maxAngle))
                 mc.angle = mc.maxAngle
                 outliers.add(mc)
                 if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
             else if (pos < mc.minAngle ) {
-                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.0f (min=%2.0f)",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.2f (min=%2.2f)",
                         CLSS, mc.joint.name, pos, mc.minAngle))
                 mc.angle = mc.minAngle
                 outliers.add(mc)
@@ -98,7 +93,7 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in outliers) {
-                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %2.0f",
+                LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %2.1f",
                         CLSS,mc.joint.name,mc.angle))
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
                 bytes[index] = mc.id.toByte()
@@ -168,7 +163,7 @@ object DxlMessage {
     fun byteArrayToSetProperty(map: Map<Joint, MotorConfiguration>, property: JointDynamicProperty): ByteArray {
         // First count all the joints in the limb
         val count = map.size
-        var bytes: ByteArray = ByteArray(0)
+        var bytes = ByteArray(0)
         var dxlValue:Int
         if (count > 0) {
             val len =
@@ -186,6 +181,8 @@ object DxlMessage {
                     dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
+                    if(DEBUG) LOGGER.info(String.format("%s.byteArrayToSetProperty: set TORQUE for %s to %2.2f (%2.2f max, dxl=%d)",
+                        CLSS,mc.joint.name,mc.torque,mc.maxTorque,dxlValue))
                 }
                 else if (property.equals(JointDynamicProperty.SPEED)) {
                     dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.speed)
@@ -214,7 +211,7 @@ object DxlMessage {
      * We set speed and torque per the motor configurations for each joint that we move.
      *
      * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
-     * @param pose name of the pose to be set
+     * @param poseid id of the pose to be set
      * @param map of the motor configurations to be changed for subject controller keyed by joint name
      * @return 3 byte arrays to drive torques, speeds and finally the positions as required by the pose
      */
@@ -331,16 +328,16 @@ object DxlMessage {
                 if( mc.angle==angles[key]!! ) continue
                 isChanged = true
 
-                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.0f",CLSS,key,angles.get(key)));
+                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.1f",CLSS,key,angles.get(key)))
                 mc.angle = angles[key]!!
                 if(mc.angle>mc.maxAngle)  {
-                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has %2.0f greater than the maximium %2.0f",
-                        CLSS,poseid,mc.joint.name,mc.angle,mc.maxAngle));
+                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has %2.1f greater than the maximium %2.1f",
+                        CLSS,poseid,mc.joint.name,mc.angle,mc.maxAngle))
                     mc.angle = mc.maxAngle
                 }
                 else if(mc.angle<mc.minAngle) {
-                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has angle %2.0f less than the minimium of %2.0f",
-                        CLSS,poseid,mc.joint.name,mc.angle,mc.minAngle));
+                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has angle %2.1f less than the minimium of %2.1f",
+                        CLSS,poseid,mc.joint.name,mc.angle,mc.minAngle))
                     mc.angle = mc.minAngle
                 }
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
@@ -574,18 +571,18 @@ object DxlMessage {
             var motorValues = mutableListOf<JointPropertyValue>()
             var property: JointDynamicProperty = JointDynamicProperty.ANGLE
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
-            val t1 = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
+            val t1 = textForProperty(property, v1)
             motorValues.add(JointPropertyValue(bottle.joint,property,v1))
             mc.angle = v1
             property = JointDynamicProperty.SPEED // Non-directional
             var v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
-            val t2 = DxlConversions.textForProperty(property, mc, bytes[7], bytes[8])
+            val t2 = textForProperty(property, v2)
             motorValues.add(JointPropertyValue(bottle.joint,property,v2))
             v2 = v2 * 100.0 / DxlConversions.velocity.get(mc.type)!! // Convert to percent
             mc.speed = v2
             property = JointDynamicProperty.TORQUE // Non-directional
             var v3 = DxlConversions.valueForProperty(property, mc, bytes[9], bytes[10])
-            val t3 = DxlConversions.textForProperty(property, mc, bytes[9], bytes[10])
+            val t3 = textForProperty(property, v3)
             motorValues.add(JointPropertyValue(bottle.joint,property,v3))
             v3 = v2 * 100.0 / DxlConversions.torque.get(mc.type)!! // Convert to percent
             mc.torque = v3
@@ -628,15 +625,15 @@ object DxlMessage {
             var motorValues = mutableListOf<JointPropertyValue>()
             var property: JointDynamicProperty = JointDynamicProperty.MAXIMUMANGLE // CW
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
-            val t1 = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
+            val t1 = textForProperty(property, v1)
             motorValues.add(JointPropertyValue(bottle.joint,property,v1))
             property = JointDynamicProperty.MINIMUMANGLE // CCW
             val v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
-            val t2 = DxlConversions.textForProperty(property, mc, bytes[7], bytes[8])
+            val t2 = textForProperty(property, v2)
             motorValues.add(JointPropertyValue(bottle.joint,property,v2))
             property = JointDynamicProperty.TORQUE // Non-directional
             val v3 = DxlConversions.valueForProperty(property, mc, bytes[12], bytes[13])
-            val t3 = DxlConversions.textForProperty(property, mc, bytes[12], bytes[13])
+            val t3 = textForProperty(property, v3)
             motorValues.add(JointPropertyValue(bottle.joint,property,v3))
             val text = String.format("min, max angle and torque limits are : %s, %s, %s", t2, t1, t3)
             if (err.toInt() == 0) {
@@ -672,12 +669,12 @@ object DxlMessage {
             // val id = bytes[2].toInt()
             val err = bytes[4]
             val value = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
-            val propertyValue   = DxlConversions.textForProperty(property, mc, bytes[5], bytes[6])
+            val propertyValue   = textForProperty(property, value)
             if (err.toInt() == 0) {
                 bottle.joint = mc.joint
                 bottle.jointDynamicProperty = property
                 bottle.value = value
-                LOGGER.info(String.format("%s.updatePropertyRequestFromBytes: %s %s=%.2f",
+                LOGGER.info(String.format("%s.updatePropertyRequestFromBytes: %s %s=%2.2f",
                         CLSS,mc.joint,property,value))
                 if(property.equals(JointDynamicProperty.ANGLE)) {
                     bottle.text=String.format("My %s is at %s",
@@ -696,7 +693,7 @@ object DxlMessage {
                         Joint.toText(bottle.joint), property.name.lowercase(),propertyValue)
                 }
                 else {
-                    bottle.text=String.format("My %s %s is %2.0f",
+                    bottle.text=String.format("My %s %s is %s",
                         Joint.toText(bottle.joint), property.name.lowercase(),propertyValue)
                 }
             }
@@ -844,6 +841,25 @@ object DxlMessage {
         buf[size] = (255 - sum).toByte()
     }
 
+    // Convert the raw data bytes text describing the value and units. It may or may not use the second byte.
+    // Presumably the ultimate will have more context.
+    private fun textForProperty(property: JointDynamicProperty, value:Double): String {
+        var text = ""
+        when (property ) {
+            JointDynamicProperty.MAXIMUMANGLE  -> text = String.format("%2.1f degrees", value)
+            JointDynamicProperty.MINIMUMANGLE  -> text = String.format("%2.1f degrees", value)
+            JointDynamicProperty.RANGE         -> text = String.format("%2.0f degrees", value)
+            JointDynamicProperty.ANGLE         -> text = String.format("%2.0f degrees", value)
+            JointDynamicProperty.LOAD          -> text = String.format("%2.2f newton-meters", value)
+            JointDynamicProperty.SPEED         -> text = String.format("%2.0f degrees per second", value)
+            JointDynamicProperty.TEMPERATURE   -> text = String.format("%2.1f degrees centigrade", value)
+            JointDynamicProperty.TORQUE        -> text = String.format("%2.2f newton-meters", value)
+            JointDynamicProperty.STATE         -> text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
+            JointDynamicProperty.VOLTAGE       -> text = String.format("%2.1f volts", value)
+            JointDynamicProperty.NONE          -> text = ""
+        }
+        return text
+    }
     /**
      * Protocol 1
      */

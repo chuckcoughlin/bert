@@ -50,7 +50,7 @@ object ConfigurationConstants {
 
     // Nominal values for torque and speed
     const val SPEED_NORMAL = 200.0        // Was 300
-    const val TORQUE_MAX = 100.0          // ~percent
+    const val TORQUE_MAX = 95.0          // ~percent
 
     // For values that are boolean. Use these strings for "values"
     const val ON_VALUE  = 1.0

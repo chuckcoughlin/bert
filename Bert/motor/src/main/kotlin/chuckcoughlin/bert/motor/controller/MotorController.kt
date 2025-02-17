@@ -129,12 +129,17 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      */
     suspend fun processRequest() {
         val request = parentRequestChannel.receive()    //  Waits for message
-        if( request.type==RequestType.COMMAND)
-            LOGGER.info(String.format("%s.processRequest:%s processing %s (%s)",CLSS,controllerName,request.type.name,request.command.name))
-        else if(request.type==RequestType.JSON)
-            LOGGER.info(String.format("%s.processRequest:%s processing %s (%s)",CLSS,controllerName,request.type.name,request.jtype.name))
-        else
-            LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,controllerName,request.type.name))
+        if(DEBUG) {
+            if (request.type == RequestType.COMMAND)
+                LOGGER.info(String.format("%s.processRequest:%s processing %s (%s)",  CLSS,
+                    controllerName,request.type.name,request.command.name))
+            else if (request.type == RequestType.JSON)
+                LOGGER.info(String.format("%s.processRequest:%s processing %s (%s)", CLSS,
+                    controllerName,request.type.name,request.jtype.name))
+            else
+                LOGGER.info(String.format("%s.processRequest:%s processing %s",CLSS,
+                    controllerName, request.type.name))
+        }
         // Do nothing if the joint or limb isn't on this controller
         // -- a limb is on one side or the other, not both
         if( isSingleControllerRequest(request) ) {
@@ -166,7 +171,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     requestQueue.send(request)
                 }
                 writeBytesToSerial(bytes)
-                LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)", CLSS, controllerName, bytes.size,request.control.responseCount[controllerName]))
+                if(DEBUG) LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d) contents =\n%s", CLSS, controllerName,
+                    bytes.size,request.control.responseCount[controllerName],DxlMessage.dump(bytes)))
             }
         }
         else {       // Multiple write requests
@@ -178,8 +184,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (bytes in byteArrayList) {
                 delay(ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL)    // This could be significant
                 writeBytesToSerial(bytes)
-                LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d)",CLSS,
-                        controllerName,bytes.size,request.control.responseCount[controllerName]))
+                if(DEBUG) LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d) contents =\n%s",CLSS,
+                        controllerName,bytes.size,request.control.responseCount[controllerName],DxlMessage.dump(bytes)))
                 }
         }
         if( responseCount>0 ) {
@@ -259,7 +265,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s", CLSS, controllerName, type.name))
 
         if(type.equals(RequestType.JSON) &&
-            jtype.equals(JsonType.MOTOR_GOALS)) {
+            jtype==JsonType.MOTOR_GOALS) {
             val joint=request.joint
             for (mc in configurationsByJoint.values) {
                 if(mc.joint.equals(joint)) {
@@ -269,7 +275,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 }
             }
         }
-        else if(type.equals(RequestType.JSON) && jtype.equals(JsonType.MOTOR_LIMITS)) {
+        else if(type==RequestType.JSON && jtype==JsonType.MOTOR_LIMITS) {
             val joint=request.joint
             for (mc in configurationsByJoint.values) {
                 if(mc.joint.equals(joint)) {
@@ -366,12 +372,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
                 val duration = mc.travelTime
                 if (request.duration < duration) request.duration = duration
-                request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),value)
+                request.text = String.format("My %s is at %.0f degrees", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.SPEED) ) {
                 val duration = mc.travelTime
                 if (request.duration < duration) request.duration = duration
-                request.text = String.format("My %s is at %.0f", Joint.toText(mc.joint),value)
+                request.text = String.format("My %s sped is set to %.0f", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.STATE) ) {
                 var enabled = false
@@ -383,7 +389,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             else if (prop.equals(JointDynamicProperty.TORQUE) ) {
                 value = value*mc.maxTorque/100.0
-                request.text = String.format("My %s torque is at %.0f newton meters", Joint.toText(mc.joint),value)
+                request.text = String.format("My %s torque is set to %.0f newton meters", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.RANGE) ) {
                 request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))
@@ -504,9 +510,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      */
     private fun synthesizeResponse(msg: MessageBottle) {
         msg.control.responseCount[controllerName]=0 // No serial response to wait for ...
-        if (msg.type.equals(RequestType.INITIALIZE_JOINTS) ||
-            msg.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            msg.type.equals(RequestType.EXECUTE_POSE) ) {
+        if (msg.type==RequestType.INITIALIZE_JOINTS ||
+            msg.type==RequestType.SET_LIMB_PROPERTY ||
+            msg.type==RequestType.EXECUTE_POSE ) {
             msg.text = ""   // Random acknowledgement added later
         }
         else if(msg.type.equals(RequestType.SET_MOTOR_PROPERTY) ) {
@@ -566,8 +572,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
         port = p
-        requestQueue  = Channel<MessageBottle>(1)
-        responseQueue = Channel<MessageBottle>(1)
+        requestQueue  = Channel(1)
+        responseQueue = Channel(1)
         responder = SerialResponder(name,requestQueue,responseQueue)
         configurationsByJoint = mutableMapOf<Joint, MotorConfiguration>()
         timeOfLastWrite = System.currentTimeMillis()
