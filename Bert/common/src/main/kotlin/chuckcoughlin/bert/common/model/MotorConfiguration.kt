@@ -56,20 +56,21 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var voltage: Double
 
     /**
-     * Use the motor value to set the corresponding property.
-     * NOTE: In Kotlin, using the dot notation for a member
-     *       actually accesses the custom getter or setter.
+     * Set a motor property given a property enumeration and a value.
+     * Attempts to set a read-only value fail silently.
      */
     fun setDynamicProperty(jp: JointDynamicProperty, value: Double) {
         when (jp) {
             JointDynamicProperty.ANGLE -> angle = value
             JointDynamicProperty.LOAD -> load = value
-            JointDynamicProperty.MAXIMUMANGLE -> maxAngle = value
-            JointDynamicProperty.MINIMUMANGLE -> minAngle = value
+            JointDynamicProperty.MAXIMUMANGLE -> {}
+            JointDynamicProperty.MINIMUMANGLE -> {}
             JointDynamicProperty.SPEED -> speed = value
+            JointDynamicProperty.MAXIMUMSPEED -> {}
             JointDynamicProperty.STATE -> setState(value)
             JointDynamicProperty.TEMPERATURE -> temperature = value
             JointDynamicProperty.TORQUE -> torque = value
+            JointDynamicProperty.MAXIMUMTORQUE -> {}
             JointDynamicProperty.VOLTAGE -> voltage = value
             JointDynamicProperty.RANGE -> {}  // Error - max and min must be set separately
             JointDynamicProperty.NONE-> {}

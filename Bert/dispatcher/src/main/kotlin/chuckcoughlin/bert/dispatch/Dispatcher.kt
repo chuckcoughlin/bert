@@ -19,7 +19,6 @@ import java.io.IOException
 import java.time.LocalDate
 import java.time.Month
 import java.time.Period
-import java.util.*
 import java.util.logging.Logger
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
@@ -432,6 +431,14 @@ class Dispatcher : Controller {
                     request.text = String.format("The minimum angle of my %s is %2.0f degrees",
                         Joint.toText(joint), mc.minAngle)
                 }
+                else if (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMSPEED) {
+                    request.text = String.format("The maximum speed of my %s is %2.0f degrees",
+                            Joint.toText(joint), mc.maxSpeed)
+                }
+                else if (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMTORQUE) {
+                    request.text = String.format("The minimum angle of my %s is %2.0f degrees",
+                            Joint.toText(joint), mc.maxTorque)
+                }
                 else if (request.jointDynamicProperty == JointDynamicProperty.RANGE) {
                     request.text = String.format("I can move my %s from %2.0f to %2.0f",
                         Joint.toText(joint),
@@ -569,9 +576,8 @@ class Dispatcher : Controller {
             else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
                 request.jointDynamicProperty == JointDynamicProperty.TORQUE) {
                 val joint = request.joint
-                val mc = RobotModel.motorsByJoint[joint]!!
                 if (request.value > ConfigurationConstants.TORQUE_MAX) {
-                    request.error = String.format("%s torque cannot exceed %2.0f% ",Joint.toText(joint),
+                    request.error = String.format("%s torque cannot exceed %2.0f percent ",Joint.toText(joint),
                                                                         ConfigurationConstants.TORQUE_MAX)
                 }
             }
@@ -611,9 +617,11 @@ class Dispatcher : Controller {
         }
         // These "dynamic" properties are gettable from bert.xml
         else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
-                 ( request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE ||
-                   request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE ||
-                   request.jointDynamicProperty == JointDynamicProperty.RANGE ) ) {
+                (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE ||
+                    request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE ||
+                    request.jointDynamicProperty == JointDynamicProperty.MAXIMUMSPEED ||
+                    request.jointDynamicProperty == JointDynamicProperty.MAXIMUMTORQUE ||
+                    request.jointDynamicProperty == JointDynamicProperty.RANGE)) {
             return true
         }
         // Some very specific boundary errors --- set the error text

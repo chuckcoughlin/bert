@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -17,9 +17,11 @@ enum class JointDynamicProperty {
     ANGLE,
     LOAD,
     RANGE,
+    MAXIMUMSPEED,
     SPEED,
     STATE,
     TEMPERATURE,
+    MAXIMUMTORQUE,
     TORQUE,       // Limit
     VOLTAGE,
     NONE;

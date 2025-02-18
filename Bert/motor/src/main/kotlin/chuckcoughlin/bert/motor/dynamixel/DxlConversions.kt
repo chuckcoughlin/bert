@@ -145,8 +145,6 @@ object DxlConversions {
         when (property) {
             JointDynamicProperty.ANGLE -> address = GOAL_POSITION
             JointDynamicProperty.SPEED    -> address = GOAL_SPEED
-            JointDynamicProperty.TORQUE   -> address = GOAL_TORQUE
-            JointDynamicProperty.STATE    -> address = GOAL_TORQUE_ENABLE
             else -> {
                 LOGGER.warning(String.format("%s.addressForGoalProperty: Unrecognized goal (%s)", CLSS, property.name))
                 address = 0
@@ -167,9 +165,11 @@ object DxlConversions {
             JointDynamicProperty.RANGE           -> address = 0   // Pseudo property
             JointDynamicProperty.SPEED           -> address = CURRENT_SPEED
             JointDynamicProperty.TEMPERATURE     -> address = CURRENT_TEMPERATURE
-            JointDynamicProperty.TORQUE          -> address = CURRENT_LOAD
-            JointDynamicProperty.STATE           -> address = GOAL_TORQUE_ENABLE
+            JointDynamicProperty.TORQUE          -> address = MAXIMUM_TORQUE
+            JointDynamicProperty.STATE           -> address = TORQUE_ENABLE
             JointDynamicProperty.VOLTAGE         -> address = CURRENT_VOLTAGE
+            JointDynamicProperty.MAXIMUMTORQUE   -> address = 0
+            JointDynamicProperty.MAXIMUMSPEED    -> address = 0
             JointDynamicProperty.NONE            -> address = 0
         }
         return address
@@ -191,6 +191,8 @@ object DxlConversions {
             JointDynamicProperty.TORQUE        -> length = 2
             JointDynamicProperty.STATE         -> length = 1
             JointDynamicProperty.VOLTAGE       -> length = 1
+            JointDynamicProperty.MAXIMUMSPEED  -> length = 0
+            JointDynamicProperty.MAXIMUMTORQUE -> length = 0
             JointDynamicProperty.NONE          -> length = 0
         }
         return length
@@ -236,6 +238,8 @@ object DxlConversions {
             JointDynamicProperty.TORQUE         -> value = dxlToTorqueLimit(mc.type, b1, b2)
             JointDynamicProperty.STATE          -> value = dxlToTorqueEnable(b1)
             JointDynamicProperty.VOLTAGE        -> value = dxlToVoltage(b1)
+            JointDynamicProperty.MAXIMUMSPEED   -> value = 0.0
+            JointDynamicProperty.MAXIMUMTORQUE  -> value = 0.0
             JointDynamicProperty.NONE           -> value = 0.0
         }
         return value
@@ -256,10 +260,10 @@ object DxlConversions {
     const val GOAL_BLOCK_BYTES = 6.toByte()
     const val GOAL_POSITION = 0x1E.toByte()
     const val GOAL_SPEED = 0x20.toByte()
-    const val GOAL_TORQUE = 0x22.toByte()
-    const val GOAL_TORQUE_ENABLE = 0x18.toByte()
+    private const val TORQUE_ENABLE = 0x18.toByte()
     private const val MINIMUM_ANGLE = 0x06.toByte() // CCW
     private const val MAXIMUM_ANGLE = 0x08.toByte() // CW
+    private const val MAXIMUM_TORQUE = 0x22.toByte()
     private const val CURRENT_LOAD = 0x28.toByte() // low, high bytes
     private const val CURRENT_ANGLE = 0x24.toByte() // low, high bytes
     private const val CURRENT_SPEED = 0x26.toByte() // low, high bytes

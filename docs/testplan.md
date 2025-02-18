@@ -106,7 +106,7 @@ They deal with individual joints.
 read the current values of joint properties, one by one. A complete list of joint names and properties may be found
 in the *Vocabulary* section of the user guide. In addition to properties configured in the configuration
 file (like: id, motor type, orientation, minimum angle and maximum angle), properties include current
-values read directly from the motor (like: position (degrees), speed (degrees/sec), load (N-m),
+values read directly from the motor (like: position (degrees), speed (degrees/sec), load (N-m), torque (N-m),
 temperature (deg C), and voltage (volts). A typical query:
 ```
     what is the id of your left hip y
@@ -117,6 +117,8 @@ temperature (deg C), and voltage (volts). A typical query:
     what is the torque of your left hip x
     what is the range of your right knee
     what is the maximum angle of your left elbow
+    what is the maximum speed of your right ankle
+    what is the maximum torque of your left shoulder y
 ```
 * ![green](/images/ball_green.png) ``Range of Motion`` - Test limits
 that are configured in each motor's EEPROM. (Units must be flashed individually to change these.)
@@ -181,12 +183,12 @@ the last referenced joint or side. Show the use of 'other' as a substitution for
     straighten it
 ```
 * ![yellow](/images/ball_yellow.png) ``Change speed or torque`` - Using the terminal application,
-change the speed or torque of a joint. Both speed and torque are expressed as a percentage
-of the maximum as defined in the XML configuration file.
+change the speed or torque of a joint. Both speed and torque are expressed in engineering units
+(degrees/second and newton-meters, respectively).
 Sample command syntax:
 ```
-    set the speed of your right elbow to 50
-    set the torque of your other elbow to 50
+    set the speed of your right elbow to 200
+    set the torque of your other elbow to 1.2
     set the speed of your left leg to slow
     move normally
     move quickly

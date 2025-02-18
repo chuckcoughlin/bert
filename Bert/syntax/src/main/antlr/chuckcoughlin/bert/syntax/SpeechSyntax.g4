@@ -136,7 +136,7 @@ Parameters: 'properties'|'parameters'|'settings';
 Poses: 'poses';
 Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
-Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'minimum angle'|'maximum angle'|'angle'|'motor type'|'orientation'|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
+Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'max speed'|'max torque'|'minimum angle'|'maximum angle'|'maximum speed'|'maximum torque'|'angle'|'motor type'|'orientation'|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please'|'wake up'|Isaid;
 Save: 'save'|'record';

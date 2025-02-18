@@ -739,11 +739,13 @@ object DxlMessage {
                     when(property) {
                         JointDynamicProperty.ANGLE -> mc.angle = param
                         JointDynamicProperty.TORQUE   -> mc.torque = param
+                        JointDynamicProperty.MAXIMUMTORQUE -> {}
                         JointDynamicProperty.MAXIMUMANGLE -> mc.maxAngle = param
                         JointDynamicProperty.MINIMUMANGLE -> mc.minAngle = param
                         JointDynamicProperty.RANGE -> {}
                         JointDynamicProperty.LOAD         -> mc.load = param
                         JointDynamicProperty.SPEED        -> mc.speed = param
+                        JointDynamicProperty.MAXIMUMSPEED -> {}
                         JointDynamicProperty.STATE        -> mc.setState(param)
                         JointDynamicProperty.TEMPERATURE  -> mc.temperature = param
                         JointDynamicProperty.VOLTAGE      -> mc.voltage = param
@@ -852,8 +854,10 @@ object DxlMessage {
             JointDynamicProperty.ANGLE         -> text = String.format("%2.0f degrees", value)
             JointDynamicProperty.LOAD          -> text = String.format("%2.2f newton-meters", value)
             JointDynamicProperty.SPEED         -> text = String.format("%2.0f degrees per second", value)
+            JointDynamicProperty.MAXIMUMSPEED  -> text = String.format("%2.0f degrees per second", value)
             JointDynamicProperty.TEMPERATURE   -> text = String.format("%2.1f degrees centigrade", value)
             JointDynamicProperty.TORQUE        -> text = String.format("%2.2f newton-meters", value)
+            JointDynamicProperty.MAXIMUMTORQUE  -> text = String.format("%2.2f newton-meters", value)
             JointDynamicProperty.STATE         -> text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
             JointDynamicProperty.VOLTAGE       -> text = String.format("%2.1f volts", value)
             JointDynamicProperty.NONE          -> text = ""

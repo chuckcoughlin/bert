@@ -312,6 +312,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                     JointDynamicProperty.LOAD -> TODO()
                     JointDynamicProperty.MAXIMUMANGLE -> TODO()
                     JointDynamicProperty.MINIMUMANGLE -> TODO()
+                    JointDynamicProperty.MAXIMUMSPEED -> TODO()
+                    JointDynamicProperty.MAXIMUMTORQUE -> TODO()
                     JointDynamicProperty.RANGE -> TODO()
                     JointDynamicProperty.SPEED -> TODO()
                     JointDynamicProperty.STATE -> TODO()
