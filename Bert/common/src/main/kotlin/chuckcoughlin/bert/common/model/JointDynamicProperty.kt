@@ -51,15 +51,6 @@ enum class JointDynamicProperty {
             for (prop: JointDynamicProperty in JointDynamicProperty.values()) {
                 if (prop.name.equals(arg, true)) return prop
             }
-            /*
-            JointDynamicProperty.LOGGER.warning(
-                String.format(
-                    "%s.fromString: no match for %s",
-                    JointDynamicProperty.CLSS,
-                    arg
-                )
-            )
-             */
             return JointDynamicProperty.NONE
         }
 

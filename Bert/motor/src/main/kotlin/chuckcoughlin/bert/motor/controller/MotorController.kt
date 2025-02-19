@@ -312,7 +312,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     if(enabled) "rigid" else "limp")
         }
         // Handle set torque enable for all joints. ASYNC_WRITE, no response
-        // NOTE: When enabling torque, a read is required. The extra request is handled by the InternalController
+        // NOTE: When enabling torque, a read is required. This extra request is handled by the InternalController
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE) &&
             request.joint.equals(Joint.NONE)  )   {
@@ -329,33 +329,33 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.STATE)
         }
-        // Handle set speed for all joints
+        // Handle set speed for all joints. The speed is specified as a fraction of max.
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.SPEED) &&
             request.joint.equals(Joint.NONE)  )   {
 
-            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting speed to %2.0f for all joints" ,
-                CLSS,controllerName,request.value))
+            if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting speed to %2.0f percent for all joints" ,
+                CLSS,controllerName,100.0*request.value))
 
             for (mc in configurationsByJoint.values) {
-                mc.speed = request.value
+                mc.speed = mc.maxSpeed*request.value
             }
-            request.text = String.format("all movements will be %2.0f degrees per second", request.value)
+            request.text = String.format("all movements will be %2.0f percent of maximum", request.value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
         // Handle set torque for all joints
-        // NOTE: torque is specified as a percentage of max
+        // NOTE: torque is specified as a fraction of max
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.jointDynamicProperty.equals(JointDynamicProperty.TORQUE) &&
             request.joint.equals(Joint.NONE)  )   {
 
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting torque to %2.0f percent for all joints" ,
-                CLSS,controllerName,request.value))
+                CLSS,controllerName,100.0*request.value))
 
             for (mc in configurationsByJoint.values) {
-                mc.torque = request.value*mc.maxTorque/100.0
+                mc.torque = request.value*mc.maxTorque
             }
-            request.text = String.format("all motor are set to %2.0f%% of maximum torque", request.value)
+            request.text = String.format("all motor are set to %2.0f percent of maximum torque", request.value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&

@@ -1,11 +1,12 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.CLSS
 import chuckcoughlin.bert.sql.db.Database
 import com.google.gson.GsonBuilder
 import java.util.*
@@ -172,7 +173,13 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(property)
+            // For ANGLE and SPEED we set the goal not the value directly
+            if( property==JointDynamicProperty.ANGLE || property==JointDynamicProperty.SPEED) {
+                bytes[5] = DxlConversions.addressForGoalProperty(property)
+            }
+            else {
+                bytes[5] = DxlConversions.addressForPresentProperty(property)
+            }
             bytes[6] = DxlConversions.dataBytesForProperty(property)
             var index = 7
             for (mc in map.values) {
@@ -231,7 +238,7 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.TORQUE)
+            bytes[5] = DxlConversions.addressForPresentProperty(JointDynamicProperty.TORQUE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             var isChanged = false
@@ -244,7 +251,7 @@ object DxlMessage {
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.torque = torques[key]!! // percent of max
+                mc.torque = torques[key]!! // n-m
                 index = index + 3
             }
             if( isChanged ) {
@@ -273,7 +280,7 @@ object DxlMessage {
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.speed = speeds[key]!! // percent of max
+                mc.speed = speeds[key]!! // deg/sec
                 index = index + 3
             }
             if( isChanged ) {
@@ -289,14 +296,13 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.STATE)
+            bytes[5] = DxlConversions.addressForPresentProperty(JointDynamicProperty.STATE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             var isChanged = false
             for (key in map.keys) {
                 if( angles[key] == null )  continue
                 val mc: MotorConfiguration = map[key]!!
-                if( mc.angle==angles[key]!! ) continue
                 isChanged = true
                 mc.isTorqueEnabled = true
                 val stateValue=1  // True
@@ -418,7 +424,13 @@ object DxlMessage {
         setHeader(bytes, id)
         bytes[3] = length.toByte()
         bytes[4] = READ
-        bytes[5] = DxlConversions.addressForPresentProperty(property)
+        // For angle and speed we read goals
+        if( property==JointDynamicProperty.ANGLE || property==JointDynamicProperty.SPEED ) {
+            bytes[5] = DxlConversions.addressForGoalProperty(property)
+        }
+        else {
+            bytes[5] = DxlConversions.addressForPresentProperty(property)
+        }
         bytes[6] = DxlConversions.dataBytesForProperty(property)
         setChecksum(bytes)
         return bytes
@@ -438,7 +450,12 @@ object DxlMessage {
         setHeader(bytes, mc.id)
         bytes[3] = length.toByte()
         bytes[4] = WRITE
-        bytes[5] = DxlConversions.addressForGoalProperty(property)
+        if(property==JointDynamicProperty.ANGLE || property==JointDynamicProperty.SPEED) {
+            bytes[5] = DxlConversions.addressForGoalProperty(property)
+        }
+        else {
+            bytes[5] = DxlConversions.addressForPresentProperty(property)
+        }
         if (DxlConversions.dataBytesForProperty(property).toInt() == 2) {
             bytes[6] = (dxlValue and 0xFF).toByte()
             bytes[7] = (dxlValue shr 8).toByte()
@@ -910,4 +927,8 @@ object DxlMessage {
     const val BULK_READ = 0x92.toByte() // For multiple devices, instruction to read data from different addresses with different lengths at once
     const val HIP_X_LIMIT = 190.0         // Reasonable hip limit
     const val HIP_Z_LIMIT = -8.0
+
+    init {
+        val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
+    }
 }

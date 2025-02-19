@@ -48,9 +48,10 @@ object ConfigurationConstants {
     const val MIN_SERIAL_WRITE_INTERVAL = 100L   // 50 was too short
     const val LONG_TME_AGO = 10000L              // 10 seconds
 
-    // Nominal values for torque and speed
-    const val SPEED_NORMAL = 200.0        // Was 300
-    const val TORQUE_MAX = 95.0          // ~percent
+    // Nominal values for torque and speed. These are fractional values
+    // of maximum.
+    const val HALF_SPEED = 0.5
+    const val FULL_TORQUE = 0.95
 
     // For values that are boolean. Use these strings for "values"
     const val ON_VALUE  = 1.0

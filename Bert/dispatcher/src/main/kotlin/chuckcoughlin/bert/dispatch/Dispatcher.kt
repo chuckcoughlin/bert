@@ -152,13 +152,14 @@ class Dispatcher : Controller {
     }
 
     // Send preliminary messages to ensure a sane starting configuration
+    // When setting multiple joints at once, the value is the fraction of max
     private suspend fun initialize() {
         if(DEBUG) LOGGER.info(String.format("%s.initialize: sending messages to establish sanity", CLSS))
         // Set the speed to "normal" rate.
         var msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
         msg.jointDynamicProperty = JointDynamicProperty.SPEED
         msg.joint = Joint.NONE
-        msg.value = ConfigurationConstants.SPEED_NORMAL
+        msg.value = ConfigurationConstants.HALF_SPEED
         msg.source = ControllerType.BITBUCKET
         toInternalController.send(msg)
 
@@ -166,7 +167,7 @@ class Dispatcher : Controller {
         msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
         msg.jointDynamicProperty = JointDynamicProperty.TORQUE
         msg.joint = Joint.NONE
-        msg.value = ConfigurationConstants.TORQUE_MAX
+        msg.value = ConfigurationConstants.FULL_TORQUE
         msg.source = ControllerType.BITBUCKET
         toInternalController.send(msg)
 
@@ -432,18 +433,16 @@ class Dispatcher : Controller {
                         Joint.toText(joint), mc.minAngle)
                 }
                 else if (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMSPEED) {
-                    request.text = String.format("The maximum speed of my %s is %2.0f degrees",
+                    request.text = String.format("The maximum speed of my %s is %2.0f degrees per second",
                             Joint.toText(joint), mc.maxSpeed)
                 }
                 else if (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMTORQUE) {
-                    request.text = String.format("The minimum angle of my %s is %2.0f degrees",
+                    request.text = String.format("The maximum torque of my %s is %2.2f newton meters",
                             Joint.toText(joint), mc.maxTorque)
                 }
                 else if (request.jointDynamicProperty == JointDynamicProperty.RANGE) {
                     request.text = String.format("I can move my %s from %2.0f to %2.0f",
-                        Joint.toText(joint),
-                        mc.minAngle,
-                        mc.maxAngle)
+                        Joint.toText(joint),mc.minAngle,mc.maxAngle)
                 }
             }
             // List various entities
@@ -563,22 +562,23 @@ class Dispatcher : Controller {
                         mc.minAngle)
                 }
             }
+            // We are here because of a value error
             else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
                 request.jointDynamicProperty == JointDynamicProperty.SPEED) {
                 val joint = request.joint
                 val mc = RobotModel.motorsByJoint[joint]!!
                 if (request.value > mc.maxSpeed) {
                     request.error = String.format("I can only move my %s %2.0f degrees per second",
-                        Joint.toText(joint),
-                        mc.maxSpeed)
+                        Joint.toText(joint),mc.maxSpeed)
                 }
             }
             else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
                 request.jointDynamicProperty == JointDynamicProperty.TORQUE) {
                 val joint = request.joint
-                if (request.value > ConfigurationConstants.TORQUE_MAX) {
-                    request.error = String.format("%s torque cannot exceed %2.0f percent ",Joint.toText(joint),
-                                                                        ConfigurationConstants.TORQUE_MAX)
+                val mc = RobotModel.motorsByJoint[joint]!!
+                if (request.value > mc.maxTorque) {
+                    request.error = String.format("%s torque cannot exceed %2.0f newton meters ",Joint.toText(joint),
+                                                                        mc.maxTorque)
                 }
             }
             else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
@@ -668,8 +668,8 @@ class Dispatcher : Controller {
             val joint = request.joint
             for( mc in RobotModel.motorsByJoint.values ) {
                 if( joint==Joint.NONE || mc.joint==joint) {
-                    if (request.value > ConfigurationConstants.TORQUE_MAX) {
-                        request.error = String.format("the maximum torque for %s (or any joint) is 100%%",Joint.toText(joint))
+                    if (request.value > mc.maxTorque) {
+                        request.error = String.format("the maximum torque for %s is %2.2f newton meters",Joint.toText(joint),mc.maxTorque)
                         return true
                     }
                 }
