@@ -340,7 +340,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (mc in configurationsByJoint.values) {
                 mc.speed = mc.maxSpeed*request.value
             }
-            request.text = String.format("all movements will be %2.0f percent of maximum", request.value)
+            request.text = String.format("all motion will be %2.0f percent of maximum speed", 100.0*request.value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
         // Handle set torque for all joints
@@ -355,12 +355,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (mc in configurationsByJoint.values) {
                 mc.torque = request.value*mc.maxTorque
             }
-            request.text = String.format("all motor are set to %2.0f percent of maximum torque", request.value)
+            request.text = String.format("All motors are set to %2.0f percent of maximum torque", 100.0*request.value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
             request.joint.equals(Joint.NONE)  )   {
-            request.error = String.format("setting %s for all motors is not allowed", request.jointDynamicProperty.name)
+            request.error = String.format("Setting %s for all motors is not allowed", request.jointDynamicProperty.name)
         }
         // Set the requested property for the single specified joint
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
@@ -369,27 +369,27 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             var value = request.value
             val mc = RobotModel.motorsByJoint[joint]!!
 
+            // Note that this text is over-ridden with the response to the request.
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
                 val duration = mc.travelTime
                 if (request.duration < duration) request.duration = duration
-                request.text = String.format("My %s is at %.0f degrees", Joint.toText(mc.joint),value)
+                request.text = String.format("Setting my %s to %.0f degrees", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.SPEED) ) {
                 val duration = mc.travelTime
                 if (request.duration < duration) request.duration = duration
-                request.text = String.format("My %s sped is set to %.0f", Joint.toText(mc.joint),value)
+                request.text = String.format("Setting my %s speed to %2.0f degrees per second", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.STATE) ) {
                 var enabled = false
                 if(request.value>ConfigurationConstants.OFF_VALUE) enabled = true
                 mc.isTorqueEnabled = enabled
-                request.text = String.format("My %s is %s", Joint.toText(mc.joint),
+                request.text = String.format("Setting my %s %s", Joint.toText(mc.joint),
                     if(enabled) "rigid" else "relaxed")
                 mc.isTorqueEnabled = enabled
             }
             else if (prop.equals(JointDynamicProperty.TORQUE) ) {
-                value = value*mc.maxTorque/100.0
-                request.text = String.format("My %s torque is set to %.0f newton meters", Joint.toText(mc.joint),value)
+                request.text = String.format("Setting my %s torque to %2.2f newton meters", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.RANGE) ) {
                 request.error = String.format("%s minimum and maximum angles must be set separately", Joint.toText(mc.joint))

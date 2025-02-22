@@ -61,6 +61,8 @@ object DxlConversions {
     }
 
     // Speed is deg/sec
+    // Each increment is .11 RMP (.66 deg/sec)
+    // Bit 10 is the direction
     fun speedToDxl(mc: MotorConfiguration, arg: Double): Int {
         var cw: Boolean = mc.isDirect
         var value = arg
@@ -69,7 +71,7 @@ object DxlConversions {
             value = -value
         }
         if( value>mc.maxSpeed ) value = mc.maxSpeed
-        var intVal = (value * 1023.0 / velocity[mc.type]!!).toInt()
+        var intVal = (value*0.66).toInt()
         if (!cw) intVal = intVal or 0x400
         return intVal
     }
@@ -79,7 +81,7 @@ object DxlConversions {
         var cw: Boolean = mc.isDirect
         if (raw and 0x400 != 0) cw = !cw
         raw = raw and 0x3FF
-        var result = (raw * velocity[mc.type]!!) / 1023
+        var result = raw / 0.66
         if (!cw) result = -result
         return result
     }
@@ -87,40 +89,33 @@ object DxlConversions {
     // N-m (assumes EEPROM max torque is 1023)
     // Positive number is CCW. Each unit represents .1%.
     fun torqueToDxl(mc: MotorConfiguration, arg: Double): Int {
-        var cw: Boolean = mc.isDirect
         var value = arg
         if (value < 0.0) {
-            cw = !cw
             value = -value
         }
         if( value>mc.maxTorque ) value = mc.maxTorque
-        var intVal = (value * 1023.0 / torque[mc.type]!!).toInt()
-        if (cw) intVal = intVal or 0x400
+        var intVal = ((value/mc.maxTorque) * 0X3FF).toInt()
         return intVal
 
     }
 
     // For a load the direction is pertinent. Positive implies CW.
-    fun dxlToLoad(type:DynamixelType, isDirect:Boolean,b1: Byte, b2: Byte): Double {
+    fun dxlToLoad(mc:MotorConfiguration,b1: Byte, b2: Byte): Double {
         var raw = (b1.toInt() and 0XFF) + 256 * (b2.toInt() and 0XFF)
-        var cw: Boolean = isDirect
+        var cw: Boolean = mc.isDirect
         if (raw and 0x400 != 0) cw = !cw
         raw = raw and 0x3FF
-        var result = raw * torque[type]!! / 1023.0
+        var result = mc.maxTorque * raw / 0X3FF
         if (cw) result = -result
         if(DEBUG) LOGGER.info(String.format("%s.dxlToLoad: b1,b2: %02X,%02X = %2.0f",CLSS, b1,b2,result))
         return result
     }
 
-    // The torque-limit values in the EEPROM don't make sense. AX-12 has 8C FF. M-28/64 A0 FF.
-    // For these values we'll just return the spec limit. Limit/goals are always positive.
-    fun dxlToTorque(type:DynamixelType, b1: Byte, b2: Byte): Double {
-        var torque = torque[type]!! // Spec value
-        if (b2.toInt() != 0xFF) {
-            var raw = b1 + 256 * b2
-            raw = raw and 0x3FF
-            torque = raw * torque / 0x3FF
-        }
+    // For max-torque use spec limit. 100% = 03FF Torque doe not have a direction (see load).
+    fun dxlToTorque(mc:MotorConfiguration, b1: Byte, b2: Byte): Double {
+        var raw = b1 + 256 * b2
+        raw = raw and 0x3FF
+        val torque = (mc.maxTorque * raw) / 0x3FF
         if(DEBUG) LOGGER.info(String.format("%s.dxlToTorque: b1,b2: %02X,%02X = %2.0f",CLSS,
                   b1,b2,torque))
         return torque
@@ -235,10 +230,10 @@ object DxlConversions {
             JointDynamicProperty.MINIMUMANGLE   -> value = dxlToDegree(mc, b1, b2)
             JointDynamicProperty.RANGE          -> value = 0.0
             JointDynamicProperty.ANGLE          -> value = dxlToDegree(mc, b1, b2)
-            JointDynamicProperty.LOAD           -> value = dxlToLoad(mc.type,mc.isDirect, b1, b2)
+            JointDynamicProperty.LOAD           -> value = dxlToLoad(mc, b1, b2)
             JointDynamicProperty.SPEED          -> value = dxlToSpeed(mc, b1, b2)
             JointDynamicProperty.TEMPERATURE    -> value = dxlToTemperature(b1)
-            JointDynamicProperty.TORQUE         -> value = dxlToTorque(mc.type, b1, b2)
+            JointDynamicProperty.TORQUE         -> value = dxlToTorque(mc, b1, b2)
             JointDynamicProperty.STATE          -> value = dxlToTorqueEnable(b1)
             JointDynamicProperty.VOLTAGE        -> value = dxlToVoltage(b1)
             JointDynamicProperty.MAXIMUMSPEED   -> value = 0.0
@@ -276,6 +271,7 @@ object DxlConversions {
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
+
         // Range of motion in degrees
         range[DynamixelType.AX12] = 300
         range[DynamixelType.MX28] = 360
@@ -285,15 +281,5 @@ object DxlConversions {
         resolution[DynamixelType.AX12] = 0x3FF
         resolution[DynamixelType.MX28] = 0xFFF
         resolution[DynamixelType.MX64] = 0xFFF
-
-        // Angular velocity ~ deg/sec
-        velocity[DynamixelType.AX12] = 684.0
-        velocity[DynamixelType.MX28] = 700.0
-        velocity[DynamixelType.MX64] = 700.0
-
-        // Full-scale torque ~ Nm
-        torque[DynamixelType.AX12] = 1.2
-        torque[DynamixelType.MX28] = 2.5
-        torque[DynamixelType.MX64] = 6.0
     }
 }

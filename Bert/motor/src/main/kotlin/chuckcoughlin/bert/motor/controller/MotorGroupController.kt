@@ -11,6 +11,7 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import jssc.SerialPort
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -126,11 +127,15 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * @return the response, usually containing current joint positions.
      */
     suspend fun processRequest(request: MessageBottle):MessageBottle {
-        if(request.limb!=Limb.NONE) {
-            LOGGER.info(String.format("%s.processRequest: processing %s on %s",CLSS,request.type.name,request.limb.name))
-        }
-        else {
-            LOGGER.info(String.format("%s.processRequest: processing %s on %s",CLSS,request.type.name,request.joint.name))
+        if(DEBUG) {
+            if (request.limb != Limb.NONE) {
+                LOGGER.info(String.format("%s.processRequest: processing %s on %s",
+                    CLSS,request.type.name,request.limb.name))
+            }
+            else {
+                LOGGER.info(String.format("%s.processRequest: processing %s on %s",
+                    CLSS,request.type.name,request.joint.name))
+            }
         }
 
         if (canHandleImmediately(request) ) {

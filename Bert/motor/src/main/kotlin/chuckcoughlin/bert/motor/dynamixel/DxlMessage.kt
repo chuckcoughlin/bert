@@ -873,8 +873,8 @@ object DxlMessage {
             JointDynamicProperty.SPEED         -> text = String.format("%2.0f degrees per second", value)
             JointDynamicProperty.MAXIMUMSPEED  -> text = String.format("%2.0f degrees per second", value)
             JointDynamicProperty.TEMPERATURE   -> text = String.format("%2.1f degrees centigrade", value)
-            JointDynamicProperty.TORQUE        -> text = String.format("%2.2f newton-meters", value)
-            JointDynamicProperty.MAXIMUMTORQUE  -> text = String.format("%2.2f newton-meters", value)
+            JointDynamicProperty.TORQUE        -> text = String.format("%2.2f newton meters", value)
+            JointDynamicProperty.MAXIMUMTORQUE  -> text = String.format("%2.2f newton meters", value)
             JointDynamicProperty.STATE         -> text = String.format("torque-%s", if (value == 0.0) "disabled" else "enabled")
             JointDynamicProperty.VOLTAGE       -> text = String.format("%2.1f volts", value)
             JointDynamicProperty.NONE          -> text = ""
