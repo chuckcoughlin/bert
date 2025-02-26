@@ -44,7 +44,9 @@ object Solver {
      */
     private fun updateLocationsInChain(subchain: List<Link>) {
         for(link in subchain) {
-            link.updateCoordinates()
+            link.updateLocation()
+            if(DEBUG) LOGGER.info(String.format("%s.updateLocationsInChain: %s at %2.0f deg (%s) ",
+                CLSS,link.bone.name,link.jointAngle,link.coordinatesToText()))
         }
     }
 

@@ -22,7 +22,7 @@ import java.util.logging.Logger
  * can be calculated.
  *
  * Within the linkPin object, coordinates are with respect to the
- * link's parent and are static. Coordinates within the link object are
+ * link's parent and are static. Position within the link object is
  * temporary and are calculated with respect to the inertial frame of
  * reference. Any corrections due to IMU readings are handled externally.
  *
@@ -37,12 +37,17 @@ class Link( bone: Bone) {
     private var dirty = true // Requires calculations
     var sourcePin: LinkPin
     private var angle: Double
+    // Position and orientation in space depending on motor setting
+    // and location of parent link. Orientation is a unit-length vector.
     var coordinates = doubleArrayOf(0.0, 0.0, 0.0)
+    var orientation = doubleArrayOf(0.0, 0.0, 0.0)
 
     fun coordinatesToPoint():Point3D {
         return Point3D(coordinates[0],coordinates[1],coordinates[2])
     }
-
+    fun coordinatesToText():String {
+        return String.format("%3.3f,%3.3f,%3.3f",coordinates[0],coordinates[1],coordinates[2])
+    }
     /**
      * Mark link as needing new calculations. We do this because sub-chains
      * that share links can avoid redundant computations.
@@ -76,9 +81,11 @@ class Link( bone: Bone) {
     }
 
     /**
-     * Recalculate the position of this link from an updated location of the parent of the source link
+     * Recalculate the position of this link from an updated location of the parent
+     * and its joint position.
+     *
      */
-    fun updateCoordinates() {
+    fun updateLocation() {
         if( dirty ) {
             if(sourcePin.type==PinType.REVOLUTE) {
             }
@@ -108,11 +115,11 @@ class Link( bone: Bone) {
 
         if( dirty ) {
                 coords = sourcePin.offset
-                val orient = sourcePin.orientation
+                val direction = sourcePin.axis
                 rotation = rotationFromCoordinates(coords)
-                rotation[0] = rotation[0] + orient[0]
-                rotation[1] = rotation[1] + orient[1]
-                rotation[2] = rotation[2] + orient[2]
+                rotation[0] = rotation[0] + direction[0]
+                rotation[1] = rotation[1] + direction[1]
+                rotation[2] = rotation[2] + direction[2]
 
             LOGGER.info(String.format("%s.updateEndPointCoordinates: %s (%s) ---------------",
                     CLSS,endPoint.type.name,if(endPoint.type.equals(PinType.EXTREMITY)) endPoint.extremity.name else endPoint.joint.name))
@@ -168,14 +175,15 @@ class Link( bone: Bone) {
 
     private val CLSS = "Link"
     private val LOGGER = Logger.getLogger(CLSS)
-
+    private val DEBUG: Boolean
     /**
      */
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         angle = Math.PI
         dirty = true
         destinationPinForExtremity = mutableMapOf<Extremity,LinkPin>()
         destinationPinForJoint = mutableMapOf<Joint,LinkPin>()
-        sourcePin = LinkPin()   // Origin, for now
+        sourcePin = LinkPin(PinType.ORIGIN)   // Origin, for now
     }
 }

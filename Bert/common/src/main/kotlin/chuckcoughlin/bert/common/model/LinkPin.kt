@@ -4,60 +4,40 @@
  */
 package chuckcoughlin.bert.common.model
 
-
 /**
  * A LinkPoint is either a hinged joint or a fixed extremity.
- * The coordinates are a 3D location of the joint/extremity
- * with respect to the origin of the link.
+ * The offset coordinates are a 3D location of the joint/extremity
+ * with respect to the origin of the link. The orgin of a Link is
+ * a LinkPin belonging to the parent of that link.
  *
- * The orientation array shows the direction of the
- * axis of the joint with respect a line from the joint
- * to the link origin. The offset coordinates are with respect
- * to the link origin. In most cases, the linkPoint
+ * The alignment array is a unit-length vector showing the direction of the
+ * axis of the joint motor with respect to a line from the joint
+ * to the link origin. The alignment coordinates are with respect
+ * to the link origin. In most cases, the linkPin
  * is along the z axis.
  */
-class LinkPin {
+class LinkPin (val type:PinType ) {
     var offset : DoubleArray
-    var orientation: DoubleArray
-    val extremity: Extremity
-    val joint: Joint
-    val type:PinType
+    var axis: DoubleArray
+    var extremity: Extremity
+    var joint: Joint
 
-    /**
-     * Special constructor for a LinkPoint representing the origin of the link chain.
-     */
-    constructor() {
-        type = PinType.ORIGIN
-        extremity = Extremity.NONE
-        joint = Joint.NONE
-        offset = doubleArrayOf(0.0, 0.0, 0.0)
-        orientation = doubleArrayOf(0.0, 0.0, 0.0)
-    }
-    constructor(ext: Extremity, rot: DoubleArray, pos: DoubleArray) {
-        type = PinType.EXTREMITY
-        extremity = ext
-        joint = Joint.NONE
-        offset = pos
-        orientation = degreesToRadians(rot)
-    }
-
-    constructor(j: Joint, rot: DoubleArray, pos: DoubleArray) {
-        type = PinType.REVOLUTE
-        extremity = Extremity.NONE
-        joint = j
-        orientation = degreesToRadians(rot)
-        offset = pos
-    }
-
-    private fun degreesToRadians(array: DoubleArray): DoubleArray {
-            var i = 0
-            while (i < array.size) {
-                array[i] = array[i] * Math.PI / 180.0
-                i++
-            }
+    fun degreesToRadians(array: DoubleArray): DoubleArray {
+        var i = 0
+        while (i < array.size) {
+            array[i] = array[i] * Math.PI / 180.0
+            i++
+        }
         return array
     }
 
     private val CLSS =  "LinkPin"
+
+    init {
+        extremity = Extremity.NONE
+        joint = Joint.NONE
+        offset = doubleArrayOf(0.0, 0.0, 0.0)
+        axis = doubleArrayOf(0.0, 0.0, 0.0)    // x,y,z axes
+    }
 
 }

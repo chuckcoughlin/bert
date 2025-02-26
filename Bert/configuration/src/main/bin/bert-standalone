@@ -16,7 +16,8 @@ cd bin
 # int - Internal Controller
 # mtr - Motor Controller
 # ser - Serial responder
+# slv - Location solver
 # sql - Database
 # ter - Terminal
 # -nst means hasNetwork, hasSerial and hasTerminal
-./bertApp -nst -dcmd,dsp,int,mtr,ser,sql,ter ${ROBOT_HOME}
+./bertApp -nst -dcfg,dsp,int,mtr,ser,slv ${ROBOT_HOME}

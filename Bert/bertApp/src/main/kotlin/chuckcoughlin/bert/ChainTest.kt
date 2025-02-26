@@ -3,6 +3,7 @@ package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Chain
+import chuckcoughlin.bert.common.model.Chain.root
 import chuckcoughlin.bert.common.model.Extremity
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
@@ -22,88 +23,75 @@ import java.util.*
  * Changes to the "inertial frame" as detected by the IMU
  * are all handled here.
  */
-class TestChain {
-}
-
-/**
- * Test construction of the chain of robot "limbs" based on the URDF file in
- * $BERT_HOME/etc on the development machine.
- */
-fun main(args: Array<String>) {
-    // Analyze command-line argument to obtain the robot root directory.
-    val arg = args[0]
-    val path = Paths.get(arg)
-    PathConstants.setHome(path)
-    // Setup logging to use only a file appender to our logging directory
-    val LOG_ROOT = CLSS.lowercase(Locale.getDefault())
-    LoggerUtility.configureTestLogger(LOG_ROOT)
-    // Analyze the xml for motor configurations. Initialize the motor configurations.
-    RobotModel.startup(PathConstants.CONFIG_PATH)
-    RobotModel.populate() //
-    setMotorPositions()
-
-    URDFModel.analyzePath(PathConstants.URDF_PATH)
+object ChainTest {
     val root = Chain.root
-    println(String.format("%s: root = %s ", CLSS, root.bone.name))
-    // Test the links to some extremities
-    println("=========================================================================")
-    var subchain = Chain.partialChainToExtremity(Extremity.LEFT_EAR)
-    for (link in subchain) {
-        println(String.format("\t%s ", link.bone.name))
-    }
-    println("=========================================================================")
-    subchain = Chain.partialChainToExtremity(Extremity.RIGHT_FINGER)
-    for (link in subchain) {
-        println(String.format("\t%s ", link.bone.name))
-    }
-    println("=========================================================================")
-    subchain = Chain.partialChainToExtremity(Extremity.RIGHT_TOE)
-    for (link in subchain) {
-        println(String.format("\t%s ", link.bone.name))
-    }
-    println("=========================================================================")
-    subchain = Chain.partialChainToJoint(Joint.ABS_Y)
-    for (link in subchain) {
-        println(String.format("\t%s ", link.bone.name))
-    }
-}
 
-private val CLSS = "TestChain"
+    /**
+     * Test construction of the chain of robot "limbs" based on the URDF file in
+     * $BERT_HOME/etc on the development machine.
+     */
+    fun execute() {
+        setMotorPositions()
 
-/**
- * Set the initial positions of the motors to "home"!
- */
-fun setMotorPositions() {
-    for (joint in RobotModel.motorsByJoint.keys) {
-        val mc = RobotModel.motorsByJoint.get(joint)
-        // Set some reasonable values from the "home" pose.
-        when (joint) {
-            Joint.ABS_X -> mc!!.angle = 180.0
-            Joint.ABS_Y -> mc!!.angle = 180.0
-            Joint.ABS_Z -> mc!!.angle = 0.0
-            Joint.BUST_X -> mc!!.angle = 180.0
-            Joint.BUST_Y -> mc!!.angle = 180.0
-            Joint.NECK_Y -> mc!!.angle = 0.0
-            Joint.NECK_Z -> mc!!.angle = 0.0
-            Joint.LEFT_ANKLE_Y -> mc!!.angle = 90.0
-            Joint.LEFT_SHOULDER_Z -> mc!!.angle = 0.0
-            Joint.LEFT_ELBOW_Y -> mc!!.angle = 180.0
-            Joint.LEFT_HIP_X -> mc!!.angle = 180.0
-            Joint.LEFT_HIP_Y -> mc!!.angle = 180.0
-            Joint.LEFT_HIP_Z -> mc!!.angle = 0.0
-            Joint.LEFT_KNEE_Y -> mc!!.angle = 180.0
-            Joint.LEFT_SHOULDER_X -> mc!!.angle = 180.0
-            Joint.LEFT_SHOULDER_Y -> mc!!.angle = 180.0
-            Joint.RIGHT_ANKLE_Y -> mc!!.angle = 90.0
-            Joint.RIGHT_SHOULDER_Z -> mc!!.angle = 0.0
-            Joint.RIGHT_ELBOW_Y -> mc!!.angle = 180.0
-            Joint.RIGHT_HIP_X -> mc!!.angle = 180.0
-            Joint.RIGHT_HIP_Y -> mc!!.angle = 180.0
-            Joint.RIGHT_HIP_Z -> mc!!.angle = 0.0
-            Joint.RIGHT_KNEE_Y -> mc!!.angle = 180.0
-            Joint.RIGHT_SHOULDER_X -> mc!!.angle = 180.0
-            Joint.RIGHT_SHOULDER_Y -> mc!!.angle = 180.0
-            Joint.NONE -> mc!!.angle = 0.0
+        // Test the links to some extremities
+        println(String.format("==================== %s ===========================================",CLSS ))
+        println(String.format("%s: root = %s ", CLSS, root.bone.name))
+
+        println("======== Test LEFT_EAR to PELVIS subchain")
+        var subchain = Chain.partialChainToExtremity(Extremity.LEFT_EAR)
+        for (link in subchain) {
+            println(String.format("\t%s ", link.bone.name))
+        }
+        println("======== Test RIGHT_FINGER to PELVIS subchain")
+        subchain = Chain.partialChainToExtremity(Extremity.RIGHT_FINGER)
+        for (link in subchain) {
+            println(String.format("\t%s ", link.bone.name))
+        }
+        println("======== Test ABS_X to PELVIS subchain")
+        subchain = Chain.partialChainToJoint(Joint.ABS_X)
+        for (link in subchain) {
+            println(String.format("\t%s ", link.bone.name))
+        }
+    }
+
+    private val CLSS = "ChainTest"
+
+    /**
+     * Set the initial positions of the motors to "home"!
+     */
+    fun setMotorPositions() {
+        for (joint in RobotModel.motorsByJoint.keys) {
+            val mc = RobotModel.motorsByJoint.get(joint)
+            // Set some reasonable values from the "home" pose.
+            when (joint) {
+                Joint.ABS_X -> mc!!.angle = 180.0
+                Joint.ABS_Y -> mc!!.angle = 180.0
+                Joint.ABS_Z -> mc!!.angle = 0.0
+                Joint.BUST_X -> mc!!.angle = 180.0
+                Joint.BUST_Y -> mc!!.angle = 180.0
+                Joint.NECK_Y -> mc!!.angle = 0.0
+                Joint.NECK_Z -> mc!!.angle = 0.0
+                Joint.LEFT_ANKLE_Y -> mc!!.angle = 90.0
+                Joint.LEFT_SHOULDER_Z -> mc!!.angle = 0.0
+                Joint.LEFT_ELBOW_Y -> mc!!.angle = 180.0
+                Joint.LEFT_HIP_X -> mc!!.angle = 180.0
+                Joint.LEFT_HIP_Y -> mc!!.angle = 180.0
+                Joint.LEFT_HIP_Z -> mc!!.angle = 0.0
+                Joint.LEFT_KNEE_Y -> mc!!.angle = 180.0
+                Joint.LEFT_SHOULDER_X -> mc!!.angle = 180.0
+                Joint.LEFT_SHOULDER_Y -> mc!!.angle = 180.0
+                Joint.RIGHT_ANKLE_Y -> mc!!.angle = 90.0
+                Joint.RIGHT_SHOULDER_Z -> mc!!.angle = 0.0
+                Joint.RIGHT_ELBOW_Y -> mc!!.angle = 180.0
+                Joint.RIGHT_HIP_X -> mc!!.angle = 180.0
+                Joint.RIGHT_HIP_Y -> mc!!.angle = 180.0
+                Joint.RIGHT_HIP_Z -> mc!!.angle = 0.0
+                Joint.RIGHT_KNEE_Y -> mc!!.angle = 180.0
+                Joint.RIGHT_SHOULDER_X -> mc!!.angle = 180.0
+                Joint.RIGHT_SHOULDER_Y -> mc!!.angle = 180.0
+                Joint.NONE -> mc!!.angle = 0.0
+            }
         }
     }
 }
+

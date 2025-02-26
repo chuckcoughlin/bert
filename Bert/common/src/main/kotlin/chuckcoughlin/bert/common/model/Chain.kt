@@ -29,13 +29,17 @@ object Chain {
      * @param extremity
      * @return
      */
-    fun partialChainToExtremity(extremity: Extremity?): List<Link> {
+    fun partialChainToExtremity(extremity: Extremity): List<Link> {
         val partial: LinkedList<Link> = LinkedList<Link>()
         var link = URDFModel.linkForExtremity[extremity]
+        if( link==null ) LOGGER.warning(String.format("%s.partialChainToextremity: No link found for %s",CLSS,extremity.name))
         while (link != null) {
             partial.addFirst(link)
+            if(DEBUG) LOGGER.info(String.format("%s.partialChainToExtremity: %s - inserting %s (%s)",CLSS,extremity.name,link.bone.name,link.sourcePin.type))
             if( link.sourcePin.type.equals(PinType.ORIGIN)) break
-            link = URDFModel.linkForJoint[link.sourcePin.joint]
+            val joint = link.sourcePin.joint
+            link = URDFModel.linkForJoint[joint]
+            if( link==null ) LOGGER.warning(String.format("%s.partialChainToextremity: No link found for joint %s",CLSS,joint))
         }
         return partial
     }
@@ -49,10 +53,15 @@ object Chain {
     fun partialChainToJoint(joint: Joint): List<Link> {
         val partial: LinkedList<Link> = LinkedList<Link>()
         var link = URDFModel.linkForJoint[joint]
+        if( link==null ) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for %s",CLSS,joint.name))
         while (link != null) {
             partial.addFirst(link)
+            if(DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s)",CLSS,joint.name,link.bone.name,link.sourcePin.type))
             if( link.sourcePin.type.equals(PinType.ORIGIN)) break
-            link = URDFModel.linkForJoint[link.sourcePin.joint]
+            val joint = link.sourcePin.joint
+            link = URDFModel.linkForJoint[joint]
+            if(DEBUG && link!=null) LOGGER.info(String.format("%s.partialChainToJoint: %s - next is %s",CLSS,joint.name,link.bone.name))
+            else if(link==null) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for joint %s",CLSS,joint))
         }
         return partial
     }

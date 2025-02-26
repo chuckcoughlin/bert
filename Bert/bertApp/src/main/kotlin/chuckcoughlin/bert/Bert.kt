@@ -7,7 +7,6 @@ package chuckcoughlin.bert
 import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.Solver
 import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
@@ -53,9 +52,13 @@ fun main(args: Array<String>) {
     var terminal  = false
     // debug
     var dbg = ""
+    var testSequence = ""
     for (a: String in args) {
         if (a.startsWith("-d")) {     // Debugging flags
             dbg = a.substring(2)
+        }
+        else if (a.startsWith("-t")) { // Test flags
+            testSequence = a.substring(2)
         }
         else if (a.startsWith("-")) {   // Option
             if (a.contains("n")) network = true
@@ -92,10 +95,15 @@ fun main(args: Array<String>) {
 
     Database.startup(PathConstants.DB_PATH)
     URDFModel.analyzePath(PathConstants.URDF_PATH)
-    val dispatcher = Dispatcher()
-    Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
-    runBlocking {
-        dispatcher.execute()
+    if( testSequence.isEmpty() ) {     // Not-a-test
+        val dispatcher = Dispatcher()
+        Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))
+        runBlocking {
+            dispatcher.execute()
+        }
+    }
+    else if( testSequence.contains("chain")) {
+        ChainTest.execute()
     }
 }
 

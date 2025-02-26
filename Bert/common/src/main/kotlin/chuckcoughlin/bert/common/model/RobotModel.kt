@@ -418,7 +418,6 @@ object RobotModel {
      * Set speeds in the motor configuration objects to be recognized next movement
      */
     fun setJointSpeeds(newSpeed:Double) {
-        val motorValues = mutableListOf<JointValue>()
         for (mc in motorsById.values) {
             mc.speed = newSpeed
         }
@@ -427,7 +426,7 @@ object RobotModel {
     private var DEBUG = false
     private val LOGGER = Logger.getLogger(CLSS)
 
-    init {
+    init {RobotModel.
         properties = Properties()
         motorControllerDevices    = mutableMapOf<String, String>()
         motorControllerNames      = mutableListOf<String>()

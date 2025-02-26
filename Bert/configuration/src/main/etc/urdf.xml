@@ -156,7 +156,10 @@
 	<link name="SKULL">
 		<extremity name="LEFT_EYE"/>
 		<extremity name="RIGHT_EYE"/>
-		<extremity name="LEFT_EAR"/>
+		<extremity name="LEFT_EAR">
+			<origin xyz="0.0225417390633467 0 0" />
+			<axis xyz="0 0 -1"/>
+	</extremity>
 		<extremity name="RIGHT_EAR"/>
 		<extremity name="NOSE">
 			<origin xyz="-0.0225417390633467 0 0" />
@@ -186,7 +189,10 @@
 		<source joint="LEFT_SHOULDER_Z"/>
 	</link>
 	<link name="LEFT_FOREARM">
-		<extremity name="LEFT_FINGER"/>
+		<extremity name="LEFT_FINGER">
+			<origin xyz="-0.0225417390633467 0 0" />
+			<axis xyz="0 0 -1"/>
+		</extremity>
 		<source joint="LEFT_ELBOW_Y"/>
 	</link>
 	<link name="RIGHT_CLAVICLE">

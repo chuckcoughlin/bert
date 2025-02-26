@@ -194,6 +194,10 @@ class Dispatcher : Controller {
         msg.source = ControllerType.BITBUCKET
         msg.control.delay = 2000 // 2 sec delay
         toInternalController.send(msg)
+
+        // Initialize the PELVIS to 0,0,0.
+        Chain.root.coordinates = doubleArrayOf(0.0, 0.0, 0.0)
+        Chain.root.orientation = doubleArrayOf(0.0, 1.0, 0.0)  // Straight ahead
     }
 
     /**
@@ -289,7 +293,7 @@ class Dispatcher : Controller {
         if( request.error.equals(BottleConstants.NO_ERROR)) {
             if (request.type == RequestType.COMMAND) {
                 val command = request.command
-                LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
                 if (command == CommandType.CREATE_ACTION) {
                     val actName: String = request.text.lowercase()
                     val series = request.arg.lowercase()
@@ -340,7 +344,7 @@ class Dispatcher : Controller {
             }
             // The following two requests simply use the current positions of the motors, whatever they are
             else if (request.type.equals(RequestType.GET_EXTREMITY_LOCATION)) {
-                LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: extremity=%s", CLSS, request.extremity.name))
                 Solver.updateLinkAngles() // Forces new calculations
                 val appendage = request.extremity
                 val xyz: Point3D = Solver.computeLocation(appendage)
@@ -350,7 +354,7 @@ class Dispatcher : Controller {
             }
             // The location in physical coordinates from the center of the robot.
             else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
-                LOGGER.info(String.format("%s.handleLocalRequest: text=%s", CLSS, request.text))
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: joint=%s", CLSS, request.joint.name))
                 Solver.updateLinkAngles()
                 val joint = request.joint
                 val xyz: Point3D = Solver.computeLocation(joint)
@@ -360,7 +364,7 @@ class Dispatcher : Controller {
                 request.text = text
             }
             else if (request.type.equals(RequestType.GET_METRIC)) {
-                LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
+                if(DEBUG)LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
                 val metric: MetricType = request.metric
                 var text = ""
                 when (metric) {
@@ -813,7 +817,7 @@ class Dispatcher : Controller {
             cadence = cadenceString.toInt()
         }
         catch (nfe: NumberFormatException) {
-            LOGGER.warning(String.format("%s.constructor: Cadence must be an integer (%s)", CLSS, nfe.localizedMessage))
+            LOGGER.warning(String.format("%s.init: Cadence must be an integer (%s)", CLSS, nfe.localizedMessage))
         }
         LOGGER.info(String.format("%s.init: cadence %d msecs", CLSS, cadence))
     }

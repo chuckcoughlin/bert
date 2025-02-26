@@ -1,0 +1,21 @@
+#!/bin/sh
+# Run the robot through a series of hard-coded tests
+cd ${ROBOT_HOME}
+bin/clear_logs
+cd distribution/bertApp
+export APP_HOME=`pwd`
+cd bin
+# Turn on targeted debugging with these -d flags
+# cfg - Configuration
+# cmd - Command
+# dsp - Dispatcher
+# grp - Group Controller
+# int - Internal Controller
+# mtr - Motor Controller
+# ser - Serial responder
+# slv - Location solver
+# sql - Database
+# ter - Terminal
+# Configure particular test series. The robot will run the tests, then exit.
+#    chain - Test of Chain Computations
+./bertApp -nst -dcfg,slv -tchain ${ROBOT_HOME}
