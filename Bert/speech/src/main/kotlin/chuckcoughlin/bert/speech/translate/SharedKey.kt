@@ -11,7 +11,7 @@ package chuckcoughlin.bert.speech.translate
 enum class SharedKey {
     ASLEEP,  // Robot ignores requests,
     AXIS,
-    EXTREMITY,
+    APPENDAGE,
     FACE,    // Recognized user
     JOINT,
     LIMB,

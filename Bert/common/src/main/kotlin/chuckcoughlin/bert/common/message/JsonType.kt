@@ -18,8 +18,8 @@ package chuckcoughlin.bert.common.message
 enum class JsonType {
     ACTION_NAMES,     // List of actions                     MutableList<String>
     BONE_NAMES,       // List of link names (bones)          MutableList<String>
-    EXTREMITY_LOCATION, // x,y,z coordinates of an extremity ExtremityLocation
-    EXTREMITY_NAMES,  // List of extremeties              MutableList<String>
+    END_EFFECTORLOCATION, // x,y,z coordinates of an appendage AppendageLocation
+    END_EFFECTOR_NAMES,  // List of end effector names              MutableList<String>
     FACIAL_DETAILS,   // Facial identification features   FacialDetails
     FACE_DIRECTION,   // Angular direction of view        FaceDirection
     FACE_NAMES,       // Names df people whom we know     MutableList<String>

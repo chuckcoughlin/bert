@@ -5,10 +5,10 @@
 package chuckcoughlin.bert.common.model
 
 /**
- * A LinkPoint is either a hinged joint or a fixed extremity.
- * The offset coordinates are a 3D location of the joint/extremity
+ * A LinkPoint is either a hinged joint or an end effector (unmoving).
+ * The offset coordinates are a 3D location of the joint/end effector
  * with respect to the origin of the link. The orgin of a Link is
- * a LinkPin belonging to the parent of that link.
+ * a REVOLUTE LinkPin belonging to the parent of that link.
  *
  * The alignment array is a unit-length vector showing the direction of the
  * axis of the joint motor with respect to a line from the joint
@@ -19,7 +19,7 @@ package chuckcoughlin.bert.common.model
 class LinkPin (val type:PinType ) {
     var offset : DoubleArray
     var axis: DoubleArray
-    var extremity: Extremity
+    var appendage: Appendage  // End effector
     var joint: Joint
 
     fun degreesToRadians(array: DoubleArray): DoubleArray {
@@ -34,10 +34,10 @@ class LinkPin (val type:PinType ) {
     private val CLSS =  "LinkPin"
 
     init {
-        extremity = Extremity.NONE
+        appendage = Appendage.NONE
         joint = Joint.NONE
         offset = doubleArrayOf(0.0, 0.0, 0.0)
-        axis = doubleArrayOf(0.0, 0.0, 0.0)    // x,y,z axes
+        axis = doubleArrayOf(0.0, 0.0, 1.0)    // x,y,z axes
     }
 
 }

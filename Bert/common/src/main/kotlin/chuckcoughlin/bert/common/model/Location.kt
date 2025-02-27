@@ -5,7 +5,7 @@
 package chuckcoughlin.bert.common.model
 
 /**
- * Position of a joint or extremity in space
+ * Position of a joint or end effector in space
  */
 interface Location {
 	val isJoint:Boolean

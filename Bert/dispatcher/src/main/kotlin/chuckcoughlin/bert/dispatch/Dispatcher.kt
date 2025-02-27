@@ -343,10 +343,10 @@ class Dispatcher : Controller {
                 }
             }
             // The following two requests simply use the current positions of the motors, whatever they are
-            else if (request.type.equals(RequestType.GET_EXTREMITY_LOCATION)) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: extremity=%s", CLSS, request.extremity.name))
+            else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: extremity=%s", CLSS, request.appendage.name))
                 Solver.updateLinkAngles() // Forces new calculations
-                val appendage = request.extremity
+                val appendage = request.appendage
                 val xyz: Point3D = Solver.computeLocation(appendage)
                 val text = String.format("my %s is located at %2.2f %2.2f %2.2f meters",
                                   appendage.name, xyz.x, xyz.y, xyz.z)
@@ -390,7 +390,7 @@ class Dispatcher : Controller {
                             JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = "Each joint has " + JointDynamicProperty.names()
                             JsonType.MOTOR_STATIC_PROPERTIES -> text = "Each joint has a " + JointDynamicProperty.names()
                             JsonType.BONE_NAMES -> text = "My skeleton is made up of  " + Bone.nameList()
-                            JsonType.EXTREMITY_NAMES -> text = "I have these extremities:  " + Extremity.nameList()
+                            JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Appendage.nameList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.nameList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
@@ -456,14 +456,14 @@ class Dispatcher : Controller {
                 var text = ""
                 when (jtype) {
                     // List the names of different kinds of motor properties
-                    JsonType.EXTREMITY_LOCATION -> {
-                        text = Solver.extremityLocationToJSON(request.extremity)
+                    JsonType.END_EFFECTORLOCATION-> {
+                        text = Solver.appendageLocationToJSON(request.appendage)
                     }
                     JsonType.BONE_NAMES -> {
                         text = URDFModel.bonesToJSON()
                     }
-                    JsonType.EXTREMITY_NAMES -> {
-                        text = URDFModel.extremitiesToJSON()
+                    JsonType.END_EFFECTOR_NAMES -> {
+                        text = URDFModel.endEffectorNamesToJSON()
                     }
 
                     JsonType.FACE_NAMES -> {
@@ -599,7 +599,7 @@ class Dispatcher : Controller {
     // database queries and some error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
-            request.type==RequestType.GET_EXTREMITY_LOCATION ||
+            request.type==RequestType.GET_APPENDAGE_LOCATION||
             request.type==RequestType.GET_JOINT_LOCATION ||
             request.type==RequestType.GET_METRIC ||
             request.type==RequestType.HANGUP    ) {

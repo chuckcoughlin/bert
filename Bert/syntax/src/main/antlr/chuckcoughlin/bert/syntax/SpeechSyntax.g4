@@ -28,7 +28,7 @@ command:
 	| List Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
 	| List Article? Location Article? Side? Limb		    # limbLocationList
     | List Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion
-    | List Article? Article? (Motors|Limbs|Extremities|Bones)      # bodyPartListQuestion
+    | List Article? Article? (Motors|Limbs|Appendages|Bones)      # bodyPartListQuestion
     | List Article? Article? (Actions|Faces|Poses)          # databaseListQuestion
     | Straighten (It|Article? Side? (Joint|Limb) Axis? )    # straightenJoint
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
@@ -45,15 +45,15 @@ question:
     | Salutation?  Are You There					            # personalQuestion
     | (What Are|Tell Me) Article? (Dynamic|Static) Motor? Parameters		# parameterNamesQuestion
     | (What Are|Tell Me) Article? (Dynamic|Static) Parameters Of Article? Motors # parameterNamesQuestion
-    | (What Are|Tell Me) Article? Names Of Article? (Motors|Limbs|Extremities|Bones)   # bodyPartNamesQuestion
+    | (What Are|Tell Me) Article? Names Of Article? (Motors|Limbs|Appendages|Bones)   # bodyPartNamesQuestion
     | (What Are|Tell Me) Article? Names Of Article? (Actions|Faces|Poses)             # databaseNamesQuestion
     | (What Are|Tell Me) Article? (Limits|Goals) Of Article? Side? Joint Axis?        # handleBulkPropertyQuestion
     | (What Are|Tell Me) Article? Side? Joint Axis? Property                          # jointPropertyQuestion
-    | (What Is|Tell Me) Article? Location Of Article? Side? (Extremity|Joint)	Axis? # jointLocationQuestion
+    | (What Is|Tell Me) Article? Location Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Metric   				                  # metricsQuestion
-    | Where Is Article? Side? (Extremity|Joint)	Axis?       # jointLocationQuestion
+    | Where Is Article? Side? (Appendage|Joint)	Axis?       # jointLocationQuestion
     | What Actions Do You Know								# databaseActionNamesQuestion
     | What Poses Do You Know								# databasePoseNamesQuestion
     | Who Do You Know										# databaseFaceNamesQuestion
@@ -88,6 +88,8 @@ Why: 'why';
 Actions: 'actions';
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
+Appendages: 'appendages'|'end effectors';
+Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
@@ -97,8 +99,6 @@ Define: 'create'|'define'|'make';
 Describe: 'describe';
 Do: 'do';
 Dynamic: 'dynamic';
-Extremities: 'extremities';
-Extremity: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
 Faces: 'faces';
 From: 'from';
 Forget: 'forget'|'delete';

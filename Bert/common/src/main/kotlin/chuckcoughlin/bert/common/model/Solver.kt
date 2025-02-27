@@ -19,11 +19,11 @@ object Solver {
 
     /**
      * Return the location of a specified appendage in x,y,z coordinates in meters from the
-     * robot origin in the pelvis. he named extremity is
+     * robot origin in the pelvis. The named end effector or appendage is
      * last in the chain.
      */
-    fun computeLocation(extremity: Extremity): Point3D {
-        val subchain: List<Link> = Chain.partialChainToExtremity(extremity)
+    fun computeLocation(appendage: Appendage): Point3D {
+        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
         updateLocationsInChain(subchain)
         return if (subchain.size > 0) subchain.last().coordinatesToPoint() else ERROR_POSITION
     }
@@ -52,9 +52,9 @@ object Solver {
 
     /**
      */
-    fun extremityLocationToJSON(extremity:Extremity):String {
+    fun appendageLocationToJSON(appendage:Appendage):String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val loc = ExtremityLocation(extremity,computeLocation(extremity))
+        val loc = AppendageLocation(appendage,computeLocation(appendage))
         return gson.toJson(loc)
     }
 
@@ -111,9 +111,9 @@ object Solver {
                 list.add(loc)
             }
         }
-        for(extremity in Extremity.values()) {
-            if(extremity!=Extremity.NONE) {
-                val loc = ExtremityLocation(extremity,computeLocation(extremity))
+        for(appendage in Appendage.values()) {
+            if(appendage!=Appendage.NONE) {
+                val loc = AppendageLocation(appendage,computeLocation(appendage))
                 list.add(loc)
             }
         }

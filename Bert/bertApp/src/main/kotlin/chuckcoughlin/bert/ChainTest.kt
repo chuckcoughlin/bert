@@ -1,17 +1,10 @@
 package chuckcoughlin.bert
 
 
-import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.Chain
-import chuckcoughlin.bert.common.model.Chain.root
-import chuckcoughlin.bert.common.model.Extremity
+import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.Solver
-import chuckcoughlin.bert.common.model.URDFModel
-import chuckcoughlin.bert.common.util.LoggerUtility
-import java.nio.file.Paths
-import java.util.*
 
 /**
  * A Chain represents a tree of Links starting with the
@@ -38,12 +31,12 @@ object ChainTest {
         println(String.format("%s: root = %s ", CLSS, root.bone.name))
 
         println("======== Test LEFT_EAR to PELVIS subchain")
-        var subchain = Chain.partialChainToExtremity(Extremity.LEFT_EAR)
+        var subchain = Chain.partialChainToAppendage(Appendage.LEFT_EAR)
         for (link in subchain) {
             println(String.format("\t%s ", link.bone.name))
         }
         println("======== Test RIGHT_FINGER to PELVIS subchain")
-        subchain = Chain.partialChainToExtremity(Extremity.RIGHT_FINGER)
+        subchain = Chain.partialChainToAppendage(Appendage.RIGHT_FINGER)
         for (link in subchain) {
             println(String.format("\t%s ", link.bone.name))
         }

@@ -32,7 +32,7 @@ import java.util.logging.Logger
  */
 class Link( bone: Bone) {
     val destinationPinForJoint: MutableMap<Joint,LinkPin>
-    val destinationPinForExtremity: MutableMap<Extremity,LinkPin>
+    val destinationPinForAppendage: MutableMap<Appendage,LinkPin>
     val bone = bone
     private var dirty = true // Requires calculations
     var sourcePin: LinkPin
@@ -71,8 +71,8 @@ class Link( bone: Bone) {
      * An endpoint is an extremity or a RESOLUTE link
      */
     fun addEndPoint(end: LinkPin) {
-        if( end.type.equals(PinType.EXTREMITY)) {
-            destinationPinForExtremity[end.extremity] = end
+        if( end.type.equals(PinType.END_EFFECTOR)) {
+            destinationPinForAppendage[end.appendage] = end
         }
         else if( end.type.equals(PinType.REVOLUTE)) {
             destinationPinForJoint[end.joint] = end
@@ -94,7 +94,7 @@ class Link( bone: Bone) {
     }
     /**
      * Return the coordinates of the endpoint relative to inertial frame. The endpoint is
-     * either a joint or extremity.
+     * either a joint or end effector.
      *
      * 1) Get the parent's rotation, add the orientation of the origin. This represents
      * the rotation angle in the inertial frame.
@@ -122,7 +122,7 @@ class Link( bone: Bone) {
                 rotation[2] = rotation[2] + direction[2]
 
             LOGGER.info(String.format("%s.updateEndPointCoordinates: %s (%s) ---------------",
-                    CLSS,endPoint.type.name,if(endPoint.type.equals(PinType.EXTREMITY)) endPoint.extremity.name else endPoint.joint.name))
+                    CLSS,endPoint.type.name,if(endPoint.type.equals(PinType.END_EFFECTOR)) endPoint.appendage.name else endPoint.joint.name))
             LOGGER.info(String.format("           rotation = %.2f,%.2f,%.2f", rotation[0], rotation[1], rotation[2]))
             val offset = endPoint.offset
             LOGGER.info(String.format("           offset   = %.2f,%.2f,%.2f", offset[0], offset[1], offset[2]))
@@ -182,7 +182,7 @@ class Link( bone: Bone) {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         angle = Math.PI
         dirty = true
-        destinationPinForExtremity = mutableMapOf<Extremity,LinkPin>()
+        destinationPinForAppendage = mutableMapOf<Appendage,LinkPin>()
         destinationPinForJoint = mutableMapOf<Joint,LinkPin>()
         sourcePin = LinkPin(PinType.ORIGIN)   // Origin, for now
     }

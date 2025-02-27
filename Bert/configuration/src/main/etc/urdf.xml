@@ -2,26 +2,26 @@
 <!-- 
 	Right-handed coordinate system: x positive to front, y positive to right, z positive up
 	- axis is unit vector around which joint rotates clockwise
-   	- lengths ~ m, angles ~ degrees -->
+   	- lengths ~ mm, angles ~ degrees -->
 <robot name="bert">
-	<!-- The IMU position places it relative to the root link's origin. It represents the world-frame.
+	<!-- The IMU position places it relative to the root link's origin. It represents the world-frame origin.
 	     The axis of rotation represents the movement of the entire robot with respect to this frame.
 	-->
 	<imu> 
-		<origin xyz="0 0 -0.045" />
-		<axis xyz="0 0 9" />
+		<origin xyz="0 0 -45." />
+		<axis rpy="0 0 1" />
 	</imu>>
 
 	<!-- A link is equivalent to a bone. Each link may have several attachments,
-	     either joints or extremities, but only a single parent. The parent is
-	     a joint. The link with no parent is the origin.
+	     either joints or end effectors, but only a single parent. The parent is
+	     a joint (a RESULUTE link pin). The link with no parent is the origin.
 
 	     Joint names must match the names in bert.xml.
 				origin is position of joint in parent frame,
 				axis is orientation of joint in joint frame.
 
 		Links form a tree from the robot origin, PELVIS,
-		terminating in links or one or more extremities.
+		terminating in links or one or more end effectors.
 	  -->
 	<link name="PELVIS">        <!-- root -->
 		<joint name="RIGHT_HIP_X">
@@ -66,7 +66,7 @@
 		<source joint="RIGHT_KNEE_Y"/>
 	</link>
 	<link name="RIGHT_FOOT">
-		<extremity name="RIGHT_TOE"/>
+		<appendage name="RIGHT_TOE"/>
 		<extremity name="RIGHT_HEEL"/>
 		<source joint="RIGHT_ANKLE_Y"/>
 	</link>

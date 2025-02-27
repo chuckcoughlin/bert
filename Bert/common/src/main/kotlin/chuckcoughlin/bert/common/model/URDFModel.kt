@@ -20,7 +20,7 @@ import java.util.logging.Logger
 object URDFModel {
     var document: Document?
     val linkForBone: MutableMap<Bone, Link>
-    val linkForExtremity: MutableMap<Extremity, Link>
+    val linkForAppendage: MutableMap<Appendage, Link>
     val linkForJoint: MutableMap<Joint, Link>
     val sourceJointForLink: MutableMap<Link,Joint>
     val sourcePinForJoint : MutableMap<Joint,LinkPin>
@@ -67,7 +67,7 @@ object URDFModel {
                         origin.offset = xyz
                     }
                     else if ("axis".equals(cNode.localName, ignoreCase = true)) {
-                        text = XMLUtility.attributeValue(cNode, "xyz")
+                        text = XMLUtility.attributeValue(cNode, "rpy")
                         val xyz = doubleArrayFromDirectionString(text)
                         origin.axis = xyz
                     }
@@ -86,7 +86,7 @@ object URDFModel {
             while (index < count) {
                 val linkNode = links.item(index)
                 val name: String = XMLUtility.attributeValue(linkNode, "name")
-                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: first pass ink %s ...",CLSS,name));
+                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s ...",CLSS,name));
                 try {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
@@ -115,13 +115,13 @@ object URDFModel {
                                     }
                                     childIndex++
                                 }
-                                val extremity: Extremity = Extremity.fromString(aname)
-                                val end = LinkPin(PinType.EXTREMITY)
-                                end.extremity = extremity
+                                val appendage: Appendage = Appendage.fromString(aname)
+                                val end = LinkPin(PinType.END_EFFECTOR)
+                                end.appendage = appendage
                                 end.offset = end.degreesToRadians(ijk)
                                 end.axis = end.degreesToRadians(xyz)
                                 link.addEndPoint(end)
-                                linkForExtremity[extremity] = link
+                                linkForAppendage[appendage] = link
                             }
                             else if ("joint".equals(node.localName, ignoreCase = true)) {
                                 val aname: String = XMLUtility.attributeValue(node, "name")
@@ -216,10 +216,10 @@ object URDFModel {
     /**
      * @return  a comma-separated string of the names of all extremities.
      */
-    fun extremityNames(): String {
+    fun endEffectorNames(): String {
         var names = StringBuffer()
-        for (extremity in linkForExtremity.keys) {
-            names.append(extremity.name.lowercase())
+        for (appendage in linkForAppendage.keys) {
+            names.append(appendage.name.lowercase())
             names.append(", ")
         }
         if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
@@ -228,11 +228,11 @@ object URDFModel {
     /**
      * @return  a JSON pretty-printed String array of all appendaged.
      */
-    fun extremitiesToJSON(): String {
+    fun endEffectorNamesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
-        for (extremity in linkForExtremity.keys) {
-            names.add(extremity.name)
+        for (appendage in linkForAppendage.keys) {
+            names.add(appendage.name)
         }
         return gson.toJson(names)
     }
@@ -308,7 +308,7 @@ object URDFModel {
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_CONFIGURATION)
         document = null
-        linkForExtremity = mutableMapOf<Extremity, Link>()
+        linkForAppendage = mutableMapOf<Appendage, Link>()
         linkForBone      = mutableMapOf<Bone,Link>()
         linkForJoint     = HashMap<Joint,Link>()
         sourceJointForLink = mutableMapOf<Link,Joint>()

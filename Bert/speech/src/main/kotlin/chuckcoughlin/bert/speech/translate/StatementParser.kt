@@ -28,7 +28,7 @@ class StatementParser {
      */
     private fun initialize() {
         dictionary[SharedKey.ASLEEP] = "false"
-        dictionary[SharedKey.EXTREMITY] = Extremity.NONE
+        dictionary[SharedKey.APPENDAGE] = Appendage.NONE
         dictionary[SharedKey.AXIS] = "x"
         dictionary[SharedKey.JOINT] = Joint.NONE
         dictionary[SharedKey.LIMB] = Limb.NONE

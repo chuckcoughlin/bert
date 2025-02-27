@@ -9,7 +9,7 @@ package chuckcoughlin.bert.common.model
  * connection locations on a link.
  */
 enum class PinType {
-    EXTREMITY, ORIGIN, REVOLUTE;
+    END_EFFECTOR, ORIGIN, REVOLUTE;
 
     companion object {
         /**

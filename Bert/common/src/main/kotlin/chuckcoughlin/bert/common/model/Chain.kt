@@ -24,22 +24,22 @@ object Chain {
     private var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
 
     /**
-     * Work back toward the root from the specified extremity. The chain
+     * Work back toward the root from the specified end effector. The chain
      * is ordered beginning from the root.
-     * @param extremity
+     * @param appendage
      * @return
      */
-    fun partialChainToExtremity(extremity: Extremity): List<Link> {
+    fun partialChainToAppendage(appendage: Appendage): List<Link> {
         val partial: LinkedList<Link> = LinkedList<Link>()
-        var link = URDFModel.linkForExtremity[extremity]
-        if( link==null ) LOGGER.warning(String.format("%s.partialChainToextremity: No link found for %s",CLSS,extremity.name))
+        var link = URDFModel.linkForAppendage[appendage]
+        if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for %s",CLSS,appendage.name))
         while (link != null) {
             partial.addFirst(link)
-            if(DEBUG) LOGGER.info(String.format("%s.partialChainToExtremity: %s - inserting %s (%s)",CLSS,extremity.name,link.bone.name,link.sourcePin.type))
+            if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.bone.name,link.sourcePin.type))
             if( link.sourcePin.type.equals(PinType.ORIGIN)) break
             val joint = link.sourcePin.joint
             link = URDFModel.linkForJoint[joint]
-            if( link==null ) LOGGER.warning(String.format("%s.partialChainToextremity: No link found for joint %s",CLSS,joint))
+            if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for joint %s",CLSS,joint))
         }
         return partial
     }

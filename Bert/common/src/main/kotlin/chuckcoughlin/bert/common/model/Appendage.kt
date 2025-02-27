@@ -1,5 +1,5 @@
 /**
- * Copyright 2022. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -7,10 +7,11 @@ package chuckcoughlin.bert.common.model
 import chuckcoughlin.bert.common.util.TextUtility
 
 /**
- * These are the canonical names for appendages on various limbs.
- * These are body parts where we need locations.
+ * These are the canonical names for appendages or end effectors
+ * on various limbs. These are body parts where we need locations.
+ * At this point there are no actions associated with them.
  */
-enum class Extremity {
+enum class Appendage {
     LEFT_EAR, LEFT_EYE, LEFT_FINGER, LEFT_HEEL, LEFT_TOE, NOSE,
     RIGHT_EAR, RIGHT_EYE, RIGHT_FINGER, RIGHT_HEEL, RIGHT_TOE, NONE;
 
@@ -20,7 +21,7 @@ enum class Extremity {
          * @param limb the enumeration
          * @return user-recognizable text
          */
-        fun toText(limb: Extremity): String {
+        fun toText(limb: Appendage): String {
             var text = ""
             when (limb) {
                 LEFT_EAR -> text = "left ear"
@@ -53,9 +54,9 @@ enum class Extremity {
          */
         fun nameList(): String {
             val list = mutableListOf<String>()
-            for (ext in Extremity.values()) {
-                if( ext==Extremity.NONE) continue
-                list.add(Extremity.toText(ext))
+            for (ext in Appendage.values()) {
+                if( ext==Appendage.NONE) continue
+                list.add(Appendage.toText(ext))
             }
             return TextUtility.createTextForSpeakingFromList(list)
         }
@@ -63,11 +64,11 @@ enum class Extremity {
          * The enumeration function valueOf appears to always throw an exception.
          * This is the replacement. It is case-insensitive,
          */
-        fun fromString(arg: String): Extremity {
-            for (type in Extremity.values()) {
+        fun fromString(arg: String): Appendage {
+            for (type in Appendage.values()) {
                 if (type.name.equals(arg, true)) return type
             }
-            return Extremity.NONE
+            return Appendage.NONE
         }
     }
 }

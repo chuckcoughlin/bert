@@ -11,7 +11,7 @@ enum class RequestType {
     COMMAND,                 // Execute a command may have one or no args
     EXECUTE_ACTION,          // Execute the poses in an action in sequence
     EXECUTE_POSE,            // Drive robot motors to pre-set values
-    GET_EXTREMITY_LOCATION,  // x,y,z location of the named extremity
+    GET_APPENDAGE_LOCATION,  // x,y,z location of the named appendage, i.e. end effector
     GET_JOINT_LOCATION,      // x,y,z location of the center of the named joint
     GET_METRIC,              // A local property of the robot, e.g. name
     GET_MOTOR_PROPERTY,      // Current value of a motor property

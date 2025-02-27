@@ -71,7 +71,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     override fun visitBodyPartListQuestion(ctx: SpeechSyntaxParser.BodyPartListQuestionContext): Any? {
         bottle.type = RequestType.JSON
         if( ctx.Bones()!=null )       bottle.jtype = JsonType.BONE_NAMES
-        if( ctx.Extremities()!=null ) bottle.jtype = JsonType.EXTREMITY_NAMES
+        if( ctx.Appendages()!=null ) bottle.jtype = JsonType.END_EFFECTOR_NAMES
         if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
         if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
         return null
@@ -81,7 +81,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         bottle.type = RequestType.GET_METRIC
         bottle.metric = MetricType.LIST
         if( ctx.Bones()!=null ) bottle.jtype = JsonType.BONE_NAMES
-        if( ctx.Extremities()!=null ) bottle.jtype = JsonType.EXTREMITY_NAMES
+        if( ctx.Appendages()!=null ) bottle.jtype = JsonType.END_EFFECTOR_NAMES
         if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
         if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
         return null
@@ -465,7 +465,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        if (ctx.Extremity() == null) {
+        if (ctx.Appendage() == null) {
             bottle.type = RequestType.GET_JOINT_LOCATION
             var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
             if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
@@ -480,17 +480,17 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             }
         }
         else {
-            bottle.type = RequestType.GET_EXTREMITY_LOCATION
-            var extremity = Extremity.NONE
-            if (ctx.Extremity() != null) extremity = determineExtremity(ctx.Extremity().getText(), side)
-            bottle.extremity = extremity
-            if( extremity==Extremity.NONE ) {
+            bottle.type = RequestType.GET_APPENDAGE_LOCATION
+            var appendage = Appendage.NONE
+            if (ctx.Appendage() != null) appendage = determineEndEffector(ctx.Appendage().getText(), side)
+            bottle.appendage = appendage
+            if( appendage==Appendage.NONE ) {
                 val msg = String.format("I don't have a body part %s, that I know of",
-                                     ctx.Extremity().text )
+                                     ctx.Appendage().text )
                 bottle.error = msg
             }
             else {
-                sharedDictionary[SharedKey.EXTREMITY] = extremity
+                sharedDictionary[SharedKey.APPENDAGE] = appendage
             }
         }
         return null
@@ -813,39 +813,39 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
 
     //===================================== Helper Methods ======================================
-    // Determine the specific extremity from the body part and side. (Side is not always needed).
-    private fun determineExtremity(bodyPart: String, side: String?): Extremity {
-        var result: Extremity = Extremity.NONE
+    // Determine the specific end effector (appendage) from the body part and side. (Side is not always needed).
+    private fun determineEndEffector(bodyPart: String, side: String?): Appendage {
+        var result: Appendage = Appendage.NONE
         if (bodyPart.equals("EAR", ignoreCase = true)) {
             if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Extremity.LEFT_EAR else Extremity.RIGHT_EAR
+                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
             }
         }
         else if (bodyPart.equals("EYE", ignoreCase = true) || bodyPart.equals("EYES", ignoreCase = true)) {
             if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Extremity.LEFT_EYE else Extremity.RIGHT_EYE
+                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
             }
         }
         else if (bodyPart.equals("FINGER", ignoreCase = true) || bodyPart.equals("HAND", ignoreCase = true)) {
             if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Extremity.LEFT_FINGER else Extremity.RIGHT_FINGER
+                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
             }
         }
         else if (bodyPart.equals("FOOT", ignoreCase = true) || bodyPart.equals("TOE", ignoreCase = true)) {
             if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Extremity.LEFT_TOE else Extremity.RIGHT_TOE
+                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
             }
         }
         else if (bodyPart.equals("HEEL", ignoreCase = true)) {
             if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Extremity.LEFT_HEEL else Extremity.RIGHT_HEEL
+                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
             }
         }
         else if (bodyPart.equals("NOSE", ignoreCase = true)) {
-            result = Extremity.NOSE
+            result = Appendage.NOSE
         }
-        if( result==Extremity.NONE ) {
-            LOGGER.info(String.format("WARNING: StatementTranslator.determineExtremity did not find a match for %s",
+        if( result==Appendage.NONE ) {
+            LOGGER.info(String.format("WARNING: StatementTranslator.determineEndEffector did not find a match for %s",
                     bodyPart ))
         }
         return result

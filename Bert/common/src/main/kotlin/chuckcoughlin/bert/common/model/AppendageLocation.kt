@@ -5,10 +5,10 @@
 package chuckcoughlin.bert.common.model
 
 /**
- * Position of an extremity in space
+ * Position of an appendage (end effectoappendager) in space
  */
-data class ExtremityLocation(val extremity:Extremity,val pos:Point3D) : Location {
-	override val name = extremity.name
+data class AppendageLocation(val appendage:Appendage,val pos:Point3D) : Location {
+	override val name = appendage.name
 	override val point = pos
 	override val isJoint = false
 }
