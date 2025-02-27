@@ -64,7 +64,7 @@ Typical requests:
     list the dynamic properties of your joints
     list your joints
     list your limbs
-    list your appendages
+    list your end effectors
     list your joint positions
     list the speeds of your motors
     list your motor ids
@@ -277,24 +277,25 @@ between different parts of the robot. A prerequisite to planning
 involves calculation of the 3 dimensional location of each limb.
 
 * ![yellow](/images/ball_yellow.png) ``Forward Kinematics`` - Query the robot to determine its understanding
-of the location of its joints or appendages. The result consists of distances (~m) in three dimensions
-of target to the origin which is the center of the pelvis.
+of the location of its joints or end effectors. The result consists of distances (~mm) in three dimensions
+of the target to the origin which is the center of the pelvis.
 ```
     where is your left hand
     where are your eyes
     where is your right ear
 ```
-The object of the question may be either an "appendage" (as used in the examples) or a joint. An appendage
-is simply a protuberance somewhere on a limb. The 'URDF' file defines legal names.
+The object of the question may be either an "end effector" (as used in the examples) or a joint.
+An end effector is simply a protuberance somewhere on a limb. In our setting, it has no controllable parts.
+The 'URDF' file defines legal names.
 In addition to validating that the syntax works, check numeric results for the following:
   - [x] ABS_Y: this is the first joint, at the top of the Pelvis. Its position should never change.
   - [ ] ABS_X: connected on top of ABS_Y, verify its position as ABS_Y is moved.
-  - [ ] ... and so on. Follow the joints in order until reaching the left finger (an appendage).
+  - [ ] ... and so on. Follow the joints in order until reaching the left finger (an end effector).
   - [ ] ... likewise, follow the joints in order until reaching the right finger.
   - [ ] RIGHT_HIP_X: this is the first joint in a sub-chain. Its position should never change.
   - [ ] ... as before, follow this chain of joints to the right toe.
   - [ ] ... likewise, follow the left hip sub-chain to the left toe.
-  - [ ] NOSE: make sure that the HEAD appendage calculations are correct.
+  - [ ] NOSE: make sure that the HEAD calculations are correct.
 
 ### h - Static Parameters <a id="parameters"></a>
 [toc](#table-of-contents)<br/>
@@ -392,7 +393,7 @@ used in the previous section can be executed via speech and that responses are
 likewise formulated into audible sentences.
 
 ## Raspberry Pi<a id="raspberry"></a>
-This section describes test on the Raspberry Pi auxilliary system, the subprocessor that handles
+This section describes test on the Raspberry Pi auxiliary system, the sub-processor that handles
 smaller appendages.
 ### a - Eye Tracking <a id="eye"></a>
 ### b - Blink <a id="eyelid"></a>

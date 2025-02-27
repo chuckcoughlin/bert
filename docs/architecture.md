@@ -22,6 +22,7 @@ The bulk of this document addresses various design issues and approaches to thei
   * [Design Considerations](#design)
     * [Control](#control)
     * [Messaging](#messages)
+    * [Forward Kinematics](#forward)
     * [Poses](#poses)
   * [Appendices](#appendices)
     * [Rationale for Kotlin](#whykotlin)
@@ -440,15 +441,20 @@ Header values are described in the table below:
 | -------- | :------------------------------------------------------------------ |
 |MSG:|	Message from the tablet to the robot. Plain english request or query.	|
 |ANS:|	Reply from the robot. This text is meant to be spoken and appear on the transcription log. |
+|JSN:|	Communicate via JSON objects. These messages direct robot-tablet communication, not meant for enunciation.	|
 |LOG:|	System message from the robot meant to appear on the tablet's log panel. |
 |TBL:|	Define a table to show on the tablet's table panel. Pipe-delimited fields contain: title, column headings. |
-|ROW:|	Append a row to the most-recently defined table. Pipe-delimited fields contain cell values.	|
 
 <center>``Tablet Message Structure``</center>
 
 Several messages may be buffered in the same socket transmission to or from the tablet. However, the
 sender appends a new-line to each message to enable both the tablet and robot
-Java code to use `readline()` to parse one message at a time.
+Kotlin code to use a custom `readline()` to parse one message at a time.
+
+### Forward Kinematics <a id="forward"/>
+Forward kinematics refers to the calculation of the 3D position of joints and end effectors based
+on the connections of skeletal components and joint angles. The calculations are derived from the blog post [How to Calculate a RObot's Forward Kinematics in 5 Easy Steps](https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps) by Alex Owen-Hill.
+
 
 #### Poses <a id="poses"></a>
 A "pose" is a position of the robot as a whole, comprising settings for each of its joints. Poses may be
