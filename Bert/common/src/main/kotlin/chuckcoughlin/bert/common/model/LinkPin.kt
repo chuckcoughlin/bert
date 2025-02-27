@@ -4,6 +4,8 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.util.Quaternion
+
 /**
  * A LinkPoint is either a hinged joint or an end effector (unmoving).
  * The offset coordinates are a 3D location of the joint/end effector
@@ -17,10 +19,23 @@ package chuckcoughlin.bert.common.model
  * is along the z axis.
  */
 class LinkPin (val type:PinType ) {
-    var offset : DoubleArray
-    var axis: DoubleArray
+    var quaternion: Quaternion
     var appendage: Appendage  // End effector
     var joint: Joint
+
+    fun setDistance(dist:Double) {
+        quaternion.q[2][3] = dist
+    }
+
+    fun setOrientation(axis:DoubleArray) {
+        if( axis.size==3) {
+
+        }
+        else {
+
+        }
+
+    }
 
     fun degreesToRadians(array: DoubleArray): DoubleArray {
         var i = 0
@@ -36,8 +51,7 @@ class LinkPin (val type:PinType ) {
     init {
         appendage = Appendage.NONE
         joint = Joint.NONE
-        offset = doubleArrayOf(0.0, 0.0, 0.0)
-        axis = doubleArrayOf(0.0, 0.0, 1.0)    // x,y,z axes
+        quaternion = Quaternion()
     }
 
 }

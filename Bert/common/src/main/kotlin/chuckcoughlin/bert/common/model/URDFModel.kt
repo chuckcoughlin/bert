@@ -7,6 +7,7 @@ package chuckcoughlin.bert.common.model
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
+import java.awt.SystemColor.text
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -55,24 +56,10 @@ object URDFModel {
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS));
                 val imuNode = imus.item(0) // Should only be one
-                val childNodes = imuNode.childNodes
-                val childCount = childNodes.length
-                var childIndex = 0
-                var text: String?
-                while (childIndex < childCount) {
-                    val cNode = childNodes.item(childIndex)
-                    if ("origin".equals(cNode.localName, ignoreCase = true)) {
-                        text = XMLUtility.attributeValue(cNode, "xyz")
-                        val xyz = doubleArrayFromString(text)
-                        origin.offset = xyz
-                    }
-                    else if ("axis".equals(cNode.localName, ignoreCase = true)) {
-                        text = XMLUtility.attributeValue(cNode, "rpy")
-                        val xyz = doubleArrayFromDirectionString(text)
-                        origin.axis = xyz
-                    }
-                    childIndex++
-                }
+                val d = XMLUtility.attributeValue(imuNode, "d").toDouble()
+                origin.setDistance(d)
+                val rpy = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "rpy"))
+                origin.setOrientation(rpy)
             }
 
             // ================================== Links ===============================================
@@ -97,58 +84,30 @@ object URDFModel {
                         var aindex = 0
                         while (aindex < acount) {
                             val node = children.item(aindex)
-                            if ("extremity".equals(node.localName, ignoreCase = true)) {
+                            if ("appendage".equals(node.localName, ignoreCase = true)) {
                                 val aname: String = XMLUtility.attributeValue(node, "name")
-                                val childNodes = node.childNodes
-                                val childCount = childNodes.length
-                                var childIndex = 0
-                                var xyz = DoubleArray(3, { 0.0 })
-                                var ijk = DoubleArray(3, { 0.0 })
-                                while (childIndex < childCount) {
-                                    val cNode = childNodes.item(childIndex)
-                                    if ("origin".equals(cNode.localName, ignoreCase = true)) {
-                                        xyz = doubleArrayFromString(
-                                            XMLUtility.attributeValue(cNode, "xyz"))
-                                    }
-                                    else if ("axis".equals(cNode.localName, ignoreCase = true)) {
-                                        ijk = doubleArrayFromDirectionString(XMLUtility.attributeValue(cNode, "xyz"))
-                                    }
-                                    childIndex++
-                                }
                                 val appendage: Appendage = Appendage.fromString(aname)
-                                val end = LinkPin(PinType.END_EFFECTOR)
-                                end.appendage = appendage
-                                end.offset = end.degreesToRadians(ijk)
-                                end.axis = end.degreesToRadians(xyz)
-                                link.addEndPoint(end)
+                                val pin = LinkPin(PinType.END_EFFECTOR)
+                                pin.appendage = appendage
+                                val d = XMLUtility.attributeValue(node, "d").toDouble()
+                                pin.setDistance(d)
+                                val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
+                                pin.setOrientation(rpy)
+                                link.addEndPoint(pin)
                                 linkForAppendage[appendage] = link
                             }
                             else if ("joint".equals(node.localName, ignoreCase = true)) {
                                 val aname: String = XMLUtility.attributeValue(node, "name")
                                 val joint = Joint.fromString(aname)
-                                val childNodes = node.childNodes
-                                val childCount = childNodes.length
-                                var childIndex = 0
-                                var xyz = DoubleArray(3, { 0.0 })
-                                var ijk = DoubleArray(3, { 0.0 })
-                                while (childIndex < childCount) {
-                                    val childNode = childNodes.item(childIndex)
-                                    if ("origin".equals(childNode.localName, ignoreCase = true)) {
-                                        xyz = doubleArrayFromString(XMLUtility.attributeValue(childNode, "xyz"))
-                                    }
-                                    else if ("axis".equals(childNode.localName,ignoreCase = true)) {
-                                        ijk = doubleArrayFromDirectionString(XMLUtility.attributeValue(childNode, "xyz"))
-                                    }
-                                    childIndex++
-                                }
-
-                                val end = LinkPin(PinType.REVOLUTE)
-                                end.joint = joint
-                                end.offset = end.degreesToRadians(ijk)
-                                end.axis = end.degreesToRadians(xyz)
-                                link.addEndPoint(end)
+                                val pin = LinkPin(PinType.REVOLUTE)
+                                pin.joint = joint
+                                val d = XMLUtility.attributeValue(node, "d").toDouble()
+                                pin.setDistance(d)
+                                val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
+                                pin.setOrientation(rpy)
+                                link.addEndPoint(pin)
                                 linkForJoint[joint] = link
-                                sourcePinForJoint[joint] = end
+                                sourcePinForJoint[joint] = pin
                             }
                             else if ("source".equals(node.localName, ignoreCase = true)) {
                                 val aname: String = XMLUtility.attributeValue(node, "joint")

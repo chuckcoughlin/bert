@@ -453,7 +453,7 @@ Kotlin code to use a custom `readline()` to parse one message at a time.
 
 ### Forward Kinematics <a id="forward"/>
 Forward kinematics refers to the calculation of the 3D position of joints and end effectors based
-on the connections of skeletal components and joint angles. The calculations are derived from the blog post [How to Calculate a RObot's Forward Kinematics in 5 Easy Steps](https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps) by Alex Owen-Hill.
+on the connections of skeletal components and joint angles. The calculations are derived from the blog post [How to Calculate a Robot's Forward Kinematics in 5 Easy Steps](https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps) by Alex Owen-Hill.
 
 
 #### Poses <a id="poses"></a>
