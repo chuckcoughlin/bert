@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.math.ActiveQuaternion
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -56,10 +57,14 @@ object URDFModel {
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS));
                 val imuNode = imus.item(0) // Should only be one
-                val d = XMLUtility.attributeValue(imuNode, "d").toDouble()
-                origin.setDistance(d)
-                val rpy = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "rpy"))
-                origin.setOrientation(rpy)
+                val d = XMLUtility.attributeValue(imuNode, "d")
+                if( d.isNotBlank() ) origin.quaternion.d = d.toDouble()
+                val r = XMLUtility.attributeValue(imuNode, "r")
+                if( r.isNotBlank() ) origin.quaternion.r = r.toDouble()
+                val alpha = XMLUtility.attributeValue(imuNode, "alpha")
+                if( alpha.isNotBlank() ) origin.quaternion.alpha = alpha.toDouble()
+                val theta = XMLUtility.attributeValue(imuNode, "theta")
+                if( theta.isNotBlank() ) origin.quaternion.theta = theta.toDouble()
             }
 
             // ================================== Links ===============================================
@@ -89,10 +94,16 @@ object URDFModel {
                                 val appendage: Appendage = Appendage.fromString(aname)
                                 val pin = LinkPin(PinType.END_EFFECTOR)
                                 pin.appendage = appendage
-                                val d = XMLUtility.attributeValue(node, "d").toDouble()
-                                pin.setDistance(d)
-                                val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
-                                pin.setOrientation(rpy)
+                                val d = XMLUtility.attributeValue(node, "d")
+                                if( d.isNotBlank() ) pin.quaternion.d = d.toDouble()
+                                val r = XMLUtility.attributeValue(node, "r")
+                                if( r.isNotBlank() ) pin.quaternion.r = r.toDouble()
+                                val alpha = XMLUtility.attributeValue(node, "alpha")
+                                if( alpha.isNotBlank() ) pin.quaternion.alpha = alpha.toDouble()
+                                val theta = XMLUtility.attributeValue(node, "theta")
+                                if( theta.isNotBlank() ) pin.quaternion.theta = theta.toDouble()
+                                val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
+                                link.coordinates = xyz
                                 link.addEndPoint(pin)
                                 linkForAppendage[appendage] = link
                             }
@@ -101,10 +112,18 @@ object URDFModel {
                                 val joint = Joint.fromString(aname)
                                 val pin = LinkPin(PinType.REVOLUTE)
                                 pin.joint = joint
-                                val d = XMLUtility.attributeValue(node, "d").toDouble()
-                                pin.setDistance(d)
-                                val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
-                                pin.setOrientation(rpy)
+                                val mc = RobotModel.motorsByJoint[joint]
+                                pin.quaternion = ActiveQuaternion(mc!!)
+                                val d = XMLUtility.attributeValue(node, "d")
+                                if( d.isNotBlank() ) pin.quaternion.d = d.toDouble()
+                                val r = XMLUtility.attributeValue(node, "r")
+                                if( r.isNotBlank() ) pin.quaternion.r = r.toDouble()
+                                val alpha = XMLUtility.attributeValue(node, "alpha")
+                                if( alpha.isNotBlank() ) pin.quaternion.alpha = alpha.toDouble()
+                                val theta = XMLUtility.attributeValue(node, "theta")
+                                if( theta.isNotBlank() ) pin.quaternion.theta = theta.toDouble()
+                                val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
+                                link.coordinates = xyz
                                 link.addEndPoint(pin)
                                 linkForJoint[joint] = link
                                 sourcePinForJoint[joint] = pin

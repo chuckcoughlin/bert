@@ -197,7 +197,6 @@ class Dispatcher : Controller {
 
         // Initialize the PELVIS to 0,0,0.
         Chain.root.coordinates = doubleArrayOf(0.0, 0.0, 0.0)
-        Chain.root.orientation = doubleArrayOf(0.0, 1.0, 0.0)  // Straight ahead
     }
 
     /**

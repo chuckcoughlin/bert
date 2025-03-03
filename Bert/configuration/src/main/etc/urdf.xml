@@ -74,7 +74,7 @@
 		<source joint="LEFT_KNEE_Y"/>
 	</link>
 	<link name="LEFT_FOOT">
-		<appendage name="LEFT_TOE"/>
+		<appendage name="LEFT_TOE" d=""/>
 		<appendage name="LEFT_HEEL"/>
 		<source joint="LEFT_ANKLE_Y"/>
 	</link>

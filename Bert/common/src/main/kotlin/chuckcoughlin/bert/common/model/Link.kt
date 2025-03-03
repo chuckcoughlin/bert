@@ -37,10 +37,11 @@ class Link( bone: Bone) {
     private var dirty = true // Requires calculations
     var sourcePin: LinkPin
     private var angle: Double
-    // Position and orientation in space depending on motor setting
-    // and location of parent link. Orientation is a unit-length vector.
-    var coordinates = doubleArrayOf(0.0, 0.0, 0.0)
-    var orientation = doubleArrayOf(0.0, 0.0, 0.0)
+    // Co-ordinates are position of link joint with respect to the
+    // parent (source) joint. X is the direction from source to joint.
+    // Z is the center of the parent joint. Co-ordinates are NOT used
+    // for kinematics calculations.
+    var coordinates: DoubleArray
 
     fun coordinatesToPoint():Point3D {
         return Point3D(coordinates[0],coordinates[1],coordinates[2])
@@ -115,5 +116,6 @@ class Link( bone: Bone) {
         destinationPinForAppendage = mutableMapOf<Appendage,LinkPin>()
         destinationPinForJoint = mutableMapOf<Joint,LinkPin>()
         sourcePin = LinkPin(PinType.ORIGIN)   // Origin, for now
+        coordinates = doubleArrayOf(0.0, 0.0, 0.0)
     }
 }

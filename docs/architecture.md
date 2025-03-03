@@ -17,12 +17,13 @@ The bulk of this document addresses various design issues and approaches to thei
   *  [Software Architecture](#architecture)
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
+    * [URFD](#geometry)
     * [Dynamixel Servos](#dynamixel)
-    * [Geometry](#geometry)
   * [Design Considerations](#design)
     * [Control](#control)
     * [Messaging](#messages)
     * [Forward Kinematics](#forward)
+    * [Inverse Kinematics](#inverse)
     * [Poses](#poses)
   * [Appendices](#appendices)
     * [Rationale for Kotlin](#whykotlin)
@@ -138,28 +139,13 @@ Substitution parameters, @...@, are replaced with site-specific values during th
  </robot>
 ```
 
-#### Dynamixel Servos  <a id="dynamixel"></a>
-The control motors are Dynamixel MX-64, MX-28 and AT-12A models from [Robotis](http://en.robotis.com).
-The servos feature their own PID control. A single write of a target position, speed and torque is all that is
-required for control. There is no need for a constant refresh action.
-A further efficiency is provided by the *SYNC WRITE* directive. This allows control of multiple motors
-with a single command, as long as the affected motors are daisy-chained on the same serial port. A
-*SYNC WRITE* command does not return status.
-
-We use version 1.0 of the protocol as the motors were delivered with that version.
-
-Idiosyncrasies:<br/>
-  * There appears to be a maximum write frequency, especially for the AT-12A motors. We guarantee at least 50ms between consecutive writes to the same serial port. The symptom is dropped responses.
-  * There is no guarantee that responses from the serial port correlate 1:1 with the requests. The response
-  buffer can hold partial replies or several replies combined.
-
-#### Geometry <a id="geometry"></a>
+#### URDF <a id="geometry"></a>
 The geometry of the robot is used for trajectory planning, balance and other purposes. It is inspired by the
-Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file. A series of tutorials concerning its construction may be found [here](http://wiki.ros.org/urdf/Tutorials). A sample, specific to _Poppy_, may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDFA).
+Unified Robot Description Format](http://wiki.ros.org/urdf/XML) (URDF) file.  A sample, specific to _Poppy_, may be found [here](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDF). We have modified the format freely for our own purposes.
 
 We have added the IMU location and taken other liberties with the standard (e.g. angles in degrees to match
 the Dynamixel output). Joint orientations are defined via a unit vector showing the alignment. The axes
-form a right-handed coordinate system as follows:
+form a right-handed rool, pitch, yaw coordinate system as follows:
 
 | Axis | <center>Description</center> |<center>Positive</center>
 | :--: | :---------------------- | :-------------: |
@@ -364,77 +350,57 @@ multiple terminations or "end effector" (e.g. finger or toe). The links represen
 A quaternion transform matrix is calculated for each link, describing its orientation and size with respect to
 the parent joint.
 
-Within the joint element, the standard URDF file includes a _limit_ tag. We have removed these as the joint
-angular limits are already defined in the configuration file.
+Calculation of end-effector location is accomplished via Quaternion multiplication up the chain.
 
-The _origin_ tag is the transform from the parent link to the child link. It marks the location of the joint
-on the parent link.
-  * xyz - the _x,y,z_ offsets with respect to the parent link origin. All positions are specified in meters.
-  * rpy - represents the rotation around fixed axis: first roll around x, then pitch around y and finally yaw around z. All angles are specified in radians.
+#### Dynamixel Servos  <a id="dynamixel"></a>
+The control motors are Dynamixel MX-64, MX-28 and AT-12A models from [Robotis](http://en.robotis.com).
+The servos feature their own PID control. A single write of a target position, speed and torque is all that is
+required for control. There is no need for a constant refresh action.
+A further efficiency is provided by the *SYNC WRITE* directive. This allows control of multiple motors
+with a single command, as long as the affected motors are daisy-chained on the same serial port. A
+*SYNC WRITE* command does not return status.
 
-The _axis_ tag is the joint axis specified in the joint frame. This is the axis of rotation for revolute joints. The axis is specified in the joint frame of reference.
-  * xyz - represents the _x,y,z_ orientation of the joint, always at right angles to the limb. The vector should be normalized.
+We use version 1.0 of the protocol as the motors were delivered with that version.
+
+Idiosyncrasies:<br/>
+  * There appears to be a maximum write frequency, especially for the AT-12A motors. We guarantee at least 50ms between consecutive writes to the same serial port. The symptom is dropped responses.
+  * There is no guarantee that responses from the serial port correlate 1:1 with the requests. The
+   response buffer can hold partial replies or several replies combined.
 
 ## Design Considerations <a id="design"/>
 
-### Control <a id="control"/>
+#### Control <a id="control"/>
 [toc](#table-of-contents)
 
-*** Internal Controller ***</br>
-There are numerous situations where a single user command results in multiple motor commands internally.
-An ``InternalController`` handles these and it offers two very different scheduling options.
+The main robot process is a Kotlin application running on the Odroid processor.
+Major components, _terminal_,_command_, and _dispatcher_ are Kotlin co-routines
+communicating over Channels. The messages passed back and forth between these processes are instances of class _MessageBottle_.
+Communication with the tablet process is via text messages across a Wi-Fi
+socket.
 
-The first is a ``TimerQueue`` that allows requests to be scheduled for a future time and, optionally, repeated.
-This is useful, for example, when handling motions for recording at clocked intervals, or when balancing and taking continuous
-measurements from the IMU.
+There are numerous situations in the robot where a single user command results in multiple motor commands internally. For example, whan the robot has been relaxed,
+all positional information is lost. So when re-enabling torque, the joint angle information must be re-read to keep it up-to-date.
+Another example is *pose* commands that are split into separate
+directives for each limb.
 
-The second option is a ``SequentialQueue`` where queued requests are executed in sequence. A request is not
-submitted until its predecessor finishes. Optionally an inter-request delay may be specified.
-Think of the situation of moving between two poses, but ab intervening motion is required to avoid a conflict.
-The final motion cannot take place until the avoidance maneuver has fully completed (motion complete, not
-simply command delivered).  There is a separate sequential queue for each partial chain.
-
-*** Balance ***</br>
-
-*** Forward Kimematics ***</br>
-Calculation of end-effector location is accomplished via Quaternion multiplication up the chain.
-
-*** Trajectory Planning ***</br>
-Optimal trajectory planning, such as the Poppy example [here](https://github.com/Phylliade/ikpy/tree/master/src/ikpy) by Pierre Manceron is known to be complex and slow. We go to great lengths to avoid it.
-
-When moving to a set pose, it is usually sufficient to simply use that pose as a goal and move
-to it directly using a single command to the servos. For the most part, collision conflicts are
-avoided by limits on the angular motion of the joints.  For situations not covered in this way, we have adopted a simple set of heuristic tests that are applied prior to each movement. In general,
-these heuristics insert intermediate poses to avoid conflicts en route or truncate motion when the goal
-is itself a conflict. We avoid a full trajectory optimization. The list of checks is as follows:
+Moreover, it is important tnat the ``MotorController`` not be given a command until the serial callback of the previous has been received.
+A new request must not
+submitted until the ``MotorConrtoller`` finishes with the previous request.
+The sequencing function as well as command expansion is handled by an ``InternalController`` which queues requests and inserts required supporting requests as necessary.
 
 
 #### Messaging<a id="messages"></a>
-[toc](#table-of-contents)
+The tablet executes a Wi-fi client based on Java classes that are a standard part of the Android SDK. It connects to the robot process via sockets.
 
-*** Inter-Process ***</br>
-The major components, _terminal_,_command_, and _dispatcher_ are independent linux processes and communicate via sockets. Port numbers are defined in the configuration file.
+Messages that are intended to be spoken or logged are prepended
+with a 4-character header followed by ASCII text.
+Messages have a 1K-byte
+size limit and are stripped of any trailing whitespace except for a terminating new-line.
 
-The messages passed back and forth between these processes are instances of class _MessageBottle_.
-In preparation for transmission across the socket connections, the messages are serialized into JSON
-strings and, of course, reconstituted on the other side.
+More complicated messages intended for inter-process communication have
+a similar header followed by a string indicating type and then JSON
+text.
 
-*** Internal ***</br>
-A single user request may spawn additional internal messages in order to complete the action.
-The  _dispatcher_ makes use of the _InternalMessage_ class for this purpose. These message have extra properties not available
-to external requestors.
- * delay - wait before executing for th first time ~msecs
- * duration - for a message on a named queue, delay a subsequent message's execution ~msecs
- * queue - name of a sequential queue (or NULL). The message will not execute until all prior messages in that queue have executed.
- * repeatInterval - delay for a repeated message ~msecs
- * shouldRepeat - if true, the message will be re-queued when complete
-
-*** Tablet ***</br>
-The tablet is a Bluetooth client based on Java classes that are a standard part of the Android SDK.
-On the Linux side, there is an additional daemon process, _blueserver_, that serves as an interface between the _command_ process and the Bluetooth Serial Port service.
-
-Messages transmitted to and from the tablet are strings with a simple 4-character header and a 1K-byte
-size limit. Messages are stripped of any trailing whitespace except for a terminating new-line.
 Header values are described in the table below:
 
 | Header	| <center>Description</center>|
@@ -445,16 +411,30 @@ Header values are described in the table below:
 |LOG:|	System message from the robot meant to appear on the tablet's log panel. |
 |TBL:|	Define a table to show on the tablet's table panel. Pipe-delimited fields contain: title, column headings. |
 
-<center>``Tablet Message Structure``</center>
 
 Several messages may be buffered in the same socket transmission to or from the tablet. However, the
 sender appends a new-line to each message to enable both the tablet and robot
-Kotlin code to use a custom `readline()` to parse one message at a time.
+Kotlin code to use a custom `readline()` routine to parse one message at a time.
 
-### Forward Kinematics <a id="forward"/>
+#### Forward Kinematics <a id="forward"></a>
 Forward kinematics refers to the calculation of the 3D position of joints and end effectors based
-on the connections of skeletal components and joint angles. The calculations are derived from the blog post [How to Calculate a Robot's Forward Kinematics in 5 Easy Steps](https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps) by Alex Owen-Hill.
+on the connections of skeletal components and joint angles. The calculations are derived from the blog post [How to Calculate a Robot's Forward Kinematics in 5 Easy Steps](https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps) by Alex Owen-Hill. Some dimensions were taken from the [Poppy URDF](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDF), others were measured directly.
 
+Refering to the URDF.xml file (listed above) *link* elements:
+
+| Parameter	| <center>Description</center> |
+| -------- | :------------------------------------------------------------------ |
+|d| distance from the link's source pin to the REVOLUTE center in the z direction. |
+|r| length of the common normal between source and link center z axes|
+|alpha| the angle along the common normal between previous and current z axis |
+|theta| the angle of the limb x axis with respect to the source pin|
+|xyz| coordinates from source to REVOLUTE center |
+
+Lengths are ~mm, angles in degrees. The z direction is always the axis of rotation of the motor.
+
+#### Inverse Kinematics <a id="inverse"></a>
+Optimal trajectory planning, such as the Poppy example [here]
+(https://github.com/Phylliade/ikpy/tree/master/src/ikpy) by Pierre Manceron is known to be complex and slow. We go to great lengths to avoid it.
 
 #### Poses <a id="poses"></a>
 A "pose" is a position of the robot as a whole, comprising settings for each of its joints. Poses may be
@@ -471,7 +451,7 @@ imply that the current setting will not be changed. Not all parameters are requi
 |standing|	speed	|25|	null
 |standing|	torque	|100|	75
 
-<center>``Partial View of a Sample "Pose" Table``</center>
+``Partial View of a Sample "Pose" Table``
 
 In the sample database table shown above, only 3 of the 25 actual joints are shown. The "relaxed" pose contains
 only the single line to set torque to a zero setting. This effectively renders the robot limp.
@@ -479,6 +459,12 @@ The "standing" setting defines all three parameters. Note that the ABS_Y speed i
 means that for ABS-Y the speed at which it travels to 90 degrees is the same as the last
 time the joint was used. On power-up speeds are 100% and torques are 0%. Unless specified in
 the pose, torques are automatically set to 100% whenever a joint is moved.
+
+When moving to a set pose, it is usually sufficient to simply use that pose as a goal and move
+to it directly using a single command to the servos. For the most part, collision conflicts are
+avoided by limits on the angular motion of the joints.  For situations not covered in this way, we have adopted a simple set of heuristic tests that are applied prior to each movement. In general,
+these heuristics insert intermediate poses to avoid conflicts en route or truncate motion when the goal
+is itself a conflict. We avoid a full trajectory optimization.
 
 *** Raspberry Pi ***</br>
 An additional processor, a Raspberry Pi, is placed in the

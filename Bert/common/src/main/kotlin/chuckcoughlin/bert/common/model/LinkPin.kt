@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.util.Quaternion
+import chuckcoughlin.bert.common.math.Quaternion
 
 /**
  * A LinkPoint is either a hinged joint or an end effector (unmoving).
@@ -22,29 +22,6 @@ class LinkPin (val type:PinType ) {
     var quaternion: Quaternion
     var appendage: Appendage  // End effector
     var joint: Joint
-
-    fun setDistance(dist:Double) {
-        quaternion.q[2][3] = dist
-    }
-
-    fun setOrientation(axis:DoubleArray) {
-        if( axis.size==3) {
-
-        }
-        else {
-
-        }
-
-    }
-
-    fun degreesToRadians(array: DoubleArray): DoubleArray {
-        var i = 0
-        while (i < array.size) {
-            array[i] = array[i] * Math.PI / 180.0
-            i++
-        }
-        return array
-    }
 
     private val CLSS =  "LinkPin"
 
