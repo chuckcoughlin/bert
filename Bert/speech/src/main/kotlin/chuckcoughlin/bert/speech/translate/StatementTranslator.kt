@@ -759,34 +759,44 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             joint = determineJoint(ctx.Joint().getText(), axis, side)
             bottle.joint = joint
         }
-        if (joint.equals(Joint.NONE)) {
-            val msg = "what am i supposed to straighten?"
-            bottle.error = msg
+
+        var value:Double
+        when (joint) {
+            Joint.ABS_X -> value  = 180.0
+            Joint.ABS_Y -> value = 180.0
+            Joint.ABS_Z -> value = 0.0
+            Joint.BUST_X -> value  = 180.0
+            Joint.BUST_Y -> value  = 180.0
+            Joint.NECK_Y -> value  = 0.0
+            Joint.NECK_Z -> value  = 0.0
+            Joint.LEFT_ANKLE_Y -> value  = 90.0
+            Joint.LEFT_SHOULDER_Z -> value  = 0.0
+            Joint.LEFT_ELBOW_Y -> value = 180.0
+            Joint.LEFT_HIP_X -> value  = 180.0
+            Joint.LEFT_HIP_Y -> value  = 180.0
+            Joint.LEFT_HIP_Z -> value  = 0.0
+            Joint.LEFT_KNEE_Y -> value  = 180.0
+            Joint.LEFT_SHOULDER_X -> value  = 180.0
+            Joint.LEFT_SHOULDER_Y -> value  = 180.0
+            Joint.RIGHT_ANKLE_Y -> value = 90.0
+            Joint.RIGHT_SHOULDER_Z -> value  = 0.0
+            Joint.RIGHT_ELBOW_Y -> value = 180.0
+            Joint.RIGHT_HIP_X -> value  = 180.0
+            Joint.RIGHT_HIP_Y -> value  = 180.0
+            Joint.RIGHT_HIP_Z -> value  = 0.0
+            Joint.RIGHT_KNEE_Y -> value = 180.0
+            Joint.RIGHT_SHOULDER_X -> value  = 180.0
+            Joint.RIGHT_SHOULDER_Y -> value  = 180.0
+            Joint.NONE -> {
+                value = 0.0
+                val msg = "what am i supposed to straighten?"
+                bottle.error = msg
+            }
         }
-        else if (joint.equals(Joint.LEFT_ELBOW_Y) ||
-            joint.equals(Joint.RIGHT_ELBOW_Y) ||
-            joint.equals(Joint.LEFT_KNEE_Y) ||
-            joint.equals(Joint.RIGHT_KNEE_Y) ||
-            joint.equals(Joint.LEFT_HIP_Y) ||
-            joint.equals(Joint.RIGHT_HIP_Y) ) {
-            // Straighten means 180 degrees
-            val value = 180.0
-            bottle.joint = joint
-            bottle.value = value
-            sharedDictionary[SharedKey.JOINT] = joint
-            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-        }
-        else if (joint.equals(Joint.NECK_Y) ||
-            joint.equals(Joint.NECK_Z) ||
-            joint.equals(Joint.LEFT_HIP_Z) ||
-            joint.equals(Joint.RIGHT_HIP_Z)) {
-            // Straighten means 0 degrees
-            val value = 0.0
-            bottle.joint = joint
-            bottle.value = value
-            sharedDictionary[SharedKey.JOINT] = joint
-            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-        }
+        bottle.joint = joint
+        bottle.value = value
+        sharedDictionary[SharedKey.JOINT] = joint
+        sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         return null
     }
 

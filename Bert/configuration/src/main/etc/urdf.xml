@@ -49,8 +49,12 @@
 		<source joint="RIGHT_KNEE_Y"/>
 	</link>
 	<link name="RIGHT_FOOT">
-		<appendage name="RIGHT_TOE"/>
-		<appendage name="RIGHT_HEEL"/>
+		<appendage name="RIGHT_TOE"
+				   d="-35.5" r="96.18" alpha ="0.0" theta="-8.97" offset = "90."
+				   xyz="95.,-35.5,-15."/>
+		<appendage name="RIGHT_HEEL"
+				   d="-35.5" r="44.64" alpha ="0.0" theta="195.6" offset = "90."
+				    xyz="-43.,-35.5,-12."/>
 		<source joint="RIGHT_ANKLE_Y"/>
 	</link>
 	<link name="LEFT_HIP_SOCKET">
@@ -74,8 +78,12 @@
 		<source joint="LEFT_KNEE_Y"/>
 	</link>
 	<link name="LEFT_FOOT">
-		<appendage name="LEFT_TOE" d=""/>
-		<appendage name="LEFT_HEEL"/>
+		<appendage name="LEFT_TOE"
+				   d="-35.5" r="96.18" alpha ="0.0" theta="8.97" offset = "90."
+				   xyz="95.,-35.5,-15."/>
+		<appendage name="LEFT_HEEL"
+				   d="-35.5" r="44.64" alpha ="0.0" theta="-195.6" offset = "90."
+				   xyz="-43.,-35.5,-12."/>
 		<source joint="LEFT_ANKLE_Y"/>
 	</link>
 	<link name="LUMBAR">

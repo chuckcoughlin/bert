@@ -20,7 +20,7 @@ open class Quaternion( ) {
     var alpha: Double
     var r: Double
     var theta: Double
-
+    var offset:Double
     fun multiplyBy(matrix: Array<DoubleArray>): Array<DoubleArray> {
         val n = matrix.size
 
@@ -47,7 +47,8 @@ open class Quaternion( ) {
      * do "real-time".
      */
     fun refresh() {
-
+        q[0][0] = Math.cos(theta*Math.PI/180.0)
+        q[2][3] = d
     }
     private val CLSS = "Quaternion"
     val LOGGER = Logger.getLogger(CLSS)
@@ -66,6 +67,7 @@ open class Quaternion( ) {
         r = 0.0
         alpha = 0.0
         theta = 0.0
+        offset = 0.0
 
 
     }
