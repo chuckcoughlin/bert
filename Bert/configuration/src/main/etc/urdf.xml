@@ -7,7 +7,8 @@
 	<!-- The IMU position places it relative to the root link's origin. It represents the world-frame origin.
 	     The axis of rotation represents the movement of the entire robot with respect to this frame.
 	-->
-	<imu d="45." rpy="0 0 1" />
+	<imu d="0.0" r="1.0." alpha ="0.0" theta="0.0" offset = "0."
+		 xyz="1 0 0"/> />
 
 	<!-- A link is equivalent to a bone. Each link may have several attachments,
 	     either joints or end effectors, but only a single parent. The parent is
@@ -50,11 +51,11 @@
 	</link>
 	<link name="RIGHT_FOOT">
 		<appendage name="RIGHT_TOE"
-				   d="-35.5" r="96.18" alpha ="0.0" theta="-8.97" offset = "90."
-				   xyz="95.,-35.5,-15."/>
+				   d="-15" r="95." alpha ="0.0" theta="20.4" offset = "90."
+				   xyz="95. -35.5 -15."/>
 		<appendage name="RIGHT_HEEL"
-				   d="-35.5" r="44.64" alpha ="0.0" theta="195.6" offset = "90."
-				    xyz="-43.,-35.5,-12."/>
+				   d="-12" r="43." alpha ="0.0" theta="-39.54" offset = "90."
+				   xyz="-43. -35.5 -12."/>
 		<source joint="RIGHT_ANKLE_Y"/>
 	</link>
 	<link name="LEFT_HIP_SOCKET">
@@ -79,11 +80,11 @@
 	</link>
 	<link name="LEFT_FOOT">
 		<appendage name="LEFT_TOE"
-				   d="-35.5" r="96.18" alpha ="0.0" theta="8.97" offset = "90."
-				   xyz="95.,-35.5,-15."/>
+				   d="-15" r="95." alpha ="0.0" theta="20.49" offset = "90."
+				   xyz="95. -35.5 -15."/>
 		<appendage name="LEFT_HEEL"
-				   d="-35.5" r="44.64" alpha ="0.0" theta="-195.6" offset = "90."
-				   xyz="-43.,-35.5,-12."/>
+				   d="-12" r="43." alpha ="0.0" theta="-39.54" offset = "90."
+				   xyz="-43. -35.5 -12."/>
 		<source joint="LEFT_ANKLE_Y"/>
 	</link>
 	<link name="LUMBAR">
@@ -141,13 +142,15 @@
 		<source joint="LEFT_SHOULDER_X"/>
 	</link>
 	<link name="LEFT_UPPER_ARM">
-		<joint name="LEFT_ELBOW_Y" limb="LEFT_ARM"
-			d="11.175" rpy="1 0 0"/>
+		<joint name="LEFT_ELBOW_Y"
+			   d="3.305" r="62.8256" alpha ="0.0" theta="9.61" offset = "180."
+			   xyz="62.8256 -10.6376 3.305"/>
 		<source joint="LEFT_SHOULDER_Z"/>
 	</link>
 	<link name="LEFT_FOREARM">
 		<appendage name="LEFT_FINGER"
-			d="22.5417390633467" rpy="0 0 -1"/>
+				   d="6.9" r="107.5." alpha ="0.0" theta="2・6" offset = "180."
+				   xyz="107.5. -4.99 6.915"/>
 		<source joint="LEFT_ELBOW_Y"/>
 	</link>
 	<link name="RIGHT_CLAVICLE">
@@ -162,11 +165,14 @@
 	</link>
 	<link name="RIGHT_UPPER_ARM">
 		<joint name="RIGHT_ELBOW_Y"
-			d="11.175" rpy="-1 0 0"/>
+			   d="3.305" r="62.8256" alpha ="0.0" theta="9.61" offset = "180."
+			   xyz="62.8256 -10.6376 3.305"/>
 		<source joint="RIGHT_SHOULDER_Z"/>
 	</link>
 	<link name="RIGHT_FOREARM">
-		<appendage name="RIGHT_FINGER"/>
+		<appendage name="RIGHT_FINGER"
+				   d="6.9" r="107.5." alpha ="0.0" theta="2・6" offset = "180."
+				   xyz="107.5. -4.99 6.915"/>
 		<source joint="RIGHT_ELBOW_Y"/>
 	</link>
 </robot>

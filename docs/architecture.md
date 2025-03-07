@@ -10,11 +10,11 @@ The bulk of this document addresses various design issues and approaches to thei
 
 ***
 ## Table of Contents <a id="table-of-contents"/>
-  *  [Target Hardware](#hardware)
-  	*  [Odroid](#odroid)
-  	*  [Android](#android)
-  	*  [Raspberry Pi](#raspberry)
-  *  [Software Architecture](#architecture)
+  * [Target Hardware](#hardware)
+    * [Odroid](#odroid)
+    * [Android](#android)
+    * [Raspberry Pi](#raspberry)
+  * [Software Architecture](#architecture)
     * [ANTLR](#antlr)
     * [Configuration](#configuration)
     * [URFD](#geometry)

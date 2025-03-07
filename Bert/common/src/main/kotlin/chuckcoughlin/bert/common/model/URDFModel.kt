@@ -102,6 +102,8 @@ object URDFModel {
                                 if( alpha.isNotBlank() ) pin.quaternion.alpha = alpha.toDouble()
                                 val theta = XMLUtility.attributeValue(node, "theta")
                                 if( theta.isNotBlank() ) pin.quaternion.theta = theta.toDouble()
+                                val offset = XMLUtility.attributeValue(node, "offset")
+                                if( offset.isNotBlank() ) pin.quaternion.offset = offset.toDouble()
                                 val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                                 link.coordinates = xyz
                                 link.addEndPoint(pin)
