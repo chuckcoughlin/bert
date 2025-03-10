@@ -28,7 +28,7 @@ class PoseTable {
      */
     fun createPose(cxn: Connection?, mcmap: Map<Joint, MotorConfiguration>,pose:String,index:Int ){
         if( cxn!=null ) {
-            var statement: Statement? = null
+            var statement: Statement?
             val name = pose.lowercase()
             var poseid = getPoseIdForName(cxn,name,index)
             LOGGER.info(String.format("%s.createPose: %s %d is id %d", CLSS,name,index,poseid))

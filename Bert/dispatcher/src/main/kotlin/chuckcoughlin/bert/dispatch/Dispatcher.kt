@@ -343,7 +343,7 @@ class Dispatcher : Controller {
             }
             // The following two requests simply use the current positions of the motors, whatever they are
             else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: extremity=%s", CLSS, request.appendage.name))
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: appendage=%s", CLSS, request.appendage.name))
                 Solver.updateLinkAngles() // Forces new calculations
                 val appendage = request.appendage
                 val xyz: Point3D = Solver.computeLocation(appendage)

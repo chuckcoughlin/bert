@@ -41,12 +41,14 @@
 	</link>
 	<link name="RIGHT_THIGH">
 		<joint name="RIGHT_KNEE_Y"
-			d="18.2" rpy="0 0 -1"/>
+			   d="19.250" r="140.97417" alpha ="0.0" theta="0.18" offset = "180."
+			   xyz="140.97417 0.432765 19.250"/>
 		<source joint="RIGHT_HIP_Y"/>
 	</link>
 	<link name="RIGHT_SHIN">
 		<joint name="RIGHT_ANKLE_Y"
-			d="18." rpy="-1 0 0"/>
+			   d="1.50809" r="137.0416" alpha ="0.0" theta="9.49" offset = "180."
+			   xyz="137.0416 22.8989 1.50809"/>
 		<source joint="RIGHT_KNEE_Y"/>
 	</link>
 	<link name="RIGHT_FOOT">
@@ -70,12 +72,14 @@
 	</link>
 	<link name="LEFT_THIGH">
 		<joint name="LEFT_KNEE_Y"
-			d="18.2" rpy=0 0 -1"/>
+			   d="19.250" r="140.97417" alpha ="0.0" theta="0.18" offset = "180."
+			   xyz="140.97417 0.432765 19.250"/>
 		<source joint="LEFT_HIP_Y"/>
 	</link>
 	<link name="LEFT_SHIN">
 		<joint name="LEFT_ANKLE_Y"
-			d="18." rpy="1 0 0"/>
+			   d="1.50809" r="137.0416" alpha ="0.0" theta="9.49" offset = "180."
+			   xyz="137.0416 22.8989 1.50809"/>
 		<source joint="LEFT_KNEE_Y"/>
 	</link>
 	<link name="LEFT_FOOT">
@@ -118,7 +122,8 @@
 	</link>
 	<link name="NECK">
 		<joint name="NECK_Y"
-			d="0 0.02 0" rpy="-1 0 0"/>
+			   d="-1.4749" r="9.28455" alpha ="0.0" theta="0.02" offset = "0.0"
+			   xyz="9.28455 .002896 -1.4749"/>
 		<source joint="NECK_Z"/>
 	</link>
 	<link name="SKULL">

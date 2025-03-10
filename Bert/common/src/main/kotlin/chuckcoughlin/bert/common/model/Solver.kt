@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.math.Quaternion
 import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
@@ -40,10 +41,12 @@ object Solver {
     }
 
     /**
-     * Update the link coordinates based on its parent
+     * Update the link coordinates in a chain starting from the origin.
      */
     private fun updateLocationsInChain(subchain: List<Link>) {
+        var loc = Quaternion.identity()
         for(link in subchain) {
+            loc = loc.multiplyBy(link.sourcePin.quaternion)
             link.updateLocation()
             if(DEBUG) LOGGER.info(String.format("%s.updateLocationsInChain: %s at %2.0f deg (%s) ",
                 CLSS,link.bone.name,link.jointAngle,link.coordinatesToText()))

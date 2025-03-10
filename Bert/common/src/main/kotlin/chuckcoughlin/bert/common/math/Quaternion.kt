@@ -15,18 +15,24 @@ import java.util.logging.Logger
  * is a 4-dimensional double array.
  */
 open class Quaternion( ) {
-    val q: Array<DoubleArray>
+    var matrix: Array<DoubleArray>
     var d: Double
     var alpha: Double
     var r: Double
     var theta: Double
     var offset:Double
-    fun multiplyBy(matrix: Array<DoubleArray>): Array<DoubleArray> {
-        val n = matrix.size
 
-        if (n != q.size || matrix[0].size != n ) {
+    fun multiplyBy(q:Quaternion): Quaternion {
+        val result = Quaternion()
+        result.matrix = multiplyBy(q.matrix)
+        return result
+    }
+
+    private fun multiplyBy(mtx: Array<DoubleArray>): Array<DoubleArray> {
+        val n = mtx.size
+        if (n != matrix.size || mtx[0].size != n ) {
             throw IllegalArgumentException(String.format("%s:multiplyBy: Matrices cannot be multiplied due to incompatible dimensions (%d vs %d).",
-                 CLSS,n,q.size))
+                 CLSS,n,matrix.size))
         }
 
         val result = Array(n) { DoubleArray(n) }
@@ -34,7 +40,7 @@ open class Quaternion( ) {
         for (i in 0 until n) {
             for (j in 0 until n) {
                 for (k in 0 until n) {
-                    result[i][j] += matrix[i][k] * q[k][j]
+                    result[i][j] += matrix[i][k] * mtx[k][j]
                 }
             }
         }
@@ -47,8 +53,20 @@ open class Quaternion( ) {
      * do "real-time".
      */
     fun refresh() {
-        q[0][0] = Math.cos(theta*Math.PI/180.0)
-        q[2][3] = d
+        matrix[0][0] = Math.cos(theta*Math.PI/180.0)
+        matrix[2][3] = d
+    }
+
+    companion object {
+        /**
+         * @return a new quaternion, the identity matrix.
+         *    It just so happens that we initialize to
+         *    an identity matrix by default.
+         */
+        fun identity(): Quaternion {
+            val q = Quaternion()
+            return q
+        }
     }
     private val CLSS = "Quaternion"
     val LOGGER = Logger.getLogger(CLSS)
@@ -57,7 +75,7 @@ open class Quaternion( ) {
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        q = arrayOf(         // Initialize as identity matrix
+        matrix = arrayOf(         // Initialize as identity matrix
             doubleArrayOf(1.0,0.0,0.0,0.0),
             doubleArrayOf(0.0,1.0,0.0,0.0),
             doubleArrayOf(0.0,0.0,1.0,0.0),
@@ -68,7 +86,5 @@ open class Quaternion( ) {
         alpha = 0.0
         theta = 0.0
         offset = 0.0
-
-
     }
 }
