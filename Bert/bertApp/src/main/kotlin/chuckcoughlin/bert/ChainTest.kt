@@ -32,18 +32,18 @@ object ChainTest {
 
         println("======== Test LEFT_EAR to PELVIS subchain")
         var subchain = Chain.partialChainToAppendage(Appendage.LEFT_EAR)
-        for (link in subchain) {
-            println(String.format("\t%s ", link.bone.name))
+        for (pin in subchain) {
+            println(String.format("\t%s ", pin.joint.name))
         }
         println("======== Test RIGHT_FINGER to PELVIS subchain")
         subchain = Chain.partialChainToAppendage(Appendage.RIGHT_FINGER)
-        for (link in subchain) {
-            println(String.format("\t%s ", link.bone.name))
+        for (pin in subchain) {
+            println(String.format("\t%s ", pin.joint.name))
         }
         println("======== Test ABS_X to PELVIS subchain")
         subchain = Chain.partialChainToJoint(Joint.ABS_X)
-        for (link in subchain) {
-            println(String.format("\t%s ", link.bone.name))
+        for (pin in subchain) {
+            println(String.format("\t%s ", pin.joint.name))
         }
     }
 

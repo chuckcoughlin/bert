@@ -31,42 +31,11 @@ import java.util.logging.Logger
  * @param bone bone
  */
 class Link( bone: Bone) {
+    // These are for links that have multiple pins or end effectors
     val destinationPinForJoint: MutableMap<Joint,LinkPin>
     val destinationPinForAppendage: MutableMap<Appendage,LinkPin>
     val bone = bone
-    private var dirty = true // Requires calculations
     var sourcePin: LinkPin
-    private var angle: Double
-    // Co-ordinates are position of link joint with respect to the
-    // parent (source) joint. X is the direction from source to joint.
-    // Z is the center of the parent joint. Co-ordinates are NOT used
-    // for kinematics calculations.
-    var coordinates: DoubleArray
-
-    fun coordinatesToPoint():Point3D {
-        return Point3D(coordinates[0],coordinates[1],coordinates[2])
-    }
-    fun coordinatesToText():String {
-        return String.format("%3.3f,%3.3f,%3.3f",coordinates[0],coordinates[1],coordinates[2])
-    }
-    /**
-     * Mark link as needing new calculations. We do this because sub-chains
-     * that share links can avoid redundant computations.
-     */
-    fun setDirty() {
-        dirty = true
-    }
-
-    /**
-     * The joint angle is the motor position. Set it in degrees, read it in radians.
-     * Note that changing the angle does not invalidate the current link, just its children.
-     * @return
-     */// Convert to radians
-    var jointAngle: Double
-        get() = angle
-        set(a) {
-            angle = a * Math.PI / 180.0
-        }
 
     /**
      * An endpoint is an extremity or a RESOLUTE link
@@ -78,20 +47,6 @@ class Link( bone: Bone) {
         else if( end.type.equals(PinType.REVOLUTE)) {
             destinationPinForJoint[end.joint] = end
         }
-
-    }
-
-    /**
-     * Recalculate the position of this link from an updated location of the parent
-     * and its joint position.
-     *
-     */
-    fun updateLocation() {
-        if( dirty ) {
-            if(sourcePin.type==PinType.REVOLUTE) {
-            }
-        }
-        dirty = false
     }
 
     private fun rotationFromCoordinates(cc: DoubleArray): DoubleArray {
@@ -111,11 +66,8 @@ class Link( bone: Bone) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        angle = Math.PI
-        dirty = true
         destinationPinForAppendage = mutableMapOf<Appendage,LinkPin>()
         destinationPinForJoint = mutableMapOf<Joint,LinkPin>()
         sourcePin = LinkPin(PinType.ORIGIN)   // Origin, for now
-        coordinates = doubleArrayOf(0.0, 0.0, 0.0)
     }
 }

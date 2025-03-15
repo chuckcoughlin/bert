@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -24,9 +24,9 @@ object Solver {
      * last in the chain.
      */
     fun computeLocation(appendage: Appendage): Point3D {
-        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
-        updateLocationsInChain(subchain)
-        return if (subchain.size > 0) subchain.last().coordinatesToPoint() else ERROR_POSITION
+        val subchain: List<LinkPin> = Chain.partialChainToAppendage(appendage)
+        val q = computeQuaternionFromChain(subchain)
+        return q.resultToPoint()
     }
 
     /**
@@ -35,22 +35,24 @@ object Solver {
      * last in the chain.
      */
     fun computeLocation(joint:Joint): Point3D {
-        val subchain: List<Link> = Chain.partialChainToJoint(joint)
-        updateLocationsInChain(subchain)
-        return if (subchain.size > 0) subchain.last().coordinatesToPoint() else ERROR_POSITION
+        val subchain: List<LinkPin> = Chain.partialChainToJoint(joint)
+        val q = computeQuaternionFromChain(subchain)
+        return q.resultToPoint()
     }
 
     /**
-     * Update the link coordinates in a chain starting from the origin.
+     * Update the link coordinates in a chain starting from the origin, then multiply
+     * quaternion matrices to get final position.
      */
-    private fun updateLocationsInChain(subchain: List<Link>) {
-        var loc = Quaternion.identity()
-        for(link in subchain) {
-            loc = loc.multiplyBy(link.sourcePin.quaternion)
-            link.updateLocation()
-            if(DEBUG) LOGGER.info(String.format("%s.updateLocationsInChain: %s at %2.0f deg (%s) ",
-                CLSS,link.bone.name,link.jointAngle,link.coordinatesToText()))
+    private fun computeQuaternionFromChain(subchain: List<LinkPin>):Quaternion {
+        var q = Quaternion.identity()
+        for(pin in subchain) {
+            pin.updateQuaternion()
+            q = q.multiplyBy(pin.quaternion)
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s at %2.0f deg (%s) ",
+                CLSS,pin.joint,q.resultToPoint().toText()))
         }
+        return q
     }
 
     /**
@@ -95,10 +97,6 @@ object Solver {
                 if( endPoint.type.equals(PinType.REVOLUTE)) {  //redundant
                     val joint = endPoint.joint
                     val mc: MotorConfiguration = RobotModel.motorsByJoint[joint]!!
-                    if(link.jointAngle!=mc.angle)  {
-                        link.jointAngle = mc.angle
-                        link.setDirty()
-                    }
                 }
             }
         }

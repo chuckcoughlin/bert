@@ -4,11 +4,9 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.math.ActiveQuaternion
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
-import java.awt.SystemColor.text
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -55,16 +53,10 @@ object URDFModel {
             val origin = LinkPin(PinType.ORIGIN)
             val imus = document!!.getElementsByTagName("imu")
             if (imus.length > 0) {
-                LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS));
+                LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
-                val d = XMLUtility.attributeValue(imuNode, "d")
-                if( d.isNotBlank() ) origin.quaternion.d = d.toDouble()
-                val r = XMLUtility.attributeValue(imuNode, "r")
-                if( r.isNotBlank() ) origin.quaternion.r = r.toDouble()
-                val alpha = XMLUtility.attributeValue(imuNode, "alpha")
-                if( alpha.isNotBlank() ) origin.quaternion.alpha = alpha.toDouble()
-                val theta = XMLUtility.attributeValue(imuNode, "theta")
-                if( theta.isNotBlank() ) origin.quaternion.theta = theta.toDouble()
+                val axis = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
+                origin.axis = axis
             }
 
             // ================================== Links ===============================================
@@ -73,17 +65,18 @@ object URDFModel {
             //      ---------------------------- First Pass ----------------------------------
             // Create all the Links and their LinkPins. A LinkPin encompasses the connecting joint
             val links = document!!.getElementsByTagName("link")
-            var count = links.length
+            val count = links.length
             var index = 0
             while (index < count) {
                 val linkNode = links.item(index)
                 val name: String = XMLUtility.attributeValue(linkNode, "name")
-                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s ...",CLSS,name));
+                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s ...",CLSS,name))
                 try {
                     val bone = Bone.fromString(name)
                     if( !bone.equals(Bone.NONE)) {
                         val link = Link(bone)
                         linkForBone[bone] = link
+                        val axis = doubleArrayFromString(XMLUtility.attributeValue(linkNode, "axis"))
                         val children = linkNode.childNodes
                         val acount = children.length
                         var aindex = 0
@@ -94,18 +87,11 @@ object URDFModel {
                                 val appendage: Appendage = Appendage.fromString(aname)
                                 val pin = LinkPin(PinType.END_EFFECTOR)
                                 pin.appendage = appendage
-                                val d = XMLUtility.attributeValue(node, "d")
-                                if( d.isNotBlank() ) pin.quaternion.d = d.toDouble()
-                                val r = XMLUtility.attributeValue(node, "r")
-                                if( r.isNotBlank() ) pin.quaternion.r = r.toDouble()
-                                val alpha = XMLUtility.attributeValue(node, "alpha")
-                                if( alpha.isNotBlank() ) pin.quaternion.alpha = alpha.toDouble()
-                                val theta = XMLUtility.attributeValue(node, "theta")
-                                if( theta.isNotBlank() ) pin.quaternion.theta = theta.toDouble()
                                 val offset = XMLUtility.attributeValue(node, "offset")
-                                if( offset.isNotBlank() ) pin.quaternion.offset = offset.toDouble()
+                                if( offset.isNotBlank() ) pin.offset = offset.toDouble()
                                 val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                                link.coordinates = xyz
+                                pin.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
+                                pin.axis = axis
                                 link.addEndPoint(pin)
                                 linkForAppendage[appendage] = link
                             }
@@ -114,20 +100,11 @@ object URDFModel {
                                 val joint = Joint.fromString(aname)
                                 val pin = LinkPin(PinType.REVOLUTE)
                                 pin.joint = joint
-                                val mc = RobotModel.motorsByJoint[joint]
-                                pin.quaternion = ActiveQuaternion(mc!!)
-                                val d = XMLUtility.attributeValue(node, "d")
-                                if( d.isNotBlank() ) pin.quaternion.d = d.toDouble()
-                                val r = XMLUtility.attributeValue(node, "r")
-                                if( r.isNotBlank() ) pin.quaternion.r = r.toDouble()
-                                val alpha = XMLUtility.attributeValue(node, "alpha")
-                                if( alpha.isNotBlank() ) pin.quaternion.alpha = alpha.toDouble()
-                                val theta = XMLUtility.attributeValue(node, "theta")
-                                if( theta.isNotBlank() ) pin.quaternion.theta = theta.toDouble()
                                 val offset = XMLUtility.attributeValue(node, "offset")
-                                if( offset.isNotBlank() ) pin.quaternion.offset = offset.toDouble()
+                                if( offset.isNotBlank() ) pin.offset = offset.toDouble()
                                 val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                                link.coordinates = xyz
+                                pin.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
+                                pin.axis = axis
                                 link.addEndPoint(pin)
                                 linkForJoint[joint] = link
                                 sourcePinForJoint[joint] = pin
@@ -176,13 +153,15 @@ object URDFModel {
      * @return  a comma-separated string of the names of all links.
      */
     fun boneNames(): String {
-        var names = StringBuffer()
+        val names = StringBuffer()
         for (bone in linkForBone.keys) {
             names.append(bone.name)
             names.append(", ")
         }
-        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
-        else return "none"
+        if( names.isNotEmpty() ) {
+            return names.substring(0, names.length - 2)
+        }
+        return "none"
     }
     /**
      * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
@@ -199,7 +178,7 @@ object URDFModel {
      * @return  a comma-separated string of the names of all extremities.
      */
     fun endEffectorNames(): String {
-        var names = StringBuffer()
+        val names = StringBuffer()
         for (appendage in linkForAppendage.keys) {
             names.append(appendage.name.lowercase())
             names.append(", ")
@@ -208,11 +187,11 @@ object URDFModel {
         else return "none"
     }
     /**
-     * @return  a JSON pretty-printed String array of all appendaged.
+     * @return  a JSON pretty-printed String array of all appendages.
      */
     fun endEffectorNamesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var names = mutableListOf<String>()
+        val names = mutableListOf<String>()
         for (appendage in linkForAppendage.keys) {
             names.add(appendage.name)
         }
@@ -254,8 +233,8 @@ object URDFModel {
                         CLSS,text,nfe.localizedMessage ) )
             }
         }
-        //if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]));
-        if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]));
+        //if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]))
+        if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]))
         return result
     }
 

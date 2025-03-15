@@ -29,14 +29,14 @@ object Chain {
      * @param appendage
      * @return
      */
-    fun partialChainToAppendage(appendage: Appendage): List<Link> {
-        val partial: LinkedList<Link> = LinkedList<Link>()
+    fun partialChainToAppendage(appendage: Appendage): List<LinkPin> {
+        val partial: LinkedList<LinkPin> = LinkedList<LinkPin>()
         var link = URDFModel.linkForAppendage[appendage]
         if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for %s",CLSS,appendage.name))
         while (link != null) {
-            partial.addFirst(link)
+            partial.addFirst(link.sourcePin)
             if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.bone.name,link.sourcePin.type))
-            if( link.sourcePin.type.equals(PinType.ORIGIN)) break
+            if( link.sourcePin.type.equals(PinType.ORIGIN) ) break
             val joint = link.sourcePin.joint
             link = URDFModel.linkForJoint[joint]
             if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for joint %s",CLSS,joint))
@@ -50,18 +50,18 @@ object Chain {
      * @param joint, the source
      * @return
      */
-    fun partialChainToJoint(joint: Joint): List<Link> {
-        val partial: LinkedList<Link> = LinkedList<Link>()
+    fun partialChainToJoint(joint: Joint): List<LinkPin> {
+        val partial: LinkedList<LinkPin> = LinkedList<LinkPin>()
         var link = URDFModel.linkForJoint[joint]
         if( link==null ) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for %s",CLSS,joint.name))
         while (link != null) {
-            partial.addFirst(link)
+            partial.addFirst(link.sourcePin)
             if(DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s)",CLSS,joint.name,link.bone.name,link.sourcePin.type))
-            if( link.sourcePin.type.equals(PinType.ORIGIN)) break
-            val joint = link.sourcePin.joint
-            link = URDFModel.linkForJoint[joint]
-            if(DEBUG && link!=null) LOGGER.info(String.format("%s.partialChainToJoint: %s - next is %s",CLSS,joint.name,link.bone.name))
-            else if(link==null) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for joint %s",CLSS,joint))
+            if( link.sourcePin.type.equals(PinType.ORIGIN) ) break
+            val j = link.sourcePin.joint
+            link = URDFModel.linkForJoint[j]
+            if(DEBUG && link!=null) LOGGER.info(String.format("%s.partialChainToJoint: %s - next is %s",CLSS,j.name,link.bone.name))
+            else if(link==null) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for joint %s",CLSS,j))
         }
         return partial
     }

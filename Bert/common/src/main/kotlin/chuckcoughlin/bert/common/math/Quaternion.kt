@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.common.math
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
 
@@ -16,13 +17,8 @@ import java.util.logging.Logger
  */
 open class Quaternion( ) {
     var matrix: Array<DoubleArray>
-    var d: Double
-    var alpha: Double
-    var r: Double
-    var theta: Double
-    var offset:Double
 
-    fun multiplyBy(q:Quaternion): Quaternion {
+    fun multiplyBy(q: Quaternion): Quaternion {
         val result = Quaternion()
         result.matrix = multiplyBy(q.matrix)
         return result
@@ -30,9 +26,9 @@ open class Quaternion( ) {
 
     private fun multiplyBy(mtx: Array<DoubleArray>): Array<DoubleArray> {
         val n = mtx.size
-        if (n != matrix.size || mtx[0].size != n ) {
+        if (n != matrix.size || mtx[0].size != n) {
             throw IllegalArgumentException(String.format("%s:multiplyBy: Matrices cannot be multiplied due to incompatible dimensions (%d vs %d).",
-                 CLSS,n,matrix.size))
+                CLSS, n, matrix.size))
         }
 
         val result = Array(n) { DoubleArray(n) }
@@ -48,13 +44,37 @@ open class Quaternion( ) {
     }
 
     /**
-     * Create the quaternion matrix from the object parameters.
-     * There are computations involved, so this is difficult to
-     * do "real-time".
+     * The Quaternion multiplication leaves
      */
-    fun refresh() {
+    fun resultToPoint(): Point3D {
+        var p = Point3D(matrix[0][0],matrix[0][1],matrix[0][2])
+        return p
+    }
+
+    /**
+     * Update the quaternion matrix from the object parameters.
+     * @param  d offset to source along z ~mm
+     * @param r distance to source along common normal ~ mm
+     * @param alpha angle to double normal around z ~ derees
+     * @param theta: angle of rotation of joint ~ degrees
+     */
+    fun update(d:Double,r:Double,alpha:Double,theta:Double) {
         matrix[0][0] = Math.cos(theta*Math.PI/180.0)
+        matrix[0][1] = -Math.sin(theta*Math.PI/180.0) * Math.cos(alpha*Math.PI/180.0)
+        matrix[0][2] =  Math.sin(theta*Math.PI/180.0) * Math.sin(alpha*Math.PI/180.0)
+        matrix[0][3] = r * Math.cos(theta*Math.PI/180.0)
+        matrix[1][0] = Math.sin(theta*Math.PI/180.0)
+        matrix[1][1] = Math.cos(theta*Math.PI/180.0)*Math.cos(alpha*Math.PI/180.0)
+        matrix[1][2] = -Math.cos(theta*Math.PI/180.0)*Math.sin(alpha*Math.PI/180.0)
+        matrix[1][3] = r * Math.sin(theta*Math.PI/180.0)
+        matrix[2][0] = 0.0
+        matrix[2][1] = Math.sin(alpha*Math.PI/180.0)
+        matrix[2][2] = Math.cos(alpha*Math.PI/180.0)
         matrix[2][3] = d
+        matrix[3][0] = 0.0
+        matrix[3][1] = 0.0
+        matrix[3][2] = 0.0
+        matrix[3][3] = 1.0
     }
 
     companion object {
@@ -81,10 +101,5 @@ open class Quaternion( ) {
             doubleArrayOf(0.0,0.0,1.0,0.0),
             doubleArrayOf(0.0,0.0,0.0,1.0)
         )
-        d = 0.0
-        r = 0.0
-        alpha = 0.0
-        theta = 0.0
-        offset = 0.0
     }
 }

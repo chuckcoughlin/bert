@@ -196,7 +196,7 @@ class Dispatcher : Controller {
         toInternalController.send(msg)
 
         // Initialize the PELVIS to 0,0,0.
-        Chain.root.coordinates = doubleArrayOf(0.0, 0.0, 0.0)
+        Chain.root.sourcePin.coordinates = Point3D(0.0,0.0, 0.0)
     }
 
     /**
