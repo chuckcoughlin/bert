@@ -229,11 +229,10 @@ object URDFModel {
                 result[i] = raw[i].toDouble()
             }
             catch (nfe: NumberFormatException) {
-                LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",
-                        CLSS,text,nfe.localizedMessage ) )
+                LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s raw(%d)=%s (%s)",
+                        CLSS,text,i,raw[i],nfe.localizedMessage ) )
             }
         }
-        //if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %s,%s,%s",text,raw[0],raw[1],raw[2]))
         if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]))
         return result
     }

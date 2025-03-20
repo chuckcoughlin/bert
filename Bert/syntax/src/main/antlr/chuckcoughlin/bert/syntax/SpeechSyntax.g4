@@ -53,7 +53,7 @@ question:
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Metric   				                  # metricsQuestion
-    | Where Is Article? Side? (Appendage|Joint)	Axis?       # jointLocationQuestion
+    | Where Is Article? Side? (Appendage|Joint|Bone)	Axis?       # jointLocationQuestion
     | What Actions Do You Know								# databaseActionNamesQuestion
     | What Poses Do You Know								# databasePoseNamesQuestion
     | Who Do You Know										# databaseFaceNamesQuestion
@@ -89,12 +89,13 @@ Actions: 'actions';
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
 Appendages: 'appendages'|'end effectors';
-Appendage: 'ear'|'eye'|'eyes'|'finger'|'foot'|'hand'|'heel'|'nose'|'toe';
+Appendage: 'ear'|'eye'|'eyes'|'finger'|'hand'|'heel'|'nose'|'toe';
 As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
 Bones: 'bones';
+Bone: 'cervicle vertibrae'|'collar bone'|'foot'|'forearm'|'illium'|'hip socket'|'shin'|'shoulder socket'|'upper arm'|'spine'|'lumbar'|'skull'|'pelvis';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
 Do: 'do';

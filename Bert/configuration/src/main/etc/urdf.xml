@@ -23,30 +23,30 @@
 	  -->
 	<link name="PELVIS" axis="0 0 1">        <!-- root -->
 		<joint name="RIGHT_HIP_X"
-			   xyz="0.0 2.5417390633467 0.0" offset = "180."/>
+			   xyz="0.0 2.5417390633467 0.0" offset="180."/>
 		<joint name="LEFT_HIP_X"
-			   xyz="0.0 22.5417390633466 0.0" offset = "180."/>
+			   xyz="0.0 22.5417390633466 0.0" offset="180."/>
 		<joint name="ABS_Y"
-			   xyz="17.0 6.1 0.0" offset = "180."/>
+			   xyz="17.0 6.1 0.0" offset="180."/>
 	</link>
 	<link name="RIGHT_HIP_SOCKET" axis="0 0 1">
 		<joint name="RIGHT_HIP_Z"
-			   xyz="43.9986 5.0 0.0" offset = "0."/>
+			   xyz="43.9986 5.0 0.0" offset="0."/>
 		<source joint="RIGHT_HIP_X"/>
 	</link>
 	<link name="RIGHT_ILLIUM" axis="0 0 1">
 		<joint name="RIGHT_HIP_Y"
-			   xyz="24.0  0.0 0.0" offset = "180."/>
+			   xyz="24.0 0.0 0.0" offset="180."/>
 		<source joint="RIGHT_HIP_Z"/>
 	</link>
 	<link name="RIGHT_THIGH" axis="0 0 1">
 		<joint name="RIGHT_KNEE_Y"
-			   xyz="182.0 0.0 0.0" offset = "180."/>
+			   xyz="182.0 0.0 0.0" offset="180."/>
 		<source joint="RIGHT_HIP_Y"/>
 	</link>
 	<link name="RIGHT_SHIN" axis="0 0 1">
 		<joint name="RIGHT_ANKLE_Y"
-			   xyz="180.0 0.0 0.0" offset = "180."/>
+			   xyz="180.0 0.0 0.0" offset="180."/>
 		<source joint="RIGHT_KNEE_Y"/>
 	</link>
 	<link name="RIGHT_FOOT" axis="0 0 1">
@@ -63,7 +63,7 @@
 	</link>
 	<link name="LEFT_ILLIUM" axis="0 0 1">
 		<joint name="LEFT_HIP_Y"
-			   xyz="24.0  0.0 0.0" offset = "180."/>
+			   xyz="24.0 0.0 0.0" offset = "180."/>
 		<source joint="LEFT_HIP_Z"/>
 	</link>
 	<link name="LEFT_THIGH" axis="0 0 1">
@@ -149,7 +149,7 @@
 	</link>
 	<link name="LEFT_FOREARM" axis="0 0 1">
 		<appendage name="LEFT_FINGER"
-				   xyz="107.5. -4.99 6.915" offset = "0."/>
+				   xyz="107.5 -4.99 6.915" offset = "0."/>
 		<source joint="LEFT_ELBOW_Y"/>
 	</link>
 	<link name="RIGHT_CLAVICLE" axis="0 0 1">
@@ -169,7 +169,7 @@
 	</link>
 	<link name="RIGHT_FOREARM" axis="0 0 1">
 		<appendage name="RIGHT_FINGER"
-				   xyz="107.5. -4.99 6.915" offset = "0."/>
+				   xyz="107.5 -4.99 6.915" offset = "0."/>
 		<source joint="RIGHT_ELBOW_Y"/>
 	</link>
 </robot>

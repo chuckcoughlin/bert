@@ -330,32 +330,46 @@ Describe tests specifically for the Android tablet application called "BertSpeak
 [toc](#table-of-contents)<br/>
 ### a - Tablet Application <a id="bertspeak"></a>
 
-![Cover](/images/bertspeak_cover.png)
-
-* ![green](/images/ball_green.png) ```Cover```
-
-The <b>BertSpeak</b> cover page shows a reclining picture of
-the robot and an audio visualizer. It also contains status buttons which show the
-status of the connection to the robot, the states of speech to text and
-of text to speech processing. The right-side slider adjusts the speaking volume.
+The <b>Cover</b> page of the `BertSpeak` application shows a reclining picture of the robot and an audio visualizer. It also contains status buttons which show the
+status of the connection to the robot, the states of speech
+to text and of text to speech processing. The right-side slider adjusts the speaking volume.
 The red button in the lower right corner kills the tablet application.
 
-* ![yellow](/images/ball_yellow.png) ```Ignoring```
+![Cover](/images/bertspeak_cover.png)
+
+
+* ![yellow](/images/ball_yellow.png) ```Ignoring``` -
 It can be annoying when the robot
-attempts to interpret (and fails) background speech not directed  towards it. The
-commands below place the robot into a state where it ignores ambient speech until specifically directed to be attentive.
+attempts to interpret  background speech not directed  towards it.
+(And usually fails).
+The commands below place the tablet application into a state where it ignores ambient speech until specifically directed to be attentive.
   ```
-      ignore me
-      pay attention
+      Bert, ignore me
+      Bert, pay attention
   ```
+
+The <b>Facial Recognition</b> page shows a view from the
+forward-facing camera. A button press allows the user to
+analyze the image for a human face.
 
 ![Facial Recognition](/images/bertspeak_facerec.png)
 
-* ![gray](/images/ball_gray.png) ```FaceRec```
+* ![green](/images/ball_green.png) ```Detecting``` - if a
+face is detected, but is not known from a previous analysis,
+the robot will query for a name and expect a response.
+```
+    What is your name
+    my name is Chuck
+```
+* ![green](/images/ball_green.png) ```Greeting``` - if a
+face is detected and matches a face previously analyzed,
+the robot will send a greeting.
+```
+    Hi Chuck
+```
 
 This is the facial recognition page that
-will eventually allow the application to
-recognize whoever is handling the tablet.
+allows the robot to recognize whoever is handling the tablet.
 
 ![Animation](/images/bertspeak_animation.png)
 

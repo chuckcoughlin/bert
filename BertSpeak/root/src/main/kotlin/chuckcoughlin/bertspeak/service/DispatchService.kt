@@ -6,6 +6,7 @@ package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
@@ -44,6 +45,7 @@ class DispatchService(ctx: Context){
     lateinit var speechManager: SpeechManager
     lateinit var statusManager: StatusManager
     lateinit var textManager: TextManager
+    private var ignoring: Boolean
 
     /**
      * The order here is important
@@ -51,6 +53,7 @@ class DispatchService(ctx: Context){
     fun initialize() {
         Log.i(CLSS, "initialize: ... ")
         instance = this
+        ignoring = false
         facesManager   = FacesManager(this)
         hearingManager = HearingManager(this)
         statusManager = StatusManager(this)
@@ -119,27 +122,41 @@ class DispatchService(ctx: Context){
     }
     /**
      * Presumably the text originates from the speech recognizer on the tablet (or an error).
+     * Determine if a local command to ignore or start paying attention. If not ignoring,
      * Send text to the robot for processing. Inform the text manager for dissemination
      * to any observers.
      */
     @OptIn(DelicateCoroutinesApi::class)
     fun processSpokenText(text: String) {
         GlobalScope.launch(Dispatchers.IO) {
-            Log.i(CLSS, String.format("processSpokenText: %s", text))
-            textManager.processText(MessageType.MSG, text)
-            socketManager.receiveTextToSend(String.format("%s:%s",
-                MessageType.MSG.name, text))
+            val isLocal = scanTextForLocalCommand(text)
+            if( !isLocal ) {
+                if (!ignoring) {
+                    Log.i(CLSS, String.format("processSpokenText: %s", text))
+                    textManager.processText(MessageType.MSG, text)
+                    socketManager.receiveTextToSend(
+                        String.format("%s:%s", MessageType.MSG.name, text)
+                    )
+                }
+                else {
+                    Log.i(CLSS, String.format("processSpokenText: IGNORING: %s", text))
+                }
+            }
+            else {
+                textManager.processText(MessageType.LOG, text)
+                Log.i(CLSS, String.format("processSpokenText: LOCAL COMMAND: %s", text))
+            }
         }
     }
 
     /**
-     * The TCP socket reads a result from the robot. The text starts with a
+     * The TCP socket has read a result from the robot. The text starts with a
      * MessageType header. We strip it and route the message accordingly.
      */
     fun receiveMessage(text: String) {
         var txt = text
         if(txt.length > 4) {
-            Log.i(CLSS, String.format("receiveText: (%s)", txt))
+            Log.i(CLSS, String.format("receiveMessage: (%s)", txt))
             try {
                 val hdr = txt.substring(0, BertConstants.HEADER_LENGTH)
                 val type = MessageType.valueOf(hdr.uppercase(Locale.getDefault()))
@@ -190,9 +207,30 @@ class DispatchService(ctx: Context){
     fun sendRequest(text: String) {
         GlobalScope.launch(Dispatchers.IO) {
             val msg = String.format("%s:%s",MessageType.MSG.name,text)
-            Log.i(CLSS, String.format("reportRequest: %s", msg))
+            Log.i(CLSS, String.format("sendRequest: %s", msg))
             socketManager.receiveTextToSend(msg)
         }
+    }
+
+    /**
+     * Search the text string for command that set the local
+     * "ignoring" state.
+     */
+    private fun scanTextForLocalCommand(text:String):Boolean {
+        var isLocal = false
+        if( text.contains("bert ",true) ) {
+            if(text.contains("ignore ")) {
+                ignoring = true     // Bert ignore me
+                isLocal = true
+                Log.i(CLSS, String.format("scanTextToSetLocalState: IGNORING set TRUE "))
+            }
+            else if( text.contains(" attention")) {
+                ignoring = false    // Bert pay attention
+                isLocal = true
+                Log.i(CLSS, String.format("scanTextToSetLocalState: IGNORING set FALSE "))
+            }
+        }
+        return isLocal
     }
 
     /* ================================================================
@@ -269,6 +307,7 @@ class DispatchService(ctx: Context){
 
     init {
         context = ctx
+        ignoring = false
         screenHeight = 1000
         screenWidth  = 1000
     }

@@ -112,11 +112,11 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				SpeechRecognizer.ERROR_TOO_MANY_REQUESTS -> "too many requests"
 				else -> String.format("Unrecognized error (%d) ", error)
 			}
-		Log.e(CLSS, String.format("onError - %s", reason))  // Always log
-		dispatcher.logError(managerType,reason)
 
 		// Some errors are benign, ignore
 		if( error != SpeechRecognizer.ERROR_NO_MATCH ) {
+			Log.e(CLSS, String.format("onError - %s", reason))  // Always log
+			dispatcher.logError(managerType,reason)
 			managerState = ManagerState.ERROR
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
@@ -133,7 +133,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			}
 			// The zeroth result is usually the space-separated one
 			if( !matches.isEmpty() ) {
-				var text = matches[0]
+				var text = matches[0].lowercase()
 				text = scrubText(text)
 
 				if( startTime>speechTime ) {
@@ -149,7 +149,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 
 	// We've configured the intent so all partials *should* be empty
 	override fun onPartialResults(partialResults: Bundle) {
-		Log.i(CLSS, "onPartialResults")
+		// Log.i(CLSS, "onPartialResults")
 	}
 
 	override fun onEvent(eventType: Int, params: Bundle) {}
@@ -206,7 +206,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 */
 	private fun scrubText(txt: String): String {
 		var text = txt
-		text = text.replace("°", " degrees").lowercase(Locale.getDefault())
+		text = text.replace("birch", "bert")
+		text = text.replace("°", " degrees")
 		text = text.replace("exposition", "x position")
 		text = text.replace("fries", "freeze")
 		text = text.replace("too", "2")
@@ -218,7 +219,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 
 	val CLSS = "HearingManager"
 	val DELAY_TIME = 1000L
-	val SPEECH_MIN_TIME = 10      // Word must be at least this long
+	val SPEECH_MIN_TIME = 10     // Word must be at least this long
 	val END_OF_PHRASE_TIME = 250 // Silence to indicate end-of-input
 
 	/**

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.ui.adapter
@@ -143,7 +143,7 @@ class LogDataAdapter(msgs: FixedSizeList<LogData>) : RecyclerView.Adapter<LogDat
      */
     fun insertMessage(msg: LogData) {
         messages.add(msg)
-        Log.i(CLSS, String.format("insetMessage new count = %d", messages.size))
+        if(DEBUG) Log.i(CLSS, String.format("insertMessage new count = %d", messages.size))
     }
     /**
      * Replace the source of messages for this adapter.
@@ -156,7 +156,7 @@ class LogDataAdapter(msgs: FixedSizeList<LogData>) : RecyclerView.Adapter<LogDat
         for(msg:LogData in msgs) {
             messages.add(msg)
         }
-        Log.i(CLSS, String.format("resetList new count = %d", messages.size))
+        if(DEBUG) Log.i(CLSS, String.format("resetList new count = %d", messages.size))
     }
 
     /*
@@ -164,11 +164,10 @@ class LogDataAdapter(msgs: FixedSizeList<LogData>) : RecyclerView.Adapter<LogDat
     * This allows us to get a hook for debugging
     */
     fun reportDataSetChanged() {
-        Log.i(CLSS, String.format("reportDataSetChanged count = %d", messages.size))
+        if(DEBUG) Log.i(CLSS, String.format("reportDataSetChanged count = %d", messages.size))
         recyclerView!!.post() {
             notifyDataSetChanged()
         }
-        //Log.i(CLSS, String.format("reportDataSetChanged SUCCESS"))
     }
     /*
      * The parent class notifyItemInserted() method is final.
@@ -176,15 +175,16 @@ class LogDataAdapter(msgs: FixedSizeList<LogData>) : RecyclerView.Adapter<LogDat
      * Note: Calling notifyItemInserted causes a crash.
      */
     fun reportItemInserted() {
-        Log.i(CLSS, String.format("reportItemInserted count = %d", messages.size))
+        if(DEBUG) Log.i(CLSS, String.format("reportItemInserted count = %d", messages.size))
         recyclerView!!.post() {
             notifyDataSetChanged()
             recyclerView!!.scrollToPosition(0)
         }
-        //Log.i(CLSS, String.format("reportItemInserted SUCCESS"))
+        // Log.i(CLSS, String.format("reportItemInserted SUCCESS"))
     }
 
-    private val CLSS = "TextDataAdapter"
+    private val CLSS = "LogDataAdapter"
+    private val DEBUG = false
     private val MESSAGE_LEN = 45
     private val SOURCE_LEN = 15
     private val LOG_MSG_HEIGHT = 75
