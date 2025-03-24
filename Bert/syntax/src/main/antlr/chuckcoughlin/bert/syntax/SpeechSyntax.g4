@@ -49,11 +49,11 @@ question:
     | (What Are|Tell Me) Article? Names Of Article? (Actions|Faces|Poses)             # databaseNamesQuestion
     | (What Are|Tell Me) Article? (Limits|Goals) Of Article? Side? Joint Axis?        # handleBulkPropertyQuestion
     | (What Are|Tell Me) Article? Side? Joint Axis? Property                          # jointPropertyQuestion
-    | (What Is|Tell Me) Article? Location Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
+    | (What Is|Tell Me) Article? Location Of Article? Side? (Appendage|Bone|Joint)	Axis? # jointLocationQuestion
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?   # jointPropertyQuestion
-    | (What Is|Tell Me) Article? Metric   				                  # metricsQuestion
-    | Where Is Article? Side? (Appendage|Joint|Bone)	Axis?       # jointLocationQuestion
+    | (What Is|Tell Me) Article? Metric   				         # metricsQuestion
+    | Where Is Article? Side? (Appendage|Bone|Joint) Axis?       # jointLocationQuestion
     | What Actions Do You Know								# databaseActionNamesQuestion
     | What Poses Do You Know								# databasePoseNamesQuestion
     | Who Do You Know										# databaseFaceNamesQuestion
@@ -74,7 +74,7 @@ declaration:
 	;
 
 // Arbitrary string of words - inclue some key words. Digits are allowed only as a suffix
-phrase: (NAME|Extremity|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
+phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
     ;
 
 // First is a list of terms that are used below or use words that appear elsewhere
@@ -95,7 +95,7 @@ Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
 Bones: 'bones';
-Bone: 'cervicle vertibrae'|'collar bone'|'foot'|'forearm'|'illium'|'hip socket'|'shin'|'shoulder socket'|'upper arm'|'spine'|'lumbar'|'skull'|'pelvis';
+Bone: 'cervicle'|'collar bone'|'foot'|'forearm'|'illium'|'hip socket'|'shin'|'shoulder socket'|'upper arm'|'spine'|'lumbar'|'skull'|'pelvis';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
 Do: 'do';
@@ -139,7 +139,7 @@ Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'max speed'|'max torque'|'minimum angle'|'maximum angle'|'maximum speed'|'maximum torque'|'angle'|'motor type'|'orientation'|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';
-Salutation:'bert'|'burt'|'now'|'please'|'wake up'|Isaid;
+Salutation:'bert'|'burt'|'now'|'please'|'wake up'|'isaid';
 Save: 'save'|'record';
 Series: 'series';
 Set: 'set';

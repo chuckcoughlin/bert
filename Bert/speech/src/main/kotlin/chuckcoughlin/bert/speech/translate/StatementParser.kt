@@ -30,6 +30,7 @@ class StatementParser {
         dictionary[SharedKey.ASLEEP] = "false"
         dictionary[SharedKey.APPENDAGE] = Appendage.NONE
         dictionary[SharedKey.AXIS] = "x"
+        dictionary[SharedKey.BONE] = Bone.PELVIS
         dictionary[SharedKey.JOINT] = Joint.NONE
         dictionary[SharedKey.LIMB] = Limb.NONE
         dictionary[SharedKey.POSE] = "home"

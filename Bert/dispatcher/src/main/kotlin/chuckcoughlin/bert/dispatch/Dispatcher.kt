@@ -341,14 +341,24 @@ class Dispatcher : Controller {
                         CLSS, request.command.name))
                 }
             }
-            // The following two requests simply use the current positions of the motors, whatever they are
+            // The following three requests simply use the current positions of the motors, whatever they are
             else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: appendage=%s", CLSS, request.appendage.name))
                 Solver.updateLinkAngles() // Forces new calculations
                 val appendage = request.appendage
                 val xyz: Point3D = Solver.computeLocation(appendage)
-                val text = String.format("my %s is located at %2.2f %2.2f %2.2f meters",
+                val text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
                                   appendage.name, xyz.x, xyz.y, xyz.z)
+                request.text = text
+            }
+            // Would be nice to return both source pin and end pin locations
+            else if (request.type.equals(RequestType.GET_BONE_LOCATION)) {
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: appendage=%s", CLSS, request.appendage.name))
+                Solver.updateLinkAngles() // Forces new calculations
+                val appendage = request.appendage
+                val xyz: Point3D = Solver.computeLocation(appendage)
+                val text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
+                        appendage.name, xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
             // The location in physical coordinates from the center of the robot.
@@ -356,10 +366,11 @@ class Dispatcher : Controller {
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: joint=%s", CLSS, request.joint.name))
                 Solver.updateLinkAngles()
                 val joint = request.joint
+                val bone = URDFModel.boneForJoint(joint)
                 val xyz: Point3D = Solver.computeLocation(joint)
                 val text = String.format(
-                    "The center of my %s is located at %2.2f %2.2f %2.2f meters",
-                    Joint.toText(joint), xyz.x, xyz.y, xyz.z)
+                    "The center of my %s is located at %2.2f %2.2f %2.2f millimeters",
+                    Bone.toText(bone), xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
             else if (request.type.equals(RequestType.GET_METRIC)) {

@@ -23,7 +23,7 @@ object URDFModel {
     val linkForAppendage: MutableMap<Appendage, Link>
     val linkForJoint: MutableMap<Joint, Link>
     val sourceJointForLink: MutableMap<Link,Joint>
-    val sourcePinForJoint : MutableMap<Joint,LinkPin>
+    val revoluteForJoint : MutableMap<Joint,LinkPin>
 
     /**
      * Expand the supplied path as the URDF XML file.
@@ -95,7 +95,7 @@ object URDFModel {
                                 link.addEndPoint(pin)
                                 linkForAppendage[appendage] = link
                             }
-                            else if ("joint".equals(node.localName, ignoreCase = true)) {
+                            else if ("joint".equals(node.localName)) {
                                 val aname: String = XMLUtility.attributeValue(node, "name")
                                 val joint = Joint.fromString(aname)
                                 val pin = LinkPin(PinType.REVOLUTE)
@@ -107,9 +107,9 @@ object URDFModel {
                                 pin.axis = axis
                                 link.addEndPoint(pin)
                                 linkForJoint[joint] = link
-                                sourcePinForJoint[joint] = pin
+                                revoluteForJoint[joint] = pin
                             }
-                            else if ("source".equals(node.localName, ignoreCase = true)) {
+                            else if ("source".equals(node.localName)) {
                                 val aname: String = XMLUtility.attributeValue(node, "joint")
                                 val joint = Joint.fromString(aname)
                                 sourceJointForLink[link] = joint
@@ -133,7 +133,7 @@ object URDFModel {
             for(link in linkForBone.values) {
                 val joint = sourceJointForLink[link]
                 if( joint!=null ) {
-                    val pin = sourcePinForJoint[joint]
+                    val pin = revoluteForJoint[joint]
                     if( pin==null) {
                         LOGGER.warning(String.format("%s.analyzeChain: no link pin found for: %s, ignored",CLSS,joint.name))
                     }
@@ -148,7 +148,18 @@ object URDFModel {
         }
     }
 
-
+    /**
+     * @return  the bone that has the specified
+     *          joint as its source
+     */
+    fun boneForJoint(joint:Joint): Bone {
+        var bone = Bone.PELVIS
+        val link = linkForJoint[joint]
+        if( link!=null) {
+            bone = link.bone
+        }
+        return bone
+    }
     /**
      * @return  a comma-separated string of the names of all links.
      */
@@ -196,6 +207,18 @@ object URDFModel {
             names.add(appendage.name)
         }
         return gson.toJson(names)
+    }
+    /**
+     * @return  the joint associated with the
+     *          source of the bone
+     */
+    fun jointForBone(bone:Bone): Joint {
+        var joint = Joint.NONE
+        val link = linkForBone[bone]
+        if( link!=null) {
+            joint = link.sourcePin.joint
+        }
+        return joint
     }
     /**
      * @return  a comma-separated string of the names of all joints.
@@ -272,6 +295,6 @@ object URDFModel {
         linkForBone      = mutableMapOf<Bone,Link>()
         linkForJoint     = HashMap<Joint,Link>()
         sourceJointForLink = mutableMapOf<Link,Joint>()
-        sourcePinForJoint = mutableMapOf<Joint,LinkPin>()
+        revoluteForJoint = mutableMapOf<Joint,LinkPin>()
     }
 }

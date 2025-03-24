@@ -12,6 +12,7 @@ enum class SharedKey {
     ASLEEP,  // Robot ignores requests,
     AXIS,
     APPENDAGE,
+    BONE,
     FACE,    // Recognized user
     JOINT,
     LIMB,

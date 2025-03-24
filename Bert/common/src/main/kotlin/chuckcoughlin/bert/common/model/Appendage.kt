@@ -17,13 +17,13 @@ enum class Appendage {
 
     companion object {
         /**
-         * Convert the Limb enumeration to text that can be pronounced.
-         * @param limb the enumeration
+         * Convert the Appendage enumeration to text that can be pronounced.
+         * @param appendage the enumeration
          * @return user-recognizable text
          */
-        fun toText(limb: Appendage): String {
+        fun toText(appendage: Appendage): String {
             var text = ""
-            when (limb) {
+            when (appendage) {
                 LEFT_EAR -> text = "left ear"
                 LEFT_EYE -> text = "left eye"
                 LEFT_FINGER -> text = "left finger"

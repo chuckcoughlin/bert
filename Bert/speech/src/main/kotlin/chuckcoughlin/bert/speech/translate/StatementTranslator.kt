@@ -458,6 +458,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     // where is your left ear
     override fun visitJointLocationQuestion(ctx: SpeechSyntaxParser.JointLocationQuestionContext): Any? {
         // If axis was set previously, use it as default
+        bottle.type = RequestType.NONE
         var axis = sharedDictionary[SharedKey.AXIS].toString()
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
         sharedDictionary[SharedKey.AXIS] = axis
@@ -465,7 +466,36 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        if (ctx.Appendage() == null) {
+        if (ctx.Appendage() != null) {
+            bottle.type = RequestType.GET_APPENDAGE_LOCATION
+            val appendage = determineEndEffector(ctx.Appendage().getText(), side)
+            bottle.appendage = appendage
+            if( appendage==Appendage.NONE ) {
+                val msg = String.format("I don't have a body part %s, that I know of",
+                        ctx.Appendage().text )
+                bottle.error = msg
+            }
+            else {
+                sharedDictionary[SharedKey.APPENDAGE] = appendage
+            }
+        }
+        // There is no place in message to store bone. Use joint as equivalent.
+        // The bone with no joint is the PELVIS.
+        else if (ctx.Bone() != null) {
+            bottle.type = RequestType.GET_BONE_LOCATION
+            val bone = determineBone(ctx.Bone().getText(), side)
+
+            bottle.joint
+            if( bone==Bone.NONE ) {
+                val msg = String.format("I don't have a body part %s, that I know of",
+                        ctx.Bone().text )
+                bottle.error = msg
+            }
+            else {
+                sharedDictionary[SharedKey.BONE] = bone
+            }
+        }
+        else if (ctx.Joint() != null) {
             bottle.type = RequestType.GET_JOINT_LOCATION
             var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
             if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
@@ -479,20 +509,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                 sharedDictionary[SharedKey.IT] = SharedKey.JOINT
             }
         }
-        else {
-            bottle.type = RequestType.GET_APPENDAGE_LOCATION
-            var appendage = Appendage.NONE
-            if (ctx.Appendage() != null) appendage = determineEndEffector(ctx.Appendage().getText(), side)
-            bottle.appendage = appendage
-            if( appendage==Appendage.NONE ) {
-                val msg = String.format("I don't have a body part %s, that I know of",
-                                     ctx.Appendage().text )
-                bottle.error = msg
-            }
-            else {
-                sharedDictionary[SharedKey.APPENDAGE] = appendage
-            }
-        }
+
         return null
     }
 
@@ -760,7 +777,16 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             bottle.joint = joint
         }
 
-        var value:Double
+        var value = 0.0
+        if(joint==Joint.NONE) {
+            val msg = "what am i supposed to straighten?"
+            bottle.error = msg
+        }
+        else {
+            val mc = RobotModel.motorsByJoint[joint]
+            value = mc!!.offset
+        }
+        /*
         when (joint) {
             Joint.ABS_X -> value  = 180.0
             Joint.ABS_Y -> value = 180.0
@@ -793,6 +819,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                 bottle.error = msg
             }
         }
+         */
         bottle.joint = joint
         bottle.value = value
         sharedDictionary[SharedKey.JOINT] = joint
@@ -823,72 +850,64 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
 
     //===================================== Helper Methods ======================================
-    private fun determineBone(bone: String, side: String?): Appendage {
+    private fun determineBone(bone: String, side: String): Bone {
         val bodyPart = bone.uppercase()
-        var result: Appendage = Appendage.NONE
-        if (bodyPart.equals("EAR", ignoreCase = true)) {
-            if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
-            }
+        var result: Bone = Bone.NONE
+        if (bodyPart.equals("CERVICLE")) { result = Bone.CERVICAL }
+        else if( bodyPart.equals("COLLAR BONE") ) {
+            result = if (side.equals("left")) Bone.LEFT_CLAVICLE else Bone.RIGHT_CLAVICLE
         }
-        else if (bodyPart.equals("EYE") || bodyPart.equals("EYES", ignoreCase = true)) {
-            if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
-            }
+        else if (bodyPart.equals("FOOT") ) {
+            result = if (side.equals("left")) Bone.LEFT_FOOT else Bone.RIGHT_FOOT
         }
-        else if (bodyPart.equals("FINGER") || bodyPart.equals("HAND")) {
-            if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
-            }
+        else if (bodyPart.equals("FOREARM") ) {
+            result = if (side.equals("left")) Bone.LEFT_FOREARM else Bone.RIGHT_FOREARM
         }
-        else if (bodyPart.equals("FOOT") || bodyPart.equals("TOE")) {
-            if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
-            }
+        else if (bodyPart.equals("HIP SOCKET")) {
+            result = if (side.equals("left")) Bone.LEFT_HIP_SOCKET else Bone.RIGHT_HIP_SOCKET
         }
-        else if (bodyPart.equals("HEEL")) {
-            if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
-            }
+        else if (bodyPart.equals("ILLIUM")) {
+            result = if (side.equals("left")) Bone.LEFT_ILLIUM else Bone.RIGHT_ILLIUM
         }
-        else if (bodyPart.equals("NOSE", ignoreCase = true)) {
-            result = Appendage.NOSE
+        else if (bodyPart.equals("LUMBAR")) { result = Bone.LUMBAR }
+        else if (bodyPart.equals("PELVIS")) { result = Bone.PELVIS }
+        else if (bodyPart.equals("SHIN")) {
+            result = if (side.equals("left")) Bone.LEFT_SHIN else Bone.RIGHT_SHIN
         }
-        if( result==Appendage.NONE ) {
-            LOGGER.info(String.format("WARNING: StatementTranslator.determineEndEffector did not find a match for %s",
+        else if (bodyPart.equals("SHOULDER SOCKET")) {
+            result=if(side.equals("left")) Bone.LEFT_SHOULDER_SOCKET else Bone.RIGHT_SHOULDER_SOCKET
+        }
+        else if (bodyPart.equals("SPINE")) { result = Bone.SPINE }
+        else if (bodyPart.equals("SKULL")) { result = Bone.SKULL }
+        else if (bodyPart.equals("UPPER ARM")) {
+            result=if(side.equals("left")) Bone.LEFT_UPPER_ARM else Bone.RIGHT_UPPER_ARM
+        }
+
+        if( result==Bone.NONE ) {
+            LOGGER.info(String.format("WARNING: StatementTranslator.determineBone did not find a match for %s",
                 bodyPart ))
         }
         return result
     }
     // Determine the specific end effector (appendage) from the body part and side. (Side is not always needed).
     // @param bodyPart - appendage (uppercase)
-    private fun determineEndEffector(appendage: String, side: String?): Appendage {
+    private fun determineEndEffector(appendage: String, side: String): Appendage {
         val bodyPart = appendage.uppercase()
         var result: Appendage = Appendage.NONE
         if (bodyPart.equals("EAR")) {
-            if (side != null) {
-                result = if (side.equals("left")) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
-            }
+            result = if (side.equals("left")) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
         }
         else if (bodyPart.equals("EYE") || bodyPart.equals("EYES")) {
-            if (side != null) {
-                result = if (side.equals("left")) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
-            }
+            result = if (side.equals("left")) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
         }
         else if (bodyPart.equals("FINGER") || bodyPart.equals("HAND")) {
-            if (side != null) {
-                result = if (side.equals("left")) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
-            }
+            result = if (side.equals("left")) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
         }
         else if (bodyPart.equals("FOOT") || bodyPart.equals("TOE")) {
-            if (side != null) {
-                result = if (side.equals("left")) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
-            }
+            result = if (side.equals("left")) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
         }
         else if (bodyPart.equals("HEEL")) {
-            if (side != null) {
-                result = if (side.equals("left")) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
-            }
+            result = if (side.equals("left")) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
         }
         else if (bodyPart.equals("NOSE")) {
             result = Appendage.NOSE
@@ -902,7 +921,8 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     // Return TRUE if the phrase should be interpreted as one of the fixed commands. If so, update the 
     // request bottle appropriately.
-    private fun determineCommandFromPhrase(phrase: String): Boolean {
+    private fun determineCommandFromPhrase(cmd: String): Boolean {
+        val phrase = cmd.lowercase()
         var success = true
         if (phrase == "die" || phrase == "exit" || phrase == "halt" || phrase == "quit" || phrase == "stop") {
             bottle.type = RequestType.COMMAND
@@ -937,52 +957,37 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     // Determine the specific joint from the body part, side and axis. (The latter two are
     // not always needed).
-    private fun determineJoint(part: String, axs: String?, side: String?): Joint {
+    private fun determineJoint(part: String, axs: String, side: String): Joint {
         val bodyPart = part.uppercase()
         var axis = axs
         var result: Joint = Joint.NONE
 
         // Handle some synonyms
-        if (axis != null) {
-            if (axis.equals("horizontal", ignoreCase = true)) axis = "Z" else if (axis.equals(
-                    "vertical",
-                    ignoreCase = true
-                ) ||
-                axis.equals("why", ignoreCase = true)
-            ) axis = "Y" else if (axis.equals("ex", ignoreCase = true)) axis = "X"
-        }
+        if (axis.equals("horizontal")) axis = "Z" else if (axis.equals(
+                    "vertical") ||
+            axis.equals("why", ignoreCase = true)
+        ) axis = "Y" else if (axis.equals("ex", ignoreCase = true)) axis = "X"
         if (bodyPart.equals("ABS") || bodyPart.equals("ABDOMEN") ) {
-            if (axis != null) {
                 result = if (axis.equals("X", ignoreCase = true)) Joint.ABS_X else if (axis.equals(
                         "Y",
                         ignoreCase = true
                     )
                 ) Joint.ABS_Y else Joint.ABS_Z
-            }
         }
         else if (bodyPart.equals("ANKLE")) {
-            if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Joint.LEFT_ANKLE_Y else Joint.RIGHT_ANKLE_Y
-            }
         }
         else if (bodyPart.equals("BUST") || bodyPart.equals("CHEST", ignoreCase = true)) {
-            if (axis != null) {
                 result = if (axis.equals("X", ignoreCase = true)) Joint.BUST_X else Joint.BUST_Y
-            }
         }
         else if (bodyPart.equals("ELBOW")) {
-            if (side != null) {
-                result = if (side.equals("left", ignoreCase = true)) Joint.LEFT_ELBOW_Y else Joint.RIGHT_ELBOW_Y
-            }
+            result = if (side.equals("left", ignoreCase = true)) Joint.LEFT_ELBOW_Y else Joint.RIGHT_ELBOW_Y
         }
         else if (bodyPart.equals("NECK")) {
-            if (axis != null) {
-                result = if (axis.equals("Y")) Joint.NECK_Y else Joint.NECK_Z
-            }
+            result = if (axis.equals("Y")) Joint.NECK_Y else Joint.NECK_Z
         }
         else if (bodyPart.equals("HIP") || bodyPart.equals("THIGH")) {
-            if (axis != null && side != null) {
-                if (side.equals("left", ignoreCase = true)) {
+                if (side.equals("left")) {
                     result = if (axis.equals("X", ignoreCase = true)) Joint.LEFT_HIP_X else if (axis.equals(
                             "Y",
                             ignoreCase = true
@@ -996,15 +1001,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                         )
                     ) Joint.RIGHT_HIP_Y else Joint.RIGHT_HIP_Z
                 }
-            }
         }
         else if (bodyPart.equals("KNEE")) {
-            if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Joint.LEFT_KNEE_Y else Joint.RIGHT_KNEE_Y
-            }
         }
         else if (bodyPart.equals("SHOULDER") || bodyPart.equals("ARM", ignoreCase = true)) {
-            if (axis != null && side != null) {
                 if (side.equals("left", ignoreCase = true)) {
                     result = if (axis.equals("X", ignoreCase = true)) Joint.LEFT_SHOULDER_X else if (axis.equals(
                             "Y",
@@ -1019,7 +1020,6 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                         )
                     ) Joint.RIGHT_SHOULDER_Y else Joint.RIGHT_SHOULDER_Z
                 }
-            }
         }
         if (result.equals(RequestType.NONE)) {
             LOGGER.info(String.format(
@@ -1033,22 +1033,18 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     // Determine the specific limb from the body part and side. (Side is not always needed).
     // A limb is a grouping of joints, e.g. "arm" includes elbow and shoulder.
-    private fun determineLimb(bodyPart: String, side: String?): Limb {
+    private fun determineLimb(bodyPart: String, side: String): Limb {
         var result: Limb = Limb.NONE
         if (bodyPart.equals("arm", ignoreCase = true)) {
-            if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Limb.LEFT_ARM else Limb.RIGHT_ARM
-            }
         }
         else if (bodyPart.equals("leg", ignoreCase = true)) {
-            if (side != null) {
                 result = if (side.equals("left", ignoreCase = true)) Limb.LEFT_LEG else Limb.RIGHT_LEG
-            }
         }
         else if (bodyPart.equals("back", ignoreCase = true) || bodyPart.equals("torso", ignoreCase = true)) {
             result = Limb.TORSO
         }
-        else if (bodyPart.equals("head", ignoreCase = true)) {
+        else if (bodyPart.equals("head")) {
             result = Limb.HEAD
         }
         if( result==Limb.NONE ) {
@@ -1065,7 +1061,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         if (text.equals("left", ignoreCase = true)) side = "left"
         else if (text.equals("other", ignoreCase = true)) {
             val former = dict[SharedKey.SIDE].toString()
-            side = if (former.equals("left", ignoreCase = true)) "right" else "left"
+            side = if (former.equals("left")) "right" else "left"
         }
         return side
     }
