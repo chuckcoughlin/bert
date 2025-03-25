@@ -7,8 +7,8 @@
 	<!-- The IMU position places it relative to the root link's origin. It represents the world-frame origin.
 	     The axis of rotation represents the movement of the entire robot with respect to this frame.
 	-->
-	<imu d="0.0" r="1.0." alpha ="0.0" theta="0.0" offset = "0."
-		 xyz="1 0 0"/> />
+	<imu xyz = "0.0 0.0 0.0" offset = "0."
+		 axis="0 0 1"/> />
 
 	<!-- A link is equivalent to a bone. Each link may have several attachments,
 	     either joints or end effectors, but only a single parent. The parent is
@@ -20,14 +20,16 @@
 
 		Links form a tree from the robot origin, PELVIS,
 		terminating in links or one or more end effectors.
+
+		The origin is taken as midway between the hip joints.
 	  -->
 	<link name="PELVIS" axis="0 0 1">        <!-- root -->
 		<joint name="RIGHT_HIP_X"
-			   xyz="0.0 2.5417390633467 0.0" offset="180."/>
+			   xyz="0.0 22.5417390633467 0.0" offset="180."/>
 		<joint name="LEFT_HIP_X"
-			   xyz="0.0 22.5417390633466 0.0" offset="180."/>
+			   xyz="0.0 -22.5417390633466 0.0" offset="180."/>
 		<joint name="ABS_Y"
-			   xyz="17.0 6.1 0.0" offset="180."/>
+			   xyz="62.0 6.1 0.0" offset="180."/>
 	</link>
 	<link name="RIGHT_HIP_SOCKET" axis="0 0 1">
 		<joint name="RIGHT_HIP_Z"

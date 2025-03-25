@@ -8,6 +8,7 @@ package chuckcoughlin.bert.common.math
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.Solver
 import java.util.logging.Logger
 
 /**
@@ -44,10 +45,17 @@ open class Quaternion( ) {
     }
 
     /**
-     * The Quaternion multiplication leaves
+     * The current orientation
      */
-    fun resultToPoint(): Point3D {
-        var p = Point3D(matrix[0][0],matrix[0][1],matrix[0][2])
+    fun orientation(): DoubleArray {
+        var p = doubleArrayOf(matrix[0][0],matrix[0][1],matrix[0][2])
+        return p
+    }
+    /**
+     * The current position
+     */
+    fun position(): Point3D {
+        var p = Point3D(matrix[3][0],matrix[3][1],matrix[3][2])
         return p
     }
 
@@ -59,6 +67,8 @@ open class Quaternion( ) {
      * @param theta: angle of rotation of joint ~ degrees
      */
     fun update(d:Double,r:Double,alpha:Double,theta:Double) {
+        if(DEBUG) LOGGER.info(String.format("%s.update: d=%2.2f, r= %2.2f, alpha = %2.2f, theta = %2.2f ",
+               CLSS,d,r,alpha,theta))
         matrix[0][0] = Math.cos(theta*Math.PI/180.0)
         matrix[0][1] = -Math.sin(theta*Math.PI/180.0) * Math.cos(alpha*Math.PI/180.0)
         matrix[0][2] =  Math.sin(theta*Math.PI/180.0) * Math.sin(alpha*Math.PI/180.0)
@@ -85,6 +95,12 @@ open class Quaternion( ) {
          */
         fun identity(): Quaternion {
             val q = Quaternion()
+            q.matrix = arrayOf(         // Initialize as identity matrix
+                doubleArrayOf(1.0,0.0,0.0,0.0),
+                doubleArrayOf(0.0,1.0,0.0,0.0),
+                doubleArrayOf(0.0,0.0,1.0,0.0),
+                doubleArrayOf(0.0,0.0,0.0,1.0)
+            )
             return q
         }
     }
@@ -95,11 +111,11 @@ open class Quaternion( ) {
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        matrix = arrayOf(         // Initialize as identity matrix
-            doubleArrayOf(1.0,0.0,0.0,0.0),
-            doubleArrayOf(0.0,1.0,0.0,0.0),
-            doubleArrayOf(0.0,0.0,1.0,0.0),
-            doubleArrayOf(0.0,0.0,0.0,1.0)
+        matrix = arrayOf(         // Initialize as an empty matrix
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0)
         )
     }
 }

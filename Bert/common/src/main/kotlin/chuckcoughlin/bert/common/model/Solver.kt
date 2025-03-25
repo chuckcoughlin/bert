@@ -26,7 +26,7 @@ object Solver {
     fun computeLocation(appendage: Appendage): Point3D {
         val subchain: List<LinkPin> = Chain.partialChainToAppendage(appendage)
         val q = computeQuaternionFromChain(subchain)
-        return q.resultToPoint()
+        return q.position()
     }
 
     /**
@@ -37,7 +37,7 @@ object Solver {
     fun computeLocation(joint:Joint): Point3D {
         val subchain: List<LinkPin> = Chain.partialChainToJoint(joint)
         val q = computeQuaternionFromChain(subchain)
-        return q.resultToPoint()
+        return q.position()
     }
 
     /**
@@ -47,10 +47,14 @@ object Solver {
     private fun computeQuaternionFromChain(subchain: List<LinkPin>):Quaternion {
         var q = Quaternion.identity()
         for(pin in subchain) {
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s start = (%s) ",
+                CLSS,pin.joint.name,pin.quaternion.position().toText()))
             pin.updateQuaternion()
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s update = (%s) ",
+                CLSS,pin.joint.name,pin.quaternion.position().toText()))
             q = q.multiplyBy(pin.quaternion)
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s at %2.0f deg (%s) ",
-                CLSS,pin.joint,q.resultToPoint().toText()))
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s result = (%s) ",
+                CLSS,pin.joint.name,pin.quaternion.position().toText()))
         }
         return q
     }

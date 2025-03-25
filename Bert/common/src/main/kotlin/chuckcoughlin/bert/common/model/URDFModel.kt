@@ -18,10 +18,12 @@ import java.util.logging.Logger
  * A chain has a tree structure with a single root.
  */
 object URDFModel {
+    val origin: LinkPin
     var document: Document?
     val linkForBone: MutableMap<Bone, Link>
     val linkForAppendage: MutableMap<Appendage, Link>
-    val linkForJoint: MutableMap<Joint, Link>
+    val revoluteLinkForJoint: MutableMap<Joint, Link>
+    val linkForSourceJoint: MutableMap<Joint, Link>
     val sourceJointForLink: MutableMap<Link,Joint>
     val revoluteForJoint : MutableMap<Joint,LinkPin>
 
@@ -50,13 +52,14 @@ object URDFModel {
     private fun analyzeChain() {
         if (document != null) {
             // ================================== IMU ===============================================
-            val origin = LinkPin(PinType.ORIGIN)
             val imus = document!!.getElementsByTagName("imu")
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
                 val axis = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
                 origin.axis = axis
+                val xyz = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "xyz"))
+                origin.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
             }
 
             // ================================== Links ===============================================
@@ -106,13 +109,14 @@ object URDFModel {
                                 pin.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
                                 pin.axis = axis
                                 link.addEndPoint(pin)
-                                linkForJoint[joint] = link
                                 revoluteForJoint[joint] = pin
+                                revoluteLinkForJoint[joint] = link
                             }
                             else if ("source".equals(node.localName)) {
                                 val aname: String = XMLUtility.attributeValue(node, "joint")
                                 val joint = Joint.fromString(aname)
-                                sourceJointForLink[link] = joint
+                                sourceJointForLink[link]  = joint
+                                linkForSourceJoint[joint] = link
                             }
                             aindex++
                         }
@@ -154,7 +158,7 @@ object URDFModel {
      */
     fun boneForJoint(joint:Joint): Bone {
         var bone = Bone.PELVIS
-        val link = linkForJoint[joint]
+        val link = linkForSourceJoint[joint]
         if( link!=null) {
             bone = link.bone
         }
@@ -225,7 +229,7 @@ object URDFModel {
      */
     fun jointNames(): String {
         var names = StringBuffer()
-        for (joint in linkForJoint.keys) {
+        for (joint in revoluteLinkForJoint.keys) {
             names.append(joint.name.lowercase())
             names.append(", ")
         }
@@ -238,7 +242,7 @@ object URDFModel {
     fun jointsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
-        for (joint in linkForJoint.keys) {
+        for (joint in revoluteLinkForJoint.keys) {
             names.add(joint.name)
         }
         return gson.toJson(names)
@@ -293,8 +297,10 @@ object URDFModel {
         document = null
         linkForAppendage = mutableMapOf<Appendage, Link>()
         linkForBone      = mutableMapOf<Bone,Link>()
-        linkForJoint     = HashMap<Joint,Link>()
+        revoluteLinkForJoint = mutableMapOf<Joint,Link>()
+        linkForSourceJoint = mutableMapOf<Joint,Link>()
         sourceJointForLink = mutableMapOf<Link,Joint>()
         revoluteForJoint = mutableMapOf<Joint,LinkPin>()
+        origin = LinkPin(PinType.ORIGIN)
     }
 }

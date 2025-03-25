@@ -484,10 +484,9 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         else if (ctx.Bone() != null) {
             bottle.type = RequestType.GET_BONE_LOCATION
             val bone = determineBone(ctx.Bone().getText(), side)
-
-            bottle.joint
+            bottle.joint = URDFModel.jointForBone(bone)
             if( bone==Bone.NONE ) {
-                val msg = String.format("I don't have a body part %s, that I know of",
+                val msg = String.format("I don't have a bone in my body called %s",
                         ctx.Bone().text )
                 bottle.error = msg
             }
@@ -778,48 +777,38 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
 
         var value = 0.0
-        if(joint==Joint.NONE) {
-            val msg = "what am i supposed to straighten?"
-            bottle.error = msg
-        }
-        else {
-            val mc = RobotModel.motorsByJoint[joint]
-            value = mc!!.offset
-        }
-        /*
         when (joint) {
-            Joint.ABS_X -> value  = 180.0
+            Joint.ABS_X -> value = 180.0
             Joint.ABS_Y -> value = 180.0
             Joint.ABS_Z -> value = 0.0
-            Joint.BUST_X -> value  = 180.0
-            Joint.BUST_Y -> value  = 180.0
-            Joint.NECK_Y -> value  = 0.0
-            Joint.NECK_Z -> value  = 0.0
-            Joint.LEFT_ANKLE_Y -> value  = 90.0
-            Joint.LEFT_SHOULDER_Z -> value  = 0.0
+            Joint.BUST_X -> value = 180.0
+            Joint.BUST_Y -> value = 180.0
+            Joint.NECK_Y -> value = 0.0
+            Joint.NECK_Z -> value = 0.0
+            Joint.LEFT_ANKLE_Y -> value = 90.0
+            Joint.LEFT_SHOULDER_Z -> value = 0.0
             Joint.LEFT_ELBOW_Y -> value = 180.0
-            Joint.LEFT_HIP_X -> value  = 180.0
-            Joint.LEFT_HIP_Y -> value  = 180.0
-            Joint.LEFT_HIP_Z -> value  = 0.0
-            Joint.LEFT_KNEE_Y -> value  = 180.0
-            Joint.LEFT_SHOULDER_X -> value  = 180.0
-            Joint.LEFT_SHOULDER_Y -> value  = 180.0
+            Joint.LEFT_HIP_X -> value = 180.0
+            Joint.LEFT_HIP_Y -> value = 180.0
+            Joint.LEFT_HIP_Z -> value = 0.0
+            Joint.LEFT_KNEE_Y -> value = 180.0
+            Joint.LEFT_SHOULDER_X -> value = 180.0
+            Joint.LEFT_SHOULDER_Y -> value = 180.0
             Joint.RIGHT_ANKLE_Y -> value = 90.0
-            Joint.RIGHT_SHOULDER_Z -> value  = 0.0
+            Joint.RIGHT_SHOULDER_Z -> value = 0.0
             Joint.RIGHT_ELBOW_Y -> value = 180.0
-            Joint.RIGHT_HIP_X -> value  = 180.0
-            Joint.RIGHT_HIP_Y -> value  = 180.0
-            Joint.RIGHT_HIP_Z -> value  = 0.0
+            Joint.RIGHT_HIP_X -> value = 180.0
+            Joint.RIGHT_HIP_Y -> value = 180.0
+            Joint.RIGHT_HIP_Z -> value = 0.0
             Joint.RIGHT_KNEE_Y -> value = 180.0
-            Joint.RIGHT_SHOULDER_X -> value  = 180.0
-            Joint.RIGHT_SHOULDER_Y -> value  = 180.0
+            Joint.RIGHT_SHOULDER_X -> value = 180.0
+            Joint.RIGHT_SHOULDER_Y -> value = 180.0
             Joint.NONE -> {
-                value = 0.0
                 val msg = "what am i supposed to straighten?"
                 bottle.error = msg
             }
         }
-         */
+
         bottle.joint = joint
         bottle.value = value
         sharedDictionary[SharedKey.JOINT] = joint
@@ -884,9 +873,10 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
 
         if( result==Bone.NONE ) {
-            LOGGER.info(String.format("WARNING: StatementTranslator.determineBone did not find a match for %s",
+            LOGGER.info(String.format("%s.determineBone did not find a match for %s",CLSS,
                 bodyPart ))
         }
+        LOGGER.info(String.format("%s.determineBone %s = %s",CLSS,bodyPart,result.name ))
         return result
     }
     // Determine the specific end effector (appendage) from the body part and side. (Side is not always needed).

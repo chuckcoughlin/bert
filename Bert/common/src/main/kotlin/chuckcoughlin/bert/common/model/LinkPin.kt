@@ -6,6 +6,7 @@ package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Quaternion
 import java.awt.Robot
+import java.util.logging.Logger
 
 /**
  * A LinkPoint is either a hinged joint or an end effector (unmoving).
@@ -46,12 +47,12 @@ class LinkPin (val type:PinType ) {
             mc = RobotModel.motorsByJoint[j]
         }
     /**
-     * The joint angle is the motor position. Set it in degrees, read it in radians.
+     * The joint angle is the motor position in degrees.
      * Note that changing the angle does not invalidate the current link, just its children.
      * @return
      */// Convert to radians
     var theta:Double = 0.0
-        get() = Math.atan(coordinates.y / coordinates.x) * 180.0/ Math.PI + mc!!.angle - offset
+        get() = (if(coordinates.x==0.0) offset else Math.atan(coordinates.y / coordinates.x) * 180.0/Math.PI) + (if(mc==null) 0.0 else mc!!.angle) - offset
     fun coordinatesToText():String {
         return String.format("%3.3f,%3.3f,%3.3f",coordinates.x,coordinates.y,coordinates.z)
     }
@@ -70,9 +71,12 @@ class LinkPin (val type:PinType ) {
 
 
 
+    val DEBUG: Boolean
     private val CLSS =  "LinkPin"
+    val LOGGER = Logger.getLogger(CLSS)
 
     init {
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         appendage = Appendage.NONE
         quaternion = Quaternion()
         coordinates = Point3D(0.0, 0.0, 0.0)   // x,y,z

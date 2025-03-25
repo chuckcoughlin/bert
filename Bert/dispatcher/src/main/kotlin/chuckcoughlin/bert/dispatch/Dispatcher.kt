@@ -351,14 +351,16 @@ class Dispatcher : Controller {
                                   appendage.name, xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
-            // Would be nice to return both source pin and end pin locations
+            // Would be nice to return both source pin and end pin location
+            // A joint is specified in message. Convert to bone equivalent for response text
             else if (request.type.equals(RequestType.GET_BONE_LOCATION)) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: appendage=%s", CLSS, request.appendage.name))
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: joint for bone=%s", CLSS, request.joint.name))
                 Solver.updateLinkAngles() // Forces new calculations
-                val appendage = request.appendage
-                val xyz: Point3D = Solver.computeLocation(appendage)
+                val joint = request.joint
+                val xyz: Point3D = Solver.computeLocation(joint)
+                val bone = URDFModel.boneForJoint(joint)
                 val text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
-                        appendage.name, xyz.x, xyz.y, xyz.z)
+                        bone.name, xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
             // The location in physical coordinates from the center of the robot.
@@ -610,6 +612,7 @@ class Dispatcher : Controller {
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
             request.type==RequestType.GET_APPENDAGE_LOCATION||
+            request.type==RequestType.GET_BONE_LOCATION ||
             request.type==RequestType.GET_JOINT_LOCATION ||
             request.type==RequestType.GET_METRIC ||
             request.type==RequestType.HANGUP    ) {
