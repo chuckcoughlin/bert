@@ -8,10 +8,11 @@ import org.hipparchus.complex.Quaternion
 import java.util.logging.Logger
 
 /**
- * A link is a skeletal structure analagous to a bone and is named for it.
- * A Link has "pins" or connection points with other links or end points.
- * There is also a link called the "parent" which describes the root
- * connection to the current link.
+ * A link is a skeletal structure connecting a source pin to either a
+ * revolute pin or end effector. The "position" of the link is this
+ * end point. There is also a orientation matrix describing the rotation.
+ * There is also a link called the "origin" which is the first link in every
+ * chain. Multiple links may have the same source.
  *
  * The joints are always "revolutes", that is rotational only. There
  * is no translation. The joint axis is always at 0 or 90 degrees to a
@@ -30,11 +31,8 @@ import java.util.logging.Logger
  * A single link may hold several joints and/or extremities.
  * @param bone bone
  */
-class Link( bone: Bone) {
-    // These are for links that have multiple pins or end effectors
-    val destinationPinForJoint: MutableMap<Joint,LinkPin>
-    val destinationPinForAppendage: MutableMap<Appendage,LinkPin>
-    val bone = bone
+class Link( ) {
+    var destinationPin: linkPin
     var sourcePin: LinkPin
 
     /**
@@ -66,8 +64,7 @@ class Link( bone: Bone) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        destinationPinForAppendage = mutableMapOf<Appendage,LinkPin>()
-        destinationPinForJoint = mutableMapOf<Joint,LinkPin>()
-        sourcePin = LinkPin(PinType.ORIGIN)   // Origin, for now
+        destinationPin = LinkPin(PinType.ORIGIN)   // Must be reset
+        sourcePin = LinkPin(PinType.ORIGIN)        // Origin, for now
     }
 }

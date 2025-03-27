@@ -10,7 +10,7 @@ import java.util.logging.Logger
 /**
  * The Chain is a tree of Links starting with the
  * "root" link. The position of links within the chain are
- * all relative to the root link (i.e. origin).
+ * all relative to the IMU (i.e. origin).
  *
  * The URDF file format doesn't define things in the most convenient
  * order and so is not strictly followed.
@@ -29,8 +29,8 @@ object Chain {
      * @param appendage
      * @return
      */
-    fun partialChainToAppendage(appendage: Appendage): List<LinkPin> {
-        val partial: LinkedList<LinkPin> = LinkedList<LinkPin>()
+    fun partialChainToAppendage(appendage: Appendage): List<Link> {
+        val partial: LinkedList<Link> = LinkedList<Link>()
         var link = URDFModel.linkForAppendage[appendage]
         if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for %s",CLSS,appendage.name))
         while (link != null) {
@@ -78,7 +78,7 @@ object Chain {
 
     /**
      * The axes are the Euler angles in three dimensions between the robot and the reference frame.
-     * @param a three dimensional array of rotational offsets between the robot and reference frame.
+     * @param a three-dimensional array of rotational offsets between the robot and reference frame.
      */
     fun setAxes(a: DoubleArray) {
         Chain.axis= a
@@ -86,7 +86,7 @@ object Chain {
 
     /**
      * The origin is the offset of the IMU with respect to the origin of the robot.
-     * @param o three dimensional array of offsets to the origin of the chain
+     * @param o three-dimensional array of offsets to the origin of the chain
      */
     fun setOrigin(o: DoubleArray) {
         Chain.origin= o

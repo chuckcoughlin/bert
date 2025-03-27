@@ -24,7 +24,7 @@ import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
 /**
- * The Dispatcher is the distribution hub of the application. Its' job is to accept requests from
+ * The Dispatcher is the distribution hub of the application. Its job is to accept requests from
  * the various peripheral controllers, distribute them to the motor manager channels and post the results.
  * For complicated requests it may invoke the services of the "Solver" and insert
  * internal intermediate requests.
@@ -35,8 +35,8 @@ import kotlin.system.exitProcess
 @DelicateCoroutinesApi
 class Dispatcher : Controller {
     // Communication channels
-    private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (wifi)
-    private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (wifi)
+    private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (Wi-Fi)
+    private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (Wi-Fi)
     private val fromInternalController     : Channel<MessageBottle>    // Internal (i.e. local)  controller
     private val toInternalController       : Channel<MessageBottle>
     private val mgcRequestChannel          : Channel<MessageBottle>    // Motor group controller
@@ -137,7 +137,7 @@ class Dispatcher : Controller {
                             dispatchCommandResponse(it)
                         }
                     }
-                    cycleCount = cycleCount + 1
+                    cycleCount += 1
                     val endCycle=System.currentTimeMillis()
                     val elapsed=endCycle - startCycle
                     cycleTime=exponentiallyWeightedMovingAverage(cycleTime, elapsed.toDouble())
@@ -231,7 +231,7 @@ class Dispatcher : Controller {
     }
     // ========================================= Helper Methods =======================================
     /**
-     * Analyze an incoming message from the command (wifi) or terminal channels. Some requests
+     * Analyze an incoming message from the command (Wi-Fi) or terminal channels. Some requests
      * are handled immediately. Any motor requests are first passed to the internal controller to
      * handle delay or conflict issues.
      */
@@ -289,7 +289,7 @@ class Dispatcher : Controller {
     // reference to the motors. The response is simply the original request
     // with altered text to return to the user.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if( request.error.equals(BottleConstants.NO_ERROR)) {
+        if( request.error==BottleConstants.NO_ERROR) {
             if (request.type == RequestType.COMMAND) {
                 val command = request.command
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
@@ -351,28 +351,15 @@ class Dispatcher : Controller {
                                   appendage.name, xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
-            // Would be nice to return both source pin and end pin location
-            // A joint is specified in message. Convert to bone equivalent for response text
-            else if (request.type.equals(RequestType.GET_BONE_LOCATION)) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: joint for bone=%s", CLSS, request.joint.name))
-                Solver.updateLinkAngles() // Forces new calculations
-                val joint = request.joint
-                val xyz: Point3D = Solver.computeLocation(joint)
-                val bone = URDFModel.boneForJoint(joint)
-                val text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
-                        bone.name, xyz.x, xyz.y, xyz.z)
-                request.text = text
-            }
             // The location in physical coordinates from the center of the robot.
             else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: joint=%s", CLSS, request.joint.name))
                 Solver.updateLinkAngles()
                 val joint = request.joint
-                val bone = URDFModel.boneForJoint(joint)
                 val xyz: Point3D = Solver.computeLocation(joint)
                 val text = String.format(
                     "The center of my %s is located at %2.2f %2.2f %2.2f millimeters",
-                    Bone.toText(bone), xyz.x, xyz.y, xyz.z)
+                    Joint.toText(joint), xyz.x, xyz.y, xyz.z)
                 request.text = text
             }
             else if (request.type.equals(RequestType.GET_METRIC)) {
@@ -401,7 +388,6 @@ class Dispatcher : Controller {
                             JsonType.FACE_NAMES -> text = "I know " + Database.getFaceNames()
                             JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = "Each joint has " + JointDynamicProperty.names()
                             JsonType.MOTOR_STATIC_PROPERTIES -> text = "Each joint has a " + JointDynamicProperty.names()
-                            JsonType.BONE_NAMES -> text = "My skeleton is made up of  " + Bone.nameList()
                             JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Appendage.nameList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.nameList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
@@ -418,7 +404,7 @@ class Dispatcher : Controller {
                 }
                 request.text = text
             }
-            // THese are the definition properties
+            // These are the definition properties
             else if (request.type == RequestType.GET_MOTOR_PROPERTY &&
                 request.jointDynamicProperty == JointDynamicProperty.NONE) {
                 val joint = request.joint
@@ -470,9 +456,6 @@ class Dispatcher : Controller {
                     // List the names of different kinds of motor properties
                     JsonType.END_EFFECTORLOCATION-> {
                         text = Solver.appendageLocationToJSON(request.appendage)
-                    }
-                    JsonType.BONE_NAMES -> {
-                        text = URDFModel.bonesToJSON()
                     }
                     JsonType.END_EFFECTOR_NAMES -> {
                         text = URDFModel.endEffectorNamesToJSON()
@@ -612,13 +595,12 @@ class Dispatcher : Controller {
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
             request.type==RequestType.GET_APPENDAGE_LOCATION||
-            request.type==RequestType.GET_BONE_LOCATION ||
             request.type==RequestType.GET_JOINT_LOCATION ||
             request.type==RequestType.GET_METRIC ||
             request.type==RequestType.HANGUP    ) {
             return true
         }
-        // THese are the definition properties
+        // These are the definition properties
         else if( request.type == RequestType.JSON ) {
             if( request.jtype==JsonType.MOTOR_GOALS ||
                 request.jtype==JsonType.MOTOR_LIMITS ) {
@@ -634,7 +616,7 @@ class Dispatcher : Controller {
         }
         // These "dynamic" properties are gettable from bert.xml
         else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
-                (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE ||
+                  ( request.jointDynamicProperty == JointDynamicProperty.MAXIMUMANGLE ||
                     request.jointDynamicProperty == JointDynamicProperty.MINIMUMANGLE ||
                     request.jointDynamicProperty == JointDynamicProperty.MAXIMUMSPEED ||
                     request.jointDynamicProperty == JointDynamicProperty.MAXIMUMTORQUE ||
@@ -707,19 +689,19 @@ class Dispatcher : Controller {
     // to be forwarded to the proper motor controller. They have needed pre-processing
     // by the internal controller
     private fun isMotorRequest(request: MessageBottle): Boolean {
-        if (request.type.equals(RequestType.EXECUTE_ACTION) ||
-            request.type.equals(RequestType.EXECUTE_POSE) ||
-            request.type.equals(RequestType.GET_MOTOR_PROPERTY) ||
-            request.type.equals(RequestType.INITIALIZE_JOINTS)  ||
-            request.type.equals(RequestType.READ_MOTOR_PROPERTY) ||
-            request.type.equals(RequestType.RESET) ||
-            request.type.equals(RequestType.SET_LIMB_PROPERTY) ||
-            request.type.equals(RequestType.SET_MOTOR_PROPERTY)) {
+        if (request.type==RequestType.EXECUTE_ACTION ||
+            request.type==RequestType.EXECUTE_POSE ||
+            request.type==RequestType.GET_MOTOR_PROPERTY ||
+            request.type==RequestType.INITIALIZE_JOINTS  ||
+            request.type==RequestType.READ_MOTOR_PROPERTY ||
+            request.type==RequestType.RESET ||
+            request.type==RequestType.SET_LIMB_PROPERTY ||
+            request.type==RequestType.SET_MOTOR_PROPERTY) {
             return true
         }
-        else if(request.type.equals(RequestType.JSON) ) {
-            if( request.jtype.equals(JsonType.MOTOR_LIMITS) ||
-                request.jtype.equals(JsonType.MOTOR_GOALS) ) {
+        else if(request.type==RequestType.JSON ) {
+            if( request.jtype==JsonType.MOTOR_LIMITS ||
+                request.jtype==JsonType.MOTOR_GOALS ) {
                 return true
             }
         }
@@ -801,7 +783,7 @@ class Dispatcher : Controller {
     /**
      * The dispatcher creates all controllers and communication channels for the application. Request/response
      * naming is from the point of view of the Dispatcher.
-     *    Command - network (wifi) connection to the tablet
+     *    Command - network (Wi-Fi) connection to the tablet
      *    Internal - where multiple or repeating messages are required for a single user request.
      *    MotorController - make serial requests to the motors
      *    Terminal - communicate directly with the user console

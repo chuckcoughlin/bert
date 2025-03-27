@@ -4,15 +4,15 @@
 	- axis is unit vector around which joint rotates clockwise
    	- lengths ~ mm, angles ~ degrees -->
 <robot name="bert">
-	<!-- The IMU position places it relative to the root link's origin. It represents the world-frame origin.
-	     The axis of rotation represents the movement of the entire robot with respect to this frame.
+	<!-- The Internal Measurement Unit (IMU) is the world-frame origin. Its position is always (0,0,0).
+	     The axis of rotation represents the orientation of the entire robot with respect to this frame.
 	-->
 	<imu xyz = "0.0 0.0 0.0" offset = "0."
 		 axis="0 0 1"/> />
 
 	<!-- A link is equivalent to a bone. Each link may have several attachments,
 	     either joints or end effectors, but only a single parent. The parent is
-	     a joint (a RESULUTE link pin). The link with no parent is the origin.
+	     a joint (a REVOLUTE link pin). The link with no parent is the origin.
 
 	     Joint names must match the names in bert.xml.
 				origin is position of joint in parent frame,
@@ -30,13 +30,14 @@
 			   xyz="0.0 -22.5417390633466 0.0" offset="180."/>
 		<joint name="ABS_Y"
 			   xyz="62.0 6.1 0.0" offset="180."/>
+		<source joint="IMU"/>
 	</link>
 	<link name="RIGHT_HIP_SOCKET" axis="0 0 1">
 		<joint name="RIGHT_HIP_Z"
 			   xyz="43.9986 5.0 0.0" offset="0."/>
 		<source joint="RIGHT_HIP_X"/>
 	</link>
-	<link name="RIGHT_ILLIUM" axis="0 0 1">
+	<link name="RIGHT_ILIUM" axis="0 0 1">
 		<joint name="RIGHT_HIP_Y"
 			   xyz="24.0 0.0 0.0" offset="180."/>
 		<source joint="RIGHT_HIP_Z"/>
@@ -63,7 +64,7 @@
 			   xyz="43.9986 5.00 0.0" offset = "0."/>
 		<source joint="LEFT_HIP_X"/>
 	</link>
-	<link name="LEFT_ILLIUM" axis="0 0 1">
+	<link name="LEFT_ILIUM" axis="0 0 1">
 		<joint name="LEFT_HIP_Y"
 			   xyz="24.0 0.0 0.0" offset = "180."/>
 		<source joint="LEFT_HIP_Z"/>

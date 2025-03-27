@@ -69,7 +69,17 @@ class LinkPin (val type:PinType ) {
         quaternion.update(coordinates.z,coordinates.x,0.0,theta)
     }
 
-
+    companion object {
+        /**
+         * @return a new link pin that serves the special function
+         *         of being the origin. It's position is always the same
+         *         (0,0,0), but its orientation may vary
+         */
+        fun imu(): LinkPin {
+            val pin = LinkPin(PinType.ORIGIN)
+            return pin
+        }
+    }
 
     val DEBUG: Boolean
     private val CLSS =  "LinkPin"
