@@ -10,7 +10,6 @@ import org.w3c.dom.Document
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.HashMap
 import java.util.logging.Logger
 
 /**
@@ -20,11 +19,8 @@ import java.util.logging.Logger
 object URDFModel {
     val origin: LinkPin
     var document: Document?
-    val linkForBone: MutableMap<Bone, Link>
     val linkForAppendage: MutableMap<Appendage, Link>
     val revoluteLinkForJoint: MutableMap<Joint, Link>
-    val linkForSourceJoint: MutableMap<Joint, Link>
-    val sourceJointForLink: MutableMap<Link,Joint>
     val revoluteForJoint : MutableMap<Joint,LinkPin>
 
     /**
@@ -152,32 +148,7 @@ object URDFModel {
         }
     }
 
-    /**
-     * @return  the bone that has the specified
-     *          joint as its source
-     */
-    fun boneForJoint(joint:Joint): Bone {
-        var bone = Bone.PELVIS
-        val link = linkForSourceJoint[joint]
-        if( link!=null) {
-            bone = link.bone
-        }
-        return bone
-    }
-    /**
-     * @return  a comma-separated string of the names of all links.
-     */
-    fun boneNames(): String {
-        val names = StringBuffer()
-        for (bone in linkForBone.keys) {
-            names.append(bone.name)
-            names.append(", ")
-        }
-        if( names.isNotEmpty() ) {
-            return names.substring(0, names.length - 2)
-        }
-        return "none"
-    }
+
     /**
      * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
      */
@@ -211,18 +182,6 @@ object URDFModel {
             names.add(appendage.name)
         }
         return gson.toJson(names)
-    }
-    /**
-     * @return  the joint associated with the
-     *          source of the bone
-     */
-    fun jointForBone(bone:Bone): Joint {
-        var joint = Joint.NONE
-        val link = linkForBone[bone]
-        if( link!=null) {
-            joint = link.sourcePin.joint
-        }
-        return joint
     }
     /**
      * @return  a comma-separated string of the names of all joints.

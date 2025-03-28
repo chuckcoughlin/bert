@@ -4,35 +4,42 @@
  */
 package chuckcoughlin.bert.common.model
 
-import org.hipparchus.complex.Quaternion
+import chuckcoughlin.bert.common.math.Quaternion
 import java.util.logging.Logger
 
 /**
  * A link is a skeletal structure connecting a source pin to either a
- * revolute pin or end effector. The "position" of the link is this
- * end point. There is also a orientation matrix describing the rotation.
+ * revolute or end effector. The "axis" and "coordinates" members are
+ * static and refer to the orientation and position of the end pin with respect
+ * to the source pin. The "position" of the link is the position of the
+ * end point. It is a dynamic quantity derived from the quaternion matrix.
+ * It represents distances and orientation with respect to the robot
+ * inertial frame.
+ *
  * There is also a link called the "origin" which is the first link in every
- * chain. Multiple links may have the same source.
+ * chain.
  *
- * The joints are always "revolutes", that is rotational only. There
- * is no translation. The joint axis is always at 0 or 90 degrees to a
- * line from the origin to linkPoint.
+ * The end pin may represent a joint, then the joint is a "revolute", that is
+ * rotational only. There is no translation. The joint axis is always at right
+ * angles to a line from the source to end.  Multiple links may have the same source.
  *
- * Links with no destination joint are called "end effectors" and can
- * be expected to have one or more "extremities" for which 3D locations
- * can be calculated.
+ * The end pin may also represent an "extremity" or "end effector". We call it an
+ * "appendage". An appendage is not moveable, but we can calculate its 3D location.
  *
- * Within the linkPin object, coordinates are with respect to the
- * link's parent and are static. Position within the link object is
- * temporary and are calculated with respect to the inertial frame of
- * reference. Any corrections due to IMU readings are handled externally.
- *
- * Define a link with a bone reference. Its name must be unique.
- * A single link may hold several joints and/or extremities.
- * @param bone bone
+ * @param type link type
  */
-class Link( ) {
-    var destinationPin: linkPin
+class Link( val type:PinType) {
+    val quaternion: chuckcoughlin.bert.common.math.Quaternion
+    var appendage: Appendage  // End effector
+    // The axis represents the orientation of the link
+    // with respect to the robot's inertial frame.
+    var axis: DoubleArray
+    // The co-ordinates are position of this end point with respect to the
+    // parent (source) joint. X is the direction from source to the end point.
+    // Z is the center of the parent joint. Co-ordinates are NOT used
+    // for kinematics calculations.
+    var coordinates: Point3D
+    var endPin:    LinkPin
     var sourcePin: LinkPin
 
     /**
@@ -45,6 +52,18 @@ class Link( ) {
         else if( end.type.equals(PinType.REVOLUTE)) {
             destinationPinForJoint[end.joint] = end
         }
+    }
+    /**
+     * In referring to the article "How to Calculate a Robot's Forward Kinematics in 5 Easy Steps"
+     * by Alex Owen-Hill, these are the equivalents to our coordinate matrix:
+     *
+     * d = z
+     * r = x
+     * alpha = 0 (for parallel motors)
+     * thata = arctan(y/x)
+     */
+    fun updateQuaternion() {
+        quaternion.update(coordinates.z,coordinates.x,0.0,theta)
     }
 
     private fun rotationFromCoordinates(cc: DoubleArray): DoubleArray {
@@ -64,6 +83,10 @@ class Link( ) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
+        appendage = Appendage.NONE
+        quaternion = Quaternion()
+        coordinates = Point3D(0.0, 0.0, 0.0)   // x,y,z
+        axis = doubleArrayOf(0.0,0.0,0.0)
         destinationPin = LinkPin(PinType.ORIGIN)   // Must be reset
         sourcePin = LinkPin(PinType.ORIGIN)        // Origin, for now
     }
