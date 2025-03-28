@@ -17,7 +17,6 @@ import chuckcoughlin.bert.common.model.RobotModel
  * are all handled here.
  */
 object ChainTest {
-    val root = Chain.root
 
     /**
      * Test construction of the chain of robot "limbs" based on the URDF file in
@@ -28,22 +27,21 @@ object ChainTest {
 
         // Test the links to some extremities
         println(String.format("==================== %s ===========================================",CLSS ))
-        println(String.format("%s: root = %s ", CLSS, root.bone.name))
 
         println("======== Test LEFT_EAR to PELVIS subchain")
         var subchain = Chain.partialChainToAppendage(Appendage.LEFT_EAR)
-        for (pin in subchain) {
-            println(String.format("\t%s ", pin.joint.name))
+        for (link in subchain) {
+            println(String.format("\t%s ", link.name))
         }
         println("======== Test RIGHT_FINGER to PELVIS subchain")
         subchain = Chain.partialChainToAppendage(Appendage.RIGHT_FINGER)
-        for (pin in subchain) {
-            println(String.format("\t%s ", pin.joint.name))
+        for (link in subchain) {
+            println(String.format("\t%s ", link.name))
         }
         println("======== Test ABS_X to PELVIS subchain")
         subchain = Chain.partialChainToJoint(Joint.ABS_X)
-        for (pin in subchain) {
-            println(String.format("\t%s ", pin.joint.name))
+        for (link in subchain) {
+            println(String.format("\t%s ", link.name))
         }
     }
 

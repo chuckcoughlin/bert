@@ -19,10 +19,6 @@ import java.util.logging.Logger
  * are all handled here.
  */
 object Chain {
-    var root: Link
-    private var origin: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0)
-    private var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
-
     /**
      * Work back toward the root from the specified end effector. The chain
      * is ordered beginning from the root.
@@ -34,11 +30,11 @@ object Chain {
         var link = URDFModel.linkForAppendage[appendage]
         if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for %s",CLSS,appendage.name))
         while (link != null) {
-            partial.addFirst(link.sourcePin)
-            if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.bone.name,link.sourcePin.type))
-            if( link.sourcePin.type.equals(PinType.ORIGIN) ) break
+            partial.addFirst(link)
+            if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.name,link.sourcePin.type))
+            if( link.sourcePin.type==PinType.ORIGIN ) break
             val joint = link.sourcePin.joint
-            link = URDFModel.revoluteLinkForJoint[joint]
+            link = URDFModel.linkForJoint[joint]
             if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for joint %s",CLSS,joint))
         }
         return partial
@@ -50,28 +46,20 @@ object Chain {
      * @param joint, the source
      * @return
      */
-    fun partialChainToJoint(joint: Joint): List<LinkPin> {
-        val partial: LinkedList<LinkPin> = LinkedList<LinkPin>()
-        var link = URDFModel.revoluteLinkForJoint[joint]
-        if( link==null ) {   // We're at the root
-            partial.addFirst(URDFModel.origin)
-        }
-        else {
-            while (link != null) {
-                partial.addFirst(link.sourcePin)
-                if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s)",
-                    CLSS,joint.name,link.bone.name,link.sourcePin.type))
-                if (link.sourcePin.type.equals(PinType.ORIGIN)) break
-                val j = link.sourcePin.joint
-                link = URDFModel.revoluteLinkForJoint[j]
-                if (DEBUG && link != null) LOGGER.info(String.format("%s.partialChainToJoint: %s - next is %s",
-                    CLSS,
-                    j.name,
-                    link.bone.name))
-                else if (link == null) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for joint %s",
-                    CLSS,
-                    j))
-            }
+    fun partialChainToJoint(joint: Joint): List<Link> {
+        val partial: LinkedList<Link> = LinkedList<Link>()
+        var link = URDFModel.linkForJoint[joint]
+        while( link != null ) {
+            partial.addFirst(link)
+            if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s)",
+                CLSS,joint.name,link.name,link.sourcePin.type))
+            if (link.sourcePin.type.equals(PinType.ORIGIN)) break
+            val j = link.sourcePin.joint
+            link = URDFModel.linkForJoint[j]
+            if (DEBUG && link != null) LOGGER.info(String.format("%s.partialChainToJoint: %s - next is %s",
+                CLSS, j.name,link.name))
+            else if (link == null) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for joint %s",
+                CLSS,j))
         }
         return partial
     }
@@ -81,16 +69,9 @@ object Chain {
      * @param a three-dimensional array of rotational offsets between the robot and reference frame.
      */
     fun setAxes(a: DoubleArray) {
-        Chain.axis= a
+        IMU.axis= a
     }
 
-    /**
-     * The origin is the offset of the IMU with respect to the origin of the robot.
-     * @param o three-dimensional array of offsets to the origin of the chain
-     */
-    fun setOrigin(o: DoubleArray) {
-        Chain.origin= o
-    }
 
 
     private val CLSS = "Chain"
@@ -99,6 +80,5 @@ object Chain {
 
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        root = Link(Bone.NONE)    // Must be reset to be useful
     }
 }

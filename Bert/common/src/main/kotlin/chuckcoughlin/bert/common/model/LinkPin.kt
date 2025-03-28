@@ -7,7 +7,7 @@ package chuckcoughlin.bert.common.model
 import java.util.logging.Logger
 
 /**
- * A LinkPoint is either a hinged joint or an end effector (unmoving).
+ * A LinkPin is either a hinged joint or an end effector (unmoving).
  * The offset coordinates are a 3D location of the joint/end effector
  * with respect to the origin of the link. The origin of a Link is
  * a REVOLUTE LinkPin belonging to the parent of that link.
@@ -19,15 +19,17 @@ import java.util.logging.Logger
  * is along the z axis.
  */
 class LinkPin (val type:PinType ) {
-
+    var appendage: Appendage  // End effector
     var mc: MotorConfiguration? = null
     var offset: Double  // joint angle equivalent to "straight"
 
+    var angle: Double = 0.0
+        get() = if(mc==null) 0.0 else mc!!.angle + offset
     /*
      * The joint implies a motor configuration. From it we get the rotational angle.
      * Note that changing the angle does not invalidate the current link, just its children.
      */
-    var joint: Joint
+    var joint:Joint
         get() =
             if (mc == null) Joint.NONE
             else mc!!.joint
@@ -35,31 +37,8 @@ class LinkPin (val type:PinType ) {
         set(j) {
             mc = RobotModel.motorsByJoint[j]
         }
-    /**
-     * The joint angle is the motor position in degrees.
-     * Note that changing the angle does not invalidate the current link, just its children.
-     * @return
-     */// Convert to radians
-    var theta:Double = 0.0
-        get() = (if(coordinates.x==0.0) offset else Math.atan(coordinates.y / coordinates.x) * 180.0/Math.PI) + (if(mc==null) 0.0 else mc!!.angle) - offset
-    fun coordinatesToText():String {
-        return String.format("%3.3f,%3.3f,%3.3f",coordinates.x,coordinates.y,coordinates.z)
-    }
 
 
-    companion object IMU {
-        /**
-         *  Internal Measurement Unit. This is the origin.
-         * @return a new link pin that serves the special function
-         *         of being the origin. It's position is always the same
-         *         (0,0,0), but its orientation may vary
-         */
-        var DoubleArray axis = doubleArrayOf(0.,0.,0.)
-        fun imu(): LinkPin {
-            val pin = LinkPin(PinType.ORIGIN)
-            return pin
-        }
-    }
 
     val DEBUG: Boolean
     private val CLSS =  "LinkPin"
@@ -67,6 +46,8 @@ class LinkPin (val type:PinType ) {
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
+        appendage = Appendage.NONE
+        joint     = Joint.NONE
         offset = 0.0
     }
 

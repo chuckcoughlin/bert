@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.model.IMU.axis
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -20,8 +21,7 @@ object URDFModel {
     val origin: LinkPin
     var document: Document?
     val linkForAppendage: MutableMap<Appendage, Link>
-    val revoluteLinkForJoint: MutableMap<Joint, Link>
-    val revoluteForJoint : MutableMap<Joint,LinkPin>
+    val linkForJoint: MutableMap<Joint, Link>
 
     /**
      * Expand the supplied path as the URDF XML file.
@@ -52,17 +52,18 @@ object URDFModel {
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
-                val axis = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
-                origin.axis = axis
+                IMU.axis = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
                 val xyz = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "xyz"))
-                origin.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
+                IMU.origin = Point3D(xyz[0],xyz[1],xyz[2])
             }
 
             // ================================== Links ===============================================
-            // Links correspond to Bone data types. Links can have extremities and/or joints, plus a
-            // source (parent). The link that has no parent is the origin
-            //      ---------------------------- First Pass ----------------------------------
-            // Create all the Links and their LinkPins. A LinkPin encompasses the connecting joint
+            // Links are a connection between joints or from a joint to extremity (appendage). The link
+            // that has no source is the origin and originates from the IMU.
+            //
+            // Create all the Links and their LinkPins. A LinkPin encompasses the connecting joint.
+            // Create a separate link for each resolute joint and end effector. These get the same
+            // source pin.
             val links = document!!.getElementsByTagName("link")
             val count = links.length
             var index = 0
@@ -71,95 +72,71 @@ object URDFModel {
                 val name: String = XMLUtility.attributeValue(linkNode, "name")
                 if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s ...",CLSS,name))
                 try {
-                    val bone = Bone.fromString(name)
-                    if( !bone.equals(Bone.NONE)) {
-                        val link = Link(bone)
-                        linkForBone[bone] = link
-                        val axis = doubleArrayFromString(XMLUtility.attributeValue(linkNode, "axis"))
-                        val children = linkNode.childNodes
-                        val acount = children.length
-                        var aindex = 0
-                        while (aindex < acount) {
-                            val node = children.item(aindex)
-                            if ("appendage".equals(node.localName, ignoreCase = true)) {
-                                val aname: String = XMLUtility.attributeValue(node, "name")
-                                val appendage: Appendage = Appendage.fromString(aname)
-                                val pin = LinkPin(PinType.END_EFFECTOR)
-                                pin.appendage = appendage
-                                val offset = XMLUtility.attributeValue(node, "offset")
-                                if( offset.isNotBlank() ) pin.offset = offset.toDouble()
-                                val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                                pin.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                                pin.axis = axis
-                                link.addEndPoint(pin)
-                                linkForAppendage[appendage] = link
-                            }
-                            else if ("joint".equals(node.localName)) {
-                                val aname: String = XMLUtility.attributeValue(node, "name")
-                                val joint = Joint.fromString(aname)
-                                val pin = LinkPin(PinType.REVOLUTE)
-                                pin.joint = joint
-                                val offset = XMLUtility.attributeValue(node, "offset")
-                                if( offset.isNotBlank() ) pin.offset = offset.toDouble()
-                                val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                                pin.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                                pin.axis = axis
-                                link.addEndPoint(pin)
-                                revoluteForJoint[joint] = pin
-                                revoluteLinkForJoint[joint] = link
-                            }
-                            else if ("source".equals(node.localName)) {
-                                val aname: String = XMLUtility.attributeValue(node, "joint")
-                                val joint = Joint.fromString(aname)
-                                sourceJointForLink[link]  = joint
-                                linkForSourceJoint[joint] = link
-                            }
-                            aindex++
+                    // Take an initial pass to find the source element
+                    var sourcePin = LinkPin(PinType.ORIGIN)  // Default in case none is defined
+                    val children = linkNode.childNodes
+                    val acount = children.length
+                    var aindex = 0
+                    while (aindex < acount) {
+                        val node = children.item(aindex)
+                        // Source must be applied to all links with this name
+                        if ("source".equals(node.localName)) {
+                            val jname: String = XMLUtility.attributeValue(node, "joint")
+                            val joint = Joint.fromString(jname)
+                            sourcePin = LinkPin(PinType.REVOLUTE)
+                            sourcePin.joint = joint
                         }
+                        aindex++
                     }
-                    else {
-                        LOGGER.warning(String.format("%s.analyzeChain: link refers to an unknown bone: %s, ignored",CLSS,name))
+
+                    aindex = 0
+                    while (aindex < acount) {
+                        val node = children.item(aindex)
+                        if ("appendage".equals(node.localName)) {
+                            val link = Link(name)
+                            val aname: String = XMLUtility.attributeValue(node, "name")
+                            val appendage: Appendage = Appendage.fromString(aname)
+                            val pin = LinkPin(PinType.END_EFFECTOR)
+                            pin.appendage = appendage
+                            val offset = XMLUtility.attributeValue(node, "offset")
+                            if( offset.isNotBlank() ) pin.offset = offset.toDouble()
+                            val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
+                            link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
+                            link.axis = axis
+                            link.endPin = pin
+                            link.endPin =pin
+                            link.sourcePin = sourcePin
+                            linkForAppendage[appendage] = link
+                        }
+                        else if ("joint".equals(node.localName)) {
+                            val link = Link(name)
+                            val jname: String = XMLUtility.attributeValue(node, "name")
+                            val joint = Joint.fromString(jname)
+                            val pin = LinkPin(PinType.REVOLUTE)
+                            pin.joint = joint
+                            val offset = XMLUtility.attributeValue(node, "offset")
+                            if( offset.isNotBlank() ) pin.offset = offset.toDouble()
+                            val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
+                            link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
+                            link.axis = axis
+                            link.endPin =pin
+                            link.sourcePin = sourcePin
+                            linkForJoint[joint] = link
+                        }
+                        aindex++
                     }
                 }
                 catch (iae: IllegalArgumentException) {
                     LOGGER.warning(String.format("%s.analyzeChain: link exception on first pass %s, ignored (%s)",
-                            CLSS,name,iae.localizedMessage))
+                        CLSS,name,iae.localizedMessage))
                     iae.printStackTrace()
                 }
                 index++
             }
-
-            //      ---------------------------- Connect source pin for link ----------------------------------
-            for(link in linkForBone.values) {
-                val joint = sourceJointForLink[link]
-                if( joint!=null ) {
-                    val pin = revoluteForJoint[joint]
-                    if( pin==null) {
-                        LOGGER.warning(String.format("%s.analyzeChain: no link pin found for: %s, ignored",CLSS,joint.name))
-                    }
-                    else {
-                        link.sourcePin = pin
-                    }
-                }
-                else {
-                    link.sourcePin = origin
-                }
-            }
         }
     }
 
 
-    /**
-     * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
-     */
-    fun bonesToJSON(): String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        var names = mutableListOf<String>()
-        for (bone in linkForBone.keys) {
-            names.add(bone.name)
-        }
-        return gson.toJson(names)
-    }
     /**
      * @return  a comma-separated string of the names of all extremities.
      */
@@ -188,7 +165,7 @@ object URDFModel {
      */
     fun jointNames(): String {
         var names = StringBuffer()
-        for (joint in revoluteLinkForJoint.keys) {
+        for (joint in linkForJoint.keys) {
             names.append(joint.name.lowercase())
             names.append(", ")
         }
@@ -201,7 +178,7 @@ object URDFModel {
     fun jointsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
-        for (joint in revoluteLinkForJoint.keys) {
+        for (joint in linkForJoint.keys) {
             names.add(joint.name)
         }
         return gson.toJson(names)
@@ -255,11 +232,7 @@ object URDFModel {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_CONFIGURATION)
         document = null
         linkForAppendage = mutableMapOf<Appendage, Link>()
-        linkForBone      = mutableMapOf<Bone,Link>()
-        revoluteLinkForJoint = mutableMapOf<Joint,Link>()
-        linkForSourceJoint = mutableMapOf<Joint,Link>()
-        sourceJointForLink = mutableMapOf<Link,Joint>()
-        revoluteForJoint = mutableMapOf<Joint,LinkPin>()
+        linkForJoint = mutableMapOf<Joint, Link>()
         origin = LinkPin(PinType.ORIGIN)
     }
 }

@@ -24,7 +24,7 @@ object Solver {
      * last in the chain.
      */
     fun computeLocation(appendage: Appendage): Point3D {
-        val subchain: List<LinkPin> = Chain.partialChainToAppendage(appendage)
+        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
     }
@@ -35,26 +35,27 @@ object Solver {
      * last in the chain.
      */
     fun computeLocation(joint:Joint): Point3D {
-        val subchain: List<LinkPin> = Chain.partialChainToJoint(joint)
+        val subchain: List<Link> = Chain.partialChainToJoint(joint)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
     }
 
     /**
-     * Update the link coordinates in a chain starting from the origin, then multiply
+     * Update the link coordinates in a chain starting from the IMU, then multiply
      * quaternion matrices to get final position.
      */
-    private fun computeQuaternionFromChain(subchain: List<LinkPin>):Quaternion {
+    private fun computeQuaternionFromChain(subchain: List<Link>):Quaternion {
         var q = Quaternion.identity()
-        for(pin in subchain) {
+        IMU.updateQuaternium()
+        for(link in subchain) {
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s start = (%s) ",
-                CLSS,pin.joint.name,pin.quaternion.position().toText()))
-            pin.updateQuaternion()
+                CLSS,link.sourcePin.joint,link.quaternion.position().toText()))
+            link.updateQuaternion()
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s update = (%s) ",
-                CLSS,pin.joint.name,pin.quaternion.position().toText()))
-            q = q.multiplyBy(pin.quaternion)
+                CLSS,link.sourcePin.joint,link.quaternion.position().toText()))
+            q = q.multiplyBy(link.quaternion)
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s result = (%s) ",
-                CLSS,pin.joint.name,pin.quaternion.position().toText()))
+                CLSS,link.sourcePin.joint,link.quaternion.position().toText()))
         }
         return q
     }
@@ -95,15 +96,11 @@ object Solver {
      * of limb location.
      */
     fun updateLinkAngles() {
-        val links: Collection<Link> = URDFModel.linkForBone.values
+        val links: Collection<Link> = URDFModel.linkForJoint.values
         for (link in links) {
-            for( endPoint in link.destinationPinForJoint.values) {
-                if( endPoint.type.equals(PinType.REVOLUTE)) {  //redundant
-                    val joint = endPoint.joint
-                    val mc: MotorConfiguration = RobotModel.motorsByJoint[joint]!!
-                }
-            }
+            link.updateQuaternion()
         }
+        IMU.updateQuaternium()
     }
 
     /**

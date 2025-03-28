@@ -194,9 +194,6 @@ class Dispatcher : Controller {
         msg.source = ControllerType.BITBUCKET
         msg.control.delay = 2000 // 2 sec delay
         toInternalController.send(msg)
-
-        // Initialize the PELVIS to 0,0,0.
-        Chain.root.sourcePin.coordinates = Point3D(0.0,0.0, 0.0)
     }
 
     /**

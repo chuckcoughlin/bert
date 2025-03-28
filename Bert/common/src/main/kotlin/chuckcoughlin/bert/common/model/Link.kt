@@ -26,11 +26,15 @@ import java.util.logging.Logger
  * The end pin may also represent an "extremity" or "end effector". We call it an
  * "appendage". An appendage is not moveable, but we can calculate its 3D location.
  *
+ * Multiple links may have the same name, indicating they are on the same physical
+ * sketal piece
+ *
  * @param type link type
  */
-class Link( val type:PinType) {
-    val quaternion: chuckcoughlin.bert.common.math.Quaternion
-    var appendage: Appendage  // End effector
+class Link( val nam:String ) {
+    val name = nam
+    val quaternion: Quaternion
+
     // The axis represents the orientation of the link
     // with respect to the robot's inertial frame.
     var axis: DoubleArray
@@ -43,15 +47,14 @@ class Link( val type:PinType) {
     var sourcePin: LinkPin
 
     /**
-     * An endpoint is an extremity or a RESOLUTE link
-     */
-    fun addEndPoint(end: LinkPin) {
-        if( end.type.equals(PinType.END_EFFECTOR)) {
-            destinationPinForAppendage[end.appendage] = end
-        }
-        else if( end.type.equals(PinType.REVOLUTE)) {
-            destinationPinForJoint[end.joint] = end
-        }
+     * The joint angle is the motor position in degrees.
+     * Note that changing the angle does not invalidate the current link, just its children.
+     * @return
+     */// Convert to radians
+    var theta:Double = 0.0
+        get() = (if(coordinates.x==0.0) sourcePin.offset else Math.atan(coordinates.y / coordinates.x) * 180.0/Math.PI) + sourcePin.angle
+    fun coordinatesToText():String {
+        return String.format("%3.3f,%3.3f,%3.3f",coordinates.x,coordinates.y,coordinates.z)
     }
     /**
      * In referring to the article "How to Calculate a Robot's Forward Kinematics in 5 Easy Steps"
@@ -83,11 +86,11 @@ class Link( val type:PinType) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        appendage = Appendage.NONE
+
         quaternion = Quaternion()
         coordinates = Point3D(0.0, 0.0, 0.0)   // x,y,z
         axis = doubleArrayOf(0.0,0.0,0.0)
-        destinationPin = LinkPin(PinType.ORIGIN)   // Must be reset
+        endPin = LinkPin(PinType.ORIGIN)   // Must be reset
         sourcePin = LinkPin(PinType.ORIGIN)        // Origin, for now
     }
 }
