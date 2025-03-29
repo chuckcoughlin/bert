@@ -9,14 +9,25 @@ import java.util.logging.Logger
 
 /**
  * Internal Measurement Unit. This is the origin
- * of all chains.
+ * of all chains. If we update the dimensions,
+ * we must update the quaternium accordingly.
  */
 object IMU {
-    var origin: Point3D
-    var axis: DoubleArray   = doubleArrayOf(0.0, 0.0, 0.0)
+    var axis =doubleArrayOf(0.0, 0.0, 0.0)
+        get() = field
+        set(arr) {
+            updateQuaternium()
+            field = arr
+        }
+    var origin = Point3D(0.0, 0.0, 0.0)
+        get() = field
+        set(arr) {
+            updateQuaternium()
+            field = arr
+        }
     val quaternion: Quaternion
 
-    fun updateQuaternium() {
+    private fun updateQuaternium() {
         quaternion.update(origin.z,origin.x,0.0,0.0)
     }
 
@@ -26,8 +37,7 @@ object IMU {
 
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        axis   = doubleArrayOf(0.0, 0.0, 0.0)
-        origin = Point3D(0.0, 0.0, 0.0)
         quaternion = Quaternion()
+        updateQuaternium()
     }
 }

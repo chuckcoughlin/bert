@@ -7,7 +7,6 @@ package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.util.TextUtility
-import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.sql.db.SQLConstants
 import com.google.gson.GsonBuilder
 import java.sql.*
@@ -71,9 +70,10 @@ class PoseTable {
         }
     }
     /**
-     * Delete the pose and associated joint details.
+     * Delete a specific pose and associated joint details.
      * @cxn an open database connection
      * @param name pose name
+     * @param index execution order
      */
     fun deletePose(cxn: Connection?, name: String,index:Int) {
         if( cxn!=null ) {
@@ -119,6 +119,53 @@ class PoseTable {
                 finally {
                     stmt.close()
                 }
+            }
+        }
+    }
+    /**
+     * Delete all poses and associated joint details with a given name
+     * @cxn an open database connection
+     * @param name pose name
+     */
+    fun deletePose(cxn: Connection?, name: String) {
+        if( cxn!=null ) {
+            var SQL = "select poseid from Pose where name = ?"
+            var prep = cxn.prepareStatement(SQL)
+            var stmt=cxn.createStatement()
+            var rs: ResultSet? = null
+            val pose = name.lowercase(Locale.getDefault())
+            var poseid = SQLConstants.NO_POSE
+
+            try {
+                prep.setQueryTimeout(10) // set timeout to 10 sec.
+                prep.setString(1, pose)
+                rs = prep.executeQuery()
+                while (rs.next()) {
+                    poseid = rs.getLong("poseid")
+                    LOGGER.info(String.format("%s.deletePose: %s is %d", CLSS, pose, poseid))
+                    // Delete the pose and its joint
+                    SQL=String.format("delete from PoseJoint where poseid = %d", poseid)
+                    stmt.execute(SQL)
+                    SQL=String.format("delete from Pose where poseid = %d", poseid)
+                    stmt.execute(SQL)
+                }
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.deletePose: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                try {
+                  if(rs != null) {
+
+                      rs.close()
+                      prep.close()
+
+                  }
+                    stmt.close()
+                }
+                catch (ignore: SQLException) {}
             }
         }
     }

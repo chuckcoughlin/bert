@@ -62,7 +62,8 @@ question:
 
 // Convey information to the robot.
 declaration:
-	  Forget phrase                                     # deleteUserData
+	  Forget (Face|Action|Pose) phrase                  # deleteUserData
+	| Forget Pose phrase Value                          # deleteUserData
 	| My Metric Is phrase                               # setUserName
 	| Iam phrase                                        # setUserName
 	| Take Article? Pose phrase Value          	        # assumePose
@@ -73,7 +74,7 @@ declaration:
 	| Use phrase Poses? To Define phrase				# defineAction2
 	;
 
-// Arbitrary string of words - inclue some key words. Digits are allowed only as a suffix
+// Arbitrary string of words - inclue some key words. Digits are allowed only as a suffix to a word
 phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
     ;
 
@@ -86,6 +87,7 @@ Why: 'why';
 
 // Pardon the license taken with some of these categories ...
 Actions: 'actions';
+Action: 'action';
 Article: 'a'|'an'|'the'|'this'|'that'|'your';
 Adjective: 'current';
 Appendages: 'appendages'|'end effectors';
@@ -99,6 +101,7 @@ Describe: 'describe';
 Do: 'do';
 Dynamic: 'dynamic';
 Faces: 'faces';
+Face: 'face';
 From: 'from';
 Forget: 'forget'|'delete';
 Goals: 'goals'|'target positions'|'targets';

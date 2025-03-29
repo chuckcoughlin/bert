@@ -70,20 +70,20 @@ open class Quaternion( ) {
         if(DEBUG) LOGGER.info(String.format("%s.update: d=%2.2f, r= %2.2f, alpha = %2.2f, theta = %2.2f ",
                CLSS,d,r,alpha,theta))
         matrix[0][0] = Math.cos(theta*Math.PI/180.0)
-        matrix[0][1] = -Math.sin(theta*Math.PI/180.0) * Math.cos(alpha*Math.PI/180.0)
-        matrix[0][2] =  Math.sin(theta*Math.PI/180.0) * Math.sin(alpha*Math.PI/180.0)
-        matrix[0][3] = r * Math.cos(theta*Math.PI/180.0)
-        matrix[1][0] = Math.sin(theta*Math.PI/180.0)
+        matrix[1][0] = -Math.sin(theta*Math.PI/180.0) * Math.cos(alpha*Math.PI/180.0)
+        matrix[2][0] =  Math.sin(theta*Math.PI/180.0) * Math.sin(alpha*Math.PI/180.0)
+        matrix[3][0] = r * Math.cos(theta*Math.PI/180.0)
+        matrix[0][1] = Math.sin(theta*Math.PI/180.0)
         matrix[1][1] = Math.cos(theta*Math.PI/180.0)*Math.cos(alpha*Math.PI/180.0)
-        matrix[1][2] = -Math.cos(theta*Math.PI/180.0)*Math.sin(alpha*Math.PI/180.0)
-        matrix[1][3] = r * Math.sin(theta*Math.PI/180.0)
-        matrix[2][0] = 0.0
-        matrix[2][1] = Math.sin(alpha*Math.PI/180.0)
+        matrix[2][1] = -Math.cos(theta*Math.PI/180.0)*Math.sin(alpha*Math.PI/180.0)
+        matrix[3][1] = r * Math.sin(theta*Math.PI/180.0)
+        matrix[0][2] = 0.0
+        matrix[1][2] = Math.sin(alpha*Math.PI/180.0)
         matrix[2][2] = Math.cos(alpha*Math.PI/180.0)
-        matrix[2][3] = d
-        matrix[3][0] = 0.0
-        matrix[3][1] = 0.0
-        matrix[3][2] = 0.0
+        matrix[3][2] = d
+        matrix[0][3] = 0.0
+        matrix[1][3] = 0.0
+        matrix[2][3] = 0.0
         matrix[3][3] = 1.0
     }
 

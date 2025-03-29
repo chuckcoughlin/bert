@@ -46,16 +46,18 @@ object Solver {
      */
     private fun computeQuaternionFromChain(subchain: List<Link>):Quaternion {
         var q = Quaternion.identity()
-        IMU.updateQuaternium()
+        // Start with the IMU (Its quaternion is updated externally)
+        q = q.multiplyBy(IMU.quaternion)
+        if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: IMU = (%s) ",
+            CLSS,q.position().toText()))
+        // Now continue up the chain
         for(link in subchain) {
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s start = (%s) ",
-                CLSS,link.sourcePin.joint,link.quaternion.position().toText()))
-            link.updateQuaternion()
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s update = (%s) ",
+            link.updateJointPosition()  // In case motor has moved since last use
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s pin = (%s) ",
                 CLSS,link.sourcePin.joint,link.quaternion.position().toText()))
             q = q.multiplyBy(link.quaternion)
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s result = (%s) ",
-                CLSS,link.sourcePin.joint,link.quaternion.position().toText()))
+                CLSS,link.sourcePin.joint,q.position().toText()))
         }
         return q
     }
@@ -90,20 +92,6 @@ object Solver {
     }
 
     /**
-     * Traverse the tree, setting the current angles from the
-     * motor configurations. If the angle has changed, mark the
-     * link as "dirty". This should be called before any computation
-     * of limb location.
-     */
-    fun updateLinkAngles() {
-        val links: Collection<Link> = URDFModel.linkForJoint.values
-        for (link in links) {
-            link.updateQuaternion()
-        }
-        IMU.updateQuaternium()
-    }
-
-    /**
      * Populate a list of locations for all joints and extremities
      */
     private fun fillLocations(list:MutableList<Location>) {
@@ -124,7 +112,6 @@ object Solver {
 
     private const val CLSS = "Solver"
     private val LOGGER = Logger.getLogger(CLSS)
-    private val ERROR_POSITION = Point3D(0.0, 0.0, 0.0)
     private val DEBUG: Boolean
 
     /**

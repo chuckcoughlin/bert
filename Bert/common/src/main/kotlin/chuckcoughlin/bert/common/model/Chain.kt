@@ -34,8 +34,7 @@ object Chain {
             if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.name,link.sourcePin.type))
             if( link.sourcePin.type==PinType.ORIGIN ) break
             val joint = link.sourcePin.joint
-            link = URDFModel.linkForJoint[joint]
-            if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for joint %s",CLSS,joint))
+            link = URDFModel.linkForJoint[joint] // NONE implies the source
         }
         return partial
     }
@@ -58,8 +57,6 @@ object Chain {
             link = URDFModel.linkForJoint[j]
             if (DEBUG && link != null) LOGGER.info(String.format("%s.partialChainToJoint: %s - next is %s",
                 CLSS, j.name,link.name))
-            else if (link == null) LOGGER.warning(String.format("%s.partialChainToJoint: No link found for joint %s",
-                CLSS,j))
         }
         return partial
     }

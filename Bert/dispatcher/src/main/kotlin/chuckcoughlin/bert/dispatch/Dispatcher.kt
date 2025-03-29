@@ -302,14 +302,36 @@ class Dispatcher : Controller {
                     Database.createPose(RobotModel.motorsByJoint, poseName, index)
                     request.text = "I recorded pose $poseName $index"
                 }
-                // For delete, the data type is no specified.
-                else if (command == CommandType.DELETE_USER_DATA) {
+                // Also delete any poses associated with that action
+                else if (command == CommandType.DELETE_ACTION) {
                     val name = request.arg
                     if (Database.actionExists(name)) {
+                        val poses = Database.getPosesForAction(name)
+                        for( def in poses ) {
+                            Database.deletePose(def.name,def.index)
+                        }
                         Database.deleteAction(name)
+                        request.text = "I deleted action $name"
                     }
-                    else if (Database.faceExists(name)) {
+                    else  {
+                        request.error = "Action $name doesn't exist"
+                    }
+                }
+                else if (command == CommandType.DELETE_FACE) {
+                    val name = request.arg
+                    if (Database.faceExists(name)) {
                         Database.deleteFace(name)
+                        request.text = "I have now forgotten $name"
+                    }
+                    else {
+                        request.error = "I don't know $name"
+                    }
+                }
+                // If the index is missing, delete all poses of the given name
+                else if (command == CommandType.DELETE_POSE) {
+                    val name = request.arg
+                    if( request.value.isNaN() ) {
+                        Database.deletePose(name)
                     }
                     else {
                         val index = request.value.toInt()
@@ -341,7 +363,6 @@ class Dispatcher : Controller {
             // The following three requests simply use the current positions of the motors, whatever they are
             else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: appendage=%s", CLSS, request.appendage.name))
-                Solver.updateLinkAngles() // Forces new calculations
                 val appendage = request.appendage
                 val xyz: Point3D = Solver.computeLocation(appendage)
                 val text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
@@ -351,7 +372,6 @@ class Dispatcher : Controller {
             // The location in physical coordinates from the center of the robot.
             else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: joint=%s", CLSS, request.joint.name))
-                Solver.updateLinkAngles()
                 val joint = request.joint
                 val xyz: Point3D = Solver.computeLocation(joint)
                 val text = String.format(

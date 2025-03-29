@@ -21,13 +21,13 @@ import java.util.logging.Logger
 class LinkPin (val type:PinType ) {
     var appendage: Appendage  // End effector
     var mc: MotorConfiguration? = null
-    var offset: Double  // joint angle equivalent to "straight"
+    var offset: Double       // motor position equivalent to "straight"
 
     var angle: Double = 0.0
-        get() = if(mc==null) 0.0 else mc!!.angle + offset
+        get() = if(mc==null) offset else mc!!.angle + offset
+
     /*
-     * The joint implies a motor configuration. From it we get the rotational angle.
-     * Note that changing the angle does not invalidate the current link, just its children.
+     * The joint implies a motor configuration. From this we read the rotational angle.
      */
     var joint:Joint
         get() =

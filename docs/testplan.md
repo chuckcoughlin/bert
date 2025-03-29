@@ -262,12 +262,14 @@ account for positional conflicts.
     saluting 2
 ```
 
-* ![green](/images/ball_yellow.png) ``Clean up`` - Remove a pose or action. If a pose is
-deleted any action referencing that pose is also deleted. If no pose index is given
+* ![green](/images/ball_yellow.png) ``Clean up`` - Remove a face,
+ pose or action. If an action is
+deleted, all of the poses referencing that action are also deleted. If no pose index is given
 all poses of the specified name are deleted.
 ```
-    forget salute
-    forget saluting
+    forget action salute
+    forget pose saluting 1
+    delete face charlie
 ```
 
 ### g - Motion Planning <a id="planning"></a>

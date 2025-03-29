@@ -13,7 +13,9 @@ enum class CommandType {
     CREATE_ACTION,
     CREATE_FACE,
     CREATE_POSE,
-    DELETE_USER_DATA,
+    DELETE_ACTION,
+    DELETE_FACE,
+    DELETE_POSE,
     HALT,
     SHUTDOWN,
     SLEEP,
@@ -32,7 +34,9 @@ enum class CommandType {
                 CREATE_ACTION -> text = "create action"
                 CREATE_FACE   -> text = "create face"
                 CREATE_POSE   -> text = "create pose"
-                DELETE_USER_DATA -> text = "delete action, pose or face"
+                DELETE_ACTION -> text = "delete action"
+                DELETE_FACE -> text = "delete face"
+                DELETE_POSE -> text = "delete pose"
                 HALT     -> text = "halt"
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"

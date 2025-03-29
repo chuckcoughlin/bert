@@ -195,13 +195,24 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     //    forget Chuck
     override fun visitDeleteUserData(ctx: SpeechSyntaxParser.DeleteUserDataContext): Any? {
         bottle.type = RequestType.COMMAND
-        val pose: String = ctx.phrase().getText()
-        bottle.command = CommandType.DELETE_USER_DATA
-        if(pose.isBlank()) {
+        bottle.command = CommandType.DELETE_FACE
+        if( ctx.Action() != null )  bottle.command = CommandType.DELETE_ACTION
+        else if( ctx.Pose() != null ) bottle.command = CommandType.DELETE_POSE
+
+        val phrase: String = visit(ctx.phrase()).toString()
+        if(phrase.isBlank()) {
             val msg = String.format("an argument is required")
             bottle.error = msg
         }
-        bottle.arg = pose
+        if(ctx.Value()!=null ) {
+            try {
+                bottle.value = ctx.Value().text.toDouble()
+            }
+            catch(ex:NumberFormatException) {
+                bottle.error = "pose index must be an integer"
+            }
+        }
+        bottle.arg = phrase
         return null
     }
     // Apply "freeze" or "relax" to: Joints, Limbs, or the entire robot. "hold" is the same as "freeze".

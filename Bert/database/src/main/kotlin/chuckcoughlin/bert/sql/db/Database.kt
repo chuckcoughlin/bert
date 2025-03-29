@@ -75,8 +75,17 @@ object Database  {
         return face.deleteFace(connection, name)
     }
     /**
-     * @param name pose name. Delete the pose and its joint map from the
-     *         database. If the pose does not exist, no action is taken.
+     * Delete all poses of the given name.
+     * @param name pose name.
+     */
+    fun deletePose(name: String) {
+        return pose.deletePose(connection, name)
+    }
+    /**
+     * Delete the pose and its joint map from the
+     * database. If the pose does not exist, no action is taken.
+     * @param name pose name.
+     * @param index execution order of the specific pose.
      */
     fun deletePose(name: String,index:Int) {
         return pose.deletePose(connection, name,index)
