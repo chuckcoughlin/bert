@@ -65,8 +65,8 @@ object Chain {
      * The axes are the Euler angles in three dimensions between the robot and the reference frame.
      * @param a three-dimensional array of rotational offsets between the robot and reference frame.
      */
-    fun setAxes(a: DoubleArray) {
-        IMU.axis= a
+    fun setOrientation(a: DoubleArray) {
+        IMU.orientation= a
     }
 
 

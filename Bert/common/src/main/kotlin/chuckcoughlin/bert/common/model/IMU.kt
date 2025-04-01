@@ -13,7 +13,7 @@ import java.util.logging.Logger
  * we must update the quaternium accordingly.
  */
 object IMU {
-    var axis =doubleArrayOf(0.0, 0.0, 0.0)
+    var orientation =doubleArrayOf(0.0, 0.0, 0.0)
         get() = field
         set(arr) {
             updateQuaternium()

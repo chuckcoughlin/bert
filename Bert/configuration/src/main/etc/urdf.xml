@@ -6,6 +6,8 @@
 <robot name="bert">
 	<!-- The Internal Measurement Unit (IMU) is the world-frame origin. Its position is always (0,0,0).
 	     The axis of rotation represents the orientation of the entire robot with respect to this frame.
+	     The origin is located in the pelvis midway between the hip sockets and back to align with the
+	     left/right hip z axis.
 	-->
 	<imu xyz = "0.0 0.0 0.0" offset = "0."
 		 axis="0 0 1"/> />
@@ -19,9 +21,10 @@
 				axis is orientation of joint in joint frame.
 
 		Links form a tree from the robot origin, PELVIS,
-		terminating in links or one or more end effectors.
+		terminating in the various end effectors.
 
-		The origin is taken as midway between the hip joints.
+		The motor's axis is "z". "x" points to the next link.
+		"y" completes the right-hand coordinate system.
 	  -->
 	<link name="PELVIS" axis="0 0 1">        <!-- root -->
 		<joint name="RIGHT_HIP_X"
@@ -29,7 +32,7 @@
 		<joint name="LEFT_HIP_X"
 			   xyz="0.0 -22.5417390633466 0.0" offset="180."/>
 		<joint name="ABS_Y"
-			   xyz="62.0 6.1 0.0" offset="180."/>
+			   xyz="62.0 12.0 0.0" offset="180."/>
 	</link>
 	<link name="RIGHT_HIP_SOCKET" axis="0 0 1">
 		<joint name="RIGHT_HIP_Z"

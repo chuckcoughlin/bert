@@ -33,9 +33,9 @@ class Link( val nam:String ) {
     val name = nam
     val quaternion: Quaternion
 
-    // The axis represents the orientation of the link
-    // with respect to the robot's inertial frame.
-    var axis: DoubleArray
+    // The orientation of the link is a unit vector
+    // aligning with the robot's inertial frame.
+    var orientation: DoubleArray
     // The co-ordinates are position of this end point with respect to the
     // parent (source) joint. X is the direction from source to the end point.
     // Z is the center of the parent joint.
@@ -94,7 +94,7 @@ class Link( val nam:String ) {
         angle = -1.0
         quaternion = Quaternion()
         coordinates = Point3D(0.0, 0.0, 0.0)   // x,y,z
-        axis = doubleArrayOf(0.0,0.0,0.0)
+        orientation = doubleArrayOf(0.0,0.0,0.0)
         endPin = LinkPin(PinType.ORIGIN)     // Must be reset
         sourcePin = LinkPin(PinType.ORIGIN)  // Origin until set otherwise.
     }

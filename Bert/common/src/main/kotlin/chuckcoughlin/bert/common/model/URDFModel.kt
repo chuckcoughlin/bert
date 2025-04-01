@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.IMU.axis
+import chuckcoughlin.bert.common.model.IMU.orientation
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -52,7 +52,7 @@ object URDFModel {
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
-                IMU.axis = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
+                IMU.orientation = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
                 val xyz = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "xyz"))
                 IMU.origin = Point3D(xyz[0],xyz[1],xyz[2])
             }
@@ -102,7 +102,7 @@ object URDFModel {
                             if( offset.isNotBlank() ) pin.offset = offset.toDouble()
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                            link.axis = axis
+                            link.orientation = orientation
                             link.endPin = pin
                             link.endPin =pin
                             link.sourcePin = sourcePin
@@ -118,7 +118,7 @@ object URDFModel {
                             if( offset.isNotBlank() ) pin.offset = offset.toDouble()
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                            link.axis = axis
+                            link.orientation = orientation
                             link.endPin =pin
                             link.sourcePin = sourcePin
                             linkForJoint[joint] = link

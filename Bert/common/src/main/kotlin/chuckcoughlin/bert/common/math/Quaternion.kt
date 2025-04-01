@@ -63,7 +63,7 @@ open class Quaternion( ) {
      * Update the quaternion matrix from the object parameters.
      * @param  d offset to source along z ~mm
      * @param r distance to source along common normal ~ mm
-     * @param alpha angle to double normal around z ~ derees
+     * @param alpha angle around common normal between source and current z ~ degrees
      * @param theta: angle of rotation of joint ~ degrees
      */
     fun update(d:Double,r:Double,alpha:Double,theta:Double) {
