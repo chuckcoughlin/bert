@@ -45,14 +45,15 @@ object Solver {
      * quaternion matrices to get final position.
      */
     private fun computeQuaternionFromChain(subchain: List<Link>):Quaternion {
-        var q = Quaternion.identity()
+        IMU.update()
+        var q = IMU.quaternion   // Update for any rotation.
         // Start with the IMU (Its quaternion is updated externally)
         q = q.multiplyBy(IMU.quaternion)
         if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: IMU = (%s) ",
             CLSS,q.position().toText()))
         // Now continue up the chain
         for(link in subchain) {
-            link.updateJointPosition()  // In case motor has moved since last use
+            link.update()  // In case motor has moved since last use
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s pin = (%s) ",
                 CLSS,link.sourcePin.joint,link.quaternion.position().toText()))
             q = q.multiplyBy(link.quaternion)

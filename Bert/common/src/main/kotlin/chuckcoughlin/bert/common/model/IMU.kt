@@ -5,30 +5,24 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Quaternion
+import chuckcoughlin.bert.common.model.URDFModel.origin
 import java.util.logging.Logger
 
 /**
  * Internal Measurement Unit. This is the origin
- * of all chains. If we update the dimensions,
- * we must update the quaternium accordingly.
+ * of all chains. As for positioning, we allow
+ * only rotations.
+ * @param alpha angle of rotation forward and back
+ * @param theta angle of rotation side to side
  */
 object IMU {
-    var axis =doubleArrayOf(0.0, 0.0, 0.0)
-        get() = field
-        set(arr) {
-            updateQuaternium()
-            field = arr
-        }
-    var origin = Point3D(0.0, 0.0, 0.0)
-        get() = field
-        set(arr) {
-            updateQuaternium()
-            field = arr
-        }
+    var axis: DoubleArray
+    var alpha: Double
+    var theta: Double
     val quaternion: Quaternion
 
-    private fun updateQuaternium() {
-        quaternion.update(origin.z,origin.x,0.0,0.0)
+     fun update() {
+        quaternion.update(0.0,0.0,0.0,0.0)
     }
 
     private val CLSS = "IMU"
@@ -37,7 +31,9 @@ object IMU {
 
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
+        axis =doubleArrayOf(0.0, 0.0, 0.0)
         quaternion = Quaternion()
-        updateQuaternium()
+        alpha = 0.0
+        theta = 0.0
     }
 }

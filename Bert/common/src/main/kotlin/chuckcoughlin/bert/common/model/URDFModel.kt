@@ -43,7 +43,7 @@ object URDFModel {
     /**
      * Search the model for IMU, link and joint elements.
      * IMU maps the location of the start of the chain with respect to the
-     * center of gravity.
+     * center of gravity. The IMU reacts only to rotation.
      */
     private fun analyzeChain() {
         if (document != null) {
@@ -53,8 +53,6 @@ object URDFModel {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
                 IMU.axis = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
-                val xyz = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "xyz"))
-                IMU.origin = Point3D(xyz[0],xyz[1],xyz[2])
             }
 
             // ================================== Links ===============================================
