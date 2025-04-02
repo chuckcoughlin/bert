@@ -55,7 +55,7 @@ class Link( val nam:String ) {
     fun coordinatesToText():String {
         return String.format("%3.3f,%3.3f,%3.3f",coordinates.x,coordinates.y,coordinates.z)
     }
-    fun updateJointPosition() {
+    fun update() {
         angle = sourcePin.angle
     }
 

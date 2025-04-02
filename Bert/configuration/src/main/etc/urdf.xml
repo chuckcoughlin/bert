@@ -8,9 +8,9 @@
 	     The axis of rotation represents the orientation of the entire robot with respect to this frame.
 	     The origin is located in the pelvis midway between the hip sockets and back to align with the
 	     left/right hip z axis.
+	     It may be altered by setting IMU parameters externally.
 	-->
-	<imu xyz = "0.0 0.0 0.0" offset = "0."
-		 axis="0 0 1"/> />
+	<imu axis="0 0 1"/> />
 
 	<!-- A link is equivalent to a bone. Each link may have several attachments,
 	     either joints or end effectors, but only a single parent. The parent is

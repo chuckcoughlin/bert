@@ -43,7 +43,7 @@ object URDFModel {
     /**
      * Search the model for IMU, link and joint elements.
      * IMU maps the location of the start of the chain with respect to the
-     * center of gravity.
+     * center of gravity. The IMU reacts only to rotation.
      */
     private fun analyzeChain() {
         if (document != null) {
@@ -52,9 +52,7 @@ object URDFModel {
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
-                IMU.orientation = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
-                val xyz = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "xyz"))
-                IMU.origin = Point3D(xyz[0],xyz[1],xyz[2])
+                IMU.axis = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "axis"))
             }
 
             // ================================== Links ===============================================
@@ -102,7 +100,7 @@ object URDFModel {
                             if( offset.isNotBlank() ) pin.offset = offset.toDouble()
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                            link.orientation = orientation
+                            link.orientation = xyz
                             link.endPin = pin
                             link.endPin =pin
                             link.sourcePin = sourcePin
@@ -118,7 +116,7 @@ object URDFModel {
                             if( offset.isNotBlank() ) pin.offset = offset.toDouble()
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                            link.orientation = orientation
+                            link.orientation = xyz
                             link.endPin =pin
                             link.sourcePin = sourcePin
                             linkForJoint[joint] = link
