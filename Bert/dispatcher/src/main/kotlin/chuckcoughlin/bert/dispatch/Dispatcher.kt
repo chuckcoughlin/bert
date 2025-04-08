@@ -375,7 +375,7 @@ class Dispatcher : Controller {
                 val joint = request.joint
                 val xyz: Point3D = Solver.computeLocation(joint)
                 val text = String.format(
-                    "The center of my %s is located at %2.2f %2.2f %2.2f millimeters",
+                    "My %s joint is at %2.2f %2.2f %2.2f millimeters",
                     Joint.toText(joint), xyz.x, xyz.y, xyz.z)
                 request.text = text
             }

@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.IMU.orientation
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -62,6 +61,7 @@ object URDFModel {
             // Create all the Links and their LinkPins. A LinkPin encompasses the connecting joint.
             // Create a separate link for each resolute joint and end effector. These get the same
             // source pin.
+            // The URDF file has all angles in degrees. Convert to radians.
             val links = document!!.getElementsByTagName("link")
             val count = links.length
             var index = 0
@@ -77,7 +77,7 @@ object URDFModel {
                     var aindex = 0
                     while (aindex < acount) {
                         val node = children.item(aindex)
-                        // Source must be applied to all links with this name
+                        // Same source must be applied to all joints/appendages in same link element
                         if ("source".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "joint")
                             val joint = Joint.fromString(jname)
@@ -96,11 +96,12 @@ object URDFModel {
                             val appendage: Appendage = Appendage.fromString(aname)
                             val pin = LinkPin(PinType.END_EFFECTOR)
                             pin.appendage = appendage
-                            val offset = XMLUtility.attributeValue(node, "offset")
-                            if( offset.isNotBlank() ) pin.offset = offset.toDouble()
+                            val rotation = XMLUtility.attributeValue(node, "rot")
+                            if( rotation.isNotBlank() ) link.rotation = rotation.toDouble()*Math.PI/180.0
+                            val home = XMLUtility.attributeValue(node, "home")
+                            if( home.isNotBlank() ) pin.home = home.toDouble()*Math.PI/180.0
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                            link.orientation = xyz
                             link.endPin = pin
                             link.endPin =pin
                             link.sourcePin = sourcePin
@@ -112,11 +113,12 @@ object URDFModel {
                             val joint = Joint.fromString(jname)
                             val pin = LinkPin(PinType.REVOLUTE)
                             pin.joint = joint
-                            val offset = XMLUtility.attributeValue(node, "offset")
-                            if( offset.isNotBlank() ) pin.offset = offset.toDouble()
+                            val rotation = XMLUtility.attributeValue(node, "rot")
+                            if( rotation.isNotBlank() ) link.rotation = rotation.toDouble()*Math.PI/180.0
+                            val home = XMLUtility.attributeValue(node, "home")
+                            if( home.isNotBlank() ) pin.home = home.toDouble()*Math.PI/180.0
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
-                            link.orientation = xyz
                             link.endPin =pin
                             link.sourcePin = sourcePin
                             linkForJoint[joint] = link

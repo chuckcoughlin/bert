@@ -772,36 +772,13 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
 
         var value = 0.0
-        when (joint) {
-            Joint.ABS_X -> value = 180.0
-            Joint.ABS_Y -> value = 180.0
-            Joint.ABS_Z -> value = 0.0
-            Joint.BUST_X -> value = 180.0
-            Joint.BUST_Y -> value = 180.0
-            Joint.NECK_Y -> value = 0.0
-            Joint.NECK_Z -> value = 0.0
-            Joint.LEFT_ANKLE_Y -> value = 90.0
-            Joint.LEFT_SHOULDER_Z -> value = 0.0
-            Joint.LEFT_ELBOW_Y -> value = 180.0
-            Joint.LEFT_HIP_X -> value = 180.0
-            Joint.LEFT_HIP_Y -> value = 180.0
-            Joint.LEFT_HIP_Z -> value = 0.0
-            Joint.LEFT_KNEE_Y -> value = 180.0
-            Joint.LEFT_SHOULDER_X -> value = 180.0
-            Joint.LEFT_SHOULDER_Y -> value = 180.0
-            Joint.RIGHT_ANKLE_Y -> value = 90.0
-            Joint.RIGHT_SHOULDER_Z -> value = 0.0
-            Joint.RIGHT_ELBOW_Y -> value = 180.0
-            Joint.RIGHT_HIP_X -> value = 180.0
-            Joint.RIGHT_HIP_Y -> value = 180.0
-            Joint.RIGHT_HIP_Z -> value = 0.0
-            Joint.RIGHT_KNEE_Y -> value = 180.0
-            Joint.RIGHT_SHOULDER_X -> value = 180.0
-            Joint.RIGHT_SHOULDER_Y -> value = 180.0
-            Joint.NONE -> {
-                val msg = "what am i supposed to straighten?"
-                bottle.error = msg
-            }
+        if( joint==Joint.NONE ) {
+            val msg = "what am i supposed to straighten?"
+            bottle.error = msg
+        }
+        else {
+            val link = URDFModel.linkForJoint[joint]!!
+            value = link.sourcePin.home
         }
 
         bottle.joint = joint

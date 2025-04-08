@@ -8,23 +8,18 @@ import java.util.logging.Logger
 
 /**
  * A LinkPin is either a hinged joint or an end effector (unmoving).
- * The offset coordinates are a 3D location of the joint/end effector
- * with respect to the origin of the link. The origin of a Link is
- * a REVOLUTE LinkPin belonging to the parent of that link.
+ * "home" is the anglar position in degrees that corresponds to the "straight"
+ * joint/end effector motor angle..
  *
- * The alignment array is a unit-length vector showing the direction of the
- * axis of the joint motor with respect to a line from the joint
- * to the link origin. The alignment coordinates are with respect
- * to the link origin. In most cases, the linkPin
- * is along the z axis.
+ * All angles are in radians.
  */
 class LinkPin (val type:PinType ) {
     var appendage: Appendage  // End effector
     var mc: MotorConfiguration? = null
-    var offset: Double       // motor position equivalent to "straight"
+    var home: Double   // motor position equivalent to "straight"
 
     var angle: Double = 0.0
-        get() = if(mc==null) offset else mc!!.angle + offset
+        get() = if(mc==null) home else mc!!.angle*Math.PI/180.0  + home
 
     /*
      * The joint implies a motor configuration. From this we read the rotational angle.
@@ -38,8 +33,6 @@ class LinkPin (val type:PinType ) {
             mc = RobotModel.motorsByJoint[j]
         }
 
-
-
     val DEBUG: Boolean
     private val CLSS =  "LinkPin"
     val LOGGER = Logger.getLogger(CLSS)
@@ -48,7 +41,7 @@ class LinkPin (val type:PinType ) {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         appendage = Appendage.NONE
         joint     = Joint.NONE
-        offset = 0.0
+        home = 0.0
     }
 
 }

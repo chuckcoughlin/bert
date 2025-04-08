@@ -32,56 +32,59 @@ import java.util.logging.Logger
 class Link( val nam:String ) {
     val name = nam
     val quaternion: Quaternion
+    private var priorAngle: Double  // Last time Q evaluated
 
-    // The orientation of the link is a unit vector
-    // aligning with the robot's inertial frame.
-    var orientation: DoubleArray
+    // The axis is an array of +-1 and two zeros. It describes the joint axis
+    // direction (x,y or z) when the robot is in its "straight" or at-reset
+    // position.
+    var rotation: Double
     // The co-ordinates are position of this end point with respect to the
-    // parent (source) joint. X is the direction from source to the end point.
-    // Z is the center of the parent joint.
+    // parent (source) joint. x = side to side, y = front-back, z = up/down.
     var coordinates: Point3D
     var endPin:    LinkPin
     var sourcePin: LinkPin
 
-    var angle:Double = -1.0
-        get() = field
-        set(a) {
-            if( field!=a) {
-                field = a
-                updateQuaternion()
-            }
-        }
-
     fun coordinatesToText():String {
         return String.format("%3.3f,%3.3f,%3.3f",coordinates.x,coordinates.y,coordinates.z)
     }
-    fun update() {
-        angle = sourcePin.angle
-    }
 
-    /**
-     * In referring to the article "How to Calculate a Robot's Forward Kinematics in 5 Easy Steps"
+    /** Recalculate quaternion. No need unless angle has changed.
+     * Convert to coordinate system of the quaternion.
+     * Z is the rotational axis of the parent joint.
+     * X points to the next link.
+     * Y completes the right-hand coordinate system.
+     *
+     * In our robot, adjacent motors (joints) are either eligned with parallel
+     * axes or at right angles to each other as defined by the "rotation" angle.
+     * Refer to "How to Calculate a Robot's Forward Kinematics in 5 Easy Steps"
      * by Alex Owen-Hill, these are the equivalents to our coordinate matrix:
      *
-     * d = z
-     * r = x
-     * alpha = 0 (for parallel motors)
-     * thata = arctan(y/x)
+     * d offset to source along z
+     * r distance to source along common normal
+     * alpha angle around common normal between source and current z
+     * theta: angle of rotation of joint
+     *
+     * Distances _mm, angle in radians
      */
-     private fun updateQuaternion() {
-        // The joint angle is the motor position in degrees - convert to radians.
-        val theta = (if(coordinates.x==0.0) sourcePin.offset else Math.atan(coordinates.y / coordinates.x) * 180.0/Math.PI) + angle
-        quaternion.update(coordinates.z,coordinates.x,0.0,theta)
-    }
+    fun update() {
+        if( !priorAngle.isNaN() && priorAngle==sourcePin.angle) return
+        priorAngle = sourcePin.angle
+        val angle = priorAngle   // Radians
 
-    private fun rotationFromCoordinates(cc: DoubleArray): DoubleArray {
-        var len = Math.sqrt(cc[0] * cc[0] + cc[1] * cc[1] + cc[2] * cc[2])
-        if (len == 0.0) len = 1.0 // All angles will be 90 deg
-        val rot = DoubleArray(3)
-        rot[0] = Math.acos(cc[0] / len)
-        rot[0] = Math.acos(cc[1] / len)
-        rot[0] = Math.acos(cc[2] / len)
-        return rot
+        // Alpha is the angle of the joint axis with respect to the source axis.
+        // Zero degrees implies parallel
+        val alpha = rotation
+        var theta = angle - sourcePin.home
+        if(DEBUG) LOGGER.info(String.format("%s.update: %s angle, home, theta = %2.2f, %2.2f,%2.2f",CLSS,name,angle*180.0/Math.PI,
+                                             sourcePin.home*180.0/Math.PI,theta*180.0/Math.PI))
+        if(coordinates.z>0.0) {
+            theta += Math.atan(coordinates.x / coordinates.z)
+            if(DEBUG) LOGGER.info(String.format("%s.update: %s theta now = %2.2f",CLSS,name,theta*180.0/Math.PI))
+        }
+        //val theta = (if(coordinates.z==0.0) sourcePin.home*Math.PI/180.0 else Math.atan(coordinates.x / coordinates.z)) + angle
+        val d = coordinates.y
+        val r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
+        quaternion.update(d,r,alpha,theta)
     }
 
     private val CLSS = "Link"
@@ -91,11 +94,11 @@ class Link( val nam:String ) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        angle = -1.0
+        priorAngle = Double.NaN
         quaternion = Quaternion()
         coordinates = Point3D(0.0, 0.0, 0.0)   // x,y,z
-        orientation = doubleArrayOf(0.0,0.0,0.0)
-        endPin = LinkPin(PinType.ORIGIN)     // Must be reset
+        rotation = 0.0                       // Parallel by default
+        endPin = LinkPin(PinType.ORIGIN)     // Must be defined
         sourcePin = LinkPin(PinType.ORIGIN)  // Origin until set otherwise.
     }
 }

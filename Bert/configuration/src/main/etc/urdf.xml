@@ -10,171 +10,173 @@
 	     left/right hip z axis.
 	     It may be altered by setting IMU parameters externally.
 	-->
-	<imu axis="0 0 1"/> />
+	<imu axis="1 0 0"/>
 
-	<!-- A link is equivalent to a bone. Each link may have several attachments,
-	     either joints or end effectors, but only a single parent. The parent is
-	     a joint (a REVOLUTE link pin). The link with no parent is the origin.
+	<!-- A link is roughly equivalent to a bone. A link connects a source pin (joint)
+	     to a joint or end effector. The parent link is a joint (a REVOLUTE link pin).
+	     The origin of all link trees is the IMU..
 
 	     Joint names must match the names in bert.xml.
 				origin is position of joint in parent frame,
 				axis is orientation of joint in joint frame.
-
 		Links form a tree from the robot origin, PELVIS,
 		terminating in the various end effectors.
 
-		The motor's axis is "z". "x" points to the next link.
-		"y" completes the right-hand coordinate system.
+		Joint coordinates are relative to the source pin ~ mm
+		x - side to side , right positive
+		y - front and back, front positive
+		z - up and down, up positive
+
+		Rotation is the difference between the source and joint or end effector
+		axis of rotation ~ degrees. If parallel rotation = 0.
 	  -->
-	<link name="PELVIS" axis="0 0 1">        <!-- root -->
+	<link name="PELVIS">        <!-- root -->
 		<joint name="RIGHT_HIP_X"
-			   xyz="0.0 22.5417390633467 0.0" offset="180."/>
+			   xyz="0.0 22.5417390633467 0.0"  rot="90.0" home="180."/>
 		<joint name="LEFT_HIP_X"
-			   xyz="0.0 -22.5417390633466 0.0" offset="180."/>
+			   xyz="0.0 -22.5417390633466 0.0" rot="-90.0" home="180."/>
 		<joint name="ABS_Y"
-			   xyz="62.0 12.0 0.0" offset="180."/>
+			   xyz="12.0 0.0 62.0 "            rot="0.0" home="180."/>
 	</link>
-	<link name="RIGHT_HIP_SOCKET" axis="0 0 1">
+	<link name="RIGHT_HIP_SOCKET">
 		<joint name="RIGHT_HIP_Z"
-			   xyz="43.9986 5.0 0.0" offset="0."/>
+			   xyz="43.9986 5.0 0.0" rot="0.0" home="0."/>
 		<source joint="RIGHT_HIP_X"/>
 	</link>
-	<link name="RIGHT_ILIUM" axis="0 0 1">
+	<link name="RIGHT_ILIUM">
 		<joint name="RIGHT_HIP_Y"
-			   xyz="24.0 0.0 0.0" offset="180."/>
+			   xyz="24.0 0.0 0.0" rot="0.0" home="180."/>
 		<source joint="RIGHT_HIP_Z"/>
 	</link>
-	<link name="RIGHT_THIGH" axis="0 0 1">
+	<link name="RIGHT_THIGH">
 		<joint name="RIGHT_KNEE_Y"
-			   xyz="182.0 0.0 0.0" offset="180."/>
+			   xyz="182.0 0.0 0.0" rot="0.0" home="180."/>
 		<source joint="RIGHT_HIP_Y"/>
 	</link>
-	<link name="RIGHT_SHIN" axis="0 0 1">
+	<link name="RIGHT_SHIN">
 		<joint name="RIGHT_ANKLE_Y"
-			   xyz="180.0 0.0 0.0" offset="180."/>
+			   xyz="180.0 0.0 0.0" rot="0.0" home="90."/>
 		<source joint="RIGHT_KNEE_Y"/>
 	</link>
-	<link name="RIGHT_FOOT" axis="0 0 1">
+	<link name="RIGHT_FOOT">
 		<appendage name="RIGHT_TOE"
-				   xyz="95. -35.5 -15." offset = "0."/>
+				   xyz="95. -35.5 -15." rot="0.0" home = "0."/>
 		<appendage name="RIGHT_HEEL"
-				   xyz="-43. -35.5 -12." offset = "0."/>
+				   xyz="-43. -35.5 -12." rot="0.0" home = "0."/>
 		<source joint="RIGHT_ANKLE_Y"/>
 	</link>
-	<link name="LEFT_HIP_SOCKET" axis="0 0 1">
+	<link name="LEFT_HIP_SOCKET">
 		<joint name="LEFT_HIP_Z"
-			   xyz="43.9986 5.00 0.0" offset = "0."/>
+			   xyz="43.9986 5.00 0.0" rot="0.0" home = "0."/>
 		<source joint="LEFT_HIP_X"/>
 	</link>
-	<link name="LEFT_ILIUM" axis="0 0 1">
+	<link name="LEFT_ILIUM">
 		<joint name="LEFT_HIP_Y"
-			   xyz="24.0 0.0 0.0" offset = "180."/>
+			   xyz="24.0 0.0 0.0" rot="0.0" home = "180."/>
 		<source joint="LEFT_HIP_Z"/>
 	</link>
-	<link name="LEFT_THIGH" axis="0 0 1">
+	<link name="LEFT_THIGH">
 		<joint name="LEFT_KNEE_Y"
-			   xyz="182.0 0.0 0.0" offset = "180."/>
+			   xyz="182.0 0.0 0.0" rot="0.0" home = "180."/>
 		<source joint="LEFT_HIP_Y"/>
 	</link>
-	<link name="LEFT_SHIN" axis="0 0 1">
+	<link name="LEFT_SHIN">
 		<joint name="LEFT_ANKLE_Y"
-			   xyz="180.0 0.0 0.0" offset = "180."/>
+			   xyz="180.0 0.0 0.0" rot="0.0" home = "90."/>
 		<source joint="LEFT_KNEE_Y"/>
 	</link>
-	<link name="LEFT_FOOT" axis="0 0 1">
+	<link name="LEFT_FOOT">
 		<appendage name="LEFT_TOE"
-				   xyz="95. -35.5 -15." offset = "0."/>
+				   xyz="95. -35.5 -15." rot="0.0" home = "0."/>
 		<appendage name="LEFT_HEEL"
-				   xyz="-43. -35.5 -12." offset = "0."/>
+				   xyz="-43. -35.5 -12." rot="0.0" home = "0."/>
 		<source joint="LEFT_ANKLE_Y"/>
 	</link>
-	<link name="LUMBAR" axis="0 0 1">
+	<link name="LUMBAR">
 		<joint name="ABS_X"
-			   xyz="0.0 0.0 0.0" offset = "180."/>
+			   xyz="0.0 0.0 8.0" rot="90.0" home = "180."/>
 		<source joint="ABS_Y"/>
 	</link>
-	<link name="LOWER_SPINE" axis="0 0 1">
+	<link name="LOWER_SPINE">
 		<joint name="ABS_Z"
-			   xyz="51.6374742 0.0 0.0" offset = "0."/>
+			   xyz="51.6374742 0.0 0.0" rot="-90.0" home = "0.0"/>
 		<source joint="ABS_X"/>
 	</link>
-	<link name="SPINE" axis="0 0 1">
+	<link name="SPINE">
 		<joint name="BUST_Y"
-			   xyz="79.85 2.8 0.0" ffset = "180."/>
+			   xyz="79.85 2.8 0.0" rot="0.0" home = "180."/>
 		<source joint="ABS_Z"/>
 	</link>
-	<link name="THORACIC" axis="0 0 1">
+	<link name="THORACIC">
 		<joint name="BUST_X"
-			   d="0.0" r="51.6374742" alpha ="0.0" theta="0.0"
-			   xyz="0.0 0.0 0.0" offset = "0."/>
+			   xyz="0.0 0.0 0.0" rot="0.0" home = "180."/>
 		<source joint="BUST_Y"/>
 	</link>
-	<link name="CERVICAL" axis="0 0 1">
+	<link name="CERVICAL">
 		<joint name="NECK_Z"
-			   xyz="84.0 0.0 5.0" offset = "0."/>
+			   xyz="84.0 0.0 5.0" rot="0.0" home = "0."/>
 		<joint name="LEFT_SHOULDER_Y"
-			   xyz="50.0 -77.1 4.0" offset = "0."/>
+			   xyz="50.0 -77.1 4.0" rot="0.0" home = "0."/>
 		<joint name="RIGHT_SHOULDER_Y"
-			   xyz="50.0 77.1 4.0" offset = "0."/>
+			   xyz="50.0 77.1 4.0" rot="0.0" home = "0."/>
 		<source joint="BUST_X"/>
 	</link>
-	<link name="NECK" axis="0 0 1">
+	<link name="NECK">
 		<joint name="NECK_Y"
-			   xyz="20.0 0.0 0.0" offset = "0."/>
+			   xyz="20.0 0.0 0.0" rot="0.0" home = "0."/>
 		<source joint="NECK_Z"/>
 	</link>
-	<link name="SKULL" axis="0 0 1">
+	<link name="SKULL">
 		<appendage name="LEFT_EYE"
-				   xyz="55.0 -32.0 -30.0" offset = "0."/>
+				   xyz="55.0 -32.0 -30.0" rot="0.0" home = "0."/>
 		<appendage name="RIGHT_EYE"
-				   xyz="55.0 32.0 30.0" offset = "0."/>
+				   xyz="55.0 32.0 30.0" rot="0.0" home = "0."/>
 		<appendage name="LEFT_EAR"
-				   xyz="55.0 -30.0 -64.0" offset = "0."/>
+				   xyz="55.0 -30.0 -64.0" rot="0.0" home = "0."/>
 		<appendage name="RIGHT_EAR"
 				   xyz="55.0 -30.0 64.0"/>
 		<appendage name="NOSE"
-				   xyz="40.0 15.0 0.0" offset = "0."/>
+				   xyz="40.0 15.0 0.0" rot="0.0" home = "0."/>
 		<source joint="NECK_Y"/>
 	</link>
-	<link name="LEFT_CLAVICLE" axis="0 0 1">
+	<link name="LEFT_CLAVICLE">
 		<joint name="LEFT_SHOULDER_X"
-			   d="0.0" r="28.4" alpha ="0.0" theta="0.0"
-			   xyz="28.4 0.0 0.0" offset = "180."/>
+			   xyz="28.4 0.0 0.0" rot="0.0" home = "180."/>
 		<source joint="LEFT_SHOULDER_Y"/>
 	</link>
-	<link name="LEFT_SHOULDER_SOCKET" axis="0 0 1">
+	<link name="LEFT_SHOULDER_SOCKET">
 		<joint name="LEFT_SHOULDER_Z"
-			   xyz="36.25 18.5 0.0" offset = "180."/>
+			   xyz="36.25 18.5 0.0" rot="0.0" home = "180."/>
 		<source joint="LEFT_SHOULDER_X"/>
 	</link>
-	<link name="LEFT_UPPER_ARM" axis="0 0 1">
+	<link name="LEFT_UPPER_ARM">
 		<joint name="LEFT_ELBOW_Y"
-			   xyz="11.175 -10.0 0.0" offset = "180."/>
+			   xyz="11.175 -10.0 0.0" rot="0.0" home = "180."/>
 		<source joint="LEFT_SHOULDER_Z"/>
 	</link>
-	<link name="LEFT_FOREARM" axis="0 0 1">
+	<link name="LEFT_FOREARM">
 		<appendage name="LEFT_FINGER"
-				   xyz="107.5 -4.99 6.915" offset = "0."/>
+				   xyz="107.5 -4.99 6.915" rot="0.0" home = "0."/>
 		<source joint="LEFT_ELBOW_Y"/>
 	</link>
-	<link name="RIGHT_CLAVICLE" axis="0 0 1">
+	<link name="RIGHT_CLAVICLE">
 		<joint name="RIGHT_SHOULDER_X"
-			   xyz="28.4 0.0 0.0" offset = "180."/>
+			   xyz="28.4 0.0 0.0" rot="0.0" home = "180."/>
 		<source joint="RIGHT_SHOULDER_Y"/>
 	</link>
-	<link name="RIGHT_SHOULDER_SOCKET" axis="0 0 1">
+	<link name="RIGHT_SHOULDER_SOCKET" >
 		<joint name="RIGHT_SHOULDER_Z"
-			   xyz="36.25 18.5 0.0" offset = "180."/>
+			   xyz="36.25 18.5 0.0" rot="0.0" home = "180."/>
 		<source joint="RIGHT_SHOULDER_X"/>
 	</link>
-	<link name="RIGHT_UPPER_ARM" axis="0 0 1">
+	<link name="RIGHT_UPPER_ARM">
 		<joint name="RIGHT_ELBOW_Y"
-			   xyz="11.175 -10.0 0.0" offset = "180."/>
+			   xyz="11.175 -10.0 0.0" rot="0.0" home = "180."/>
 		<source joint="RIGHT_SHOULDER_Z"/>
 	</link>
-	<link name="RIGHT_FOREARM" axis="0 0 1">
+	<link name="RIGHT_FOREARM" >
 		<appendage name="RIGHT_FINGER"
-				   xyz="107.5 -4.99 6.915" offset = "0."/>
+				   xyz="107.5 -4.99 6.915" rot="0.0" home = "0.0"/>
 		<source joint="RIGHT_ELBOW_Y"/>
 	</link>
 </robot>
