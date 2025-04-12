@@ -4,16 +4,21 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.math.Axis
 import java.util.logging.Logger
 
 /**
  * A LinkPin is either a hinged joint or an end effector (unmoving).
- * "home" is the anglar position in degrees that corresponds to the "straight"
- * joint/end effector motor angle..
+ * "home" is the anglar position that corresponds to the "straight"
+ * joint/end effector motor angle.
+ *
+ * Axis refers to the orientation of the joint axis when the robot
+ * is in its "straight" position.
  *
  * All angles are in radians.
  */
 class LinkPin (val type:PinType ) {
+    var axis:Axis
     var appendage: Appendage  // End effector
     var mc: MotorConfiguration? = null
     var home: Double   // motor position equivalent to "straight"
@@ -22,7 +27,8 @@ class LinkPin (val type:PinType ) {
         get() = if(mc==null) home else mc!!.angle*Math.PI/180.0  + home
 
     /*
-     * The joint implies a motor configuration. From this we read the rotational angle.
+     * The joint implies a motor configuration. From this we read the
+     * real-time rotational angle.
      */
     var joint:Joint
         get() =
@@ -39,6 +45,7 @@ class LinkPin (val type:PinType ) {
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
+        axis = Axis.X
         appendage = Appendage.NONE
         joint     = Joint.NONE
         home = 0.0

@@ -53,14 +53,12 @@ object Solver {
             CLSS,q.position().toText()))
         // Now continue up the chain
         for(link in subchain) {
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: original %s pin = (%s) ",
-                CLSS,link.sourcePin.joint,q.position().toText()))
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
+                CLSS,link.name,if( link.sourcePin.joint==Joint.NONE) "IMU" else link.sourcePin.joint.name,q.position().toText()))
             link.update()  // In case motor has moved since last use
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: source %s pin = (%s) ",
-                CLSS,link.sourcePin.joint,q.position().toText()))
             q = q.multiplyBy(link.quaternion)
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: joint %s = (%s) ",
-                CLSS,link.endPin.joint.name,q.position().toText()))
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s) ",
+                CLSS,link.name,link.endPin.joint.name,q.position().toText()))
         }
         return q
     }

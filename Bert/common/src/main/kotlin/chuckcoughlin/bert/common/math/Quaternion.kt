@@ -45,17 +45,17 @@ open class Quaternion( ) {
     }
 
     /**
-     * The current orientation
+     * The current orientation with respect to the IMU
      */
     fun orientation(): DoubleArray {
         var p = doubleArrayOf(matrix[0][0],matrix[0][1],matrix[0][2])
         return p
     }
     /**
-     * The current position
+     * The current position in the parent frame (x,y,z)
      */
     fun position(): Point3D {
-        var p = Point3D(matrix[3][0],matrix[3][1],matrix[3][2])
+        var p = Point3D(matrix[3][1],matrix[3][2],matrix[3][0] )
         return p
     }
 

@@ -52,6 +52,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private var parentResponseChannel = rsp
     private val requestQueue: Channel<MessageBottle>
     private val responseQueue: Channel<MessageBottle>
+    private var responseCount: Int
     // The pending message allows the serial callback to accumulate results for the same message
     private val responder: SerialResponder
     private var timeOfLastWrite: Long
@@ -257,6 +258,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @param wrapper
      * @return
      */
+    @Synchronized
     private fun messageToBytes(request: MessageBottle): ByteArray? {
         request.control.responseCount[controllerName]=0 // No response, unless specified otherwise
         var bytes: ByteArray=ByteArray(0)
@@ -420,6 +422,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @param wrapper
      * @return
      */
+    @Synchronized
     private fun messageToByteList(request: MessageBottle): List<ByteArray> {
         request.control.responseCount[controllerName] = 0 // No response unless otherwise set
         var list: List<ByteArray> = mutableListOf<ByteArray>()
@@ -574,6 +577,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         port = p
         requestQueue  = Channel(1)
         responseQueue = Channel(1)
+        responseCount = 1
         responder = SerialResponder(name,requestQueue,responseQueue)
         configurationsByJoint = mutableMapOf<Joint, MotorConfiguration>()
         timeOfLastWrite = System.currentTimeMillis()

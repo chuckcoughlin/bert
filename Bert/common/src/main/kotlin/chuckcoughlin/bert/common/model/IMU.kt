@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.math.Axis
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.URDFModel.origin
 import java.util.logging.Logger
@@ -17,7 +18,9 @@ import java.util.logging.Logger
  */
 object IMU {
 
-    var axis: DoubleArray
+    var axis: Axis
+    var coordinates: Point3D
+    var rotation: DoubleArray   // Euler angles
     var alpha: Double
     var theta: Double
     val quaternion: Quaternion
@@ -32,7 +35,9 @@ object IMU {
 
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        axis =doubleArrayOf(0.0, 0.0, 0.0)
+        axis = Axis.X
+        coordinates = Point3D(0.0,0.0,0.0)
+        rotation = doubleArrayOf(0.0,0.0,0.0)
         quaternion = Quaternion()
         alpha = 0.0
         theta = 0.0

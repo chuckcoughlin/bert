@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.math.Axis
 import chuckcoughlin.bert.common.math.Quaternion
 import java.util.logging.Logger
 
@@ -34,10 +35,6 @@ class Link( val nam:String ) {
     val quaternion: Quaternion
     private var priorAngle: Double  // Last time Q evaluated
 
-    // The axis is an array of +-1 and two zeros. It describes the joint axis
-    // direction (x,y or z) when the robot is in its "straight" or at-reset
-    // position.
-    var rotation: Double
     // The co-ordinates are position of this end point with respect to the
     // parent (source) joint. x = side to side, y = front-back, z = up/down.
     var coordinates: Point3D
@@ -71,19 +68,46 @@ class Link( val nam:String ) {
         priorAngle = sourcePin.angle
         val angle = priorAngle   // Radians
 
+        var alpha = 0.0
+        var d = 0.0
+        var r = 0.0
+        var theta = 0.0
+
         // Alpha is the angle of the joint axis with respect to the source axis.
         // Zero degrees implies parallel
-        val alpha = rotation
-        var theta = angle - sourcePin.home
-        if(DEBUG) LOGGER.info(String.format("%s.update: %s angle, home, theta = %2.2f, %2.2f,%2.2f",CLSS,name,angle*180.0/Math.PI,
-                                             sourcePin.home*180.0/Math.PI,theta*180.0/Math.PI))
-        if(coordinates.z>0.0) {
-            theta += Math.atan(coordinates.x / coordinates.z)
-            if(DEBUG) LOGGER.info(String.format("%s.update: %s theta now = %2.2f",CLSS,name,theta*180.0/Math.PI))
+        if( sourcePin.axis== Axis.X && endPin.axis==Axis.X ) {
+            alpha = 0.0
+            d = coordinates.y
+            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
+            if(coordinates.z>0.0) {
+                theta = Math.atan(coordinates.x / coordinates.z) + angle
+            }
+            else {
+               theta = sourcePin.home
+            }
         }
-        //val theta = (if(coordinates.z==0.0) sourcePin.home*Math.PI/180.0 else Math.atan(coordinates.x / coordinates.z)) + angle
-        val d = coordinates.y
-        val r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
+        else if( sourcePin.axis== Axis.X && endPin.axis==Axis.Y ) {
+            alpha = 0.0
+            d = coordinates.y
+            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
+            if(coordinates.z>0.0) {
+                theta = Math.atan(coordinates.x / coordinates.z) + angle
+            }
+            else {
+                theta = sourcePin.home
+            }
+            if(coordinates.x<=0.0)  theta += Math.PI/4.0
+            else                    theta -= Math.PI/4.0
+        }
+        else {
+            LOGGER.warning(String.format("%s.update: %s No code to juxtapose %s vs %s",CLSS,name,sourcePin.axis.name,
+                                          endPin.axis.name))
+        }
+
+        if(DEBUG) LOGGER.info(String.format("%s.update: %s %s->%s alpha, angle, theta =  %2.2f, %2.2f, %2.2f",CLSS,name,
+                            sourcePin.axis.name,endPin.axis.name,alpha*180.0/Math.PI,
+                            angle*180.0/Math.PI,theta*180.0/Math.PI))
+
         quaternion.update(d,r,alpha,theta)
     }
 
@@ -97,7 +121,6 @@ class Link( val nam:String ) {
         priorAngle = Double.NaN
         quaternion = Quaternion()
         coordinates = Point3D(0.0, 0.0, 0.0)   // x,y,z
-        rotation = 0.0                       // Parallel by default
         endPin = LinkPin(PinType.ORIGIN)     // Must be defined
         sourcePin = LinkPin(PinType.ORIGIN)  // Origin until set otherwise.
     }

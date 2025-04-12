@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.math.Axis
 import java.util.*
 import java.util.logging.Logger
 
@@ -34,7 +35,7 @@ object Chain {
             if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.name,link.sourcePin.type))
             if( link.sourcePin.type==PinType.ORIGIN ) break
             val joint = link.sourcePin.joint
-            link = URDFModel.linkForJoint[joint] // NONE implies the source
+            link = URDFModel.linkForJoint[joint]
         }
         return partial
     }
@@ -50,13 +51,11 @@ object Chain {
         var link = URDFModel.linkForJoint[joint]
         while( link != null ) {
             partial.addFirst(link)
-            if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s)",
-                CLSS,joint.name,link.name,link.sourcePin.type))
+            if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s->%s)",
+                CLSS,joint.name,link.name,if(link.sourcePin.joint!=Joint.NONE) link.sourcePin.joint.name else "IMU", link.endPin.joint.name))
             if (link.sourcePin.type.equals(PinType.ORIGIN)) break
             val j = link.sourcePin.joint
             link = URDFModel.linkForJoint[j]
-            if (DEBUG && link != null) LOGGER.info(String.format("%s.partialChainToJoint: %s - next is %s",
-                CLSS, j.name,link.name))
         }
         return partial
     }
@@ -68,7 +67,7 @@ object Chain {
      *
      */
     fun setOrientation(a: DoubleArray) {
-        IMU.axis= a
+        IMU.rotation= a
     }
 
 
