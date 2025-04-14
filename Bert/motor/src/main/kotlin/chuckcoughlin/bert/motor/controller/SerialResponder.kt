@@ -10,11 +10,14 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import jssc.SerialPortEvent
 import jssc.SerialPortEventListener
 import jssc.SerialPortException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.*
 import java.util.logging.Logger
 
@@ -33,16 +36,16 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
     private val name = nam
     private var inChannel = req
     private var outChannel = rsp
-    private var remainder: ByteArray? = null
+    private var remainder: ByteArray
     // The pending message allows the serial callback to accumulate results for the same message
     private var pending : MessageBottle? = null
+    private var mutex: Mutex
 
     // ============================== SerialPortEventListener ===============================
     /**
      * Handle the response from the serial request. NOTE: Since multiple serialEvents
      * are updating the same request, any updates must be synchronized.
      */
-    @Synchronized
     override fun serialEvent(event: SerialPortEvent) {
         LOGGER.info(String.format("%s.serialEvent for %s (pending %s)", CLSS, name,if(pending==null) "none" else "yes"))
         if (event.isRXCHAR()) {
@@ -53,63 +56,60 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                 else pending!!
 
             // The value is the number of bytes in the read buffer
-            val byteCount: Int = event.getEventValue()
+            var responseCount = runBlocking{request.control.getResponseCountForController(name)}
             LOGGER.info(String.format("%s.serialEvent %s: expect %d %s msgs got %d bytes",
-                    CLSS,name,request.control.responseCount[name]!!,request.type.name, byteCount) )
-            if (byteCount > 0) {
-                try {
-                    var bytes: ByteArray = event.port.readBytes(byteCount)
-                    bytes = prependRemainder(bytes)
-                    bytes = DxlMessage.ensureLegalStart(bytes) // never null
-                    var nbytes = bytes.size
-                    LOGGER.info(String.format("%s(%s).serialEvent: contents =\n%s",CLSS,name, DxlMessage.dump(bytes)))
-                    val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
-                    if (mlen < 0 || nbytes < mlen) {
-                        LOGGER.warning( String.format("%s(%s).serialEvent Message too short (%d), requires additional read",
-                                CLSS,name,nbytes))
-                        return
+                CLSS,name,responseCount,request.type.name, event.eventValue) )
+            try {
+                var bytes = runBlocking{accumulateResults(event)}
+                var nbytes = bytes.size
+                if(DEBUG) LOGGER.info(String.format("%s(%s).serialEvent: contents =\n%s",CLSS,name, DxlMessage.dump(bytes)))
+                val mlen: Int = DxlMessage.getMessageLength(bytes) // First message
+                if (mlen < 0 || nbytes < mlen) {
+                    LOGGER.warning( String.format("%s(%s).serialEvent Message too short (%d of %d), requires additional read",
+                        CLSS,name,nbytes,mlen))
+                    return
+                }
+                else if (DxlMessage.errorMessageFromStatus(bytes).isNotBlank()) {
+                    LOGGER.severe( String.format("%s.serialEvent: %s ERROR: %s",
+                        CLSS,name,DxlMessage.errorMessageFromStatus(bytes)) )
+                    if (request.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
+                }
+                if(returnsStatusArray(request)){  // Some requests return a message for each motor, e.g. READ_MOTOR_PROPERTY
+                    var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
+                    if (nmsgs > responseCount) nmsgs = responseCount
+                    nbytes = nmsgs * STATUS_RESPONSE_LENGTH
+                    if (nbytes < bytes.size) {
+                        bytes = runBlocking{truncateByteArray(bytes, nbytes)}
                     }
-                    else if (DxlMessage.errorMessageFromStatus(bytes).isNotBlank()) {
-                        LOGGER.severe( String.format("%s.serialEvent: %s ERROR: %s",
-                                CLSS,name,DxlMessage.errorMessageFromStatus(bytes)) )
-                        if (request.type.equals(RequestType.NONE)) return  // The original request was not supposed to have a response.
+                    val prop= request.jointDynamicProperty
+                    val map = updateMotorStatusFromBytes(prop, bytes)
+                    for (key in map.keys) {
+                        val param = map[key]
+                        val joint = RobotModel.motorsById[key]!!.joint
+                        responseCount = runBlocking{request.control.decrementResponseCountForController(name)}
+                        if(DEBUG)LOGGER.info(String.format("%s.serialEvent: %s received %s (%d remaining) = %s",
+                            CLSS, name, joint.name, responseCount, param) )
                     }
-                    if(returnsStatusArray(request)) {  // Some requests return a message for each motor, e.g. READ_MOTOR_PROPERTY
-                        var nmsgs = nbytes / STATUS_RESPONSE_LENGTH
-                        if (nmsgs > request.control.responseCount[name]!!) nmsgs = request.control.responseCount[name]!!
-                        nbytes = nmsgs * STATUS_RESPONSE_LENGTH
-                        if (nbytes < bytes.size) {
-                            bytes = truncateByteArray(bytes, nbytes)
-                        }
-                        val prop= request.jointDynamicProperty
-                        val map = updateStatusFromBytes(prop, bytes)
-                        for (key in map.keys) {
-                            val param = map[key]
-                            val joint = RobotModel.motorsById[key]!!.joint
-                            request.control.responseCount[name] = request.control.responseCount[name]!! - 1
-                            LOGGER.info(String.format("%s.serialEvent: %s received %s (%d remaining) = %s",
-                                            CLSS, name, joint.name, request.control.responseCount[name]!!, param) )
-                        }
-                    }
-                    else {
-                        request.control.responseCount[name] = request.control.responseCount[name]!! - 1
-                    }
+                }
+                else {
+                    responseCount = runBlocking{request.control.decrementResponseCountForController(name)}
+                }
 
-                    if (request.control.responseCount[name]!! <= 0) {
-                        if(isSingleControllerRequest(request)) {
-                            updateRequestFromBytes(request, bytes)
-                        }
-                        pending = null
-                        runBlocking(Dispatchers.IO) { outChannel.send(request) }
-                        LOGGER.info(String.format("%s.serialEvent: sent response %s.",CLSS,request.type.name))
+                // No need to worry about concurrency if there is only one controller.
+                if (responseCount <= 0) {
+                    if(isSingleControllerRequest(request)) {
+                        updateRequestFromBytes(request, bytes)
                     }
-                    else {
-                        pending = request
-                    }
+                    pending = null
+                    runBlocking(Dispatchers.IO) { outChannel.send(request) }
+                    LOGGER.info(String.format("%s.serialEvent: sent response %s.",CLSS,request.type.name))
                 }
-                catch (ex: SerialPortException) {
-                    System.out.println(ex)
+                else {
+                    pending = request
                 }
+            }
+            catch (ex: SerialPortException) {
+                System.out.println(ex)
             }
         }
     }
@@ -203,41 +203,54 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
     // The byte array contains the results of a request for status. It may be the concatenation
     // of several responses. Update global motor configurations accordingly.
     // 
-    private fun updateStatusFromBytes(property: JointDynamicProperty, bytes: ByteArray): Map<Int, String> {
+    private fun updateMotorStatusFromBytes(property: JointDynamicProperty, bytes: ByteArray): Map<Int, String> {
         val props: MutableMap<Int, String> = HashMap()
         DxlMessage.updatePropertyInMotorsFromBytes(property, RobotModel.motorsById, bytes, props)
         return props
     }
 
     /**
-     * Combine the remainder from the previous serial read. Set the remainder null.
+     * Read from the event, prependinga any remainder from the last message.
+     * Clear the remainder. Check for valid start character.
      * @param bytes
      * @return
      */
-    private fun prependRemainder(bytes: ByteArray): ByteArray {
-        if(remainder == null) return bytes
-        val combination = ByteArray(remainder!!.size + bytes.size)
-        System.arraycopy(remainder!!, 0, combination, 0, remainder!!.size)
-        System.arraycopy(bytes, 0, combination, remainder!!.size, bytes.size)
-        remainder = null
-        return combination
+    private suspend fun accumulateResults(event:SerialPortEvent): ByteArray {
+        mutex.withLock {
+            val byteCount: Int = event.getEventValue()
+            if( byteCount==0 ) return remainder
+
+            var bytes: ByteArray = event.port.readBytes(byteCount)
+            if( remainder.size==0 ) {
+                bytes = DxlMessage.ensureLegalStart(bytes) // Logs any truncation
+                return bytes
+            }
+            var aggregate = ByteArray(remainder.size + bytes.size)
+            System.arraycopy(remainder, 0, aggregate, 0, remainder.size)
+            System.arraycopy(bytes, 0, aggregate, remainder.size, bytes.size)
+            remainder = ByteArray(0)
+            aggregate = DxlMessage.ensureLegalStart(aggregate) // Logs any truncation
+            return aggregate
+        }
     }
 
     /**
      * Create a remainder from extra bytes at the end of the array.
-     * Remainder should always be null as we enter this routine.
+     * Remainder should always be empty as we enter this routine.
      * @param bytes
-     * @param nb count of bytes we need.
+     * @param nb count of bytes we used.
      * @return
      */
-    private fun truncateByteArray(bytes: ByteArray, nb: Int): ByteArray {
-        var nbytes = nb
-        if (nbytes > bytes.size) nbytes = bytes.size
-        if (nbytes == bytes.size) return bytes
-        val copy = ByteArray(nbytes)
-        System.arraycopy(bytes, 0, copy, 0, nbytes)
-        remainder = null
-        return copy
+    private suspend fun truncateByteArray(bytes: ByteArray, nb: Int): ByteArray {
+        mutex.withLock() {
+            var nbytes = nb
+            if (nbytes > bytes.size) nbytes = bytes.size
+            if (nbytes == bytes.size) return bytes
+            val copy = ByteArray(nbytes)
+            System.arraycopy(bytes, 0, copy, 0, nbytes)
+            remainder = ByteArray(0)
+            return copy
+        }
     }
 
     private val CLSS = "SerialResponder"
@@ -248,5 +261,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SERIAL)
         LOGGER.info(String.format("%s.init: created...", CLSS))
+        remainder = ByteArray(0)
+        mutex = Mutex()
     }
 }

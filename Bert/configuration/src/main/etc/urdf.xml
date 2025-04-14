@@ -28,6 +28,7 @@
 		z - up and down, up positive
 
 		Axis is the axis of rotation for source and joint or end effector
+		with respect to the inertial frame
 		when the robot is in "straight" position.
 	  -->
 	<link name="PELVIS">        <!-- root -->
@@ -35,7 +36,7 @@
 			   xyz="0.0 22.5417390633467 0.0"  axis="Y" home="180."/>
 		<joint name="LEFT_HIP_X"
 			   xyz="0.0 -22.5417390633466 0.0" axis="Y" home="180."/>
-		<joint name="ABS_Y"
+		<joint name="ABS_X"
 			   xyz="0.0 12.0 62.0 "            axis="X" home="180."/>
 	</link>
 	<link name="RIGHT_HIP_SOCKET">
@@ -93,14 +94,14 @@
 		<source joint="LEFT_ANKLE_Y" />
 	</link>
 	<link name="LUMBAR">
-		<joint name="ABS_X"
+		<joint name="ABS_Y"
 			   xyz="0.0 0.0 8.0" axis="Y" home = "180."/>
-		<source joint="ABS_Y" />
+		<source joint="ABS_X" />
 	</link>
 	<link name="LOWER_SPINE">
 		<joint name="ABS_Z"
 			   xyz="51.6374742 0.0 0.0" axis="X" home = "0.0"/>
-		<source joint="ABS_X" />
+		<source joint="ABS_Y" />
 	</link>
 	<link name="SPINE">
 		<joint name="BUST_Y"

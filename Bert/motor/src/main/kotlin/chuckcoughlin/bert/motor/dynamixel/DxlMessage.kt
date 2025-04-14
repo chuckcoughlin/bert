@@ -513,7 +513,7 @@ object DxlMessage {
      * Scan the supplied byte array looking for the message start markers.
      * When found return the buffer less any leading junk.
      * @param bytes
-     * @return buffer guaranteed to be a legal message start, else null.
+     * @return buffer guaranteed to be a legal message start, else empty.
      */
     fun ensureLegalStart(bytes: ByteArray): ByteArray {
         var i = 0
@@ -526,8 +526,8 @@ object DxlMessage {
                 else {
                     val copy = ByteArray(bytes.size - i)
                     System.arraycopy(bytes, i, copy, 0, copy.size)
-                    LOGGER.warning( String.format( "%s.ensureLegalStart: cut %d bytes to provide legal msg",
-                            CLSS,i))
+                    LOGGER.warning( String.format( "%s.ensureLegalStart: cut %d bytes of %d to provide legal msg",
+                            CLSS,i,bytes.size))
                     copy
                 }
             }

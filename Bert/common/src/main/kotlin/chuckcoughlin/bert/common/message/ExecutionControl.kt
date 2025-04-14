@@ -1,7 +1,10 @@
 package chuckcoughlin.bert.common.message
 
 import chuckcoughlin.bert.common.controller.ControllerType
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.lang.ModuleLayer.Controller
+import java.util.logging.Logger
 
 
 /**
@@ -27,12 +30,44 @@ data class ExecutionControl(var delay: Long) : Cloneable {
     var executionTime : Long   // ~msecs
     var repeatInterval: Long   // ~msecs
     var originalSource: ControllerType
-    /* While processing within the MotorController attach a serial message response count to the
-    * request so that we can determine when the response is complete.
-    */
-    var responseCount:MutableMap<String, Int>
     var shouldRepeat: Boolean
+    /* While processing within the MotorControllers attach a serial message response count
+     * to the request so that we can determine when the responses are complete for each
+     * controller.
+    */
+    private var responseCount:MutableMap<String, Int>
+    private var mutex: Mutex
 
+    suspend fun decrementResponseCountForController(controller:String) =
+        mutex.withLock {
+            if(responseCount[controller]==null) {
+                LOGGER.warning(String.format("%s.decrementResponseCountForController: Decrekment for %s requested before being set",CLSS,controller))
+                0
+            }
+            else {
+                responseCount[controller] = responseCount[controller]!! - 1
+                responseCount[controller]!!
+            }
+        }
+
+    suspend fun getResponseCountForController(controller:String) =
+        mutex.withLock {
+            if(responseCount[controller]==null) {
+                LOGGER.warning(String.format("%s.getResponseCount: Response for %s requested before being set",CLSS,controller))
+                0
+            }
+            else {
+                responseCount[controller]!!
+            }
+        }
+
+    suspend fun setResponseCountForController(controller:String,count:Int) {
+        mutex.withLock {
+            responseCount[controller] = count
+        }
+    }
+
+    // Note: Mutex is not cloned
     override public fun clone(): ExecutionControl {
         val copy = ExecutionControl(delay)
         copy.executionTime  = executionTime   // Current time
@@ -52,6 +87,8 @@ data class ExecutionControl(var delay: Long) : Cloneable {
     }
 
     private val CLSS = "ExecutionControl"
+    private val LOGGER = Logger.getLogger(CLSS)
+
     var id: Long = 0 // Sequential id for messages
     @get:Synchronized
     private val nextId: Long
@@ -64,5 +101,6 @@ data class ExecutionControl(var delay: Long) : Cloneable {
         shouldRepeat = false
         originalSource = ControllerType.UNDEFINED
         id = nextId
+        mutex = Mutex()
     }
 }

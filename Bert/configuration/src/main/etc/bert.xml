@@ -54,8 +54,8 @@
 		<joint name="RIGHT_SHOULDER_Z" type="MX28" id="53" offset="-180" min="-45" max="90" orientation="direct" speed="330" load="1.9" limb="RIGHT_ARM"/>
 		<joint name="NECK_Y"       type="AX12" id="37" offset="-120" min="-5" max="20" orientation="direct" speed="354" load="0.9" limb="HEAD"/>
 		<joint name="NECK_Z"       type="AX12" id="36" offset="-150" min="-30" max="30" orientation="indirect" speed="354" load="0.9" limb="HEAD"/>
-		<joint name="ABS_X"        type="MX64" id="32" offset="0" min="150" max="210" orientation="direct"   speed="378" load="3.9" limb="TORSO"/>
-		<joint name="ABS_Y"        type="MX64" id="31" offset="16" min="150" max="200" orientation="direct"  speed="378" load="3.9" limb="TORSO"/> <!-- MX64 150-210 can't support weight -->
+		<joint name="ABS_X"        type="MX64" id="31" offset="16" min="150" max="200" orientation="direct"  speed="378" load="3.9" limb="TORSO"/> <!-- MX64 150-210 can't support weight -->
+		<joint name="ABS_Y"        type="MX64" id="32" offset="0" min="150" max="210" orientation="direct"   speed="378" load="3.9" limb="TORSO"/>
 		<joint name="ABS_Z"        type="MX28" id="33" offset="-160" min="-60" max="60" orientation="direct" speed="330" load="1.9" limb="TORSO"/>
 		<joint name="BUST_X"       type="MX28" id="35" offset="5" min="170" max="190" orientation="direct"   speed="330" load="1.9" limb="TORSO"/> <!-- MX64 150-210 can't support weight -->
 		<joint name="BUST_Y"       type="MX28" id="34" offset="24" min="165" max="195" orientation="direct"  speed="330" load="1.9" limb="TORSO"/> <!-- MX64 150-210 can't support weight -->

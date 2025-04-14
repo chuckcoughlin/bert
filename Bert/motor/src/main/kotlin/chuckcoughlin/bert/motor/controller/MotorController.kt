@@ -163,22 +163,22 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         }
         // Get the intended response count - zero if controller is unknown
         var responseCount: Int
-        // Now construct the byte array to write to the port
+        // Now construct the byte array to write to the port. Set response count
         if( isSingleWriteRequest(request) ) {
             val bytes = messageToBytes(request)
-            responseCount=request.control.responseCount[controllerName]!!
+            responseCount=request.control.getResponseCountForController(controllerName)
             if (bytes != null) {
                 if(responseCount > 0) {
                     requestQueue.send(request)
                 }
                 writeBytesToSerial(bytes)
                 if(DEBUG) LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d) contents =\n%s", CLSS, controllerName,
-                    bytes.size,request.control.responseCount[controllerName],DxlMessage.dump(bytes)))
+                    bytes.size,responseCount,DxlMessage.dump(bytes)))
             }
         }
-        else {       // Multiple write requests
+        else {       // Multiple write requests. Set total response count
             val byteArrayList = messageToByteList(request)
-            responseCount = request.control.responseCount[controllerName]!!
+            responseCount = request.control.getResponseCountForController(controllerName)
             if (responseCount > 0) {
                 requestQueue.send(request)
             }
@@ -186,7 +186,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 delay(ConfigurationConstants.MIN_SERIAL_WRITE_INTERVAL)    // This could be significant
                 writeBytesToSerial(bytes)
                 if(DEBUG) LOGGER.info(String.format("%s.processRequest: %s wrote %d bytes (rsp count=%d) contents =\n%s",CLSS,
-                        controllerName,bytes.size,request.control.responseCount[controllerName],DxlMessage.dump(bytes)))
+                        controllerName,bytes.size,responseCount,DxlMessage.dump(bytes)))
                 }
         }
         if( responseCount>0 ) {
@@ -260,7 +260,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      */
     @Synchronized
     private fun messageToBytes(request: MessageBottle): ByteArray? {
-        request.control.responseCount[controllerName]=0 // No response, unless specified otherwise
+        var responseCount = 0              // No response, reset if otherwise
         var bytes: ByteArray=ByteArray(0)
         val type: RequestType=request.type
         val jtype: JsonType=request.jtype
@@ -272,7 +272,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (mc in configurationsByJoint.values) {
                 if(mc.joint.equals(joint)) {
                     bytes=DxlMessage.bytesToGetGoals(mc.id)
-                    request.control.responseCount[controllerName]=1 // Status message
+                    responseCount = 1  // Status message
                     break
                 }
             }
@@ -282,7 +282,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (mc in configurationsByJoint.values) {
                 if(mc.joint.equals(joint)) {
                     bytes=DxlMessage.bytesToGetLimits(mc.id)
-                    request.control.responseCount[controllerName]=1 // Status message
+                    responseCount = 1  // Status message
                     break
                 }
             }
@@ -293,7 +293,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val mc=RobotModel.motorsByJoint[joint]!!
             if(mc.joint.equals(joint)) {
                 bytes=DxlMessage.bytesToGetProperty(mc.id, request.jointDynamicProperty)
-                request.control.responseCount[controllerName]=1 // Status message
+                responseCount = 1  // Status message
             }
         }
         // Property value must be the same for every joint in limb
@@ -401,7 +401,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                         Joint.toText(mc.joint), prop.name, value)
             }
             bytes = DxlMessage.bytesToSetProperty(mc, prop, value)
-            request.control.responseCount[controllerName] = 1 // Status message
+            responseCount = 1  // Status message
         }
         else if (type.equals(RequestType.NONE)) {
             LOGGER.warning(String.format("%s.messageToBytes: Empty request - ignored (%s)",
@@ -411,8 +411,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             LOGGER.severe(String.format("%s.messageToBytes: %s unhandled request %s",
                 CLSS, controllerName,type.name))
         }
+        runBlocking{request.control.setResponseCountForController(controllerName,responseCount)}
         LOGGER.info(String.format("%s.messageToBytes: %s expect %d responses %d bytes",CLSS,
-            controllerName,request.control.responseCount[controllerName],bytes.size))
+            controllerName,responseCount,bytes.size))
         return bytes
     }
     /**
@@ -424,7 +425,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      */
     @Synchronized
     private fun messageToByteList(request: MessageBottle): List<ByteArray> {
-        request.control.responseCount[controllerName] = 0 // No response unless otherwise set
+        var responseCount = 0         // No response unless otherwise set
         var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
         val limb: Limb = request.limb
@@ -436,7 +437,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             list = ArrayList<ByteArray>()
             list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MINIMUMANGLE))
             list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MINIMUMANGLE))
-            request.control.responseCount[controllerName] = 2 // Status message
+            responseCount = 2 // Status messages
         }
         else if(type.equals(RequestType.INITIALIZE_JOINTS)) {
             list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
@@ -451,7 +452,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if( limb==Limb.NONE ) {
                 if( joint==Joint.NONE ) {      // All joints - (MX12 not returned in list)
                     list = DxlMessage.byteArrayListToListProperty(prop, configurationsByJoint.values)
-                    request.control.responseCount[controllerName] = configurationsByJoint.size
+                    responseCount = configurationsByJoint.size
                 }
                 else {
                     val mc = configurationsByJoint[joint]
@@ -459,7 +460,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                     if(mc!=null ) {
                         lst.add(mc)
                         list = DxlMessage.byteArrayListToListProperty(prop, lst)
-                        request.control.responseCount[controllerName] = 1
+                        responseCount = 1
                     }
                     else {
                         LOGGER.severe(String.format("%s.messageToByteList: no motor configuration for %s on %s",
@@ -470,11 +471,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             else {
                 val configs: Map<Joint, MotorConfiguration> = configurationsForLimb(limb)
                 list = DxlMessage.byteArrayListToListProperty(prop, configs.values)
-                request.control.responseCount[controllerName] = configs.size
+                responseCount = configs.size
             }
         }
         else if( type.equals(RequestType.EXECUTE_POSE) ) {
-            request.control.responseCount[controllerName]=0 // AYNC WRITE, no responses
+            responseCount=0 // AYNC WRITE, no responses
             val poseName: String = request.arg
             val index: Int = request.value.toInt()
             val poseid = Database.getPoseIdForName(poseName,index)
@@ -499,6 +500,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 count = count + 1
             }
         }
+        runBlocking{request.control.setResponseCountForController(controllerName,responseCount)}
         return list
     }
 
@@ -512,7 +514,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @param msg the request
      */
     private fun synthesizeResponse(msg: MessageBottle) {
-        msg.control.responseCount[controllerName]=0 // No serial response to wait for ...
+        runBlocking{msg.control.setResponseCountForController(controllerName,responseCount)}   // No serial response to wait for ...
         if (msg.type==RequestType.INITIALIZE_JOINTS ||
             msg.type==RequestType.SET_LIMB_PROPERTY ||
             msg.type==RequestType.EXECUTE_POSE ) {

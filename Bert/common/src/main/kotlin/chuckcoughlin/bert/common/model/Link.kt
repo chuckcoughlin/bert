@@ -80,7 +80,7 @@ class Link( val nam:String ) {
             d = coordinates.y
             r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
             if(coordinates.z>0.0) {
-                theta = Math.atan(coordinates.x / coordinates.z) + angle
+                theta = Math.atan(coordinates.x / coordinates.z) + angle - sourcePin.home
             }
             else {
                theta = sourcePin.home
@@ -91,13 +91,14 @@ class Link( val nam:String ) {
             d = coordinates.y
             r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
             if(coordinates.z>0.0) {
-                theta = Math.atan(coordinates.x / coordinates.z) + angle
+                theta = Math.atan(coordinates.x / coordinates.z) + angle - theta - sourcePin.home
+                theta = 0.0
             }
             else {
                 theta = sourcePin.home
             }
-            if(coordinates.x<=0.0)  theta += Math.PI/4.0
-            else                    theta -= Math.PI/4.0
+            if(coordinates.x<=0.0)  theta += Math.PI/2.0
+            else                    theta -= Math.PI/2.0
         }
         else {
             LOGGER.warning(String.format("%s.update: %s No code to juxtapose %s vs %s",CLSS,name,sourcePin.axis.name,
