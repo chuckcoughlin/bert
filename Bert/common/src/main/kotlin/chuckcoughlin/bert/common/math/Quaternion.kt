@@ -8,28 +8,44 @@ package chuckcoughlin.bert.common.math
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.Solver
 import java.util.logging.Logger
 
 /**
  * Define a quaternion for the specific purpose of calculating the
- * forward kinematics of the robot end effectors. The main structure
- * is a 4-dimensional double array.
+ * forward kinematics of the robot end effectors. The data structure
+ * is a 4x4 double array.
  */
 open class Quaternion( ) {
     var matrix: Array<DoubleArray>
 
-    fun multiplyBy(q: Quaternion): Quaternion {
+    /**
+     * Multiply the given quaternion by the current
+     * and return the result
+     */
+    fun preMultiplyBy(q: Quaternion): Quaternion {
         val result = Quaternion()
-        result.matrix = multiplyBy(q.matrix)
+        result.matrix = multiply(q.matrix,this.matrix)
         return result
     }
 
-    private fun multiplyBy(mtx: Array<DoubleArray>): Array<DoubleArray> {
-        val n = mtx.size
-        if (n != matrix.size || mtx[0].size != n) {
+    /**
+     * Multiply the current quaternion by a
+     * specified one. Return the result.
+     */
+    fun postMultiplyBy(q: Quaternion): Quaternion {
+        val result = Quaternion()
+        result.matrix = multiply(this.matrix,q.matrix)
+        return result
+    }
+
+    /**
+     * Multiply two matrices (expressed as arrays of double arrays)
+     */
+    private fun multiply(a: Array<DoubleArray>,b: Array<DoubleArray>): Array<DoubleArray> {
+        val n = a.size
+        if (n != b.size || b[0].size != n) {
             throw IllegalArgumentException(String.format("%s:multiplyBy: Matrices cannot be multiplied due to incompatible dimensions (%d vs %d).",
-                CLSS, n, matrix.size))
+                CLSS, a.size, b.size))
         }
 
         val result = Array(n) { DoubleArray(n) }
@@ -37,7 +53,7 @@ open class Quaternion( ) {
         for (i in 0 until n) {
             for (j in 0 until n) {
                 for (k in 0 until n) {
-                    result[i][j] += matrix[i][k] * mtx[k][j]
+                    result[i][j] += a[i][k] * b[k][j]
                 }
             }
         }

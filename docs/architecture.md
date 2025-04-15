@@ -159,190 +159,190 @@ names of the "bones" between joints. As series of joints
 and links form a "limb".
 ```
 <?xml version="1.0" encoding="utf-8"?>
-<!-- SEE: http://wiki.ros.org/urdf/XML for a description of the format
-	 SEE: https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDF for parameter details
-	- rpy means roll, pitch, yaw
-   	- lengths ~ m -->
+<!--
+	Right-handed coordinate system: x positive to front, y positive to right, z positive up
+	- axis is unit vector around which joint rotates clockwise
+   	- lengths ~ mm, angles ~ degrees -->
 <robot name="bert">
-	<link name="PELVIS"/>
-	<link name="RIGHT_HIP_SOCKET"/>
-	<link name="RIGHT_HIP_LINK"/>
-	<link name="RIGHT_THIGH"/>
-	<link name="RIGHT_SHIN"/>
-	<link name="RIGHT_FOOT"/>
-	<link name="LEFT_HIP_SOCKET"/>
-	<link name="LEFT_HIP_LINK"/>
-	<link name="LEFT_THIGH"/>
-	<link name="LEFT_SHIN"/>
-	<link name="LEFT_FOOT"/>
-	<link name="LUMBAR"/>
-	<link name="LOWER_SPINE"/>
-	<link name="SPINE"/>
-	<link name="THORACIC"/>
-	<link name="BACK"/>
-	<link name="CERVICAL"/>
-	<link name="EYES"/>
-	<link name="LEFT_CLAVICLE"/>
-	<link name="LEFT_SHOULDER_LINK"/>
-	<link name="LEFT_UPPER_ARM"/>
-	<link name="LEFT_FOREARM"/>
-	<link name="RIGHT_CLAVICLE"/>
-	<link name="RIGHT_SHOULDER_LINK"/>
-	<link name="RIGHT_UPPER_ARM"/>
-	<link name="RIGHT_FOREARM"/>>
-	<!-- Joint names must match the names in bert.xml -->
-	<joint name="RIGHT_HIP_X" type="revolute">
-		<origin xyz="-0.0225417390633467 0 0" rpy="1.5707963267949 0 0"></origin>
-		<parent link="PELVIS"></parent>
-		<child link="RIGHT_HIP_SOCKET"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="RIGHT_HIP_Z" type="revolute">
-		<origin xyz="-0.0439986111539757 0 0.005" rpy="0 0 0"></origin>
-		<parent link="RIGHT_HIP_SOCKET"></parent>
-		<child link="RIGHT_HIP_LINK"></child>
-		<axis xyz="0 -1 0"></axis>
-	</joint>
-	<joint name="RIGHT_HIP_Y" type="revolute">
-		<origin xyz="0 -0.024 0" rpy="0 0 0"></origin>
-		<parent link="RIGHT_HIP_LINK"></parent>
-		<child link="RIGHT_THIGH"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="RIGHT_KNEE_Y" type="revolute">
-		<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"></origin>
-		<parent link="RIGHT_THIGH"></parent>
-		<child link="RIGHT_SHIN"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="RIGHT_ANKLE_Y" type="revolute">
-		<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"></origin>
-		<parent link="RIGHT_SHIN"></parent>
-		<child link="RIGHT_FOOT"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_HIP_X" type="revolute">
-		<origin xyz="0.0225417390633466 0 0" rpy="1.5707963267949 0 0"></origin>
-		<parent link="PELVIS"></parent>
-		<child link="LEFT_HIP_SOCKET"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="LEFT_HIP_Z" type="revolute">
-		<origin xyz="0.0439986111539757 0 0.005" rpy="0 0 0"></origin>
-		<parent link="LEFT_HIP_SOCKET"></parent>
-		<child link="LEFT_HIP_LINK"></child>
-		<axis xyz="0 -1 0"></axis>
-	</joint>
-	<joint name="LEFT_HIP_Y" type="revolute">
-		<origin xyz="0 -0.024 0" rpy="0 0 0"></origin>
-		<parent link="LEFT_HIP_LINK"></parent>
-		<child link="LEFT_THIGH"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_KNEE_Y" type="revolute">
-		<origin xyz="0 -0.182 0" rpy="0 1.5707963267949 0"></origin>
-		<parent link="LEFT_THIGH"></parent>
-		<child link="LEFT_SHIN"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="LEFT_ANKLE_Y" type="revolute">
-		<origin xyz="0 -0.18 0" rpy="0 -1.5708 0"></origin>
-		<parent link="LEFT_SHIN"></parent>
-		<child link="LEFT_FOOT"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="ABS_Y" type="revolute">
-		<origin xyz="0 -0.017 0.061" rpy="1.5707963267949 0 0"></origin>
-		<parent link="PELVIS"></parent>
-		<child link="LUMBAR"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="ABS_X" type="revolute">
-		<origin xyz="0 0 0" rpy="0 0 0"></origin>
-		<parent link="LUMBAR"></parent>
-		<child link="LOWER_SPINE"></child>
-		<axis xyz="0 0 1"></axis>
-	</joint>
-	<joint name="ABS_Z" type="revolute">
-		<origin xyz="0 0.0516374742048976 0" rpy="0 0 0"></origin>
-		<parent link="LOWER_SPINE"></parent>
-		<child link="SPINE"></child>
-		<axis xyz="0 1 0"></axis>
-	</joint>
-	<joint name="BUST_Y" type="revolute">
-		<origin xyz="0 0.07985 0.0028" rpy="0 0 0"></origin>
-		<parent link="SPINE"></parent>
-		<child link="THORACIC"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="BUST_X" type="revolute">
-		<origin xyz="0 0 0" rpy="0 0 0"></origin>
-		<parent link="THORACIC"></parent>
-		<child link="BACK"></child>
-		<axis xyz="0 0 1"></axis>
-	</joint>
-	<joint name="HEAD_Z" type="revolute">
-		<origin xyz="0 0.084 0.005" rpy="0 0 0"></origin>
-		<parent link="BACK"></parent>
-		<child link="CERVICAL"></child>
-		<axis xyz="0 1 0"></axis>
-	</joint>
-	<joint name="HEAD_Y" type="revolute">
-		<origin xyz="0 0.02 0" rpy="-0.349065850398866 0 0"></origin>
-		<parent link="CERVICAL"></parent>
-		<child link="EYES"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_SHOULDER_Y" type="revolute">
-		<origin xyz="0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"></origin>
-		<parent link="BACK"></parent>
-		<child link="LEFT_CLAVICLE"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="LEFT_SHOULDER_X" type="revolute">
-		<origin xyz="0.0284 0 0" rpy="3.14159265358979 0 1.5707963267949"></origin>
-		<parent link="LEFT_CLAVICLE"></parent>
-		<child link="LEFT_SHOULDER_LINK"></child>
-		<axis xyz="0 0 1"></axis>
-	</joint>
-	<joint name="LEFT_ARM_Z" type="revolute">
-		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
-		<parent link="LEFT_SHOULDER_LINK"></parent>
-		<child link="LEFT_UPPER_ARM"></child>
-		<axis xyz="0 1 0"></axis>
-	</joint>
-	<joint name="LEFT_ELBOW_Y" type="revolute">
-		<origin xyz="0 0.11175 -0.01" rpy="0 0 0"></origin>
-		<parent link="LEFT_UPPER_ARM"></parent>
-		<child link="LEFT_FOREARM"></child>
-		<axis xyz="1 0 0"></axis>
-	</joint>
-	<joint name="RIGHT_SHOULDER_Y" type="revolute">
-		<origin xyz="-0.0771 0.05 0.004" rpy="-1.5707963267949 0 0"></origin>
-		<parent link="BACK"></parent>
-		<child link="RIGHT_CLAVICLE"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
-	<joint name="RIGHT_SHOULDER_X" type="revolute">
-		<origin xyz="-0.0284 0 0" rpy="3.14159265358979 0 -1.5707963267949"></origin>
-		<parent link="RIGHT_CLAVICLE"></parent>
-		<child link="RIGHT_SHOULDER_LINK"></child>
-		<axis xyz="0 0 -1"></axis>
-	</joint>
-	<joint name="RIGHT_ARM_Z" type="revolute">
-		<origin xyz="0 0.03625 0.0185" rpy="0 0 0"></origin>
-		<parent link="RIGHT_SHOULDER_LINK"></parent>
-		<child link="RIGHT_UPPER_ARM"></child>
-		<axis xyz="0 1 0"></axis>
-	</joint>
-	<joint name="RIGHT_ELBOW_Y" type="revolute">
-		<origin xyz="0 0.11175 -0.01" rpy="0 0 0"></origin>
-		<parent link="RIGHT_UPPER_ARM"></parent>
-		<child link="RIGHT_FOREARM"></child>
-		<axis xyz="-1 0 0"></axis>
-	</joint>
+	<!-- The Internal Measurement Unit (IMU) is the world-frame origin. Its position is always (0,0,0).
+	     The axis is merely a rotational reference point for subsequent joints.
+	     The origin is located in the pelvis midway between the hip sockets and back to align with the
+	     left/right hip z axis.
+	     It may be altered by setting IMU parameters externally.
+	-->
+	<imu axis="X"/>
+
+	<!-- A link is roughly equivalent to a bone. A link connects a source pin (joint)
+	     to a joint or end effector. The parent link is a joint (a REVOLUTE link pin).
+	     The origin of all link trees is the IMU..
+
+	     Joint names must match the names in bert.xml.
+				origin is position of joint in parent frame,
+				axis is orientation of joint in joint frame.
+		Links form a tree from the robot origin, PELVIS,
+		terminating in the various end effectors.
+
+		Joint coordinates are relative to the source pin ~ mm
+		x - side to side , right positive
+		y - front and back, front positive
+		z - up and down, up positive
+
+		Axis is the axis of rotation for source and joint or end effector
+		with respect to the inertial frame
+		when the robot is in "straight" position.
+	  -->
+	<link name="PELVIS">        <!-- root -->
+		<joint name="RIGHT_HIP_X"
+			   xyz="0.0 22.5417390633467 0.0"  axis="Y" home="180."/>
+		<joint name="LEFT_HIP_X"
+			   xyz="0.0 -22.5417390633466 0.0" axis="Y" home="180."/>
+		<joint name="ABS_X"
+			   xyz="0.0 12.0 62.0 "            axis="X" home="180."/>
+	</link>
+	<link name="RIGHT_HIP_SOCKET">
+		<joint name="RIGHT_HIP_Z"
+			   xyz="43.9986 5.0 0.0" axis="X" home="0."/>
+		<source joint="RIGHT_HIP_X"/>
+	</link>
+	<link name="RIGHT_ILIUM">
+		<joint name="RIGHT_HIP_Y"
+			   xyz="24.0 0.0 0.0" axis="X" home="180."/>
+		<source joint="RIGHT_HIP_Z" />
+	</link>
+	<link name="RIGHT_THIGH">
+		<joint name="RIGHT_KNEE_Y"
+			   xyz="182.0 0.0 0.0" axis="X" home="180."/>
+		<source joint="RIGHT_HIP_Y" />
+	</link>
+	<link name="RIGHT_SHIN">
+		<joint name="RIGHT_ANKLE_Y"
+			   xyz="180.0 0.0 0.0" axis="X" home="90."/>
+		<source joint="RIGHT_KNEE_Y" />
+	</link>
+	<link name="RIGHT_FOOT">
+		<appendage name="RIGHT_TOE"
+				   xyz="95. -35.5 -15." axis="X" home = "0."/>
+		<appendage name="RIGHT_HEEL"
+				   xyz="-43. -35.5 -12." axis="X" home = "0."/>
+		<source joint="RIGHT_ANKLE_Y" />
+	</link>
+	<link name="LEFT_HIP_SOCKET">
+		<joint name="LEFT_HIP_Z"
+			   xyz="43.9986 5.00 0.0" axis="X" home = "0."/>
+		<source joint="LEFT_HIP_X" />
+	</link>
+	<link name="LEFT_ILIUM">
+		<joint name="LEFT_HIP_Y"
+			   xyz="24.0 0.0 0.0" axis="X" home = "180."/>
+		<source joint="LEFT_HIP_Z" />
+	</link>
+	<link name="LEFT_THIGH">
+		<joint name="LEFT_KNEE_Y"
+			   xyz="182.0 0.0 0.0" axis="X" home = "180."/>
+		<source joint="LEFT_HIP_Y" />
+	</link>
+	<link name="LEFT_SHIN">
+		<joint name="LEFT_ANKLE_Y"
+			   xyz="180.0 0.0 0.0" raxis="X" home = "90."/>
+		<source joint="LEFT_KNEE_Y" />
+	</link>
+	<link name="LEFT_FOOT">
+		<appendage name="LEFT_TOE"
+				   xyz="95. -35.5 -15." axis="X" home = "0."/>
+		<appendage name="LEFT_HEEL"
+				   xyz="-43. -35.5 -12." axis="X" home = "0."/>
+		<source joint="LEFT_ANKLE_Y" />
+	</link>
+	<link name="LUMBAR">
+		<joint name="ABS_Y"
+			   xyz="0.0 0.0 8.0" axis="Y" home = "180."/>
+		<source joint="ABS_X" />
+	</link>
+	<link name="LOWER_SPINE">
+		<joint name="ABS_Z"
+			   xyz="51.6374742 0.0 0.0" axis="Z" home = "0.0"/>
+		<source joint="ABS_Y" />
+	</link>
+	<link name="SPINE">
+		<joint name="BUST_Y"
+			   xyz="79.85 2.8 0.0" axis="X" home = "180."/>
+		<source joint="ABS_Z" />
+	</link>
+	<link name="THORACIC">
+		<joint name="BUST_X"
+			   xyz="0.0 0.0 0.0" axis="X" home = "180."/>
+		<source joint="BUST_Y" />
+	</link>
+	<link name="CERVICAL">
+		<joint name="NECK_Z"
+			   xyz="84.0 0.0 5.0" axis="X" home = "0."/>
+		<joint name="LEFT_SHOULDER_Y"
+			   xyz="50.0 -77.1 4.0" axis="X" home = "0."/>
+		<joint name="RIGHT_SHOULDER_Y"
+			   xyz="50.0 77.1 4.0" axis="X" home = "0."/>
+		<source joint="BUST_X" />
+	</link>
+	<link name="NECK">
+		<joint name="NECK_Y"
+			   xyz="20.0 0.0 0.0" axis="X" home = "0."/>
+		<source joint="NECK_Z" />
+	</link>
+	<link name="SKULL">
+		<appendage name="LEFT_EYE"
+				   xyz="55.0 -32.0 -30.0" axis="X" home = "0."/>
+		<appendage name="RIGHT_EYE"
+				   xyz="55.0 32.0 30.0" axis="X" home = "0."/>
+		<appendage name="LEFT_EAR"
+				   xyz="55.0 -30.0 -64.0" axis="X" home = "0."/>
+		<appendage name="RIGHT_EAR"
+				   xyz="55.0 -30.0 64.0"/>
+		<appendage name="NOSE"
+				   xyz="40.0 15.0 0.0" axis="X" home = "0."/>
+		<source joint="NECK_Y" />
+	</link>
+	<link name="LEFT_CLAVICLE">
+		<joint name="LEFT_SHOULDER_X"
+			   xyz="28.4 0.0 0.0" axis="X" home = "180."/>
+		<source joint="LEFT_SHOULDER_Y" />
+	</link>
+	<link name="LEFT_SHOULDER_SOCKET">
+		<joint name="LEFT_SHOULDER_Z"
+			   xyz="36.25 18.5 0.0" axis="X" home = "180."/>
+		<source joint="LEFT_SHOULDER_X" />
+	</link>
+	<link name="LEFT_UPPER_ARM">
+		<joint name="LEFT_ELBOW_Y"
+			   xyz="11.175 -10.0 0.0" axis="X" home = "180."/>
+		<source joint="LEFT_SHOULDER_Z" />
+	</link>
+	<link name="LEFT_FOREARM">
+		<appendage name="LEFT_FINGER"
+				   xyz="107.5 -4.99 6.915" axis="X" home = "0."/>
+		<source joint="LEFT_ELBOW_Y" />
+	</link>
+	<link name="RIGHT_CLAVICLE">
+		<joint name="RIGHT_SHOULDER_X"
+			   xyz="28.4 0.0 0.0" axis="X" home = "180."/>
+		<source joint="RIGHT_SHOULDER_Y" />
+	</link>
+	<link name="RIGHT_SHOULDER_SOCKET" >
+		<joint name="RIGHT_SHOULDER_Z"
+			   xyz="36.25 18.5 0.0" axis="X" home = "180."/>
+		<source joint="RIGHT_SHOULDER_X" />
+	</link>
+	<link name="RIGHT_UPPER_ARM">
+		<joint name="RIGHT_ELBOW_Y"
+			   xyz="11.175 -10.0 0.0" axis="X" home = "180."/>
+		<source joint="RIGHT_SHOULDER_Z" />
+	</link>
+	<link name="RIGHT_FOREARM" >
+		<appendage name="RIGHT_FINGER"
+				   xyz="107.5 -4.99 6.915" axis="X" home = "0.0"/>
+		<source joint="RIGHT_ELBOW_Y" />
+	</link>
 </robot>
 ```
+Some dimensions were taken from the [Poppy URDF](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDF), others were measured directly.
 
 Analysis of this file, results in a description of the robot as a tree or
 "chain" of links. The tree has a single origin in the center of the pelvis. There are
@@ -418,7 +418,9 @@ Kotlin code to use a custom `readline()` routine to parse one message at a time.
 
 #### Forward Kinematics <a id="forward"></a>
 Forward kinematics refers to the calculation of the 3D position of joints and end effectors based
-on the connections of skeletal components and joint angles. The calculations are derived from the blog post [How to Calculate a Robot's Forward Kinematics in 5 Easy Steps](https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps) by Alex Owen-Hill. Some dimensions were taken from the [Poppy URDF](https://github.com/poppy-project/poppy-humanoid/blob/master/hardware/URDF/robots/Poppy_Humanoid.URDF), others were measured directly.
+on the connections of skeletal components and joint angles. The calculations are derived from
+`Introduction to Robotics`  by S. K. Saha and
+facilitated by the blog post [How to Calculate a Robot's Forward Kinematics in 5 Easy Steps](https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps) by Alex Owen-Hill.
 
 Refering to the URDF.xml file (listed above) *link* elements:
 

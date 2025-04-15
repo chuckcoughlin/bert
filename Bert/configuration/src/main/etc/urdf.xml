@@ -100,7 +100,7 @@
 	</link>
 	<link name="LOWER_SPINE">
 		<joint name="ABS_Z"
-			   xyz="51.6374742 0.0 0.0" axis="X" home = "0.0"/>
+			   xyz="0.0 0.0 51.6374742" axis="Z" home = "0.0"/>
 		<source joint="ABS_Y" />
 	</link>
 	<link name="SPINE">

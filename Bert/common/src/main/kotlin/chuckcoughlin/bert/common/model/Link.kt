@@ -6,6 +6,10 @@ package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Axis
 import chuckcoughlin.bert.common.math.Quaternion
+import chuckcoughlin.bert.common.model.IMU.alpha
+import chuckcoughlin.bert.common.model.IMU.coordinates
+import chuckcoughlin.bert.common.model.IMU.quaternion
+import chuckcoughlin.bert.common.model.IMU.theta
 import java.util.logging.Logger
 
 /**
@@ -46,6 +50,9 @@ class Link( val nam:String ) {
     }
 
     /** Recalculate quaternion. No need unless angle has changed.
+     * Note. joint coordinates are with respect robot reference frame
+     *       when straight. "z" is up, "x" is across, "y" is front.
+     *
      * Convert to coordinate system of the quaternion.
      * Z is the rotational axis of the parent joint.
      * X points to the next link.
@@ -64,50 +71,48 @@ class Link( val nam:String ) {
      * Distances _mm, angle in radians
      */
     fun update() {
-        if( !priorAngle.isNaN() && priorAngle==sourcePin.angle) return
-        priorAngle = sourcePin.angle
-        val angle = priorAngle   // Radians
+        // No work if we haven't moved since last update
+        if( !priorAngle.isNaN() && priorAngle==endPin.angle) return
+        priorAngle = endPin.angle
 
         var alpha = 0.0
         var d = 0.0
         var r = 0.0
         var theta = 0.0
 
-        // Alpha is the angle of the joint axis with respect to the source axis.
-        // Zero degrees implies parallel
-        if( sourcePin.axis== Axis.X && endPin.axis==Axis.X ) {
-            alpha = 0.0
-            d = coordinates.y
-            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
-            if(coordinates.z>0.0) {
-                theta = Math.atan(coordinates.x / coordinates.z) + angle - sourcePin.home
-            }
-            else {
-               theta = sourcePin.home
-            }
+        // Degenerate case. Motors on top of each other.
+        if(coordinates.z<=0.0) {
+            theta = sourcePin.angle
         }
-        else if( sourcePin.axis== Axis.X && endPin.axis==Axis.Y ) {
+        // Different cases depending an motor axis alignments
+        else if( sourcePin.axis==Axis.X && endPin.axis==Axis.X ) {
             alpha = 0.0
             d = coordinates.y
             r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
-            if(coordinates.z>0.0) {
-                theta = Math.atan(coordinates.x / coordinates.z) + angle - theta - sourcePin.home
-                theta = 0.0
-            }
-            else {
-                theta = sourcePin.home
-            }
-            if(coordinates.x<=0.0)  theta += Math.PI/2.0
-            else                    theta -= Math.PI/2.0
+            theta = Math.atan(coordinates.x / coordinates.z) + sourcePin.angle
+        }
+        else if( sourcePin.axis==Axis.X && endPin.axis==Axis.Y ) {
+            alpha = Math.PI/2.0
+            d = coordinates.y
+            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
+            theta = Math.atan(coordinates.x / coordinates.z) + sourcePin.angle
+            theta = 0.0  // Gives right answer for abs y
+        }
+        else if( sourcePin.axis==Axis.Y && endPin.axis==Axis.Z ) {
+            alpha = sourcePin.angle
+            d = coordinates.y
+            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
+            theta = Math.atan(coordinates.x / coordinates.z)
         }
         else {
             LOGGER.warning(String.format("%s.update: %s No code to juxtapose %s vs %s",CLSS,name,sourcePin.axis.name,
                                           endPin.axis.name))
         }
 
-        if(DEBUG) LOGGER.info(String.format("%s.update: %s %s->%s alpha, angle, theta =  %2.2f, %2.2f, %2.2f",CLSS,name,
-                            sourcePin.axis.name,endPin.axis.name,alpha*180.0/Math.PI,
-                            angle*180.0/Math.PI,theta*180.0/Math.PI))
+        if(DEBUG) LOGGER.info(String.format("%s.update: %s %s->%s source angle,end angle,alpha,theta,d,r =  %2.2f,%2.2f,%2.2f,%2.2f,%2.2f,%2.2f",CLSS,name,
+                            sourcePin.axis.name,endPin.axis.name,
+                            sourcePin.angle*180.0/Math.PI,endPin.angle*180.0/Math.PI,
+                            alpha*180.0/Math.PI,theta*180.0/Math.PI,d,r))
 
         quaternion.update(d,r,alpha,theta)
     }
