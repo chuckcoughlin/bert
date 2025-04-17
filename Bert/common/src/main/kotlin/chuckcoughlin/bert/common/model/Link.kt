@@ -63,11 +63,6 @@ class Link( val nam:String ) {
      * Refer to "How to Calculate a Robot's Forward Kinematics in 5 Easy Steps"
      * by Alex Owen-Hill, these are the equivalents to our coordinate matrix:
      *
-     * d offset to source along z
-     * r distance to source along common normal
-     * alpha angle around common normal between source and current z
-     * theta: angle of rotation of joint
-     *
      * Distances _mm, angle in radians
      */
     fun update() {
@@ -75,28 +70,31 @@ class Link( val nam:String ) {
         if( !priorAngle.isNaN() && priorAngle==endPin.angle) return
         priorAngle = endPin.angle
 
-        var alpha = 0.0
-        var d = 0.0
-        var r = 0.0
-        var theta = 0.0
+        // Create a common nornmal between source z and end z
+        // New x is from source z along common normal
+        //
+        var alpha = 0.0    // Angle around the common normal between the previous z-axis and current z-axis.
+        var d = 0.0        // Distance between the previous x-axis and the current x-axis, along the previous z-axis.
+        var r = 0.0        // Length of the common normal, i.e. the distance between the previous z-axis and the current z-axis
+        var theta = 0.0    // Angle around the z-axis between the previous x-axis and the current x-axis.
 
+        // **** Different combinations of motor axis alignments ****
         // Degenerate case. Motors on top of each other.
         if(coordinates.z<=0.0) {
             theta = sourcePin.angle
         }
-        // Different cases depending an motor axis alignments
+        // Parallel motors
         else if( sourcePin.axis==Axis.X && endPin.axis==Axis.X ) {
             alpha = 0.0
-            d = coordinates.y
-            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
-            theta = Math.atan(coordinates.x / coordinates.z) + sourcePin.angle
+            d = coordinates.y   // Align with x-z plane
+            r = coordinates.z
+            theta = sourcePin.home - sourcePin.angle
         }
         else if( sourcePin.axis==Axis.X && endPin.axis==Axis.Y ) {
             alpha = Math.PI/2.0
             d = coordinates.y
             r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
-            theta = Math.atan(coordinates.x / coordinates.z) + sourcePin.angle
-            theta = 0.0  // Gives right answer for abs y
+            theta = Math.atan(coordinates.x / coordinates.z) + endPin.home-endPin.angle
         }
         else if( sourcePin.axis==Axis.Y && endPin.axis==Axis.Z ) {
             alpha = sourcePin.angle

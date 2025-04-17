@@ -42,7 +42,8 @@ object Solver {
 
     /**
      * Update the link coordinates in a chain starting from the IMU, then multiply
-     * quaternion matrices to get final position.
+     * quaternion matrices to get final position. The final position includes the
+     * x,y,z position and orientation of the end effector.
      */
     private fun computeQuaternionFromChain(subchain: List<Link>):Quaternion {
         // Start with the IMU (Its quaternion is updated externally)
