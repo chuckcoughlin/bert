@@ -49,7 +49,7 @@ question:
     | (What Are|Tell Me) Article? Names Of Article? (Actions|Faces|Poses)             # databaseNamesQuestion
     | (What Are|Tell Me) Article? (Limits|Goals) Of Article? Side? Joint Axis?        # handleBulkPropertyQuestion
     | (What Are|Tell Me) Article? Side? Joint Axis? Property                          # jointPropertyQuestion
-    | (What Is|Tell Me) Article? Location Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
+    | (What Is|Tell Me) Article? (Location|Bearing) Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Metric   				         # metricsQuestion
@@ -81,7 +81,7 @@ phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|R
 // First is a list of terms that are used below or use words that appear elsewhere
 Are: 'are';
 Freeze: 'freeze'|'stiffen'|'tighten up'|'go rigid';
-Is: 'is';
+Is: 'is'|'are';
 Relax:'loosen up'|'relax'|'go limp';
 Why: 'why';
 
@@ -96,6 +96,7 @@ As: 'as';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
+Bearing: 'bearing'|'direction';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
 Do: 'do';
@@ -133,7 +134,7 @@ Names: 'names';
 Of: 'of'|'for';
 Off: 'off'|'disabled';
 On: 'on'|'enabled';
-Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs';
+Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs'|'imu';
 Parameters: 'properties'|'parameters'|'settings';
 Poses: 'poses';
 Pose: 'pose';

@@ -19,6 +19,28 @@ object Solver {
     val model: URDFModel
 
     /**
+     * Return the orientation of a specified appendage in x,y,z coordinates in meters from the
+     * robot origin in the pelvis. The named end effector or appendage is
+     * last in the chain.
+     */
+    fun computeDirection(appendage: Appendage): DoubleArray {
+        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
+        val q = computeQuaternionFromChain(subchain)
+        return q.direction()
+    }
+
+    /**
+     * Return the orientation of a specified joint in x,y,z coordinates in meters from the
+     * robot origin in the pelvis in the inertial reference frame. The named joint is
+     * last in the chain.
+     */
+    fun computeDirection(joint:Joint): DoubleArray {
+        val subchain: List<Link> = Chain.partialChainToJoint(joint)
+        val q = computeQuaternionFromChain(subchain)
+        return q.direction()
+    }
+
+    /**
      * Return the location of a specified appendage in x,y,z coordinates in meters from the
      * robot origin in the pelvis. The named end effector or appendage is
      * last in the chain.
@@ -43,22 +65,22 @@ object Solver {
     /**
      * Update the link coordinates in a chain starting from the IMU, then multiply
      * quaternion matrices to get final position. The final position includes the
-     * x,y,z position and orientation of the end effector.
+     * x,y,z position of the end effector with the orientation of the attached link.
      */
     private fun computeQuaternionFromChain(subchain: List<Link>):Quaternion {
-        // Start with the IMU (Its quaternion is updated externally)
+        // Start with the IMU (Its orientation is updated externally)
         IMU.update()
         var q = IMU.quaternion   // Update for any rotation.
-        if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: IMU = (%s) ",
-            CLSS,q.position().toText()))
+        if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: IMU = (%s|%s) ",
+            CLSS,q.positionToText(),q.directionToText()))
         // Now continue up the chain
         for(link in subchain) {
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
                 CLSS,link.name,if( link.sourcePin.joint==Joint.NONE) "IMU" else link.sourcePin.joint.name,q.position().toText()))
             link.update()  // In case motor has moved since last use
             q = q.preMultiplyBy(link.quaternion)
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s) ",
-                CLSS,link.name,link.endPin.joint.name,q.position().toText()))
+            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s|%s) ",
+                CLSS,link.name,link.endPin.joint.name,q.positionToText(),q.directionToText()))
         }
         return q
     }

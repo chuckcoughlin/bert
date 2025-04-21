@@ -9,6 +9,7 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
+import javax.swing.text.html.HTML.Tag.P
 
 /**
  * Define a quaternion for the specific purpose of calculating the
@@ -61,18 +62,29 @@ open class Quaternion( ) {
     }
 
     /**
-     * The current orientation with respect to the IMU
+     * The current orientation with respect to the reference frame.
+     * @return alpha, theta
      */
-    fun orientation(): DoubleArray {
-        var p = doubleArrayOf(matrix[0][0],matrix[0][1],matrix[0][2])
-        return p
+    fun direction(): DoubleArray {
+        val alpha = Math.acos(matrix[2][2])
+        val theta = Math.acos(matrix[0][0])
+        return doubleArrayOf(alpha*180.0/Math.PI,theta*180.0/Math.PI)
+    }
+
+    fun directionToText() : String {
+        val dir = direction()
+        return(String.format("%3.3f,%3.3f",dir[0],dir[1]))
     }
     /**
      * The current position in the parent frame (x,y,z)
      */
     fun position(): Point3D {
-        var p = Point3D(matrix[3][1],matrix[3][2],matrix[3][0] )
-        return p
+        return(Point3D(matrix[3][1],matrix[3][2],matrix[3][0]))
+    }
+
+    fun positionToText() : String {
+        val pos = position()
+        return(String.format("%3.3f,%3.3f,%3.3f",pos.x,pos.y,pos.z))
     }
 
     /**

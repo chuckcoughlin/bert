@@ -15,7 +15,7 @@ enum class Joint {
     LEFT_ANKLE_Y, LEFT_SHOULDER_Z, LEFT_ELBOW_Y, LEFT_HIP_X, LEFT_HIP_Y, LEFT_HIP_Z,
     LEFT_KNEE_Y, LEFT_SHOULDER_X, LEFT_SHOULDER_Y,
     RIGHT_ANKLE_Y, RIGHT_SHOULDER_Z, RIGHT_ELBOW_Y, RIGHT_HIP_X, RIGHT_HIP_Y, RIGHT_HIP_Z,
-    RIGHT_KNEE_Y, RIGHT_SHOULDER_X, RIGHT_SHOULDER_Y, NONE;
+    RIGHT_KNEE_Y, RIGHT_SHOULDER_X, RIGHT_SHOULDER_Y, IMU, NONE;
 
     companion object {
         private val CLSS = "Joint"
@@ -33,6 +33,7 @@ enum class Joint {
                 ABS_Z -> text = "abdomen z"
                 BUST_X -> text = "chest horizontal"
                 BUST_Y -> text = "chest vertical"
+                IMU -> text = "IMU"
                 NECK_Y -> text = "neck y"
                 NECK_Z -> text = "neck z"
                 LEFT_ANKLE_Y -> text = "left ankle"

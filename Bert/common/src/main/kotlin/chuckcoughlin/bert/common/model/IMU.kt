@@ -26,7 +26,8 @@ object IMU {
     val quaternion: Quaternion
 
      fun update() {
-        quaternion.update(0.0,0.0,0.0,0.0)
+         // quaternion.update(0.0,0.0,0.0,0.0)
+         quaternion.update(0.0,0.0,Math.PI/2.0,Math.PI/2.0)
     }
 
     private val CLSS = "IMU"

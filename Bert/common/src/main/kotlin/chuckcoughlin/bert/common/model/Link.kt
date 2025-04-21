@@ -86,15 +86,15 @@ class Link( val nam:String ) {
         // Parallel motors
         else if( sourcePin.axis==Axis.X && endPin.axis==Axis.X ) {
             alpha = 0.0
-            d = coordinates.y   // Align with x-z plane
-            r = coordinates.z
-            theta = sourcePin.home - sourcePin.angle
+            d = coordinates.x // Align with x-z plane
+            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.y*coordinates.y)
+            theta = sourcePin.angle + Math.atan2(coordinates.z,coordinates.x)
         }
         else if( sourcePin.axis==Axis.X && endPin.axis==Axis.Y ) {
-            alpha = Math.PI/2.0
-            d = coordinates.y
-            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
-            theta = Math.atan(coordinates.x / coordinates.z) + endPin.home-endPin.angle
+            alpha = -Math.PI/2.0
+            d = coordinates.y  // Move to x-z plane
+            r = coordinates.z
+            theta = sourcePin.home - sourcePin.angle
         }
         else if( sourcePin.axis==Axis.Y && endPin.axis==Axis.Z ) {
             alpha = sourcePin.angle

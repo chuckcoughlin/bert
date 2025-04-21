@@ -38,6 +38,7 @@
 			   xyz="0.0 -22.5417390633466 0.0" axis="Y" home="180."/>
 		<joint name="ABS_X"
 			   xyz="0.0 12.0 62.0 "            axis="X" home="180."/>
+		<source joint="IMU" />
 	</link>
 	<link name="RIGHT_HIP_SOCKET">
 		<joint name="RIGHT_HIP_Z"

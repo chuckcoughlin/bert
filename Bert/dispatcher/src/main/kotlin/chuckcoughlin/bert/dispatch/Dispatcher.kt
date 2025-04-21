@@ -360,23 +360,42 @@ class Dispatcher : Controller {
                         CLSS, request.command.name))
                 }
             }
-            // The following three requests simply use the current positions of the motors, whatever they are
-            else if (request.type.equals(RequestType.GET_APPENDAGE_LOCATION)) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: appendage=%s", CLSS, request.appendage.name))
-                val appendage = request.appendage
-                val xyz: Point3D = Solver.computeLocation(appendage)
-                val text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
-                                  appendage.name, xyz.x, xyz.y, xyz.z)
+            // The following requests simply use the current positions of the motors, whatever they are
+            else if (request.type==RequestType.GET_EXTREMITY_DIRECTION) {
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get direction appendage=%s joint=%s", CLSS, request.appendage.name,request.joint.name))
+                var text = ""
+                if( request.joint==Joint.NONE ) {
+                    val appendage = request.appendage
+                    val xyz: DoubleArray = Solver.computeDirection(appendage)
+                    text = String.format("my %s is aimed at %2.2f %2.2f %2.2f",
+                        appendage.name, xyz[0], xyz[1], xyz[2])
+                }
+                else {
+                    val joint = request.joint
+                    val xyz: DoubleArray = Solver.computeDirection(joint)
+                    text = String.format(
+                        "My %s is oriented %2.2f and %2.2f degrees from the reference frame x and y axes, respectively",
+                        Joint.toText(joint), xyz[0], xyz[1])
+                }
                 request.text = text
             }
             // The location in physical coordinates from the center of the robot.
-            else if (request.type.equals(RequestType.GET_JOINT_LOCATION)) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: joint=%s", CLSS, request.joint.name))
-                val joint = request.joint
-                val xyz: Point3D = Solver.computeLocation(joint)
-                val text = String.format(
-                    "My %s joint is at %2.2f %2.2f %2.2f millimeters",
-                    Joint.toText(joint), xyz.x, xyz.y, xyz.z)
+            else if (request.type==RequestType.GET_EXTREMITY_LOCATION) {
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get location appendage=%s joint=%s", CLSS, request.appendage.name,request.joint.name))
+                var text = ""
+                if( request.joint==Joint.NONE ) {
+                    val appendage = request.appendage
+                    val xyz: Point3D = Solver.computeLocation(appendage)
+                    text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
+                        appendage.name, xyz.x, xyz.y, xyz.z)
+                }
+                else {
+                    val joint = request.joint
+                    val xyz: Point3D = Solver.computeLocation(joint)
+                    text = String.format(
+                        "My %s joint is at %2.2f %2.2f %2.2f millimeters",
+                        Joint.toText(joint), xyz.x, xyz.y, xyz.z)
+                }
                 request.text = text
             }
             else if (request.type.equals(RequestType.GET_METRIC)) {
@@ -611,8 +630,8 @@ class Dispatcher : Controller {
     // database queries and some error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
-            request.type==RequestType.GET_APPENDAGE_LOCATION||
-            request.type==RequestType.GET_JOINT_LOCATION ||
+            request.type==RequestType.GET_EXTREMITY_DIRECTION||
+            request.type==RequestType.GET_EXTREMITY_LOCATION ||
             request.type==RequestType.GET_METRIC ||
             request.type==RequestType.HANGUP    ) {
             return true
@@ -626,6 +645,11 @@ class Dispatcher : Controller {
             else {
                 return true
             }
+        }
+        else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
+            request.joint == Joint.IMU ) {
+            request.error = String.format("the IMU has no readable properties")
+            return true
         }
         else if( request.type == RequestType.GET_MOTOR_PROPERTY &&
                  request.jointDefinitionProperty != JointDefinitionProperty.NONE )  {
@@ -648,6 +672,11 @@ class Dispatcher : Controller {
                 request.error = String.format("setting the same angle to all motors on a limb is not allowed")
                 return true
             }
+        }
+        else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
+            request.joint == Joint.IMU ) {
+                request.error = String.format("the IMU has no settable properties")
+                return true
         }
         else if( request.type == RequestType.SET_MOTOR_PROPERTY &&
                  request.jointDynamicProperty == JointDynamicProperty.ANGLE ) {
