@@ -70,7 +70,7 @@ object URDFModel {
                 val name: String = XMLUtility.attributeValue(linkNode, "name")
                 if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s ...",CLSS,name))
                 try {
-                    // The source pin is sharedwith all sub-links
+                    // The source pin is shared with all sub-links
                     var sourcePin = LinkPin(PinType.ORIGIN)
                     val children = linkNode.childNodes
                     val acount = children.length
@@ -97,10 +97,10 @@ object URDFModel {
                             val pin = LinkPin(PinType.END_EFFECTOR)
                             pin.appendage = appendage
                             pin.axis = Axis.fromString(XMLUtility.attributeValue(node, "axis"))
-                            val home = XMLUtility.attributeValue(node, "home")
-                            if( home.isNotBlank() ) pin.home = home.toDouble()*Math.PI/180.0
+                            val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
+                            link.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                            link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
+                            link.setCoordinates(xyz[0],xyz[1],xyz[2])
                             link.endPin = pin
                             link.endPin =pin
                             link.sourcePin = sourcePin
@@ -113,10 +113,10 @@ object URDFModel {
                             val pin = LinkPin(PinType.REVOLUTE)
                             pin.joint = joint
                             pin.axis = Axis.fromString(XMLUtility.attributeValue(node, "axis"))
-                            val home = XMLUtility.attributeValue(node, "home")
-                            if( home.isNotBlank() ) pin.home = home.toDouble()*Math.PI/180.0
+                            val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
+                            link.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                            link.coordinates = Point3D(xyz[0],xyz[1],xyz[2])
+                            link.setCoordinates(xyz[0],xyz[1],xyz[2])
                             link.endPin =pin
                             link.sourcePin = sourcePin
                             linkForJoint[joint] = link
@@ -159,18 +159,6 @@ object URDFModel {
         return gson.toJson(names)
     }
     /**
-     * @return  a comma-separated string of the names of all joints.
-     */
-    fun jointNames(): String {
-        var names = StringBuffer()
-        for (joint in linkForJoint.keys) {
-            names.append(joint.name.lowercase())
-            names.append(", ")
-        }
-        if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
-        else return "none"
-    }
-    /**
      * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
      */
     fun jointsToJSON(): String {
@@ -197,30 +185,6 @@ object URDFModel {
         if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]))
         return result
     }
-
-    /**
-     * The input array is a unit vector indicating direction.
-     * @param text
-     * @return
-     */
-    private fun doubleArrayFromDirectionString(text: String): DoubleArray {
-        val result = DoubleArray(3)
-        val raw = text.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        for (i in raw.indices) {
-            try {
-                result[i] = 180.0 * raw[1].toDouble()
-            }
-            catch (nfe: NumberFormatException) {
-                LOGGER.warning(String.format("%s.doubleArrayFromString: Error parsing %s (%s);",
-                        CLSS,text,nfe.localizedMessage) )
-            }
-        }
-        return result
-    }
-    // Recursively walk from the root to all extremities
-    // This is a test.
-
-
 
     private val CLSS = "URDFModel"
     private val DEBUG: Boolean

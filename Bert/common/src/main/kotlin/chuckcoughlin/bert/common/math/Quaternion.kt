@@ -6,10 +6,11 @@
 package chuckcoughlin.bert.common.math
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.IMU.alpha
+import chuckcoughlin.bert.common.model.IMU.theta
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
-import javax.swing.text.html.HTML.Tag.P
 
 /**
  * Define a quaternion for the specific purpose of calculating the
@@ -18,6 +19,10 @@ import javax.swing.text.html.HTML.Tag.P
  */
 open class Quaternion( ) {
     var matrix: Array<DoubleArray>
+    var roll: Array<DoubleArray>
+    var pitch: Array<DoubleArray>
+    var yaw: Array<DoubleArray>
+    var translation: Array<DoubleArray>
 
     /**
      * Multiply the given quaternion by the current
@@ -39,8 +44,14 @@ open class Quaternion( ) {
         return result
     }
 
+    fun setTranslation(x:Double,y:Double,z:Double) {
+        translation[0][3] = x
+        translation[1][3] = y
+        translation[2][3] = z
+    }
     /**
      * Multiply two matrices (expressed as arrays of double arrays)
+     * Square matrices, same size.
      */
     private fun multiply(a: Array<DoubleArray>,b: Array<DoubleArray>): Array<DoubleArray> {
         val n = a.size
@@ -48,9 +59,7 @@ open class Quaternion( ) {
             throw IllegalArgumentException(String.format("%s:multiplyBy: Matrices cannot be multiplied due to incompatible dimensions (%d vs %d).",
                 CLSS, a.size, b.size))
         }
-
         val result = Array(n) { DoubleArray(n) }
-
         for (i in 0 until n) {
             for (j in 0 until n) {
                 for (k in 0 until n) {
@@ -68,12 +77,12 @@ open class Quaternion( ) {
     fun direction(): DoubleArray {
         val alpha = Math.acos(matrix[2][2])
         val theta = Math.acos(matrix[0][0])
-        return doubleArrayOf(alpha*180.0/Math.PI,theta*180.0/Math.PI)
+        return doubleArrayOf(matrix[0][0]*180.0/Math.PI,matrix[0][0]*180.0/Math.PI,matrix[0][0]*180.0/Math.PI)
     }
 
     fun directionToText() : String {
         val dir = direction()
-        return(String.format("%3.3f,%3.3f",dir[0],dir[1]))
+        return(String.format("%3.3f,%3.3f,%3.3f",dir[0],dir[1],dir[2]))
     }
     /**
      * The current position in the parent frame (x,y,z)
@@ -88,14 +97,11 @@ open class Quaternion( ) {
     }
 
     /**
-     * Update the quaternion matrix from the object parameters.
+     * Update the quaternion matrix from prior settings of
+     * rotation and position.
      * Lengths ~mm, angles ~ radians
-     * @param  d offset to source along z
-     * @param r distance to source along common normal
-     * @param alpha angle around common normal between source and current z
-     * @param theta: angle of rotation of joint
      */
-    fun update(d:Double,r:Double,alpha:Double,theta:Double) {
+    fun update() {
         if(DEBUG) LOGGER.info(String.format("%s.update: d=%2.2f, r= %2.2f, alpha = %2.2f, theta = %2.2f ",
                CLSS,d,r,alpha*180.0/Math.PI,theta*180.0/Math.PI))
         matrix[0][0] = Math.cos(theta)
@@ -141,6 +147,30 @@ open class Quaternion( ) {
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         matrix = arrayOf(         // Initialize as an empty matrix
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0)
+        )
+        roll = arrayOf(         // For rotation around x axis
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0)
+        )
+        pitch = arrayOf(         // For rotation around y axis
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0)
+        )
+        yaw = arrayOf(         // For rotation around z axis
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0,0.0)
+        )
+        translation = arrayOf(         // Position without rotation
             doubleArrayOf(0.0,0.0,0.0,0.0),
             doubleArrayOf(0.0,0.0,0.0,0.0),
             doubleArrayOf(0.0,0.0,0.0,0.0),

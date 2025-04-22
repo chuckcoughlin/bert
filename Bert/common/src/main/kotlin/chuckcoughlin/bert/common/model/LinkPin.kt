@@ -21,10 +21,9 @@ class LinkPin (val type:PinType ) {
     var axis:Axis
     var appendage: Appendage  // End effector
     var mc: MotorConfiguration? = null
-    var home: Double   // motor position equivalent to "straight"
 
     var angle: Double = 0.0
-        get() = if(mc==null) home else mc!!.angle*Math.PI/180.0  + home
+        get() = if(mc!=null) mc!!.angle*Math.PI/180.0 else 0.0
 
     /*
      * The joint implies a motor configuration. From this we read the
@@ -48,7 +47,6 @@ class LinkPin (val type:PinType ) {
         axis = Axis.X
         appendage = Appendage.NONE
         joint     = Joint.NONE
-        home = 0.0
     }
 
 }

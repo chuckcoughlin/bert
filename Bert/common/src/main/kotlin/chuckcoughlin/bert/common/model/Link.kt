@@ -37,11 +37,10 @@ import java.util.logging.Logger
 class Link( val nam:String ) {
     val name = nam
     val quaternion: Quaternion
-    private var priorAngle: Double  // Last time Q evaluated
+    private var priorRoll: Double  // Last time Q evaluated
+    private var priorPitch: Double  // Last time Q evaluated
+    private var priorYaw: Double  // Last time Q evaluated
 
-    // The co-ordinates are position of this end point with respect to the
-    // parent (source) joint. x = side to side, y = front-back, z = up/down.
-    var coordinates: Point3D
     var endPin:    LinkPin
     var sourcePin: LinkPin
 
@@ -49,9 +48,31 @@ class Link( val nam:String ) {
         return String.format("%3.3f,%3.3f,%3.3f",coordinates.x,coordinates.y,coordinates.z)
     }
 
+    fun setCoordinates(x:Double,y:Double,z:Double) {
+        quaternion.setTranslation(x,y,z)
+    }
+    fun setRoll(x:Double) {
+        quaternion.setRoll(angle)
+    }
+    fun setPitch(angle:Double) {
+        quaternion.setPitch(x,y,z)
+    }
+    fun setYaw(angle:Double) {
+        quaternion.setYaw(angle)
+    }
+    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+        rpy[0] = roll*Math.PI/180.0
+        rpy[1] = pitch*Math.PI/180.0
+        rpy[2] = yaw*Math.PI/180.0
+        quaternion.setRoll(roll)
+        quaternion.setPitch(pitch)
+        quaternion.setYaw(yaw)
+        quaternion.update()
+    }
+
     /** Recalculate quaternion. No need unless angle has changed.
      * Note. joint coordinates are with respect robot reference frame
-     *       when straight. "z" is up, "x" is across, "y" is front.
+     *       when straight. "z" is up, "x" is front, "y" is across.
      *
      * Convert to coordinate system of the quaternion.
      * Z is the rotational axis of the parent joint.
@@ -67,52 +88,25 @@ class Link( val nam:String ) {
      */
     fun update() {
         // No work if we haven't moved since last update
-        if( !priorAngle.isNaN() && priorAngle==endPin.angle) return
-        priorAngle = endPin.angle
 
         // Create a common nornmal between source z and end z
         // New x is from source z along common normal
         //
-        var alpha = 0.0    // Angle around the common normal between the previous z-axis and current z-axis.
-        var d = 0.0        // Distance between the previous x-axis and the current x-axis, along the previous z-axis.
-        var r = 0.0        // Length of the common normal, i.e. the distance between the previous z-axis and the current z-axis
-        var theta = 0.0    // Angle around the z-axis between the previous x-axis and the current x-axis.
 
         // **** Different combinations of motor axis alignments ****
-        // Degenerate case. Motors on top of each other.
-        if(coordinates.z<=0.0) {
-            theta = sourcePin.angle
-        }
-        // Parallel motors
-        else if( sourcePin.axis==Axis.X && endPin.axis==Axis.X ) {
-            alpha = 0.0
-            d = coordinates.x // Align with x-z plane
-            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.y*coordinates.y)
-            theta = sourcePin.angle + Math.atan2(coordinates.z,coordinates.x)
-        }
-        else if( sourcePin.axis==Axis.X && endPin.axis==Axis.Y ) {
-            alpha = -Math.PI/2.0
-            d = coordinates.y  // Move to x-z plane
-            r = coordinates.z
-            theta = sourcePin.home - sourcePin.angle
-        }
-        else if( sourcePin.axis==Axis.Y && endPin.axis==Axis.Z ) {
-            alpha = sourcePin.angle
-            d = coordinates.y
-            r = Math.sqrt(coordinates.z*coordinates.z + coordinates.x*coordinates.x)
-            theta = Math.atan(coordinates.x / coordinates.z)
+        if( sourcePin.axis==Axis.X && endPin.axis==Axis.X ) {
         }
         else {
             LOGGER.warning(String.format("%s.update: %s No code to juxtapose %s vs %s",CLSS,name,sourcePin.axis.name,
                                           endPin.axis.name))
         }
 
-        if(DEBUG) LOGGER.info(String.format("%s.update: %s %s->%s source angle,end angle,alpha,theta,d,r =  %2.2f,%2.2f,%2.2f,%2.2f,%2.2f,%2.2f",CLSS,name,
+        if(DEBUG) LOGGER.info(String.format("%s.update: %s %s->%s source angle,end angle,alpha,theta,d,r =  %2.2f,%2.2f,%2.2f,%2.2f",CLSS,name,
                             sourcePin.axis.name,endPin.axis.name,
                             sourcePin.angle*180.0/Math.PI,endPin.angle*180.0/Math.PI,
-                            alpha*180.0/Math.PI,theta*180.0/Math.PI,d,r))
+                            alpha*180.0/Math.PI,theta*180.0/Math.PI))
 
-        quaternion.update(d,r,alpha,theta)
+        quaternion.update()
     }
 
     private val CLSS = "Link"
@@ -122,9 +116,10 @@ class Link( val nam:String ) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        priorAngle = Double.NaN
+        priorRoll = Double.NaN
+        priorPitch = Double.NaN
+        priorYaw = Double.NaN
         quaternion = Quaternion()
-        coordinates = Point3D(0.0, 0.0, 0.0)   // x,y,z
         endPin = LinkPin(PinType.ORIGIN)     // Must be defined
         sourcePin = LinkPin(PinType.ORIGIN)  // Origin until set otherwise.
     }
