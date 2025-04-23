@@ -1,10 +1,7 @@
 package chuckcoughlin.bert
 
 
-import chuckcoughlin.bert.common.model.Chain
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.*
 
 /**
  * A Chain represents a tree of Links starting with the
@@ -28,29 +25,47 @@ object ChainTest {
         // Test the links to some extremities
         println(String.format("==================== %s ===========================================",CLSS ))
 
-        println("======== Test LEFT_EAR to PELVIS subchain")
+        println("======== Test LEFT_EAR to PELVIS sub-chain")
         var subchain = Chain.partialChainToAppendage(Appendage.LEFT_EAR)
         for (link in subchain) {
             println(String.format("\t%s ", link.name))
         }
-        println("======== Test RIGHT_FINGER to PELVIS subchain")
+        println("======== Test RIGHT_FINGER to PELVIS sub-chain")
         subchain = Chain.partialChainToAppendage(Appendage.RIGHT_FINGER)
         for (link in subchain) {
             println(String.format("\t%s ", link.name))
         }
-        println("======== Test ABS_X to PELVIS subchain")
+        println("======== Test ABS_X to PELVIS sub-chain")
         subchain = Chain.partialChainToJoint(Joint.ABS_X)
         for (link in subchain) {
             println(String.format("\t%s ", link.name))
         }
+        println("======== Test IMU orientation 0,0,0 ")
+        IMU.quaternion.setRoll(0.0)
+        IMU.quaternion.setPitch(0.0)
+        IMU.quaternion.setYaw(180.0)
+        IMU.update()
+        println(String.format("\tABS-X (0,0,180.) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
+
+        IMU.quaternion.setRoll(0.0)
+        IMU.quaternion.setPitch(90.0)
+        IMU.quaternion.setYaw(0.0)
+        IMU.update()
+        println(String.format("\tABS-X (0,90.,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
+
+        IMU.quaternion.setRoll(0.0)
+        IMU.quaternion.setPitch(0.0)
+        IMU.quaternion.setYaw(0.0)
+        IMU.update()
+        println(String.format("\tABS-X (0,0,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
     }
 
-    private val CLSS = "ChainTest"
+    const val CLSS = "ChainTest"
 
     /**
      * Set the initial positions of the motors to "home"!
      */
-    fun setMotorPositions() {
+    private fun setMotorPositions() {
         for (joint in RobotModel.motorsByJoint.keys) {
             val mc = RobotModel.motorsByJoint.get(joint)
             // Set some reasonable values from the "home" pose.
@@ -81,6 +96,7 @@ object ChainTest {
                 Joint.RIGHT_SHOULDER_X -> mc!!.angle = 180.0
                 Joint.RIGHT_SHOULDER_Y -> mc!!.angle = 180.0
                 Joint.NONE -> mc!!.angle = 0.0
+                Joint.IMU -> {}
             }
         }
     }
