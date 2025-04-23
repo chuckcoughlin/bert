@@ -13,21 +13,18 @@ import java.util.logging.Logger
  * Internal Measurement Unit. This is the origin
  * of all chains. As for positioning, we allow
  * only rotations.
- * @param alpha angle of rotation forward and back
- * @param theta angle of rotation side to side
  */
 object IMU {
 
     var axis: Axis
-    var coordinates: Point3D
-    var rotation: DoubleArray   // Euler angles
-    var alpha: Double
-    var theta: Double
     val quaternion: Quaternion
 
      fun update() {
-         // quaternion.update(0.0,0.0,0.0,0.0)
-         quaternion.update(0.0,0.0,Math.PI/2.0,Math.PI/2.0)
+         quaternion.setTranslation(0.0,0.0,0.0)
+         quaternion.setRoll(0.0)
+         quaternion.setPitch(0.0)
+         quaternion.setYaw(0.0)
+         quaternion.update()
     }
 
     private val CLSS = "IMU"
@@ -36,11 +33,7 @@ object IMU {
 
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        axis = Axis.X
-        coordinates = Point3D(0.0,0.0,0.0)
-        rotation = doubleArrayOf(0.0,0.0,0.0)
+        axis = Axis.Y
         quaternion = Quaternion()
-        alpha = 0.0
-        theta = 0.0
     }
 }

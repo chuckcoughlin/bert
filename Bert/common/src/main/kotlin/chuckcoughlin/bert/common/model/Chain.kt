@@ -60,16 +60,6 @@ object Chain {
         return partial
     }
 
-    /**
-     * The axes are the Euler angles in three dimensions between the robot and the reference frame.
-     * @param a three-dimensional array of rotational offsets between the robot and reference frame.
-     *        Components are: yaw, pitch and roll. Roll angle is ignored.
-     *
-     */
-    fun setOrientation(a: DoubleArray) {
-        IMU.rotation= a
-    }
-
 
 
     private val CLSS = "Chain"

@@ -78,10 +78,12 @@ object URDFModel {
                     while (aindex < acount) {
                         val node = children.item(aindex)
                         // Same source must be applied to all joints/appendages in same link element
+                        // "axis" describes its orientation to the link
                         if ("source".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "joint")
                             val joint = Joint.fromString(jname)
                             sourcePin = LinkPin(PinType.REVOLUTE)
+                            sourcePin.axis = Axis.fromString(XMLUtility.attributeValue(node, "axis"))
                             sourcePin.joint = joint
                         }
                         aindex++
@@ -96,7 +98,6 @@ object URDFModel {
                             val appendage: Appendage = Appendage.fromString(aname)
                             val pin = LinkPin(PinType.END_EFFECTOR)
                             pin.appendage = appendage
-                            pin.axis = Axis.fromString(XMLUtility.attributeValue(node, "axis"))
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             link.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
@@ -112,7 +113,7 @@ object URDFModel {
                             val joint = Joint.fromString(jname)
                             val pin = LinkPin(PinType.REVOLUTE)
                             pin.joint = joint
-                            pin.axis = Axis.fromString(XMLUtility.attributeValue(node, "axis"))
+                            pin.home = XMLUtility.attributeValue(node, "home").toDouble()
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             link.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))

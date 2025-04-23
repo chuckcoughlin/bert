@@ -363,7 +363,7 @@ class Dispatcher : Controller {
             // The following requests simply use the current positions of the motors, whatever they are
             else if (request.type==RequestType.GET_EXTREMITY_DIRECTION) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get direction appendage=%s joint=%s", CLSS, request.appendage.name,request.joint.name))
-                var text = ""
+                var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
                     val xyz: DoubleArray = Solver.computeDirection(appendage)
@@ -382,7 +382,7 @@ class Dispatcher : Controller {
             // The location in physical coordinates from the center of the robot.
             else if (request.type==RequestType.GET_EXTREMITY_LOCATION) {
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get location appendage=%s joint=%s", CLSS, request.appendage.name,request.joint.name))
-                var text = ""
+                var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
                     val xyz: Point3D = Solver.computeLocation(appendage)
