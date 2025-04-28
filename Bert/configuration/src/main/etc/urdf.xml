@@ -35,7 +35,7 @@
 		<joint name="LEFT_HIP_X"
 			   xyz="0.0 -22.5417390633466 0.0" rpy="0. 0. 0." home="180.0"/>
 		<joint name="ABS_X"
-			   xyz="12.0 0.0 62.0 "            rpy="0. 0. 0." home="180.0"/>
+			   xyz="12.0 0.0 62.0"             rpy="0. 0. 0." home="180.0"/>
 		<source joint="IMU" axis="Y" />
 	</link>
 	<link name="RIGHT_HIP_SOCKET">

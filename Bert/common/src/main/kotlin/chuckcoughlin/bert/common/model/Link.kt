@@ -42,6 +42,7 @@ class Link( val name:String ) {
 
     // ~mm
     fun setCoordinates(x:Double,y:Double,z:Double) {
+        if(DEBUG) LOGGER.info(String.format("%s.setCoordinates: (%s) %2.2f,%2.2f,%2.2f",CLSS,name,x,y,z))
         coordinates = Point3D(x,y,z)
         quaternion.setTranslation(x,y,z)
         quaternion.update()

@@ -43,21 +43,14 @@ object ChainTest {
         println("======== Test IMU orientation 0,0,0 ")
         IMU.quaternion.setRoll(0.0)
         IMU.quaternion.setPitch(0.0)
-        IMU.quaternion.setYaw(180.0)
+        IMU.quaternion.setYaw(0.0)
         IMU.update()
-        println(String.format("\tABS-X (0,0,180.) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
-
+        println(String.format("\tABS-X (0,0.,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
         IMU.quaternion.setRoll(0.0)
-        IMU.quaternion.setPitch(90.0)
+        IMU.quaternion.setPitch(1.57)   // 90 deg
         IMU.quaternion.setYaw(0.0)
         IMU.update()
         println(String.format("\tABS-X (0,90.,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
-
-        IMU.quaternion.setRoll(0.0)
-        IMU.quaternion.setPitch(0.0)
-        IMU.quaternion.setYaw(0.0)
-        IMU.update()
-        println(String.format("\tABS-X (0,0,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
     }
 
     const val CLSS = "ChainTest"

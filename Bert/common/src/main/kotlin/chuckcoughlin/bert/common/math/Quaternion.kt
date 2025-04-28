@@ -9,13 +9,15 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Define a quaternion for the specific purpose of calculating the
  * forward kinematics of the robot end effectors. The data structure
  * is a 4x4 double array. Array order is [row][col]
  */
-open class Quaternion( ) {
+open class Quaternion {
     var matrix: Array<DoubleArray>
     var roll: Array<DoubleArray>
     var pitch: Array<DoubleArray>
@@ -43,26 +45,28 @@ open class Quaternion( ) {
     }
     // X axis
     fun setRoll(angle:Double) {
-        roll[1][1] = Math.cos(angle)
-        roll[1][2] = -Math.sin(angle)
-        roll[2][1] = Math.sin(angle)
-        roll[2][2] = -Math.cos(angle)
+        roll[1][1] = cos(angle)
+        roll[1][2] = -sin(angle)
+        roll[2][1] = sin(angle)
+        roll[2][2] = cos(angle)
     }
     // Y axis
     fun setPitch(angle:Double) {
-        pitch[0][0] = Math.cos(angle)
-        pitch[0][2] = -Math.sin(angle)
-        pitch[2][0] = Math.sin(angle)
-        pitch[2][2] = -Math.cos(angle)
+        if(DEBUG) LOGGER.info(String.format("%s.setPitch: %2.2f",CLSS,angle*180.0/Math.PI))
+        pitch[0][0] = cos(angle)
+        pitch[0][2] = -sin(angle)
+        pitch[2][0] = sin(angle)
+        pitch[2][2] = cos(angle)
     }
     // Z axis
     fun setYaw(angle:Double) {
-        yaw[0][0] = Math.cos(angle)
-        yaw[0][1] = -Math.sin(angle)
-        yaw[1][0] = Math.sin(angle)
-        yaw[1][1] = -Math.cos(angle)
+        yaw[0][0] = cos(angle)
+        yaw[0][1] = -sin(angle)
+        yaw[1][0] = sin(angle)
+        yaw[1][1] = cos(angle)
     }
     fun setTranslation(x:Double,y:Double,z:Double) {
+        if(DEBUG) LOGGER.info(String.format("%s.setTranslation: %2.2f %2.2f %2.2f",CLSS,x,y,z))
         translation[0][3] = x
         translation[1][3] = y
         translation[2][3] = z
@@ -90,7 +94,7 @@ open class Quaternion( ) {
 
     /**
      * The current orientation with respect to the reference frame.
-     * @return alpha, theta
+     * @return the magnitude of the axes of the rotation matrix
      */
     fun direction(): DoubleArray {
         val theta1 = Math.acos(matrix[0][0])
@@ -107,7 +111,7 @@ open class Quaternion( ) {
      * The current position in the parent frame (x,y,z)
      */
     fun position(): Point3D {
-        return(Point3D(matrix[3][0],matrix[3][1],matrix[3][2]))
+        return(Point3D(matrix[0][3],matrix[1][3],matrix[2][3]))
     }
 
     fun positionToText() : String {
@@ -122,6 +126,21 @@ open class Quaternion( ) {
      */
     fun update() {
         matrix = multiply(multiply(multiply(translation,roll),pitch),yaw)
+    }
+
+    fun dump() : String {
+        val n = matrix.size
+        val buf = StringBuffer()
+        buf.append('\n')
+        for(row in 0 until n) {
+            for( col in 0 until n) {
+                val value = matrix[row][col]
+                buf.append(value.toString())
+                buf.append('\t')
+            }
+            buf.append('\n')
+        }
+        return buf.toString()
     }
 
     companion object {
@@ -144,7 +163,7 @@ open class Quaternion( ) {
     private val CLSS = "Quaternion"
     val LOGGER = Logger.getLogger(CLSS)
     val DEBUG: Boolean
-    val DIM = 4
+
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)

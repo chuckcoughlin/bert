@@ -19,11 +19,8 @@ object IMU {
     var axis: Axis
     val quaternion: Quaternion
 
+    // Incorporate any rotations that may have been set
      fun update() {
-         quaternion.setTranslation(0.0,0.0,0.0)
-         quaternion.setRoll(0.0)
-         quaternion.setPitch(0.0)
-         quaternion.setYaw(0.0)
          quaternion.update()
     }
 
