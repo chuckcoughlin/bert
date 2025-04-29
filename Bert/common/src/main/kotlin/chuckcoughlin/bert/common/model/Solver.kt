@@ -78,11 +78,11 @@ object Solver {
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
                 CLSS,link.name,if( link.sourcePin.joint==Joint.NONE) "IMU" else link.sourcePin.joint.name,q.position().toText()))
             link.update()  // In case motor has moved since last use
-            if(DEBUG) LOGGER.info(link.quaternion.dump())
+            //if(DEBUG) LOGGER.info(link.quaternion.dump())
             q = q.postMultiplyBy(link.quaternion)
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s|%s) ",
                 CLSS,link.name,link.endPin.joint.name,q.positionToText(),q.directionToText()))
-            if(DEBUG) LOGGER.info(q.dump())
+            //if(DEBUG) LOGGER.info(q.dump())
         }
         return q
     }

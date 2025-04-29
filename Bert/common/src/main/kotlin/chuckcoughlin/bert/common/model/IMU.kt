@@ -19,7 +19,7 @@ object IMU {
     var axis: Axis
     val quaternion: Quaternion
 
-    // Incorporate any rotations that may have been set
+    // Incorporate any rotations that may have been set externally
      fun update() {
          quaternion.update()
     }

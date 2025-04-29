@@ -45,12 +45,24 @@ object ChainTest {
         IMU.quaternion.setPitch(0.0)
         IMU.quaternion.setYaw(0.0)
         IMU.update()
-        println(String.format("\tABS-X (0,0.,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
-        IMU.quaternion.setRoll(0.0)
-        IMU.quaternion.setPitch(1.57)   // 90 deg
+        println(String.format("\tABS-X (0,0,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
+        IMU.quaternion.setRoll(1.57)    // 90 deg
+        IMU.quaternion.setPitch(0.0)
         IMU.quaternion.setYaw(0.0)
         IMU.update()
-        println(String.format("\tABS-X (0,90.,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
+        println(String.format("\tABS-X (90,0.0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
+        IMU.quaternion.setRoll(0.0)
+        IMU.quaternion.setPitch(1.57)
+        IMU.quaternion.setYaw(0.0)
+        IMU.update()
+        println(String.format("\tABS-X (0,90,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
+        IMU.quaternion.setRoll(0.0)
+        IMU.quaternion.setPitch(0.0)
+        IMU.quaternion.setYaw(0.0)
+        IMU.update()
+        println("======== Test Joints along back - home pose")
+        println(String.format("\tABS-Y = %s ",Solver.computeLocation(Joint.ABS_Y).toText()))
+        println(String.format("\tABS-Z = %s ",Solver.computeLocation(Joint.ABS_Z).toText()))
     }
 
     const val CLSS = "ChainTest"

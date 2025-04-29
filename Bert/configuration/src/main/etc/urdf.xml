@@ -104,7 +104,7 @@
 	</link>
 	<link name="SPINE">
 		<joint name="BUST_Y"
-			   xyz="79.85 2.8 0.0"  rpy="0. 0. 0." home="180.0"/>
+			   xyz="2.8 0.0 79.85"  rpy="0. 0. 0." home="180.0"/>
 		<source joint="ABS_Z" axis="Z"/>
 	</link>
 	<link name="THORACIC">
