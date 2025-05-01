@@ -5,29 +5,30 @@
    	- lengths ~ mm, angles ~ degrees -->
 <robot name="bert">
 	<!-- The Internal Measurement Unit (IMU) is the world-frame origin. Its position is always (0,0,0).
-	     The axis is merely a rotational reference point for subsequent joints.
 	     The origin is located in the pelvis midway between the hip sockets and back to align with the
 	     left/right hip y axis.
-	     It may be altered by setting IMU quaternion roll,pitch,yaw directly and then updating.
+	     The initial orientation of tje IMU corresponds to the robot reference frame. It may be altered by
+	     setting IMU quaternion roll,pitch,yaw directly and then updating.
 	-->
-	<imu axis="Y"/>
+	<imu rpy="0. 0. 0."/>
 	<!-- A link is roughly equivalent to a bone. A link connects a source pin (joint)
 	     to a joint or end effector. The parent link is a joint (a REVOLUTE link pin).
 	     The origin of all link trees is the IMU.
 
-	     Joint names must match the names in bert.xml.
-				axis is orientation of joint in joint frame.
-		Links form a tree from the robot origin, PELVIS,
+	    Links form a tree from the robot origin, PELVIS,
 		terminating in the various end effectors.
+		Joint names must match the names in bert.xml.
+		The link z axis is always perpendicular to the joint axis
+		when at its "home" position. The "y" axis coincides with
+		the joint axis. The "rpy" settings (roll, pitch, yaw) define
+		the orientation of the motor or end-effector with respect to
+		the "z" axis of the link.
 
-		Joint coordinates are relative to the source pin ~ mm
+		Link coordinates are relative to the source pin ~ mm
 		x - front and back, front positive (roll)
 		y - side to side , left positive  (pitch)
 		z - up and down, up positive       (yaw)
 
-		rpy is roll, pitch, yaw. Axis is the motor axis of rotation.
-		These settings are with respect to the inertial frame
-		when the robot is in "straight" position.
 	  -->
 	<link name="PELVIS">        <!-- root -->
 		<joint name="RIGHT_HIP_X"
@@ -36,7 +37,7 @@
 			   xyz="0.0 -22.5417390633466 0.0" rpy="0. 0. 0." home="180.0"/>
 		<joint name="ABS_X"
 			   xyz="12.0 0.0 62.0"             rpy="0. 0. 0." home="180.0"/>
-		<source joint="IMU" axis="Y" />
+		<source joint="IMU" />
 	</link>
 	<link name="RIGHT_HIP_SOCKET">
 		<joint name="RIGHT_HIP_Z"          home="0.0"

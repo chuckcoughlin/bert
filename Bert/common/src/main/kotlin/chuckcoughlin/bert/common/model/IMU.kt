@@ -12,11 +12,10 @@ import java.util.logging.Logger
 /**
  * Internal Measurement Unit. This is the origin
  * of all chains. As for positioning, we allow
- * only rotations.
+ * only rotations. The origin is fixed at (0,0,0)
  */
 object IMU {
 
-    var axis: Axis
     val quaternion: Quaternion
 
     // Incorporate any rotations that may have been set externally
@@ -30,7 +29,6 @@ object IMU {
 
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        axis = Axis.Y
         quaternion = Quaternion()
     }
 }
