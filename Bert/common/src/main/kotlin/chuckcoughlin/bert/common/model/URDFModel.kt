@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.math.Axis
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -52,7 +51,8 @@ object URDFModel {
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
-                IMU.axis = Axis.fromString(XMLUtility.attributeValue(imuNode, "axis"))
+                val rpy = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "rpy"))
+                IMU.setRpy(rpy[0],rpy[1],rpy[2])
             }
 
             // ================================== Links ===============================================
@@ -78,12 +78,10 @@ object URDFModel {
                     while (aindex < acount) {
                         val node = children.item(aindex)
                         // Same source must be applied to all joints/appendages in same link element
-                        // "axis" describes its orientation to the link
                         if ("source".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "joint")
                             val joint = Joint.fromString(jname)
                             sourcePin = LinkPin(PinType.REVOLUTE)
-                            sourcePin.axis = Axis.fromString(XMLUtility.attributeValue(node, "axis"))
                             sourcePin.joint = joint
                         }
                         aindex++

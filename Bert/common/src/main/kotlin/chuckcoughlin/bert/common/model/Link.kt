@@ -4,8 +4,8 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.math.Axis
 import chuckcoughlin.bert.common.math.Quaternion
+import chuckcoughlin.bert.common.model.IMU.quaternion
 import java.util.logging.Logger
 
 /**
@@ -85,26 +85,15 @@ class Link( val name:String ) {
     fun update() {
         // No work if we haven't moved since last update
         if(sourcePin.angle==currentAngle) return
-
         currentAngle = sourcePin.angle
 
-        // **** Different combinations of motor axis alignments ****
-        when (sourcePin.axis) {
-            Axis.X -> {
-                quaternion.setRoll(sourcePin.angle+rotation[0])
-            }
-            Axis.Y -> {
-                quaternion.setPitch(sourcePin.angle+rotation[1])
-            }
-            Axis.Z -> {
-                quaternion.setYaw(sourcePin.angle+rotation[2])
-            }
-        }
+        // **** Allow rotation Y axis only ****
+        quaternion.setPitch(sourcePin.angle+rotation[1])
+
         quaternion.update()
 
-        if(DEBUG) LOGGER.info(String.format("%s.update: %s (%s) %2.2f,%2.2f,%2.2f",CLSS,name,
-                sourcePin.axis.name,rotation[0]*180.0/Math.PI,rotation[1]*180.0/Math.PI,
-                                    rotation[2]*180.0/Math.PI))
+        if(DEBUG) LOGGER.info(String.format("%s.update: %s %2.2f,%2.2f,%2.2f",CLSS,name,
+                rotation[0]*180.0/Math.PI,rotation[1]*180.0/Math.PI,rotation[2]*180.0/Math.PI))
     }
 
     private val CLSS = "Link"

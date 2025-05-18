@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.math.Axis
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.URDFModel.origin
 import java.util.logging.Logger
@@ -15,9 +14,36 @@ import java.util.logging.Logger
  * only rotations. The origin is fixed at (0,0,0)
  */
 object IMU {
+    
+    val quaternion = Quaternion()
+        get() = field
 
-    val quaternion: Quaternion
+    // Do not allow origin to be altered externally
+    private fun setCoordinates(x:Double,y:Double,z:Double) {
+        if(DEBUG) LOGGER.info(String.format("%s.setCoordinates: %2.2f,%2.2f,%2.2f",CLSS,x,y,z))
+        quaternion.setTranslation(x,y,z)
+        quaternion.update()
+    }
+    // ~ degrees
+    fun setRoll(angle:Double) {
+        quaternion.setRoll(angle*Math.PI/180.0)
+    }
+    // ~ degrees
+    fun setPitch(angle:Double) {
+        quaternion.setPitch(angle*Math.PI/180.0)
+    }
+    // ~ degrees
+    fun setYaw(angle:Double) {
+        quaternion.setYaw(angle*Math.PI/180.0)
+    }
 
+    // Roll, pitch, yaw are in degrees. Convert to radians.
+    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+        setRoll(roll)
+        setPitch(pitch)
+        setYaw(yaw)
+        quaternion.update()
+    }
     // Incorporate any rotations that may have been set externally
      fun update() {
          quaternion.update()
@@ -29,6 +55,5 @@ object IMU {
 
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        quaternion = Quaternion()
     }
 }

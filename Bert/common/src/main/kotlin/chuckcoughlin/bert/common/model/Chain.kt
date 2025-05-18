@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.math.Axis
 import java.util.*
 import java.util.logging.Logger
 

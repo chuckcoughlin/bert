@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.math.Axis
 import java.util.logging.Logger
 
 /**
@@ -19,7 +18,6 @@ import java.util.logging.Logger
  * All angles are in radians.
  */
 class LinkPin (val type:PinType ) {
-    var axis:Axis             // Joint direction
     var appendage: Appendage  // End effector
     var mc: MotorConfiguration? = null
     var home:Double
@@ -46,7 +44,6 @@ class LinkPin (val type:PinType ) {
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        axis = Axis.X
         appendage = Appendage.NONE
         home      = 0.0
         joint     = Joint.NONE
