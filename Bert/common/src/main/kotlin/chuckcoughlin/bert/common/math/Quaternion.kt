@@ -52,7 +52,7 @@ open class Quaternion {
     }
     // Y axis
     fun setPitch(angle:Double) {
-        if(DEBUG) LOGGER.info(String.format("%s.setPitch: %2.2f",CLSS,angle*180.0/Math.PI))
+        //if(DEBUG) LOGGER.info(String.format("%s.setPitch: %2.2f",CLSS,angle*180.0/Math.PI))
         pitch[0][0] = cos(angle)
         pitch[0][2] = -sin(angle)
         pitch[2][0] = sin(angle)
@@ -66,7 +66,7 @@ open class Quaternion {
         yaw[1][1] = cos(angle)
     }
     fun setTranslation(x:Double,y:Double,z:Double) {
-        if(DEBUG) LOGGER.info(String.format("%s.setTranslation: %2.2f %2.2f %2.2f",CLSS,x,y,z))
+        //if(DEBUG) LOGGER.info(String.format("%s.setTranslation: %2.2f %2.2f %2.2f",CLSS,x,y,z))
         translation[0][3] = x
         translation[1][3] = y
         translation[2][3] = z
@@ -105,7 +105,7 @@ open class Quaternion {
 
     fun directionToText() : String {
         val dir = direction()
-        return(String.format("%3.3f,%3.3f,%3.3f",dir[0],dir[1],dir[2]))
+        return(String.format("%3.0f,%3.0f,%3.0f",dir[0],dir[1],dir[2]))
     }
     /**
      * The current position in the parent frame (x,y,z)

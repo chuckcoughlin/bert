@@ -56,11 +56,12 @@ object ChainTest {
         IMU.quaternion.setYaw(0.0)
         IMU.update()
         println(String.format("\tABS-X (0,90,0) = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
-        IMU.quaternion.setRoll(0.0)
+        IMU.quaternion.setRoll(0.0)    // reset IMU
         IMU.quaternion.setPitch(0.0)
         IMU.quaternion.setYaw(0.0)
         IMU.update()
         println("======== Test Joints along back - home pose")
+        println(String.format("\tABS-X = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
         println(String.format("\tABS-Y = %s ",Solver.computeLocation(Joint.ABS_Y).toText()))
         println(String.format("\tABS-Z = %s ",Solver.computeLocation(Joint.ABS_Z).toText()))
     }

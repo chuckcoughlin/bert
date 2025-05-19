@@ -101,7 +101,6 @@ object URDFModel {
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             link.setCoordinates(xyz[0],xyz[1],xyz[2])
                             link.endPin = pin
-                            link.endPin =pin
                             link.sourcePin = sourcePin
                             linkForAppendage[appendage] = link
                         }
@@ -181,7 +180,7 @@ object URDFModel {
                         CLSS,text,i,raw[i],nfe.localizedMessage ) )
             }
         }
-        if(DEBUG) LOGGER.info(String.format("doubleArrayFromString: text %s = %.2f,%.2f,%.2f",text,result[0],result[1],result[2]))
+        //if(DEBUG) LOGGER.info(String.format("%s.doubleArrayFromString: text %s = %.2f,%.2f,%.2f",CLSS,text,result[0],result[1],result[2]))
         return result
     }
 

@@ -91,12 +91,12 @@
 	</link>
 	<link name="LUMBAR">
 		<joint name="ABS_Y"
-			   xyz="0.0 0.0 8.0" rpy="0. -90. 0." home="180.0"/>
+			   xyz="0.0 0.0 8.0" rpy="0. 180. 90." home="180.0"/>
 		<source joint="ABS_X" axis="X" />
 	</link>
 	<link name="LOWER_SPINE">
 		<joint name="ABS_Z"
-			   xyz="0.0 0.0 51.6374742" rpy="-90. 90. 0." home="0.0"/>
+			   xyz="0.0 0.0 51.6374742" rpy="-90. 0. 90." home="0.0"/>
 		<source joint="ABS_Y" axis="Y" />
 	</link>
 	<link name="SPINE">

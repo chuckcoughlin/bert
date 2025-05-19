@@ -64,6 +64,8 @@ class Link( val name:String ) {
     }
 
     // Roll, pitch, yaw are in degrees. Convert to radians.
+    // This refers to the orientation of the link with respect to the
+    // previous link.
     fun setRpy(roll:Double,pitch:Double,yaw:Double) {
         setRoll(roll)
         setPitch(pitch)
@@ -83,17 +85,19 @@ class Link( val name:String ) {
      * Distances _mm, angle in radians
      */
     fun update() {
-        // No work if we haven't moved since last update
+        // No work if we haven't moved pitch since last update
+        // (pitch is the only "live" angle)
         if(sourcePin.angle==currentAngle) return
         currentAngle = sourcePin.angle
 
-        // **** Allow rotation Y axis only ****
-        quaternion.setPitch(sourcePin.angle+rotation[1])
+        quaternion.setRoll(rotation[0])
+        quaternion.setPitch(sourcePin.angle+rotation[1]-sourcePin.home)
+        quaternion.setYaw(rotation[2])
 
         quaternion.update()
 
         if(DEBUG) LOGGER.info(String.format("%s.update: %s %2.2f,%2.2f,%2.2f",CLSS,name,
-                rotation[0]*180.0/Math.PI,rotation[1]*180.0/Math.PI,rotation[2]*180.0/Math.PI))
+                rotation[0]*180.0/Math.PI,(sourcePin.angle+rotation[1])*180.0/Math.PI,rotation[2]*180.0/Math.PI))
     }
 
     private val CLSS = "Link"

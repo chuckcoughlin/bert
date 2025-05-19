@@ -75,8 +75,8 @@ object Solver {
             CLSS,q.positionToText(),q.directionToText()))
         // Now continue up the chain
         for(link in subchain) {
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
-                CLSS,link.name,if( link.sourcePin.joint==Joint.NONE) "IMU" else link.sourcePin.joint.name,q.position().toText()))
+            //if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
+            //    CLSS,link.name,if( link.sourcePin.joint==Joint.NONE) "IMU" else link.sourcePin.joint.name,q.position().toText()))
             link.update()  // In case motor has moved since last use
             //if(DEBUG) LOGGER.info(link.quaternion.dump())
             q = q.postMultiplyBy(link.quaternion)

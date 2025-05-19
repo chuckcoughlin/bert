@@ -227,7 +227,7 @@ object RobotModel {
                             motorsByJoint[motor.joint] = motor
                             motorsById[motor.id] = motor
 
-                            if(DEBUG) LOGGER.info(String.format("%s.analyzeMotors: Found %d %s %2.2f-%2.2f %2.2f %2.2f", CLSS, motor.id,motor.joint.name,
+                            if(DEBUG) LOGGER.info(String.format("%s.analyzeMotors: Id %d = %s %2.2f-%2.2f %2.2f %2.2f", CLSS, motor.id,motor.joint.name,
                                             motor.minAngle,motor.maxAngle,motor.maxSpeed,motor.maxTorque))
                         }
                     }
@@ -426,7 +426,7 @@ object RobotModel {
     private var DEBUG = false
     private val LOGGER = Logger.getLogger(CLSS)
 
-    init {RobotModel.
+    init {
         properties = Properties()
         motorControllerDevices    = mutableMapOf<String, String>()
         motorControllerNames      = mutableListOf<String>()
