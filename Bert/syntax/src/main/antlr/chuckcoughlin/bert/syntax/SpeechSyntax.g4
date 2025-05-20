@@ -69,8 +69,10 @@ declaration:
 	| Take Article? Pose phrase Value          	        # assumePose
     | Article Pose Is phrase Value						# definePose
 	| Save Article? Pose As? phrase Value          	    # definePose
+	| This Is phrase Value          	                # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
 	| Define phrase (From|As) phrase                    # defineAction1
+	| When Isay phrase Use phrase                       # defineAction1
 	| Use phrase Poses? To Define phrase				# defineAction2
 	;
 
@@ -153,6 +155,7 @@ Take: 'assume' | 'execute' | 'take';
 Tell: 'tell';
 Then: 'then';
 There: 'there'|'their';
+This: 'this';
 To: 'to';
 Unit: 'degrees';
 Use: 'use';

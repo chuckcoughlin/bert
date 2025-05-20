@@ -63,7 +63,12 @@ object ChainTest {
         println("======== Test Joints along back - home pose")
         println(String.format("\tABS-X = %s ",Solver.computeLocation(Joint.ABS_X).toText()))
         println(String.format("\tABS-Y = %s ",Solver.computeLocation(Joint.ABS_Y).toText()))
-        println(String.format("\tABS-Z = %s ",Solver.computeLocation(Joint.ABS_Z).toText()))
+        println(String.format("\tABS-Z = %s      (0.0,0.0,121.6)",Solver.computeLocation(Joint.ABS_Z).toText()))
+        println(String.format("\tBUST_X = %s ",Solver.computeLocation(Joint.BUST_X).toText()))
+        println(String.format("\tBUST_Y = %s     (2.8,0.0,193.5) ",Solver.computeLocation(Joint.BUST_Y).toText()))
+        println(String.format("\tNECK_Z = %s ",Solver.computeLocation(Joint.NECK_Z).toText()))
+        println(String.format("\tRIGHT_SHOULDER_Y = %s ",Solver.computeLocation(Joint.RIGHT_SHOULDER_Y).toText()))
+        println(String.format("\tLEFT_SHOULDER_Y = %s ",Solver.computeLocation(Joint.LEFT_SHOULDER_Y).toText()))
     }
 
     const val CLSS = "ChainTest"
