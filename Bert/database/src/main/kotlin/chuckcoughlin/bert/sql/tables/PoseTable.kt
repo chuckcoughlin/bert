@@ -77,7 +77,7 @@ class PoseTable {
      */
     fun deletePose(cxn: Connection?, name: String,index:Int) {
         if( cxn!=null ) {
-            var SQL = "select poseid from Pose where name = ? and executeOrder = ?"
+            var SQL = "select poseid from Pose where series = ? and executeOrder = ?"
             var statement = cxn.prepareStatement(SQL)
             var rs: ResultSet? = null
             val pose = name.lowercase(Locale.getDefault())
@@ -129,7 +129,7 @@ class PoseTable {
      */
     fun deletePose(cxn: Connection?, name: String) {
         if( cxn!=null ) {
-            var SQL = "select poseid from Pose where name = ?"
+            var SQL = "select poseid from Pose where series = ?"
             var prep = cxn.prepareStatement(SQL)
             var stmt=cxn.createStatement()
             var rs: ResultSet? = null

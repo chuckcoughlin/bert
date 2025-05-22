@@ -52,7 +52,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // How tall are you?
     override fun visitAttributeQuestion(ctx: SpeechSyntaxParser.AttributeQuestionContext): Any? {
-        bottle.type = RequestType.GET_METRIC
+        bottle.type = RequestType.METRIC
         val attribute: String = ctx.Attribute().getText()
         if (attribute.equals("old", ignoreCase = true)) {
             bottle.metric =  MetricType.AGE
@@ -67,71 +67,10 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
 
-    // List your joints
-    override fun visitBodyPartListQuestion(ctx: SpeechSyntaxParser.BodyPartListQuestionContext): Any? {
-        bottle.type = RequestType.JSON
-        if( ctx.Appendages()!=null ) bottle.jtype = JsonType.END_EFFECTOR_NAMES
-        if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
-        if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
-        return null
-    }
-    // What are the names of your joints
-    override fun visitBodyPartNamesQuestion(ctx: SpeechSyntaxParser.BodyPartNamesQuestionContext): Any? {
-        bottle.type = RequestType.GET_METRIC
-        bottle.metric = MetricType.LIST
-        if( ctx.Appendages()!=null ) bottle.jtype = JsonType.END_EFFECTOR_NAMES
-        if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
-        if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
-        return null
-    }
-
     // Describe your current pose
     override fun visitCurrentPoseDescription(ctx: SpeechSyntaxParser.CurrentPoseDescriptionContext): Any? {
         bottle.type = RequestType.JSON
         bottle.jtype= JsonType.JOINT_POSITIONS
-        return null
-    }
-    // List values from the database
-    // List your poses
-    override fun visitDatabaseListQuestion(ctx: SpeechSyntaxParser.DatabaseListQuestionContext): Any? {
-        bottle.type = RequestType.JSON
-        if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
-        if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
-        if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
-        return null
-    }
-    // List values from the database
-    // What actions do you know
-    override fun visitDatabaseActionNamesQuestion(ctx: SpeechSyntaxParser.DatabaseActionNamesQuestionContext): Any? {
-        bottle.type = RequestType.GET_METRIC
-        bottle.metric = MetricType.LIST
-        bottle.jtype = JsonType.ACTION_NAMES
-        return null
-    }
-    // List values from the database
-    // Who do you know
-    override fun visitDatabaseFaceNamesQuestion(ctx: SpeechSyntaxParser.DatabaseFaceNamesQuestionContext): Any? {
-        bottle.type = RequestType.GET_METRIC
-        bottle.metric = MetricType.LIST
-        bottle.jtype = JsonType.FACE_NAMES
-        return null
-    }
-    // List values from the database
-    // What are the names of your poses
-    override fun visitDatabaseNamesQuestion(ctx: SpeechSyntaxParser.DatabaseNamesQuestionContext): Any? {
-        bottle.type = RequestType.GET_METRIC
-        bottle.metric = MetricType.LIST
-        if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
-        if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
-        if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
-        return null
-    }
-    // List values from the database
-    // What poses do you know
-    override fun visitDatabasePoseNamesQuestion(ctx: SpeechSyntaxParser.DatabasePoseNamesQuestionContext): Any? {
-        bottle.type = RequestType.GET_METRIC
-        bottle.metric = MetricType.LIST
-        bottle.jtype = JsonType.POSE_NAMES
         return null
     }
 
@@ -315,65 +254,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
 
-    // list the limits of your left hip y? (same logic as "handleBulkPropertyRequest)
-    override fun visitHandleBulkPropertyQuestion(ctx: SpeechSyntaxParser.HandleBulkPropertyQuestionContext): Any? {
-        bottle.type = RequestType.JSON
-        if (ctx.Limits() != null) bottle.jtype = JsonType.MOTOR_LIMITS
-        else                      bottle.jtype = JsonType.MOTOR_GOALS
 
-        // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
-        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-        sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
-        sharedDictionary[SharedKey.AXIS] = axis
-        if (ctx.Joint() != null) {
-            var joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.joint = joint
-            if (joint.equals(Joint.NONE)) {
-                val msg = String.format("I don't have a joint %s, that I know of",
-                                           ctx.Joint().getText())
-                bottle.error = msg
-            }
-            else {
-                sharedDictionary[SharedKey.JOINT] = joint
-                sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-            }
-        }
-        else {
-            val msg = String.format("You didn't specify the name of a joint")
-            bottle.error = msg
-        }
-        return null
-    }
-
-    // what are the limits of your left hip y? (same logic as "handleBulkPropertyQuestion)
-    override fun visitHandleBulkPropertyRequest(ctx: SpeechSyntaxParser.HandleBulkPropertyRequestContext): Any? {
-        bottle.type = RequestType.JSON
-        if (ctx.Limits() != null) bottle.jtype = JsonType.MOTOR_LIMITS
-        else                      bottle.jtype = JsonType.MOTOR_GOALS
-
-        // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
-        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-        sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
-        sharedDictionary[SharedKey.AXIS] = axis
-        val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
-        bottle.joint = joint
-        if (joint.equals(Joint.NONE)) {
-            val msg = String.format("I don't have %s joint, that I know of",
-                                ctx.Joint().getText())
-            bottle.error = msg
-        }
-        else {
-            sharedDictionary[SharedKey.JOINT] = joint
-            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-        }
-        return null
-    }
 
     override fun visitHandleGreeting(ctx: SpeechSyntaxParser.HandleGreetingContext): Any? {
         bottle.type = RequestType.NOTIFICATION
@@ -381,59 +262,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
 
-    // List the properties of a joint
-    // tell me your motor speeds
-    override fun visitHandleListCommand(ctx: SpeechSyntaxParser.HandleListCommandContext): Any? {
-        bottle.type = RequestType.JSON
-        if (ctx.Properties() != null) {
-            val pname: String = ctx.Properties().getText() // plural
-            setJointPropertyInMessage(bottle, pname)
-            if (!bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
-                when (bottle.jointDefinitionProperty) {
-                    JointDefinitionProperty.OFFSET        -> bottle.jtype = JsonType.JOINT_OFFSETS
-                    JointDefinitionProperty.ORIENTATION   -> bottle.jtype = JsonType.JOINT_ORIENTATIONS
-                    JointDefinitionProperty.ID            -> bottle.jtype = JsonType.JOINT_IDS
-                    JointDefinitionProperty.MOTORTYPE     -> bottle.jtype = JsonType.JOINT_TYPES
-                    else -> {
-                        val msg = String.format("we do not support listing %s",pname)
-                        bottle.error = msg
-                    }
-                }
-            }
-            else if (!bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
-                when (bottle.jointDynamicProperty) {
-                    JointDynamicProperty.ANGLE -> bottle.jtype = JsonType.JOINT_POSITIONS
-                    JointDynamicProperty.SPEED -> bottle.jtype = JsonType.JOINT_SPEEDS
-                    JointDynamicProperty.STATE -> bottle.jtype = JsonType.JOINT_STATES
-                    JointDynamicProperty.TORQUE -> bottle.jtype = JsonType.JOINT_TORQUES
-                    JointDynamicProperty.TEMPERATURE -> bottle.jtype = JsonType.JOINT_TEMPERATURES
-                    JointDynamicProperty.VOLTAGE -> bottle.jtype = JsonType.JOINT_VOLTAGES
-                    else -> {
-                        val msg = String.format("we do not support listing %s",pname)
-                        bottle.error = msg
-                    }
-                }
-            }
-            else {
-                val msg = String.format( "My joints don't hava %s, that I know of", pname.lowercase(Locale.getDefault())
-                )
-                bottle.error = msg
-            }
-        }
-        else {
-            val msg = "you must must specify a motor property like id, angle, or speed"
-            bottle.error = msg
-        }
-
-        return null
-    }
 
     // initialize your joints
     override fun visitInitializeJoints(ctx: SpeechSyntaxParser.InitializeJointsContext): Any? {
         bottle.type = RequestType.INITIALIZE_JOINTS
         return null
     }
-
 
     // where is your left ear
     override fun visitJointLocationQuestion(ctx: SpeechSyntaxParser.JointLocationQuestionContext): Any? {
@@ -505,36 +339,141 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
 
-    // where is your left ear
-    override fun visitLimbLocationList(ctx: SpeechSyntaxParser.LimbLocationListContext): Any? {
-        bottle.type = RequestType.JSON
-        bottle.jtype = JsonType.LIMB_LOCATIONS
-        // If side was set previously, use it as default
-        var side = sharedDictionary[SharedKey.SIDE].toString()
-        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-        sharedDictionary[SharedKey.SIDE] = side
-        var limb : Limb
-        if (ctx.Limb() == null) {
-            limb = sharedDictionary[SharedKey.LIMB] as Limb
-        }
-        else {
-            limb=determineLimb(ctx.Limb().toString(), side)
-        }
-        bottle.limb = limb
-        if (limb.equals(Limb.NONE)) {
-            val msg = String.format("I don't have a limb like that")
-            bottle.error = msg
-        }
-        else {
-            sharedDictionary[SharedKey.LIMB] = limb
-            sharedDictionary[SharedKey.IT] = SharedKey.LIMB
-        }
+
+    // ================================== Lists of Things ==================================
+    // What actions do you know
+    override fun visitListActionNames(ctx: SpeechSyntaxParser.ListActionNamesContext): Any? {
+        bottle.type = RequestType.METRIC
+        bottle.metric = MetricType.LIST
+        bottle.jtype = JsonType.ACTION_NAMES
+        return null
+    }
+    // Who do you know
+    override fun visitListFaceNames(ctx: SpeechSyntaxParser.ListFaceNamesContext): Any? {
+        bottle.type = RequestType.METRIC
+        bottle.metric = MetricType.LIST
+        bottle.jtype = JsonType.FACE_NAMES
         return null
     }
 
+    // What are the name of your joints
+    override fun visitListBodyParts(ctx: SpeechSyntaxParser.ListBodyPartsContext): Any? {
+        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        if( ctx.Appendages()!=null ) bottle.jtype = JsonType.END_EFFECTOR_NAMES
+        if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
+        if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
+        return null
+    }
+
+    // List values from the database
+    // List your poses
+    override fun visitListDatabaseElements(ctx: SpeechSyntaxParser.ListDatabaseElementsContext): Any? {
+        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
+        if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
+        if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
+        return null
+    }
+
+    // what are the limits of your left hip y? (same logic as "handleBulkPropertyQuestion)
+    override fun visitListLimits(ctx: SpeechSyntaxParser.ListLimitsContext): Any? {
+        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        if (ctx.Limits() != null) bottle.jtype = JsonType.MOTOR_LIMITS
+        else                      bottle.jtype = JsonType.MOTOR_GOALS
+
+        // If side or axis were set previously, use those jointValues as defaults
+        var side = sharedDictionary[SharedKey.SIDE].toString()
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var axis = sharedDictionary[SharedKey.AXIS].toString()
+        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        sharedDictionary[SharedKey.AXIS] = axis
+        val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
+        bottle.joint = joint
+        if (joint.equals(Joint.NONE)) {
+            val msg = String.format("I don't have %s joint, that I know of",
+                ctx.Joint().getText())
+            bottle.error = msg
+        }
+        else {
+            sharedDictionary[SharedKey.JOINT] = joint
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+        }
+        return null
+    }
+    // where are your joints
+    override fun visitListLocations(ctx: SpeechSyntaxParser.ListLocationsContext): Any? {
+        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        bottle.jtype = JsonType.LIMB_LOCATIONS
+        return null
+    }
+    // Get a list of either static or dynamic motor parameters. The return is in JSON format.
+    // List your static motor parameters
+    // List the dynamic properties of your motors
+    override fun visitListMotorParameters(ctx: SpeechSyntaxParser.ListMotorParametersContext): Any? {
+        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
+        if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
+        return null
+    }
+    // What poses do you know
+    override fun visitListPoseNames(ctx: SpeechSyntaxParser.ListPoseNamesContext): Any? {
+        bottle.type = RequestType.METRIC
+        bottle.metric = MetricType.LIST
+        bottle.jtype = JsonType.POSE_NAMES
+        return null
+    }
+    // List a specified property for all joints
+    // tell me your motor speeds
+    override fun visitListProperty(ctx: SpeechSyntaxParser.ListPropertyContext): Any? {
+        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        if (ctx.Properties() != null) {
+            val pname: String = ctx.Properties().getText() // plural
+            setJointPropertyInMessage(bottle, pname)
+            if (!bottle.jointDefinitionProperty.equals(JointDefinitionProperty.NONE)) {
+                when (bottle.jointDefinitionProperty) {
+                    JointDefinitionProperty.OFFSET        -> bottle.jtype = JsonType.JOINT_OFFSETS
+                    JointDefinitionProperty.ORIENTATION   -> bottle.jtype = JsonType.JOINT_ORIENTATIONS
+                    JointDefinitionProperty.ID            -> bottle.jtype = JsonType.JOINT_IDS
+                    JointDefinitionProperty.MOTORTYPE     -> bottle.jtype = JsonType.JOINT_TYPES
+                    else -> {
+                        val msg = String.format("we do not support listing %s",pname)
+                        bottle.error = msg
+                    }
+                }
+            }
+            else if (!bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
+                when (bottle.jointDynamicProperty) {
+                    JointDynamicProperty.ANGLE -> bottle.jtype = JsonType.JOINT_POSITIONS
+                    JointDynamicProperty.SPEED -> bottle.jtype = JsonType.JOINT_SPEEDS
+                    JointDynamicProperty.STATE -> bottle.jtype = JsonType.JOINT_STATES
+                    JointDynamicProperty.TORQUE -> bottle.jtype = JsonType.JOINT_TORQUES
+                    JointDynamicProperty.TEMPERATURE -> bottle.jtype = JsonType.JOINT_TEMPERATURES
+                    JointDynamicProperty.VOLTAGE -> bottle.jtype = JsonType.JOINT_VOLTAGES
+                    else -> {
+                        val msg = String.format("we do not support listing %s",pname)
+                        bottle.error = msg
+                    }
+                }
+            }
+            else {
+                val msg = String.format( "My joints don't hava %s, that I know of", pname.lowercase(Locale.getDefault())
+                )
+                bottle.error = msg
+            }
+        }
+        else {
+            val msg = "you must must specify a motor property like id, angle, or speed"
+            bottle.error = msg
+        }
+
+        return null
+    }
+
+    // =========================================================================================
     // What is your duty cycle? Name, age
     override fun visitMetricsQuestion(ctx: SpeechSyntaxParser.MetricsQuestionContext): Any? {
-        bottle.type = RequestType.GET_METRIC
+        bottle.type = RequestType.METRIC
         val metric: String = ctx.Metric().getText().lowercase()
         if( metric.equals("cycles", ignoreCase = true) ||
             metric.equals("cycle count", ignoreCase = true) ) {
@@ -585,26 +524,6 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         // Property is fixed as position
         bottle.jointDynamicProperty = JointDynamicProperty.ANGLE
         bottle.value = ctx.Value().getText().toDouble()
-        return null
-    }
-
-    // Get a list of either static or dynamic motor parameters. The return is in JSON format.
-    // List your static motor parameters
-    // List the dynamic properties of your motors
-    override fun visitParameterListQuestion(ctx: SpeechSyntaxParser.ParameterListQuestionContext): Any? {
-        bottle.type = RequestType.JSON
-        if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
-        if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
-        return null
-    }
-    // Get a comma-separated list of either static or dynamic motor property names.
-    // What are the names of your static motor parameters
-    // What are the names the dynamic properties of your motors
-    override fun visitParameterNamesQuestion(ctx: SpeechSyntaxParser.ParameterNamesQuestionContext): Any? {
-        bottle.type = RequestType.JSON
-        bottle.metric = MetricType.LIST
-        if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
-        if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
         return null
     }
 
@@ -787,7 +706,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     // why do you wear mittens
     override fun visitWhyMittens(ctx: SpeechSyntaxParser.WhyMittensContext): Any? {
-        bottle.type = RequestType.GET_METRIC
+        bottle.type = RequestType.METRIC
         bottle.metric =  MetricType.MITTENS
         return null
     }
@@ -808,6 +727,41 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
 
     //===================================== Helper Methods ======================================
+    // Return TRUE if the phrase should be interpreted as one of the fixed commands. If so, update the
+    // request bottle appropriately.
+    private fun determineCommandFromPhrase(cmd: String): Boolean {
+        val phrase = cmd.lowercase()
+        var success = true
+        if (phrase == "die" || phrase == "exit" || phrase == "halt" || phrase == "quit" || phrase == "stop") {
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.HALT
+        }
+        else if (phrase.startsWith("ignore") || phrase.equals("go to sleep",ignoreCase = true) ||
+            phrase.startsWith("sleep")) {
+            sharedDictionary[SharedKey.ASLEEP] = "true"
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.SLEEP
+        }
+        else if (phrase.startsWith("pay attention") || phrase.equals("wake up", ignoreCase = true)) {
+            sharedDictionary[SharedKey.ASLEEP] = "false"
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.WAKE
+        }
+        else if (phrase == "power off" || phrase == "shut down" || phrase == "shutdown") {
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.SHUTDOWN
+        }
+        else if (phrase.startsWith("straighten")) {
+            bottle.type = RequestType.EXECUTE_POSE
+            bottle.arg = ConfigurationConstants.POSE_HOME
+            bottle.value = ConfigurationConstants.POSE_HOME_INDEX
+            sharedDictionary[SharedKey.POSE] = ConfigurationConstants.POSE_HOME
+        }
+        else {
+            success = false
+        }
+        return success
+    }
     // Determine the specific end effector (appendage) from the body part and side. (Side is not always needed).
     // @param bodyPart - appendage (uppercase)
     private fun determineEndEffector(appendage: String, side: String): Appendage {
@@ -837,43 +791,16 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         return result
     }
-
-    // Return TRUE if the phrase should be interpreted as one of the fixed commands. If so, update the 
-    // request bottle appropriately.
-    private fun determineCommandFromPhrase(cmd: String): Boolean {
-        val phrase = cmd.lowercase()
-        var success = true
-        if (phrase == "die" || phrase == "exit" || phrase == "halt" || phrase == "quit" || phrase == "stop") {
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.HALT
-        }
-        else if (phrase.startsWith("ignore") || phrase.equals("go to sleep",ignoreCase = true) ||
-                 phrase.startsWith("sleep")) {
-            sharedDictionary[SharedKey.ASLEEP] = "true"
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.SLEEP
-        }
-        else if (phrase.startsWith("pay attention") || phrase.equals("wake up", ignoreCase = true)) {
-            sharedDictionary[SharedKey.ASLEEP] = "false"
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.WAKE
-        }
-        else if (phrase == "power off" || phrase == "shut down" || phrase == "shutdown") {
-            bottle.type = RequestType.COMMAND
-            bottle.command = CommandType.SHUTDOWN
-        }
-        else if (phrase.startsWith("straighten")) {
-            bottle.type = RequestType.EXECUTE_POSE
-            bottle.arg = ConfigurationConstants.POSE_HOME
-            bottle.value = ConfigurationConstants.POSE_HOME_INDEX
-            sharedDictionary[SharedKey.POSE] = ConfigurationConstants.POSE_HOME
+    // Set the request type for an enumeration
+    private fun determineJsonOrList(text: String, msg: MessageBottle) {
+        if (text.equals("download", ignoreCase = true))  {
+            msg.type = RequestType.JSON
         }
         else {
-            success = false
+            msg.type = RequestType.METRIC
+            msg.metric = MetricType.LIST
         }
-        return success
     }
-
     // Determine the specific joint from the body part, side and axis. (The latter two are
     // not always needed). Side always lower case.
     private fun determineJoint(part: String, axs: String, side: String): Joint {
@@ -895,7 +822,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                 result = if (side.equals("left")) Joint.LEFT_ANKLE_Y else Joint.RIGHT_ANKLE_Y
         }
         else if (bodyPart.equals("BUST") || bodyPart.equals("CHEST")) {
-                result = if (axis.equals("x")) Joint.BUST_X else Joint.BUST_Y
+                result = if (axis.equals("x")) Joint.CHEST_X else Joint.CHEST_Y
         }
         else if( bodyPart.equals("IMU") ) {
             result = Joint.IMU

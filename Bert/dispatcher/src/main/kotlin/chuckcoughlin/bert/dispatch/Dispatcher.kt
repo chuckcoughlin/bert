@@ -398,7 +398,7 @@ class Dispatcher : Controller {
                 }
                 request.text = text
             }
-            else if (request.type.equals(RequestType.GET_METRIC)) {
+            else if (request.type.equals(RequestType.METRIC)) {
                 if(DEBUG)LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
                 val metric: MetricType = request.metric
                 var text = ""
@@ -632,7 +632,7 @@ class Dispatcher : Controller {
         if (request.type==RequestType.COMMAND ||
             request.type==RequestType.GET_EXTREMITY_DIRECTION||
             request.type==RequestType.GET_EXTREMITY_LOCATION ||
-            request.type==RequestType.GET_METRIC ||
+            request.type==RequestType.METRIC ||
             request.type==RequestType.HANGUP    ) {
             return true
         }

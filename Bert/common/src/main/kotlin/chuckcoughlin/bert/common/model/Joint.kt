@@ -11,7 +11,7 @@ import java.util.logging.Logger
  * These are the canonical names for the joints of the humanoid.
  */
 enum class Joint {
-    ABS_X, ABS_Y, ABS_Z, BUST_X, BUST_Y, NECK_Y, NECK_Z,
+    ABS_X, ABS_Y, ABS_Z,CHEST_X, CHEST_Y, NECK_Y, NECK_Z,
     LEFT_ANKLE_Y, LEFT_SHOULDER_Z, LEFT_ELBOW_Y, LEFT_HIP_X, LEFT_HIP_Y, LEFT_HIP_Z,
     LEFT_KNEE_Y, LEFT_SHOULDER_X, LEFT_SHOULDER_Y,
     RIGHT_ANKLE_Y, RIGHT_SHOULDER_Z, RIGHT_ELBOW_Y, RIGHT_HIP_X, RIGHT_HIP_Y, RIGHT_HIP_Z,
@@ -31,8 +31,8 @@ enum class Joint {
                 ABS_X -> text = "abdomen x"
                 ABS_Y -> text = "abdomen y"
                 ABS_Z -> text = "abdomen z"
-                BUST_X -> text = "chest horizontal"
-                BUST_Y -> text = "chest vertical"
+                CHEST_X -> text = "chest horizontal"
+                CHEST_Y -> text = "chest vertical"
                 IMU -> text = "IMU"
                 NECK_Y -> text = "neck y"
                 NECK_Z -> text = "neck z"

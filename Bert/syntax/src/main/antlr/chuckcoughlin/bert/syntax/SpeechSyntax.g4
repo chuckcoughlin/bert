@@ -13,6 +13,7 @@ statement:
       command
 	| question
 	| declaration
+	| enumeration
 	;
 
 // Imperatives directing the robot to take an action
@@ -22,41 +23,40 @@ command:
 	| Describe Article? Adjective? Pose                                     # currentPoseDescription
 	| Greeting Greeting? Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					            # initializeJoints
-	| List Article? (Limits|Goals) Of Article? Side? Joint Axis?    		# handleBulkPropertyRequest
-	| List Article? Properties Of Article? Motors       	# handleListCommand
-	| List Article? Motor? Properties                   	# handleListCommand
-	| List Article? (Dynamic|Static) Motor? Parameters		# parameterListQuestion
-	| List Article? Location Article? Side? Limb		    # limbLocationList
-    | List Article? (Dynamic|Static) Parameters Of Article? Motors # parameterListQuestion
-    | List Article? Article? (Motors|Limbs|Appendages)      # bodyPartListQuestion
-    | List Article? Article? (Actions|Faces|Poses)          # databaseListQuestion
-    | Straighten (It|Article? Side? (Joint|Limb) Axis? )    # straightenJoint
-	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?       # moveMotor
-	| Salutation? Move Speed                                                   # setSpeed
-	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	   # enableTorque
+    | Straighten (It|Article? Side? (Joint|Limb) Axis? )                    # straightenJoint
+	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?    # moveMotor
+	| Salutation? Move Speed                                                # setSpeed
+	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	# enableTorque
     | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
 	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Unit?  # setMotorProperty
-	| Salutation? phrase                                    		            # handleArbitraryCommandOrResponse
+	| Salutation? phrase                                    		         # handleArbitraryCommandOrResponse
 	;
+
+enumeration:
+      enumerate Article? (Motors|Limbs|Appendages)                              # listBodyParts
+    | enumerate Article? (Actions|Faces|Poses)                                  # listDatabaseElements
+    | enumerate Article? (Limits|Goals) Of Article? Side? Joint Axis?    		# listLimits
+    | enumerate Article? Locations 	                                            # listLocations
+    | enumerate Article? (Dynamic|Static) Parameters Of Article? Motors         # listMotorParameters
+    | enumerate Article? (Dynamic|Static) Motor? Parameters		                # listMotorParameters
+    | enumerate  Article? Properties Of Article? Motors                         # listProperty
+    | enumerate Article? Motor? Properties                                      # listProperty
+    | What Actions Do You Know													# listActionNames
+    | What Poses Do You Know													# listPoseNames
+    | Where Are Article Motors													# listLocations
+    | Who Do You Know															# listFaceNames
+    ;
 
 // Request for information
 question:
-      Salutation?  How Attribute Are You 						# attributeQuestion
-    | Salutation?  Are You There					            # personalQuestion
-    | (What Are|Tell Me) Article? (Dynamic|Static) Motor? Parameters		# parameterNamesQuestion
-    | (What Are|Tell Me) Article? (Dynamic|Static) Parameters Of Article? Motors # parameterNamesQuestion
-    | (What Are|Tell Me) Article? Names Of Article? (Motors|Limbs|Appendages)    # bodyPartNamesQuestion
-    | (What Are|Tell Me) Article? Names Of Article? (Actions|Faces|Poses)             # databaseNamesQuestion
-    | (What Are|Tell Me) Article? (Limits|Goals) Of Article? Side? Joint Axis?        # handleBulkPropertyQuestion
-    | (What Are|Tell Me) Article? Side? Joint Axis? Property                          # jointPropertyQuestion
+      Salutation?  How Attribute Are You 						                # attributeQuestion
+    | Salutation?  Are You There					                            # personalQuestion
     | (What Is|Tell Me) Article? (Location|Bearing) Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
-    | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint   # jointPropertyQuestion
-    | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?   # jointPropertyQuestion
-    | (What Is|Tell Me) Article? Metric   				         # metricsQuestion
+    | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint                       # jointPropertyQuestion
+    | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?                  # jointPropertyQuestion
+    | (What Is|Tell Me) Article? Side? Joint Axis? Property                                   # jointPropertyQuestion
+    | (What Is|Tell Me) Article? Metric   				    # metricsQuestion
     | Where Is Article? Side? (Appendage|Joint) Axis?       # jointLocationQuestion
-    | What Actions Do You Know								# databaseActionNamesQuestion
-    | What Poses Do You Know								# databasePoseNamesQuestion
-    | Who Do You Know										# databaseFaceNamesQuestion
     | Why Do You Have Mittens								# whyMittens
 	;
 
@@ -76,6 +76,9 @@ declaration:
 	| Use phrase Poses? To Define phrase				# defineAction2
 	;
 
+// Commands to obtain attributes. Of these 'list' returns a JSON string. Otherwise values are comma-separated
+enumerate: (Download|List|What Are|Tell Me|Name) (Article Names Of)?;
+
 // Arbitrary string of words - inclue some key words. Digits are allowed only as a suffix to a word
 phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
     ;
@@ -83,7 +86,7 @@ phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|R
 // First is a list of terms that are used below or use words that appear elsewhere
 Are: 'are';
 Freeze: 'freeze'|'stiffen'|'tighten up'|'go rigid';
-Is: 'is'|'are';
+Is: 'is';
 Relax:'loosen up'|'relax'|'go limp';
 Why: 'why';
 
@@ -102,6 +105,7 @@ Bearing: 'bearing'|'direction';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
 Do: 'do';
+Download: 'download';
 Dynamic: 'dynamic';
 Faces: 'faces';
 Face: 'face';
@@ -122,7 +126,7 @@ Limbs:'limbs';
 // Note legs and arms must be modified by a side
 Limb: 'arm'|'head'|'leg'|'torso';
 Limits: 'limits';
-List: 'list';
+List: 'list'|'what are'|'tell me';
 Location: 'location';
 Me: 'me';
 Means: 'means';
@@ -133,6 +137,7 @@ Motor: 'device'|'joint'|'motor';
 Move: 'bend'|'go'|'move'|'turn';
 My: 'my';
 Names: 'names';
+Name: 'name';
 Of: 'of'|'for';
 Off: 'off'|'disabled';
 On: 'on'|'enabled';

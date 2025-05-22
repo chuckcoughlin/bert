@@ -100,14 +100,14 @@
 		<source joint="ABS_Y" />
 	</link>
 	<link name="SPINE">
-		<joint name="BUST_X"
+		<joint name="CHEST_X"
 			   xyz="-2.8 -79.85 0.0"  rpy="90. 0. 0." home="180.0"/>
 		<source joint="ABS_Z" />
 	</link>
 	<link name="THORACIC">
-		<joint name="BUST_Y"
+		<joint name="CHEST_Y"
 			   xyz="0.0 0.0 -8.0" rpy="0. 180. 0." home="180.0"/>
-		<source joint="BUST_X"/>
+		<source joint="CHEST_X"/>
 	</link>
 	<link name="CERVICAL">
 		<joint name="NECK_Z"
@@ -116,7 +116,7 @@
 			   xyz="-4.0 -77.1 50.0"  rpy="0. 0. 0." home="0.0"/>
 		<joint name="RIGHT_SHOULDER_Y"
 			   xyz="-4.0 77.1 50.0"  rpy="0. 0. 0." home="0.0"/>
-		<source joint="BUST_Y" />
+		<source joint="CHEST_Y" />
 	</link>
 	<link name="NECK">
 		<joint name="NECK_Y"      home="0.0"

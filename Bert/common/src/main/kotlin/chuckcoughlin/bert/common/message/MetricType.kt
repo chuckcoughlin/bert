@@ -6,9 +6,9 @@ package chuckcoughlin.bert.common.message
 
 /**
  * These quantities are attributes of the robot as a whole
- * and are not derived from motor values. If the type is "LIST",
- * then the JSON_TYPE is used to return a comma-separated list
- * of names
+ * and are not derived from motor values. A type of "LIST"
+ * is a marker for the contents as a comma-separated list
+ * of names. The exact list determined by the JsonType
  */
 enum class MetricType {
     AGE, CADENCE, CYCLECOUNT, CYCLETIME, DUTYCYCLE,
