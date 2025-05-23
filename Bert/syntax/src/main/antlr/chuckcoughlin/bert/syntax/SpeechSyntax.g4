@@ -6,7 +6,7 @@
  */
 grammar SpeechSyntax;
 
-/** Initial rule, begin parsing */
+/** Parser entry point */
 line: statement EOF;
 
 statement:
@@ -32,11 +32,12 @@ command:
 	| Salutation? phrase                                    		         # handleArbitraryCommandOrResponse
 	;
 
+// Lists of various attributes
 enumeration:
       enumerate Article? (Motors|Limbs|Appendages)                              # listBodyParts
     | enumerate Article? (Actions|Faces|Poses)                                  # listDatabaseElements
     | enumerate Article? (Limits|Goals) Of Article? Side? Joint Axis?    		# listLimits
-    | enumerate Article? Locations 	                                            # listLocations
+    | enumerate Article? (Joint|Limb) Locations 	                            # listLocations
     | enumerate Article? (Dynamic|Static) Parameters Of Article? Motors         # listMotorParameters
     | enumerate Article? (Dynamic|Static) Motor? Parameters		                # listMotorParameters
     | enumerate  Article? Properties Of Article? Motors                         # listProperty
@@ -93,7 +94,7 @@ Why: 'why';
 // Pardon the license taken with some of these categories ...
 Actions: 'actions';
 Action: 'action';
-Article: 'a'|'an'|'the'|'this'|'that'|'your';
+Article: 'a'|'an'|'the'|This|'that'|'your';
 Adjective: 'current';
 Appendages: 'appendages'|'end effectors';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'hand'|'heel'|'nose'|'toe';
@@ -127,10 +128,11 @@ Limbs:'limbs';
 Limb: 'arm'|'head'|'leg'|'torso';
 Limits: 'limits';
 List: 'list'|'what are'|'tell me';
+Locations: 'locations';
 Location: 'location';
 Me: 'me';
 Means: 'means';
-Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|'name';
+Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|Name;
 Mittens: 'mittens';
 Motors: 'devices'|'joints'|'motors';
 Motor: 'device'|'joint'|'motor';
@@ -176,7 +178,6 @@ COLON: ':';
 DECIMAL: DASH? DIGIT* PERIOD DIGIT*;
 INTEGER: DASH?DIGIT+;
 NAME:   ALPHA+ (DASH|PERIOD)? DIGIT*;
-
 
 // Fragments are never evaluated,
 // nor can they appear in an evaluated expression
