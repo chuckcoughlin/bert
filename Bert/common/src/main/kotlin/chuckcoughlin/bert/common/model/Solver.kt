@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Quaternion
+import chuckcoughlin.bert.common.model.Solver.model
 import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
@@ -88,49 +89,37 @@ object Solver {
     }
 
     /**
-     */
-    fun appendageLocationToJSON(appendage:Appendage):String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val loc = AppendageLocation(appendage,computeLocation(appendage))
-        return gson.toJson(loc)
-    }
-
-    /**
      *
      */
-    fun limbLocationsToJSON(limb:Limb):String {
+    fun linkLocationsToJSON():String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val list = mutableListOf<Location>()
-        // If the limb type is NONE, get all locations.
-        if( limb==Limb.NONE ) {
-            fillLocations(list)
-        }
-        else {
-            for(mc:MotorConfiguration in RobotModel.motorsByJoint.values) {
-                val lim = mc.limb
-                if( lim==limb ) {
-
-                }
-            }
-        }
+        val list = mutableListOf<LinkLocation>()
+        fillLocations(list)
         return gson.toJson(list)
     }
 
     /**
      * Populate a list of locations for all joints and extremities
+     * NOTE: There must be a more effecient way of doing this.
      */
-    private fun fillLocations(list:MutableList<Location>) {
-        for(joint in Joint.values()) {
-            if(joint!=Joint.NONE) {
-                val loc = JointLocation(joint,computeLocation(joint))
-                list.add(loc)
-            }
+    private fun fillLocations(list:MutableList<LinkLocation>) {
+        for(link in URDFModel.linkForAppendage.values) {
+            val loc = LinkLocation()
+            loc.updateFromLink(link)
+            var pos = computeLocation(link.sourcePin.joint)
+            loc.updateSource(pos)
+            pos = computeLocation(link.endPin.appendage)
+            loc.updateEnd(pos)
+            list.add(loc)
         }
-        for(appendage in Appendage.values()) {
-            if(appendage!=Appendage.NONE) {
-                val loc = AppendageLocation(appendage,computeLocation(appendage))
-                list.add(loc)
-            }
+        for(link in URDFModel.linkForJoint.values) {
+            val loc = LinkLocation()
+            loc.updateFromLink(link)
+            var pos = computeLocation(link.sourcePin.joint)
+            loc.updateSource(pos)
+            pos = computeLocation(link.endPin.joint)
+            loc.updateEnd(pos)
+            list.add(loc)
         }
     }
 

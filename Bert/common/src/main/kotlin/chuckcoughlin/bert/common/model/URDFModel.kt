@@ -62,6 +62,7 @@ object URDFModel {
             // Create all the Links and their LinkPins. A LinkPin encompasses the connecting joint.
             // Create a separate link for each resolute joint and end effector.
             // The URDF file has all angles in degrees. Convert to radians.
+            //
             val links = document!!.getElementsByTagName("link")
             val count = links.length
             var index = 0
@@ -91,8 +92,10 @@ object URDFModel {
                     while (aindex < acount) {
                         val node = children.item(aindex)
                         if ("appendage".equals(node.localName)) {
-                            val link = Link(name)
                             val aname: String = XMLUtility.attributeValue(node, "name")
+                            val link = Link(aname)
+                            val side: String = XMLUtility.attributeValue(node, "side")
+                            link.side = Side.fromString(side)
                             val appendage: Appendage = Appendage.fromString(aname)
                             val pin = LinkPin(PinType.END_EFFECTOR)
                             pin.appendage = appendage
@@ -105,8 +108,10 @@ object URDFModel {
                             linkForAppendage[appendage] = link
                         }
                         else if ("joint".equals(node.localName)) {
-                            val link = Link(name)
                             val jname: String = XMLUtility.attributeValue(node, "name")
+                            val link = Link(jname)
+                            val side: String = XMLUtility.attributeValue(node, "side")
+                            link.side = Side.fromString(side)
                             val joint = Joint.fromString(jname)
                             val pin = LinkPin(PinType.REVOLUTE)
                             pin.joint = joint

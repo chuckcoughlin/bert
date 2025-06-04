@@ -404,7 +404,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     // where are your joints
     override fun visitListLocations(ctx: SpeechSyntaxParser.ListLocationsContext): Any? {
         determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
-        bottle.jtype = JsonType.LIMB_LOCATIONS
+        bottle.jtype = JsonType.LINK_LOCATIONS
         return null
     }
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.

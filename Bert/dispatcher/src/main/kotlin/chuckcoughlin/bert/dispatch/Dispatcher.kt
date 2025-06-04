@@ -490,9 +490,6 @@ class Dispatcher : Controller {
                 var text = ""
                 when (jtype) {
                     // List the names of different kinds of motor properties
-                    JsonType.END_EFFECTORLOCATION-> {
-                        text = Solver.appendageLocationToJSON(request.appendage)
-                    }
                     JsonType.END_EFFECTOR_NAMES -> {
                         text = URDFModel.endEffectorNamesToJSON()
                     }
@@ -516,7 +513,6 @@ class Dispatcher : Controller {
                     JsonType.JOINT_ORIENTATIONS -> {
                         text = RobotModel.orientationsToJSON()
                     }
-
                     JsonType.JOINT_POSITIONS -> {
                         text = RobotModel.anglesToJSON()
                     }
@@ -544,15 +540,12 @@ class Dispatcher : Controller {
                     JsonType.JOINT_TYPES -> {
                         text = RobotModel.typesToJSON()
                     }
-
-                    JsonType.LIMB_LOCATIONS -> {
-                        text = Solver.limbLocationsToJSON(request.limb)
+                    JsonType.LINK_LOCATIONS -> {
+                        text = Solver.linkLocationsToJSON()
                     }
-
                     JsonType.LIMB_NAMES -> {
                         text = RobotModel.limbsToJSON()
                     }
-
                     JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
                         text = JointDynamicProperty.toJSON()
                     }
@@ -563,6 +556,10 @@ class Dispatcher : Controller {
 
                     JsonType.MOTOR_LIMITS -> {
                         text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
+                    }
+
+                    JsonType.MOTOR_PROPERTIES -> {
+                        text = RobotModel.propertiesToJSON()
                     }
 
                     JsonType.MOTOR_STATIC_PROPERTIES -> {

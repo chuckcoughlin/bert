@@ -19,11 +19,18 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import chuckcoughlin.bertspeak.data.JsonDataObserver
+import chuckcoughlin.bertspeak.common.DispatchConstants
+import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JsonType.FACE_NAMES
+import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
+import chuckcoughlin.bertspeak.data.StatusData
+import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
+import chuckcoughlin.bertspeak.service.ManagerState
+import chuckcoughlin.bertspeak.service.ManagerType
 import chuckcoughlin.bertspeak.ui.adapter.TextListAdapter
 import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
@@ -38,7 +45,7 @@ import java.util.concurrent.Executors
  * This fragment presents the front camera output and attempts to identify the primary face
  * association it with "the operator".
  */
-class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
+class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonObserver, StatusObserver {
     override val name: String
 
     private val detector: FaceDetector
@@ -73,7 +80,6 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
 
     override fun onDestroy() {
         super.onDestroy()
-
     }
     /**
      *
@@ -81,13 +87,14 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
     override fun onStart() {
         super.onStart()
         startCamera()
-        DispatchService.registerForData(this)
-        DispatchService.sendRequest("list your faces")
+        DispatchService.registerForStatus(this)
+        DispatchService.registerForJson(this)
     }
 
     override fun onStop() {
         super.onStop()
-        DispatchService.unregisterForData(this)
+        DispatchService.unregisterForStatus(this)
+        DispatchService.unregisterForJson(this)
         cameraExecutor.shutdown()
     }
 
@@ -146,7 +153,7 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
         Log.i(name, "Delete button clicked")
 
     }
-    //========================= JsonDataObserver =====================================
+    //========================= JsonObserver =====================================
     override fun resetItem(map:Map<JsonType,String>) {
         var json = map.get(FACE_NAMES)
         adapter.clear()
@@ -160,19 +167,37 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonDataObserver {
         }
     }
 
-    override fun updateItem(map:Map<JsonType,String>) {
-        var json = map.get(FACE_NAMES)
+    override fun updateItem(type:JsonType,json:String) {
         adapter.clear()
-        if( json!=null && !json.isEmpty() ) {
-            val list = gson.fromJson(json, MutableList::class.java) as MutableList<*>
-            val stringList = mutableListOf<String>()
-            for(data in list) {
-                stringList.add(data.toString())
+        if( type==JsonType.FACE_NAMES ) {
+            if( !json.isEmpty()) {
+                val list = gson.fromJson(json, MutableList::class.java) as MutableList<*>
+                val stringList = mutableListOf<String>()
+                for(data in list) {
+                    stringList.add(data.toString())
+                }
+                adapter.addAll(stringList)
             }
-            adapter.addAll(stringList)
+        }
+    }
+    // ===================== StatusDataObserver =====================
+    override fun resetStatus(list: List<StatusData>) {
+        for (ddata in list) {
+            updateStatus(ddata)
         }
     }
 
+    /**
+     * When the SocketManager comes online, request a list of known faces.
+     */
+    override fun updateStatus(data: StatusData) {
+        Log.i(name, String.format("update (%s):%s = %s",data.action,data.type,data.state))
+        if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
+            if( data.type== ManagerType.SOCKET && data.state== ManagerState.ACTIVE ) {
+                DispatchService.sendJsonRequest(FACE_NAMES)
+            }
+        }
+    }
     class ImageCaptureCallback(detect: FaceDetector): ImageCapture.OnImageCapturedCallback() {
         val detector = detect
 

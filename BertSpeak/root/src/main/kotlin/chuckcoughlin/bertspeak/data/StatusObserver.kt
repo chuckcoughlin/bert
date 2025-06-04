@@ -9,7 +9,7 @@ package chuckcoughlin.bertspeak.data
  * and other changes within the various managers. Recipients should
  * filter on DispatchData action.
  */
-interface StatusDataObserver {
+interface StatusObserver {
     /**
      * Allow only one observer of a given name. This is the observer key
      * @return the name of the observer

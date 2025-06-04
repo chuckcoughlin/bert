@@ -13,12 +13,11 @@ package chuckcoughlin.bert.common.message
  *
  * The Json type is followed by a space before the remainder of the message
  * in Json format. Refer to the commentary below for the data object that
- * corresponsd to each type
+ * corresponds to each type
  */
 enum class JsonType {
     ACTION_NAMES,     // List of actions                     MutableList<String>
-    END_EFFECTORLOCATION, // x,y,z coordinates of an appendage AppendageLocation
-    END_EFFECTOR_NAMES,  // List of end effector names              MutableList<String>
+    END_EFFECTOR_NAMES,  // List of end effector names    MutableList<String>
     FACIAL_DETAILS,   // Facial identification features   FacialDetails
     FACE_DIRECTION,   // Angular direction of view        FaceDirection
     FACE_NAMES,       // Names df people whom we know     MutableList<String>
@@ -33,12 +32,13 @@ enum class JsonType {
     JOINT_TEMPERATURES,// Motor temps for each joint      MutableList<JointValue>
     JOINT_TYPES,      // Motor type for each joint        MutableList<JointAttribute>
     JOINT_VOLTAGES,   // Motor volts for each joint       MutableList<JointValue>
-    LIMB_LOCATIONS,   // x,y,z coordinates for each joint MutableList<JointLocation>
     LIMB_NAMES,       // List of limb names               MutableList<String>
+    LINK_LOCATIONS,   // x,y,z coordinates for each link  MutableList<LinkLocation>
     MOTOR_DYNAMIC_PROPERTIES, // Names of dynamic motor properties  MutableList<String>
     MOTOR_STATIC_PROPERTIES,  // Names of static motor properties    MutableList<String>
     MOTOR_GOALS,      // Position goals for a specific joint         MutableList<JointPropertyValue>
     MOTOR_LIMITS,     // Motor limits for a specific joint           MutableList<JointPropertyValue>
+    MOTOR_PROPERTIES, // Dynamic properties for all motors           MutableList<JointPropertyHolder>
     POSE_DETAILS,     // Details df named pose                       MutableList<PoseDetail>
     POSE_NAMES,       // Names df defined poses                      MutableList<String>
     UNDEFINED

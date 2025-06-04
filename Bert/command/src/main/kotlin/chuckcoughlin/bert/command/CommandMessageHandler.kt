@@ -100,10 +100,10 @@ class CommandMessageHandler(sock: Socket)  {
         var msg = MessageBottle(RequestType.NONE)
         if( txt!=null && txt.length > BottleConstants.HEADER_LENGTH ) {
             val hdr  = txt.substring(0, BottleConstants.HEADER_LENGTH - 1)
-            var text = txt.substring(BottleConstants.HEADER_LENGTH)
+            val text = txt.substring(BottleConstants.HEADER_LENGTH)  // Possibly empty
             LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
+            // We've stripped the header now analyze the rest.
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
-                // We've stripped the header now analyze the rest.
                 try {
                     if(DEBUG) LOGGER.info(String.format(" parsing %s: %s", hdr,text))
                     msg = parser.parseStatement(text)
@@ -114,15 +114,17 @@ class CommandMessageHandler(sock: Socket)  {
                     msg.error = String.format("Parse failure (%s) on: %s", ex.localizedMessage, msg.type.name)
                 }
             }
+            // NOTE: An empty json string implies a request of the specified type
             else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
-                val index = text.indexOf(" ")
+                val index = text.indexOf("#")
                 if( index>0 ) {
                     val type = text.substring(0,index)
                     val jtype = JsonType.fromString(type)
                     if( jtype!=JsonType.UNDEFINED) {
                         LOGGER.info(String.format(" parsing JSN: %s", text))
-                        text = text.substring(index+1)
-                        msg = JsonMessageHandler.handleJson(jtype,text)
+                        var json = ""
+                        if(txt.length>index+1) json = txt.substring(index+1)
+                        msg = JsonMessageHandler.handleJson(jtype,json)
                     }
                     else {
                         msg.error = String.format("JSON message from the tablet was of unknown type - %s",type)

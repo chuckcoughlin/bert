@@ -16,7 +16,9 @@ import java.util.logging.Logger
 
 /**
  * Handle a JSON message from the tablet. This is a
- * direct tablet-to-robot interaction.
+ * direct tablet-to-robot interaction. A JSON message
+ * with no body is interpreted as a request for the
+ * indicated data type.
  */
 object JsonMessageHandler  {
     private val gson: Gson
@@ -25,6 +27,9 @@ object JsonMessageHandler  {
     /**
      * We have received a JsonString. Analyze it and create a response message.
      * Ultimately, the response text is bundled into a message to the tablet.
+     *
+     * For many JsonTypes, the incoming message is simply treated as a request
+     * to fill in the indicated data type.
      *
      * @param response
      * @return true on success
@@ -38,6 +43,18 @@ object JsonMessageHandler  {
         else if( type == JsonType.FACE_DIRECTION) {
             val fd = gson.fromJson(json, FaceDirection::class.java)
             msg = FaceMessageHandler.handleDirection(fd)
+        }
+        else if( type == JsonType.FACE_NAMES) {
+            msg = FaceMessageHandler.getFaceNames()
+        }
+        else if( type == JsonType.LIMB_NAMES) {
+            msg = LocationMessageHandler.getLimbNames()
+        }
+        else if( type == JsonType.LINK_LOCATIONS) {
+            msg = LocationMessageHandler.getLinkLocations()
+        }
+        else if( type == JsonType.MOTOR_PROPERTIES) {
+            msg = PropertiesMessageHandler.getMotorProperties()
         }
         else {
             msg.error = String.format("data message type \"%s\" not handled",type.name)

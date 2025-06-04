@@ -42,7 +42,7 @@
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size" />
 
-        <chuckcoughlin.bertspeak.ui.animate.AnimationView
+        <chuckcoughlin.bertspeak.tab.AnimationView
             android:id="@+id/animation_view_left"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -72,7 +72,7 @@
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size" />
 
-        <chuckcoughlin.bertspeak.ui.animate.AnimationView
+        <chuckcoughlin.bertspeak.tab.AnimationView
             android:id="@+id/animation_view_front"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -102,7 +102,7 @@
             android:textAlignment="center"
             android:textSize="@dimen/cover_parameter_text_size" />
 
-        <chuckcoughlin.bertspeak.ui.animate.AnimationView
+        <chuckcoughlin.bertspeak.tab.AnimationView
             android:id="@+id/animation_view_right"
             android:layout_width="match_parent"
             android:layout_height="0dp"

@@ -6,7 +6,7 @@ package chuckcoughlin.bertspeak.service
 
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.data.StatusData
-import chuckcoughlin.bertspeak.data.StatusDataObserver
+import chuckcoughlin.bertspeak.data.StatusObserver
 
 /**
  * The status manager keeps track of the status of the managers within the
@@ -18,7 +18,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
     override val managerType = ManagerType.STATUS
     override var managerState = ManagerState.OFF
     private val map: MutableMap<ManagerType, ManagerState>
-    private val observers: MutableMap<String, StatusDataObserver>
+    private val observers: MutableMap<String, StatusObserver>
 
     override fun start() {
     }
@@ -31,7 +31,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
      * @param observer
      */
     @Synchronized
-    fun register(observer: StatusDataObserver) {
+    fun register(observer: StatusObserver) {
         observers[observer.name] = observer
         val list: MutableList<StatusData> = ArrayList()
         for (type in map.keys) {
@@ -41,7 +41,7 @@ class StatusManager(service:DispatchService): CommunicationManager {
         observer.resetStatus(list)
     }
     @Synchronized
-    fun unregister(observer: StatusDataObserver) {
+    fun unregister(observer: StatusObserver) {
         observers.remove(observer.name)
     }
 
@@ -90,6 +90,6 @@ class StatusManager(service:DispatchService): CommunicationManager {
         map[ManagerType.HEARING] = ManagerState.OFF
         map[ManagerType.STATUS] = ManagerState.ACTIVE
         map[ManagerType.TEXT] = ManagerState.OFF
-        observers = mutableMapOf<String,StatusDataObserver>()
+        observers = mutableMapOf<String,StatusObserver>()
     }
 }

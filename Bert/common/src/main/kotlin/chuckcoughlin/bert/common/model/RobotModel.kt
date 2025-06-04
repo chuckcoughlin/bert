@@ -332,6 +332,18 @@ object RobotModel {
         }
         return gson.toJson(names)
     }
+    /**
+     * @return  a JSON pretty-printed String array of properties for all joints
+     */
+    fun propertiesToJSON(): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var holders = mutableListOf<JointPropertyHolder>()
+        for (mc in motorsByJoint.values) {
+            val holder = JointPropertyHolder(mc.joint.name,mc.angle,mc.speed,mc.load,mc.temperature,mc.maxSpeed,mc.maxTorque)
+            holders.add(holder)
+        }
+        return gson.toJson(holders)
+    }
 
     /** @return  a JSON pretty-printed String array of offset settings for all joints.*/
     fun offsetsToJSON(): String {

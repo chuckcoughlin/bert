@@ -5,9 +5,6 @@
 package chuckcoughlin.bertspeak.tab
 
 
-import android.app.Activity
-import android.app.ActivityManager
-import android.content.Context
 import android.graphics.Color
 import android.media.audiofx.Visualizer
 import android.media.audiofx.Visualizer.OnDataCaptureListener
@@ -27,7 +24,7 @@ import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.SettingsObserver
 import chuckcoughlin.bertspeak.data.StatusData
-import chuckcoughlin.bertspeak.data.StatusDataObserver
+import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.databinding.FragmentCoverBinding
@@ -47,7 +44,7 @@ import kotlin.math.roundToInt
  * This fragment presents a static "cover" with a waveform view of the voice signal
  * plus a volume bar. There are three status sbuttons: Connect, Listen, Speak
  */
-class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,StatusDataObserver,
+class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,StatusObserver,
                                 LogDataObserver,
                                 OnClickListener,OnDataCaptureListener,OnSeekBarChangeListener {
 

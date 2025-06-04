@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Quaternion
-import chuckcoughlin.bert.common.model.IMU.quaternion
 import java.util.logging.Logger
 
 /**
@@ -28,7 +27,7 @@ import java.util.logging.Logger
  * Multiple links may have the same source, indicating they are on the same physical
  * skeletal piece.
  *
- * @param name link name
+ * @param name link name - either the appendage or joint name
  */
 class Link( val name:String ) {
     val quaternion: Quaternion
@@ -39,6 +38,7 @@ class Link( val name:String ) {
     private var rotation:DoubleArray
     var endPin:    LinkPin
     var sourcePin: LinkPin
+    var side:Side
 
     // ~mm
     fun setCoordinates(x:Double,y:Double,z:Double) {
@@ -113,5 +113,6 @@ class Link( val name:String ) {
         quaternion = Quaternion()
         endPin = LinkPin(PinType.ORIGIN)     // Must be configured
         sourcePin = LinkPin(PinType.ORIGIN)  // Origin until set otherwise.
+        side = Side.FRONT
     }
 }

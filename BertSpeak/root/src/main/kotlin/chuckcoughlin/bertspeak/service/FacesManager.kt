@@ -28,7 +28,6 @@ class FacesManager (service:DispatchService): CommunicationManager {
     override val managerType = ManagerType.FACES
     override var managerState = ManagerState.OFF
     private var faceList: MutableList<String>    // Names of face owners
-    private val faceObservers: MutableMap<String, TextObserver>
 
     override fun start() {
     }
@@ -82,26 +81,6 @@ class FacesManager (service:DispatchService): CommunicationManager {
     }
 
     /**
-     * When a new log observer is registered, send a link to this manager.
-     * The observer can then initialize its list, if desired. The manager
-     * reference should be cleared on "unregisterSettingsObserver".
-     * @param observer
-     */
-    fun register(observer: TextObserver) {
-        faceObservers[observer.name] = observer
-        observer.resetList(faceList)
-    }
-
-    fun unregister(observer: TextObserver) {
-        for( key in faceObservers.keys ) {
-            if( !observer.equals(faceObservers.get(key)) ) {
-                faceObservers.remove(key,observer)
-                break
-            }
-        }
-    }
-
-    /**
      * Use the difference in size between screen and bounding box to
      * infer a distance from screen. Then use difference in centers
      * of screen and bounding box to infer a direction. Compare widths.
@@ -124,11 +103,6 @@ class FacesManager (service:DispatchService): CommunicationManager {
 
         return faceDirection
     }
-    private fun initializeObservers() {
-        for (observer in faceObservers.values) {
-            observer.resetList(faceList)
-        }
-    }
 
     /** convert the coordinates of a point to reference the
      * bounding box instead of the entire image.
@@ -139,15 +113,6 @@ class FacesManager (service:DispatchService): CommunicationManager {
         x = x/bb.width()
         y = y/bb.height()
         return Point2D(x,y)
-    }
-    /**
-     * Notify observers regarding receipt of a new current face
-     */
-    private fun notifyObservers(index:Int) {
-        Log.i(CLSS, String.format("notifyObservers: %d", index))
-        for (observer in faceObservers.values) {
-            observer.selectItem(index)
-        }
     }
 
     private val CLSS = "FacesManager"
@@ -168,6 +133,5 @@ class FacesManager (service:DispatchService): CommunicationManager {
      */
     init {
         faceList     = mutableListOf<String>()
-        faceObservers = mutableMapOf<String, TextObserver>()
     }
 }

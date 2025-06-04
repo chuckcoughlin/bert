@@ -14,7 +14,8 @@ import java.util.logging.Logger
  * only rotations. The origin is fixed at (0,0,0)
  */
 object IMU {
-    
+    val name:String
+
     val quaternion = Quaternion()
         get() = field
 
@@ -54,6 +55,7 @@ object IMU {
     private val DEBUG: Boolean
 
     init {
+        name = CLSS
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
     }
 }

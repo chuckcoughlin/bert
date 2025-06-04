@@ -1,24 +1,30 @@
 /**
- * Copyright 2024 Charles Coughlin. All rights reserved.
+ * Copyright 2024-2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
 
-import android.util.Log
-import chuckcoughlin.bertspeak.data.GeometryData
-import chuckcoughlin.bertspeak.data.JsonData
-import chuckcoughlin.bertspeak.data.GeometryDataObserver
+import android.graphics.drawable.shapes.Shape
+import chuckcoughlin.bertspeak.data.JsonObserver
+import chuckcoughlin.bertspeak.data.JsonType
+import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
+import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.LinkShapeObserver
+import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
- * The geometry manager receives positional information from the robot
- * and converts it for display by the animation fragment.
+ * The geometry manager receives link location information from the robot
+ * and converts it into a Shape for display by the animation fragment.
  */
-class GeometryManager (service:DispatchService): CommunicationManager {
+class GeometryManager (service:DispatchService): CommunicationManager,JsonObserver {
+    override val name: String
     private val dispatcher = service
     override val managerType = ManagerType.GEOMETRY
     override var managerState = ManagerState.OFF
-    private var geometry : GeometryData  // Current geometry
-    private val geometryObservers: MutableMap<String, GeometryDataObserver>
+    private val shapeObservers: MutableMap<String, LinkShapeObserver>
+    private val gson: Gson
 
     override fun start() {}
     /**
@@ -28,54 +34,70 @@ class GeometryManager (service:DispatchService): CommunicationManager {
     override fun stop() {
     }
 
-    /**
-     * When a new log observer is registered, send a link to this manager.
-     * The observer can then initialize its list, if desired. The manager
-     * reference should be cleared on "unregisterSettingsObserver".
-     * @param observer
-     */
-    fun register(observer: GeometryDataObserver) {
-        geometryObservers[observer.name] = observer
-        observer.resetGeometry(geometry)
+    // ================ JsonObserver ======================
+    override fun resetItem(map: Map<JsonType, String>) {
+        val json = map[JsonType.LINK_LOCATIONS]
+        if( json!=null && !json.isEmpty() ) {
+            val skeleton = mutableListOf<LinkLocation>()
+            val locType = object : TypeToken<List<LinkLocation>>() {}.type
+            val list = gson.fromJson<List<LinkLocation>>(json,locType)
+            for(loc in list) {
+                skeleton.add(loc)
+            }
+            notifyObservers(skeleton)
+        }
     }
 
-    fun unregister(observer: GeometryDataObserver) {
-        for( key in geometryObservers.keys ) {
-            if( !observer.equals(geometryObservers.get(key)) ) {
-                geometryObservers.remove(key,observer)
+    override fun updateItem(type: JsonType, json: String) {
+        if( type==LINK_LOCATIONS ) {
+            if( !json.isEmpty() ) {
+                val skeleton = mutableListOf<LinkLocation>()
+                val locType = object : TypeToken<List<LinkLocation>>() {}.type
+                val list = gson.fromJson<List<LinkLocation>>(json,locType)
+                for(loc in list) {
+                    skeleton.add(loc)
+                }
+                notifyObservers(skeleton)
+            }
+        }
+    }
+    /**
+     * We keep a map of views that observe Shape changes.
+     * @param observer
+     */
+    fun registerShapeViewer(observer: LinkShapeObserver) {
+        shapeObservers[observer.name] = observer
+    }
+
+    fun unregisterShapeViewer(observer: LinkShapeObserver) {
+        for( key in shapeObservers.keys ) {
+            if( !observer.equals(shapeObservers.get(key)) ) {
+                shapeObservers.remove(key,observer)
                 break
             }
         }
     }
 
     private fun initializeObservers() {
-        for (observer in geometryObservers.values) {
-            observer.resetGeometry(geometry)
+        for (observer in shapeObservers.values) {
+            observer.resetGraphics()
         }
     }
 
     /**
-     * Notify log observers regarding receipt of a new message.
+     * Notify geometry observers regarding receipt of a new message.
      */
-    private fun notifyObservers(geom: GeometryData) {
-        for (observer in geometryObservers.values) {
-            observer.updateGeometry(geom)
+    private fun notifyObservers(skeleton:List<LinkLocation>) {
+        for (observer in shapeObservers.values) {
+            observer.updateGraphics(skeleton)
         }
     }
 
     private val CLSS = "GeometryManager"
 
-    /**
-     * There should only be one text manager. owned by the dispatch service.
-     * There are three queues:
-     * 1) Spoken text, both requests and responses
-     * 2) Logs
-     * 3) Table (only the most recent)
-     * When a subscriber first registers, the current queue to-date
-     * is sent.
-     */
     init {
-        geometry                 =  GeometryData("")
-        geometryObservers        = mutableMapOf<String, GeometryDataObserver>()
+        name = CLSS
+        shapeObservers  = mutableMapOf<String, LinkShapeObserver>()
+        gson = Gson()
     }
 }

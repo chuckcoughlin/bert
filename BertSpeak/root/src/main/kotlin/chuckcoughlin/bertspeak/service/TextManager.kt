@@ -8,12 +8,10 @@ import android.util.Log
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
-import chuckcoughlin.bertspeak.data.JsonData
-import chuckcoughlin.bertspeak.data.JsonDataObserver
+import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.data.LogDataObserver
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 
 /**
  * The text manager is a repository of text messages destined to be
@@ -36,7 +34,7 @@ class TextManager (service:DispatchService): CommunicationManager {
     private val dataMap: MutableMap<JsonType, String>
     private val logList: FixedSizeList<LogData>
     private val transcriptList: FixedSizeList<LogData>
-    private val dataObservers: MutableMap<String, JsonDataObserver>
+    private val jsonObservers: MutableMap<String, JsonObserver>
     private val logObservers: MutableMap<String, LogDataObserver>
     private val transcriptObservers: MutableMap<String, LogDataObserver>
 
@@ -91,7 +89,7 @@ class TextManager (service:DispatchService): CommunicationManager {
     @Synchronized
     fun processJson(tag: JsonType, json: String) {
         dataMap.put(tag,json)
-        notifyDataObservers()
+        notifyJsonObservers(tag,json)
     }
     /*
      * The text has any header needed for tablet-robot communication
@@ -117,13 +115,16 @@ class TextManager (service:DispatchService): CommunicationManager {
                 notifyTranscriptObservers(msg)
             }
             MessageType.JSN -> {
-                Log.i(CLSS, String.format("processText (%s): type should not be JSN", text))
+                val err = String.format("%s.processText: Unexpected JSN message (%s)",CLSS,text)
+                var msg = LogData(err,type)
+                logList.addFirst(msg)
+                notifyLogObservers(msg)
             }
         }
     }
     @Synchronized
-    fun registerDataViewer(observer: JsonDataObserver) {
-        dataObservers[observer.name] = observer
+    fun registerJsonViewer(observer: JsonObserver) {
+        jsonObservers[observer.name] = observer
     }
     /**
      * When a new log observer is registered, send a link to this manager.
@@ -150,10 +151,10 @@ class TextManager (service:DispatchService): CommunicationManager {
             }
         }
     }
-    fun unregisterDataViewer(observer: JsonDataObserver) {
-        for( key in dataObservers.keys ) {
-            if( dataObservers.get(key)!!.equals(observer) ) {
-                dataObservers.remove(key,observer)
+    fun unregisterJsonViewer(observer: JsonObserver) {
+        for( key in jsonObservers.keys ) {
+            if( jsonObservers.get(key)!!.equals(observer) ) {
+                jsonObservers.remove(key,observer)
                 break
             }
         }
@@ -173,7 +174,7 @@ class TextManager (service:DispatchService): CommunicationManager {
         }
     }
     private fun initializeDataObservers() {
-        for (observer in dataObservers.values) {
+        for (observer in jsonObservers.values) {
             observer.resetItem(dataMap)
         }
     }
@@ -194,9 +195,9 @@ class TextManager (service:DispatchService): CommunicationManager {
         }
     }
 
-    private fun notifyDataObservers() {
-        for (observer in dataObservers.values) {
-            observer.updateItem(dataMap)
+    private fun notifyJsonObservers(tag: JsonType, json: String) {
+        for (observer in jsonObservers.values) {
+            observer.updateItem(tag,json)
         }
     }
 
@@ -224,7 +225,7 @@ class TextManager (service:DispatchService): CommunicationManager {
         logList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
         transcriptList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
         logObservers        = mutableMapOf<String, LogDataObserver>()
-        dataObservers       = mutableMapOf<String, JsonDataObserver>()
+        jsonObservers       = mutableMapOf<String, JsonObserver>()
         transcriptObservers = mutableMapOf<String, LogDataObserver>()
     }
 }

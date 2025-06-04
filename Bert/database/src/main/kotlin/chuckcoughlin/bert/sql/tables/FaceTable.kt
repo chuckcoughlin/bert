@@ -183,7 +183,7 @@ class FaceTable {
                 }
             }
             catch (e: SQLException) {
-                LOGGER.severe(String.format("%s.faceNamesToJson: Error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.faceNamesToJSON: Error (%s)", CLSS, e.message))
             }
             finally {
                 if(rs != null) {

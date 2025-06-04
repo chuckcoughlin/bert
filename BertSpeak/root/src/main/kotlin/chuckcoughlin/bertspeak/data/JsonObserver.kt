@@ -10,7 +10,7 @@ package chuckcoughlin.bertspeak.data
  * Listeners are free to ignore data with tags that are not
  * of interest.
  */
-interface JsonDataObserver {
+interface JsonObserver {
     /**
      * Allow only one observer of a given name. This is the observer key
      * @return the name of the observer
@@ -27,7 +27,8 @@ interface JsonDataObserver {
 
     /**
      * Allow the observer to pick whatever type(s) are appropriate.
-     * @param map Json string by type
+     * @param type Json type
+     * @param json string
      */
-    fun updateItem(map:Map<JsonType,String>)
+    fun updateItem(type:JsonType,json:String)
 }

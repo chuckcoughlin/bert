@@ -6,15 +6,14 @@ package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
-import chuckcoughlin.bertspeak.data.GeometryDataObserver
-import chuckcoughlin.bertspeak.data.JsonDataObserver
+import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
-import chuckcoughlin.bertspeak.data.StatusDataObserver
+import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.data.LogDataObserver
+import chuckcoughlin.bertspeak.data.LinkShapeObserver
 import com.google.mlkit.vision.face.Face
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -161,15 +160,17 @@ class DispatchService(ctx: Context){
                 val hdr = txt.substring(0, BertConstants.HEADER_LENGTH)
                 val type = MessageType.valueOf(hdr.uppercase(Locale.getDefault()))
                 txt = txt.substring(BertConstants.HEADER_LENGTH + 1)
+                // # delimiter between type and JSON object
                 if( type==MessageType.JSN) {
-                    val index = txt.indexOf(" ")
+                    val index = txt.indexOf("#")
                     if( index>0 ) {
                         val tag = JsonType.valueOf(txt.substring(0,index))
-                        txt = txt.substring(index+1)
-                        textManager.processJson(tag,txt)
+                        var json = ""
+                        if(txt.length>index+1) json = txt.substring(index+1)
+                        textManager.processJson(tag,json)
                     }
                     else {
-                        Log.w(CLSS, String.format("receiveMessage: Unable to process tag (%s)", txt))
+                        Log.w(CLSS, String.format("receiveMessage: Unable to process JSON tag (%s)", txt))
                     }
                 }
                 else {
@@ -194,8 +195,21 @@ class DispatchService(ctx: Context){
     @OptIn(DelicateCoroutinesApi::class)
     fun reportJsonData(type: JsonType, json: String) {
         GlobalScope.launch(Dispatchers.IO) {
-            val msg = String.format("%s:%s %s",MessageType.JSN.name,type.name,json)
+            val msg = String.format("%s:%s#%s",MessageType.JSN.name,type.name,json)
             Log.i(CLSS, String.format("reportJsonData: %s", msg))
+            socketManager.receiveTextToSend(msg)
+        }
+    }
+
+    /**
+     * Send an empty JSON message to the robot. The expectation
+     * is a populated response of the same JsonType.
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun sendJsonRequest(type: JsonType) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val msg = String.format("%s:%s#",MessageType.MSG.name,type.name)
+            Log.i(CLSS, String.format("sendJsonRequest: %s", msg))
             socketManager.receiveTextToSend(msg)
         }
     }
@@ -213,8 +227,7 @@ class DispatchService(ctx: Context){
     }
 
     /**
-     * Search the text string for command that set the local
-     * "ignoring" state.
+     * Search the text for "ignore" or "attention" commands
      */
     private fun scanTextForLocalCommand(text:String):Boolean {
         var isLocal = false
@@ -243,20 +256,12 @@ class DispatchService(ctx: Context){
         lateinit var instance: DispatchService
 
         // Handle all the registrations
-        fun registerForData(obs: JsonDataObserver) {
-            instance.textManager.registerDataViewer(obs)
+        fun registerForJson(obs: JsonObserver) {
+            instance.textManager.registerJsonViewer(obs)
         }
 
-        fun unregisterForData(obs: JsonDataObserver) {
-            instance.textManager.unregisterDataViewer(obs)
-        }
-
-        fun registerForGeometry(obs: GeometryDataObserver) {
-            instance.geometryManager.register(obs)
-        }
-
-        fun unregisterForGeometry(obs: GeometryDataObserver) {
-            instance.geometryManager.unregister(obs)
+        fun unregisterForJson(obs: JsonObserver) {
+            instance.textManager.unregisterJsonViewer(obs)
         }
 
         fun registerForLogs(obs: LogDataObserver) {
@@ -267,11 +272,18 @@ class DispatchService(ctx: Context){
             instance.textManager.unregisterLogViewer(obs)
         }
 
-        fun registerForStatus(obs: StatusDataObserver) {
+        fun registerForShapes(obs: LinkShapeObserver) {
+            instance.geometryManager.registerShapeViewer(obs)
+        }
+
+        fun unregisterForShapes(obs: LinkShapeObserver) {
+            instance.geometryManager.unregisterShapeViewer(obs)
+        }
+        fun registerForStatus(obs: StatusObserver) {
             instance.statusManager.register(obs)
         }
 
-        fun unregisterForStatus(obs: StatusDataObserver) {
+        fun unregisterForStatus(obs: StatusObserver) {
             instance.statusManager.unregister(obs)
         }
 
@@ -291,6 +303,9 @@ class DispatchService(ctx: Context){
             instance.facesManager.reportFaceDetected(face)
         }
 
+        fun sendJsonRequest(type:JsonType) {
+            instance.sendJsonRequest(type)
+        }
         fun sendRequest(text:String) {
             instance.sendRequest(text)
         }

@@ -4,12 +4,12 @@
  */
 package chuckcoughlin.bert.speech.process
 
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.FaceDirection
 import chuckcoughlin.bert.common.model.FacialDetails
-import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.sql.db.SQLConstants
 import java.util.logging.Logger
@@ -36,6 +36,15 @@ object FaceMessageHandler  {
             LOGGER.warning(String.format("%s.associateNameWithFace: Tried to assign %s a face, but no details pending",CLSS,name))
         }
         return result
+    }
+    /**
+     *  Send a list of known face names
+     */
+    fun getFaceNames() : MessageBottle {
+        val msg = MessageBottle(RequestType.JSON)
+        msg.jtype = JsonType.FACE_NAMES
+        msg.text = Database.faceNamesToJSON()
+        return msg
     }
     /**
      * The tablet has detected a face.
@@ -72,7 +81,6 @@ object FaceMessageHandler  {
      */
     fun handleDirection(direction: FaceDirection) :MessageBottle {
         var msg = MessageBottle(RequestType.NOTIFICATION)
-
         return msg
     }
 

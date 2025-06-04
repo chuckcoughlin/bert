@@ -41,7 +41,7 @@ class FragmentPageAdapter(activity:FragmentActivity) : FragmentStateAdapter(acti
             3 -> frag = LogsFragment(pos)
             4 -> frag = PosesFragment(pos)
             5 -> frag = SettingsFragment(pos)
-            6 -> frag = StatusFragment(pos)
+            6 -> frag = MotorPropertiesFragment(pos)
             7 -> frag = TranscriptFragment(pos)
             else ->
                 frag = CoverFragment(pos)
