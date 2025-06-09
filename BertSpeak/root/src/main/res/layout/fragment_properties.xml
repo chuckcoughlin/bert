@@ -8,9 +8,9 @@
     tools:context="chuckcoughlin.bertspeak.tab.MotorPropertiesFragment"
     android:id="@+id/fragmentStatus">
 
-    <!-- Define a horizontal barrier between the image and waveform -->
+    <!-- Define a horizontal barrier between the view and buttons -->
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/statusHorizontalGuide"
+        android:id="@+id/propertiesHorizontalGuide"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="0dp"
@@ -19,23 +19,18 @@
         android:background="@color/black"
         app:layout_constraintGuide_percent="0.9"/>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/propertiesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="2dp"
+        android:scrollbars="vertical"
+        android:isScrollContainer="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/statusHorizontalGuide"
-        android:scrollbars="vertical"
-        android:isScrollContainer="true">
-            <TableLayout
-                android:id="@+id/statusTableView"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="5dp">
-            </TableLayout>
+        app:layout_constraintBottom_toTopOf="@+id/propertiesHorizontalGuide"/>
 
-    </ScrollView>
     <LinearLayout
         android:id="@+id/transcriptLayout"
         android:layout_width="match_parent"
@@ -44,7 +39,7 @@
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
         android:gravity="center|bottom"
-        app:layout_constraintTop_toBottomOf="@+id/statusHorizontalGuide"
+        app:layout_constraintTop_toBottomOf="@+id/propertiesHorizontalGuide"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

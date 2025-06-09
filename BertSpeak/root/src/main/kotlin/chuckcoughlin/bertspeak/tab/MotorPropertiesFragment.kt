@@ -9,16 +9,23 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
+import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.data.MotorData
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.databinding.FragmentPropertiesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
+import chuckcoughlin.bertspeak.ui.adapter.LogDataAdapter
+import chuckcoughlin.bertspeak.ui.adapter.MotorPropertiesDataAdapter
 
 /**
  * This fragment displays servo data from the robot in tabular form. Only
@@ -27,12 +34,19 @@ import chuckcoughlin.bertspeak.service.ManagerType
  */
 class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserver, StatusObserver {
     override val name : String
+    private val adapter: MotorPropertiesDataAdapter
 
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         super.onCreate(savedInstanceState)
         val binding = FragmentPropertiesBinding.inflate(inflater,container,false)
-        //val tableLayout = binding.statusTableView
+        val propertiesView = binding.propertiesRecyclerView
+        propertiesView.setHasFixedSize(true)
+        val layoutManager = LinearLayoutManager(propertiesView.getContext())
+        propertiesView.setLayoutManager(layoutManager)
+        propertiesView.setAdapter(adapter)
+        val scrollPosition: Int = layoutManager.findFirstCompletelyVisibleItemPosition()
+        propertiesView.scrollToPosition(scrollPosition)
 
         var button = binding.propertiesRefreshButton
         button.setOnClickListener { refreshButtonClicked() }
@@ -53,18 +67,8 @@ class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserv
     }
 
 
-    override fun resetItem(map:Map<JsonType,String>) {
-        val json = map.get(JsonType.MOTOR_PROPERTIES)
-        if( json!=null ) {
-            Log.i(name, "resetItem: ...")
-        }
-    }
 
-    override fun updateItem(type:JsonType,json:String) {
-        if( type==JsonType.MOTOR_PROPERTIES ) {
-            Log.i(name, String.format("update: data = %s", json))
-        }
-    }
+    //============================= Button Callbacks ================================
     fun refreshButtonClicked() {
         DispatchService.sendJsonRequest(JsonType.MOTOR_PROPERTIES)
     }
@@ -86,10 +90,24 @@ class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserv
             }
         }
     }
+    override fun resetItem(map:Map<JsonType,String>) {
+        val json = map.get(JsonType.MOTOR_PROPERTIES)
+        if( json!=null ) {
+            Log.i(name, "resetItem: ...")
+        }
+    }
+
+    override fun updateItem(type:JsonType,json:String) {
+        if( type==JsonType.MOTOR_PROPERTIES ) {
+            Log.i(name, String.format("update: data = %s", json))
+        }
+    }
 
     val CLSS = "MotorPropertiesFragment"
 
+
     init {
         name = CLSS
+        adapter = MotorPropertiesDataAdapter(FixedSizeList<MotorData>(BertConstants.NUM_MOTORS))
     }
 }

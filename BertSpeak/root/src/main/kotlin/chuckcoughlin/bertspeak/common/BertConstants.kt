@@ -49,6 +49,7 @@ object BertConstants {
     // Number of various types of messages to store/display
     const val NUM_JOINTS = 30
     const val NUM_LOG_MESSAGES = 40
+    const val NUM_MOTORS = 25
     const val NUM_POSES = 40
     const val NUM_TRANSCRIPT_MESSAGES = 80
 

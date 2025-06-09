@@ -8,7 +8,7 @@
     tools:context="chuckcoughlin.bertspeak.tab.TranscriptFragment"
     android:id="@+id/fragmentTranscript">
 
-    <!-- Define a horizontal barrier between the image and waveform -->
+    <!-- Define a horizontal barrier between the view and button panel -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/transcriptHorizontalGuide"
         android:layout_width="match_parent"
