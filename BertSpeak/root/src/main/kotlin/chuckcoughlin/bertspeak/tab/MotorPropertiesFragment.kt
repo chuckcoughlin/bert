@@ -13,9 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
+import chuckcoughlin.bertspeak.common.data.JointPropertyHolder
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
+import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.data.MotorData
 import chuckcoughlin.bertspeak.data.StatusData
@@ -26,15 +28,18 @@ import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
 import chuckcoughlin.bertspeak.ui.adapter.LogDataAdapter
 import chuckcoughlin.bertspeak.ui.adapter.MotorPropertiesDataAdapter
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
- * This fragment displays servo data from the robot in tabular form. Only
- * one table is displayed at a time and is completely replaced when the
+ * This fragment displays servo and location data from the robot in tabular form.
+ * Only one update is displayed at a time and is completely replaced when the
  * next set of data are read.
  */
 class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserver, StatusObserver {
     override val name : String
     private val adapter: MotorPropertiesDataAdapter
+    private val gson: Gson
 
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
@@ -94,12 +99,21 @@ class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserv
         val json = map.get(JsonType.MOTOR_PROPERTIES)
         if( json!=null ) {
             Log.i(name, "resetItem: ...")
+            updateItem(JsonType.MOTOR_PROPERTIES,json)
         }
     }
 
     override fun updateItem(type:JsonType,json:String) {
         if( type==JsonType.MOTOR_PROPERTIES ) {
             Log.i(name, String.format("update: data = %s", json))
+            val properties = mutableListOf<MotorData>()
+            val propType = object : TypeToken<List<JointPropertyHolder>>() {}.type
+            val list = gson.fromJson<List<JointPropertyHolder>>(json,propType)
+            for(holder in list) {
+                val data = holder.toMotorData()
+                properties.add(data)
+            }
+            adapter.resetList(properties)
         }
     }
 
@@ -109,5 +123,6 @@ class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserv
     init {
         name = CLSS
         adapter = MotorPropertiesDataAdapter(FixedSizeList<MotorData>(BertConstants.NUM_MOTORS))
+        gson = Gson()
     }
 }

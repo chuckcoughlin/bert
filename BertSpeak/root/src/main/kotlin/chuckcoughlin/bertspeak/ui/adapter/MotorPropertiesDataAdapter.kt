@@ -67,7 +67,6 @@ class MotorPropertiesDataAdapter(msgs: FixedSizeList<MotorData>) : RecyclerView.
         if(position>=messages.size) position = messages.size - 1
         val expand = position == expandedPosition
         val msg: MotorData = messages[position]
-        val type: MessageType = msg.messageType
         // The timestamp is always the same
         val timestampView: TextView = holder.timestampView
         val tstamp: Date = msg.timestamp
@@ -76,7 +75,7 @@ class MotorPropertiesDataAdapter(msgs: FixedSizeList<MotorData>) : RecyclerView.
 
         // In expanded mode the source is the type
         val sourceView: TextView = holder.sourceView
-        var source: String = msg.messageType.name
+        var source: String = msg.jnt+" "+msg.angle+" "+msg.speed
         if (expand) {
             sourceView.text = source
 
@@ -86,22 +85,16 @@ class MotorPropertiesDataAdapter(msgs: FixedSizeList<MotorData>) : RecyclerView.
             if (source.length > SOURCE_LEN) source = source.substring(0, SOURCE_LEN)
             sourceView.text = source
         }
-        if (type == MessageType.MSG) {  // Outgoing
-            sourceView.setTextColor(Color.BLUE)
-        }
 
         // In expanded mode, the message is the source (node-name).
         val messageView: TextView = holder.messageView
-        var msgText: String = msg.message.trim { it <= ' ' }
+        var msgText: String = source
         if (expand) {
             messageView.text = source
         }
         else {
             if (msgText.length > MESSAGE_LEN) msgText = msgText.substring(0, MESSAGE_LEN)
             messageView.text = msgText
-            if (type == MessageType.ANS) {
-                messageView.setTextColor(Color.BLUE)
-            }
         }
         val detailView: TextView = holder.detailView
         val params: ViewGroup.LayoutParams = holder.itemView.layoutParams

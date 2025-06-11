@@ -32,7 +32,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
 class AnimationView(context: Context): View(context), LinkShapeObserver {
     override val configuration: GraphicsConfiguration
     private var drawablesFront: MutableList<LinkShapeDrawable>
-    private var drawablesLeft: MutableList<LinkShapeDrawable>
+    private var drawablesLeft:  MutableList<LinkShapeDrawable>
     private var drawablesRight: MutableList<LinkShapeDrawable>
     override val name: String
 

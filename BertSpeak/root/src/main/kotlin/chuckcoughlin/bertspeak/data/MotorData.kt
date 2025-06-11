@@ -5,19 +5,30 @@
 package chuckcoughlin.bertspeak.data
 
 import chuckcoughlin.bertspeak.common.MessageType
+import chuckcoughlin.bertspeak.common.data.JointPropertyHolder
 import java.util.Date
 
 /**
- * Instances of this class are displayed in the MotorProperties table
+ * Format the properties for display. Add timestamp.
  */
-data class MotorData(val msg: String, val type: MessageType ) {
+class MotorData(propertyHolder: JointPropertyHolder ) {
     val timestamp: Date
-    val message:String
-    val messageType: MessageType
+    val jnt:String
+    val angle:String
+    val speed:String
+    val load:String
+    val temperature:String
+    val maxSpeed:String
+    val maxTorque:String
 
     init {
         timestamp = Date()
-        message = msg
-        messageType = type
+        jnt = propertyHolder.jnt
+        angle = String.format("%3.0f",propertyHolder.angle)
+        load = String.format("%2.1f",propertyHolder.load)
+        speed = String.format("%3.0f",propertyHolder.speed)
+        temperature = String.format("%2.0f",propertyHolder.temperature)
+        maxSpeed = String.format("%3.0f",propertyHolder.maxSpeed)
+        maxTorque = String.format("%2.1f",propertyHolder.maxTorque)
     }
 }
