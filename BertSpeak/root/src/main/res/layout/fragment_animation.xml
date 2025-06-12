@@ -132,6 +132,6 @@
             android:layout_gravity="center_vertical|center"
             android:background="@drawable/rounded_button"
             android:text="@string/buttonRefresh"
-            android:layout_marginRight="145dp"/>
+            android:layout_marginEnd="145dp"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

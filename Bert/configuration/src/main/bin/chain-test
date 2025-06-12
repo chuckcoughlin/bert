@@ -1,5 +1,6 @@
 #!/bin/sh
 # Run the robot through a series of hard-coded tests
+# that measure the joint geometry
 cd ${ROBOT_HOME}
 bin/clear_logs
 cd distribution/bertApp

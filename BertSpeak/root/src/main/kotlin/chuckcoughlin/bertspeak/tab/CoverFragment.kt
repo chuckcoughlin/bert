@@ -138,9 +138,11 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     @Synchronized
     private fun stopVisualizer() {
-        visualizer.enabled = false
-        visualizer.release()
-        visualizer.setDataCaptureListener(null, 0, false, false)
+        if(visualizer.enabled ) {
+            visualizer.enabled = false
+            visualizer.release()
+            visualizer.setDataCaptureListener(null, 0, false, false)
+        }
     }
 
     /**
@@ -320,6 +322,12 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     init {
         name = CLSS
-        visualizer = Visualizer(0)
+        try {
+            visualizer = Visualizer(0)
+        }
+        catch(ex:RuntimeException) {
+            Log.e(name,String.format("init: Error creating visualizer (%s)",ex.localizedMessage))
+            visualizer = Visualizer(0)
+        }
     }
 }
