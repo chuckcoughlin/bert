@@ -11,6 +11,7 @@ enum class RequestType {
     COMMAND,                 // Execute a command may have one or no args
     EXECUTE_ACTION,          // Execute the poses in an action in sequence
     EXECUTE_POSE,            // Drive robot motors to pre-set values
+    GENERAL,                 // Generic request, not robot-related. Send to ChatGPT
     GET_EXTREMITY_DIRECTION, // orientation of the named joint or appendage, i.e. end effector
     GET_EXTREMITY_LOCATION,  // x,y,z location of the center of the named joint or appendage
     GET_MOTOR_PROPERTY,      // Current value of a motor property

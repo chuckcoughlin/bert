@@ -68,14 +68,23 @@ class StatementParser {
             parser.addErrorListener(SpeechErrorListener(bottle))
             parser.setErrorHandler(SpeechErrorStrategy(bottle))
             val tree: ParseTree = parser.line() // Start with a line
-            val visitor = StatementTranslator(bottle, dictionary)
-            visitor.visit(tree)
-            if (bottle.type.equals(RequestType.PARTIAL)) {
-                dictionary[SharedKey.PARTIAL] = text
+            if(bottle.error==BottleConstants.NO_ERROR) {
+                val visitor = StatementTranslator(bottle, dictionary)
+                visitor.visit(tree)
+                if (bottle.type.equals(RequestType.PARTIAL)) {
+                    dictionary[SharedKey.PARTIAL] = text
+                }
             }
+            // If syntax is not understood, send request to chat gpt
+            else {
+                bottle.type = RequestType.GENERAL
+                bottle.text = txt
+            }
+
+
         }
         else {
-            bottle.error = "Empty"
+            bottle.error = BottleConstants.NO_ERROR
         }
         if(DEBUG && !bottle.error.equals(BottleConstants.NO_ERROR)) {
             LOGGER.info(String.format("%s.parseStatement: %s ERROR %s",CLSS,txt,bottle.error))

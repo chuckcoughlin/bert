@@ -14,18 +14,21 @@
 	     to a joint or end effector. The parent link is a joint (a REVOLUTE link pin).
 
 	    Links form a tree from the IMU terminating in the various end effectors.
-		Joint names must match the names in bert.xml. The link z axis is always
-		perpendicular to the joint axis corresponding to the joint's "home" position.
-		The "y" axis coincides with the joint axis. The "rpy" settings (roll, pitch, yaw) define
-		the orientation of the motor or end-effector with respect to
-		the "z" axis of the link.
+		Joint names must match the names in bert.xml.
 
-		Link coordinates are relative to the source pin ~ mm
-		x - front and back, front positive (roll)
-		y - side to side , left positive  (pitch)
-		z - up and down, up positive       (yaw)
+		Link (end-pin) coordinates are relative to the source pin ~ mm. The y-axis coincides with the joint axis
+		with the origin at the mid-point, positive to the left. The link z axis is always perpendicular to the joint
+		axis corresponding to the y-axis "home" position, positive up. "home" is where the robot stands straight up.
+		The x-axis juts forward perpendicular to the z-axis (positive forward).
 
-		Joints are named for the robot axis (relative to the IMU) about which they rotate.
+		The "rpy" settings (roll, pitch, yaw) define the orientation of the motor or end-effector with respect to
+		the source pin. The order of rotations is: roll, pitch, yaw. The "rpy" settings do not affect the location
+		of the end-pin, only its orientation. Use right-hand rule to determine direction.
+		     roll  - rotation about the x axis
+		     pitch - rotation about the y-axis
+		     yaw   - rotation about the z-axis
+
+		Joints are named for the robot axis about which they rotate when viewed in the "home" position.
 
 	  -->
 	<link side="FRONT">        <!-- root -->
@@ -66,7 +69,7 @@
 	</link>
 	<link side="LEFT">
 		<joint name="LEFT_HIP_Z"
-			   xyz="43.9986 5.00 0.0" rpy="0. 0. 0." home="0.0"/>
+			   xyz="43.9986 5.00 0.0" rpy="0. 0. 0." home="180.0"/>
 		<source joint="LEFT_HIP_X"/>
 	</link>
 	<link side="LEFT">
@@ -98,12 +101,12 @@
 	</link>
 	<link side="FRONT">
 		<joint name="ABS_Z"
-			   xyz="0.0 12.0 51.6374742" rpy="0. -90. 90." home="0.0"/>
+			   xyz="0.0 12.0 51.6374742" rpy="90. 90.0 0.0" home="0.0"/>
 		<source joint="ABS_X" />
 	</link>
 	<link side="FRONT">
 		<joint name="CHEST_Y"
-			   xyz="-2.8 -79.85 0.0"  rpy="90. 0. 0." home="180.0"/>
+			   xyz="-2.8 79.85 0.0"  rpy="-90. 90. 0." home="180.0"/>
 		<source joint="ABS_Z" />
 	</link>
 	<link side="FRONT">

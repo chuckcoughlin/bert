@@ -47,7 +47,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
      */
     override fun recoverInline(recognizer: Parser): Token {
         // LOGGER.warning(CLSS+": RECOVER-INLINE");
-        recordError(InputMismatchException(recognizer))
+        //recordError(InputMismatchException(recognizer))
         return super.recoverInline(recognizer)
     }
 
@@ -55,7 +55,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
      * This appears to be a top-level view of things...
      */
     override fun reportError(recognizer: Parser, e: RecognitionException) {
-        //LOGGER.warning(CLSS+":reportError ...");
+        // LOGGER.warning(CLSS+":reportError ...");
         recordError(e)
     }
 
@@ -77,7 +77,7 @@ class SpeechErrorStrategy(bot: MessageBottle) : DefaultErrorStrategy() {
             val index = (rand * phrases.size).toInt()
             msg = phrases[index]
         }
-        LOGGER.info(String.format("%s: Syntax error (%s)", CLSS, msg))
+        LOGGER.info(String.format("%s.recordError: Syntax error (%s)", CLSS, msg))
         bottle.error = msg
     }
 
