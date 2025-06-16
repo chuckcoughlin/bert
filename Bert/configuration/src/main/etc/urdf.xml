@@ -106,12 +106,12 @@
 	</link>
 	<link side="FRONT">
 		<joint name="CHEST_Y"
-			   xyz="-2.8 79.85 0.0"  rpy="-90. 90. 0." home="180.0"/>
+			   xyz="-2.8 79.85 0.0"  rpy="-90. 90. 90." home="180.0"/>
 		<source joint="ABS_Z" />
 	</link>
 	<link side="FRONT">
 		<joint name="CHEST_X"
-			   xyz="0.0 0.0 -8.0" rpy="0. 180. 0." home="180.0"/>
+			   xyz="0.0 8.0 0.0" rpy="0. 180. 0." home="180.0"/>
 		<source joint="CHEST_Y"/>
 	</link>
 	<link side="FRONT">
