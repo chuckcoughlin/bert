@@ -42,6 +42,22 @@ object Solver {
     }
 
     /**
+     * Return a string for debugging use containing both position and direction
+     */
+    fun computeLocationDescription(joint:Joint): String {
+        val subchain: List<Link> = Chain.partialChainToJoint(joint)
+        val q = computeQuaternionFromChain(subchain)
+        return String.format("%s [%s]",q.positionToText(),q.directionToText())
+    }
+    /**
+     * Return a string for debugging use containing both position and direction
+     */
+    fun computeLocationDescription(appendage:Appendage): String {
+        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
+        val q = computeQuaternionFromChain(subchain)
+        return String.format("%s [%s]",q.positionToText(),q.directionToText())
+    }
+    /**
      * Return the location of a specified appendage in x,y,z coordinates in meters from the
      * robot origin in the pelvis. The named end effector or appendage is
      * last in the chain.

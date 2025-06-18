@@ -116,7 +116,7 @@ open class Quaternion {
 
     fun positionToText() : String {
         val pos = position()
-        return(String.format("%3.3f,%3.3f,%3.3f",pos.x,pos.y,pos.z))
+        return(String.format("%3.1f,%3.1f,%3.1f",pos.x,pos.y,pos.z))
     }
 
     /**
