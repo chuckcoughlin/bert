@@ -624,9 +624,10 @@ class Dispatcher : Controller {
 
     // Local requests are those that can be handled immediately
     // without forwarding to the motor controllers. This includes
-    // database queries and some error conditions.
+    // database queries, and some error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
+            request.type==RequestType.GENERAL ||
             request.type==RequestType.GET_EXTREMITY_DIRECTION||
             request.type==RequestType.GET_EXTREMITY_LOCATION ||
             request.type==RequestType.METRIC ||
