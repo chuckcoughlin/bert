@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch
@@ -14,14 +14,11 @@ import kotlinx.coroutines.channels.Channel
 import java.util.logging.Logger
 
 /**
- * The internal controller is used to implement delays in messages destined for the
- * motor controllers. The delays are both configured and designed to prevent commands
- * being sent too quickly. All messages are returned to the Dispatcher (which then
- * distributes them to the intended targets).
- *
- * In the future this controller will be used to delay movements that interfere with
- * other movements in progress, or stop movements that may cause collisions between
- * separate appendages.
+ * The internal controller is used to synchronize messages to subsystems that
+ * cannot handle requests in parallel, like the serial  motor controller and
+ * Chat GPT interface. When a message is sent to the Dispatcher, the next queued
+ * message is held back until a READY message is received from the service.
+ * The queue can also be used to implement programmed delays.
  *
  * Messages are executed in the order they are received.
  */
