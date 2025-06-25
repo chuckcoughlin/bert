@@ -158,7 +158,7 @@
 	</link>
 	<link side="LEFT">
 		<appendage name="LEFT_FINGER"
-				   xyz="107.5 -4.99 6.915" rpy="0. 0. 0."/>
+				   xyz="107.5 4.99 6.915" rpy="0. 0. 90."/>
 		<source joint="LEFT_ELBOW_Y" />
 	</link>
 	<link side="RIGHT">
@@ -178,7 +178,7 @@
 	</link>
 	<link side="RIGHT" >
 		<appendage name="RIGHT_FINGER"
-				   xyz="107.5 -4.99 6.915" rpy="0. 0. 0."/>
+				   xyz="107.5 -4.99 6.915" rpy="0. 0. -90."/>
 		<source joint="RIGHT_ELBOW_Y" />
 	</link>
 </robot>
