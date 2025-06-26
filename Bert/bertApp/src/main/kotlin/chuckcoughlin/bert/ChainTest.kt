@@ -101,13 +101,13 @@ object ChainTest {
         println(String.format("\tLEFT_HIP_Y  = %s ",Solver.computeLocationDescription(Joint.LEFT_HIP_Y)))
         println(String.format("\tRIGHT_KNEE_Y = %s ",Solver.computeLocationDescription(Joint.RIGHT_KNEE_Y)))
         println(String.format("\tLEFT_KNEE_Y  = %s ",Solver.computeLocationDescription(Joint.LEFT_KNEE_Y)))
-        println("######## POSITION VERIFIED ####################")
         println(String.format("\tRIGHT_ANKLE_Y= %s ",Solver.computeLocationDescription(Joint.RIGHT_ANKLE_Y)))
         println(String.format("\tLEFT_ANKLE_Y = %s ",Solver.computeLocationDescription(Joint.LEFT_ANKLE_Y)))
         println(String.format("\tRIGHT_HEEL = %s ",Solver.computeLocationDescription(Appendage.RIGHT_HEEL)))
         println(String.format("\tLEFT_HEEL  = %s ",Solver.computeLocationDescription(Appendage.LEFT_HEEL)))
         println(String.format("\tRIGHT_TOE  = %s ",Solver.computeLocationDescription(Appendage.RIGHT_TOE)))
         println(String.format("\tLEFT_TOE  = %s ",Solver.computeLocationDescription(Appendage.LEFT_TOE)))
+        println("         LOWER JOINTS/APPENDAGES VERIFIED ####################")
     }
 
     const val CLSS = "ChainTest"

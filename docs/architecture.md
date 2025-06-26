@@ -217,14 +217,14 @@ and links form a "limb".
 	</link>
 	<link side="RIGHT">
 		<joint name="RIGHT_ANKLE_Y"
-			   xyz="0.0 0.0 180.0"  rpy="0. 0. 0." home="90.0"/>
+			   xyz="0.0 0.0 -180.0"  rpy="0. 180. 0." home="90.0"/>
 		<source joint="RIGHT_KNEE_Y"/>
 	</link>
 	<link side="RIGHT">
 		<appendage name="RIGHT_TOE"
-				   xyz="95. -35.5 -15." rpy="0. 0. 0."/>
+				   xyz="95. -15.0 -35.5" rpy="180. 90. 180."/>
 		<appendage name="RIGHT_HEEL"
-				   xyz="-43. -35.5 -12." rpy="0. 0. 0."/>
+				   xyz="-43.0 12.0 -35.5" rpy="180. 90. 180."/>
 		<source joint="RIGHT_ANKLE_Y"/>
 	</link>
 	<link side="LEFT">
@@ -244,14 +244,14 @@ and links form a "limb".
 	</link>
 	<link side="LEFT">
 		<joint name="LEFT_ANKLE_Y"
-			   xyz="0.0 0.0 180.0" rpy="0. 0. 0." home="90.0"/>
+			   xyz="0.0 0.0 -180.0" rpy="0. 180. 0." home="90.0"/>
 		<source joint="LEFT_KNEE_Y" />
 	</link>
 	<link side="LEFT">
 		<appendage name="LEFT_TOE"
-				   xyz="95. -35.5 -15."  rpy="0. 0. 0."/>
+				   xyz="95. 15.0 -35.5"  rpy="180. 90. 180."/>
 		<appendage name="LEFT_HEEL"
-				   xyz="-43. -35.5 -12." rpy="0. 0. 0."/>
+				   xyz="-43. -12.0 -35.5" rpy="180. 90. 180."/>
 		<source joint="LEFT_ANKLE_Y" />
 	</link>
 	<link side="FRONT">
@@ -308,17 +308,17 @@ and links form a "limb".
 	</link>
 	<link side="LEFT">
 		<joint name="LEFT_SHOULDER_Z"
-			   xyz="0.0 18.5 -36.25"  rpy="0. 90. 90." home="180.0"/>
+			   xyz="0.0 18.5 -83.0"  rpy="0. 90. 90." home="180.0"/>
 		<source joint="LEFT_SHOULDER_X" />
 	</link>
 	<link side="LEFT">
 		<joint name="LEFT_ELBOW_Y"
-			   xyz="81.175 0.0 10.0"  rpy="0. 0. 0." home="180.0"/>
+			   xyz="81.175 0.0 10.0"  rpy="0. 90. 180." home="180.0"/>
 		<source joint="LEFT_SHOULDER_Z" />
 	</link>
 	<link side="LEFT">
 		<appendage name="LEFT_FINGER"
-				   xyz="107.5 4.99 6.915" rpy="0. 0. 90."/>
+				   xyz="4.99 -6.915 -121.0" rpy="0. 90. 0.0"/>
 		<source joint="LEFT_ELBOW_Y" />
 	</link>
 	<link side="RIGHT">
@@ -328,17 +328,17 @@ and links form a "limb".
 	</link>
 	<link side="RIGHT" >
 		<joint name="RIGHT_SHOULDER_Z"
-			   xyz="0.0 18.5 36.25" rpy="0. 90. 90." home="180.0"/>
+			   xyz="0.0 18.5 83.0" rpy="0. 90. 90." home="180.0"/>
 		<source joint="RIGHT_SHOULDER_X"/>
 	</link>
 	<link side="RIGHT">
 		<joint name="RIGHT_ELBOW_Y"
-			   xyz="81.175 0.0 10.0" rpy="0. 0. 0." home="180.0"/>
+			   xyz="81.175 0.0 10.0" rpy="0. 90. 180." home="180.0"/>
 		<source joint="RIGHT_SHOULDER_Z"/>
 	</link>
 	<link side="RIGHT" >
 		<appendage name="RIGHT_FINGER"
-				   xyz="107.5 -4.99 6.915" rpy="0. 0. -90."/>
+				   xyz="4.99 6.915 -121.0" rpy="-90. 90. -90.0"/>
 		<source joint="RIGHT_ELBOW_Y" />
 	</link>
 </robot>
