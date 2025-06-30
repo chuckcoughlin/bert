@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.util.TextUtility
 import chuckcoughlin.bert.speech.process.JsonMessageHandler
 import chuckcoughlin.bert.speech.translate.MessageTranslator
 import chuckcoughlin.bert.speech.translate.StatementParser
@@ -46,7 +47,10 @@ class CommandMessageHandler(sock: Socket)  {
         var text: String = translator.messageToText(response)
         text = text.trim { it <= ' ' }
         var mtype = MessageType.ANS
-        if( response.type.equals(RequestType.JSON) ) mtype = MessageType.JSN
+        if( response.type.equals(RequestType.JSON) ) {
+            mtype = MessageType.JSN
+            text = TextUtility.stripNewLines(text)
+        }
         try {
             val msgtxt = String.format("%s:%s", mtype.name, text)
             if (DEBUG) LOGGER.info(String.format("TABLET WRITE: %s.", msgtxt))

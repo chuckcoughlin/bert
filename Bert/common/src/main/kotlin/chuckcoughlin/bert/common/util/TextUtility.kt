@@ -26,4 +26,19 @@ object TextUtility {
 		}
 		return buf.toString()
 	}
+
+	/** Remove any internal newlines, but and add one to the end */
+	fun stripNewLines(text:String) : String {
+		val buf = StringBuffer()
+		var count = 0
+		val size = text.length
+		while(count<size) {
+			val c = text[count]
+			count++
+			if( c=='\n' || c=='\r') continue
+			buf.append(c)
+		}
+		buf.append('\n')
+		return buf.toString()
+	}
 }

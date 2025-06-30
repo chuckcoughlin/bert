@@ -208,7 +208,7 @@ class DispatchService(ctx: Context){
     @OptIn(DelicateCoroutinesApi::class)
     fun sendJsonRequest(type: JsonType) {
         GlobalScope.launch(Dispatchers.IO) {
-            val msg = String.format("%s:%s#",MessageType.MSG.name,type.name)
+            val msg = String.format("%s:%s#",MessageType.JSN.name,type.name)
             Log.i(CLSS, String.format("sendJsonRequest: %s", msg))
             socketManager.receiveTextToSend(msg)
         }

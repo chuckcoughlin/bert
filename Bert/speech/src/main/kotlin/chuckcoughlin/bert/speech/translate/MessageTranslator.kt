@@ -95,7 +95,7 @@ class MessageTranslator {
             }
             // If the message type is JSON, then the text of the message has been set to the gson string
             else if(type.equals(RequestType.JSON)) {
-                String.format("%s %s",msg.jtype.name,msg.text)
+                String.format("%s#%s",msg.jtype.name,msg.text)
             }
             else if(type.equals(RequestType.NOTIFICATION)) {
                 text
