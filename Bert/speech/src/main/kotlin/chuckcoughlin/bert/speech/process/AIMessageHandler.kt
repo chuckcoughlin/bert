@@ -1,6 +1,9 @@
 /**
  * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
+ *
+ * Chat GPT interface is inspired by CJCrafter (Collin Barber)
+ * @See https://github.com/CJCrafter/ChatGPT-Java-API/blob/master/README.md
  */
 package chuckcoughlin.bert.speech.process
 
