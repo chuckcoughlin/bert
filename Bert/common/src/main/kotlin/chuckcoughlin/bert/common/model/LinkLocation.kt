@@ -18,6 +18,9 @@ class LinkLocation() {
 	var side: String
 
 
+	fun locationToText() : String {
+		return String.format("My %s is at %s",name,end.toText())
+	}
 	fun updateFromLink(link:Link) {
 		name = link.name
 		side = link.side.name

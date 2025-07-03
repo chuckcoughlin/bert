@@ -6,7 +6,9 @@ package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.Solver.model
+import chuckcoughlin.bert.common.util.TextUtility
 import com.google.gson.GsonBuilder
+import org.w3c.dom.Text
 import java.util.logging.Logger
 
 /**
@@ -114,6 +116,14 @@ object Solver {
         return gson.toJson(list)
     }
 
+    fun linkLocationsToList():String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val list = mutableListOf<String>()
+        fillLocationText(list)
+        val txt = TextUtility.createTextForSpeakingFromList(list)
+        return txt
+    }
+
     /**
      * Populate a list of locations for all joints and extremities
      * NOTE: There must be a more effecient way of doing this.
@@ -138,7 +148,29 @@ object Solver {
             list.add(loc)
         }
     }
-
+    /**
+     * Populate a list of location text descriptions for all joints and extremities
+     */
+    private fun fillLocationText(list:MutableList<String>) {
+        for(link in URDFModel.linkForAppendage.values) {
+            val loc = LinkLocation()
+            loc.updateFromLink(link)
+            var pos = computeLocation(link.sourcePin.joint)
+            loc.updateSource(pos)
+            pos = computeLocation(link.endPin.appendage)
+            loc.updateEnd(pos)
+            list.add(loc.locationToText())
+        }
+        for(link in URDFModel.linkForJoint.values) {
+            val loc = LinkLocation()
+            loc.updateFromLink(link)
+            var pos = computeLocation(link.sourcePin.joint)
+            loc.updateSource(pos)
+            pos = computeLocation(link.endPin.joint)
+            loc.updateEnd(pos)
+            list.add(loc.locationToText())
+        }
+    }
 
     private const val CLSS = "Solver"
     private val LOGGER = Logger.getLogger(CLSS)

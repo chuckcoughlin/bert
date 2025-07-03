@@ -403,7 +403,9 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // where are your joints
     override fun visitListLocations(ctx: SpeechSyntaxParser.ListLocationsContext): Any? {
-        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        var txt = "list"
+        if(ctx.enumerate()!=null) txt = visit(ctx.enumerate()).toString()
+        determineJsonOrList(txt,bottle)
         bottle.jtype = JsonType.LINK_LOCATIONS
         return null
     }
@@ -793,7 +795,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // Set the request type for an enumeration
     private fun determineJsonOrList(text: String, msg: MessageBottle) {
-        if (text.equals("download", ignoreCase = true))  {
+        if (text!=null && text.equals("download", ignoreCase = true))  {
             msg.type = RequestType.JSON
         }
         else {

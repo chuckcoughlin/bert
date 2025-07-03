@@ -160,7 +160,7 @@ class DispatchService(ctx: Context){
                 val hdr = txt.substring(0, BertConstants.HEADER_LENGTH)
                 val type = MessageType.valueOf(hdr.uppercase(Locale.getDefault()))
                 txt = txt.substring(BertConstants.HEADER_LENGTH + 1)
-                // # delimiter between type and JSON object
+                // # delimiter between JSON type and JSON object
                 if( type==MessageType.JSN) {
                     val index = txt.indexOf("#")
                     if( index>0 ) {
@@ -170,7 +170,7 @@ class DispatchService(ctx: Context){
                         textManager.processJson(tag,json)
                     }
                     else {
-                        Log.w(CLSS, String.format("receiveMessage: Unable to process JSON tag (%s)", txt))
+                        Log.w(CLSS, String.format("receiveMessage: Unable to process JSON (%s)",txt))
                     }
                 }
                 else {

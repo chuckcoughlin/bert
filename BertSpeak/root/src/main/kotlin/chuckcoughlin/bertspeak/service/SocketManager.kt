@@ -9,6 +9,7 @@ import chuckcoughlin.bertspeak.network.SocketTextHandler
 import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.PENDING
 import kotlinx.coroutines.Deferred
@@ -120,14 +121,17 @@ class SocketManager(service:DispatchService): CommunicationManager {
     @DelicateCoroutinesApi
     fun handleResponse(handler:SocketTextHandler): Deferred<String> =
         GlobalScope.async(Dispatchers.IO) {
-            val txt = handler.readSocket()
+            var txt = handler.readSocket()
             if( txt.isEmpty() ) {
                 connected = false
                 Log.i(CLSS, "execute: socket closed")
             }
             else {
                 Log.i(CLSS, String.format("execute: read socket returned %s", txt))
-                dispatcher.receiveMessage(txt)
+                txt = txt.trim(' ')
+                if(txt.isNotBlank() ) {
+                    dispatcher.receiveMessage(txt)
+                }
             }
             txt
         }

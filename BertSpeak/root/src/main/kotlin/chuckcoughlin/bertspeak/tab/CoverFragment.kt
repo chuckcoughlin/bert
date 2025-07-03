@@ -324,6 +324,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
         name = CLSS
         try {
             visualizer = Visualizer(0)
+            visualizer.setEnabled(false)
         }
         catch(ex:RuntimeException) {
             Log.e(name,String.format("init: Error creating visualizer (%s)",ex.localizedMessage))

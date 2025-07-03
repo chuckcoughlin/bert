@@ -88,6 +88,7 @@ class TextManager (service:DispatchService): CommunicationManager {
 	*/
     @Synchronized
     fun processJson(tag: JsonType, json: String) {
+        Log.i(CLSS, String.format("processJson (%s): %s", tag.name, json))
         dataMap.put(tag,json)
         notifyJsonObservers(tag,json)
     }
