@@ -19,6 +19,9 @@ class LinkLocation() {
 	var appendage:String
 	var side: String  // Link group
 
+	fun locationToText() : String {
+		return String.format("My %s is at %s",name,end.toText())
+	}
 
 	init {
 		name = ""

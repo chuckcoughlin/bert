@@ -5,6 +5,7 @@
 package chuckcoughlin.bertspeak.service
 
 import android.graphics.drawable.shapes.Shape
+import android.util.Log
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
@@ -26,29 +27,35 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     private val shapeObservers: MutableMap<String, LinkShapeObserver>
     private val gson: Gson
 
-    override fun start() {}
+    override fun start() {
+        DispatchService.registerForJson(this)
+    }
     /**
      * Called when main activity is stopped. Clean up any resources.
      * To use again requires re-initialization.
      */
     override fun stop() {
+        DispatchService.unregisterForJson(this)
     }
 
     // ================ JsonObserver ======================
     override fun resetItem(map: Map<JsonType, String>) {
         val json = map[JsonType.LINK_LOCATIONS]
+        Log.i(CLSS, String.format("resetItem: %s",json))
         if( json!=null && !json.isEmpty() ) {
             val skeleton = mutableListOf<LinkLocation>()
             val locType = object : TypeToken<List<LinkLocation>>() {}.type
             val list = gson.fromJson<List<LinkLocation>>(json,locType)
             for(loc in list) {
                 skeleton.add(loc)
+                Log.i(CLSS, String.format("resetItem: SKeleton added %s",loc.locationToText()))
             }
             notifyObservers(skeleton)
         }
     }
 
     override fun updateItem(type: JsonType, json: String) {
+        Log.i(CLSS, String.format("updateItem: %s",json))
         if( type==LINK_LOCATIONS ) {
             if( !json.isEmpty() ) {
                 val skeleton = mutableListOf<LinkLocation>()
@@ -56,6 +63,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
                 val list = gson.fromJson<List<LinkLocation>>(json,locType)
                 for(loc in list) {
                     skeleton.add(loc)
+                    Log.i(CLSS, String.format("updateItem: SKeleton is %s",loc.locationToText()))
                 }
                 notifyObservers(skeleton)
             }
