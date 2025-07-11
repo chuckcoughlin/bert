@@ -76,8 +76,9 @@ class StatementParser {
                 }
             }
             // If syntax is not understood, send request to chat gpt
+            // We retain the syntax error in case of no Chat GPT connection
             else {
-                bottle.type = RequestType.GENERAL
+                bottle.type = RequestType.INTERNET
                 bottle.text = txt
             }
 

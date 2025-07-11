@@ -20,12 +20,11 @@ import java.net.Socket
 import java.util.logging.Logger
 
 /**
- * The CommandMessageHandler handles input/output to/from an Android tablet via
- * a socket interface. The tablet handles speech-to-text and text-to-speech.
- * The robot system is the server.
+ * The InterfaceMessageHandler handles input/output to/from the web via
+ * an HTTP interface. Communication is synchronous
  * @param sock for socket connection
  */
-class CommandMessageHandler(sock: Socket)  {
+class InternetMessageHandler(sock: Socket)  {
     private val socket = sock
     private val translator: MessageTranslator
     private val input: BufferedReader

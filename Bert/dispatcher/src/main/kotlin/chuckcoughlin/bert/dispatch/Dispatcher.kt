@@ -4,7 +4,9 @@
  */
 package chuckcoughlin.bert.dispatch
 
+import chuckcoughlin.bert.ai.Internet
 import chuckcoughlin.bert.command.Command
+import chuckcoughlin.bert.command.Internet
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.*
@@ -35,6 +37,8 @@ import kotlin.system.exitProcess
 @DelicateCoroutinesApi
 class Dispatcher : Controller {
     // Communication channels
+    private val aiRequestChannel            : Channel<MessageBottle>    // Requests for internet
+    private val aiResponseChannel           : Channel<MessageBottle>    // Responses from internet
     private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (Wi-Fi)
     private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (Wi-Fi)
     private val fromInternalController     : Channel<MessageBottle>    // Internal (i.e. local)  controller
@@ -44,6 +48,7 @@ class Dispatcher : Controller {
     private val stdinChannel               : Channel<MessageBottle>    // Requests from stdin
     private val stdoutChannel              : Channel<MessageBottle>    // Responses to stdout
     // Controllers
+    private val aiController        : Internet
     private val commandController   : Command
     private var internalController  : InternalController
     private val motorGroupController: MotorGroupController
@@ -69,6 +74,7 @@ class Dispatcher : Controller {
             running = true
             if( RobotModel.useNetwork) {
                 commandController.execute()
+                aiController.execute()
             }
             if( RobotModel.useTerminal) {
                 terminalController.execute()
@@ -109,12 +115,22 @@ class Dispatcher : Controller {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s %2.0f) from %s",
                                         CLSS, it.type.name,it.arg,it.value,it.source))
                                 }
+                                else if(it.type==RequestType.INTERNET) {
+                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s [%s])",
+                                        CLSS, it.type.name,it.text,it.error))
+                                }
                                 else {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
                                         CLSS, it.type.name,it.text,it.source))
                                 }
                             }
                             dispatchInternalResponse(it)
+                        }
+                        // A response has arrived from Chat GPT.
+                        aiResponseChannel.onReceive {
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: aiResponseChannel receive %s(%s) from %s",
+                                CLSS, it.type.name,it.text,it.source))
+                            replyToSource(it)
                         }
                         // The Command response channel contains requests that originate on the connected app (tablet)
                         commandRequestChannel.onReceive {
@@ -210,6 +226,7 @@ class Dispatcher : Controller {
             try {
                 motorGroupController.shutdown()
                 if(DEBUG) println(String.format("%s.shutdown: motors ...", CLSS))
+                aiController.shutdown()
                 commandController.shutdown()
                 if(DEBUG) println(String.format("%s.shutdown: network connection ...", CLSS))
                 terminalController.shutdown()
@@ -242,6 +259,10 @@ class Dispatcher : Controller {
             if( response.type!=RequestType.NONE &&
                 response.type!=RequestType.HANGUP  ) replyToSource(response)
         }
+        // Queue internet requests
+        else if( msg.type== RequestType.INTERNET) {
+            toInternalController.send(msg)
+        }
         // "motor" requests are those that need to be queued on the internal controller
         // and, perhaps preprocessed into multiple messages (by limb, for example)
         // before sending on to the MotorGroupController
@@ -269,6 +290,9 @@ class Dispatcher : Controller {
         // "internal" requests are those that need to be queued on the internal controller
         if(isMotorRequest(msg)) {
             mgcRequestChannel.send(msg)
+        }
+        else if(msg.type==RequestType.INTERNET) {
+            aiRequestChannel.send(msg)
         }
         else if(msg.type==RequestType.HEARTBEAT) {
             // Do nothing
@@ -628,7 +652,6 @@ class Dispatcher : Controller {
     // database queries, and some error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
-            request.type==RequestType.GENERAL ||
             request.type==RequestType.GET_EXTREMITY_DIRECTION||
             request.type==RequestType.GET_EXTREMITY_LOCATION ||
             request.type==RequestType.METRIC ||
@@ -835,6 +858,8 @@ class Dispatcher : Controller {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DISPATCHER)
+        aiRequestChannel = Channel<MessageBottle>()
+        aiResponseChannel= Channel<MessageBottle>()
         commandRequestChannel = Channel<MessageBottle>()
         commandResponseChannel= Channel<MessageBottle>()
         fromInternalController  = Channel<MessageBottle>()
@@ -844,6 +869,7 @@ class Dispatcher : Controller {
         stdinChannel  = Channel<MessageBottle>()
         stdoutChannel = Channel<MessageBottle>()
 
+        aiController          = Internet(aiRequestChannel,aiResponseChannel)
         commandController     = Command(commandRequestChannel,commandResponseChannel)
         internalController    = InternalController(fromInternalController,toInternalController)
         motorGroupController  = MotorGroupController(mgcRequestChannel,mgcResponseChannel)

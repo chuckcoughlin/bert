@@ -11,6 +11,7 @@ dependencies {
     implementation("org.slf4j:slf4j-jdk14:1.7.29")
     implementation("org.apache.commons:commons-text:1.10.0")
     implementation(project(":common"))
+    implementation(project(":ai"))
     implementation(project(":command"))
     implementation(project(":database"))
     implementation(project(":motor"))

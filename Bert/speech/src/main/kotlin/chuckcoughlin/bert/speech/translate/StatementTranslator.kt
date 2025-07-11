@@ -795,7 +795,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // Set the request type for an enumeration
     private fun determineJsonOrList(text: String, msg: MessageBottle) {
-        if (text!=null && text.equals("download", ignoreCase = true))  {
+        if (text.equals("download", ignoreCase = true))  {
             msg.type = RequestType.JSON
         }
         else {
