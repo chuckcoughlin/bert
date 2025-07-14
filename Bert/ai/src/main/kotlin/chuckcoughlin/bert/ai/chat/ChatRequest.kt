@@ -7,28 +7,18 @@
  */
 package chuckcoughlin.bert.common.ai.chat
 
-data class ChatRequest (
-		var messages: MutableList<ChatMessage>,
-		var model: String
-		var frequencyPenalty: Float? = null,
-		var logitBias: MutableMap<String, Float>? = null,
-		var maxTokens: Int? = null,
-		var n: Int? = null,
-		var presencePenalty: Float? = null,
-		var responseFormat: ChatResponseFormat? = null,
-		var seed: Int? = null,
-		var stop: String? = null,
-		var temperature: Float? = null,
-		var topP: Float? = null,
-		var tools: MutableList<Tool>? = null
-		var toolChoice: ToolChoice? = null
-		var user: String? = null
+import chuckcoughlin.bert.common.model.Solver.model
 
+data class ChatRequest(val text:String,val user:ChatUser) {
+		var messages: MutableList<String>
+		val maxTokens: Int
+		var model:     String
 
 
 	init {
-		messages = mutableListOf<ChatMessage>()
+		messages = mutableListOf<String>()
+		messages.add(text)
+		maxTokens = 3
 		model = "gpt-3.5-turbo"
-		toolChoice = ToolChoice.None
 	}
 }

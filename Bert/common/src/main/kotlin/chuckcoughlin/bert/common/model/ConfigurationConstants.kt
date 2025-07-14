@@ -28,6 +28,7 @@ object ConfigurationConstants {
     const val PROPERTY_USE_TERMINAL  = "terminal"
 
     // Command-line keys to set debug logging
+    const val DEBUG_OPEN_AI    = "ai"
     const val DEBUG_COMMAND    = "cmd"
     const val DEBUG_CONFIGURATION = "cfg"
     const val DEBUG_DISPATCHER = "dsp"

@@ -19,7 +19,7 @@ import chuckcoughlin.bertspeak.ui.adapter.LogDataAdapter
 
 /**
  * This fragment allows the user to select a pose stored in the robot, then
- * displays all the position settings in that pose.
+ * displays in a text table all the position settings in that pose.
  */
 class PosesFragment(pos:Int) : BasicAssistantFragment(pos), LogDataObserver {
     override val name : String

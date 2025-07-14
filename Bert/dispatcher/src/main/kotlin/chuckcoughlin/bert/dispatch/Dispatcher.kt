@@ -4,16 +4,15 @@
  */
 package chuckcoughlin.bert.dispatch
 
-import chuckcoughlin.bert.ai.Internet
-import chuckcoughlin.bert.command.Command
-import chuckcoughlin.bert.command.Internet
+import chuckcoughlin.bert.ai.controller.InternetController
+import chuckcoughlin.bert.command.CommandController
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
-import chuckcoughlin.bert.term.controller.Terminal
+import chuckcoughlin.bert.term.controller.TerminalController
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
@@ -48,14 +47,15 @@ class Dispatcher : Controller {
     private val stdinChannel               : Channel<MessageBottle>    // Requests from stdin
     private val stdoutChannel              : Channel<MessageBottle>    // Responses to stdout
     // Controllers
-    private val aiController        : Internet
-    private val commandController   : Command
+    private val aiController        : InternetController
+    private val commandController   : CommandController
     private var internalController  : InternalController
     private val motorGroupController: MotorGroupController
-    private var terminalController: Terminal
+    private var terminalController  : TerminalController
 
     private val scope = GlobalScope // For long-running coroutines
-    private val readyMessage: MessageBottle
+    private val motorReadyMessage: MessageBottle
+    private val internetReadyMessage: MessageBottle
     private var running:Boolean
     private val name: String
     private var cadence = 1000 // msecs
@@ -105,7 +105,7 @@ class Dispatcher : Controller {
                         mgcResponseChannel.onReceive {     // Handle a serial response
                             if(DEBUG) LOGGER.info(String.format("%s.execute: bgcResponseChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
-                            toInternalController.send(readyMessage)
+                            toInternalController.send(motorReadyMessage)
                             replyToSource(it)
                         }
                         // When we get a response from the internal controller, dispatch the original request.
@@ -130,6 +130,7 @@ class Dispatcher : Controller {
                         aiResponseChannel.onReceive {
                             if(DEBUG) LOGGER.info(String.format("%s.execute: aiResponseChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
+                            toInternalController.send(internetReadyMessage)
                             replyToSource(it)
                         }
                         // The Command response channel contains requests that originate on the connected app (tablet)
@@ -259,7 +260,7 @@ class Dispatcher : Controller {
             if( response.type!=RequestType.NONE &&
                 response.type!=RequestType.HANGUP  ) replyToSource(response)
         }
-        // Queue internet requests
+        // Queue all internet requests
         else if( msg.type== RequestType.INTERNET) {
             toInternalController.send(msg)
         }
@@ -869,13 +870,15 @@ class Dispatcher : Controller {
         stdinChannel  = Channel<MessageBottle>()
         stdoutChannel = Channel<MessageBottle>()
 
-        aiController          = Internet(aiRequestChannel,aiResponseChannel)
-        commandController     = Command(commandRequestChannel,commandResponseChannel)
+        aiController          = InternetController(aiRequestChannel,aiResponseChannel)
+        commandController     = CommandController(commandRequestChannel,commandResponseChannel)
         internalController    = InternalController(fromInternalController,toInternalController)
         motorGroupController  = MotorGroupController(mgcRequestChannel,mgcResponseChannel)
-        terminalController    = Terminal(stdinChannel,stdoutChannel)
-
-        readyMessage = MessageBottle(RequestType.READY)  // Reusable synchronization message
+        terminalController    = TerminalController(stdinChannel,stdoutChannel)
+        motorReadyMessage     = MessageBottle(RequestType.READY)  // Reusable synchronization message
+        internetReadyMessage     = MessageBottle(RequestType.READY)  // Reusable synchronization message
+        motorReadyMessage.source = ControllerType.MOTOR
+        internetReadyMessage.source = ControllerType.INTERNET
         running = false
         name = RobotModel.getProperty(ConfigurationConstants.PROPERTY_ROBOT_NAME)
         val cadenceString: String = RobotModel.getProperty(ConfigurationConstants.PROPERTY_CADENCE, "1000") // ~msecs

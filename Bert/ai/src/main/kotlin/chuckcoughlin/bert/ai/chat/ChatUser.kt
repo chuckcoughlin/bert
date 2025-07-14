@@ -1,7 +1,5 @@
 package chuckcoughlin.bert.common.ai.chat
 
-import chuckcoughlin.bert.common.message.CommandType
-import com.fasterxml.jackson.annotation.JsonProperty
 
 enum class ChatUser {
 	/**
@@ -10,8 +8,8 @@ enum class ChatUser {
 	 * the 3 possible users.
 	 *
 	 * Before the conversation between the [USER] and the [ASSISTANT] starts,
-	 * there is a [SYSTEM] message to *"prime"* the AI. System messages are
-	 * almost like a script given to the AI to follow throughout the entire
+	 * there is a [SYSTEM] message to "prime" the AI. System messages are
+	 * almost like a script given to the AI as context of the entire
 	 * conversation. In other words, system messages help the AI "get in the
 	 * mood" for the conversation.
 	 *
@@ -27,18 +25,20 @@ enum class ChatUser {
 		SYSTEM,
 		USER,
 		ASSISTANT
+	;
 
 	companion object {
 		/**
 		 * Convert the enumeration to a text string for JSON conversion
 		 */
 		fun toText(user: ChatUser): String {
-			var text = ""
+			var text=""
 			when (user) {
-				ChatUser.ASSISTANT -> text = "assistant"
-				ChatUser.SYSTEM -> text = "system"
-				ChatUser.USER -> text = "user"
+				ChatUser.ASSISTANT -> text="assistant"
+				ChatUser.SYSTEM -> text="system"
+				ChatUser.USER -> text="user"
 			}
 			return text
 		}
+	}
 }

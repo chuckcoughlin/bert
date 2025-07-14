@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -31,7 +32,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     private var running:Boolean
     private var index:Long          // Sequence of a message
     private var job:Job
-    private val queue : SequentialQueue
+    private val motorQueue : SequentialQueue
+    private val internetQueue : SequentialQueue
     @DelicateCoroutinesApi
     override suspend fun execute() {
         if (!running) {
@@ -53,8 +55,11 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                             LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
                     }
                     // The motor controller is ready to accept another command - the message does not propagate
-                    if( msg.type==RequestType.READY ) {
-                        queue.markReady()
+                    if( msg.type==RequestType.READY && msg.source==ControllerType.MOTOR) {
+                        motorQueue.markReady()
+                    }
+                    else if( msg.type==RequestType.READY && msg.source==ControllerType.INTERNET) {
+                        internetQueue.markReady()
                     }
                     else {
                         handleRequest(msg)
@@ -73,7 +78,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             running = false
             job.cancel()
             if (DEBUG) println(String.format("%s.shutdown: cancelled job ", CLSS))
-            queue.shutdown()
+            motorQueue.shutdown()
+            internetQueue.shutdown()
         }
     }
 
@@ -143,7 +149,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             request.limb = Limb.NONE   // Message is used to synch the MotorGroupController
         }
         else if (request.type == RequestType.RESET ) {
-            queue.reset()   // Then procede to reset controllers
+            motorQueue.reset()   // Then proceed to reset controllers
+            internetQueue.reset()
         }
 
         // Finally process the original message
@@ -176,7 +183,12 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                                                         CLSS, msg.type.name,msg.arg,msg.value.toInt(),msg.limb.name))
             else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
         }
-        queue.addLast(msg)
+        if(msg.type==RequestType.INTERNET) {
+            internetQueue.addLast(msg)
+        }
+        else {
+            motorQueue.addLast(msg)
+        }
     }
 
     private val CLSS = "InternalController"
@@ -191,6 +203,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         running = false
         index = 0
         job = Job() // Parent job
-        queue = SequentialQueue(toDispatcher)
+        motorQueue = SequentialQueue(toDispatcher)
+        internetQueue = SequentialQueue(toDispatcher)
     }
 }
