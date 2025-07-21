@@ -10,6 +10,7 @@ import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
+import io.ktor.client.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.logging.Logger
@@ -67,8 +68,12 @@ class InternetController(req: Channel<MessageBottle>,rsp:Channel<MessageBottle>)
 
         // For now simply send the request as the response
         LOGGER.info(String.format("%s.processRequest: %s got response", CLSS, controllerName))
-        val response = request
-        parentResponseChannel.send(response)
+        val chatRequest = OpenAI.createChatRequest(request)
+        val client: HttpClient = OpenAI.createHttpRequest()
+        val response = OpenAI.executeRequest(client,chatRequest)
+        val resMsg = OpenAI.updateRequestMessage(request,response)
+        client.close()
+        parentResponseChannel.send(resMsg)
     }
 
     // ============================= Private Helper Methods =============================

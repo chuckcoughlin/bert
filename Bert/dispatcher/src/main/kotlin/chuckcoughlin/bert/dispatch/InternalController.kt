@@ -152,7 +152,6 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             motorQueue.reset()   // Then proceed to reset controllers
             internetQueue.reset()
         }
-
         // Finally process the original message
         dispatchMessage(request)
     }
@@ -181,6 +180,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         if (DEBUG) {
             if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s %d) on %s",
                                                         CLSS, msg.type.name,msg.arg,msg.value.toInt(),msg.limb.name))
+            else if( msg.type==RequestType.INTERNET ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
+                CLSS, msg.type.name,msg.text))
             else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
         }
         if(msg.type==RequestType.INTERNET) {
@@ -203,7 +204,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         running = false
         index = 0
         job = Job() // Parent job
-        motorQueue = SequentialQueue(toDispatcher)
+        motorQueue    = SequentialQueue(toDispatcher)
         internetQueue = SequentialQueue(toDispatcher)
     }
 }

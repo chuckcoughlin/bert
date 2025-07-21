@@ -9,6 +9,7 @@ cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
 # Turn on targeted debugging with these -d flags
+# ai  - Internet
 # cmd - Command
 # dsp - Dispatcher
 # grp - Group Controller

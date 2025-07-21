@@ -9,6 +9,7 @@ cd distribution/bertApp
 export APP_HOME=`pwd`
 cd bin
 # Turn on targeted debugging with these -d flags
+# ai  - Internet
 # cfg - Configuration
 # cmd - Command
 # dsp - Dispatcher
@@ -20,4 +21,4 @@ cd bin
 # sql - Database
 # ter - Terminal
 # -nst means hasNetwork, hasSerial and hasTerminal
-./bertApp -nst -dcfg,dsp,int,mtr,ser,slv ${ROBOT_HOME}
+./bertApp -nst -dai,cfg,dsp,int,mtr,ser,slv ${ROBOT_HOME}

@@ -9,16 +9,18 @@ package chuckcoughlin.bert.common.ai.chat
 
 import chuckcoughlin.bert.common.model.Solver.model
 
-data class ChatRequest(val text:String,val user:ChatUser) {
-		var messages: MutableList<String>
-		val maxTokens: Int
-		var model:     String
+data class ChatRequest(val model:String) {
+		val input: MutableList<ChatMessage>
+		//val maxTokens: Int
+		val stream: Boolean
 
+	fun addMessage(cmsg:ChatMessage) {
+		input.add(cmsg)
+	}
 
 	init {
-		messages = mutableListOf<String>()
-		messages.add(text)
-		maxTokens = 3
-		model = "gpt-3.5-turbo"
+		input = mutableListOf<ChatMessage>()
+		//maxTokens = 500
+		stream = false
 	}
 }

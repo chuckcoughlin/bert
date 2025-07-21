@@ -747,8 +747,11 @@ class Dispatcher : Controller {
             request.source = ControllerType.DISPATCHER
             return true
         }
-        // If there was any error caught by the parser
-        else if( !request.error.equals(BottleConstants.NO_ERROR)) {
+        else if( request.type == RequestType.INTERNET ) {
+            return false
+        }
+        // If there was any error caught by the parser (unless headed for internet)
+        else if( !request.error.equals(BottleConstants.NO_ERROR) ) {
             return true
         }
         return false

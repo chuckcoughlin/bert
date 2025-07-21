@@ -19,6 +19,7 @@ The bulk of this document addresses various design issues and approaches to thei
     * [Configuration](#configuration)
     * [URFD](#geometry)
     * [Dynamixel Servos](#dynamixel)
+    * [Open AI](#ai)
   * [Design Considerations](#design)
     * [Control](#control)
     * [Messaging](#messages)
@@ -367,6 +368,12 @@ Idiosyncrasies:<br/>
   * There appears to be a maximum write frequency, especially for the AT-12A motors. We guarantee at least 50ms between consecutive writes to the same serial port. The symptom is dropped responses.
   * There is no guarantee that responses from the serial port correlate 1:1 with the requests. The
    response buffer can hold partial replies or several replies combined.
+
+#### Open AI  <a id="ai"></a>
+ The interface with [Chat GPT](https://openai.com/chatgpt/overview)  is incidental to the operation
+ of the robot. It is used simply to add completion to queries or commands that would be otherwise not understood
+ by the robot. In order to use the AI interface you must create an account and obtain a key from from `Open AI`
+ and place it in the environment on the robot (e.g. in ~/.bashrc) as CHATGPT_KEY.
 
 ## Design Considerations <a id="design"/>
 

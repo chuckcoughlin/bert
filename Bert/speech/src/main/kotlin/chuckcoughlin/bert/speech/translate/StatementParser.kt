@@ -81,8 +81,6 @@ class StatementParser {
                 bottle.type = RequestType.INTERNET
                 bottle.text = txt
             }
-
-
         }
         else {
             bottle.error = BottleConstants.NO_ERROR

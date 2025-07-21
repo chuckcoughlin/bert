@@ -1,7 +1,7 @@
 package chuckcoughlin.bert.common.ai.chat
 
 
-enum class ChatUser {
+enum class ChatRole {
 	/**
 	 * ChatGPT's biggest innovation is its conversational memory. To remember the
 	 * conversation, we need to map each message to who sent it. This enum stores
@@ -24,19 +24,21 @@ enum class ChatUser {
 	 */
 		SYSTEM,
 		USER,
-		ASSISTANT
+		ASSISTANT,
+		DEVELOPER
 	;
 
 	companion object {
 		/**
 		 * Convert the enumeration to a text string for JSON conversion
 		 */
-		fun toText(user: ChatUser): String {
+		fun toText(user: ChatRole): String {
 			var text=""
 			when (user) {
-				ChatUser.ASSISTANT -> text="assistant"
-				ChatUser.SYSTEM -> text="system"
-				ChatUser.USER -> text="user"
+				ChatRole.ASSISTANT -> text="assistant"
+				ChatRole.DEVELOPER -> text="developer"
+				ChatRole.SYSTEM -> text="system"
+				ChatRole.USER -> text="user"
 			}
 			return text
 		}

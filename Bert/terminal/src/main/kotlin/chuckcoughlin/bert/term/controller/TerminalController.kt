@@ -112,7 +112,7 @@ class TerminalController(stdin: Channel<MessageBottle>,stdout: Channel<MessageBo
                 request.source = ControllerType.TERMINAL
                 if (DEBUG) LOGGER.info(String.format("%s.handleUserInput:parsed %s", CLSS, text))
 
-                if (!request.error.equals(BottleConstants.NO_ERROR)) {
+                if (!request.error.equals(BottleConstants.NO_ERROR)&&request.type!=RequestType.INTERNET) {
                     if (DEBUG) LOGGER.info(
                         String.format("%s.execute ERROR = %s (%s)", CLSS, request.error, request.text))
                     displayMessage(request)   // Show the error

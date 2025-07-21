@@ -329,6 +329,14 @@ syntax shown above that are processed in a reasonable manner.
     why do you wear mittens
 ```
 
+* ![green](/images/ball_green.png) ``Unrecognized commands`` -
+Whenever the robot is unable to decipher the syntax of a command, the text is simply forwarded to Chat GPT for an answer. Of course, the interchange will have no effect on robot actions.
+Sample requests:
+```
+    why is the sky blue
+    what do think of Chuck
+```
+
 * ![yellow](/images/ball_yellow.png) ``Desired``  - the list below consists of statements or queries
 that are useful, but not currently recognized.<br/>
 
