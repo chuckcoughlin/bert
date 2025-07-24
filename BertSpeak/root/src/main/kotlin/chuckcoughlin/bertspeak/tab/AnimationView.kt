@@ -4,12 +4,18 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
+import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.LinkShapeObserver
+import chuckcoughlin.bertspeak.data.LogData
+import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
 import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
@@ -30,6 +36,7 @@ class AnimationView(context: Context, attrs: AttributeSet? = null)
     private var drawablesLeft:  MutableList<LinkShapeDrawable>
     private var drawablesRight: MutableList<LinkShapeDrawable>
     override val name: String
+    var activity: Activity
 
     /**
      * Draw in three passes to get proper overly
@@ -80,25 +87,39 @@ class AnimationView(context: Context, attrs: AttributeSet? = null)
     }
 
     override fun updateGraphics(skeleton:List<LinkLocation>) {
-        drawablesRight = mutableListOf<LinkShapeDrawable>()
-        drawablesLeft = mutableListOf<LinkShapeDrawable>()
-        drawablesFront = mutableListOf<LinkShapeDrawable>()
+        drawablesRight.clear()
+        drawablesLeft.clear()
+        drawablesFront.clear()
+        Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.size))
         for(loc in skeleton) {
             val drawable  = ShapeFactory.drawableForLink(loc,configuration)
             val side = Side.fromString(loc.side)
             when(side) {
                FRONT-> drawablesFront.add(drawable)
-               LEFT->drawablesFront.add(drawable)
-               RIGHT->drawablesFront.add(drawable)
+               LEFT->drawablesLeft.add(drawable)
+               RIGHT->drawablesRight.add(drawable)
                BACK->{}
             }
         }
+        reDraw(drawablesFront)
+        reDraw(drawablesLeft)
+        reDraw(drawablesRight)
     }
 
+    /**
+     * Force a redraw
+     */
+    fun reDraw(list: List<LinkShapeDrawable>) {
+        activity.runOnUiThread {
+            for( drawable in list)
+            invalidateDrawable(drawable)
+        }
+    }
     val CLSS = "AnimationView"
 
     init {
         name = CLSS
+        activity = Activity()  // Temporary
         configuration = GraphicsConfiguration()
         drawablesFront = mutableListOf<LinkShapeDrawable>()
         drawablesLeft = mutableListOf<LinkShapeDrawable>()

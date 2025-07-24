@@ -11,7 +11,6 @@ import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
 import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.LinkShapeObserver
-import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -63,7 +62,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
                 val list = gson.fromJson<List<LinkLocation>>(json,locType)
                 for(loc in list) {
                     skeleton.add(loc)
-                    Log.i(CLSS, String.format("updateItem: SKeleton is %s",loc.locationToText()))
+                    Log.i(CLSS, String.format("updateItem: Skeleton is %s",loc.locationToText()))
                 }
                 notifyObservers(skeleton)
             }

@@ -36,6 +36,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), StatusObserver {
         Log.i(CLSS, "onCreateView: ....")
         val binding = FragmentAnimationBinding.inflate(inflater, container, false)
         leftPanel = binding.animationViewLeft
+        leftPanel
         leftPanel.configuration.projection = Side.LEFT
 
         frontPanel = binding.animationViewFront
