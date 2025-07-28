@@ -94,7 +94,7 @@ object URDFModel {
                         if ("appendage".equals(node.localName)) {
                             val aname: String = XMLUtility.attributeValue(node, "name")
                             val link = Link(aname)
-                            val side: String = XMLUtility.attributeValue(node, "side")
+                            val side: String = XMLUtility.attributeValue(linkNode, "side")
                             link.side = Side.fromString(side)
                             val appendage: Appendage = Appendage.fromString(aname)
                             val pin = LinkPin(PinType.END_EFFECTOR)
@@ -110,7 +110,7 @@ object URDFModel {
                         else if ("joint".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "name")
                             val link = Link(jname)
-                            val side: String = XMLUtility.attributeValue(node, "side")
+                            val side: String = XMLUtility.attributeValue(linkNode, "side")
                             link.side = Side.fromString(side)
                             val joint = Joint.fromString(jname)
                             val pin = LinkPin(PinType.REVOLUTE)

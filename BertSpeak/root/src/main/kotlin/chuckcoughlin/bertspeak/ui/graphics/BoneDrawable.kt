@@ -8,29 +8,25 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.shapes.OvalShape
 import android.graphics.drawable.shapes.RectShape
+import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.Point2D
 
 /**
  * Draw a filled rectangle with circles at either end
  * the indicate the joint.
  */
-class BoneDrawable(val source: Point2D,val end:Point2D, val scale:Double) : LinkShapeDrawable() {
-	val radius: Float
-	val w:Float
-	val black: Paint
-	val gray: Paint
+class BoneDrawable(loc:LinkLocation) : LinkShapeDrawable(loc) {
+
 	//
-	override fun draw(canvas: Canvas) {
-		canvas.drawCircle((source.x.toFloat()),source.y.toFloat(),radius,black)
-		canvas.drawCircle((end.x.toFloat()),end.y.toFloat(),radius,black)
-		canvas.drawRect(source.x.toFloat()-w,source.y.toFloat()-w,
-			           end.x.toFloat()+w,end.y.toFloat()+w,gray) // left,top,right,bottom
+	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {
+		val radius = 10f*gc.scale.toFloat()  // 10 mm to Scale
+		val w = 5f*gc.scale.toFloat()   // 10 mm to Scale, bone width
+		canvas.drawCircle((loc.source.x.toFloat()),loc.source.y.toFloat(),radius,gc.foreground)
+		canvas.drawCircle((loc.end.x.toFloat()),loc.end.y.toFloat(),radius,gc.foreground)
+		canvas.drawRect(loc.source.x.toFloat()-w,loc.source.y.toFloat()-w,
+			           loc.end.x.toFloat()+w,loc.end.y.toFloat()+w,gc.foreground) // left,top,right,bottom
 	}
 
 	init {
-		black = Paint().apply { setARGB(255,0,0,0) }
-		gray = Paint().apply { setARGB(255,200,200,200) }
-		radius = 10f*scale.toFloat()  // 10 mm to Scale
-		w = 5f*scale.toFloat()   // 10 mm to Scale, bone width
 	}
 }

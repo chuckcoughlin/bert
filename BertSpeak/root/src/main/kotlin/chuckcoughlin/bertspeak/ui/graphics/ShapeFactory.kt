@@ -4,11 +4,9 @@
  */
 package chuckcoughlin.bertspeak.ui.graphics
 
-import android.graphics.Rect
 import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.data.Point3D
-import chuckcoughlin.bertspeak.ui.graphics.Side.FRONT
 
 /**
  * Create Shape objects appropriate for links
@@ -20,15 +18,13 @@ class ShapeFactory () {
 		/**
 		 * If unknown return an oval. Resolute links are "bones".
 		 */
-		fun drawableForLink(link: LinkLocation, cfg: GraphicsConfiguration): LinkShapeDrawable {
+		fun drawableForLink(link: LinkLocation): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
-			val end = projectedLocation(link.end, cfg.scale, cfg.projection)
-			val source = projectedLocation(link.source, cfg.scale, cfg.projection)
 			if(!link.joint.equals("NONE", true)) {
-				drawable = BoneDrawable(source,end,cfg.scale)
+				drawable = BoneDrawable(link)
 			}
 			else {
-				drawable = UnknownDrawable(end,cfg.scale)
+				drawable = UnknownDrawable(link)
 			}
 			return drawable
 		}

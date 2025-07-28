@@ -7,11 +7,8 @@
  */
 package chuckcoughlin.bert.common.ai.chat
 
-import chuckcoughlin.bert.common.model.Solver.model
-
 data class ChatRequest(val model:String) {
 		val input: MutableList<ChatMessage>
-		//val maxTokens: Int
 		val stream: Boolean
 
 	fun addMessage(cmsg:ChatMessage) {
@@ -20,7 +17,6 @@ data class ChatRequest(val model:String) {
 
 	init {
 		input = mutableListOf<ChatMessage>()
-		//maxTokens = 500
 		stream = false
 	}
 }

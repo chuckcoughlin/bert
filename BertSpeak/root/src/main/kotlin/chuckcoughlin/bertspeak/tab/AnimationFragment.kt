@@ -4,17 +4,22 @@
  */
 package chuckcoughlin.bertspeak.tab
 
+import android.graphics.Canvas
 import android.os.Bundle
+import android.provider.SyncStateContract.Helpers.update
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
+import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.LinkShapeObserver
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.databinding.FragmentAnimationBinding
 import chuckcoughlin.bertspeak.service.DispatchService
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
 import chuckcoughlin.bertspeak.ui.graphics.Side
@@ -24,7 +29,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side
  * interactively move the limbs via touch gestures. It listens for robot reports of
  * position changes.
  */
-class AnimationFragment (pos:Int): BasicAssistantFragment(pos), StatusObserver {
+class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserver,StatusObserver {
     // These properties are only valid between onCreateView and onDestroyView
     private lateinit var leftPanel: AnimationView
     private lateinit var frontPanel: AnimationView
@@ -36,14 +41,8 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), StatusObserver {
         Log.i(CLSS, "onCreateView: ....")
         val binding = FragmentAnimationBinding.inflate(inflater, container, false)
         leftPanel = binding.animationViewLeft
-        leftPanel
-        leftPanel.configuration.projection = Side.LEFT
-
         frontPanel = binding.animationViewFront
-        frontPanel.configuration.projection = Side.FRONT
-
         rightPanel = binding.animationViewRight
-        rightPanel.configuration.projection = Side.RIGHT
 
         var button = binding.animationRefreshButton
         button.setOnClickListener { refreshButtonClicked() }
@@ -56,18 +55,14 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), StatusObserver {
     override fun onStart() {
         super.onStart()
         DispatchService.registerForStatus(this)
-        DispatchService.registerForShapes(leftPanel)
-        DispatchService.registerForShapes(frontPanel)
-        DispatchService.registerForShapes(rightPanel)
+        DispatchService.registerForShapes(this)
     }
 
 
     override fun onStop() {
         super.onStop()
         DispatchService.unregisterForStatus(this)
-        DispatchService.unregisterForShapes(leftPanel)
-        DispatchService.unregisterForShapes(frontPanel)
-        DispatchService.unregisterForShapes(rightPanel)
+        DispatchService.unregisterForShapes(this)
     }
 
     fun refreshButtonClicked() {
@@ -85,13 +80,39 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), StatusObserver {
      * When the SocketManager comes online, request a link location update.
      */
     override fun updateStatus(data: StatusData) {
-        Log.i(name, String.format("update (%s):%s = %s",data.action,data.type,data.state))
+        Log.i(name, String.format("update (%s):%s = %s", data.action, data.type, data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
-            if( data.type==ManagerType.SOCKET && data.state==ManagerState.ACTIVE ) {
+            if (data.type == ManagerType.SOCKET && data.state == ManagerState.ACTIVE) {
                 DispatchService.sendJsonRequest(LINK_LOCATIONS)
             }
         }
     }
+
+    // ===================== LinkShapeObserver =====================
+    override fun resetGraphics() {
+        Log.i(name, String.format("resetGraphics: no action"))
+        leftPanel.clear()
+        frontPanel.clear()
+        rightPanel.clear()
+    }
+
+    /*
+     * Update the skeleton in each of the three panels
+     */
+    override fun updateGraphics(skeleton:List<LinkLocation>) {
+        Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.size))
+        for(loc in skeleton) {
+            leftPanel.updateDrawable(loc)
+            frontPanel.updateDrawable(loc)
+            rightPanel.updateDrawable(loc)
+        }
+        requireActivity().runOnUiThread {
+            frontPanel.invalidate()
+            leftPanel.invalidate()
+            rightPanel.invalidate()
+        }
+    }
+
     val CLSS = "AnimationFragment"
 
     init {

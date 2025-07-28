@@ -13,9 +13,12 @@ import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
  * for display.
  */
 interface LinkShapeObserver {
-    val configuration: GraphicsConfiguration
-    val name:String
     /**
+     * Allow only one observer of a given name.
+     * @return the name of the observer
+     */
+    val name: String
+    /*
      * Call this method after an observer newly registers. The
      * intention is to allow the observer clear the canvas.
      */

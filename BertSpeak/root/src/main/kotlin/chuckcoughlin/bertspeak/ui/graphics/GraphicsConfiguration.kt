@@ -4,7 +4,9 @@
  */
 package chuckcoughlin.bertspeak.ui.graphics
 
-import chuckcoughlin.bertspeak.ui.graphics.Side.FRONT
+import android.graphics.Color
+import android.graphics.Paint
+import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
  * This class is a holder for parameters that
@@ -12,11 +14,15 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.FRONT
  * robot's links.
  */
 class GraphicsConfiguration () {
+	var background: Paint
+	var foreground: Paint
 	var projection: Side
 	var scale: Double
 
 	init {
-		projection = FRONT
+		background = Paint()
+		foreground = Paint()
+		projection = Side.FRONT
 		scale = 0.1
 	}
 }

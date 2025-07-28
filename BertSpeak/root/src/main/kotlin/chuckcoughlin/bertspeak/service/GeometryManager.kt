@@ -54,8 +54,8 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     }
 
     override fun updateItem(type: JsonType, json: String) {
-        Log.i(CLSS, String.format("updateItem: %s",json))
         if( type==LINK_LOCATIONS ) {
+            Log.i(CLSS, String.format("updateItem: %s",json))
             if( !json.isEmpty() ) {
                 val skeleton = mutableListOf<LinkLocation>()
                 val locType = object : TypeToken<List<LinkLocation>>() {}.type
