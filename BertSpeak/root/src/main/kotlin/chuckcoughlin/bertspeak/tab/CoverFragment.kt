@@ -189,7 +189,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
      * category to determine which.
      */
     override fun updateStatus(data: StatusData) {
-        Log.i(name, String.format("update (%s):%s = %s",data.action,data.type,data.state))
+        Log.i(name, String.format("updateStatus (%s):%s = %s",data.action,data.type,data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             val type = data.type
             val state= data.state

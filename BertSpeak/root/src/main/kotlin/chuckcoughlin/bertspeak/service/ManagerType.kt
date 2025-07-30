@@ -6,14 +6,16 @@ package chuckcoughlin.bertspeak.service
 
 /**
  * The following are the communication controllers embedded in this application.
+ * FACES facial recognition handler
  * HEARING handles speech to text
+ * LOGGING send to the logger from background services
  * SOCKET handles read/write to the wifi network and robot server
  * SPEECH handles text to speech
 
 
  */
 enum class ManagerType {
-    FACES, HEARING, GEOMETRY, SOCKET, SPEECH, STATUS, TEXT, NONE;
+    FACES, HEARING, GEOMETRY, LOGGING, SOCKET, SPEECH, STATUS, TEXT, NONE;
 
     companion object {
         /**

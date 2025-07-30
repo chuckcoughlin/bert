@@ -80,7 +80,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
      * When the SocketManager comes online, request a link location update.
      */
     override fun updateStatus(data: StatusData) {
-        Log.i(name, String.format("update (%s):%s = %s", data.action, data.type, data.state))
+        Log.i(name, String.format("updateStatus (%s):%s = %s", data.action, data.type, data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             if (data.type == ManagerType.SOCKET && data.state == ManagerState.ACTIVE) {
                 DispatchService.sendJsonRequest(LINK_LOCATIONS)

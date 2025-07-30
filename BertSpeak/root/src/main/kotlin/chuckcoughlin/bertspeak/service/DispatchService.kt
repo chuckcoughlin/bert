@@ -40,6 +40,7 @@ class DispatchService(ctx: Context){
     lateinit var facesManager: FacesManager
     lateinit var geometryManager: GeometryManager
     lateinit var hearingManager: HearingManager
+    lateinit var loggingManager: LoggingManager
     lateinit var socketManager: SocketManager
     lateinit var speechManager: SpeechManager
     lateinit var statusManager: StatusManager
@@ -53,13 +54,14 @@ class DispatchService(ctx: Context){
         Log.i(CLSS, "initialize: ... ")
         instance = this
         ignoring = false
+        loggingManager = LoggingManager(this)
         facesManager   = FacesManager(this)
         hearingManager = HearingManager(this)
-        statusManager = StatusManager(this)
-        textManager   = TextManager(this)
-        geometryManager = GeometryManager(this)
-        socketManager = SocketManager(this)
-        speechManager = SpeechManager(this)
+        statusManager  = StatusManager(this)
+        textManager    = TextManager(this)
+        geometryManager= GeometryManager(this)
+        socketManager  = SocketManager(this)
+        speechManager  = SpeechManager(this)
     }
     /**
      * This instance is started by the Application in a background
@@ -71,6 +73,7 @@ class DispatchService(ctx: Context){
         instance = this
         // Start those managers that run on the main (UI) thread
         GlobalScope.launch(Dispatchers.Main) {
+            loggingManager.start()
             statusManager.start()
             hearingManager.start()
             speechManager.start()
@@ -82,7 +85,7 @@ class DispatchService(ctx: Context){
             geometryManager.start()
             socketManager.start()
         }
-        Log.i(CLSS, String.format("start: complete"))
+        log(CLSS, String.format("start: complete"))
     }
 
     /**
@@ -98,6 +101,7 @@ class DispatchService(ctx: Context){
         hearingManager.stop()
         statusManager.stop()
         textManager.stop()
+        loggingManager.stop()
     }
 
     /* =================================================================
@@ -105,6 +109,11 @@ class DispatchService(ctx: Context){
      *  service instance.
      * ==================================================================
      */
+    // Log on UI thread
+    fun log(clss:String,msg:String) {
+        loggingManager.log(clss,msg)
+    }
+
     // NOTE: This does not automatically set state to ERROR.
     fun logError(type: ManagerType, text: String) {
         val msg = type.name + ":" + text

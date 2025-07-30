@@ -6,6 +6,7 @@ package chuckcoughlin.bertspeak.service
 
 import android.graphics.drawable.shapes.Shape
 import android.util.Log
+import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
@@ -24,9 +25,12 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     override val managerType = ManagerType.GEOMETRY
     override var managerState = ManagerState.OFF
     private val shapeObservers: MutableMap<String, LinkShapeObserver>
+    private val skeleton: MutableList<LinkLocation>
     private val gson: Gson
 
     override fun start() {
+        dispatcher.log(CLSS, String.format("start ..."))
+        initializeSkeleton()
         DispatchService.registerForJson(this)
     }
     /**
@@ -40,9 +44,9 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     // ================ JsonObserver ======================
     override fun resetItem(map: Map<JsonType, String>) {
         val json = map[JsonType.LINK_LOCATIONS]
-        Log.i(CLSS, String.format("resetItem: %s",json))
+        dispatcher.log(CLSS, String.format("resetItem: %s",json))
         if( json!=null && !json.isEmpty() ) {
-            val skeleton = mutableListOf<LinkLocation>()
+            skeleton.clear()
             val locType = object : TypeToken<List<LinkLocation>>() {}.type
             val list = gson.fromJson<List<LinkLocation>>(json,locType)
             for(loc in list) {
@@ -55,14 +59,14 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
 
     override fun updateItem(type: JsonType, json: String) {
         if( type==LINK_LOCATIONS ) {
-            Log.i(CLSS, String.format("updateItem: %s",json))
+            dispatcher.log(CLSS, String.format("updateItem: %s",json))
             if( !json.isEmpty() ) {
-                val skeleton = mutableListOf<LinkLocation>()
+                skeleton.clear()
                 val locType = object : TypeToken<List<LinkLocation>>() {}.type
                 val list = gson.fromJson<List<LinkLocation>>(json,locType)
                 for(loc in list) {
                     skeleton.add(loc)
-                    Log.i(CLSS, String.format("updateItem: Skeleton is %s",loc.locationToText()))
+                    Log.i(CLSS, String.format("updateItem: Limb is %s",loc.locationToText()))
                 }
                 notifyObservers(skeleton)
             }
@@ -74,6 +78,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
      */
     fun registerShapeViewer(observer: LinkShapeObserver) {
         shapeObservers[observer.name] = observer
+        observer.updateGraphics(skeleton)
     }
 
     fun unregisterShapeViewer(observer: LinkShapeObserver) {
@@ -85,6 +90,15 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
         }
     }
 
+    private fun initializeSkeleton() {
+        skeleton.clear()
+        val locType = object : TypeToken<List<LinkLocation>>() {}.type
+        val list = gson.fromJson<List<LinkLocation>>(DefaultSkeleton.SKELETON,locType)
+        for(loc in list) {
+            skeleton.add(loc)
+            dispatcher.log(CLSS, String.format("initializeSkeleton: Limb is %s",loc.locationToText()))
+        }
+    }
     private fun initializeObservers() {
         for (observer in shapeObservers.values) {
             observer.resetGraphics()
@@ -105,6 +119,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     init {
         name = CLSS
         shapeObservers  = mutableMapOf<String, LinkShapeObserver>()
+        skeleton = mutableListOf<LinkLocation>()
         gson = Gson()
     }
 }
