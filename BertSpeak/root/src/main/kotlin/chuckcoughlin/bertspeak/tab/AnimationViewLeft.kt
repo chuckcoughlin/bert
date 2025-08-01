@@ -28,6 +28,7 @@ class AnimationViewLeft(context: Context, attrs: AttributeSet? = null)
     override fun draw(canvas:Canvas,gc:GraphicsConfiguration) {
         Log.i(name, String.format("onDraw ...."))
         canvas.drawPaint(configuration.background)
+        canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.foreground)
         drawLinks(canvas,configuration)
     }
 
@@ -57,6 +58,8 @@ class AnimationViewLeft(context: Context, attrs: AttributeSet? = null)
         name = CLSS
         configuration.projection = Side.LEFT
         configuration.background = Paint().apply { setARGB(255,200,200,200) }
-        configuration.foreground = Paint().apply { setARGB(255,255,0,0) }
+        configuration.foreground = Paint().apply { setARGB(255,255,0,0)
+                                                   strokeWidth = paintWidth
+                                                    style = Paint.Style.STROKE }
     }
 }

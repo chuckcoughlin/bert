@@ -52,14 +52,14 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), LogDataObserver {
 
 
     override fun resetText(list:List<LogData>) {
-        Log.i(name, "reset: message list now ...")
+        Log.i(name, "resetText: message list now ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
     @Synchronized
     override fun updateText(msg: LogData) {
-        Log.i(name, String.format("update: message = %s", msg.message))
+        Log.i(name, String.format("updateText: message = %s", msg.message))
         adapter.reportDataSetChanged()
     }
 

@@ -103,15 +103,15 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), LogDataObserver
      * Data is stored newest first
      */
     override fun resetText(list:List<LogData>) {
-        Log.i(name, "reset: message list is now ...")
+        Log.i(name, "resetText: message list is now ...")
         adapter.resetList(list)
         adapter.reportDataSetChanged()
     }
 
     @Synchronized
     override fun updateText(msg: LogData) {
-        Log.i(name, String.format("update: message = %s", msg.message))
-        if (!frozen || frozen) {
+        Log.i(name, String.format("updateText: message = %s", msg.message))
+        if (!frozen ) {
             adapter.insertMessage(msg)
             adapter.reportDataSetChanged()
         }

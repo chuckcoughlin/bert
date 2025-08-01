@@ -191,9 +191,10 @@ class FacesFragment (pos:Int): BasicAssistantFragment(pos), JsonObserver, Status
      * When the SocketManager comes online, request a list of known faces.
      */
     override fun updateStatus(data: StatusData) {
-        Log.i(name, String.format("updateStatus (%s):%s = %s",data.action,data.type,data.state))
+
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             if( data.type== ManagerType.SOCKET && data.state== ManagerState.ACTIVE ) {
+                Log.i(name, String.format("updateStatus (%s):%s = %s",data.action,data.type,data.state))
                 DispatchService.sendJsonRequest(FACE_NAMES)
             }
         }

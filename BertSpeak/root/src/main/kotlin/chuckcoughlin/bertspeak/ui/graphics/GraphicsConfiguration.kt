@@ -9,20 +9,23 @@ import android.graphics.Paint
 import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
- * This class is a holder for parameters that
- * affect the graphical rendering of the
+ * Holder parameters that affect the graphical rendering of the
  * robot's links.
  */
 class GraphicsConfiguration () {
 	var background: Paint
 	var foreground: Paint
 	var projection: Side
-	var scale: Double
+	var originx: Float   // Center of view
+	var originy: Float
+	var scale: Float   // Based on skeleton and view heights
 
 	init {
 		background = Paint()
 		foreground = Paint()
 		projection = Side.FRONT
-		scale = 0.1
+		scale = 1.0f
+		originx = 0.0f
+		originy = 0.0f
 	}
 }

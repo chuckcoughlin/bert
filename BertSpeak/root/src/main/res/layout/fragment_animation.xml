@@ -44,8 +44,8 @@
 
         <chuckcoughlin.bertspeak.tab.AnimationViewLeft
             android:id="@+id/animation_view_left"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="0dp"
             android:layout_marginBottom="0dp" />
     </LinearLayout>
@@ -105,7 +105,7 @@
         <chuckcoughlin.bertspeak.tab.AnimationViewRight
             android:id="@+id/animation_view_right"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="0dp"
             android:layout_marginBottom="0dp" />
     </LinearLayout>

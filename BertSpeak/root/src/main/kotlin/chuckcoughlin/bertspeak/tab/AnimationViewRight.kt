@@ -27,6 +27,7 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
     override fun draw(canvas:Canvas,gc:GraphicsConfiguration) {
         Log.i(name, String.format("onDraw ...."))
         canvas.drawPaint(configuration.background)
+        canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.foreground)
         drawLinks(canvas,configuration)
     }
 
@@ -50,11 +51,15 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
     }
 
     private val CLSS = "AnimationViewRight"
+    private val sWidth =  6f
 
     init {
         name = CLSS
         configuration.projection = Side.RIGHT
-        configuration.background = Paint().apply { setARGB(255,1000,100,100) }
-        configuration.foreground = Paint().apply { setARGB(255,255,255,0) }
+        configuration.background = Paint().apply { setARGB(255,100,100,100)
+                                                   style = Paint.Style.FILL}
+        configuration.foreground = Paint().apply { setARGB(255,255,255,0)
+                                                   strokeWidth = sWidth
+                                                   style = Paint.Style.STROKE}
     }
 }

@@ -138,10 +138,16 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     @Synchronized
     private fun stopVisualizer() {
-        if(visualizer.enabled ) {
-            visualizer.enabled = false
-            visualizer.release()
-            visualizer.setDataCaptureListener(null, 0, false, false)
+        try {
+            if(visualizer.enabled ) {
+                visualizer.enabled = false
+                visualizer.release()
+                visualizer.setDataCaptureListener(null, 0, false, false)
+            }
+        }
+        catch (ex: Exception) {  // This will fail in the emulator
+            Log.i(name, String.format("stopVisualizer: %s FAILED to stop (%s).",
+                name, ex.localizedMessage) )
         }
     }
 
@@ -189,8 +195,8 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
      * category to determine which.
      */
     override fun updateStatus(data: StatusData) {
-        Log.i(name, String.format("updateStatus (%s):%s = %s",data.action,data.type,data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
+            Log.i(name, String.format("updateStatus (%s):%s = %s",data.action,data.type,data.state))
             val type = data.type
             val state= data.state
             when (type) {
