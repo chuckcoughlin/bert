@@ -24,6 +24,8 @@ class LinkLocation() {
 	fun updateFromLink(link:Link) {
 		name = link.name
 		side = link.side.name
+		joint = link.sourcePin.joint.name
+		appendage = link.endPin.appendage.name
 	}
 	fun updateSource(pos:Point3D) {
 		source = pos

@@ -58,7 +58,7 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
         configuration.projection = Side.RIGHT
         configuration.background = Paint().apply { setARGB(255,100,100,100)
                                                    style = Paint.Style.FILL}
-        configuration.foreground = Paint().apply { setARGB(255,255,255,0)
+        configuration.foreground = Paint().apply { setARGB(255,0,255,0)
                                                    strokeWidth = sWidth
                                                    style = Paint.Style.STROKE}
     }

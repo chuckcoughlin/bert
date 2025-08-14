@@ -58,7 +58,7 @@ class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
         configuration.projection = Side.FRONT
         configuration.background = Paint().apply {  setARGB(255,0,0,0)
                                                     style = Paint.Style.FILL}
-        configuration.foreground = Paint().apply {  setARGB(255,200,200,200)
+        configuration.foreground = Paint().apply {  setARGB(255,100,100,100)
                                                     strokeWidth = sWidth
                                                     style = Paint.Style.STROKE}
     }

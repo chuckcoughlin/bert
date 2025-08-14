@@ -5,6 +5,7 @@
 package chuckcoughlin.bertspeak.ui.graphics
 
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.shapes.OvalShape
 import android.graphics.drawable.shapes.RectShape
@@ -41,22 +42,14 @@ class BoneDrawable(loc:LinkLocation) : LinkShapeDrawable(loc) {
 		var y1 = gc.originy + loc.source.y.toFloat()*gc.scale
 		var x2 = gc.originx + loc.end.x.toFloat()*gc.scale
 		var y2 = gc.originy + loc.end.y.toFloat()*gc.scale
-		if(x1>x2) {
-			val tmp = x2
-			x2 = x1
-			x1 = tmp
-		}
-		if(y1>y2) {
-			val tmp = y2
-			y2 = y1
-			y1 = tmp
-		}
-		val w = connectorWidth/2f
-		//canvas.drawRect(x1-w ,y1,x2-w, y2,gc.foreground) // left,top,right,bottom
-		canvas.drawArc(x1-w ,y1,x2-w, y2,0f,0f,true,gc.foreground) // left,top,right,bottom)
+
+		var paint = Paint(gc.foreground)
+		paint.setColor(Color.CYAN)
+		paint.strokeWidth = connectorWidth
+		canvas.drawLine(x1,x2,y1,y2,paint)
 	}
 
 	val beginningRadius= 10f
 	val endRadius = 10f
-	val connectorWidth= 4f
+	val connectorWidth= 10f
 }

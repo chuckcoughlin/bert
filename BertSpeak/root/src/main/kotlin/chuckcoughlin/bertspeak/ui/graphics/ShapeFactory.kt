@@ -20,7 +20,7 @@ class ShapeFactory () {
 		 */
 		fun drawableForLink(link: LinkLocation): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
-			if(!link.joint.equals("NONE", true)) {
+			if(link.joint.equals("NONE", true)) {
 				drawable = BoneDrawable(link)
 			}
 			else {
