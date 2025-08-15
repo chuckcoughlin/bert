@@ -18,24 +18,32 @@ class ShapeFactory () {
 		/**
 		 * If unknown return an oval. Resolute links are "bones".
 		 */
-		fun drawableForLink(link: LinkLocation): LinkShapeDrawable {
+		fun drawableForLink(link: LinkLocation,projection:Side): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
-			if(link.joint.equals("NONE", true)) {
-				drawable = BoneDrawable(link)
+			val p1 = projectedPoint(link.source,projection)
+			val p2 = projectedPoint(link.end,projection)
+			val side = Side.fromString(link.side)
+			if(!link.joint.equals("NONE", true)) {
+				drawable = BoneDrawable(p1,p2,side)
+			}
+			else if(link.appendage.equals("NOSE", true)) {
+				drawable = NoseDrawable(p1,p2,side)
+			}
+			else if(!link.appendage.equals("NONE", true)) {
+				drawable = AppendageDrawable(p1,p2,side)
 			}
 			else {
-				drawable = UnknownDrawable(link)
+				drawable = UnknownDrawable(p1,p2,side)
 			}
 			return drawable
 		}
 
-		fun projectedLocation(loc: Point3D,scale:Double,grp:Side): Point2D {
-			val group = grp
-			var pos: Point2D = when(group) {
-				Side.FRONT-> {Point2D(loc.x*scale,loc.z*scale)}
-				Side.BACK -> {Point2D(loc.x*scale,loc.z*scale)}
-				Side.LEFT-> {Point2D(-loc.y*scale,loc.z*scale)}
-				Side.RIGHT-> {Point2D(loc.y*scale,loc.z*scale)}
+		fun projectedPoint(loc: Point3D,projection:Side): Point2D {
+			var pos: Point2D = when(projection) {
+				Side.FRONT-> {Point2D(loc.y,-loc.z)}
+				Side.BACK -> {Point2D(-loc.y,-loc.z)}
+				Side.LEFT-> {Point2D(loc.x,-loc.z)}
+				Side.RIGHT-> {Point2D(-loc.x,-loc.z)}
 			}
 			return pos
 		}

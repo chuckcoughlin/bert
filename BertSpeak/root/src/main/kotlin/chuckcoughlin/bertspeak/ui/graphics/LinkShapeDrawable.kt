@@ -10,11 +10,8 @@ import android.graphics.Paint
 import android.graphics.Paint.Style.STROKE
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.Shape
 import android.util.Log
-import chuckcoughlin.bertspeak.data.LinkLocation
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
+import chuckcoughlin.bertspeak.data.Point2D
 
 
 /**
@@ -22,8 +19,10 @@ import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
  * except draw()
  */
 
- abstract class LinkShapeDrawable(lloc: LinkLocation): Drawable() {
-	 val loc:LinkLocation
+ abstract class LinkShapeDrawable(point1: Point2D,point2:Point2D,limbSide:Side): Drawable() {
+	 val p1:Point2D
+	 val p2:Point2D
+	 val side:Side
 	 private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 	 private val opacity: Int
 
@@ -49,7 +48,9 @@ import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 	val CLSS = "LinkShapeDrawable"
 
 	init {
-		loc = lloc
+		p1 = point1
+		p2 = point2
+		side = limbSide
 		opacity= PixelFormat.OPAQUE
 		strokePaint.style = STROKE
 	}

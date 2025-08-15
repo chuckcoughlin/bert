@@ -20,7 +20,7 @@ class LinkLocation() {
 	var side: String  // Link group
 
 	fun locationToText() : String {
-		return String.format("%s coordinates: %s",name,end.toText())
+		return String.format("%s coordinates: %s->%s [%s,%s,%s]",name,source.toText(),end.toText(),joint,appendage,side)
 	}
 
 	init {

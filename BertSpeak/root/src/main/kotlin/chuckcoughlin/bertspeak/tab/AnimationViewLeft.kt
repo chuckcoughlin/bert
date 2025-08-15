@@ -32,25 +32,24 @@ class AnimationViewLeft(context: Context, attrs: AttributeSet? = null)
         drawLinks(canvas,configuration)
     }
 
-    // Draw from right to left
+    // Draw limbs right side, center, left
     private fun drawLinks(canvas:Canvas,gc:GraphicsConfiguration) {
         for(drawable in drawables.values) {
-            if( drawable.loc.side.equals(Side.RIGHT.name,true)) {
+            if( drawable.side== Side.RIGHT) {
                 drawable.draw(canvas,gc)
             }
         }
         for(drawable in drawables.values) {
-            if( drawable.loc.side.equals(Side.FRONT.name,true)) {
+            if( drawable.side== Side.FRONT) {
                 drawable.draw(canvas,gc)
             }
         }
         for(drawable in drawables.values) {
-            if( drawable.loc.side.equals(Side.LEFT.name,true)) {
+            if( drawable.side== Side.LEFT) {
                 drawable.draw(canvas,gc)
             }
         }
     }
-
 
     private val CLSS = "AnimationViewLeft"
 

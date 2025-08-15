@@ -7,16 +7,13 @@ package chuckcoughlin.bertspeak.ui.graphics
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.drawable.shapes.OvalShape
-import android.graphics.drawable.shapes.RectShape
-import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.Point2D
 
 /**
  * Draw a filled rectangle with circles at either end
  * the indicate the joint.
  */
-class BoneDrawable(loc:LinkLocation) : LinkShapeDrawable(loc) {
+class BoneDrawable(p1:Point2D,p2:Point2D,side:Side) : LinkShapeDrawable(p1,p2,side) {
 
 	//
 	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {
@@ -27,26 +24,26 @@ class BoneDrawable(loc:LinkLocation) : LinkShapeDrawable(loc) {
 
 	private fun drawBeginning(canvas: Canvas,gc:GraphicsConfiguration) {
 		val radius = gc.scale*beginningRadius
-		val x = gc.originx + loc.source.x.toFloat()*gc.scale
-		val y = gc.originy + loc.source.y.toFloat()*gc.scale
+		val x = gc.originx + p1.x.toFloat()*gc.scale
+		val y = gc.originy + p1.y.toFloat()*gc.scale
 		canvas.drawCircle(x,y,radius,gc.foreground)
 	}
 	private fun drawEnd(canvas: Canvas,gc:GraphicsConfiguration) {
 		val radius = gc.scale*endRadius
-		val x = gc.originx + loc.end.x.toFloat()*gc.scale
-		val y = gc.originy + loc.end.y.toFloat()*gc.scale
+		val x = gc.originx + p2.x.toFloat()*gc.scale
+		val y = gc.originy + p2.y.toFloat()*gc.scale
 		canvas.drawCircle(x,y,radius,gc.foreground)
 	}
 	private fun drawConnector(canvas: Canvas,gc:GraphicsConfiguration) {
-		var x1 = gc.originx + loc.source.x.toFloat()*gc.scale
-		var y1 = gc.originy + loc.source.y.toFloat()*gc.scale
-		var x2 = gc.originx + loc.end.x.toFloat()*gc.scale
-		var y2 = gc.originy + loc.end.y.toFloat()*gc.scale
+		var x1 = gc.originx + p1.x.toFloat()*gc.scale
+		var y1 = gc.originy + p1.y.toFloat()*gc.scale
+		var x2 = gc.originx + p2.x.toFloat()*gc.scale
+		var y2 = gc.originy + p2.y.toFloat()*gc.scale
 
 		var paint = Paint(gc.foreground)
 		paint.setColor(Color.CYAN)
 		paint.strokeWidth = connectorWidth
-		canvas.drawLine(x1,x2,y1,y2,paint)
+		canvas.drawLine(x1,y1,x2,y2,paint)
 	}
 
 	val beginningRadius= 10f

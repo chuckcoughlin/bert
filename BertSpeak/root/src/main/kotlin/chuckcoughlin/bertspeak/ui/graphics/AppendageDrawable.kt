@@ -11,20 +11,20 @@ import chuckcoughlin.bertspeak.data.Point2D
 /**
  * Draw a red dot if nothing else matches..
  */
-class UnknownDrawable(p1:Point2D,p2: Point2D,side:Side) : LinkShapeDrawable(p1,p2,side) {
+class AppendageDrawable(p1:Point2D, p2: Point2D, side:Side) : LinkShapeDrawable(p1,p2,side) {
 	val unscaledRadius:Float
-	val redPaint: Paint
+	val cyanPaint: Paint
 
 	// Error indicator is a red circle
 	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {
 		val radius = gc.scale*unscaledRadius
 		val x = gc.originx + p2.x.toFloat()*gc.scale
 		val y = gc.originy + p2.y.toFloat()*gc.scale
-		canvas.drawCircle(x,y,radius,redPaint)
+		canvas.drawCircle(x,y,radius,cyanPaint)
 	}
 
 	init {
-		redPaint = Paint().apply { setARGB(255,255,0,0) }
+		cyanPaint = Paint().apply { setARGB(255,0,150,255) }
 		unscaledRadius = 10f
  	}
 }

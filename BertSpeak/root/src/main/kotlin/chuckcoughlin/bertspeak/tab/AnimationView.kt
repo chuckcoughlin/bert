@@ -6,17 +6,16 @@ package chuckcoughlin.bertspeak.tab
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.LinkLocation
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
 import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
+import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
  * A canvas for displaying an entire skeleton in one of
@@ -68,7 +67,7 @@ abstract class AnimationView(context: Context, attrs: AttributeSet? = null)
 
     fun updateDrawable(loc: LinkLocation) {
         Log.i(CLSS, String.format("%s.updateDrawable %s",configuration.projection.name,loc.name))
-        val drawable = ShapeFactory.drawableForLink(loc)
+        val drawable = ShapeFactory.drawableForLink(loc,configuration.projection)
         drawables[loc.name] = drawable
     }
 
