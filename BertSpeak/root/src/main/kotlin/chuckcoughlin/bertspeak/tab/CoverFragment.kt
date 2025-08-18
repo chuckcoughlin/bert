@@ -257,19 +257,19 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
             // Toggle listening status
             hearingStatusButton -> {
                 Log.i(name, String.format("onClick:%s",ManagerType.HEARING.name))
+                DispatchService.instance.hearingManager.toggleHearing()
             }
             // The stop button triggers an immediate shutdown (easier said than done)
             stopStatusButton -> {
                 Log.i(name, String.format("onClick: application shutdown",))
                 DispatchService.instance.stop()
                 requireActivity().moveTaskToBack(true);
-                //requireActivity().finishAffinity()
                 requireActivity().finishAndRemoveTask()
                 //val homeIntent =  Intent(Intent.ACTION_MAIN);
                 //homeIntent.addCategory( Intent.CATEGORY_HOME );
                 //homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 //startActivity(homeIntent);
-                ///requireActivity().finish()
+                requireActivity().finish()
 
                 android.os.Process.killProcess(android.os.Process.myPid())
                 System.exit(0)    // Don't kill before tasks shut down
