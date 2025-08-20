@@ -198,6 +198,11 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		Log.i(CLSS, "markEndOfSpeech ...")
 		speechTime  = System.currentTimeMillis()
 	}
+
+	fun toggleHearing() {
+		if(managerState==ManagerState.ACTIVE) stopListening()
+		else startListening()
+	}
 	/**
 	 * Perform any cleanup of phrases that ease or correct the parsing.
 	 * For example, replace ° with " degrees"

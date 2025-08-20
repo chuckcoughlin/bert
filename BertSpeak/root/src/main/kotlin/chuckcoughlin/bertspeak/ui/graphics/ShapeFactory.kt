@@ -16,7 +16,7 @@ class ShapeFactory () {
 
 	companion object {
 		/**
-		 * If unknown return an oval. Resolute links are "bones".
+		 * If unknown return a red-filled circle. Resolute links are "bones".
 		 */
 		fun drawableForLink(link: LinkLocation,projection:Side): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
@@ -28,6 +28,9 @@ class ShapeFactory () {
 			}
 			else if(link.appendage.equals("NOSE", true)) {
 				drawable = NoseDrawable(p1,p2,side)
+			}
+			else if(link.appendage.contains("FINGER", true)) {
+				drawable = HandDrawable(p1,p2,side)
 			}
 			else if(!link.appendage.equals("NONE", true)) {
 				drawable = AppendageDrawable(p1,p2,side)
