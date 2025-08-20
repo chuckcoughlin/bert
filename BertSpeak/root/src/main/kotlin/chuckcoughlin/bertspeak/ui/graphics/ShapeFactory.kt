@@ -48,9 +48,4 @@ class ShapeFactory () {
 			return pos
 		}
 	}
-
-
-	init {
-
-	}
 }

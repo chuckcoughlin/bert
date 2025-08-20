@@ -7,7 +7,6 @@ package chuckcoughlin.bertspeak.service
 import android.graphics.Rect
 import android.util.Log
 import chuckcoughlin.bertspeak.common.ContourTag
-import chuckcoughlin.bertspeak.data.TextObserver
 import chuckcoughlin.bertspeak.common.LandmarkTag
 import chuckcoughlin.bertspeak.data.FaceDirection
 import chuckcoughlin.bertspeak.data.FacialDetails

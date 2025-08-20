@@ -12,20 +12,22 @@ import android.view.MotionEvent
 import android.view.View
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
 import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
-import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
  * A canvas for displaying an entire skeleton in one of
  * FRONT, LEFT or RIGHT projections.
  */
-abstract class AnimationView(context: Context, attrs: AttributeSet? = null)
-                    : View(context,attrs)  {
+ abstract class AnimationView(context: Context, attrs: AttributeSet? = null)
+                    : View(context,attrs), View.OnTouchListener {
     var configuration: GraphicsConfiguration
     val drawables: MutableMap<String,LinkShapeDrawable>
     private var name: String
+    private var selected: Boolean // Have we selected a joint or appendage
+    private var skeleton: List<LinkLocation>
 
     fun clear() {
         drawables.clear()
@@ -41,15 +43,31 @@ abstract class AnimationView(context: Context, attrs: AttributeSet? = null)
         configuration.originy = measuredHeight/2f
         configuration.scale = measuredHeight / DefaultSkeleton.skeletoHeight
     }
-    override fun onTouchEvent(event: MotionEvent): Boolean {
+
+
+    abstract fun draw(canvas: Canvas,gc:GraphicsConfiguration)
+
+    fun updateDrawables(s:List<LinkLocation>) {
+        skeleton = s
+        for (loc in skeleton) {
+            Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
+            val drawable = ShapeFactory.drawableForLink(loc, configuration.projection)
+            drawables[loc.name] = drawable
+        }
+    }
+
+    /** ============= OnTouchListener ===============  */
+    override fun onTouch(v:View,event: MotionEvent): Boolean {
+        Log.i(CLSS, String.format("%s.onTouchEvent ==============================================",CLSS))
         val action = event.action
         // Retrieve the new x and y touch positions
-        val x = event.x.toInt()
-        val y = event.y.toInt()
+        val x = event.x.toDouble()
+        val y = event.y.toDouble()
+        val spot = Point2D((x-configuration.originx)/configuration.scale,(y-configuration.originy)/configuration.scale)
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 Log.i(CLSS, String.format("%s.onTouchEvent DOWN %dx%d",configuration.projection.name,x,y))
-                invalidate()
+                findTouchedDrawable(spot)
             }
             MotionEvent.ACTION_MOVE -> {
                 Log.i(CLSS, String.format("%s.onTouchEvent MOVE %dx%d",configuration.projection.name,x,y))
@@ -57,18 +75,18 @@ abstract class AnimationView(context: Context, attrs: AttributeSet? = null)
             }
             MotionEvent.ACTION_UP -> {
                 Log.i(CLSS, String.format("%s.onTouchEvent UP %dx%d",configuration.projection.name,x,y))
-                //performClick()
+                performClick()
             }
         }
         return true
     }
+    override fun performClick():Boolean {
+        return true  // Consume the event
+    }
 
-    abstract fun draw(canvas: Canvas,gc:GraphicsConfiguration)
-
-    fun updateDrawable(loc: LinkLocation) {
-        Log.i(CLSS, String.format("%s.updateDrawable %s",configuration.projection.name,loc.name))
-        val drawable = ShapeFactory.drawableForLink(loc,configuration.projection)
-        drawables[loc.name] = drawable
+    private fun findTouchedDrawable(point:Point2D):LinkShapeDrawable? {
+        var drawable:LinkShapeDrawable? = null
+        return drawable
     }
 
     private val CLSS = "AnimationView"
@@ -78,5 +96,7 @@ abstract class AnimationView(context: Context, attrs: AttributeSet? = null)
         name = CLSS
         configuration = GraphicsConfiguration()
         drawables = mutableMapOf<String,LinkShapeDrawable>()
+        selected = false
+        skeleton = mutableListOf<LinkLocation>()
     }
 }

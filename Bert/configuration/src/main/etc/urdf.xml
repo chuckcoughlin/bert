@@ -128,15 +128,21 @@
 			   xyz="-0.0 20.0 20.0"  rpy="-90. 0. -90."/>
 		<source joint="NECK_Z"/>
 	</link>
+	<link side="LEFT">
+		<appendage name="LEFT_EAR"
+				   xyz="-30.0 62.0 55.0" rpy="0. 0. 0."/>
+		<source joint="NECK_Y"  />
+	</link>
+	<link side="RIGHT">
+		<appendage name="RIGHT_EAR"
+				   xyz="-30.0 -62.0 55.0"/>
+		<source joint="NECK_Y"  />
+	</link>
 	<link side="FRONT">
 		<appendage name="LEFT_EYE"
 				   xyz="0.0 32.0 55.0" rpy="0. 0. 0."/>
 		<appendage name="RIGHT_EYE"
 				   xyz="0.0 -32.0 55.0"  rpy="0. 0. 0."/>
-		<appendage name="LEFT_EAR"
-				   xyz="-30.0 62.0 55.0" rpy="0. 0. 0."/>
-		<appendage name="RIGHT_EAR"
-				   xyz="-30.0 -62.0 55.0"/>
 		<appendage name="NOSE"
 				   xyz="15.0 0.0 40.0" rpy="0. 0. 0."/>
 		<source joint="NECK_Y"  />

@@ -38,7 +38,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 		TODO("Not yet implemented")
 	}
 
-	// This should never be called?
+	// This should always be overriden
 	override fun draw(cas:Canvas) {
 		Log.w(CLSS,"draw(): Illegal use.")
 	}

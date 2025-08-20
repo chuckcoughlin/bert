@@ -43,6 +43,9 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
         leftPanel = binding.animationViewLeft
         frontPanel = binding.animationViewFront
         rightPanel = binding.animationViewRight
+        binding.animationLayoutFront.setOnTouchListener(frontPanel)
+        binding.animationLayoutLeft.setOnTouchListener(leftPanel)
+        binding.animationLayoutRight.setOnTouchListener(rightPanel)
 
         var button = binding.animationRefreshButton
         button.setOnClickListener { refreshButtonClicked() }
@@ -101,11 +104,10 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
      */
     override fun updateGraphics(skeleton:List<LinkLocation>) {
         Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.size))
-        for(loc in skeleton) {
-            leftPanel.updateDrawable(loc)
-            frontPanel.updateDrawable(loc)
-            rightPanel.updateDrawable(loc)
-        }
+        leftPanel.updateDrawables(skeleton)
+        frontPanel.updateDrawables(skeleton)
+        rightPanel.updateDrawables(skeleton)
+
         requireActivity().runOnUiThread {
             frontPanel.invalidate()
             leftPanel.invalidate()

@@ -6,22 +6,17 @@ package chuckcoughlin.bertspeak.tab
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
-import android.view.View
-import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
-import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
-import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
 import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
  * View the robot skeleton looking straight on.
  */
 class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
-                    : AnimationView(context,attrs)  {
+                    : AnimationView(context,attrs) {
     private val name: String
 
     override fun draw(canvas:Canvas,gc:GraphicsConfiguration) {
