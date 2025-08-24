@@ -6,16 +6,12 @@ package chuckcoughlin.bertspeak.tab
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
-import android.view.View
-import chuckcoughlin.bertspeak.data.LinkLocation
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
+import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
-import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
 import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
@@ -27,9 +23,13 @@ class AnimationViewLeft(context: Context, attrs: AttributeSet? = null)
 
     override fun draw(canvas:Canvas,gc:GraphicsConfiguration) {
         Log.i(name, String.format("onDraw ...."))
-        canvas.drawPaint(configuration.background)
-        canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.foreground)
+        canvas.drawPaint(configuration.backgroundColor)
+        canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.topColor)
         drawLinks(canvas,configuration)
+    }
+    override fun selectDrawable(point: Point2D): LinkShapeDrawable? {
+        var drawable: LinkShapeDrawable? = null
+        return drawable
     }
 
     // Draw limbs right side, center, left
@@ -56,9 +56,5 @@ class AnimationViewLeft(context: Context, attrs: AttributeSet? = null)
     init {
         name = CLSS
         configuration.projection = Side.LEFT
-        configuration.background = Paint().apply { setARGB(255,200,200,200) }
-        configuration.foreground = Paint().apply { setARGB(255,255,0,0)
-                                                   strokeWidth = paintWidth
-                                                    style = Paint.Style.STROKE }
     }
 }

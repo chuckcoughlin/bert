@@ -11,7 +11,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 /**
  * Draw a blue circle for a nose..
  */
-class NoseDrawable(p1:Point2D, p2: Point2D, side:Side) : LinkShapeDrawable(p1,p2,side) {
+class NoseDrawable(name:String,p1:Point2D, p2: Point2D, side:Side) : LinkShapeDrawable(name,p1,p2,side) {
 	val unscaledRadius:Float
 	val bluePaint: Paint
 

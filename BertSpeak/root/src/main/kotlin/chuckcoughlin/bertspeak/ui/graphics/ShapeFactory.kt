@@ -24,19 +24,20 @@ class ShapeFactory () {
 			val p2 = projectedPoint(link.end,projection)
 			val side = Side.fromString(link.side)
 			if(!link.joint.equals("NONE", true)) {
-				drawable = BoneDrawable(p1,p2,side)
+				drawable = BoneDrawable(link.name,p1,p2,side)
+				if(link.joint.contains("ANKLE")) drawable.selectable = true
 			}
 			else if(link.appendage.equals("NOSE", true)) {
-				drawable = NoseDrawable(p1,p2,side)
+				drawable = NoseDrawable(link.name,p1,p2,side)
 			}
 			else if(link.appendage.contains("FINGER", true)) {
-				drawable = HandDrawable(p1,p2,side)
+				drawable = HandDrawable(link.name,p1,p2,side)
 			}
 			else if(!link.appendage.equals("NONE", true)) {
-				drawable = AppendageDrawable(p1,p2,side)
+				drawable = AppendageDrawable(link.name,p1,p2,side)
 			}
 			else {
-				drawable = UnknownDrawable(p1,p2,side)
+				drawable = UnknownDrawable(link.name,p1,p2,side)
 			}
 			return drawable
 		}

@@ -12,7 +12,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 /**
  * Draw the forearm connector, then a hand image
  */
-class HandDrawable(p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(p1,p2,side) {
+class HandDrawable(name:String,p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(name,p1,p2,side) {
 
 	//
 	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {
@@ -24,7 +24,7 @@ class HandDrawable(p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(p1,p2,
 		val radius = gc.scale*endRadius
 		val x = gc.originx + p2.x.toFloat()*gc.scale
 		val y = gc.originy + p2.y.toFloat()*gc.scale
-		canvas.drawCircle(x,y,radius,gc.foreground)
+		canvas.drawCircle(x,y,radius,if(selected) gc.selectedColor else gc.topColor)
 	}
 	private fun drawConnector(canvas: Canvas,gc:GraphicsConfiguration) {
 		var x1 = gc.originx + p1.x.toFloat()*gc.scale
@@ -32,12 +32,15 @@ class HandDrawable(p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(p1,p2,
 		var x2 = gc.originx + p2.x.toFloat()*gc.scale
 		var y2 = gc.originy + p2.y.toFloat()*gc.scale
 
-		var paint = Paint(gc.foreground)
-		paint.setColor(Color.MAGENTA)
+		val paint = if(selected) Paint(gc.selectedColor) else Paint(gc.selectableColor)
 		paint.strokeWidth = connectorWidth
 		canvas.drawLine(x1,y1,x2,y2,paint)
 	}
 
 	val endRadius = 10f
 	val connectorWidth= 10f
+
+	init {
+		selectable = true
+	}
 }

@@ -11,6 +11,7 @@ import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
+import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.data.LinkShapeObserver
@@ -312,6 +313,10 @@ class DispatchService(ctx: Context){
             instance.facesManager.reportFaceDetected(face)
         }
 
+        fun reportJsonData(type:JsonType,json:String) {
+            instance.reportJsonData(type,json)
+        }
+
         fun sendJsonRequest(type:JsonType) {
             instance.sendJsonRequest(type)
         }
@@ -323,6 +328,13 @@ class DispatchService(ctx: Context){
             Log.i(CLSS, String.format("speak: %s", msg))
             instance.speechManager.speak(msg)
             instance.markEndOfSpeech()
+        }
+
+        fun linkLocationByName(name:String):LinkLocation {
+            return instance.geometryManager.linkLocationByName(name)
+        }
+        fun updateJointPosition(location: LinkLocation) {
+            instance.geometryManager.updateJointPosition(location)
         }
 
         val CLSS = "DispatchService,companion"

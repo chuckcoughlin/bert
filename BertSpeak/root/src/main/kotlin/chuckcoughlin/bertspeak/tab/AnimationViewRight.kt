@@ -12,6 +12,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
 import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
@@ -26,9 +27,14 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
 
     override fun draw(canvas:Canvas,gc:GraphicsConfiguration) {
         Log.i(name, String.format("onDraw ...."))
-        canvas.drawPaint(configuration.background)
-        canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.foreground)
+        canvas.drawPaint(configuration.backgroundColor)
+        canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.topColor)
         drawLinks(canvas,configuration)
+    }
+
+    override fun selectDrawable(point: Point2D): LinkShapeDrawable? {
+        var drawable: LinkShapeDrawable? = null
+        return drawable
     }
 
     // Draw from left to right
@@ -56,10 +62,5 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
     init {
         name = CLSS
         configuration.projection = Side.RIGHT
-        configuration.background = Paint().apply { setARGB(255,100,100,100)
-                                                   style = Paint.Style.FILL}
-        configuration.foreground = Paint().apply { setARGB(255,0,255,0)
-                                                   strokeWidth = sWidth
-                                                   style = Paint.Style.STROKE}
     }
 }

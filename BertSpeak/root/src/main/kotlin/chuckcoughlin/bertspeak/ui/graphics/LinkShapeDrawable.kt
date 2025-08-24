@@ -19,10 +19,13 @@ import chuckcoughlin.bertspeak.data.Point2D
  * except draw()
  */
 
- abstract class LinkShapeDrawable(point1: Point2D,point2:Point2D,limbSide:Side): Drawable() {
+ abstract class LinkShapeDrawable(nam:String,point1: Point2D,point2:Point2D,limbSide:Side): Drawable() {
+	 val name:String
 	 val p1:Point2D
 	 val p2:Point2D
 	 val side:Side
+	 var selected:Boolean
+	var selectable:Boolean
 	 private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 	 private val opacity: Int
 
@@ -43,11 +46,23 @@ import chuckcoughlin.bertspeak.data.Point2D
 		Log.w(CLSS,"draw(): Illegal use.")
 	}
 
-	abstract  fun draw(canvas: Canvas,gc:GraphicsConfiguration)
+	abstract fun draw(canvas: Canvas,gc:GraphicsConfiguration)
+	fun isTouched(tp:Point2D):Boolean {
+		var touched=false
+		if( Math.abs(p2.x-tp.x) < TOLERANCE  &&
+			Math.abs(p2.y-tp.y) < TOLERANCE ) {
+			touched = true
+		}
+		return touched
+	}
 
 	val CLSS = "LinkShapeDrawable"
+	val TOLERANCE  = 10f // Touch tolerance in screen units
 
 	init {
+		name = nam
+		selected = false
+		selectable = false
 		p1 = point1
 		p2 = point2
 		side = limbSide
