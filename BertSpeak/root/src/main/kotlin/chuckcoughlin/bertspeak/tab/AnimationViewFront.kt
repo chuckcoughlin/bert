@@ -32,7 +32,7 @@ class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
     override fun selectDrawable(point: Point2D): LinkShapeDrawable? {
         var drawable: LinkShapeDrawable? = null
         for(d in drawables.values) {
-            if(d.isTouched(point)) {
+            if(d.selectable && d.isTouched(point)) {
                 drawable = d
                 drawable.selected = true
                 break

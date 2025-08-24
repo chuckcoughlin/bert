@@ -32,8 +32,25 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
         drawLinks(canvas,configuration)
     }
 
+    // Only select from right side or center
     override fun selectDrawable(point: Point2D): LinkShapeDrawable? {
         var drawable: LinkShapeDrawable? = null
+        for(d in drawables.values) {
+            if(d.selectable && d.side==Side.RIGHT && d.isTouched(point)) {
+                drawable = d
+                drawable.selected = true
+                break
+            }
+        }
+        if( drawable==null) {
+            for(d in drawables.values) {
+                if(d.selectable && d.side == Side.FRONT && d.isTouched(point)) {
+                    drawable = d
+                    drawable.selected = true
+                    break
+                }
+            }
+        }
         return drawable
     }
 

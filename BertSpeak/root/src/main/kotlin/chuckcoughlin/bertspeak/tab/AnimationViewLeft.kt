@@ -27,8 +27,25 @@ class AnimationViewLeft(context: Context, attrs: AttributeSet? = null)
         canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.topColor)
         drawLinks(canvas,configuration)
     }
+    // Left or front only
     override fun selectDrawable(point: Point2D): LinkShapeDrawable? {
         var drawable: LinkShapeDrawable? = null
+        for(d in drawables.values) {
+            if(d.selectable && d.side==Side.LEFT && d.isTouched(point)) {
+                drawable = d
+                drawable.selected = true
+                break
+            }
+        }
+        if( drawable==null) {
+            for(d in drawables.values) {
+                if(d.selectable && d.side == Side.FRONT && d.isTouched(point)) {
+                    drawable = d
+                    drawable.selected = true
+                    break
+                }
+            }
+        }
         return drawable
     }
 
