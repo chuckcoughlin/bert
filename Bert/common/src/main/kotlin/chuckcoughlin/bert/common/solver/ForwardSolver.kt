@@ -2,23 +2,30 @@
  * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
-package chuckcoughlin.bert.common.model
+package chuckcoughlin.bert.common.solver
 
 import chuckcoughlin.bert.common.math.Quaternion
-import chuckcoughlin.bert.common.model.Solver.model
+import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.Chain
+import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.IMU
+import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.Link
+import chuckcoughlin.bert.common.model.LinkLocation
+import chuckcoughlin.bert.common.model.Point3D
+import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.common.util.TextUtility
 import com.google.gson.GsonBuilder
-import org.w3c.dom.Text
 import java.util.logging.Logger
 
 /**
- * This class handles various computations pertaining to the robot,
- * including: trajectory planning. Note that the same link object
- * may belong to several chains.
+ * This class handles forward kinetics calculations.
  *
  * The URDFModel is the tree of links which describes the robot.
+ * A single link object may belong to several chains.
  */
-object Solver {
+object ForwardSolver {
     val model: URDFModel
 
     /**
@@ -37,7 +44,7 @@ object Solver {
      * robot origin in the pelvis in the inertial reference frame. The named joint is
      * last in the chain.
      */
-    fun computeDirection(joint:Joint): DoubleArray {
+    fun computeDirection(joint: Joint): DoubleArray {
         val subchain: List<Link> = Chain.partialChainToJoint(joint)
         val q = computeQuaternionFromChain(subchain)
         return q.direction()
@@ -46,7 +53,7 @@ object Solver {
     /**
      * Return a string for debugging use containing both position and direction
      */
-    fun computeLocationDescription(joint:Joint): String {
+    fun computeLocationDescription(joint: Joint): String {
         val subchain: List<Link> = Chain.partialChainToJoint(joint)
         val q = computeQuaternionFromChain(subchain)
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
@@ -54,7 +61,7 @@ object Solver {
     /**
      * Return a string for debugging use containing both position and direction
      */
-    fun computeLocationDescription(appendage:Appendage): String {
+    fun computeLocationDescription(appendage: Appendage): String {
         val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
         val q = computeQuaternionFromChain(subchain)
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
@@ -75,7 +82,7 @@ object Solver {
      * robot origin in the pelvis in the inertial reference frame. The named joint is
      * last in the chain.
      */
-    fun computeLocation(joint:Joint): Point3D {
+    fun computeLocation(joint: Joint): Point3D {
         val subchain: List<Link> = Chain.partialChainToJoint(joint)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
@@ -172,7 +179,7 @@ object Solver {
         }
     }
 
-    private const val CLSS = "Solver"
+    private const val CLSS = "ForwardSolver"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean
 

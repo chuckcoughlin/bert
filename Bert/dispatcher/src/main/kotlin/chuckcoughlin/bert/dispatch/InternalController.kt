@@ -8,7 +8,6 @@ import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel

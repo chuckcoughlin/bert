@@ -10,7 +10,6 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
-import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import jssc.SerialPortEvent
 import jssc.SerialPortEventListener
 import jssc.SerialPortException

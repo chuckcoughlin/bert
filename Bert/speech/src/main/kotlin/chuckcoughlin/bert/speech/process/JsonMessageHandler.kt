@@ -7,10 +7,8 @@ package chuckcoughlin.bert.speech.process
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
-import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.FaceDirection
 import chuckcoughlin.bert.common.model.FacialDetails
-import chuckcoughlin.bert.common.model.RobotModel
 import com.google.gson.Gson
 import java.util.logging.Logger
 

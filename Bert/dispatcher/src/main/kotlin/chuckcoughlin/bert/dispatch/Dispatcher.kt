@@ -10,6 +10,7 @@ import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.solver.ForwardSolver
 import chuckcoughlin.bert.motor.controller.MotorGroupController
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.term.controller.TerminalController
@@ -391,13 +392,13 @@ class Dispatcher : Controller {
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
-                    val xyz: DoubleArray = Solver.computeDirection(appendage)
+                    val xyz: DoubleArray = ForwardSolver.computeDirection(appendage)
                     text = String.format("my %s is aimed at %2.2f %2.2f %2.2f",
                         appendage.name, xyz[0], xyz[1], xyz[2])
                 }
                 else {
                     val joint = request.joint
-                    val xyz: DoubleArray = Solver.computeDirection(joint)
+                    val xyz: DoubleArray = ForwardSolver.computeDirection(joint)
                     text = String.format(
                         "My %s is oriented %2.2f and %2.2f degrees from the reference frame x and y axes, respectively",
                         Joint.toText(joint), xyz[0], xyz[1])
@@ -410,7 +411,7 @@ class Dispatcher : Controller {
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
-                    val xyz: Point3D = Solver.computeLocation(appendage)
+                    val xyz: Point3D = ForwardSolver.computeLocation(appendage)
                     text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
                         appendage.name, xyz.x, xyz.y, xyz.z)
                     request.values[0] = xyz.x
@@ -419,7 +420,7 @@ class Dispatcher : Controller {
                 }
                 else {
                     val joint = request.joint
-                    val xyz: Point3D = Solver.computeLocation(joint)
+                    val xyz: Point3D = ForwardSolver.computeLocation(joint)
                     text = String.format(
                         "My %s joint is at %2.2f %2.2f %2.2f millimeters",
                         Joint.toText(joint), xyz.x, xyz.y, xyz.z)
@@ -458,7 +459,7 @@ class Dispatcher : Controller {
                             JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Appendage.nameList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.nameList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
-                            JsonType.LINK_LOCATIONS -> text = "Locations are " + Solver.linkLocationsToJSON()
+                            JsonType.LINK_LOCATIONS -> text = "Locations are " + ForwardSolver.linkLocationsToJSON()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
                             else -> {
@@ -573,7 +574,7 @@ class Dispatcher : Controller {
                         text = RobotModel.typesToJSON()
                     }
                     JsonType.LINK_LOCATIONS -> {
-                        text = Solver.linkLocationsToJSON()
+                        text = ForwardSolver.linkLocationsToJSON()
                     }
                     JsonType.LIMB_NAMES -> {
                         text = RobotModel.limbsToJSON()

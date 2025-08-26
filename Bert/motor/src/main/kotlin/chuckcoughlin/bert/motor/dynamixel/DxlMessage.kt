@@ -6,7 +6,6 @@ package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.motor.dynamixel.DxlConversions.CLSS
 import chuckcoughlin.bert.sql.db.Database
 import com.google.gson.GsonBuilder
 import java.util.*

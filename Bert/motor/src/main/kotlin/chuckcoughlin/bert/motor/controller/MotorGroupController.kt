@@ -6,17 +6,14 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.CommandType
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import jssc.SerialPort
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
-import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 

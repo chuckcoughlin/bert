@@ -4,14 +4,13 @@
  */
 package chuckcoughlin.bert.speech.process
 
-import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.LinkLocation
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.Solver
+import chuckcoughlin.bert.common.solver.ForwardSolver
 import com.google.gson.Gson
 import java.util.logging.Logger
 
@@ -26,7 +25,7 @@ object LocationMessageHandler  {
     fun getLinkLocations() : MessageBottle {
         val msg = MessageBottle(RequestType.JSON)
         msg.jtype = JsonType.LINK_LOCATIONS
-        msg.text = Solver.linkLocationsToJSON()
+        msg.text = ForwardSolver.linkLocationsToJSON()
         return msg
     }
     /**

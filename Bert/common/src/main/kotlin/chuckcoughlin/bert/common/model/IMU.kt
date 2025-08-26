@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Quaternion
-import chuckcoughlin.bert.common.model.URDFModel.origin
 import java.util.logging.Logger
 
 /**

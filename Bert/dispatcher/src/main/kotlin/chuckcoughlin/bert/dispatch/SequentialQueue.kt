@@ -6,7 +6,6 @@
 package chuckcoughlin.bert.dispatch
 
 import chuckcoughlin.bert.common.message.MessageBottle
-import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel

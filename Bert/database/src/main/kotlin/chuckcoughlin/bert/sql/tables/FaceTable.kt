@@ -7,9 +7,7 @@ package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.util.TextUtility
-import chuckcoughlin.bert.sql.db.Database.getPoseIdForName
 import chuckcoughlin.bert.sql.db.SQLConstants
-import chuckcoughlin.bert.sql.db.SQLConstants.SQL_NULL_CONNECTION
 import com.google.gson.GsonBuilder
 import java.sql.*
 import java.util.*

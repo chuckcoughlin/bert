@@ -8,7 +8,6 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.Solver
 import java.util.logging.Logger
 
 /**
