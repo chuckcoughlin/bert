@@ -22,6 +22,7 @@ enum class RequestType {
     METRIC,                  // A property of the robot, e.g. name, also a list of properties
     NOTIFICATION,            // Unsolicited message from server or parser
     PARTIAL,                 // Remainder of text has yet to arrive
+    PLACE_APPENDAGE,         // Move an appendage to a specified location in space
     READY,                   // Synchronization message for internal controller
     RESET,                   // Reset synchronization for serial response and internal controller
     READ_MOTOR_PROPERTY,     // Read a single property for a motor or all motors and record internally

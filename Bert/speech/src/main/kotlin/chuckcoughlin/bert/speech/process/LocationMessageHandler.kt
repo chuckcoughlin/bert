@@ -4,17 +4,22 @@
  */
 package chuckcoughlin.bert.speech.process
 
+import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
+import chuckcoughlin.bert.common.model.Appendage
+import chuckcoughlin.bert.common.model.LinkLocation
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.model.Solver
+import com.google.gson.Gson
 import java.util.logging.Logger
 
 /**
  * Handle tablet messages dealing with link locations.
  */
 object LocationMessageHandler  {
+    val gson: Gson
     /**
      *  Send a list of link locations
      */
@@ -34,9 +39,20 @@ object LocationMessageHandler  {
         return msg
     }
 
+    fun moveEndEffector(json:String): MessageBottle {
+        val msg = MessageBottle(RequestType.PLACE_APPENDAGE)
+        val link = gson.fromJson(json, LinkLocation::class.java)
+        msg.appendage = Appendage.fromString(link.appendage)
+        msg.values[0] = link.end.x
+        msg.values[1] = link.end.y
+        msg.values[2] = link.end.z
+        return msg
+    }
+
     private val CLSS = "LocationMessageHandler"
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
+        gson = Gson()
     }
 }

@@ -43,9 +43,9 @@ data class MessageBottle (var type: RequestType) : Cloneable,Serializable {
     var arg: String          // Use whenever the command requires a text argument
     var jointDefinitionProperty: JointDefinitionProperty   // Possible subject of the original request
     var jointDynamicProperty: JointDynamicProperty         // Possible subject of the original request
-    var source: ControllerType       // Origin of the request
-    var text : String        // Pronounceable text of a response
-    var value: Double
+    var source: ControllerType  // Origin of the request
+    var text : String           // Pronounceable text of a response
+    var values: Array<Double>
     var control : ExecutionControl  // Parameters dealing with execution of the message
 
     /**
@@ -73,7 +73,10 @@ data class MessageBottle (var type: RequestType) : Cloneable,Serializable {
         copy.source      = source
         copy.text        = text
         copy.control     = control.clone()
-        copy.value       = value
+        copy.values[0]   = values[0]
+        copy.values[1]   = values[1]
+        copy.values[2]   = values[2]
+
         return copy
     }
 
@@ -141,7 +144,7 @@ data class MessageBottle (var type: RequestType) : Cloneable,Serializable {
         jointDynamicProperty = JointDynamicProperty.NONE
         source = ControllerType.UNDEFINED
         text  = ""   // Text is the printable response
-        value = Double.NaN
+        values = arrayOf<Double>(Double.NaN,Double.NaN,Double.NaN)
         control = ExecutionControl(BottleConstants.NO_DELAY)
     }
 }

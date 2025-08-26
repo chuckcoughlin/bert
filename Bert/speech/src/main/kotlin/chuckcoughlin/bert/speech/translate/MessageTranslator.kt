@@ -69,8 +69,9 @@ class MessageTranslator {
             else if(type.equals(RequestType.SET_LIMB_PROPERTY)) {
                 val limb: Limb=msg.limb
                 val property=msg.jointDynamicProperty
+                val value = if(msg.values.size>0) msg.values[0] else Double.NaN
                 if(property.equals(JointDynamicProperty.STATE)) {
-                    if(msg.value == ConfigurationConstants.OFF_VALUE) {
+                    if(value == ConfigurationConstants.OFF_VALUE) {
                         String.format("My %s is now flexible ", Limb.toText(limb))
                     }
                     else {

@@ -50,7 +50,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                         if( msg.type==RequestType.COMMAND)
                             LOGGER.info(String.format("%s.execute received: %s %s", CLSS, msg.type.name,msg.command.name))
                         else if( msg.type==RequestType.EXECUTE_POSE)
-                            LOGGER.info(String.format("%s.execute received: %s (%s %2.0f)", CLSS, msg.type.name,msg.arg,msg.value))
+                            LOGGER.info(String.format("%s.execute received: %s (%s %2.0f)", CLSS, msg.type.name,msg.arg,msg.values[0]))
                         else
                             LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
                     }
@@ -90,7 +90,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         // Read joint positions before freezing to update the current internal status directory.
         if(request.type==RequestType.SET_MOTOR_PROPERTY &&
             request.jointDynamicProperty == JointDynamicProperty.STATE &&
-            request.value == ConfigurationConstants.ON_VALUE    )  {
+            request.values[0]==ConfigurationConstants.ON_VALUE    )  {
 
             val msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.ANGLE
@@ -106,14 +106,14 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
 
             val msg = request.clone()
             msg.jointDynamicProperty = JointDynamicProperty.STATE
-            msg.value = ConfigurationConstants.ON_VALUE
+            msg.values[0] = ConfigurationConstants.ON_VALUE
             msg.source = ControllerType.BITBUCKET
             msg.control.delay =250 // 1/4 sec delay
             dispatchMessage(msg)
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
-            request.value == ConfigurationConstants.ON_VALUE    ) {
+            request.values[0] == ConfigurationConstants.ON_VALUE    ) {
 
             val msg = MessageBottle(RequestType.READ_MOTOR_PROPERTY)
             msg.jointDynamicProperty = JointDynamicProperty.ANGLE
@@ -123,13 +123,13 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         }
         else if (request.type == RequestType.EXECUTE_POSE ) {
             LOGGER.info(String.format("%s.handleRequest %s pose = %s %2.0f (%s)",
-                        CLSS,request.type.name,request.arg,request.value,request.source))
+                        CLSS,request.type.name,request.arg,request.values[0],request.source))
             request.limb = Limb.NONE   // Just used to synchronize
-            if( Database.poseExists(request.arg,request.value.toInt())) {
+            if( Database.poseExists(request.arg,request.values[0].toInt())) {
                 distributePose(request)
             }
             else {
-                request.error = String.format("pose \"%s %d\" does not exist",request.arg,request.value.toInt())
+                request.error = String.format("pose \"%s %d\" does not exist",request.arg,request.values[0].toInt())
             }
         }
         else if (request.type == RequestType.EXECUTE_ACTION ) {
@@ -141,7 +141,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 LOGGER.info(String.format("%s     got %s %d", CLSS,pose.name,pose.index))
                 var msg = MessageBottle(RequestType.EXECUTE_POSE)
                 msg.arg = pose.name
-                msg.value = pose.index.toDouble()
+                msg.values[0] = pose.index.toDouble()
                 msg.control.delay = pose.index.toLong()
                 msg.source = ControllerType.BITBUCKET
                 distributePose(msg)   // All responses will go to the bit bucket
@@ -179,7 +179,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     override suspend fun dispatchMessage(msg:MessageBottle) {
         if (DEBUG) {
             if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s %d) on %s",
-                                                        CLSS, msg.type.name,msg.arg,msg.value.toInt(),msg.limb.name))
+                                                        CLSS, msg.type.name,msg.arg,msg.values[0].toInt(),msg.limb.name))
             else if( msg.type==RequestType.INTERNET ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
                 CLSS, msg.type.name,msg.text))
             else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))

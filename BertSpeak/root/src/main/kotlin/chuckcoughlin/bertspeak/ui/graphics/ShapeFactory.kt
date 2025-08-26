@@ -33,6 +33,10 @@ class ShapeFactory () {
 			else if(link.appendage.contains("FINGER", true)) {
 				drawable = HandDrawable(link.name,p1,p2,side)
 			}
+			else if(link.appendage.contains("HEEL", true) ||
+				    link.appendage.contains("TOE", true)) {
+				drawable = ToeDrawable(link.name,p1,p2,side)
+			}
 			else if(!link.appendage.equals("NONE", true)) {
 				drawable = AppendageDrawable(link.name,p1,p2,side)
 			}

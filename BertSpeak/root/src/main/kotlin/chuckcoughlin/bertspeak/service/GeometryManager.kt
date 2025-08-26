@@ -50,7 +50,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
      */
     fun updateJointPosition(location:LinkLocation) {
         val json = Gson().toJson(location)
-        DispatchService.reportJsonData(JsonType.JOINT_UPDATE, json)
+        DispatchService.reportJsonData(JsonType.MOVE_END_EFFECTOR, json)
     }
 
     // ================ JsonObserver ======================

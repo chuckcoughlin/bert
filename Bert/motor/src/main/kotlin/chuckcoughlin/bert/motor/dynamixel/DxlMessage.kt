@@ -690,7 +690,7 @@ object DxlMessage {
             if (err.toInt() == 0) {
                 bottle.joint = mc.joint
                 bottle.jointDynamicProperty = property
-                bottle.value = value
+                bottle.values[0] = value
                 LOGGER.info(String.format("%s.updatePropertyRequestFromBytes: %s %s=%2.2f",
                         CLSS,mc.joint,property,value))
                 if(property.equals(JointDynamicProperty.ANGLE)) {

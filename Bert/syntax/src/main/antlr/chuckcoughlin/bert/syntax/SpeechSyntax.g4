@@ -25,6 +25,9 @@ command:
 	| Salutation? Initialize Article? Motors   					            # initializeJoints
     | Straighten (It|Article? Side? (Joint|Limb) Axis? )                    # straightenJoint
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?    # moveMotor
+	| Salutation? (Move| Place) (It | Article? Side? Appendage) (At|To)? Value Value Value # placeAppendage
+	| Salutation? (Move| Place) (It | Article? Side? Appendage) Direction Value Unit?       # jogAppendage
+	| Salutation? (Move| Place) (It | Article? Side? Appendage) Value Unit? To Article Direction      # jogAppendage
 	| Salutation? Move Speed                                                # setSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	# enableTorque
     | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
@@ -52,7 +55,7 @@ enumeration:
 question:
       Salutation?  How Attribute Are You 						                # attributeQuestion
     | Salutation?  Are You There					                            # personalQuestion
-    | (What Is|Tell Me) Article? (Location|Bearing) Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
+    | (What Is|Tell Me) Article? (Location|Orientation) Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint                       # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?                  # jointPropertyQuestion
     | (What Is|Tell Me) Article? Side? Joint Axis? Property                                   # jointPropertyQuestion
@@ -99,12 +102,13 @@ Adjective: 'current';
 Appendages: 'appendages'|'end effectors';
 Appendage: 'ear'|'eye'|'eyes'|'finger'|'hand'|'heel'|'nose'|'toe';
 As: 'as';
+At: 'at';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
-Bearing: 'bearing'|'direction';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
+Direction: 'left'|'right'|'back'|'forward'|Axis;
 Do: 'do';
 Download: 'download';
 Dynamic: 'dynamic';
@@ -143,12 +147,14 @@ Name: 'name';
 Of: 'of'|'for';
 Off: 'off'|'disabled';
 On: 'on'|'enabled';
+Orientation: 'orientation';
 Joint: 'ankle'|'elbow'|'hip'|'thigh'|'knee'|'neck'|'shoulder'|'chest'|'bust'|'abdomen'|'abs'|'imu';
 Parameters: 'properties'|'parameters'|'settings';
+Place: 'place';
 Poses: 'poses';
 Pose: 'pose';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
-Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'max speed'|'max torque'|'minimum angle'|'maximum angle'|'maximum speed'|'maximum torque'|'angle'|'motor type'|'orientation'|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
+Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'max speed'|'max torque'|'minimum angle'|'maximum angle'|'maximum speed'|'maximum torque'|'angle'|'motor type'|Orientation|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please'|'wake up'|'isaid';
 Save: 'save'|'record';

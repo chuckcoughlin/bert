@@ -38,14 +38,14 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         if(ctx.Value() != null ) {
             try {
-                bottle.value = ctx.Value().text.toDouble()
+                bottle.values[0] = ctx.Value().text.toDouble()
             }
             catch(ex:NumberFormatException) {
                 bottle.error = "pose index must be an integer"
             }
         }
         else {
-            bottle.value = 1.0  // Default index
+            bottle.values[0] = 1.0  // Default index
         }
         bottle.text = messageTranslator.randomAcknowledgement()
         return null
@@ -117,14 +117,14 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         bottle.arg = pose
         if(ctx.Value() != null ) {
             try {
-                bottle.value = ctx.Value().text.toDouble()
+                bottle.values[0] = ctx.Value().text.toDouble()
             }
             catch(ex:NumberFormatException) {
                 bottle.error = "pose index must be an integer"
             }
         }
         else {
-            bottle.value = 1.0  // Default index
+            bottle.values[0] = 1.0  // Default index
         }
         sharedDictionary[SharedKey.POSE] = pose
         return null
@@ -145,7 +145,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         if(ctx.Value()!=null ) {
             try {
-                bottle.value = ctx.Value().text.toDouble()
+                bottle.values[0] = ctx.Value().text.toDouble()
             }
             catch(ex:NumberFormatException) {
                 bottle.error = "pose index must be an integer"
@@ -160,6 +160,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         bottle.jointDynamicProperty = JointDynamicProperty.STATE
         var axis = sharedDictionary[SharedKey.AXIS].toString()
+        var value = ConfigurationConstants.OFF_VALUE
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
         sharedDictionary[SharedKey.AXIS] = axis
         // If side was set previously, use it as default
@@ -167,10 +168,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
         if (ctx.Freeze() != null || ctx.Hold() != null) {
-            bottle.value = ConfigurationConstants.ON_VALUE
+            value = ConfigurationConstants.ON_VALUE
+            bottle.values[0] = value
         }
         else if (ctx.Relax() != null) {
-            bottle.value = ConfigurationConstants.OFF_VALUE
+            bottle.values[0] = value  // OFF_VÅLUE
         }
         // If both Limb() and Joint() are missing, then we apply to the entire robot
         var joint: Joint = Joint.NONE
@@ -184,10 +186,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         if (!joint.equals(Joint.NONE)) {
             bottle.joint= joint
             if (ctx.Freeze() != null || ctx.Hold() != null) {
-                bottle.value = ConfigurationConstants.ON_VALUE
+                value = ConfigurationConstants.ON_VALUE
+                bottle.values[0] = value
             }
             else {
-                bottle.value = ConfigurationConstants.OFF_VALUE
+                bottle.values[0] = value   // OFF_VALUE
             }
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
@@ -203,15 +206,15 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                 bottle.type = RequestType.SET_LIMB_PROPERTY
                 bottle.limb = limb
 
-                var value = ConfigurationConstants.OFF_VALUE
+
                 if (ctx.Freeze() != null || ctx.Hold() != null) value = ConfigurationConstants.ON_VALUE
-                bottle.value = value
+                bottle.values[0] = value
 
                 sharedDictionary[SharedKey.LIMB] = limb
                 sharedDictionary[SharedKey.IT] = SharedKey.LIMB
             }
 
-            LOGGER.info(String.format("%s.visitEnableTorque: %s %s %s", CLSS, bottle.limb.name,bottle.joint.name,bottle.value.toString()))
+            LOGGER.info(String.format("%s.visitEnableTorque: %s %s %s", CLSS, bottle.limb.name,bottle.joint.name,value.toString()))
         }
         return null
     }
@@ -269,11 +272,37 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
 
+    // move your left finger 400 to the right
+    override fun visitJogAppendage(ctx: SpeechSyntaxParser.JogAppendageContext): Any? {
+        bottle.type = RequestType.PLACE_APPENDAGE
+        // If side or axis were set previously, use those jointValues as defaults
+        var side = sharedDictionary[SharedKey.SIDE].toString()
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var appendage: Appendage = Appendage.NONE
+        if (ctx.It() != null) {
+            appendage = sharedDictionary[SharedKey.APPENDAGE] as Appendage
+        }
+        else if (ctx.Appendage() != null) {
+            appendage = determineEndEffector(ctx.Appendage().getText(), side)
+        }
+        if (appendage.equals(Appendage.NONE)) {
+            val msg = String.format("I don't have an extremity like that")
+            bottle.error = msg
+        }
+        else {
+            sharedDictionary[SharedKey.APPENDAGE] = appendage
+            sharedDictionary[SharedKey.IT] = SharedKey.APPENDAGE
+            bottle.appendage = appendage
+        }
+        bottle.values[0] = ctx.Value().getText().toDouble()
+        return null
+    }
     // where is your left ear
     override fun visitJointLocationQuestion(ctx: SpeechSyntaxParser.JointLocationQuestionContext): Any? {
         // If axis was set previously, use it as default
-        if(ctx.Bearing()!=null)  bottle.type = RequestType.GET_EXTREMITY_DIRECTION
-        else                     bottle.type = RequestType.GET_EXTREMITY_LOCATION
+        if(ctx.Orientation()!=null)  bottle.type = RequestType.GET_EXTREMITY_DIRECTION
+        else                         bottle.type = RequestType.GET_EXTREMITY_LOCATION
         var axis = sharedDictionary[SharedKey.AXIS].toString()
         if (ctx.Axis() != null) axis = ctx.Axis().getText()
         sharedDictionary[SharedKey.AXIS] = axis
@@ -525,7 +554,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         // Property is fixed as position
         bottle.jointDynamicProperty = JointDynamicProperty.ANGLE
-        bottle.value = ctx.Value().getText().toDouble()
+        bottle.values[0] = ctx.Value().getText().toDouble()
         return null
     }
 
@@ -536,6 +565,37 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         bottle.text = String.format("At your service")
         return null
     }
+
+    // move your left finger to 1000 1000 1000
+    override fun visitPlaceAppendage(ctx: SpeechSyntaxParser.PlaceAppendageContext): Any? {
+        bottle.type = RequestType.SET_MOTOR_PROPERTY
+        // If side or axis were set previously, use those jointValues as defaults
+        var side = sharedDictionary[SharedKey.SIDE].toString()
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var appendage: Appendage = Appendage.NONE
+        if (ctx.It() != null) {
+            appendage = sharedDictionary[SharedKey.APPENDAGE] as Appendage
+        }
+        else if (ctx.Appendage() != null) {
+            appendage = determineEndEffector(ctx.Appendage().getText(),side)
+        }
+        if (appendage.equals(Appendage.NONE)) {
+            val msg = String.format("I don't have an end effector like that")
+            bottle.error = msg
+        }
+        else {
+            sharedDictionary[SharedKey.APPENDAGE] = appendage
+            sharedDictionary[SharedKey.IT] = SharedKey.APPENDAGE
+            bottle.appendage = appendage
+        }
+        // Property is fixed as position
+        bottle.values[0] = ctx.Value(0).getText().toDouble()
+        bottle.values[1] = ctx.Value(1).getText().toDouble()
+        bottle.values[2] = ctx.Value(2).getText().toDouble()
+        return null
+    }
+
     // Describe your current pose
     override fun visitPoseDescription(ctx: SpeechSyntaxParser.PoseDescriptionContext): Any? {
         bottle.type = RequestType.JSON
@@ -546,14 +606,14 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         if(ctx.Value() != null ) {
             try {
-                bottle.value = ctx.Value().text.toDouble()
+                bottle.values[0] = ctx.Value().text.toDouble()
             }
             catch(ex:NumberFormatException) {
                 bottle.error = "pose index must be an integer"
             }
         }
         else {
-            bottle.value = 1.0  // Default index
+            bottle.values[0] = 1.0  // Default index
         }
         return null
     }
@@ -586,16 +646,16 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
         // Value is numerical, "on/off", or speed name - depending on property type
         if (ctx.Value() != null) {
-            bottle.value = ctx.Value().getText().toDouble()
+            bottle.values[0] = ctx.Value().getText().toDouble()
         }
         if (ctx.Speed() != null) {
             bottle.text = ctx.Speed().getText()
         }
         else if (ctx.On() != null) {
-            bottle.value = ConfigurationConstants.ON_VALUE
+            bottle.values[0] = ConfigurationConstants.ON_VALUE
         }
         else if (ctx.Off() != null) {
-            bottle.value = ConfigurationConstants.OFF_VALUE
+            bottle.values[0] = ConfigurationConstants.OFF_VALUE
         }
         // Sanity check
         if( bottle.joint!=Joint.NONE &&
@@ -626,12 +686,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             }
         }
         else if( bottle.jointDynamicProperty.equals(JointDynamicProperty.STATE) ) {
-            if( bottle.value != ConfigurationConstants.ON_VALUE &&
-                bottle.value != ConfigurationConstants.OFF_VALUE    )   {
+            val value = if(bottle.values.size>0) bottle.values[0] else Double.NaN
+            if( value != ConfigurationConstants.ON_VALUE &&
+                value != ConfigurationConstants.OFF_VALUE    )   {
                 bottle.error = "State must be specified as on or off, enabled or disabled"
             }
         }
-
         return null
     }
 
@@ -700,7 +760,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
 
         bottle.joint = joint
-        bottle.value = value
+        bottle.values[0] = value
         sharedDictionary[SharedKey.JOINT] = joint
         sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         return null
@@ -756,7 +816,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         else if (phrase.startsWith("straighten")) {
             bottle.type = RequestType.EXECUTE_POSE
             bottle.arg = ConfigurationConstants.POSE_HOME
-            bottle.value = ConfigurationConstants.POSE_HOME_INDEX
+            bottle.values[0] = ConfigurationConstants.POSE_HOME_INDEX
             sharedDictionary[SharedKey.POSE] = ConfigurationConstants.POSE_HOME
         }
         else {
@@ -996,15 +1056,15 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     // If speed is specified as a word, then convert to a numeric value
     private fun setSpeedInMessage(msg: MessageBottle, speed: String) {
         if(speed.contains("slow")) {
-            if(speed.contains("very")) {msg.value = 2.0}
-            else {msg.value = 5.0}
+            if(speed.contains("very")) {msg.values[0] = 2.0}
+            else {msg.values[0] = 5.0}
         }
         else if(speed.contains("fast") ||
             speed.contains("quick")) {
-            if(speed.contains("very")) { msg.value = 150.0}
-            else { msg.value = 100.0 }
+            if(speed.contains("very")) { msg.values[0] = 150.0 }
+            else { msg.values[0] = 100.0 }
         }
-        else { msg.value = 40.0 }   // normal
+        else { msg.values[0] = 40.0 }   // normal
     }
 
     private val CLSS = "StatementTranslator"

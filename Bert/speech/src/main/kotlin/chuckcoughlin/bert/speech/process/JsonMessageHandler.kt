@@ -47,6 +47,9 @@ object JsonMessageHandler  {
         else if( type == JsonType.FACE_NAMES) {
             msg = FaceMessageHandler.getFaceNames()
         }
+        else if( type == JsonType.MOVE_END_EFFECTOR) {
+            msg = LocationMessageHandler.moveEndEffector(json)
+        }
         else if( type == JsonType.LIMB_NAMES) {
             msg = LocationMessageHandler.getLimbNames()
         }

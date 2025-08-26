@@ -13,6 +13,7 @@ enum class SharedKey {
     AXIS,
     APPENDAGE,
     BONE,
+    DIRECTION,
     FACE,    // Recognized user
     JOINT,
     LIMB,

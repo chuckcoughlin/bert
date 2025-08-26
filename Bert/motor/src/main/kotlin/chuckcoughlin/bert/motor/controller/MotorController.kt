@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
@@ -7,7 +7,6 @@ package chuckcoughlin.bert.motor.controller
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -264,6 +263,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         var bytes: ByteArray=ByteArray(0)
         val type: RequestType=request.type
         val jtype: JsonType=request.jtype
+        val value = if(request.values.size>0) request.values[0] else Double.NaN
         if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s", CLSS, controllerName, type.name))
 
         if(type.equals(RequestType.JSON) &&
@@ -303,13 +303,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val prop=request.jointDynamicProperty
             // Loop over motor config map, set the property
             val configs=configurationsForLimb(limb)
+
             for (mc in configs.values) {
-                mc.setDynamicProperty(prop, request.value)
+                mc.setDynamicProperty(prop, request.values[0])
             }
             bytes=DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
             // ASYNC WRITE, no response. Let source set text.
             var enabled=true
-            if(request.value < ConfigurationConstants.ON_VALUE) enabled=false
+            if(value < ConfigurationConstants.ON_VALUE) enabled=false
             request.text=String.format("My %s is %s", Limb.toText(limb),
                     if(enabled) "rigid" else "limp")
         }
@@ -320,9 +321,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.joint.equals(Joint.NONE)  )   {
 
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting STATE to %2.0f for all joints" ,
-                                    CLSS,controllerName,request.value))
+                                    CLSS,controllerName,value))
             var enable = true
-            if( request.value<ConfigurationConstants.ON_VALUE ) enable = false
+            if( value<ConfigurationConstants.ON_VALUE ) enable = false
             if( enable ) request.text = "I am now rigid"
             else         request.text = "I am relaxed"
 
@@ -337,12 +338,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.joint.equals(Joint.NONE)  )   {
 
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting speed to %2.0f percent for all joints" ,
-                CLSS,controllerName,100.0*request.value))
+                CLSS,controllerName,100.0*value))
 
             for (mc in configurationsByJoint.values) {
-                mc.speed = mc.maxSpeed*request.value
+                mc.speed = mc.maxSpeed*value
             }
-            request.text = String.format("all motion will be %2.0f percent of maximum speed", 100.0*request.value)
+            request.text = String.format("all motion will be %2.0f percent of maximum speed", 100.0*value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
         // Handle set torque for all joints
@@ -352,12 +353,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.joint.equals(Joint.NONE)  )   {
 
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting torque to %2.0f percent for all joints" ,
-                CLSS,controllerName,100.0*request.value))
+                CLSS,controllerName,100.0*value))
 
             for (mc in configurationsByJoint.values) {
-                mc.torque = request.value*mc.maxTorque
+                mc.torque = value*mc.maxTorque
             }
-            request.text = String.format("All motors are set to %2.0f percent of maximum torque", 100.0*request.value)
+            request.text = String.format("All motors are set to %2.0f percent of maximum torque", 100.0*value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
@@ -368,7 +369,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         else if (type.equals(RequestType.SET_MOTOR_PROPERTY)) {
             val joint = request.joint
             val prop = request.jointDynamicProperty
-            var value = request.value
             val mc = RobotModel.motorsByJoint[joint]!!
 
             // Note that this text is over-ridden with the response to the request.
@@ -384,7 +384,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             else if (prop.equals(JointDynamicProperty.STATE) ) {
                 var enabled = false
-                if(request.value>ConfigurationConstants.OFF_VALUE) enabled = true
+                if(value>ConfigurationConstants.OFF_VALUE) enabled = true
                 mc.isTorqueEnabled = enabled
                 request.text = String.format("Setting my %s %s", Joint.toText(mc.joint),
                     if(enabled) "rigid" else "relaxed")
@@ -429,6 +429,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
         val limb: Limb = request.limb
+        val value = if(request.values.size>0) request.values[0] else Double.NaN
         if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s on %s",
                     CLSS,controllerName,type.name,limb.name))
 
@@ -477,7 +478,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         else if( type.equals(RequestType.EXECUTE_POSE) ) {
             responseCount=0 // AYNC WRITE, no responses
             val poseName: String = request.arg
-            val index: Int = request.value.toInt()
+            val index: Int = value.toInt()
             val poseid = Database.getPoseIdForName(poseName,index)
             // If the pose doesn't exist, just return an empty list
             if( poseid != SQLConstants.NO_POSE) {

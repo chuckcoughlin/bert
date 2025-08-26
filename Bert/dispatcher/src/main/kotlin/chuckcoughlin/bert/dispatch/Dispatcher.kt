@@ -113,7 +113,7 @@ class Dispatcher : Controller {
                             if(DEBUG) {
                                 if(it.type==RequestType.EXECUTE_POSE) {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s %2.0f) from %s",
-                                        CLSS, it.type.name,it.arg,it.value,it.source))
+                                        CLSS, it.type.name,it.arg,it.values[0],it.source))
                                 }
                                 else if(it.type==RequestType.INTERNET) {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s [%s])",
@@ -144,7 +144,7 @@ class Dispatcher : Controller {
                             if(DEBUG) {
                                 if(it.type==RequestType.EXECUTE_POSE) {
                                     LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s %2.0f) from %s",
-                                        CLSS, it.type.name,it.arg,it.value,it.source))
+                                        CLSS, it.type.name,it.arg,it.values[0],it.source))
                                 }
                                 else {
                                     LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
@@ -176,7 +176,7 @@ class Dispatcher : Controller {
         var msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
         msg.jointDynamicProperty = JointDynamicProperty.SPEED
         msg.joint = Joint.NONE
-        msg.value = ConfigurationConstants.HALF_SPEED
+        msg.values[0] = ConfigurationConstants.HALF_SPEED
         msg.source = ControllerType.BITBUCKET
         toInternalController.send(msg)
 
@@ -184,7 +184,7 @@ class Dispatcher : Controller {
         msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
         msg.jointDynamicProperty = JointDynamicProperty.TORQUE
         msg.joint = Joint.NONE
-        msg.value = ConfigurationConstants.FULL_TORQUE
+        msg.values[0] = ConfigurationConstants.FULL_TORQUE
         msg.source = ControllerType.BITBUCKET
         toInternalController.send(msg)
 
@@ -192,7 +192,7 @@ class Dispatcher : Controller {
         msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
         msg.jointDynamicProperty = JointDynamicProperty.STATE
         msg.joint = Joint.NONE
-        msg.value = ConfigurationConstants.ON_VALUE
+        msg.values[0] = ConfigurationConstants.ON_VALUE
         msg.source = ControllerType.BITBUCKET
         toInternalController.send(msg)
 
@@ -323,7 +323,7 @@ class Dispatcher : Controller {
                 }
                 else if (command == CommandType.CREATE_POSE) {
                     val poseName: String = request.arg.lowercase()
-                    val index = request.value.toInt()
+                    val index = request.values[0].toInt()
                     Database.createPose(RobotModel.motorsByJoint, poseName, index)
                     request.text = "I recorded pose $poseName $index"
                 }
@@ -355,11 +355,11 @@ class Dispatcher : Controller {
                 // If the index is missing, delete all poses of the given name
                 else if (command == CommandType.DELETE_POSE) {
                     val name = request.arg
-                    if( request.value.isNaN() ) {
+                    if( request.values.size==0 ) {
                         Database.deletePose(name)
                     }
                     else {
-                        val index = request.value.toInt()
+                        val index = request.values[0].toInt()
                         if (Database.poseExists(name, index)) {
                             Database.deletePose(name, index)
                         }
@@ -413,6 +413,9 @@ class Dispatcher : Controller {
                     val xyz: Point3D = Solver.computeLocation(appendage)
                     text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
                         appendage.name, xyz.x, xyz.y, xyz.z)
+                    request.values[0] = xyz.x
+                    request.values[1] = xyz.y
+                    request.values[2] = xyz.z
                 }
                 else {
                     val joint = request.joint
@@ -420,6 +423,9 @@ class Dispatcher : Controller {
                     text = String.format(
                         "My %s joint is at %2.2f %2.2f %2.2f millimeters",
                         Joint.toText(joint), xyz.x, xyz.y, xyz.z)
+                    request.values[0] = xyz.x
+                    request.values[1] = xyz.y
+                    request.values[2] = xyz.z
                 }
                 request.text = text
             }
@@ -593,7 +599,7 @@ class Dispatcher : Controller {
                     }
 
                     JsonType.POSE_DETAILS -> {
-                        text = Database.poseDetailsToJSON(request.arg, request.value.roundToInt())
+                        text = Database.poseDetailsToJSON(request.arg, request.values[0].roundToInt())
                     }
 
                     JsonType.POSE_NAMES -> {
@@ -609,12 +615,12 @@ class Dispatcher : Controller {
                 request.jointDynamicProperty == JointDynamicProperty.ANGLE) {
                 val joint = request.joint
                 val mc = RobotModel.motorsByJoint[joint]!!
-                if (request.value > mc.maxAngle) {
+                if (request.values[0] > mc.maxAngle) {
                     request.error = String.format("I can only move my %s to %2.0f degrees",
                         Joint.toText(joint),
                         mc.maxAngle)
                 }
-                else if (request.value < mc.minAngle) {
+                else if (request.values[0] < mc.minAngle) {
                     request.error = String.format("I can only move my %s to %2.0f degrees",
                         Joint.toText(joint),
                         mc.minAngle)
@@ -625,7 +631,7 @@ class Dispatcher : Controller {
                 request.jointDynamicProperty == JointDynamicProperty.SPEED) {
                 val joint = request.joint
                 val mc = RobotModel.motorsByJoint[joint]!!
-                if (request.value > mc.maxSpeed) {
+                if (request.values[0] > mc.maxSpeed) {
                     request.error = String.format("I can only move my %s %2.0f degrees per second",
                         Joint.toText(joint),mc.maxSpeed)
                 }
@@ -634,7 +640,7 @@ class Dispatcher : Controller {
                 request.jointDynamicProperty == JointDynamicProperty.TORQUE) {
                 val joint = request.joint
                 val mc = RobotModel.motorsByJoint[joint]!!
-                if (request.value > mc.maxTorque) {
+                if (request.values[0] > mc.maxTorque) {
                     request.error = String.format("%s torque cannot exceed %2.0f newton meters ",Joint.toText(joint),
                                                                         mc.maxTorque)
                 }
@@ -709,11 +715,11 @@ class Dispatcher : Controller {
                 return true
             }
             val mc = RobotModel.motorsByJoint[joint]!!
-            if( request.value>mc.maxAngle ) {
+            if( request.values[0]>mc.maxAngle ) {
                 request.error = String.format("the maximum angle for %s is %2.0f degrees",joint.name,mc.maxAngle)
                 return true
             }
-            else if( request.value<mc.minAngle) {
+            else if( request.values[0]<mc.minAngle) {
                 request.error = String.format("the minimum angle for %s is %2.0f degrees",joint.name,mc.minAngle)
                 return true
             }
@@ -723,7 +729,7 @@ class Dispatcher : Controller {
             val joint = request.joint
             for( mc in RobotModel.motorsByJoint.values ) {
                 if( joint==Joint.NONE || mc.joint==joint) {
-                    if (request.value > mc.maxSpeed) {
+                    if (request.values[0] > mc.maxSpeed) {
                         request.error = String.format("the maximum speed for %s is %2.0f degrees per second",
                             joint.name,mc.maxSpeed)
                         return true
@@ -736,7 +742,7 @@ class Dispatcher : Controller {
             val joint = request.joint
             for( mc in RobotModel.motorsByJoint.values ) {
                 if( joint==Joint.NONE || mc.joint==joint) {
-                    if (request.value > mc.maxTorque) {
+                    if (request.values[0] > mc.maxTorque) {
                         request.error = String.format("the maximum torque for %s is %2.2f newton meters",Joint.toText(joint),mc.maxTorque)
                         return true
                     }
@@ -765,6 +771,7 @@ class Dispatcher : Controller {
             request.type==RequestType.EXECUTE_POSE ||
             request.type==RequestType.GET_MOTOR_PROPERTY ||
             request.type==RequestType.INITIALIZE_JOINTS  ||
+            request.type==RequestType.PLACE_APPENDAGE  ||
             request.type==RequestType.READ_MOTOR_PROPERTY ||
             request.type==RequestType.RESET ||
             request.type==RequestType.SET_LIMB_PROPERTY ||
