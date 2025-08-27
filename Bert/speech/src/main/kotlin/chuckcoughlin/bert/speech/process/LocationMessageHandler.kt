@@ -39,7 +39,7 @@ object LocationMessageHandler  {
     }
 
     fun moveEndEffector(json:String): MessageBottle {
-        val msg = MessageBottle(RequestType.PLACE_APPENDAGE)
+        val msg = MessageBottle(RequestType.PLACE_END_EFFECTOR)
         val link = gson.fromJson(json, LinkLocation::class.java)
         msg.appendage = Appendage.fromString(link.appendage)
         msg.values[0] = link.end.x

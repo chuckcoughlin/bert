@@ -772,7 +772,7 @@ class Dispatcher : Controller {
             request.type==RequestType.EXECUTE_POSE ||
             request.type==RequestType.GET_MOTOR_PROPERTY ||
             request.type==RequestType.INITIALIZE_JOINTS  ||
-            request.type==RequestType.PLACE_APPENDAGE  ||
+            request.type==RequestType.PLACE_END_EFFECTOR  ||
             request.type==RequestType.READ_MOTOR_PROPERTY ||
             request.type==RequestType.RESET ||
             request.type==RequestType.SET_LIMB_PROPERTY ||

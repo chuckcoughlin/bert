@@ -274,7 +274,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     // move your left finger 400 to the right
     override fun visitJogAppendage(ctx: SpeechSyntaxParser.JogAppendageContext): Any? {
-        bottle.type = RequestType.PLACE_APPENDAGE
+        bottle.type = RequestType.PLACE_END_EFFECTOR
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE].toString()
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)

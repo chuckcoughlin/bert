@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.controller.MessageController
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.solver.InverseSolver
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -50,6 +51,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                             LOGGER.info(String.format("%s.execute received: %s %s", CLSS, msg.type.name,msg.command.name))
                         else if( msg.type==RequestType.EXECUTE_POSE)
                             LOGGER.info(String.format("%s.execute received: %s (%s %2.0f)", CLSS, msg.type.name,msg.arg,msg.values[0]))
+                        else if( msg.type==RequestType.PLACE_END_EFFECTOR)
+                            LOGGER.info(String.format("%s.execute received: %s (%s)", CLSS, msg.type.name,msg.appendage.name))
                         else
                             LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
                     }
@@ -87,7 +90,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     suspend private fun handleRequest(request: MessageBottle) {
 
         // Read joint positions before freezing to update the current internal status directory.
-        if(request.type==RequestType.SET_MOTOR_PROPERTY &&
+        if( request.type==RequestType.SET_MOTOR_PROPERTY &&
             request.jointDynamicProperty == JointDynamicProperty.STATE &&
             request.values[0]==ConfigurationConstants.ON_VALUE    )  {
 
@@ -147,6 +150,14 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             }
             request.limb = Limb.NONE   // Message is used to synch the MotorGroupController
         }
+        else if (request.type == RequestType.PLACE_END_EFFECTOR ) {
+            // Placing an end-effector involves a series of discrete motions
+            val messageList = InverseSolver.placementCommands(request)
+            for(msg in messageList) {
+                msg.source = ControllerType.BITBUCKET
+                dispatchMessage(msg)   // All responses will go to the bit bucket
+            }
+        }
         else if (request.type == RequestType.RESET ) {
             motorQueue.reset()   // Then proceed to reset controllers
             internetQueue.reset()
@@ -180,7 +191,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s %d) on %s",
                                                         CLSS, msg.type.name,msg.arg,msg.values[0].toInt(),msg.limb.name))
             else if( msg.type==RequestType.INTERNET ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
-                CLSS, msg.type.name,msg.text))
+                                                        CLSS, msg.type.name,msg.text))
             else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
         }
         if(msg.type==RequestType.INTERNET) {
