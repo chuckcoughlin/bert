@@ -5,10 +5,12 @@
 package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.solver.InverseSolver
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -112,6 +114,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.source = ControllerType.BITBUCKET
             msg.control.delay =250 // 1/4 sec delay
             dispatchMessage(msg)
+            dispatchLocationUpdates()
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
@@ -122,6 +125,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.limb = request.limb
             msg.source = ControllerType.BITBUCKET
             dispatchMessage(msg)
+            dispatchLocationUpdates()
         }
         else if (request.type == RequestType.EXECUTE_POSE ) {
             LOGGER.info(String.format("%s.handleRequest %s pose = %s %2.0f (%s)",
@@ -158,6 +162,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 msg.source = ControllerType.BITBUCKET
                 dispatchMessage(msg)   // Control responses will go to the bit bucket
             }
+            dispatchLocationUpdates()
         }
         else if (request.type == RequestType.RESET ) {
             motorQueue.reset()   // Then proceed to reset controllers
@@ -177,8 +182,16 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 msg.text = ""
                 msg.source = ControllerType.BITBUCKET
                 dispatchMessage(msg)
+                dispatchLocationUpdates()
             }
         }
+    }
+
+    /** Inform the tablet of a now limb position */
+    private suspend fun dispatchLocationUpdates() {
+        val msg = MessageBottle(RequestType.JSON)
+        msg.jtype = JsonType.LINK_LOCATIONS
+        dispatchMessage(msg)
     }
 
     /**
