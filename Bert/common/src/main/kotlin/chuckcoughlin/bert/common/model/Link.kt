@@ -34,7 +34,6 @@ class Link( val name:String ) {
     // Current angle was in effect last time Q evaluated.
     // Values are degrees.
     private var currentAngle: Double  // Motor angle
-    private var coordinates: Point3D
     private var rotation:DoubleArray
     var endPin:    LinkPin
     var sourcePin: LinkPin
@@ -43,7 +42,6 @@ class Link( val name:String ) {
     // ~mm
     fun setCoordinates(x:Double,y:Double,z:Double) {
         if(DEBUG) LOGGER.info(String.format("%s.setCoordinates: (%s) %2.2f,%2.2f,%2.2f",CLSS,name,x,y,z))
-        coordinates = Point3D(x,y,z)
         quaternion.setTranslation(x,y,z)
         quaternion.update()
     }
@@ -108,7 +106,6 @@ class Link( val name:String ) {
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         currentAngle = Double.NaN
-        coordinates = Point3D(0.0,0.0,0.0)
         rotation = doubleArrayOf(0.0,0.0,0.0)
         quaternion = Quaternion()
         endPin = LinkPin(PinType.ORIGIN)     // Must be configured

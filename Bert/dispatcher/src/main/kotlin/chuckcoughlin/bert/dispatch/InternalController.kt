@@ -152,10 +152,11 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         }
         else if (request.type == RequestType.PLACE_END_EFFECTOR ) {
             // Placing an end-effector involves a series of discrete motions
+            // The original request is dispatched last - possibly has error text
             val messageList = InverseSolver.placementCommands(request)
             for(msg in messageList) {
                 msg.source = ControllerType.BITBUCKET
-                dispatchMessage(msg)   // All responses will go to the bit bucket
+                dispatchMessage(msg)   // Control responses will go to the bit bucket
             }
         }
         else if (request.type == RequestType.RESET ) {

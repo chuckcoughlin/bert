@@ -49,8 +49,7 @@ object InverseSolver {
             Appendage.NONE -> error = "moving an unknown end effector is not supported"
         }
 
-        placementMessage.error = error
-        list.add(placementMessage)
+        placementMessage.error = error  // Set error, if any, on original request
         return list
     }
 
