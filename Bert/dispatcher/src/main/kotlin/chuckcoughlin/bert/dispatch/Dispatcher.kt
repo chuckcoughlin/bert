@@ -117,11 +117,15 @@ class Dispatcher : Controller {
                                         CLSS, it.type.name,it.arg,it.values[0],it.source))
                                 }
                                 else if(it.type==RequestType.INTERNET) {
-                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s [%s])",
+                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s (%s [%s])",
                                         CLSS, it.type.name,it.text,it.error))
                                 }
+                                else if(it.type==RequestType.JSON) {
+                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s (%s)",
+                                        CLSS, it.type.name,it.jtype.name,it.error))
+                                }
                                 else {
-                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s) from %s",
+                                    LOGGER.info(String.format("%s.execute: fromInternalController receive %s (%s) from %s",
                                         CLSS, it.type.name,it.text,it.source))
                                 }
                             }
@@ -299,6 +303,10 @@ class Dispatcher : Controller {
         else if(msg.type==RequestType.HEARTBEAT) {
             // Do nothing
         }
+        else if(msg.type==RequestType.JSON) {
+            if(commandController.connected) replyToSource(msg)  // Update animation
+            toInternalController.send(motorReadyMessage)
+        }
         else {
             LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s is unhandled",
                     CLSS,msg.type.name,msg.source))
@@ -407,7 +415,6 @@ class Dispatcher : Controller {
             }
             // The location in physical coordinates from the center of the robot.
             else if (request.type==RequestType.GET_EXTREMITY_LOCATION) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get location appendage=%s joint=%s", CLSS, request.appendage.name,request.joint.name))
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
@@ -417,6 +424,7 @@ class Dispatcher : Controller {
                     request.values[0] = xyz.x
                     request.values[1] = xyz.y
                     request.values[2] = xyz.z
+                    if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get appendage %s location = %s", CLSS,request.appendage.name,text))
                 }
                 else {
                     val joint = request.joint
@@ -427,6 +435,7 @@ class Dispatcher : Controller {
                     request.values[0] = xyz.x
                     request.values[1] = xyz.y
                     request.values[2] = xyz.z
+                    if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get joint %s location = %s", CLSS,request.joint.name,text))
                 }
                 request.text = text
             }
@@ -794,8 +803,15 @@ class Dispatcher : Controller {
      */
     private suspend fun replyToSource(response: MessageBottle) {
         val source = response.source
-        LOGGER.info(String.format("%s.replyToSource: Forwarding response %s(%s) from %s",
-                    CLSS,response.type.name,response.text,source))
+        if(response.type==RequestType.JSON ) {
+            LOGGER.info(String.format("%s.replyToSource: Forwarding %s (%s) to %s",
+                CLSS, response.type.name, response.jtype.name, source))
+        }
+        else {
+            LOGGER.info(String.format("%s.replyToSource: Forwarding %s (%s) to %s",
+                CLSS, response.type.name, response.text, source))
+        }
+
         if (source.equals(ControllerType.COMMAND)) {
             commandResponseChannel.send(response)
         }

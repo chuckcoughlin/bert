@@ -157,7 +157,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      */
     suspend fun handleControllerResponse(cname:String,response: MessageBottle):MessageBottle {
         val id = response.id
-        LOGGER.info(String.format("%s.handleControllerResponse: %s processing %s (%s)",
+        if( DEBUG ) LOGGER.info(String.format("%s.handleControllerResponse: %s processing %s (%s)",
             CLSS,cname,response.type.name,response.text))
         if( isSingleControllerRequest(response)) {
             parentResponseChannel.send(response)

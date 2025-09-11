@@ -6,13 +6,26 @@ package chuckcoughlin.bert.command
 
 import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.message.*
+import chuckcoughlin.bert.common.message.BottleConstants
+import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.MessageType
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.speech.translate.MessageTranslator
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import java.net.ServerSocket
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -42,7 +55,7 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
     @DelicateCoroutinesApi
     private val scope=GlobalScope // For long-running coroutines
     private var ignoring: Boolean
-    private var connected: Boolean
+    var connected: Boolean
     private var running: Boolean
     private var job: Job
     var startMessage = "Starting ..."
@@ -62,10 +75,11 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
             running = true
             /* First connect to the network (always LOCALHOST) */
             try {
-                val serverSocket = ServerSocket(port)
+                val serverSocket = withContext(Dispatchers.IO) {
+                    ServerSocket(port)
+                }
                 LOGGER.info(String.format("%s.execute: server socket created on %s (%d)", CLSS,
                     serverSocket.inetAddress.canonicalHostName, serverSocket.localPort))
-
                 /* We can connect with multiple clients, but only one at a time */
                 job = scope.launch(Dispatchers.IO) {
                     while (running) {

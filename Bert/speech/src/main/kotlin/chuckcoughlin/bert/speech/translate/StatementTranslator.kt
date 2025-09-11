@@ -177,8 +177,16 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         // If both Limb() and Joint() are missing, then we apply to the entire robot
         var joint: Joint = Joint.NONE
         var limb = Limb.NONE
-        if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
-            joint = sharedDictionary[SharedKey.JOINT] as Joint
+        if (ctx.It() != null ) {
+            if( sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
+                joint = sharedDictionary[SharedKey.JOINT] as Joint
+            }
+            if( sharedDictionary[SharedKey.IT] == SharedKey.LIMB) {
+                limb = sharedDictionary[SharedKey.LIMB] as Limb
+            }
+            else {
+                bottle.error = "you haven\'t told me what \"it\" refers to"
+            }
         }
         if (ctx.Joint() != null) {
             joint = determineJoint(ctx.Joint().getText(), axis, side)
@@ -194,11 +202,9 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             }
             sharedDictionary[SharedKey.JOINT] = joint
             sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+            LOGGER.info(String.format("%s.visitEnableTorque: %s %s", CLSS, bottle.joint.name,value.toString()))
         }
         else {
-            if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.LIMB) {
-                limb = sharedDictionary[SharedKey.LIMB] as Limb
-            }
             if (ctx.Limb() != null) {
                 limb = determineLimb(ctx.Limb().getText(), side)
             }
@@ -212,9 +218,8 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
                 sharedDictionary[SharedKey.LIMB] = limb
                 sharedDictionary[SharedKey.IT] = SharedKey.LIMB
+                LOGGER.info(String.format("%s.visitEnableTorque: %s %s", CLSS, bottle.limb.name,value.toString()))
             }
-
-            LOGGER.info(String.format("%s.visitEnableTorque: %s %s %s", CLSS, bottle.limb.name,bottle.joint.name,value.toString()))
         }
         return null
     }

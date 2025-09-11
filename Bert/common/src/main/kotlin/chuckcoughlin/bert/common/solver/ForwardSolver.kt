@@ -101,7 +101,7 @@ object ForwardSolver {
             CLSS,q.positionToText(),q.directionToText()))
         // Now continue up the chain
         for(link in subchain) {
-            //if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
+            // if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
             //    CLSS,link.name,if( link.sourcePin.joint==Joint.NONE) "IMU" else link.sourcePin.joint.name,q.position().toText()))
             link.update()  // In case motor has moved since last use
             //if(DEBUG) LOGGER.info(link.quaternion.dump())
@@ -143,6 +143,8 @@ object ForwardSolver {
             loc.updateSource(pos)
             pos = computeLocation(link.endPin.appendage)
             loc.updateEnd(pos)
+            if(DEBUG) LOGGER.info(String.format("%s.fillLocations: %s = (%s) ",
+                CLSS,link.endPin.appendage.name, loc.locationToText()))
             list.add(loc)
         }
         for(link in URDFModel.linkForJoint.values) {

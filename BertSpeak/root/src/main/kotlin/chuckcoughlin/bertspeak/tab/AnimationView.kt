@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-2025 Charles Coughlin. All rights reserved.
+ * Copyright 2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -59,7 +59,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
 
     fun updateDrawables(skeleton:List<LinkLocation>) {
         for (loc in skeleton) {
-            Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
+            // Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
             val drawable = ShapeFactory.drawableForLink(loc, configuration.projection)
             drawables[loc.name] = drawable
         }
@@ -88,7 +88,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
                 }
             }
             MotionEvent.ACTION_UP -> {
-                Log.i(CLSS, String.format("%s.onTouchEvent UP %dx%d",configuration.projection.name,x,y))
+                Log.i(CLSS, String.format("%s.onTouchEvent UP %2.0fx%2.0f",configuration.projection.name,x,y))
                 performClick()
                 if(selected!=null) {
                     val physical = Point2D((x-configuration.originx)/configuration.scale,(y-configuration.originy)/configuration.scale)
@@ -110,8 +110,6 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
     override fun performClick():Boolean {
         return true  // Consume the event
     }
-
-
 
     private val CLSS = "AnimationView"
     val PAINT_WIDTH = 8f

@@ -165,7 +165,7 @@ object RobotModel {
             val joint = Joint.fromString(jname)  // Case insensitive
             if( joint!=Joint.NONE ) {
                 joints.add(joint)
-                if(DEBUG) LOGGER.info(String.format("%s.analyzeSerialController: %s added %s",CLSS,controller,jname));
+                // if(DEBUG) LOGGER.info(String.format("%s.analyzeSerialController: %s added %s",CLSS,controller,jname));
             }
             else {
                 LOGGER.warning(String.format("%s.analyzeSerialController: %s is not a legal joint name ",

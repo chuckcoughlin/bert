@@ -74,6 +74,7 @@ declaration:
     | Article Pose Is phrase Value						# definePose
 	| Save Article? Pose As? phrase Value          	    # definePose
 	| This Is phrase Value          	                # definePose
+	| You Are phrase Value          	                # definePose
 	| Define phrase As Article Series Of phrase Poses   # defineAction1
 	| Define phrase (From|As) phrase                    # defineAction1
 	| When Isay phrase Use phrase                       # defineAction1
@@ -92,6 +93,7 @@ Are: 'are';
 Freeze: 'freeze'|'stiffen'|'tighten up'|'go rigid';
 Is: 'is';
 Relax:'loosen up'|'relax'|'go limp';
+Side: 'left'|'right'|'other';
 Why: 'why';
 
 // Pardon the license taken with some of these categories ...
@@ -108,7 +110,7 @@ Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
-Direction: 'left'|'right'|'back'|'forward'|Axis;
+Direction: 'back'|'forward'|Axis|Side;
 Do: 'do';
 Download: 'download';
 Dynamic: 'dynamic';
@@ -160,7 +162,6 @@ Salutation:'bert'|'burt'|'now'|'please'|'wake up'|'isaid';
 Save: 'save'|'record';
 Series: 'series';
 Set: 'set';
-Side: 'left'|'right'|'other';
 Speed: 'in slow motion'|'very fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'slower'|'very slow'|'slow'|'faster'|'quicker'|'fast'|'normal';
 Static: 'static';
 Straighten: 'straighten';

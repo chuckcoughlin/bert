@@ -43,9 +43,9 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
         leftPanel = binding.animationViewLeft
         frontPanel = binding.animationViewFront
         rightPanel = binding.animationViewRight
-        binding.animationLayoutFront.setOnTouchListener(frontPanel)
-        binding.animationLayoutLeft.setOnTouchListener(leftPanel)
-        binding.animationLayoutRight.setOnTouchListener(rightPanel)
+        frontPanel.setOnTouchListener(frontPanel)
+        leftPanel.setOnTouchListener(leftPanel)
+        rightPanel.setOnTouchListener(rightPanel)
 
         var button = binding.animationRefreshButton
         button.setOnClickListener { refreshButtonClicked() }

@@ -46,7 +46,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
      * are updating the same request, any updates must be synchronized.
      */
     override fun serialEvent(event: SerialPortEvent) {
-        LOGGER.info(String.format("%s.serialEvent for %s (pending %s)", CLSS, name,if(pending==null) "none" else "yes"))
+        if(DEBUG) LOGGER.info(String.format("%s.serialEvent for %s (pending %s)", CLSS, name,if(pending==null) "none" else "yes"))
         if (event.isRXCHAR()) {
             val request =
                 if(pending==null) {
@@ -56,7 +56,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
 
             // The value is the number of bytes in the read buffer
             var responseCount = runBlocking{request.control.getResponseCountForController(name)}
-            LOGGER.info(String.format("%s.serialEvent %s: expect %d %s msgs got %d bytes",
+            if(DEBUG) LOGGER.info(String.format("%s.serialEvent %s: expect %d %s msgs got %d bytes",
                 CLSS,name,responseCount,request.type.name, event.eventValue) )
             try {
                 var bytes = runBlocking{accumulateResults(event)}
@@ -101,7 +101,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                     }
                     pending = null
                     runBlocking(Dispatchers.IO) { outChannel.send(request) }
-                    LOGGER.info(String.format("%s.serialEvent: sent response %s.",CLSS,request.type.name))
+                    if(DEBUG) LOGGER.info(String.format("%s.serialEvent: sent response %s.",CLSS,request.type.name))
                 }
                 else {
                     pending = request

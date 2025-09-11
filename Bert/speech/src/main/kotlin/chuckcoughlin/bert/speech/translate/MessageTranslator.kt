@@ -51,7 +51,7 @@ class MessageTranslator {
         if( text.isBlank()) {
             text = msg.text
         }
-        LOGGER.info(String.format("%s.messageToText:received %s = %s",CLSS,type.name,text))
+        // LOGGER.info(String.format("%s.messageToText:received %s = %s",CLSS,type.name,text))
 
         // Handle messages that have no response
         text = if (text.isBlank()) {
@@ -109,7 +109,8 @@ class MessageTranslator {
                 text
             }
         }
-        LOGGER.info(String.format("%s.messageToText (%s): %s",CLSS,msg.type.name,text))
+        if(msg.type==RequestType.JSON) LOGGER.info(String.format("%s.messageToText (%s): %s",CLSS,msg.type.name,msg.jtype.name))
+        else LOGGER.info(String.format("%s.messageToText (%s): %s",CLSS,msg.type.name,text))
         return text
     }
     // ============================================== Helper Methods ===================================

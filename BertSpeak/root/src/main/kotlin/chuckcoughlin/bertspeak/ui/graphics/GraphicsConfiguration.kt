@@ -32,7 +32,7 @@ class GraphicsConfiguration () {
 	 * Default color scheme
 	 */
 	init {
-		backgroundColor = Paint().apply {	setARGB(255,200,200,200)
+		backgroundColor = Paint().apply {	setARGB(255,220,220,220)
 											style = Paint.Style.FILL }
 		insideColor      = Paint().apply {	setARGB(255,50,50,50)
 											strokeWidth = sWidth
@@ -40,7 +40,7 @@ class GraphicsConfiguration () {
 		outsideColor      = Paint().apply {	setARGB(255,255,255,255)
 											strokeWidth = sWidth
 											style = Paint.Style.STROKE }
-		topColor          = Paint().apply {	setARGB(255,220,220,220)
+		topColor          = Paint().apply {	setARGB(255,120,120,120)
 											strokeWidth = sWidth
 											style = Paint.Style.STROKE }
 		bottomColor       = Paint().apply {	setARGB(255,0,0,0)

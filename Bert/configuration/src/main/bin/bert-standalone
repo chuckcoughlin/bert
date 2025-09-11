@@ -21,4 +21,4 @@ cd bin
 # sql - Database
 # ter - Terminal
 # -nst means hasNetwork, hasSerial and hasTerminal
-./bertApp -nst -dai,cfg,dsp,int,mtr,ser,slv ${ROBOT_HOME}
+./bertApp -nst -dcfg,cmd,dsp,int ${ROBOT_HOME}

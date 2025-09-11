@@ -31,7 +31,7 @@ object Chain {
         if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for %s",CLSS,appendage.name))
         while (link != null) {
             partial.addFirst(link)
-            if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.name,link.sourcePin.type))
+            // if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.name,link.sourcePin.type))
             if( link.sourcePin.type==PinType.ORIGIN ) break
             val joint = link.sourcePin.joint
             link = URDFModel.linkForJoint[joint]
@@ -50,8 +50,8 @@ object Chain {
         var link = URDFModel.linkForJoint[joint]
         while( link != null ) {
             partial.addFirst(link)
-            if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s->%s)",
-                CLSS,joint.name,link.name,if(link.sourcePin.joint!=Joint.NONE) link.sourcePin.joint.name else "IMU", link.endPin.joint.name))
+            // if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s->%s)",
+            //     CLSS,joint.name,link.name,if(link.sourcePin.joint!=Joint.NONE) link.sourcePin.joint.name else "IMU", link.endPin.joint.name))
             if (link.sourcePin.type.equals(PinType.ORIGIN)) break
             val j = link.sourcePin.joint
             link = URDFModel.linkForJoint[j]

@@ -233,6 +233,7 @@ In the examples that follow *saluting* is a pose name and *salute* is an action.
 ```
     your pose is saluting
     this is saluting 1
+    you are saluting 1
     save your pose as saluting 3
     record it as saluting 2
 ```

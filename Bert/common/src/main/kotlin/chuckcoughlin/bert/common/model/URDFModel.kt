@@ -69,7 +69,8 @@ object URDFModel {
             while (index < count) {
                 val linkNode = links.item(index)
                 val name: String = XMLUtility.attributeValue(linkNode, "name")
-                if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s ...",CLSS,name))
+                // if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s .
+                // ..",CLSS,name))
                 try {
                     // The source pin is shared with all sub-links
                     var sourcePin = LinkPin(PinType.ORIGIN)

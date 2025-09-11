@@ -9,11 +9,13 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.solver.ForwardSolver
 import chuckcoughlin.bert.common.solver.InverseSolver
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import java.awt.SystemColor.text
 import java.util.logging.Logger
 
 /**
@@ -187,11 +189,15 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         }
     }
 
-    /** Inform the tablet of a now limb position */
+    /** Inform the tablet of a new limb position */
     private suspend fun dispatchLocationUpdates() {
         val msg = MessageBottle(RequestType.JSON)
         msg.jtype = JsonType.LINK_LOCATIONS
-        dispatchMessage(msg)
+        msg.source = ControllerType.COMMAND  // If tablet is connected.
+        msg.text = ForwardSolver.linkLocationsToJSON()
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchLocationUpdates Updating limb positions on tablet",
+            CLSS))
+        dispatchMessage(msg)  // Causes hang at the moment
     }
 
     /**
@@ -206,6 +212,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                                                         CLSS, msg.type.name,msg.arg,msg.values[0].toInt(),msg.limb.name))
             else if( msg.type==RequestType.INTERNET ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
                                                         CLSS, msg.type.name,msg.text))
+            else if( msg.type==RequestType.JSON ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
+                                                        CLSS, msg.type.name,msg.jtype.name))
             else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
         }
         if(msg.type==RequestType.INTERNET) {

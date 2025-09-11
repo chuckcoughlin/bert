@@ -32,7 +32,6 @@ class CommandMessageHandler(sock: Socket)  {
     private val output: PrintWriter
     private val parser: StatementParser
     private val readMutex = Mutex()
-    private val writeMutex = Mutex()
 
     /**
      * Extract text from the message and forward on to the tablet formatted appropriately.

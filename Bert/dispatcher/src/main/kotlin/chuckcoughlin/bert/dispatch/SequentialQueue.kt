@@ -6,7 +6,9 @@
 package chuckcoughlin.bert.dispatch
 
 import chuckcoughlin.bert.common.message.MessageBottle
+import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.*
@@ -37,8 +39,12 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      */
     suspend fun dispatch(msg:MessageBottle) {
         val now=System.currentTimeMillis()
-        var text = msg.joint.name
-        if( text.equals(Joint.NONE.name)) text = msg.limb.name
+        var text = msg.text
+        if( msg.type==RequestType.JSON ) text = msg.jtype.name
+        else {
+            text = msg.joint.name
+            if (text.equals(Joint.NONE.name)) text = msg.limb.name
+        }
         var earliestTime = computeEarliestTime(msg)
         LOGGER.info(String.format("%s.dispatch: %s on %s after %d msecs.", CLSS,msg.type.name,text,earliestTime-now))
         if(earliestTime > now) {
