@@ -72,7 +72,13 @@ class CommandMessageHandler(sock: Socket)  {
 
     suspend fun receiveNetworkInput(): MessageBottle {
         val request: MessageBottle
-        val text=readCommand()
+        var text:String? = null
+        try {
+            text = readCommand()
+        }
+        catch(ex:Exception) {
+            LOGGER.info(String.format(" EXCEPTION %s reading. Assume client has been closed.", ex.localizedMessage))
+        }
         // We receive  null every milli-sec if the tablet goes to sleep
         // then it stops when the tablet is woken up. Here we force it to
         // re-connect.
@@ -167,7 +173,8 @@ class CommandMessageHandler(sock: Socket)  {
 
     /**
      * This is a substitute for readLine() with which I've had much trouble.
-     * @return a line of text. Null indicates a closed stream
+     * @return a line of text. Null indicates a closed stream.
+     *         May throw an exception of underlying socket is reset.
      */
     private suspend fun readCommand():String? {
         var text = StringBuffer()

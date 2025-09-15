@@ -156,7 +156,8 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
              * Send requests to the Dispatcher channel.
              */
             val msg = handler.receiveNetworkInput()
-            LOGGER.info(String.format("%s.handleRequest: received %s from socket (%s)", CLSS,msg.type.name,msg.text))
+            LOGGER.info(String.format("%s.handleRequest: received %s from socket (%s)", CLSS,msg.type.name,
+                        if(msg.type== RequestType.JSON) msg.jtype.name else msg.text))
             if(isHangup(msg) ) {
                 connected = false
             }
@@ -246,7 +247,7 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
         handler.sendText(text)
     }
 
-    private val CLSS = "Command"
+    private val CLSS = "CommandController"
     private val DELAY = 2000L
     private val DEBUG: Boolean
     private val LOGGER = Logger.getLogger(CLSS)

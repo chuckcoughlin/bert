@@ -36,7 +36,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     private var running:Boolean
     private var index:Long          // Sequence of a message
     private var job:Job
-    private val motorQueue : SequentialQueue
+    private val motorQueue    : SequentialQueue
     private val internetQueue : SequentialQueue
     @DelicateCoroutinesApi
     override suspend fun execute() {
@@ -135,6 +135,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             request.limb = Limb.NONE   // Just used to synchronize
             if( Database.poseExists(request.arg,request.values[0].toInt())) {
                 distributePose(request)
+                dispatchLocationUpdates()
             }
             else {
                 request.error = String.format("pose \"%s %d\" does not exist",request.arg,request.values[0].toInt())
@@ -153,6 +154,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 msg.control.delay = pose.index.toLong()
                 msg.source = ControllerType.BITBUCKET
                 distributePose(msg)   // All responses will go to the bit bucket
+                dispatchLocationUpdates()
             }
             request.limb = Limb.NONE   // Message is used to synch the MotorGroupController
         }
@@ -184,7 +186,6 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 msg.text = ""
                 msg.source = ControllerType.BITBUCKET
                 dispatchMessage(msg)
-                dispatchLocationUpdates()
             }
         }
     }
@@ -197,7 +198,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         msg.text = ForwardSolver.linkLocationsToJSON()
         if(DEBUG) LOGGER.info(String.format("%s.dispatchLocationUpdates Updating limb positions on tablet",
             CLSS))
-        dispatchMessage(msg)  // Causes hang at the moment
+        dispatchMessage(msg)  // Causes hang at the moment ??
     }
 
     /**

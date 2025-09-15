@@ -138,10 +138,17 @@ class Dispatcher : Controller {
                             toInternalController.send(internetReadyMessage)
                             replyToSource(it)
                         }
-                        // The Command response channel contains requests that originate on the connected app (tablet)
+                        // The Command request channel contains requests that originate on the connected app (tablet)
                         commandRequestChannel.onReceive {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: commandRequestChannel receive %s(%s) from %s",
-                                CLSS, it.type.name,it.text,it.source))
+                            if(DEBUG) {
+                                if (it.type == RequestType.JSON)
+                                    LOGGER.info(String.format("%s.execute: commandRequestChannel receive %s(%s) from %s",
+                                        CLSS, it.type.name, it.jtype.name, it.source))
+                            }
+                            else {
+                                LOGGER.info(String.format("%s.execute: commandRequestChannel receive %s(%s) from %s",
+                                    CLSS, it.type.name, it.text, it.source))
+                            }
                             dispatchCommandResponse(it)
                         }
                         // The Terminal stdin channel contains requests typed at the terminal

@@ -5,12 +5,14 @@
  */
 package chuckcoughlin.bert.dispatch
 
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 
@@ -119,9 +121,14 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      */
     private fun computeEarliestTime(msg:MessageBottle) : Long {
         var earliestTime = System.currentTimeMillis()
+        val now = earliestTime
         for( mc in motorsForMessage(msg)) {
             val readyTime = mc.dispatchTime + mc.travelTime
             if( readyTime>earliestTime ) earliestTime = readyTime
+            if(DEBUG && readyTime-now>EXCESSIVE_DELAY ) {
+                LOGGER.info(String.format("%s.computeEarliestTime: %s dispatched %d ago, travel %d, EXCESSIVE delay = %d msecs.", CLSS,mc.joint.name,
+                    now-mc.dispatchTime, mc.travelTime, readyTime-now))
+            }
         }
         earliestTime = earliestTime + msg.control.delay
         return earliestTime
@@ -150,14 +157,16 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      */
     private fun motorsForMessage(msg:MessageBottle) : List<MotorConfiguration> {
         var list = listOf<MotorConfiguration>()
-        if( msg.joint==Joint.NONE && msg.limb==Limb.NONE ) { // All joints
-            list = RobotModel.motorsByJoint.values.toList()
-        }
-        else if( msg.limb!=Limb.NONE) {
-            list = motorsForLimb(msg.limb)
-        }
-        else if( msg.limb!=Limb.NONE) {
-            list = motorsForJoint(msg.joint)
+        if( isMotorRequest(msg) ) {
+            if (msg.joint == Joint.NONE && msg.limb == Limb.NONE) { // All joints
+                list = RobotModel.motorsByJoint.values.toList()
+            }
+            else if (msg.limb != Limb.NONE) {
+                list = motorsForLimb(msg.limb)
+            }
+            else {
+                list = motorsForJoint(msg.joint)
+            }
         }
         return list
     }
@@ -172,10 +181,23 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         }
     }
 
+    // Some messages handled by the internal controller do not
+    // get sent to the MotorController
+    private fun isMotorRequest(request: MessageBottle): Boolean {
+        if (request.type==RequestType.INTERNET ||
+            request.type==RequestType.JSON ) {
+            return false
+        }
+        else {
+            return true
+        }
+    }
+
     private val CLSS="SequentialQueue"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG : Boolean
-    private val POLL_INTERVAL = 100L // While waiting for ready
+    private val POLL_INTERVAL   = 100L  // While waiting for ready
+    private val EXCESSIVE_DELAY = 5000L // Report when debugging
 
 
     init {

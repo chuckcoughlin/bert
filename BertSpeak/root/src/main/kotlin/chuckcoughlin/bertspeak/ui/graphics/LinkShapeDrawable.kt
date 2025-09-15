@@ -57,7 +57,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 	}
 
 	val CLSS = "LinkShapeDrawable"
-	val TOLERANCE  = 10f // Touch tolerance in screen units
+	val TOLERANCE  = 20f // Touch tolerance in screen units
 
 	init {
 		name = nam

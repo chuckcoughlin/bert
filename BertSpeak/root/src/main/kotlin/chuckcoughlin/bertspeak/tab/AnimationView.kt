@@ -67,12 +67,13 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
 
     /** ============= OnTouchListener ===============  */
     override fun onTouch(v:View,event: MotionEvent): Boolean {
-        Log.i(CLSS, String.format("%s.onTouchEvent ==============================================",CLSS))
+
         val action = event.action
         // Retrieve the new x and y touch positions in view screen coordinates
         val x = event.x.toDouble()
         val y = event.y.toDouble()
         val screenCoordinates = Point2D(x,y)
+        Log.i(CLSS, String.format("%s.onTouchEvent --------------------- %dx%d",configuration.projection.name,x,y))
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 selected = selectDrawable(screenCoordinates)
