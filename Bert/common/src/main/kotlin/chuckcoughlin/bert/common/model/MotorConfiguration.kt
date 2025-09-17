@@ -4,6 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.model.ConfigurationConstants.DEFAULT_SPEED
 import java.io.Serializable
 import java.util.logging.Logger
 
@@ -37,21 +38,33 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var maxTorque : Double
     var offset : Double // Configured position correction
     var isDirect: Boolean
-    var dispatchTime: Long  // Most recent timestamp on message containing this joint
+    var dispatchTime: Long  // Most recent timestamp on message affecting this joint
     // When we set a new position, use the previous position and speed
     // to estimate the travel time.
-    var angle = 0.0        // ~ degrees
+    var angle : Double = 0.0        // ~ degrees
         get() = field
         set(value) {
-            var delta = field - value
-            if (delta < 0.0) delta = -delta
-            if (speed > 0.0) travelTime = (1000.0 * delta / speed).toLong() // ~msecs
+            priorAngle = field
             field = value
     }
-    var speed : Double // ~ degrees/second
+    var priorAngle : Double = 0.0
+        get() = field
+        private set
+    var speed = ConfigurationConstants.DEFAULT_SPEED // ~ degrees/second
+        get() = field
+        set(value) {
+            if(value>0.0) field = value
+        }
+
     var temperature : Double // deg C
     var torque : Double // ~ N-m
-    var travelTime : Long // ~msecs
+    var travelTime: Long = 0L // ~msecs
+        get()  {
+            var deltaAngle = angle - priorAngle
+            if (deltaAngle < 0.0) deltaAngle = -deltaAngle
+            field = (1000.0 * deltaAngle / speed).toLong() // ~msecs
+            return field
+        }
         private set       // Read-only
     var voltage: Double
 
@@ -105,9 +118,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         maxTorque = 1.9
         // Long enough ago to not delay first command
         dispatchTime = System.currentTimeMillis() - ConfigurationConstants.LONG_TME_AGO
-        travelTime = 0
         // These are current goal settings
-        speed = 684.0 // Power-off AX-12
         temperature = 20.0 // Room temperature
         torque = 0.0       // Power-off value
         isTorqueEnabled = true // Initially torque is enabled

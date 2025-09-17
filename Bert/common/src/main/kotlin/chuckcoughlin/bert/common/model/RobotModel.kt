@@ -112,6 +112,7 @@ object RobotModel {
                     }
                     ControllerType.DISPATCHER -> {}
                     ControllerType.INTERNAL -> {}
+                    ControllerType.INTERNET -> {}
                     // A motor controller controls motor devices associated with a single serial port
                     ControllerType.MOTOR -> {
                         val device = XMLUtility.attributeValue(controllerElement, ConfigurationConstants.PROPERTY_DEVICE)

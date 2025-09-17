@@ -187,7 +187,7 @@ the last referenced joint or side. Show the use of 'other' as a substitution for
     set your other elbow to 90
     straighten it
 ```
-* ![yellow](/images/ball_yellow.png) ``Change speed or torque`` - Using the terminal application,
+* ![green](/images/ball_green.png) ``Change speed or torque`` - Using the terminal application,
 change the speed or torque of a joint. Both speed and torque are expressed in engineering units
 (degrees/second and newton-meters, respectively).
 Sample command syntax:
@@ -203,7 +203,7 @@ Sample command syntax:
 ```
 The "move" and "go" commands set speeds for future movements of all joints at once.
 
-* ![yellow](/images/ball_yellow.png) ``Enable torque`` - Dynamixel motors may be
+* ![green](/images/ball_green.png) ``Enable torque`` - Dynamixel motors may be
 configured to be freewheeling and compliant or stiff. The term for this feature
 is "torque enable". Our names are "relax" and "freeze". These commands may be applied to individual joints, limbs or the entire robot.
 Sample command syntax:
@@ -226,7 +226,7 @@ of poses executed in order with sufficient time delays to allow movement to each
 clarity each pose within the same action can be given the same name plus an index that defines execution
 order. JSON versions of the commands are supplied to facilitate editing on the tablet.
 
-* ![yellow](/images/ball_yellow.png) ``Pose`` - Associate the current joint positions with
+* ![green](/images/ball_green.png) ``Pose`` - Associate the current joint positions with
 a named pose. The pose is saved in the robot's internal database and represents a collection of joint-position pairs. The pose is given an index (1 by default) to allow poses of the same name to all be part of an action.
 
 In the examples that follow *saluting* is a pose name and *salute* is an action.
@@ -246,7 +246,7 @@ Some requests are designed for direct tablet interaction and return a JSON strin
     describe pose saluting 2
 ```
 
-* ![yellow](/images/ball_yellow.png) ``Actions`` - Associate an action (command)
+* ![green](/images/ball_green.png) ``Actions`` - Associate an action (command)
 with a series of pre-defined poses.  Pose and action names are
 arbitrary, but must be spelled in the same
 way as the Android text-to-speech processor. Sample syntax:
@@ -259,7 +259,7 @@ As before some requests are designed for direct tablet interaction and return a 
     describe action salute
 ```
 
-* ![yellow](/images/ball_yellow.png) ``Command`` - Either the name of an action or single pose
+* ![green](/images/ball_green.png) ``Command`` - Either the name of an action or single pose
 may be used to drive the robot to a previously stored
 pose or execute some action.  As of yet, this movement does not account for positional conflicts.
 ```
@@ -269,7 +269,7 @@ pose or execute some action.  As of yet, this movement does not account for posi
     take the pose saluting 3
 ```
 
-* ![green](/images/ball_yellow.png) ``Clean up`` - Remove a face,
+* ![green](/images/ball_green.png) ``Clean up`` - Remove a face,
  pose or action. If an action is
 deleted, all of the poses referencing that action are also deleted. If no pose index is given
 all poses of the specified name are deleted.
@@ -359,7 +359,7 @@ The red button in the lower right corner kills the tablet application.
 It can be annoying when the robot
 attempts to interpret  background speech not directed  towards it.
 (And usually fails).
-The commands below place the tablet application into a state where it ignores ambient speech until specifically directed to be attentive.
+The commands below place the tablet application into a state where it ignores ambient speech until specifically directed to be attentive. Note: The `cover` tab has a "Hearing" button that performs the same function.
   ```
       Bert, ignore me
       Bert, pay attention

@@ -926,8 +926,4 @@ object DxlMessage {
     const val BULK_READ = 0x92.toByte() // For multiple devices, instruction to read data from different addresses with different lengths at once
     const val HIP_X_LIMIT = 190.0         // Reasonable hip limit
     const val HIP_Z_LIMIT = -8.0
-
-    init {
-        val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)
-    }
 }

@@ -134,7 +134,7 @@ class PoseTable {
             var stmt=cxn.createStatement()
             var rs: ResultSet? = null
             val pose = name.lowercase(Locale.getDefault())
-            var poseid = SQLConstants.NO_POSE
+            var poseid : Long
 
             try {
                 prep.setQueryTimeout(10) // set timeout to 10 sec.

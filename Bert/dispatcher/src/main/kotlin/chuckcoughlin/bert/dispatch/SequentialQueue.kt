@@ -41,7 +41,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      */
     suspend fun dispatch(msg:MessageBottle) {
         val now=System.currentTimeMillis()
-        var text = msg.text
+        var text:String
         if( msg.type==RequestType.JSON ) text = msg.jtype.name
         else {
             text = msg.joint.name

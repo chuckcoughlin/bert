@@ -53,6 +53,7 @@ object ConfigurationConstants {
     // of maximum.
     const val HALF_SPEED = 0.5
     const val FULL_TORQUE = 0.95
+    const val DEFAULT_SPEED = 684.0   // Power-off AX-12
 
     // For values that are boolean. Use these strings for "values"
     const val ON_VALUE  = 1.0
