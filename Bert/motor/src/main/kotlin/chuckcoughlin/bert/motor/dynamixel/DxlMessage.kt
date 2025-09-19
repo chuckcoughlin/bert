@@ -31,7 +31,6 @@ object DxlMessage {
      */
     fun byteArrayListToInitializePositions(configurationsByJoint: Map<Joint, MotorConfiguration>): List<ByteArray> {
         val outliers: MutableList<MotorConfiguration> = ArrayList<MotorConfiguration>() // Will hold the joints that need moving.
-        mostRecentTravelTime = 0
         for (mc in configurationsByJoint.values) {
             val pos: Double = mc.angle
             if (pos > mc.maxAngle ) {
@@ -39,14 +38,12 @@ object DxlMessage {
                         CLSS, mc.joint.name, pos, mc.maxAngle))
                 mc.angle = mc.maxAngle
                 outliers.add(mc)
-                if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
             else if (pos < mc.minAngle ) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.2f (min=%2.2f)",
                         CLSS, mc.joint.name, pos, mc.minAngle))
                 mc.angle = mc.minAngle
                 outliers.add(mc)
-                if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
             }
         }
         // Add heuristics to avoid some common entanglements. Hip is only present in lower controller
@@ -224,12 +221,10 @@ object DxlMessage {
     fun byteArrayListToSetPose(poseid: Long,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
         LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %d",CLSS,poseid))
         // These maps contain joints for the subject limbs
-        val torques: Map<Joint, Double> = Database.getPoseJointTorques( poseid, map)
-        val speeds: Map<Joint, Double> = Database.getPoseJointSpeeds(poseid, map)
-        val angles: Map<Joint, Double> = Database.getPoseJointPositions(poseid,map)
+        val motors: List<MotorConfiguration> = Database.getMotorsForPose( poseid)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
-        val tc = torques.size
+        val tc = motors.size
         // Torque
         if (tc > 0) {
             val len = 3 * tc + 8 //  3 bytes per motor + address + byte count + header + checksum
@@ -241,24 +236,19 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             var isChanged = false
-            for (key in map.keys) {
-                if( torques[key]==null ) continue    // joint not being set in pose
-                val mc: MotorConfiguration = map[key]!!
-                if( mc.torque==torques[key]) continue
-                isChanged = true
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, torques[key]!!)
+            for (mc in motors) {
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.torque = torques[key]!! // n-m
                 index = index + 3
             }
-            if( isChanged ) {
+            if( motors.size>0 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
         }
-        val sc = speeds.size
+        val sc = motors.size
         // Speed
         if (sc > 0) {
             val len = 3 * sc + 8 //  3 bytes per motor + address + byte count + header + checksum
@@ -269,25 +259,19 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.SPEED)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
-            var isChanged = false
-            for (key in map.keys) {
-                if( speeds[key]==null ) continue
-                val mc: MotorConfiguration = map[key]!!
-                if( mc.speed==speeds[key]!! ) continue
-                isChanged = true
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, speeds[key]!!)
+            for (mc in motors) {
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.speed)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
-                mc.speed = speeds[key]!! // deg/sec
                 index = index + 3
             }
-            if( isChanged ) {
+            if( motors.size>0 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
         }
-        val pc = angles.size
+        val pc = motors.size
         // Torque enable - enable torque for any motor about to be moved
         if( pc>0 ) {
             val len = 3 * pc + 8 //  6 bytes per motor + address + byte count + header + checksum
@@ -298,11 +282,7 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForPresentProperty(JointDynamicProperty.STATE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
-            var isChanged = false
-            for (key in map.keys) {
-                if( angles[key] == null )  continue
-                val mc: MotorConfiguration = map[key]!!
-                isChanged = true
+            for (mc in motors) {
                 mc.isTorqueEnabled = true
                 val stateValue=1  // True
                 bytes[index]=mc.id.toByte()
@@ -310,14 +290,13 @@ object DxlMessage {
                 bytes[index + 2]=(stateValue shr 8).toByte()
                 index=index + 3
             }
-            if( isChanged ) {
+            if( motors.size>0 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
         }
         // Positions - correct any that are outside legal limits
         if (pc > 0) {
-            mostRecentTravelTime = 0
             val len = 3 * pc + 8 //  6 bytes per motor + address + byte count + header + checksum
             val bytes = ByteArray(len)
             setSyncWriteHeader(bytes)
@@ -326,34 +305,26 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.ANGLE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
-            var isChanged = false
-            for (key in map.keys) {
-                if( angles[key] == null )  continue
-                val mc: MotorConfiguration = map[key]!!
-                if( mc.angle==angles[key]!! ) continue
-                isChanged = true
-
-                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.1f",CLSS,key,angles.get(key)))
-                mc.angle = angles[key]!!
-                if(mc.angle>mc.maxAngle)  {
+            for (mc in motors) {
+                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.1f",CLSS,mc.joint.name,mc.targetAngle))
+                if(mc.targetAngle>mc.maxAngle)  {
                     LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has %2.1f greater than the maximium %2.1f",
-                        CLSS,poseid,mc.joint.name,mc.angle,mc.maxAngle))
-                    mc.angle = mc.maxAngle
+                        CLSS,poseid,mc.joint.name,mc.targetAngle,mc.maxAngle))
+                    mc.targetAngle = mc.maxAngle
                 }
-                else if(mc.angle<mc.minAngle) {
+                else if(mc.targetAngle<mc.minAngle) {
                     LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has angle %2.1f less than the minimium of %2.1f",
-                        CLSS,poseid,mc.joint.name,mc.angle,mc.minAngle))
-                    mc.angle = mc.minAngle
+                        CLSS,poseid,mc.joint.name,mc.targetAngle,mc.minAngle))
+                    mc.targetAngle = mc.minAngle
                 }
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
 
-                if (mc.travelTime > mostRecentTravelTime) mostRecentTravelTime = mc.travelTime
                 index = index + 3
             }
-            if( isChanged ) {
+            if( motors.size>0 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
@@ -465,7 +436,6 @@ object DxlMessage {
         setChecksum(bytes)
         if (property.equals(JointDynamicProperty.ANGLE)) {
             mc.angle = value
-            mostRecentTravelTime = mc.travelTime
         }
         else if (property.equals(JointDynamicProperty.SPEED)) {
             mc.speed = value
@@ -904,8 +874,6 @@ object DxlMessage {
      * The result is stored as a static parameter, good only until the next method is run.
      * @return the maximum travel time as calculated by the most recent byte syntax generator. Time ~msecs.
      */
-    var mostRecentTravelTime: Long = 0
-        private set
     const val CLSS = "DxlMessage"
     val LOGGER = Logger.getLogger(CLSS)
     val DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MOTOR)

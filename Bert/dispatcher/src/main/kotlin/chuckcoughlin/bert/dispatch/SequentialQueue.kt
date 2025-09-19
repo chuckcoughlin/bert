@@ -1,18 +1,16 @@
 /**
- * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
 package chuckcoughlin.bert.dispatch
 
-import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
+import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 
@@ -31,10 +29,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
     private var ready:Boolean
 
     /*
-     * Coroutine to send  a message to the dispatcher with a proper delay to
-     * account for joint travel time, if appropriate.
-     * Calculate a time for the motion and also respect any user
-     * defined delay.
+     * Send  a sequenced messsage to the dispatcher.
      *
      * There may be a delay before the message is sent.
      * During this time ready should be false.
@@ -47,15 +42,12 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
             text = msg.joint.name
             if (text.equals(Joint.NONE.name)) text = msg.limb.name
         }
-        var earliestTime = computeEarliestTime(msg)
-        LOGGER.info(String.format("%s.dispatch: %s on %s after %d msecs.", CLSS,msg.type.name,text,earliestTime-now))
-        if(earliestTime > now) {
-            delay(earliestTime-now)
+        var executionTime = prepareConfigurationsForExecution(msg)
+        LOGGER.info(String.format("%s.dispatch: %s on %s after %d msecs.", CLSS,msg.type.name,text,executionTime-now))
+        if(executionTime > now) {
+            delay(executionTime-now)
         }
-        else {
-            earliestTime = now
-        }
-        setDispatchTimes(msg,earliestTime)
+
         channel.send(msg)
     }
 
@@ -116,82 +108,68 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
     }
 
     /**
-     * Compute earliest time the command can be executed without interfering
-     * with the previous command. NOTE: travel time can be excessive if the speed is incorrect.
+     * Set target angles and speeds then calculate the earliest time without
+     * conflict with existing motion. Mark dispatch times.
+     * @return the latest dispatch time
      */
-    private fun computeEarliestTime(msg:MessageBottle) : Long {
-        var earliestTime = System.currentTimeMillis()
-        val now = earliestTime
-        for( mc in motorsForMessage(msg)) {
-            val readyTime = mc.dispatchTime + mc.travelTime
-            if( readyTime>earliestTime ) earliestTime = readyTime
-            if(DEBUG && readyTime-now>EXCESSIVE_DELAY ) {
-                LOGGER.info(String.format("%s.computeEarliestTime: %s dispatched %d ago, travel %d, EXCESSIVE delay = %d msecs.", CLSS,mc.joint.name,
-                    now-mc.dispatchTime, mc.travelTime, readyTime-now))
-            }
-        }
-        earliestTime = earliestTime + msg.control.delay
-        return earliestTime
-    }
-    private fun motorsForJoint(joint: Joint): List<MotorConfiguration> {
-        val list: MutableList<MotorConfiguration> = mutableListOf<MotorConfiguration>()
-        for (mc in RobotModel.motorsByJoint.values) {
-            if (mc.joint==joint) {
+    private fun prepareConfigurationsForExecution(msg:MessageBottle) : Long {
+        val list = mutableListOf<MotorConfiguration>()
+        var executionTime = System.currentTimeMillis()
+        val now = executionTime
+        if (msg.type==RequestType.INITIALIZE_JOINTS) {
+            for (mc in RobotModel.motorsByJoint.values) {
                 list.add(mc)
             }
         }
-        return list
-    }
-    private fun motorsForLimb(limb: Limb): List<MotorConfiguration> {
-        val list: MutableList<MotorConfiguration> = mutableListOf<MotorConfiguration>()
-        for (mc in RobotModel.motorsByJoint.values) {
-            if (mc.limb==limb || limb==Limb.NONE) {
+        else if (msg.type==RequestType.EXECUTE_POSE) {
+            val poseName: String = msg.arg
+            val index: Int = msg.values[0].toInt()
+            val poseid = Database.getPoseIdForName(poseName,index)
+            val motors = Database.configureMotorsForPose( poseid)
+            for( mc in motors ) {
+                val tt = computeTravelTime(mc)
+                if(mc.dispatchTime+tt > executionTime) executionTime = mc.dispatchTime+tt
                 list.add(mc)
             }
         }
-        return list
-    }
-    /**
-     * Return a list of the motor configurations applicable for a message.
-     * The list may be empty, especially if the message does not involve a write.
-     */
-    private fun motorsForMessage(msg:MessageBottle) : List<MotorConfiguration> {
-        var list = listOf<MotorConfiguration>()
-        if( isMotorRequest(msg) ) {
-            if (msg.joint == Joint.NONE && msg.limb == Limb.NONE) { // All joints
-                list = RobotModel.motorsByJoint.values.toList()
-            }
-            else if (msg.limb != Limb.NONE) {
-                list = motorsForLimb(msg.limb)
-            }
-            else {
-                list = motorsForJoint(msg.joint)
+        else if (msg.type==RequestType.SET_LIMB_PROPERTY) {
+            val prop = msg.jointDynamicProperty
+            var value = msg.values[0]
+            for (mc in RobotModel.motorsByJoint.values) {
+                if (msg.limb==Limb.NONE ||  mc.limb==msg.limb) {
+                    val tt = computeTravelTime(mc)
+                    if(mc.dispatchTime+tt > executionTime) executionTime = mc.dispatchTime+tt
+                    mc.setDynamicProperty(prop,value)
+                    list.add(mc)
+                }
             }
         }
-        return list
-    }
-    /**
-     *
-     */
-    fun setDispatchTimes(msg:MessageBottle,executionTime:Long) {
-        msg.control.executionTime = executionTime
-        val list = motorsForMessage(msg)
-        for(mc in list ) {
+        else if (msg.type==RequestType.SET_MOTOR_PROPERTY) {
+            val prop = msg.jointDynamicProperty
+            var value = msg.values[0]
+            for (mc in RobotModel.motorsByJoint.values) {
+                val tt = computeTravelTime(mc)
+                if(mc.dispatchTime+tt > executionTime) executionTime = mc.dispatchTime+tt
+                mc.setDynamicProperty(prop,value)
+                list.add(mc)
+            }
+        }
+        executionTime = executionTime + msg.control.delay
+        for(mc in list) {
             mc.dispatchTime = executionTime
+            if(DEBUG && executionTime-now>EXCESSIVE_DELAY ) {
+                LOGGER.info(String.format("%s.prepareConfigurationsForExecution: %s EXCESSIVE delay = %d msecs.", CLSS,
+                    mc.joint.name,now-mc.dispatchTime))
+            }
         }
+        return executionTime
     }
 
-    // Some messages handled by the internal controller do not
-    // get sent to the MotorController
-    private fun isMotorRequest(request: MessageBottle): Boolean {
-        if (request.type==RequestType.INTERNET ||
-            request.type==RequestType.JSON ) {
-            return false
-        }
-        else {
-            return true
-        }
+    private fun computeTravelTime(mc:MotorConfiguration) : Long {
+        val tt = Math.abs(1000*(mc.targetAngle-mc.angle)/mc.speed).toLong()
+        return tt
     }
+
 
     private val CLSS="SequentialQueue"
     private val LOGGER = Logger.getLogger(CLSS)

@@ -32,6 +32,10 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var isTorqueEnabled : Boolean// Torque-enable - on/off
     var limb: Limb
     var load: Double
+    // When we move the joint, set a target position.
+    // Update the angle only when movement command has been written.
+    var angle : Double
+    var targetAngle : Double
     var minAngle : Double
     var maxAngle : Double
     var maxSpeed : Double
@@ -39,17 +43,8 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var offset : Double // Configured position correction
     var isDirect: Boolean
     var dispatchTime: Long  // Most recent timestamp on message affecting this joint
-    // When we set a new position, use the previous position and speed
-    // to estimate the travel time.
-    var angle : Double = 0.0        // ~ degrees
-        get() = field
-        set(value) {
-            priorAngle = field
-            field = value
-    }
-    var priorAngle : Double = 0.0
-        get() = field
-        private set
+    var changed: Boolean    // Command to alter configuration is pending
+
     var speed = ConfigurationConstants.DEFAULT_SPEED // ~ degrees/second
         get() = field
         set(value) {
@@ -58,14 +53,6 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
 
     var temperature : Double // deg C
     var torque : Double // ~ N-m
-    var travelTime: Long = 0L // ~msecs
-        get()  {
-            var deltaAngle = angle - priorAngle
-            if (deltaAngle < 0.0) deltaAngle = -deltaAngle
-            field = (1000.0 * deltaAngle / speed).toLong() // ~msecs
-            return field
-        }
-        private set       // Read-only
     var voltage: Double
 
     /**
@@ -74,7 +61,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
      */
     fun setDynamicProperty(jp: JointDynamicProperty, value: Double) {
         when (jp) {
-            JointDynamicProperty.ANGLE -> angle = value
+            JointDynamicProperty.ANGLE -> targetAngle = value
             JointDynamicProperty.LOAD -> load = value
             JointDynamicProperty.MAXIMUMANGLE -> {}
             JointDynamicProperty.MINIMUMANGLE -> {}
@@ -108,16 +95,18 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         isDirect = direct
         joint = j
         type = motorType
-
         limb = Limb.NONE
         load = 0.0
         offset = 0.0
+        angle = 0.0
+        targetAngle = 0.0
         minAngle = -180.0
         maxAngle = 180.0
         maxSpeed = 600.0
         maxTorque = 1.9
         // Long enough ago to not delay first command
         dispatchTime = System.currentTimeMillis() - ConfigurationConstants.LONG_TME_AGO
+        changed = false
         // These are current goal settings
         temperature = 20.0 // Room temperature
         torque = 0.0       // Power-off value

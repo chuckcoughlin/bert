@@ -322,7 +322,7 @@ The results should be formatted into proper english sentences. Typical syntax:
 
 ### i - Miscellaneous <a id="miscellaneous"></a>
 This section includes tests of irregular or one-off speech patterns.
-* ![yellow](/images/ball_yellow.png) ``Completed``  - these are statements outside the regular
+* ![green](/images/ball_green.png) ``Misc``  - these are statements outside the regular
 syntax shown above that are processed in a reasonable manner.
 ```
     hi bert
@@ -390,7 +390,7 @@ allows the robot to recognize whoever is handling the tablet.
 
 ![Animation](/images/bertspeak_animation.png)
 
-* ![gray](/images/ball_gray.png) ```Animation```
+* ![yellow](/images/ball_yellow.png) ```Animation```
 
 This panel is planned to show the robot position
 in real-time .

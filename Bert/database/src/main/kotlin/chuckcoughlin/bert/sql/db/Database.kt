@@ -30,6 +30,9 @@ object Database  {
     fun actionExists(actionName:String) :Boolean {
         return action.actionExists(connection,actionName)
     }
+    fun configureMotorsForPose(poseid: Long): List<MotorConfiguration> {
+        return pose.configureMotorsForPose(connection,poseid)
+    }
     /**
      * Save a list of motor position, torques and speeds as a new pose.
      * Insert or update the Pose table
@@ -122,6 +125,9 @@ object Database  {
     fun getFaceNames() : String {
         return face.getFaceNames(connection)
     }
+    fun getMotorsForPose(poseid: Long): List<MotorConfiguration> {
+        return pose.getMotorsForPose(connection,poseid)
+    }
     /**
      * @param name user entered pose name. If the pose does not
      *             exist, it will be created.
@@ -130,35 +136,6 @@ object Database  {
      */
     fun getPoseIdForName(name: String,index:Int): Long {
         return pose.getPoseIdForName(connection, name, index)
-    }
-    /**
-     * Return a map of angles by joint name
-     *
-     * @param poseid
-     * @return a map of target positions by joint for the pose and joints to be considered
-     */
-    fun getPoseJointPositions( poseid: Long,configs:Map<Joint, MotorConfiguration> ): Map<Joint,Double > {
-        return pose.getPoseJointPositions(connection, poseid, configs)
-    }
-    /**
-     * Return a map of speeds by joint name. These speeds may, or may not
-     * have been previously configured in the joint.
-     *
-     * @param poseid
-     * @return a map of target speeds by joint for joints of interest  in the pose
-     */
-    fun getPoseJointSpeeds( poseid: Long,map:Map<Joint, MotorConfiguration>): Map<Joint,Double > {
-        return pose.getPoseJointSpeeds(connection, poseid,map)
-    }
-    /**
-     * Return a map of speeds by joint name. These speeds may, or may not
-     * have been previously configured in the joint.
-     *
-     * @param poseid
-     * @return a map of target speeds by joint for joints of interest in the pose
-     */
-    fun getPoseJointTorques( poseid: Long ,map:Map<Joint, MotorConfiguration>): Map<Joint,Double > {
-        return pose.getPoseJointTorques(connection, poseid,map)
     }
     /**
      * @return the names of saved faces in a comma-separated list

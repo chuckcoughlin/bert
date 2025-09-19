@@ -346,10 +346,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting speed to %2.0f percent for all joints" ,
                 CLSS,controllerName,100.0*value))
 
-            for (mc in configurationsByJoint.values) {
-                mc.speed = mc.maxSpeed*value
-                mc.dispatchTime = now
-            }
             request.text = String.format("all motion will be %2.0f percent of maximum speed", 100.0*value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
@@ -361,11 +357,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting torque to %2.0f percent for all joints" ,
                 CLSS,controllerName,100.0*value))
-
-            for (mc in configurationsByJoint.values) {
-                mc.torque = value*mc.maxTorque
-                mc.dispatchTime = now
-            }
             request.text = String.format("All motors are set to %2.0f percent of maximum torque", 100.0*value)
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
@@ -382,18 +373,16 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 
             // Note that this text is over-ridden with the response to the request.
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
-                request.text = String.format("Setting my %s to %.0f degrees", Joint.toText(mc.joint),value)
+                request.text = String.format("Setting my %s to %.0f degrees", Joint.toText(mc.joint),mc.targetAngle)
             }
             else if (prop.equals(JointDynamicProperty.SPEED) ) {
-                request.text = String.format("Setting my %s speed to %2.0f degrees per second", Joint.toText(mc.joint),value)
+                request.text = String.format("Setting my %s speed to %2.0f degrees per second", Joint.toText(mc.joint),mc.speed)
             }
             else if (prop.equals(JointDynamicProperty.STATE) ) {
                 var enabled = false
                 if(value>ConfigurationConstants.OFF_VALUE) enabled = true
-                mc.isTorqueEnabled = enabled
                 request.text = String.format("Setting my %s %s", Joint.toText(mc.joint),
                     if(enabled) "rigid" else "relaxed")
-                mc.isTorqueEnabled = enabled
             }
             else if (prop.equals(JointDynamicProperty.TORQUE) ) {
                 request.text = String.format("Setting my %s torque to %2.2f newton meters", Joint.toText(mc.joint),value)

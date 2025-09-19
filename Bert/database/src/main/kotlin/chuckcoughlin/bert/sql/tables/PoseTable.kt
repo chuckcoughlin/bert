@@ -20,6 +20,77 @@ import java.util.logging.Logger
  */
 class PoseTable {
     /**
+     * Populate a list configuration objects associated with the specified pose.
+     * Set desired targetAngle,speed and torque and mark whether or not these
+     * represent a change.
+     *
+     * @param poseid
+     * @return the affected motors in a list
+     */
+    fun configureMotorsForPose(cxn: Connection?,poseid: Long): List<MotorConfiguration> {
+        val list = mutableListOf<MotorConfiguration>()
+        if( cxn!=null ) {
+            val map = RobotModel.motorsByJoint
+            var statement: PreparedStatement? = null
+            var rs: ResultSet? = null
+            val SQL = "select joint,angle,speed,torque from posejoint where poseid = ? "
+            try {
+                statement = cxn.prepareStatement(SQL)
+                statement.setQueryTimeout(10) // set timeout to 10 sec.
+                statement.setLong(1, poseid)
+                rs = statement.executeQuery()
+                while (rs.next() ) {
+                    val jointName = rs.getString("joint")
+                    val joint = Joint.fromString(jointName)
+                    val mc = map[joint]
+                    if( mc != null ) {
+                        mc.changed = false
+                        val angle = rs.getDouble("angle")
+                        mc.targetAngle = angle
+                        if( mc.angle!=angle ) {
+                            mc.changed = true
+                        }
+                        val speed = rs.getDouble("speed")
+                        if( mc.speed != speed ) {
+                            mc.speed = speed
+                            mc.changed = true
+                        }
+                        val torque = rs.getDouble("torque")
+                        if( torque!=mc.torque ) {
+                            mc.torque = torque
+                            mc.changed = true
+                        }
+                        if( torque>0 ) mc.isTorqueEnabled = true
+                        //if(DEBUG) LOGGER.info(String.format("%s.getMotorsForPose: for %s = %2.0f",
+                        //                CLSS, joint.name, angle))
+                        list.add(mc)
+                    }
+                }
+                rs.close()
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.configureMotorsForPose: Database error (%s)", CLSS, e.message))
+            }
+            finally {
+                if (rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+                if (statement != null) {
+                    try {
+                        statement.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+            }
+        }
+        return list
+    }
+    /**
      * Create a new pose or update an existing one from a list of motor position, torque and speed values.
      * @param mcmap is a map of motor configurations with positions that define the pose
      * @param pose
@@ -169,7 +240,59 @@ class PoseTable {
             }
         }
     }
-
+    /**
+     * Populate a list configuration objects associated with the given pose.
+     * Include only those objects that represent a change in position, speed
+     * or torque.
+     *
+     * @param poseid
+     * @return a list of motor configurations.
+     */
+    fun getMotorsForPose(cxn: Connection?,poseid: Long): List<MotorConfiguration> {
+        val map: MutableMap<Joint, Double> = HashMap()
+        val list = mutableListOf<MotorConfiguration>()
+        if( cxn!=null ) {
+            val map = RobotModel.motorsByJoint
+            var statement: PreparedStatement? = null
+            var rs: ResultSet? = null
+            val SQL = "select joint from posejoint where poseid = ? "
+            try {
+                statement = cxn.prepareStatement(SQL)
+                statement.setQueryTimeout(10) // set timeout to 10 sec.
+                statement.setLong(1, poseid)
+                rs = statement.executeQuery()
+                while (rs.next() ) {
+                    val jointName = rs.getString("joint")
+                    val joint = Joint.fromString(jointName)
+                    val mc = map[joint]
+                    if( mc != null && mc.changed==true ) {
+                        list.add(mc)
+                    }
+                }
+                rs.close()
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.getMotorsForPose: Database error (%s)", CLSS, e.message))
+            }
+            finally {
+                if (rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+                if (statement != null) {
+                    try {
+                        statement.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+            }
+        }
+        return list
+    }
     /**
      * Find a pose id one larger than the current maximum.
      * @cxn an open database connection
@@ -259,161 +382,6 @@ class PoseTable {
         return poseid
     }
 
-    /**
-     * Return a map of angles by joint name. The configuration map that is supplied
-     * contains the motors of interest. Other motors are ingnored.
-     *
-     * @param poseid
-     * @return a map of target positions by joint for the pose
-     */
-    fun getPoseJointPositions(cxn: Connection?,poseid: Long, configs:Map<Joint,MotorConfiguration>): Map<Joint, Double> {
-        val map: MutableMap<Joint, Double> = HashMap()
-        if( cxn!=null ) {
-            var statement: PreparedStatement? = null
-            var rs: ResultSet? = null
-            val SQL = "select joint,angle from posejoint where poseid = ? "
-            try {
-                statement = cxn.prepareStatement(SQL)
-                statement.setQueryTimeout(10) // set timeout to 10 sec.
-                statement.setLong(1, poseid)
-                rs = statement.executeQuery()
-                while (rs.next() ) {
-                    val jointName = rs.getString("joint")
-                    val joint = Joint.fromString(jointName)
-                    if( configs[joint] != null ) {
-                        val angle = rs.getDouble("angle")
-                        map[joint] = angle
-                        //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointPositions: for %s = %2.0f",
-                        //                CLSS, joint.name, angle))
-                    }
-                }
-                rs.close()
-            }
-            catch (e: SQLException) {
-                // if the error message is "out of memory",
-                // it probably means no database file is found
-                LOGGER.severe(String.format("%s.getPoseJointValuesForParameter: Database error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (rs != null) {
-                    try {
-                        rs.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-            }
-        }
-        return map
-    }
-    /**
-     * Return a map of speeds in the pose  by joint name. Motors not in the supplied list are ignored
-     *
-     * @param poseid
-     * @return a map of current speed settings by joint for the pose
-     */
-    fun getPoseJointSpeeds(cxn: Connection?,poseid: Long,configs:Map<Joint,MotorConfiguration>): Map<Joint, Double> {
-        val map: MutableMap<Joint, Double> = HashMap()
-        if( cxn!=null ) {
-            var statement: PreparedStatement? = null
-            var rs: ResultSet? = null
-            val SQL = "select joint,speed from posejoint where poseid = ? "
-            try {
-                statement = cxn.prepareStatement(SQL)
-                statement.setQueryTimeout(10) // set timeout to 10 sec.
-                statement.setLong(1, poseid)
-                rs = statement.executeQuery()
-                while (rs.next() ) {
-                    val jointName = rs.getString("joint")
-                    val joint = Joint.fromString(jointName)
-                    if( configs[joint]!=null ) {
-                        val speed = rs.getDouble("speed")
-                        map[joint] = speed
-                        //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointSpeeds: for %s = %2.0f",
-                        //            CLSS, joint.name, speed))
-                    }
-                }
-                rs.close()
-            }
-            catch (e: SQLException) {
-                // if the error message is "out of memory",
-                // it probably means no database file is found
-                LOGGER.severe(String.format("%s.getPoseJointSpeeds: Database error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (rs != null) {
-                    try {
-                        rs.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-            }
-        }
-        return map
-    }
-    /**
-     * Return a map of torques by joint name. The torques come from the current
-     * MotorConfiguration objects. Motors not in the supplied list are ignored.
-     *
-     * @param poseid
-     * @return a map of current torque values by joint for the pose
-     */
-    fun getPoseJointTorques(cxn: Connection?,poseid: Long,configs:Map<Joint,MotorConfiguration>): Map<Joint, Double> {
-        val map: MutableMap<Joint, Double> = HashMap()
-        if( cxn!=null ) {
-            var statement: PreparedStatement? = null
-            var rs: ResultSet? = null
-            val SQL = "select joint,torque from posejoint where poseid = ? "
-            try {
-                statement = cxn.prepareStatement(SQL)
-                statement.setQueryTimeout(10) // set timeout to 10 sec.
-                statement.setLong(1, poseid)
-                rs = statement.executeQuery()
-                while (rs.next() ) {
-                    val jointName = rs.getString("joint")
-                    val joint = Joint.fromString(jointName)
-                    if( configs[joint]!=null ) {
-                        val torque = rs.getDouble("torque")
-                        map[joint] = torque
-                        //if(DEBUG) LOGGER.info(String.format("%s.getPoseJointTorques: for %s = %2.0f",
-                        //            CLSS, joint.name, torque))
-                    }
-                }
-                rs.close()
-            }
-            catch (e: SQLException) {
-                // if the error message is "out of memory",
-                // it probably means no database file is found
-                LOGGER.severe(String.format("%s.getPoseJointTorques: Database error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (rs != null) {
-                    try {
-                        rs.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-            }
-        }
-        return map
-    }
     /**
      * List the names of all defined poses.
      * @cxn an open database connection
