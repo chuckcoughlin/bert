@@ -7,6 +7,7 @@ package chuckcoughlin.bert.sql.db
 
 import chuckcoughlin.bert.common.model.FacialDetails
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.PoseDefinition
 import chuckcoughlin.bert.sql.tables.ActionTable
@@ -30,8 +31,8 @@ object Database  {
     fun actionExists(actionName:String) :Boolean {
         return action.actionExists(connection,actionName)
     }
-    fun configureMotorsForPose(poseid: Long): List<MotorConfiguration> {
-        return pose.configureMotorsForPose(connection,poseid)
+    fun configureMotorsForPoseLimb(poseid: Long, limb: Limb): List<MotorConfiguration> {
+        return pose.configureMotorsForPoseLimb(connection,poseid,limb)
     }
     /**
      * Save a list of motor position, torques and speeds as a new pose.
@@ -125,8 +126,8 @@ object Database  {
     fun getFaceNames() : String {
         return face.getFaceNames(connection)
     }
-    fun getMotorsForPose(poseid: Long): List<MotorConfiguration> {
-        return pose.getMotorsForPose(connection,poseid)
+    fun getMotorsForPoseLimb(poseid: Long, limb: Limb): List<MotorConfiguration> {
+        return pose.getMotorsForPoseLimb(connection,poseid,limb)
     }
     /**
      * @param name user entered pose name. If the pose does not

@@ -1059,17 +1059,19 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     }
     // If speed is specified as a word, then convert to a numeric value
+    // If this applies to all joints, then speed is a fraction of max,
+    // else it is the actual speed
     private fun setSpeedInMessage(msg: MessageBottle, speed: String) {
         if(speed.contains("slow")) {
-            if(speed.contains("very")) {msg.values[0] = 2.0}
-            else {msg.values[0] = 5.0}
+            if(speed.contains("very")) {msg.values[0] = (if(msg.joint==Joint.NONE) 0.25 else 0.25*ConfigurationConstants.TOP_SPEED)}
+            else                             {msg.values[0] = (if(msg.joint==Joint.NONE) 0.10 else 0.8*ConfigurationConstants.TOP_SPEED)}
         }
         else if(speed.contains("fast") ||
             speed.contains("quick")) {
-            if(speed.contains("very")) { msg.values[0] = 150.0 }
-            else { msg.values[0] = 100.0 }
+            if(speed.contains("very")) {msg.values[0] = (if(msg.joint==Joint.NONE) 1.0 else 1.0*ConfigurationConstants.TOP_SPEED)}
+            else                             {msg.values[0] = (if(msg.joint==Joint.NONE) 0.8 else 0.8*ConfigurationConstants.TOP_SPEED)}
         }
-        else { msg.values[0] = 40.0 }   // normal
+        else                                 {msg.values[0] = (if(msg.joint==Joint.NONE) 0.5 else 0.5*ConfigurationConstants.TOP_SPEED)}   // normal
     }
 
     private val CLSS = "StatementTranslator"

@@ -20,14 +20,14 @@ import java.util.logging.Logger
  */
 class PoseTable {
     /**
-     * Populate a list configuration objects associated with the specified pose.
-     * Set desired targetAngle,speed and torque and mark whether or not these
-     * represent a change.
+     * Populate a list configuration objects associated with the specified pose and
+     * limb. Set desired targetAngle,speed and torque. Add to the list, if these represent a change.
      *
      * @param poseid
+     * @param limb
      * @return the affected motors in a list
      */
-    fun configureMotorsForPose(cxn: Connection?,poseid: Long): List<MotorConfiguration> {
+    fun configureMotorsForPoseLimb(cxn: Connection?,poseid: Long,limb:Limb): List<MotorConfiguration> {
         val list = mutableListOf<MotorConfiguration>()
         if( cxn!=null ) {
             val map = RobotModel.motorsByJoint
@@ -43,27 +43,27 @@ class PoseTable {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
                     val mc = map[joint]
-                    if( mc != null ) {
-                        mc.changed = false
+                    if( mc != null && mc.limb==limb) {
+                        var changed = false
                         val angle = rs.getDouble("angle")
                         mc.targetAngle = angle
-                        if( mc.angle!=angle ) {
-                            mc.changed = true
+                        if( Math.abs(mc.angle-angle) >1) {
+                            changed = true
                         }
                         val speed = rs.getDouble("speed")
-                        if( mc.speed != speed ) {
+                        if( mc.speed != speed && !speed.isNaN()) {
                             mc.speed = speed
-                            mc.changed = true
+                            changed = true
                         }
                         val torque = rs.getDouble("torque")
-                        if( torque!=mc.torque ) {
+                        if( torque!=mc.torque && !torque.isNaN() ) {
                             mc.torque = torque
-                            mc.changed = true
+                            changed = true
                         }
                         if( torque>0 ) mc.isTorqueEnabled = true
                         //if(DEBUG) LOGGER.info(String.format("%s.getMotorsForPose: for %s = %2.0f",
                         //                CLSS, joint.name, angle))
-                        list.add(mc)
+                        if(changed) list.add(mc)
                     }
                 }
                 rs.close()
@@ -119,7 +119,8 @@ class PoseTable {
             try {
                 // An unmoving speed doesn't make sense as part of a pose
                 for (mc in mcmap.values) {
-                    if( mc.speed < MIN_SPEED ) mc.speed = mc.maxSpeed * ConfigurationConstants.HALF_SPEED
+                    if( mc.speed < MIN_SPEED ) mc.speed = mc.maxSpeed * 0.5
+
                     val SQL = String.format("insert into PoseJoint(poseid,joint,angle,torque,speed) values(%d,'%s',%2.3f,%2.3f,%2.1f)",poseid,
                         mc.joint.name,mc.angle,mc.torque,mc.speed)
                     if(DEBUG) LOGGER.info(String.format("%s.createPose: executing %s)", CLSS, SQL))
@@ -232,7 +233,6 @@ class PoseTable {
 
                       rs.close()
                       prep.close()
-
                   }
                     stmt.close()
                 }
@@ -240,16 +240,16 @@ class PoseTable {
             }
         }
     }
+
     /**
-     * Populate a list configuration objects associated with the given pose.
-     * Include only those objects that represent a change in position, speed
-     * or torque.
+     * Populate a list configuration objects associated with the specified pose
+     * and limb.
      *
      * @param poseid
-     * @return a list of motor configurations.
+     * @param limb
+     * @return the affected motors in a list
      */
-    fun getMotorsForPose(cxn: Connection?,poseid: Long): List<MotorConfiguration> {
-        val map: MutableMap<Joint, Double> = HashMap()
+    fun getMotorsForPoseLimb(cxn: Connection?,poseid: Long,limb:Limb): List<MotorConfiguration> {
         val list = mutableListOf<MotorConfiguration>()
         if( cxn!=null ) {
             val map = RobotModel.motorsByJoint
@@ -265,7 +265,7 @@ class PoseTable {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
                     val mc = map[joint]
-                    if( mc != null && mc.changed==true ) {
+                    if( mc != null && mc.limb==limb) {
                         list.add(mc)
                     }
                 }
@@ -274,7 +274,7 @@ class PoseTable {
             catch (e: SQLException) {
                 // if the error message is "out of memory",
                 // it probably means no database file is found
-                LOGGER.severe(String.format("%s.getMotorsForPose: Database error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.motorsForPoseLimb: Database error (%s)", CLSS, e.message))
             }
             finally {
                 if (rs != null) {

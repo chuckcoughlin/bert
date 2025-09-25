@@ -93,7 +93,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     // source will not produce a response to the original requester.
     suspend private fun handleRequest(request: MessageBottle) {
 
-        // Read joint positions before freezing to update the current internal status directory.
+        // Read joint positions before freezing to update the current motor positions.
         if( request.type==RequestType.SET_MOTOR_PROPERTY &&
             request.jointDynamicProperty == JointDynamicProperty.STATE &&
             request.values[0]==ConfigurationConstants.ON_VALUE    )  {
@@ -215,7 +215,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                                                         CLSS, msg.type.name,msg.text))
             else if( msg.type==RequestType.JSON ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
                                                         CLSS, msg.type.name,msg.jtype.name))
-            else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb))
+            else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s = %2.2f", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb,
+                                                        (if(msg.values.size>0) msg.values[0] else 0.0) ))
         }
         if(msg.type==RequestType.INTERNET) {
             internetQueue.addLast(msg)

@@ -105,7 +105,7 @@ class TerminalController(stdin: Channel<MessageBottle>,stdout: Channel<MessageBo
     fun handleUserInput(): Deferred<MessageBottle> =
         GlobalScope.async(Dispatchers.IO) {
             var request = MessageBottle(RequestType.NONE)
-            val text = readln()
+            val text = readln().lowercase()
             if (DEBUG) LOGGER.info(String.format("%s.handleUserInput: %s", CLSS, text))
             if (text.isNotEmpty()) {
                 request = parser.parseStatement(text)

@@ -11,7 +11,9 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.model.IMU.name
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.sql.db.SQLConstants
 import jssc.SerialPort
@@ -49,8 +51,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private val configurationsByJoint: MutableMap<Joint, MotorConfiguration>
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
-    private val requestQueue: Channel<MessageBottle>
-    private val responseQueue: Channel<MessageBottle>
+    private val requestQueue: Channel<MessageBottle>   // To serial responder
+    private val responseQueue: Channel<MessageBottle>  // From SerialResponder
     private var responseCount: Int
     // The pending message allows the serial callback to accumulate results for the same message
     private val responder: SerialResponder
@@ -251,9 +253,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     }
 
     /**
-     * Convert the request message into a command for the serial port. As a side
-     * effect set the number of expected responses. This can vary by request type.
-     * These are requests that can be handled with a single write
+     * Convert the request message into a command for the serial port. Set the MotorCOnfigurations
+     * from the messsage before calculating the byte array. As a side effect set the number of expected
+     * responses. This can vary by request type. These are requests that can be handled with a single write.
      * @param wrapper
      * @return
      */
@@ -273,7 +275,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             for (mc in configurationsByJoint.values) {
                 if(mc.joint.equals(joint)) {
                     bytes=DxlMessage.bytesToGetGoals(mc.id)
-                    mc.dispatchTime = now
                     responseCount = 1  // Status message
                     break
                 }
@@ -285,7 +286,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 if(mc.joint.equals(joint)) {
                     bytes=DxlMessage.bytesToGetLimits(mc.id)
                     responseCount = 1  // Status message
-                    mc.dispatchTime = now
                     break
                 }
             }
@@ -297,7 +297,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if(mc.joint.equals(joint)) {
                 bytes=DxlMessage.bytesToGetProperty(mc.id, request.jointDynamicProperty)
                 responseCount = 1  // Status message
-                mc.dispatchTime = now
             }
         }
         // Property value must be the same for every joint in limb
@@ -309,8 +308,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val configs=configurationsForLimb(limb)
 
             for (mc in configs.values) {
-                mc.setDynamicProperty(prop, request.values[0])
-                mc.dispatchTime = now
+                mc.setDynamicProperty(prop, value)
             }
             bytes=DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
             // ASYNC WRITE, no response. Let source set text.
@@ -334,7 +332,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
 
             for (mc in configurationsByJoint.values) {
                 mc.isTorqueEnabled = enable
-                mc.dispatchTime = now
             }
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.STATE)
         }
@@ -347,6 +344,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 CLSS,controllerName,100.0*value))
 
             request.text = String.format("all motion will be %2.0f percent of maximum speed", 100.0*value)
+            for (mc in configurationsByJoint.values) {
+                mc.speed = mc.maxSpeed*value
+            }
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
         // Handle set torque for all joints
@@ -358,6 +358,9 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s setting torque to %2.0f percent for all joints" ,
                 CLSS,controllerName,100.0*value))
             request.text = String.format("All motors are set to %2.0f percent of maximum torque", 100.0*value)
+            for (mc in configurationsByJoint.values) {
+                mc.torque = mc.maxTorque*value
+            }
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
         else if( request.type.equals(RequestType.SET_MOTOR_PROPERTY)        &&
@@ -369,13 +372,14 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val joint = request.joint
             val prop = request.jointDynamicProperty
             val mc = RobotModel.motorsByJoint[joint]!!
-            mc.dispatchTime = now
 
             // Note that this text is over-ridden with the response to the request.
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
+                mc.targetAngle = value
                 request.text = String.format("Setting my %s to %.0f degrees", Joint.toText(mc.joint),mc.targetAngle)
             }
             else if (prop.equals(JointDynamicProperty.SPEED) ) {
+                mc.speed = value
                 request.text = String.format("Setting my %s speed to %2.0f degrees per second", Joint.toText(mc.joint),mc.speed)
             }
             else if (prop.equals(JointDynamicProperty.STATE) ) {
@@ -383,8 +387,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 if(value>ConfigurationConstants.OFF_VALUE) enabled = true
                 request.text = String.format("Setting my %s %s", Joint.toText(mc.joint),
                     if(enabled) "rigid" else "relaxed")
+                mc.isTorqueEnabled = enabled
             }
             else if (prop.equals(JointDynamicProperty.TORQUE) ) {
+                mc.torque = value
                 request.text = String.format("Setting my %s torque to %2.2f newton meters", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.RANGE) ) {
@@ -432,14 +438,13 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val mc = RobotModel.motorsByJoint[request.joint]!!
             list = ArrayList<ByteArray>()
             list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MINIMUMANGLE))
-            list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MINIMUMANGLE))
+            list.add(DxlMessage.bytesToGetProperty(mc.id,JointDynamicProperty.MAXIMUMANGLE))
             responseCount = 2 // Status messages
         }
         else if(type.equals(RequestType.INITIALIZE_JOINTS)) {
             list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
             for (mc in configurationsByJoint.values) {
-                mc.torque = value*mc.maxTorque
-                mc.dispatchTime = now
+                mc.torque = ConfigurationConstants.FULL_TORQUE*mc.maxTorque
             }
         }
         // One motor, all motors or all on a limb - one response per motor
@@ -479,12 +484,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val poseid = Database.getPoseIdForName(poseName,index)
             // If the pose doesn't exist, just return an empty list
             if( poseid != SQLConstants.NO_POSE) {
+                val configurations = Database.configureMotorsForPoseLimb(poseid,limb)
                 LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d on %s with %d joints",
-                                            CLSS,controllerName,poseName,index,limb.name,configurationsForLimb(limb).size))
-                list=DxlMessage.byteArrayListToSetPose(poseid, configurationsForLimb(limb))
-                for (mc in configurationsByJoint.values) {
-                   if( mc.limb==limb ) mc.dispatchTime = now
-                }
+                                            CLSS,controllerName,poseName,index,limb.name,configurations.size))
+                list=DxlMessage.byteArrayListToSetPose(poseid,configurations)
             }
         }
         else {

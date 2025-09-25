@@ -180,6 +180,7 @@ object DxlMessage {
             var index = 7
             for (mc in map.values) {
                 bytes[index] = mc.id.toByte()
+                // When all joints are set (and only then) torque is a percent of max.
                 if (property.equals(JointDynamicProperty.TORQUE)) {
                     dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -187,6 +188,7 @@ object DxlMessage {
                     if(DEBUG) LOGGER.info(String.format("%s.byteArrayToSetProperty: set TORQUE for %s to %2.2f (%2.2f max, dxl=%d)",
                         CLSS,mc.joint.name,mc.torque,mc.maxTorque,dxlValue))
                 }
+                // When all joints are set (and only then) speed is a percent of max.
                 else if (property.equals(JointDynamicProperty.SPEED)) {
                     dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.speed)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
@@ -207,7 +209,7 @@ object DxlMessage {
 
     /**
      * A pose consists of any or all position values for the specified joints. The supplied map contains joints for
-     * the single relevant controller. The database query returns values for all controllers. Skip any that do not apply.
+     * the single relevant controller. The motor list contains only relevant motors, all on the same limb.
      * There is a hardware limit of 143 bytes for each array (shouldn't be a problem).
      *
      * Skip any motors that are already at the desired conditions. This has a significant performance effect.
@@ -215,19 +217,17 @@ object DxlMessage {
      *
      * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
      * @param poseid id of the pose to be set
-     * @param map of the motor configurations to be changed for subject controller keyed by joint name
+     * @param motors motor configurations to be changed for subject pose and limb
      * @return 3 byte arrays to drive torques, speeds and finally the positions as required by the pose
      */
-    fun byteArrayListToSetPose(poseid: Long,map: Map<Joint, MotorConfiguration>): List<ByteArray> {
+    fun byteArrayListToSetPose(poseid: Long,motors: List<MotorConfiguration>): List<ByteArray> {
         LOGGER.info(String.format("%s.byteArrayListToSetPose: pose = %d",CLSS,poseid))
-        // These maps contain joints for the subject limbs
-        val motors: List<MotorConfiguration> = Database.getMotorsForPose( poseid)
         val messages: MutableList<ByteArray> = ArrayList()
         // First set torques, then speeds, then positions
-        val tc = motors.size
+        val motorCount = motors.size
         // Torque
-        if (tc > 0) {
-            val len = 3 * tc + 8 //  3 bytes per motor + address + byte count + header + checksum
+        if (motorCount > 0) {
+            val len = 3 * motorCount + 8 //  3 bytes per motor + address + byte count + header + checksum
             val bytes = ByteArray(len)
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
@@ -235,7 +235,6 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForPresentProperty(JointDynamicProperty.TORQUE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
-            var isChanged = false
             for (mc in motors) {
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
                 bytes[index] = mc.id.toByte()
@@ -248,10 +247,9 @@ object DxlMessage {
                 messages.add(bytes)
             }
         }
-        val sc = motors.size
         // Speed
-        if (sc > 0) {
-            val len = 3 * sc + 8 //  3 bytes per motor + address + byte count + header + checksum
+        if (motorCount > 0) {
+            val len = 3 * motorCount + 8 //  3 bytes per motor + address + byte count + header + checksum
             val bytes = ByteArray(len)
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
@@ -271,10 +269,9 @@ object DxlMessage {
                 messages.add(bytes)
             }
         }
-        val pc = motors.size
         // Torque enable - enable torque for any motor about to be moved
-        if( pc>0 ) {
-            val len = 3 * pc + 8 //  6 bytes per motor + address + byte count + header + checksum
+        if( motorCount>0 ) {
+            val len = 3 * motorCount + 8 //  6 bytes per motor + address + byte count + header + checksum
             val bytes = ByteArray(len)
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
@@ -290,14 +287,14 @@ object DxlMessage {
                 bytes[index + 2]=(stateValue shr 8).toByte()
                 index=index + 3
             }
-            if( motors.size>0 ) {
+            if( motorCount>0 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
         }
-        // Positions - correct any that are outside legal limits
-        if (pc > 0) {
-            val len = 3 * pc + 8 //  6 bytes per motor + address + byte count + header + checksum
+        // Positions
+        if (motorCount > 0) {
+            val len = 3 * motorCount + 8 //  6 bytes per motor + address + byte count + header + checksum
             val bytes = ByteArray(len)
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
@@ -434,20 +431,6 @@ object DxlMessage {
             bytes[6] = dxlValue.toByte()
         }
         setChecksum(bytes)
-        if (property.equals(JointDynamicProperty.ANGLE)) {
-            mc.angle = value
-        }
-        else if (property.equals(JointDynamicProperty.SPEED)) {
-            mc.speed = value
-        }
-        else if (property.equals(JointDynamicProperty.STATE)) {
-            mc.isTorqueEnabled = (if (value == 0.0) false else true)
-        }
-        else if (property.equals(JointDynamicProperty.TEMPERATURE)) {
-            mc.temperature = value
-        }
-        else if (property.equals(JointDynamicProperty.TORQUE))
-            mc.torque = value
         return bytes
     }
 
@@ -540,7 +523,6 @@ object DxlMessage {
     /**
      * Analyze a response buffer returned from a request for goal values for a motor. Goals
      * parameters are: position, speed, torque. Results will be entered in the properties map.
-     * Convert speeds and torques to percent of max disregarding direction.
      * @param mc the motor configuration - parameters are not modified here
      * @param bottle the request
      * @param bytes status response from the controller
@@ -564,7 +546,7 @@ object DxlMessage {
             var v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
             val t2 = textForProperty(property, v2)
             motorValues.add(JointPropertyValue(bottle.joint,property,v2))
-            v2 = v2 * 100.0 / DxlConversions.velocity.get(mc.type)!! // Convert to percent
+            v2 = v2 * 100.0 / DxlConversions.velocity.get(mc.type)!!
             mc.speed = v2
             property = JointDynamicProperty.TORQUE // Non-directional
             var v3 = DxlConversions.valueForProperty(property, mc, bytes[9], bytes[10])
@@ -644,7 +626,7 @@ object DxlMessage {
      * Analyze a response buffer for some parameter of a motor. Use the
      * motor configuration (already updated) to configure results in the request message
      * @param property the requested parameter
-     * @param mc the motor configuration - parameters are not modified here
+     * @param mc the motor configuration - set parameter when updating request
      * @param bottle the request
      * @param bytes status response from the controller
      */
@@ -665,18 +647,24 @@ object DxlMessage {
                 if(property.equals(JointDynamicProperty.ANGLE)) {
                     bottle.text=String.format("My %s is at %s",
                         Joint.toText(bottle.joint), propertyValue)
+                    mc.angle = value
                 }
                 else if(property.equals(JointDynamicProperty.SPEED)) {
                     bottle.text=String.format("My current %s %s is %s",
                         Joint.toText(bottle.joint), property.name.lowercase(), propertyValue)
+                    mc.speed
                 }
                 else if(property.equals(JointDynamicProperty.TORQUE)) {
                     bottle.text=String.format("My %s %s is %s",
                         Joint.toText(bottle.joint), property.name.lowercase(), propertyValue)
+                    mc.torque = value
                 }
                 else if(property.equals(JointDynamicProperty.STATE)) {
                     bottle.text=String.format("My %s %s is currently %s",
                         Joint.toText(bottle.joint), property.name.lowercase(),propertyValue)
+                    var enabled = false
+                    if(value>ConfigurationConstants.OFF_VALUE) enabled = true
+                    mc.isTorqueEnabled = enabled
                 }
                 else {
                     bottle.text=String.format("My %s %s is %s",

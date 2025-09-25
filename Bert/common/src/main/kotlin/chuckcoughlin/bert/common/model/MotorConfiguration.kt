@@ -4,7 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.ConfigurationConstants.DEFAULT_SPEED
 import java.io.Serializable
 import java.util.logging.Logger
 
@@ -42,10 +41,8 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var maxTorque : Double
     var offset : Double // Configured position correction
     var isDirect: Boolean
-    var dispatchTime: Long  // Most recent timestamp on message affecting this joint
-    var changed: Boolean    // Command to alter configuration is pending
 
-    var speed = ConfigurationConstants.DEFAULT_SPEED // ~ degrees/second
+    var speed = ConfigurationConstants.TOP_SPEED      // ~ degrees/second
         get() = field
         set(value) {
             if(value>0.0) field = value
@@ -104,9 +101,6 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         maxAngle = 180.0
         maxSpeed = 600.0
         maxTorque = 1.9
-        // Long enough ago to not delay first command
-        dispatchTime = System.currentTimeMillis() - ConfigurationConstants.LONG_TME_AGO
-        changed = false
         // These are current goal settings
         temperature = 20.0 // Room temperature
         torque = 0.0       // Power-off value
