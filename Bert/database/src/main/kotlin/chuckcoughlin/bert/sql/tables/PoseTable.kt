@@ -45,19 +45,25 @@ class PoseTable {
                     val mc = map[joint]
                     if( mc != null && mc.limb==limb) {
                         var changed = false
-                        val angle = rs.getDouble("angle")
-                        mc.targetAngle = angle
+                        var angle = rs.getDouble("angle")
+                        if( angle>mc.maxAngle ) angle = mc.maxAngle
+                        else if( angle<mc.minAngle ) angle = mc.minAngle
+                        mc.goalAngle = angle
                         if( Math.abs(mc.angle-angle) >1) {
                             changed = true
                         }
-                        val speed = rs.getDouble("speed")
+                        var speed = rs.getDouble("speed")
                         if( mc.speed != speed && !speed.isNaN()) {
-                            mc.speed = speed
+                            if( speed>mc.maxSpeed ) speed = mc.maxSpeed
+                            else if( speed<MIN_SPEED ) speed = MIN_SPEED
+                            mc.goalSpeed = speed
                             changed = true
                         }
-                        val torque = rs.getDouble("torque")
+                        var torque = rs.getDouble("torque")
                         if( torque!=mc.torque && !torque.isNaN() ) {
-                            mc.torque = torque
+                            if( torque>mc.maxTorque ) torque = mc.maxTorque
+                            else if( torque<0.0 ) torque = 0.0
+                            mc.goalTorque = torque
                             changed = true
                         }
                         if( torque>0 ) mc.isTorqueEnabled = true

@@ -34,7 +34,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     // When we move the joint, set a target position.
     // Update the angle only when movement command has been written.
     var angle : Double
-    var targetAngle : Double
+    var goalAngle : Double
     var minAngle : Double
     var maxAngle : Double
     var maxSpeed : Double
@@ -42,6 +42,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var offset : Double // Configured position correction
     var isDirect: Boolean
 
+    var goalSpeed: Double
     var speed = ConfigurationConstants.TOP_SPEED      // ~ degrees/second
         get() = field
         set(value) {
@@ -49,24 +50,25 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         }
 
     var temperature : Double // deg C
+    var goalTorque : Double
     var torque : Double // ~ N-m
     var voltage: Double
 
     /**
-     * Set a motor property given a property enumeration and a value.
+     * Set a motor target property given a property enumeration and a value.
      * Attempts to set a read-only value fail silently.
      */
     fun setDynamicProperty(jp: JointDynamicProperty, value: Double) {
         when (jp) {
-            JointDynamicProperty.ANGLE -> targetAngle = value
+            JointDynamicProperty.ANGLE -> goalAngle = value
             JointDynamicProperty.LOAD -> load = value
             JointDynamicProperty.MAXIMUMANGLE -> {}
             JointDynamicProperty.MINIMUMANGLE -> {}
-            JointDynamicProperty.SPEED -> speed = value
+            JointDynamicProperty.SPEED -> goalSpeed = value
             JointDynamicProperty.MAXIMUMSPEED -> {}
             JointDynamicProperty.STATE -> setState(value)
             JointDynamicProperty.TEMPERATURE -> temperature = value
-            JointDynamicProperty.TORQUE -> torque = value
+            JointDynamicProperty.TORQUE -> goalTorque = value
             JointDynamicProperty.MAXIMUMTORQUE -> {}
             JointDynamicProperty.VOLTAGE -> voltage = value
             JointDynamicProperty.RANGE -> {}  // Error - max and min must be set separately
@@ -96,13 +98,15 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         load = 0.0
         offset = 0.0
         angle = 0.0
-        targetAngle = 0.0
+        goalAngle = 0.0
         minAngle = -180.0
         maxAngle = 180.0
         maxSpeed = 600.0
+        goalSpeed = ConfigurationConstants.TOP_SPEED
         maxTorque = 1.9
         // These are current goal settings
         temperature = 20.0 // Room temperature
+        goalTorque = 0.0
         torque = 0.0       // Power-off value
         isTorqueEnabled = true // Initially torque is enabled
         voltage = 0.0

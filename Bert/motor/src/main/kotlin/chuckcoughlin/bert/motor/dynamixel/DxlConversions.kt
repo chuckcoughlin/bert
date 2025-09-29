@@ -244,7 +244,7 @@ object DxlConversions {
     }
 
     // Object members ...
-    const val CLSS = "DynamixelConversions"
+    const val CLSS = "DxlConversions"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean
     val range = HashMap<DynamixelType, Int>()

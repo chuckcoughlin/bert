@@ -427,14 +427,6 @@ object RobotModel {
         return gson.toJson(motorValues)
     }
 
-    /** ******************************** SETTERS ************************************
-     * Set speeds in the motor configuration objects to be recognized next movement
-     */
-    fun setJointSpeeds(newSpeed:Double) {
-        for (mc in motorsById.values) {
-            mc.speed = newSpeed
-        }
-    }
     private val CLSS = "RobotModel"
     private var DEBUG = false
     private val LOGGER = Logger.getLogger(CLSS)

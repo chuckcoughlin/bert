@@ -129,7 +129,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
                 if(DEBUG ) {
                     if(tt>EXCESSIVE_TRAVEL) {
                         LOGGER.info(String.format("%s.earliestExecutionTime: %s EXCESSIVE travel = %d msecs (%2.0f deg at %2.1f)",
-                            CLSS, mc.joint.name, tt, mc.targetAngle - mc.angle, mc.speed))
+                            CLSS, mc.joint.name, tt, mc.goalAngle - mc.angle, mc.speed))
                     }
                 }
             }
@@ -166,7 +166,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
      * @param velocity angular velocity
      */
     private fun computeTravelTime(mc:MotorConfiguration) : Long {
-        val tt = Math.abs(1000.0*((mc.targetAngle-mc.angle)/mc.speed)).toLong()
+        val tt = Math.abs(1000.0*((mc.goalAngle-mc.angle)/mc.goalSpeed)).toLong()
         return tt
     }
 

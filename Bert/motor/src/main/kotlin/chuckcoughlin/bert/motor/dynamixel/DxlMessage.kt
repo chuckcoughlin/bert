@@ -6,6 +6,7 @@ package chuckcoughlin.bert.motor.dynamixel
 
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.motor.dynamixel.DxlConversions.CLSS
 import chuckcoughlin.bert.sql.db.Database
 import com.google.gson.GsonBuilder
 import java.util.*
@@ -36,13 +37,13 @@ object DxlMessage {
             if (pos > mc.maxAngle ) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.2f (max=%2.2f)",
                         CLSS, mc.joint.name, pos, mc.maxAngle))
-                mc.angle = mc.maxAngle
+                mc.goalAngle = mc.maxAngle
                 outliers.add(mc)
             }
             else if (pos < mc.minAngle ) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: %s out-of-range at %2.2f (min=%2.2f)",
                         CLSS, mc.joint.name, pos, mc.minAngle))
-                mc.angle = mc.minAngle
+                mc.goalAngle = mc.minAngle
                 outliers.add(mc)
             }
         }
@@ -51,14 +52,14 @@ object DxlMessage {
         var leftHip: MotorConfiguration? = configurationsByJoint[Joint.LEFT_HIP_X]
         if (leftHip != null) {
             if (leftHip.angle > HIP_X_LIMIT) {
-                leftHip.angle = HIP_X_LIMIT
+                leftHip.goalAngle = HIP_X_LIMIT
                 outliers.add(leftHip)
             }
         }
         var rightHip: MotorConfiguration? = configurationsByJoint[Joint.RIGHT_HIP_X]
         if( rightHip!=null) {
             if (rightHip.angle > HIP_X_LIMIT) {
-                rightHip.angle = HIP_X_LIMIT
+                rightHip.goalAngle = HIP_X_LIMIT
                 outliers.add(rightHip)
             }
         }
@@ -67,13 +68,13 @@ object DxlMessage {
         if( leftHip!=null ) {
             rightHip = configurationsByJoint[Joint.LEFT_HIP_X]
             if (leftHip.angle < HIP_Z_LIMIT) {
-                leftHip.angle = HIP_Z_LIMIT
+                leftHip.goalAngle = HIP_Z_LIMIT
                 outliers.add(leftHip)
             }
         }
         if( rightHip!=null) {
             if (rightHip.angle < HIP_Z_LIMIT) {
-                rightHip.angle = HIP_Z_LIMIT
+                rightHip.goalAngle = HIP_Z_LIMIT
                 outliers.add(rightHip)
             }
         }
@@ -170,7 +171,7 @@ object DxlMessage {
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
             // For ANGLE and SPEED we set the goal not the value directly
-            if( property==JointDynamicProperty.ANGLE || property==JointDynamicProperty.SPEED) {
+            if( property==JointDynamicProperty.ANGLE || property==JointDynamicProperty.SPEED ) {
                 bytes[5] = DxlConversions.addressForGoalProperty(property)
             }
             else {
@@ -180,17 +181,16 @@ object DxlMessage {
             var index = 7
             for (mc in map.values) {
                 bytes[index] = mc.id.toByte()
-                // When all joints are set (and only then) torque is a percent of max.
+
                 if (property.equals(JointDynamicProperty.TORQUE)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
+                    dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.goalTorque)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                     if(DEBUG) LOGGER.info(String.format("%s.byteArrayToSetProperty: set TORQUE for %s to %2.2f (%2.2f max, dxl=%d)",
-                        CLSS,mc.joint.name,mc.torque,mc.maxTorque,dxlValue))
+                        CLSS,mc.joint.name,mc.goalTorque,mc.maxTorque,dxlValue))
                 }
-                // When all joints are set (and only then) speed is a percent of max.
                 else if (property.equals(JointDynamicProperty.SPEED)) {
-                    dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.speed)
+                    dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.goalSpeed)
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                 }
@@ -235,14 +235,19 @@ object DxlMessage {
             bytes[5] = DxlConversions.addressForPresentProperty(JointDynamicProperty.TORQUE)
             bytes[6] = 0x2 // 2 bytes
             var index = 7
+            var changed = false
             for (mc in motors) {
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.torque)
-                bytes[index] = mc.id.toByte()
-                bytes[index + 1] = (dxlValue and 0xFF).toByte()
-                bytes[index + 2] = (dxlValue shr 8).toByte()
-                index = index + 3
+                if( mc.goalTorque!=mc.torque ) {
+                    if(DEBUG) LOGGER.info(String.format("%s.byteArrayListToSetPose: %s torque from %2.1f to %2.1f",
+                        CLSS,mc.joint.name,mc.torque,mc.goalTorque))
+                    val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.goalTorque)
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (dxlValue and 0xFF).toByte()
+                    bytes[index + 2] = (dxlValue shr 8).toByte()
+                    index = index + 3
+                }
             }
-            if( motors.size>0 ) {
+            if( index>7 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
@@ -258,13 +263,17 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in motors) {
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.speed)
-                bytes[index] = mc.id.toByte()
-                bytes[index + 1] = (dxlValue and 0xFF).toByte()
-                bytes[index + 2] = (dxlValue shr 8).toByte()
-                index = index + 3
+                if( mc.goalSpeed != mc.speed ) {
+                    if(DEBUG) LOGGER.info(String.format("%s.byteArrayListToSetPose: %s speed from %2.1f to %2.1f",
+                        CLSS,mc.joint.name,mc.speed,mc.goalSpeed))
+                    val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.goalSpeed)
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (dxlValue and 0xFF).toByte()
+                    bytes[index + 2] = (dxlValue shr 8).toByte()
+                    index = index + 3
+                }
             }
-            if( motors.size>0 ) {
+            if( index>7 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
@@ -280,14 +289,18 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in motors) {
-                mc.isTorqueEnabled = true
-                val stateValue=1  // True
-                bytes[index]=mc.id.toByte()
-                bytes[index + 1]=(stateValue and 0xFF).toByte()
-                bytes[index + 2]=(stateValue shr 8).toByte()
-                index=index + 3
+                if( !mc.isTorqueEnabled ) {
+                    if(DEBUG) LOGGER.info(String.format("%s.byteArrayListToSetPose %s now torque-enabled",
+                        CLSS,mc.joint.name))
+                    mc.isTorqueEnabled = true
+                    val stateValue = 1  // True
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (stateValue and 0xFF).toByte()
+                    bytes[index + 2] = (stateValue shr 8).toByte()
+                    index = index + 3
+                }
             }
-            if( motorCount>0 ) {
+            if( index>7 ) {
                 setChecksum(bytes)
                 messages.add(bytes)
             }
@@ -303,23 +316,25 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in motors) {
-                LOGGER.info(String.format("%s.byteArrayListToSetPose: position for %s to %2.1f",CLSS,mc.joint.name,mc.targetAngle))
-                if(mc.targetAngle>mc.maxAngle)  {
-                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has %2.1f greater than the maximium %2.1f",
-                        CLSS,poseid,mc.joint.name,mc.targetAngle,mc.maxAngle))
-                    mc.targetAngle = mc.maxAngle
+                if( mc.goalAngle!=mc.angle ) {
+                    LOGGER.info(String.format("%s.byteArrayListToSetPose: position %s from %2.1f to %2.1f",
+                        CLSS,mc.joint.name,mc.angle,mc.goalAngle))
+                    if (mc.goalAngle > mc.maxAngle) {
+                        LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has %2.1f greater than the maximium %2.1f",
+                            CLSS, poseid, mc.joint.name, mc.goalAngle, mc.maxAngle))
+                        mc.goalAngle = mc.maxAngle
+                    }
+                    else if (mc.goalAngle < mc.minAngle) {
+                        LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has angle %2.1f less than the minimium of %2.1f",
+                            CLSS, poseid, mc.joint.name, mc.goalAngle, mc.minAngle))
+                        mc.goalAngle = mc.minAngle
+                    }
+                    val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.goalAngle)
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (dxlValue and 0xFF).toByte()
+                    bytes[index + 2] = (dxlValue shr 8).toByte()
+                    index = index + 3
                 }
-                else if(mc.targetAngle<mc.minAngle) {
-                    LOGGER.info(String.format("%s.byteArrayListToSetPose: pose %d at %s has angle %2.1f less than the minimium of %2.1f",
-                        CLSS,poseid,mc.joint.name,mc.targetAngle,mc.minAngle))
-                    mc.targetAngle = mc.minAngle
-                }
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
-                bytes[index] = mc.id.toByte()
-                bytes[index + 1] = (dxlValue and 0xFF).toByte()
-                bytes[index + 2] = (dxlValue shr 8).toByte()
-
-                index = index + 3
             }
             if( motors.size>0 ) {
                 setChecksum(bytes)
@@ -392,12 +407,7 @@ object DxlMessage {
         bytes[3] = length.toByte()
         bytes[4] = READ
         // For angle and speed we read goals
-        if( property==JointDynamicProperty.ANGLE || property==JointDynamicProperty.SPEED ) {
-            bytes[5] = DxlConversions.addressForGoalProperty(property)
-        }
-        else {
-            bytes[5] = DxlConversions.addressForPresentProperty(property)
-        }
+        bytes[5] = DxlConversions.addressForPresentProperty(property)
         bytes[6] = DxlConversions.dataBytesForProperty(property)
         setChecksum(bytes)
         return bytes
@@ -541,19 +551,19 @@ object DxlMessage {
             val v1 = DxlConversions.valueForProperty(property, mc, bytes[5], bytes[6])
             val t1 = textForProperty(property, v1)
             motorValues.add(JointPropertyValue(bottle.joint,property,v1))
-            mc.angle = v1
+            mc.goalAngle = v1
             property = JointDynamicProperty.SPEED // Non-directional
             var v2 = DxlConversions.valueForProperty(property, mc, bytes[7], bytes[8])
             val t2 = textForProperty(property, v2)
             motorValues.add(JointPropertyValue(bottle.joint,property,v2))
             v2 = v2 * 100.0 / DxlConversions.velocity.get(mc.type)!!
-            mc.speed = v2
+            mc.goalSpeed = v2
             property = JointDynamicProperty.TORQUE // Non-directional
             var v3 = DxlConversions.valueForProperty(property, mc, bytes[9], bytes[10])
             val t3 = textForProperty(property, v3)
             motorValues.add(JointPropertyValue(bottle.joint,property,v3))
             v3 = v2 * 100.0 / DxlConversions.torque.get(mc.type)!! // Convert to percent
-            mc.torque = v3
+            mc.goalTorque = v3
             val text = String.format("Goal angle, speed and torque are : %s, %s, %s", t1, t2, t3)
             if (err.toInt() == 0) {
                 LOGGER.info(text)
@@ -686,7 +696,7 @@ object DxlMessage {
     }
 
     /**
-     * Analyze the response buffer for the indicated motor parameter and
+     * Analyze the response buffer for the indicated motor preswent values
      * update the supplied position map accordingly. There may be several responses concatenated.
      * We assume that the parameter is 2 bytes. Log errors, there's not much else we can do.
      * @param property the name of the Joint property being handled
