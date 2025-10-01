@@ -151,7 +151,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 var msg = MessageBottle(RequestType.EXECUTE_POSE)
                 msg.arg = pose.name
                 msg.values[0] = pose.index.toDouble()
-                msg.control.delay = pose.index.toLong()
+                msg.control.delay =100 // 100 msec delay
                 msg.source = ControllerType.BITBUCKET
                 distributePose(msg)   // All responses will go to the bit bucket
                 dispatchLocationUpdates()

@@ -7,6 +7,7 @@ package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.util.TextUtility
+import chuckcoughlin.bert.sql.db.Database.getPoseIdForName
 import chuckcoughlin.bert.sql.db.SQLConstants
 import com.google.gson.GsonBuilder
 import java.sql.*
@@ -46,25 +47,31 @@ class PoseTable {
                     if( mc != null && mc.limb==limb) {
                         var changed = false
                         var angle = rs.getDouble("angle")
-                        if( angle>mc.maxAngle ) angle = mc.maxAngle
-                        else if( angle<mc.minAngle ) angle = mc.minAngle
-                        mc.goalAngle = angle
-                        if( Math.abs(mc.angle-angle) >1) {
-                            changed = true
+                        if( !angle.isNaN()) {
+                            if (angle > mc.maxAngle)      angle = mc.maxAngle
+                            else if (angle < mc.minAngle) angle = mc.minAngle
+                            mc.goalAngle = angle
+                            if (Math.abs(mc.angle - angle) > ConfigurationConstants.ANGLE_TOLERANCE) {
+                                changed = true
+                            }
                         }
                         var speed = rs.getDouble("speed")
-                        if( mc.speed != speed && !speed.isNaN()) {
-                            if( speed>mc.maxSpeed ) speed = mc.maxSpeed
+                        if( !speed.isNaN()) {
+                            if( speed>mc.maxSpeed )    speed = mc.maxSpeed
                             else if( speed<MIN_SPEED ) speed = MIN_SPEED
                             mc.goalSpeed = speed
-                            changed = true
+                            if( Math.abs(mc.speed-speed) > ConfigurationConstants.SPEED_TOLERANCE) {
+                                changed = true
+                            }
                         }
                         var torque = rs.getDouble("torque")
                         if( torque!=mc.torque && !torque.isNaN() ) {
                             if( torque>mc.maxTorque ) torque = mc.maxTorque
                             else if( torque<0.0 ) torque = 0.0
                             mc.goalTorque = torque
-                            changed = true
+                            if( Math.abs(mc.torque-torque) > ConfigurationConstants.TORQUE_TOLERANCE) {
+                                changed = true
+                            }
                         }
                         if( torque>0 ) mc.isTorqueEnabled = true
                         //if(DEBUG) LOGGER.info(String.format("%s.getMotorsForPose: for %s = %2.0f",

@@ -54,6 +54,10 @@ object ConfigurationConstants {
     const val TOP_SPEED = 330.0    // All motors can support this
     const val HALF_SPEED = 0.5
     const val FULL_TORQUE = 0.95
+    // Consider values equal if within these values
+    const val ANGLE_TOLERANCE = 1.1
+    const val SPEED_TOLERANCE = 5.1
+    const val TORQUE_TOLERANCE= 0.2
 
     // For values that are boolean. Use these strings for "values"
     const val ON_VALUE  = 1.0

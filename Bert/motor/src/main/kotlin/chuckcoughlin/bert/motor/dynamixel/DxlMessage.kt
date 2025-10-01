@@ -170,7 +170,7 @@ object DxlMessage {
             setSyncWriteHeader(bytes)
             bytes[3] = (len - 4).toByte()
             bytes[4] = SYNC_WRITE
-            // For ANGLE and SPEED we set the goal not the value directly
+            // For ANGLE and SPEED we set the goal not the value directly. (ANGLE should never be used)
             if( property==JointDynamicProperty.ANGLE || property==JointDynamicProperty.SPEED ) {
                 bytes[5] = DxlConversions.addressForGoalProperty(property)
             }
@@ -237,7 +237,7 @@ object DxlMessage {
             var index = 7
             var changed = false
             for (mc in motors) {
-                if( mc.goalTorque!=mc.torque ) {
+                if( Math.abs(mc.goalTorque-mc.torque) > ConfigurationConstants.TORQUE_TOLERANCE) {
                     if(DEBUG) LOGGER.info(String.format("%s.byteArrayListToSetPose: %s torque from %2.1f to %2.1f",
                         CLSS,mc.joint.name,mc.torque,mc.goalTorque))
                     val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.goalTorque)
@@ -263,7 +263,7 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in motors) {
-                if( mc.goalSpeed != mc.speed ) {
+                if( Math.abs(mc.goalSpeed - mc.speed) > ConfigurationConstants.SPEED_TOLERANCE ) {
                     if(DEBUG) LOGGER.info(String.format("%s.byteArrayListToSetPose: %s speed from %2.1f to %2.1f",
                         CLSS,mc.joint.name,mc.speed,mc.goalSpeed))
                     val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.goalSpeed)
@@ -316,7 +316,7 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in motors) {
-                if( mc.goalAngle!=mc.angle ) {
+                if( Math.abs(mc.goalAngle-mc.angle) > ConfigurationConstants.ANGLE_TOLERANCE ) {
                     LOGGER.info(String.format("%s.byteArrayListToSetPose: position %s from %2.1f to %2.1f",
                         CLSS,mc.joint.name,mc.angle,mc.goalAngle))
                     if (mc.goalAngle > mc.maxAngle) {
