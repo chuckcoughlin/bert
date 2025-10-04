@@ -329,7 +329,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             else         request.text = "I am relaxed"
 
             for (mc in configurationsByJoint.values) {
-                mc.isTorqueEnabled = enable
+                mc.isTorquePending = enable
             }
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.STATE)
         }
@@ -385,7 +385,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 if(value>ConfigurationConstants.OFF_VALUE) enabled = true
                 request.text = String.format("Setting my %s %s", Joint.toText(mc.joint),
                     if(enabled) "rigid" else "relaxed")
-                mc.isTorqueEnabled = enabled
+                mc.isTorquePending = enabled
             }
             else if (prop.equals(JointDynamicProperty.TORQUE) ) {
                 mc.goalTorque = value
@@ -482,10 +482,10 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val poseid = Database.getPoseIdForName(poseName, index)
             // If the pose doesn't exist, just return an empty list
             if (poseid != SQLConstants.NO_POSE) {
-                val configurations = Database.configureMotorsForPoseLimb(poseid, limb)
+                val configurations = Database.configureMotorsForPoseController(poseid,controllerName)
                 if (configurations.size > 0) {
                     LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d on %s with %d joints",
-                        CLSS, controllerName, poseName, index, limb.name, configurations.size))
+                        CLSS, controllerName, poseName, index, controllerName, configurations.size))
                     list = DxlMessage.byteArrayListToSetPose(poseid, configurations)
                 }
             }

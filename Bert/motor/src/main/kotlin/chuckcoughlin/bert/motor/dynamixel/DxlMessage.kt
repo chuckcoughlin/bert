@@ -196,8 +196,7 @@ object DxlMessage {
                 }
                 else if (property.equals(JointDynamicProperty.STATE)) {
                     dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.STATE,
-                        mc,if (mc.isTorqueEnabled) 1.0 else 0.0
-                    )
+                        mc,if (mc.isTorquePending) 1.0 else 0.0)
                     bytes[index + 1] = dxlValue.toByte()
                 }
                 index = index + 1 + DxlConversions.dataBytesForProperty(property)
@@ -289,11 +288,11 @@ object DxlMessage {
             bytes[6] = 0x2 // 2 bytes
             var index = 7
             for (mc in motors) {
-                if( !mc.isTorqueEnabled ) {
+                if( mc.isTorquePending != mc.isTorqueEnabled ) {
                     if(DEBUG) LOGGER.info(String.format("%s.byteArrayListToSetPose %s now torque-enabled",
                         CLSS,mc.joint.name))
-                    mc.isTorqueEnabled = true
-                    val stateValue = 1  // True
+                    mc.isTorqueEnabled = mc.isTorquePending
+                    val stateValue:Int = (if(mc.isTorqueEnabled) 1 else 0)
                     bytes[index] = mc.id.toByte()
                     bytes[index + 1] = (stateValue and 0xFF).toByte()
                     bytes[index + 2] = (stateValue shr 8).toByte()
@@ -674,7 +673,7 @@ object DxlMessage {
                         Joint.toText(bottle.joint), property.name.lowercase(),propertyValue)
                     var enabled = false
                     if(value>ConfigurationConstants.OFF_VALUE) enabled = true
-                    mc.isTorqueEnabled = enabled
+                    mc.isTorquePending = enabled
                 }
                 else {
                     bottle.text=String.format("My %s %s is %s",
@@ -730,7 +729,7 @@ object DxlMessage {
                         JointDynamicProperty.LOAD         -> mc.load = param
                         JointDynamicProperty.SPEED        -> mc.speed = param
                         JointDynamicProperty.MAXIMUMSPEED -> {}
-                        JointDynamicProperty.STATE        -> mc.setState(param)
+                        JointDynamicProperty.STATE        -> mc.isTorqueEnabled = (if(param.toInt()==0) false else true)
                         JointDynamicProperty.TEMPERATURE  -> mc.temperature = param
                         JointDynamicProperty.VOLTAGE      -> mc.voltage = param
                         JointDynamicProperty.NONE         -> {}

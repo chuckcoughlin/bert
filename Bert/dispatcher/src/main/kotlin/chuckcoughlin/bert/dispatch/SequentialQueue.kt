@@ -118,11 +118,11 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
     private fun earliestExecutionTime(msg:MessageBottle) : Long {
         var executionTime = System.currentTimeMillis()
         val now = executionTime
-        if (msg.type==RequestType.EXECUTE_POSE && msg.limb!=Limb.NONE) {
+        if (msg.type==RequestType.EXECUTE_POSE ) {
             val poseName: String = msg.arg
             val index: Int = msg.values[0].toInt()
             val poseid = Database.getPoseIdForName(poseName,index)
-            val motors = Database.getMotorsForPoseLimb( poseid,msg.limb)
+            val motors = Database.getMotorsForPose( poseid)
             for( mc in motors ) {
                 val tt = computeTravelTime(mc)
                 if(executionTime < tt+now)  executionTime = now + tt

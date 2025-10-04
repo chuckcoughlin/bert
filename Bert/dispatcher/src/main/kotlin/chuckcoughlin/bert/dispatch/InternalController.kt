@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.dispatch
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.controller.MessageController
+import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
@@ -103,7 +104,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.joint = request.joint
             msg.limb =  request.limb
             msg.source = ControllerType.BITBUCKET
-            msg.control.delay =250 // 1/4 sec delay
+            msg.control.delay = BottleConstants.NO_DELAY
             dispatchMessage(msg)
         }
         // Make sure the motor is engaged before moving
@@ -114,7 +115,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.jointDynamicProperty = JointDynamicProperty.STATE
             msg.values[0] = ConfigurationConstants.ON_VALUE
             msg.source = ControllerType.BITBUCKET
-            msg.control.delay =250 // 1/4 sec delay
+            msg.control.delay = BottleConstants.NO_DELAY
             dispatchMessage(msg)
             dispatchLocationUpdates()
         }
@@ -134,7 +135,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                         CLSS,request.type.name,request.arg,request.values[0],request.source))
             request.limb = Limb.NONE   // Just used to synchronize
             if( Database.poseExists(request.arg,request.values[0].toInt())) {
-                distributePose(request)
+                dispatchMessage(request)
                 dispatchLocationUpdates()
             }
             else {
@@ -151,12 +152,11 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 var msg = MessageBottle(RequestType.EXECUTE_POSE)
                 msg.arg = pose.name
                 msg.values[0] = pose.index.toDouble()
-                msg.control.delay =100 // 100 msec delay
+                msg.control.delay = BottleConstants.NO_DELAY
                 msg.source = ControllerType.BITBUCKET
-                distributePose(msg)   // All responses will go to the bit bucket
+                dispatchMessage(msg)   // All responses will go to the bit bucket
                 dispatchLocationUpdates()
             }
-            request.limb = Limb.NONE   // Message is used to synch the MotorGroupController
         }
         else if (request.type == RequestType.PLACE_END_EFFECTOR ) {
             // Placing an end-effector involves a series of discrete motions
@@ -174,20 +174,6 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         }
         // Finally process the original message
         dispatchMessage(request)
-    }
-
-    // Duplicate the pose message for each limb. The NONE limb
-    // is the original message and serves to synchronize the pose.
-    private suspend fun distributePose(request:MessageBottle) {
-        for( limb in Limb.values()) {
-            if( limb!=Limb.NONE ) {
-                val msg = request.clone()
-                msg.limb = limb
-                msg.text = ""
-                msg.source = ControllerType.BITBUCKET
-                dispatchMessage(msg)
-            }
-        }
     }
 
     /** Inform the tablet of a new limb position */

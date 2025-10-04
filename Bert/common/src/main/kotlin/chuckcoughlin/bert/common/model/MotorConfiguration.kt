@@ -29,6 +29,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
 
     // Setting torque enable is essentially powering the motor on/off
     var isTorqueEnabled : Boolean// Torque-enable - on/off
+    var isTorquePending : Boolean// Torque-enable/disable is requested
     var limb: Limb
     var load: Double
     // When we move the joint, set a target position.
@@ -76,9 +77,9 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         }
     }
 
-    fun setState(s: Double) {
+    private fun setState(s: Double) {
         val state = s.toInt()
-        isTorqueEnabled = state != 0
+        isTorquePending = state != 0
     }
 
     private val CLSS = "MotorConfiguration"
@@ -109,6 +110,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
         goalTorque = 0.0
         torque = 0.0       // Power-off value
         isTorqueEnabled = true // Initially torque is enabled
+        isTorquePending = true
         voltage = 0.0
     }
 }

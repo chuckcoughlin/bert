@@ -31,8 +31,8 @@ object Database  {
     fun actionExists(actionName:String) :Boolean {
         return action.actionExists(connection,actionName)
     }
-    fun configureMotorsForPoseLimb(poseid: Long, limb: Limb): List<MotorConfiguration> {
-        return pose.configureMotorsForPoseLimb(connection,poseid,limb)
+    fun configureMotorsForPoseController(poseid: Long,controller:String): List<MotorConfiguration> {
+        return pose.configureMotorsForPoseController(connection,poseid,controller)
     }
     /**
      * Save a list of motor position, torques and speeds as a new pose.
@@ -126,8 +126,8 @@ object Database  {
     fun getFaceNames() : String {
         return face.getFaceNames(connection)
     }
-    fun getMotorsForPoseLimb(poseid: Long, limb: Limb): List<MotorConfiguration> {
-        return pose.getMotorsForPoseLimb(connection,poseid,limb)
+    fun getMotorsForPose(poseid: Long): List<MotorConfiguration> {
+        return pose.getMotorsForPose(connection,poseid)
     }
     /**
      * @param name user entered pose name. If the pose does not

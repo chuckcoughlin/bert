@@ -21,14 +21,14 @@ import java.util.logging.Logger
  */
 class PoseTable {
     /**
-     * Populate a list configuration objects associated with the specified pose and
-     * limb. Set desired targetAngle,speed and torque. Add to the list, if these represent a change.
+     * Populate a list configuration objects associated with the specified pose and controller.
+     * Set desired targetAngle,speed and torque. Add to the list, if these represent a change.
      *
      * @param poseid
-     * @param limb
+     * @param controller name
      * @return the affected motors in a list
      */
-    fun configureMotorsForPoseLimb(cxn: Connection?,poseid: Long,limb:Limb): List<MotorConfiguration> {
+    fun configureMotorsForPoseController(cxn: Connection?,poseid: Long,controller:String): List<MotorConfiguration> {
         val list = mutableListOf<MotorConfiguration>()
         if( cxn!=null ) {
             val map = RobotModel.motorsByJoint
@@ -44,7 +44,7 @@ class PoseTable {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
                     val mc = map[joint]
-                    if( mc != null && mc.limb==limb) {
+                    if( mc != null && mc.controller==controller) {
                         var changed = false
                         var angle = rs.getDouble("angle")
                         if( !angle.isNaN()) {
@@ -73,8 +73,10 @@ class PoseTable {
                                 changed = true
                             }
                         }
-                        if( torque>0 ) mc.isTorqueEnabled = true
-                        //if(DEBUG) LOGGER.info(String.format("%s.getMotorsForPose: for %s = %2.0f",
+                        if( torque>0.0 ) mc.isTorquePending = true
+                        else           mc.isTorquePending = false
+                        if( mc.isTorquePending!=mc.isTorqueEnabled ) changed = true
+                        //if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseLimb: for %s = %2.0f",
                         //                CLSS, joint.name, angle))
                         if(changed) list.add(mc)
                     }
@@ -262,7 +264,7 @@ class PoseTable {
      * @param limb
      * @return the affected motors in a list
      */
-    fun getMotorsForPoseLimb(cxn: Connection?,poseid: Long,limb:Limb): List<MotorConfiguration> {
+    fun getMotorsForPose(cxn: Connection?,poseid: Long): List<MotorConfiguration> {
         val list = mutableListOf<MotorConfiguration>()
         if( cxn!=null ) {
             val map = RobotModel.motorsByJoint
@@ -278,7 +280,7 @@ class PoseTable {
                     val jointName = rs.getString("joint")
                     val joint = Joint.fromString(jointName)
                     val mc = map[joint]
-                    if( mc != null && mc.limb==limb) {
+                    if( mc != null ) {
                         list.add(mc)
                     }
                 }
