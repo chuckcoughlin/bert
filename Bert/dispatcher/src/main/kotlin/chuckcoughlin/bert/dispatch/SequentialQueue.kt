@@ -162,8 +162,8 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
     }
 
     /**
-     * @param delta angular distance
-     * @param velocity angular velocity
+     * Compute time to finish any move in progress
+     * @param mc motor configuration
      */
     private fun computeTravelTime(mc:MotorConfiguration) : Long {
         val tt = Math.abs(1000.0*((mc.goalAngle-mc.angle)/mc.goalSpeed)).toLong()

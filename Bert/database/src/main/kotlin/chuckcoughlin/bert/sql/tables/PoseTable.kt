@@ -52,6 +52,7 @@ class PoseTable {
                             else if (angle < mc.minAngle) angle = mc.minAngle
                             mc.goalAngle = angle
                             if (Math.abs(mc.angle - angle) > ConfigurationConstants.ANGLE_TOLERANCE) {
+                                if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseController: %s from %2.0f to %2.0f", CLSS, jointName,mc.angle,mc.goalAngle))
                                 changed = true
                             }
                         }
@@ -76,7 +77,7 @@ class PoseTable {
                         if( torque>0.0 ) mc.isTorquePending = true
                         else           mc.isTorquePending = false
                         if( mc.isTorquePending!=mc.isTorqueEnabled ) changed = true
-                        //if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseLimb: for %s = %2.0f",
+                        //if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseController: for %s = %2.0f",
                         //                CLSS, joint.name, angle))
                         if(changed) list.add(mc)
                     }
@@ -103,6 +104,7 @@ class PoseTable {
                 }
             }
         }
+        if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseController: Pose %d uses %d motors", CLSS, poseid,list.size))
         return list
     }
     /**
@@ -257,8 +259,7 @@ class PoseTable {
     }
 
     /**
-     * Populate a list configuration objects associated with the specified pose
-     * and limb.
+     * Populate a list configuration objects associated with the specified pose.
      *
      * @param poseid
      * @param limb
@@ -289,7 +290,7 @@ class PoseTable {
             catch (e: SQLException) {
                 // if the error message is "out of memory",
                 // it probably means no database file is found
-                LOGGER.severe(String.format("%s.motorsForPoseLimb: Database error (%s)", CLSS, e.message))
+                LOGGER.severe(String.format("%s.getMotorsForPose: Database error (%s)", CLSS, e.message))
             }
             finally {
                 if (rs != null) {
@@ -306,6 +307,7 @@ class PoseTable {
                 }
             }
         }
+        if(DEBUG) LOGGER.info(String.format("%s.getMotorsForPose: Pose %d uses %d motors", CLSS, poseid,list.size))
         return list
     }
     /**

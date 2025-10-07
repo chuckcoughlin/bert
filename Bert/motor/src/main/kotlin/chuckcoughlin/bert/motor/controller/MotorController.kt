@@ -207,8 +207,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if( msg.type==RequestType.EXECUTE_ACTION ||
-            msg.type==RequestType.GET_MOTOR_PROPERTY ||
+        if( msg.type==RequestType.GET_MOTOR_PROPERTY ||
             msg.type==RequestType.SET_LIMB_PROPERTY  ) {
             return true
         }
@@ -219,11 +218,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 return false
             }
             return true
-        }
-        else if( msg.type== RequestType.EXECUTE_POSE  ) {
-            if( msg.limb!=Limb.NONE ) {   // Applies to only one limb
-                return true
-            }
         }
         else if( msg.type==RequestType.JSON ) {
             if( msg.jtype==JsonType.MOTOR_GOALS ||

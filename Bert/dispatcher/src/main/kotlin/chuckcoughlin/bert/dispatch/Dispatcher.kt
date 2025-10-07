@@ -301,7 +301,11 @@ class Dispatcher : Controller {
     private suspend fun dispatchInternalResponse(msg : MessageBottle) {
         if(DEBUG) LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s",CLSS,msg.type.name,msg.source))
         // "internal" requests are those that need to be queued on the internal controller
-        if(isMotorRequest(msg)) {
+        if(msg.type== RequestType.EXECUTE_ACTION) {
+            toInternalController.send(motorReadyMessage)  // Execute Action is just a marker at this point
+            replyToSource(msg)
+        }
+        else if(isMotorRequest(msg)) {
             mgcRequestChannel.send(msg)
         }
         else if(msg.type==RequestType.INTERNET) {
@@ -784,7 +788,7 @@ class Dispatcher : Controller {
     // to be forwarded to the proper motor controller. They have needed pre-processing
     // by the internal controller
     private fun isMotorRequest(request: MessageBottle): Boolean {
-        if (request.type==RequestType.EXECUTE_ACTION ||
+        if (request.type==RequestType.EXECUTE_ACTION ||   // Sort of
             request.type==RequestType.EXECUTE_POSE ||
             request.type==RequestType.GET_MOTOR_PROPERTY ||
             request.type==RequestType.INITIALIZE_JOINTS  ||

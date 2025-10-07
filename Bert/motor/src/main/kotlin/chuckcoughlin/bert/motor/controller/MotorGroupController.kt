@@ -181,14 +181,8 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // immediately. Results are created from the original configuration file.
     // We also create error messages some requests that are illegal
     private fun canHandleImmediately(request: MessageBottle): Boolean {
-        if (request.type== RequestType.EXECUTE_ACTION ||
-            request.type == RequestType.RESET ) {
+        if (request.type == RequestType.RESET ) {
                 return true
-            }
-        else if (request.type==RequestType.EXECUTE_POSE &&
-                 request.limb==Limb.NONE ) {
-            // This is just a marker for end-of-pose
-            return true
         }
         else if (request.type==RequestType.SET_LIMB_PROPERTY) {
             // Some properties cannot be set. Catch them here in order to formulate an error response.
@@ -215,20 +209,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
     // to return directly to the user. These jointValues are obtained from the initial configuration
     private fun createImmediateResponse(request: MessageBottle): MessageBottle {
         val type = request.type
-        // This just marks the end of executing the poses.
-        if (type == RequestType.EXECUTE_ACTION ) {
-            pendingMessages.clear()
-            request.text = String.format("%s complete",request.arg)
-        }
-        else if (type.equals(RequestType.EXECUTE_POSE) &&
-                 request.limb == Limb.NONE ) {
-            pendingMessages.clear()
-
-            //request.text = String.format("%s complete",request.arg)
-            LOGGER.info(String.format("%s.createImmediateResponse: %s %s %s (%s)",
-                CLSS,request.type.name,request.arg,request.limb.name,request.text))
-        }
-        else if( request.type == RequestType.RESET) {
+        if( request.type == RequestType.RESET) {
             pendingMessages.clear()
             for(controller in motorControllers.values) {
                 controller.reset()
@@ -253,8 +234,7 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
      * @return true if this is the type of request satisfied by a single controller.
      */
     private fun isSingleControllerRequest(msg: MessageBottle): Boolean {
-        if( msg.type==RequestType.EXECUTE_ACTION ||
-            msg.type==RequestType.GET_MOTOR_PROPERTY ||
+        if( msg.type==RequestType.GET_MOTOR_PROPERTY ||
             msg.type==RequestType.SET_LIMB_PROPERTY  ) {
             return true
         }
@@ -265,11 +245,6 @@ class MotorGroupController(req: Channel<MessageBottle>, rsp: Channel<MessageBott
                 return false
             }
             return true
-        }
-        else if( msg.type.equals(RequestType.EXECUTE_POSE)   ) {
-            if( !msg.limb.equals(Limb.NONE)) {   // Applies to only one limb
-                return true
-            }
         }
         else if( msg.type.equals(RequestType.JSON) ) {
             if( msg.jtype.equals(JsonType.MOTOR_GOALS) ||

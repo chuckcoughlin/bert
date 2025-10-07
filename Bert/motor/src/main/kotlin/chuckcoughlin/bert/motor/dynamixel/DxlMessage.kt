@@ -93,7 +93,7 @@ object DxlMessage {
             for (mc in outliers) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %2.1f",
                         CLSS,mc.joint.name,mc.angle))
-                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.angle)
+                val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.goalAngle)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()

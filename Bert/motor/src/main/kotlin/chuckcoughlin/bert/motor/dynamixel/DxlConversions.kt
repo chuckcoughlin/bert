@@ -199,7 +199,7 @@ object DxlConversions {
     }
 
     // Convert the value into a raw setting for the motor. Angle is in degrees, speed is deg/sec and
-    // torque is newton-meters as is load..
+    // torque is newton-meters as is load. Record even if out-of-range.
     // Valid for Protocol 1 only. The motor configuration is used only for static parameters.
     fun dxlValueForProperty(property: JointDynamicProperty, mc: MotorConfiguration, arg: Double): Int {
         var value = arg

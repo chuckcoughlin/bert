@@ -61,6 +61,9 @@ class MessageTranslator {
             else if(type.equals(RequestType.COMMAND)) {
                 randomAcknowledgement()
             }
+            else if(type.equals(RequestType.EXECUTE_ACTION)) {
+                String.format("%s is complete.", msg.arg.lowercase(Locale.getDefault()))
+            }
             else if(type.equals(RequestType.EXECUTE_POSE)) {
                 String.format("I am %s", msg.arg.lowercase(Locale.getDefault()))
             }
