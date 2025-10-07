@@ -176,7 +176,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	}
 
 	val CLSS = "SpeechManager"
-	val PRE_SPEECH_DELAY = 250L   // Millisecs delay to turn off hearing
+	val PRE_SPEECH_DELAY = 150L   // Millisecs delay to turn off hearing
 
 	init {
 		Log.i(CLSS,"init - initializing text to speech capability")
