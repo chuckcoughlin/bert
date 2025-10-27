@@ -92,7 +92,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		if( managerState == ManagerState.ACTIVE) {
 			val bndl = Bundle()
 			//bndl.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME,vol.toFloat())
-			textToSpeech.speak(txt,TextToSpeech.QUEUE_ADD,bndl,CLSS)
+			textToSpeech.speak(txt,TextToSpeech.QUEUE_FLUSH,bndl,CLSS)
 		}
 	}
 
