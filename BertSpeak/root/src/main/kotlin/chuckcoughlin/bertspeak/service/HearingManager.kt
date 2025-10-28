@@ -27,10 +27,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	override val managerType = ManagerType.HEARING
 	override var managerState = ManagerState.OFF
 	val dispatcher = service
+	lateinit var sr: SpeechRecognizer
+	private var initialized : Boolean
 	private val audioManager: AudioManager
 	private var startTime: Long
 	private var speechTime: Long
-	private var sr: SpeechRecognizer?
+
 	private var recognizerIntent: Intent
 
 	/** Must run on main thread. Start the recognizer */
@@ -41,6 +43,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
 		else {
+			sr = createRecognizer()
+			initialized = true
 			startListening()
 		}
 	}
@@ -57,25 +61,23 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 * a listener on the text-to-speech component.
 	 */
 	private fun startListening() {
-		if(sr == null && !managerState.equals(ManagerState.ERROR)) {
+		if(initialized) {
 			Log.i(CLSS, "Start listening ...")
-			sr = createRecognizer()
-			sr!!.startListening(recognizerIntent)
+			sr.startListening(recognizerIntent)
+			managerState = ACTIVE
+			dispatcher.reportManagerState(ManagerType.HEARING,managerState)
 		}
-		managerState = ACTIVE
-		dispatcher.reportManagerState(ManagerType.HEARING,managerState)
 	}
 	/* There is very little need for this. It should only
 	 * be called when the manager shuts down.
 	 */
 	private fun stopListening() {
 		Log.i(CLSS, "Stop listening ...")
-		if( sr!=null ) {
-			sr!!.destroy()
+		if( initialized ) {
+			sr.destroy()
+			managerState = ManagerState.OFF
+			dispatcher.reportManagerState(ManagerType.HEARING,managerState)
 		}
-		sr = null
-		managerState = ManagerState.OFF
-		dispatcher.reportManagerState(ManagerType.HEARING,managerState)
 	}
 
 
@@ -120,7 +122,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			managerState = ManagerState.ERROR
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
-		sr!!.startListening(recognizerIntent)
+		sr.startListening(recognizerIntent)
 	}
 
 	override fun onResults(results: Bundle) {
@@ -144,7 +146,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				}
 			}
 		}
-		sr!!.startListening(recognizerIntent)
+		sr.startListening(recognizerIntent)
 	}
 
 	// We've configured the intent so all partials *should* be empty
@@ -233,7 +235,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		audioManager = dispatcher.context.getSystemService<AudioManager>() as AudioManager
 		mute()  // try to stop the beeping
 		recognizerIntent = createRecognizerIntent()
-		sr = null
+		initialized = false
 		startTime = System.currentTimeMillis()
 		speechTime  = System.currentTimeMillis()
 	}
