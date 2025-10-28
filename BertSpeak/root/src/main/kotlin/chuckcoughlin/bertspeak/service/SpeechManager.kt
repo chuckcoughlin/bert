@@ -126,7 +126,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	override fun updateText(msg: LogData) {
 		Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
 		if(msg.messageType == MessageType.ANS) {
-			Thread.sleep(PRE_SPEECH_DELAY)
 			speak(msg.message)
 			dispatcher.markEndOfSpeech()
 		}
@@ -176,7 +175,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	}
 
 	val CLSS = "SpeechManager"
-	val PRE_SPEECH_DELAY = 150L   // Millisecs delay to turn off hearing
 
 	init {
 		Log.i(CLSS,"init - initializing text to speech capability")
