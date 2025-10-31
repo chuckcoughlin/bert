@@ -324,10 +324,10 @@ class DispatchService(ctx: Context){
             instance.sendRequest(text)
         }
 
+        // Called from a button on CoverFragment
         fun speak(msg:String) {
             Log.i(CLSS, String.format("speak: %s", msg))
             instance.speechManager.speak(msg)
-            instance.markEndOfSpeech()
         }
 
         fun linkLocationByName(name:String):LinkLocation {

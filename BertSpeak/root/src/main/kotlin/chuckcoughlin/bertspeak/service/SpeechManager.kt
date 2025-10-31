@@ -85,7 +85,9 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		}
 		dispatcher.reportManagerState(managerType,managerState)
 	}
+
 	// Annunciate the supplied text. Setting the volume in the bundle has no effect.
+	// The caller must tell the hearing manager to mark the end of speech
 	@Synchronized
 	fun speak(txt:String) {
 		Log.i(CLSS, String.format("SPEAK: %s (%s)", txt,managerState.name))
@@ -93,6 +95,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 			val bndl = Bundle()
 			//bndl.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME,vol.toFloat())
 			textToSpeech.speak(txt,TextToSpeech.QUEUE_FLUSH,bndl,CLSS)
+			dispatcher.markEndOfSpeech()
 		}
 	}
 
@@ -127,7 +130,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
 		if(msg.messageType == MessageType.ANS) {
 			speak(msg.message)
-			dispatcher.markEndOfSpeech()
 		}
 	}
 

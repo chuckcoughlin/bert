@@ -13,7 +13,6 @@ import android.speech.SpeechRecognizer
 import android.util.Log
 import androidx.core.content.getSystemService
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
-import java.util.Locale
 
 
 /**
@@ -30,8 +29,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	lateinit var sr: SpeechRecognizer
 	private var initialized : Boolean
 	private val audioManager: AudioManager
-	private var startTime: Long
-	private var speechTime: Long
+	private var listenStartTime: Long
+	private var speechEndTime: Long
 
 	private var recognizerIntent: Intent
 
@@ -84,9 +83,9 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	// ================ RecognitionListener ===============
 	override fun onReadyForSpeech(params: Bundle) {
 		Log.i(CLSS, "onReadyForSpeech")
-		startTime  = System.currentTimeMillis()
 	}
 	override fun onBeginningOfSpeech() {
+		listenStartTime  = System.currentTimeMillis()
 		Log.i(CLSS, "onBeginningOfSpeech")
 	}
 	// Background level changed ...
@@ -138,11 +137,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				var text = matches[0].lowercase()
 				text = scrubText(text)
 
-				if( startTime>speechTime ) {
+				if( listenStartTime>speechEndTime ) {
 					dispatcher.processSpokenText(text)
 				}
 				else {
-					Log.i(CLSS, String.format("suppressed result: %s",text))
+					// We've just heard generated, not spoken, text
+					Log.i(CLSS, String.format("SUPPRESSED result: %s",text))
 				}
 			}
 		}
@@ -198,7 +198,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	 */
 	fun markEndOfSpeech() {
 		Log.i(CLSS, "markEndOfSpeech ...")
-		speechTime  = System.currentTimeMillis()
+		speechEndTime  = System.currentTimeMillis()
 	}
 
 	fun toggleHearing() {
@@ -236,7 +236,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		mute()  // try to stop the beeping
 		recognizerIntent = createRecognizerIntent()
 		initialized = false
-		startTime = System.currentTimeMillis()
-		speechTime  = System.currentTimeMillis()
+		listenStartTime = System.currentTimeMillis()
+		speechEndTime  = System.currentTimeMillis()
 	}
 }
