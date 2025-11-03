@@ -121,13 +121,12 @@ class DispatchService(ctx: Context){
         textManager.processText(LOG, msg)
     }
     /* =================================================================
-    *  Notify the hearing manager that spoken text has just ended
-    *   (we attempt to prevent a feedback loop analyzing text
-    *    originating from the robot).
+    *  Notify the hearing manager that the current spoken text is a
+    *  response from the robot and is to be ignored.
     * ==================================================================
     */
-    fun markEndOfSpeech() {
-        hearingManager.markEndOfSpeech()
+    fun suppressSpeech() {
+        hearingManager.suppressSpeech()
     }
     /**
      * Presumably the text originates from the speech recognizer on the tablet (or an error).

@@ -28,9 +28,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	val dispatcher = service
 	lateinit var sr: SpeechRecognizer
 	private var initialized : Boolean
+	private var suppress : Boolean
 	private val audioManager: AudioManager
-	private var listenStartTime: Long
-	private var speechEndTime: Long
 
 	private var recognizerIntent: Intent
 
@@ -85,8 +84,8 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		Log.i(CLSS, "onReadyForSpeech")
 	}
 	override fun onBeginningOfSpeech() {
-		listenStartTime  = System.currentTimeMillis()
 		Log.i(CLSS, "onBeginningOfSpeech")
+		suppress = false
 	}
 	// Background level changed ...
 	override fun onRmsChanged(rmsdB: Float) {}
@@ -121,6 +120,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 			managerState = ManagerState.ERROR
 			dispatcher.reportManagerState(ManagerType.HEARING, managerState)
 		}
+		suppress = false
 		sr.startListening(recognizerIntent)
 	}
 
@@ -137,7 +137,7 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				var text = matches[0].lowercase()
 				text = scrubText(text)
 
-				if( listenStartTime>speechEndTime ) {
+				if( !suppress ) {
 					dispatcher.processSpokenText(text)
 				}
 				else {
@@ -146,13 +146,12 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 				}
 			}
 		}
+		suppress = false
 		sr.startListening(recognizerIntent)
 	}
 
 	// We've configured the intent so all partials *should* be empty
-	override fun onPartialResults(partialResults: Bundle) {
-		// Log.i(CLSS, "onPartialResults")
-	}
+	override fun onPartialResults(partialResults: Bundle) {}
 
 	override fun onEvent(eventType: Int, params: Bundle) {}
 
@@ -192,13 +191,11 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		//audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, AudioManager.FLAG_PLAY_SOUND)
 	}
 	/*
-	 * Note the end time of a textToSpeech message.
-	 * If this falls during the current listening
-	 * cycle then suppress the text.
+	 * Don't process the current speech we hear.
 	 */
-	fun markEndOfSpeech() {
-		Log.i(CLSS, "markEndOfSpeech ...")
-		speechEndTime  = System.currentTimeMillis()
+	fun suppressSpeech() {
+		Log.i(CLSS, "suppressSpeech ...")
+		suppress= true
 	}
 
 	fun toggleHearing() {
@@ -236,7 +233,6 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 		mute()  // try to stop the beeping
 		recognizerIntent = createRecognizerIntent()
 		initialized = false
-		listenStartTime = System.currentTimeMillis()
-		speechEndTime  = System.currentTimeMillis()
+		suppress = false
 	}
 }

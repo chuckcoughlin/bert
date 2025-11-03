@@ -95,7 +95,6 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 			val bndl = Bundle()
 			//bndl.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME,vol.toFloat())
 			textToSpeech.speak(txt,TextToSpeech.QUEUE_FLUSH,bndl,CLSS)
-			dispatcher.markEndOfSpeech()
 		}
 	}
 
@@ -123,12 +122,13 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	}
 
 	/**
-	 * We only annunciate messages from the robot (ANS).
-	 * Turn off listening while speaking
+	 * Annunciate messages from the robot (ANS).
+	 * Turn off listening to avoid double-analyzing.
 	 */
 	override fun updateText(msg: LogData) {
 		Log.i(name, String.format("updateText (%s):%s", msg.type, msg.message))
 		if(msg.messageType == MessageType.ANS) {
+			dispatcher.suppressSpeech()
 			speak(msg.message)
 		}
 	}
