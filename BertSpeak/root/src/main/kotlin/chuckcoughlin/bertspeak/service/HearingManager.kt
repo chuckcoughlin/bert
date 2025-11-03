@@ -82,10 +82,10 @@ class HearingManager(service:DispatchService): CommunicationManager, Recognition
 	// ================ RecognitionListener ===============
 	override fun onReadyForSpeech(params: Bundle) {
 		Log.i(CLSS, "onReadyForSpeech")
+		suppress = false
 	}
 	override fun onBeginningOfSpeech() {
 		Log.i(CLSS, "onBeginningOfSpeech")
-		suppress = false
 	}
 	// Background level changed ...
 	override fun onRmsChanged(rmsdB: Float) {}
