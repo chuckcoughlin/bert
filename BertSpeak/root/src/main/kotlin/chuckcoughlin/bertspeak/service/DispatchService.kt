@@ -326,6 +326,7 @@ class DispatchService(ctx: Context){
         // Called from a button on CoverFragment
         fun speak(msg:String) {
             Log.i(CLSS, String.format("speak: %s", msg))
+            instance.hearingManager.suppressSpeech()
             instance.speechManager.speak(msg)
         }
 
