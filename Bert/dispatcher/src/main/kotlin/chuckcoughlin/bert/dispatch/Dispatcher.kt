@@ -304,6 +304,12 @@ class Dispatcher : Controller {
         if(msg.type== RequestType.EXECUTE_ACTION) {
             toInternalController.send(motorReadyMessage)  // Execute Action is just a marker at this point
             replyToSource(msg)
+            // If there is a follow-on action, then add it to the queue. Reuse original message
+            val nextAction = Database.getFollowOnAction(msg.arg)
+            if(nextAction!=null) {
+                msg.arg = nextAction
+                toInternalController.send(msg)
+            }
         }
         else if(isMotorRequest(msg)) {
             mgcRequestChannel.send(msg)
@@ -336,10 +342,21 @@ class Dispatcher : Controller {
                 val command = request.command
                 if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
                 if (command == CommandType.CREATE_ACTION) {
-                    val actName: String = request.text.lowercase()
-                    val series = request.arg.lowercase()
+                    val actName: String = request.arg.lowercase()
+                    val series = request.text.lowercase()
                     Database.createAction(actName, series)
                     request.text = String.format("To %s is to execute a series of %s poses", actName, series)
+                }
+                else if (command == CommandType.CREATE_NEXT_ACTION) {
+                    val actName: String = request.arg.lowercase()
+                    val followon = request.text.lowercase()
+                    if( Database.actionExists(actName) && Database.actionExists(followon)) {
+                        Database.defineNextAction(actName, followon)
+                        request.text=String.format("After %s run %s", actName, followon)
+                    }
+                    else {
+                        request.error = "Both actions $actName and $followon must exist in order to define a follow on"
+                    }
                 }
                 else if (command == CommandType.CREATE_POSE) {
                     val poseName: String = request.arg.lowercase()
@@ -383,6 +400,16 @@ class Dispatcher : Controller {
                         if (Database.poseExists(name, index)) {
                             Database.deletePose(name, index)
                         }
+                    }
+                }
+                else if (command == CommandType.STOP_ACTION) {
+                    val actName: String = request.arg.lowercase()
+                    if(Database.actionExists(actName)) {
+                        Database.stopAction(actName)
+                        request.text=String.format("Stop action %s", actName)
+                    }
+                    else  {
+                        request.error = "Action $actName doesn't exist"
                     }
                 }
                 else if (command == CommandType.HALT) {

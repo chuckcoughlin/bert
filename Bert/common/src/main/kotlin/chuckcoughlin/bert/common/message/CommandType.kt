@@ -12,6 +12,7 @@ enum class CommandType {
     // Command contained in a message request
     CREATE_ACTION,
     CREATE_FACE,
+    CREATE_NEXT_ACTION,
     CREATE_POSE,
     DELETE_ACTION,
     DELETE_FACE,
@@ -19,6 +20,7 @@ enum class CommandType {
     HALT,
     SHUTDOWN,
     SLEEP,
+    STOP_ACTION,
     WAKE,
     NONE;
 
@@ -33,11 +35,13 @@ enum class CommandType {
             when (command) {
                 CREATE_ACTION -> text = "create action"
                 CREATE_FACE   -> text = "create face"
+                CREATE_NEXT_ACTION   -> text = "create next action"
                 CREATE_POSE   -> text = "create pose"
                 DELETE_ACTION -> text = "delete action"
                 DELETE_FACE -> text = "delete face"
                 DELETE_POSE -> text = "delete pose"
-                HALT     -> text = "halt"
+                HALT        -> text = "halt"
+                STOP_ACTION -> text = "stop action"
                 SHUTDOWN -> text = "shutdown"
                 SLEEP    -> text = "sleep"
                 WAKE     -> text = "wake"

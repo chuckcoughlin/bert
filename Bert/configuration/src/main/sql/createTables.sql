@@ -4,11 +4,13 @@
 --
 
 -- Apply a series of Poses in order. The time increment between poses
--- is specified in the pose table.
+-- is specified in the pose table. NextAction allows configuration
+-- of a chain of actions or a repetition.
 DROP TABLE IF EXISTS Action;
 CREATE TABLE Action (
 	name	text PRIMARY_KEY,
-	poseseries  text NOT NULL
+	poseseries  text NOT NULL,
+	nextaction text NULL
 );
 
 -- The Face table merely maps names associated with faces to

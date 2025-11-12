@@ -6,9 +6,11 @@
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.IMU.name
 import chuckcoughlin.bert.common.model.PoseDefinition
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.TextUtility
+import chuckcoughlin.bert.sql.db.Database
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -86,6 +88,26 @@ class ActionTable {
         }
     }
     /**
+     * Define an action to execute once the main action completes.
+     * @cxn an open database connection
+     * @param name action name
+     * @param followOn name of the next action
+     */
+    fun defineNextAction(cxn: Connection?, name: String,followOn:String) {
+        if( cxn!=null ) {
+            val action = name.lowercase(Locale.getDefault())
+            val next = followOn.lowercase(Locale.getDefault())
+            var stmt=cxn.createStatement()
+            try {
+                val SQL=String.format("update Action set nextaction = '%s' where name = '%s') ",next, action)
+                stmt.execute(SQL)
+            }
+            finally {
+                stmt.close()
+            }
+        }
+    }
+    /**
      * Delete the action.
      * @cxn an open database connection
      * @param name action name
@@ -136,6 +158,36 @@ class ActionTable {
     }
 
     /**
+     * @return the name of a follow-on action, if any
+     */
+    fun getFollowOnAction(cxn: Connection?,name:String) : String? {
+        var next:String? = null
+        if( cxn!=null ) {
+            val SQL = String.format("select nextaction from Action where name = '%s'",name)
+            var statement: Statement = cxn.createStatement()
+            var rs: ResultSet? = null
+            try {
+                rs = statement.executeQuery(SQL)
+                while (rs.next()) {
+                    next = rs.getString(1)
+                }
+            }
+            catch (e: SQLException) {
+                LOGGER.severe(String.format("%s.getFolllowOnAction: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try { rs.close()}
+                    catch (ignore: SQLException) {}
+                }
+                try {statement.close()}
+                catch (ignore: SQLException) {}
+            }
+        }
+        return next
+    }
+
+    /**
      * @return an ordered list of poses and delay intervals
      */
     fun getPosesForAction(cxn: Connection?,act:String) : List<PoseDefinition> {
@@ -171,6 +223,40 @@ class ActionTable {
             }
         }
         return list
+    }
+    /**
+     * Update an action to remove any follow on
+     * @cxn an open database connection
+     * @param name either the action or series name
+     */
+    fun stopAction(cxn: Connection?, name: String) {
+        if( cxn!=null ) {
+            val action = name.lowercase(Locale.getDefault())
+            var stmt=cxn.createStatement()
+            try {
+                val SQL=String.format("update Action set nextaction = NULL where name = '%s'cor poseseries = '%s') ",action, action)
+                stmt.execute(SQL)
+            }
+            finally {
+                stmt.close()
+            }
+        }
+    }
+    /**
+     * Call on startup to clear any follow-on actions.
+     * @cxn an open database connection
+     */
+    fun initialize(cxn: Connection?) {
+        if( cxn!=null ) {
+            var stmt=cxn.createStatement()
+            try {
+                val SQL= "update Action set nextaction = NULL"
+                stmt.execute(SQL)
+            }
+            finally {
+                stmt.close()
+            }
+        }
     }
     private val CLSS = "ActionTable"
     private val LOGGER = Logger.getLogger(CLSS)

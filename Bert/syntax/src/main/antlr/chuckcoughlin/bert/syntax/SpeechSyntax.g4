@@ -79,6 +79,8 @@ declaration:
 	| Define phrase (From|As) phrase                    # defineAction1
 	| When Isay phrase Use phrase                       # defineAction1
 	| Use phrase Poses? To Define phrase				# defineAction2
+	| Follow phrase With phrase				            # defineActionFollowOn
+	| Stop phrase				                        # stopAction
 	;
 
 // Commands to obtain attributes. Of these 'list' returns a JSON string. Otherwise values are comma-separated
@@ -116,6 +118,7 @@ Download: 'download';
 Dynamic: 'dynamic';
 Faces: 'faces';
 Face: 'face';
+Follow: 'follow';
 From: 'from';
 Forget: 'forget'|'delete';
 Goals: 'goals'|'target positions'|'targets';
@@ -164,6 +167,7 @@ Series: 'series';
 Set: 'set';
 Speed: 'in slow motion'|'very fast'|'normally'|'very quickly'|'quickly'|'very slowly'|'slowly'|'slower'|'very slow'|'slow'|'faster'|'quicker'|'fast'|'normal';
 Static: 'static';
+Stop: 'stop';
 Straighten: 'straighten';
 Take: 'assume' | 'execute' | 'take';
 Tell: 'tell';
@@ -179,6 +183,7 @@ What: 'what';
 When: 'when';
 Where: 'where';
 Who: 'who';
+With: 'with';
 
 COMMA: ',';
 COLON: ':';

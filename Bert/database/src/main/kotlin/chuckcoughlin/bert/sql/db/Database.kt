@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.sql.db
 
 import chuckcoughlin.bert.common.model.FacialDetails
+import chuckcoughlin.bert.common.model.IMU.name
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
@@ -63,6 +64,14 @@ object Database  {
      */
     fun createPose(mcmap: Map<Joint, MotorConfiguration>, poseName: String,index: Int) {
         pose.createPose(connection, mcmap, poseName,index)
+    }
+    /**
+     * Specify an action to be executed after the named action completes.
+     * @param name an action name
+     * @param next the action to be executed after the named action completes
+     */
+    fun defineNextAction(name:String,next: String) {
+        action.defineNextAction(connection, name,next)
     }
     /**
      * @param name pose name. Delete the pose and its joint map from the
@@ -126,6 +135,12 @@ object Database  {
     fun getFaceNames() : String {
         return face.getFaceNames(connection)
     }
+    /**
+     * @return the name of a follow-on action, if any
+     */
+    fun getFollowOnAction(name:String) : String? {
+        return action.getFollowOnAction(connection,name)
+    }
     fun getMotorsForPose(poseid: Long): List<MotorConfiguration> {
         return pose.getMotorsForPose(connection,poseid)
     }
@@ -180,6 +195,7 @@ object Database  {
 
     /**
      * Create a database connection. Use this for all subsequent queries.
+     * Perform any required cleanup.
      * @param path to database instance
      */
     fun startup(path: Path) {
@@ -187,6 +203,8 @@ object Database  {
         LOGGER.info(String.format("%s.startup: database path = %s", CLSS, path.toString()))
         try {
             connection = DriverManager.getConnection(connectPath)
+            action.initialize(connection)
+
         }
         catch (e: SQLException) {
             // if the error message is "out of memory", 
@@ -194,7 +212,13 @@ object Database  {
             LOGGER.log(Level.SEVERE, String.format("%s.startup: Database error (%s)", CLSS, e.message))
         }
     }
-
+    /**
+     * @param name action name. Remove any follow-on action to
+     *             guarantee a stop after the named action completes.
+     */
+    fun stopAction(name: String) {
+        return action.stopAction(connection, name)
+    }
     /**
      * Close the database connection prior to stopping the application.
      *

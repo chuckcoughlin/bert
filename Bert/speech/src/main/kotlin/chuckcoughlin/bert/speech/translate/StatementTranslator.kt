@@ -82,8 +82,8 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             val series = phrases[1].text
             bottle.type = RequestType.COMMAND
             bottle.command = CommandType.CREATE_ACTION
-            bottle.arg = series
-            bottle.text = act
+            bottle.arg = act
+            bottle.text = series
         }
         else {
             bottle.error = "you must specify both pose series and action names"
@@ -99,11 +99,27 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             val series = phrases[0].text
             bottle.type = RequestType.COMMAND
             bottle.command = CommandType.CREATE_ACTION
-            bottle.arg = series
-            bottle.text = act
+            bottle.arg = act
+            bottle.text = series
         }
         else {
             bottle.error = "you must specify both action name and pose series name"
+        }
+        return null
+    }
+    // Follow 'salute' with 'wave'
+    override fun visitDefineActionFollowOn(ctx: SpeechSyntaxParser.DefineActionFollowOnContext): Any? {
+        val phrases = ctx.phrase()
+        if( phrases.size>1 ) {
+            val act = phrases[0].text
+            val next = phrases[1].text
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.CREATE_NEXT_ACTION
+            bottle.arg = act
+            bottle.text = next
+        }
+        else {
+            bottle.error = "you must specify both action name and a follow on"
         }
         return null
     }
@@ -730,6 +746,21 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
         return null
     }
+    // Stop an action by clearing its follow on
+    // Stop 'salute'
+    override fun visitStopAction(ctx: SpeechSyntaxParser.StopActionContext): Any? {
+        val phrase = ctx.phrase()
+        if( phrase!=null ) {
+            val act = phrase.text
+            bottle.type = RequestType.COMMAND
+            bottle.command = CommandType.STOP_ACTION
+            bottle.arg = act
+        }
+        else {
+            bottle.error = "you must specify an action to stop"
+        }
+        return null
+    }
     // If the joint is not specified, then straighten the entire body
     // straighten your left elbow.
     /* TO-DO Handle limbs */
@@ -799,7 +830,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     private fun determineCommandFromPhrase(cmd: String): Boolean {
         val phrase = cmd.lowercase()
         var success = true
-        if (phrase == "die" || phrase == "exit" || phrase == "halt" || phrase == "quit" || phrase == "stop") {
+        if (phrase == "die" || phrase == "exit" || phrase == "halt" || phrase == "quit" ) {
             bottle.type = RequestType.COMMAND
             bottle.command = CommandType.HALT
         }
