@@ -6,9 +6,7 @@
 package chuckcoughlin.bert.sql.db
 
 import chuckcoughlin.bert.common.model.FacialDetails
-import chuckcoughlin.bert.common.model.IMU.name
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.Limb
 import chuckcoughlin.bert.common.model.MotorConfiguration
 import chuckcoughlin.bert.common.model.PoseDefinition
 import chuckcoughlin.bert.sql.tables.ActionTable
@@ -32,8 +30,8 @@ object Database  {
     fun actionExists(actionName:String) :Boolean {
         return action.actionExists(connection,actionName)
     }
-    fun configureMotorsForPoseController(poseid: Long,controller:String): List<MotorConfiguration> {
-        return pose.configureMotorsForPoseController(connection,poseid,controller)
+    fun actionSeriesExists(seriesNameName:String) :Boolean {
+        return action.actionSeriesExists(connection,seriesNameName)
     }
     /**
      * Save a list of motor position, torques and speeds as a new pose.
@@ -192,7 +190,9 @@ object Database  {
     fun poseNamesToJSON() : String {
         return pose.poseNamesToJSON(connection)
     }
-
+    fun setMotorConfigurationsForPose(poseid: Long,controller:String): List<MotorConfiguration> {
+        return pose.setMotorConfigurationsForPose(connection,poseid,controller)
+    }
     /**
      * Create a database connection. Use this for all subsequent queries.
      * Perform any required cleanup.

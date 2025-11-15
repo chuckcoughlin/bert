@@ -13,11 +13,12 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":ai"))
     implementation(project(":command"))
+    implementation(project(":dispatcher"))
     implementation(project(":database"))
     implementation(project(":motor"))
     implementation(project(":speech"))
     implementation(project(":terminal"))
-    implementation(project(":dispatcher"))
+
 }
 
 // Execute this at the very end of configuration project

@@ -7,7 +7,6 @@ package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.util.TextUtility
-import chuckcoughlin.bert.sql.db.Database.getPoseIdForName
 import chuckcoughlin.bert.sql.db.SQLConstants
 import com.google.gson.GsonBuilder
 import java.sql.*
@@ -20,93 +19,7 @@ import java.util.logging.Logger
  * methods for finding and reading a pose
  */
 class PoseTable {
-    /**
-     * Populate a list configuration objects associated with the specified pose and controller.
-     * Set desired targetAngle,speed and torque. Add to the list, if these represent a change.
-     *
-     * @param poseid
-     * @param controller name
-     * @return the affected motors in a list
-     */
-    fun configureMotorsForPoseController(cxn: Connection?,poseid: Long,controller:String): List<MotorConfiguration> {
-        val list = mutableListOf<MotorConfiguration>()
-        if( cxn!=null ) {
-            val map = RobotModel.motorsByJoint
-            var statement: PreparedStatement? = null
-            var rs: ResultSet? = null
-            val SQL = "select joint,angle,speed,torque from posejoint where poseid = ? "
-            try {
-                statement = cxn.prepareStatement(SQL)
-                statement.setQueryTimeout(10) // set timeout to 10 sec.
-                statement.setLong(1, poseid)
-                rs = statement.executeQuery()
-                while (rs.next() ) {
-                    val jointName = rs.getString("joint")
-                    val joint = Joint.fromString(jointName)
-                    val mc = map[joint]
-                    if( mc != null && mc.controller==controller) {
-                        var changed = false
-                        var angle = rs.getDouble("angle")
-                        if( !angle.isNaN()) {
-                            if (angle > mc.maxAngle)      angle = mc.maxAngle
-                            else if (angle < mc.minAngle) angle = mc.minAngle
-                            mc.goalAngle = angle
-                            if (Math.abs(mc.angle - angle) > ConfigurationConstants.ANGLE_TOLERANCE) {
-                                if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseController: %s from %2.0f to %2.0f", CLSS, jointName,mc.angle,mc.goalAngle))
-                                changed = true
-                            }
-                        }
-                        var speed = rs.getDouble("speed")
-                        if( !speed.isNaN()) {
-                            if( speed>mc.maxSpeed )    speed = mc.maxSpeed
-                            else if( speed<MIN_SPEED ) speed = MIN_SPEED
-                            mc.goalSpeed = speed
-                            if( Math.abs(mc.speed-speed) > ConfigurationConstants.SPEED_TOLERANCE) {
-                                changed = true
-                            }
-                        }
-                        var torque = rs.getDouble("torque")
-                        if( torque!=mc.torque && !torque.isNaN() ) {
-                            if( torque>mc.maxTorque ) torque = mc.maxTorque
-                            else if( torque<0.0 ) torque = 0.0
-                            mc.goalTorque = torque
-                            if( Math.abs(mc.torque-torque) > ConfigurationConstants.TORQUE_TOLERANCE) {
-                                changed = true
-                            }
-                        }
-                        if( torque>0.0 ) mc.isTorquePending = true
-                        else           mc.isTorquePending = false
-                        if( mc.isTorquePending!=mc.isTorqueEnabled ) changed = true
-                        //if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseController: for %s = %2.0f",
-                        //                CLSS, joint.name, angle))
-                        if(changed) list.add(mc)
-                    }
-                }
-                rs.close()
-            }
-            catch (e: SQLException) {
-                // if the error message is "out of memory",
-                // it probably means no database file is found
-                LOGGER.severe(String.format("%s.configureMotorsForPose: Database error (%s)", CLSS, e.message))
-            }
-            finally {
-                if (rs != null) {
-                    try {
-                        rs.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-                if (statement != null) {
-                    try {
-                        statement.close()
-                    }
-                    catch (ignore: SQLException) {}
-                }
-            }
-        }
-        if(DEBUG) LOGGER.info(String.format("%s.configureMotorsForPoseController: Pose %d uses %d motors", CLSS, poseid,list.size))
-        return list
-    }
+
     /**
      * Create a new pose or update an existing one from a list of motor position, torque and speed values.
      * @param mcmap is a map of motor configurations with positions that define the pose
@@ -134,10 +47,9 @@ class PoseTable {
             }
 
             try {
-                // An unmoving speed doesn't make sense as part of a pose
+                // An unmoving speed or zero torque doesn't make sense as part of a pose
                 for (mc in mcmap.values) {
-                    if( mc.speed < MIN_SPEED ) mc.speed = mc.maxSpeed * 0.5
-
+                    checkMotorConfigurationLimits(mc)
                     val SQL = String.format("insert into PoseJoint(poseid,joint,angle,torque,speed) values(%d,'%s',%2.3f,%2.3f,%2.1f)",poseid,
                         mc.joint.name,mc.angle,mc.torque,mc.speed)
                     if(DEBUG) LOGGER.info(String.format("%s.createPose: executing %s)", CLSS, SQL))
@@ -265,7 +177,7 @@ class PoseTable {
      * @param limb
      * @return the affected motors in a list
      */
-    fun getMotorsForPose(cxn: Connection?,poseid: Long): List<MotorConfiguration> {
+     fun getMotorsForPose(cxn: Connection?,poseid: Long): List<MotorConfiguration> {
         val list = mutableListOf<MotorConfiguration>()
         if( cxn!=null ) {
             val map = RobotModel.motorsByJoint
@@ -548,12 +460,108 @@ class PoseTable {
         }
         return gson.toJson(names)
     }
+    /**
+     * Populate a list configuration objects associated with the specified pose and controller.
+     * Set desired targetAngle,speed and torque. Add to the list, if these represent a change.
+     *
+     * @param poseid
+     * @param controller name
+     * @return the affected motors in a list
+     */
+    fun setMotorConfigurationsForPose(cxn: Connection?,poseid: Long,controller:String): List<MotorConfiguration> {
+        val list = mutableListOf<MotorConfiguration>()
+        if( cxn!=null ) {
+            val map = RobotModel.motorsByJoint
+            var statement: PreparedStatement? = null
+            var rs: ResultSet? = null
+            val SQL = "select joint,angle,speed,torque from posejoint where poseid = ? "
+            try {
+                statement = cxn.prepareStatement(SQL)
+                statement.setQueryTimeout(10) // set timeout to 10 sec.
+                statement.setLong(1, poseid)
+                rs = statement.executeQuery()
+                while (rs.next() ) {
+                    val jointName = rs.getString("joint")
+                    val joint = Joint.fromString(jointName)
+                    val mc = map[joint]
+                    if( mc != null && mc.controller==controller) {
+                        var changed = false
+                        var angle = rs.getDouble("angle")
+                        if( !angle.isNaN()) {
+                            if (angle > mc.maxAngle)      angle = mc.maxAngle
+                            else if (angle < mc.minAngle) angle = mc.minAngle
+                            mc.goalAngle = angle
+                            if (Math.abs(mc.angle - angle) > ConfigurationConstants.ANGLE_TOLERANCE) {
+                                if(DEBUG) LOGGER.info(String.format("%s.setMotorConfigurationForPose: %s from %2.0f to %2.0f", CLSS, jointName,mc.angle,mc.goalAngle))
+                                changed = true
+                            }
+                        }
+                        var speed = rs.getDouble("speed")
+                        if( !speed.isNaN()) {
+                            if( speed>mc.maxSpeed )    speed = mc.maxSpeed
+                            else if( speed<MIN_SPEED ) speed = MIN_SPEED
+                            mc.goalSpeed = speed
+                            if( Math.abs(mc.speed-speed) > ConfigurationConstants.SPEED_TOLERANCE) {
+                                changed = true
+                            }
+                        }
+                        var torque = rs.getDouble("torque")
+                        if( torque!=mc.torque && !torque.isNaN() ) {
+                            if( torque>mc.maxTorque ) torque = mc.maxTorque
+                            else if( torque<0.0 ) torque = 0.0
+                            mc.goalTorque = torque
+                            if( Math.abs(mc.torque-torque) > ConfigurationConstants.TORQUE_TOLERANCE) {
+                                changed = true
+                            }
+                        }
+                        if( torque>0.0 ) mc.isTorquePending = true
+                        else           mc.isTorquePending = false
+                        if( mc.isTorquePending!=mc.isTorqueEnabled ) changed = true
+                        //if(DEBUG) LOGGER.info(String.format("%s.setMotorConfigurationForPose: for %s = %2.0f",
+                        //                CLSS, joint.name, angle))
+                        if(changed) list.add(mc)
+                    }
+                }
+                rs.close()
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.setMotorConfigurationForPose: Database error (%s)", CLSS, e.message))
+            }
+            finally {
+                if (rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+                if (statement != null) {
+                    try {
+                        statement.close()
+                    }
+                    catch (ignore: SQLException) {}
+                }
+            }
+        }
+        if(DEBUG) LOGGER.info(String.format("%s.setMotorConfigurationForPose: Pose %d uses %d motors", CLSS, poseid,list.size))
+        return list
+    }
+    private fun checkMotorConfigurationLimits(mc:MotorConfiguration) {
+        if( mc.speed < MIN_SPEED        ) mc.speed = mc.maxSpeed * 0.5
+        else if( mc.speed > mc.maxSpeed ) mc.speed = mc.maxSpeed
+        if( mc.torque < MIN_TORQUE       ) mc.torque = mc.maxTorque * 0.5
+        else if( mc.torque > mc.maxTorque) mc.torque = mc.maxTorque
+        if( mc.angle > mc.maxAngle       )  mc.angle = mc.maxAngle
+        else if(mc.angle < mc.minAngle   )  mc.angle = mc.minAngle
+    }
 
 
     private val CLSS = "PoseTable"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean
-    private val MIN_SPEED = 10.0  // Minimum speed reasonable for a pose
+    private val MIN_SPEED = 10.0   // Minimum speed reasonable for a pose
+    private val MIN_TORQUE = 50.0  // Minimum torque reasonable for a pose
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_DATABASE)

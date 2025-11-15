@@ -257,7 +257,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         var bytes: ByteArray=ByteArray(0)
         val type: RequestType=request.type
         val jtype: JsonType=request.jtype
-        val now = System.currentTimeMillis()
         val value = if(request.values.size>0) request.values[0] else Double.NaN
         if(DEBUG) LOGGER.info(String.format("%s.messageToBytes: %s handling %s", CLSS, controllerName, type.name))
 
@@ -421,7 +420,6 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         var list: List<ByteArray> = mutableListOf<ByteArray>()
         val type: RequestType = request.type
         val limb: Limb = request.limb
-        val now = System.currentTimeMillis()
         val value = if(request.values.size>0) request.values[0] else Double.NaN
         if(DEBUG) LOGGER.info(String.format("%s.messageToByteList: %s handling %s on %s",
                     CLSS,controllerName,type.name,limb.name))
@@ -476,7 +474,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val poseid = Database.getPoseIdForName(poseName, index)
             // If the pose doesn't exist, just return an empty list
             if (poseid != SQLConstants.NO_POSE) {
-                val configurations = Database.configureMotorsForPoseController(poseid,controllerName)
+                val configurations = Database.setMotorConfigurationsForPose(poseid,controllerName)
                 if (configurations.size > 0) {
                     LOGGER.info(String.format("%s.messageToByteList (%s): set pose %s %d on %s with %d joints",
                         CLSS, controllerName, poseName, index, controllerName, configurations.size))

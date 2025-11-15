@@ -9,6 +9,7 @@ package chuckcoughlin.bert.speech.translate
  * instance to instance.
  */
 enum class SharedKey {
+    ACTION,
     ASLEEP,  // Robot ignores requests,
     AXIS,
     APPENDAGE,

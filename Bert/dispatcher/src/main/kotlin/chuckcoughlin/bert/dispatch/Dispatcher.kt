@@ -404,7 +404,7 @@ class Dispatcher : Controller {
                 }
                 else if (command == CommandType.STOP_ACTION) {
                     val actName: String = request.arg.lowercase()
-                    if(Database.actionExists(actName)) {
+                    if(Database.actionExists(actName) || Database.actionSeriesExists(actName)) {
                         Database.stopAction(actName)
                         request.text=String.format("Stop action %s", actName)
                     }

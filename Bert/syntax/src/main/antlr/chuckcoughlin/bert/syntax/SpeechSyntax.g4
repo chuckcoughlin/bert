@@ -24,14 +24,14 @@ command:
 	| Greeting Greeting? Salutation?                                        # handleGreeting
 	| Salutation? Initialize Article? Motors   					            # initializeJoints
     | Straighten (It|Article? Side? (Joint|Limb) Axis? )                    # straightenJoint
-	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Unit?    # moveMotor
+	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Units?    # moveMotor
 	| Salutation? (Move| Place) (It | Article? Side? Appendage) (At|To)? Value Value Value # placeAppendage
-	| Salutation? (Move| Place) (It | Article? Side? Appendage) Direction Value Unit?       # jogAppendage
-	| Salutation? (Move| Place) (It | Article? Side? Appendage) Value Unit? To Article Direction      # jogAppendage
+	| Salutation? (Move| Place) (It | Article? Side? Appendage) Direction By? Value Units?               # jogAppendage
+	| Salutation? (Move| Place) (It | Article? Side? Appendage) By? Value Units? To? Article? Direction? # jogAppendage
 	| Salutation? Move Speed                                                # setSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	# enableTorque
-    | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Unit?		     # setMotorPrpoerty
-	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Unit?  # setMotorProperty
+    | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Units?		     # setMotorPrpoerty
+	| Salutation? Set Article? Property Of Article? Side? Joint Axis? To (Value|On|Off|Speed) Units?  # setMotorProperty
 	| Salutation? phrase                                    		         # handleArbitraryCommandOrResponse
 	;
 
@@ -110,6 +110,7 @@ At: 'at';
 Attribute: 'old'|'tall';
 Axis: 'ex'|Why|'x'|'y'|'z'|'horizontal'|'vertical';
 Be: 'become'|'be';
+By: 'by';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
 Direction: 'back'|'forward'|Axis|Side;
@@ -175,14 +176,14 @@ Then: 'then';
 There: 'there'|'their';
 This: 'this';
 To: 'to';
-Unit: 'degrees';
+Units: 'degrees'|'millimeters'|'mm'|'deg';
 Use: 'use';
 Value: (INTEGER|DECIMAL);
 You: 'you';
 What: 'what';
 When: 'when';
 Where: 'where';
-Who: 'who';
+Who: 'who'|'whom';
 With: 'with';
 
 COMMA: ',';

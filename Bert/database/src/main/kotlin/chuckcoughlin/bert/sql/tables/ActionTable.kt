@@ -67,6 +67,48 @@ class ActionTable {
         return result
     }
     /**
+     * @return true if there is an action using the named series
+     */
+    fun actionSeriesExists(cxn:Connection?,seriesName:String) : Boolean {
+        var result = false
+        if( cxn!=null ) {
+            var SQL="select * from Action where poseseries = ?"
+            var prepStatement: PreparedStatement =cxn.prepareStatement(SQL)
+            var rs: ResultSet?=null
+            val series=seriesName.lowercase(Locale.getDefault())
+
+            try {
+                prepStatement.setQueryTimeout(10) // set timeout to 10 sec.
+                prepStatement.setString(1, series)
+                rs=prepStatement.executeQuery()
+                while(rs.next()) {
+                    val action=rs.getString("name")
+                    LOGGER.info(String.format("%s.actionESeriesxists: %s is based on %s", CLSS, action,series))
+                    result = true
+                    break
+                }
+            }
+            catch (e: SQLException) {
+                // if the error message is "out of memory",
+                // it probably means no database file is found
+                LOGGER.severe(String.format("%s.actionESeriesxists: Error (%s)", CLSS, e.message))
+            }
+            finally {
+                if(rs != null) {
+                    try {
+                        rs.close()
+                    }
+                    catch (ignore: SQLException) { }
+                }
+                try {
+                    prepStatement.close()
+                }
+                catch (ignore: SQLException) {}
+            }
+        }
+        return result
+    }
+    /**
      * Create the action.
      * @cxn an open database connection
      * @param name action name
@@ -99,7 +141,8 @@ class ActionTable {
             val next = followOn.lowercase(Locale.getDefault())
             var stmt=cxn.createStatement()
             try {
-                val SQL=String.format("update Action set nextaction = '%s' where name = '%s') ",next, action)
+                val SQL=String.format("update Action set nextaction = '%s' where name = '%s'",
+                                                next, action)
                 stmt.execute(SQL)
             }
             finally {
@@ -234,7 +277,7 @@ class ActionTable {
             val action = name.lowercase(Locale.getDefault())
             var stmt=cxn.createStatement()
             try {
-                val SQL=String.format("update Action set nextaction = NULL where name = '%s'cor poseseries = '%s') ",action, action)
+                val SQL=String.format("update Action set nextaction = NULL where name = '%s' or poseseries = '%s' ",action, action)
                 stmt.execute(SQL)
             }
             finally {

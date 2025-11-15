@@ -195,8 +195,10 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
      */
     override suspend fun dispatchMessage(msg:MessageBottle) {
         if (DEBUG) {
-            if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s %d) on %s",
-                                                        CLSS, msg.type.name,msg.arg,msg.values[0].toInt(),msg.limb.name))
+            if( msg.type==RequestType.EXECUTE_ACTION ) LOGGER.info(String.format("%s.dispatchMessage: %s  %s (%s)",
+                CLSS, msg.type.name,msg.arg,msg.text))
+            else if( msg.type==RequestType.EXECUTE_POSE ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s %d)",
+                                                        CLSS, msg.type.name,msg.arg,msg.values[0].toInt()))
             else if( msg.type==RequestType.INTERNET ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
                                                         CLSS, msg.type.name,msg.text))
             else if( msg.type==RequestType.JSON ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",

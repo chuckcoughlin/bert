@@ -261,7 +261,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                 else if (Database.actionExists(phrase)) {
                     bottle.type = RequestType.EXECUTE_ACTION
                     bottle.arg = phrase
-                    sharedDictionary[SharedKey.POSE] = phrase
+                    sharedDictionary[SharedKey.ACTION] = phrase
                 }
                 // Finally associate the phrase with the current face
                 else if(FaceMessageHandler.associateNameWithFace(phrase)) {

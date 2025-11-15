@@ -254,6 +254,14 @@ way as the Android text-to-speech processor. Sample syntax:
   define salute as a series of saluting poses
   when I say salute use saluting
 ```
+Actions may be chained by defining a second action to be executed after the first.
+Defining an action to be executed after itself results in a loop that has to be
+explicitly cleared. All followon definitions are cleared on startup of the control application.
+```
+    follow salute with wave
+    follow wave with wave
+    stop waving
+```
 As before some requests are designed for direct tablet interaction and return a JSON string
 ```
     describe action salute
