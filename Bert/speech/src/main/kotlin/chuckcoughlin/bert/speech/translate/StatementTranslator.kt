@@ -175,12 +175,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     override fun visitEnableTorque(ctx: SpeechSyntaxParser.EnableTorqueContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         bottle.jointDynamicProperty = JointDynamicProperty.STATE
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
         var value = ConfigurationConstants.OFF_VALUE
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         // If side was set previously, use it as default
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side:Side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
         if (ctx.Freeze() != null || ctx.Hold() != null) {
@@ -293,11 +293,15 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
 
-    // move your left finger 400 to the right
+    // move your left finger 400 mm to the right
+    // move your right finger up 200 mm
     override fun visitJogAppendage(ctx: SpeechSyntaxParser.JogAppendageContext): Any? {
         bottle.type = RequestType.PLACE_END_EFFECTOR
+        var direction = sharedDictionary[SharedKey.DIRECTION] as Direction
+        sharedDictionary[SharedKey.DIRECTION] = direction
+        if (ctx.Direction() != null) direction = determineDirection(ctx.Direction().getText())
         // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
         var appendage: Appendage = Appendage.NONE
@@ -315,6 +319,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             sharedDictionary[SharedKey.APPENDAGE] = appendage
             sharedDictionary[SharedKey.IT] = SharedKey.APPENDAGE
             bottle.appendage = appendage
+            bottle.text = direction.name
         }
         bottle.values[0] = ctx.Value().getText().toDouble()
         return null
@@ -324,11 +329,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         // If axis was set previously, use it as default
         if(ctx.Orientation()!=null)  bottle.type = RequestType.GET_EXTREMITY_DIRECTION
         else                         bottle.type = RequestType.GET_EXTREMITY_LOCATION
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         // If side was set previously, use it as default
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
         if (ctx.Appendage() != null) {
@@ -365,11 +370,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         val property: String = ctx.Property().getText().lowercase()
         setJointPropertyInMessage(bottle,property)
         // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
         bottle.joint = joint
@@ -432,11 +437,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         else                      bottle.jtype = JsonType.MOTOR_GOALS
 
         // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
         bottle.joint = joint
@@ -551,11 +556,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     override fun visitMoveMotor(ctx: SpeechSyntaxParser.MoveMotorContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         var joint: Joint = Joint.NONE
         if (ctx.It() != null) {
@@ -591,7 +596,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     override fun visitPlaceAppendage(ctx: SpeechSyntaxParser.PlaceAppendageContext): Any? {
         bottle.type = RequestType.SET_MOTOR_PROPERTY
         // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
         var appendage: Appendage = Appendage.NONE
@@ -649,11 +654,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         setJointPropertyInMessage(bottle,ctx.Property().getText().lowercase())
 
         // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         if (ctx.Joint() != null) {
             bottle.joint = determineJoint(ctx.Joint().getText(), axis, side)
@@ -770,11 +775,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         // Get the property
         bottle.jointDynamicProperty = JointDynamicProperty.ANGLE
         // If side or axis were set previously, use those jointValues as defaults
-        var side = sharedDictionary[SharedKey.SIDE].toString()
+        var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        var axis = sharedDictionary[SharedKey.AXIS].toString()
-        if (ctx.Axis() != null) axis = ctx.Axis().getText()
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         var joint: Joint = Joint.NONE
         if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
@@ -825,6 +830,18 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
 
     //===================================== Helper Methods ======================================
+    // Determine axis of orientation
+    private fun determineAxis(axs: String): Axis {
+        val axisName = axs.lowercase()
+        var axis = Axis.UNKNOWN
+
+        // Handle some synonyms
+        if( axisName.equals("z") || axisName.equals("horizontal")) axis = Axis.Z
+        else if( axisName.equals("y") || axisName.equals("vertical") || axis.equals("why")) axis = Axis.Y
+        else if( axisName.equals("x") || axisName.equals("ex"))         axis = Axis.X
+
+        return axis
+    }
     // Return TRUE if the phrase should be interpreted as one of the fixed commands. If so, update the
     // request bottle appropriately.
     private fun determineCommandFromPhrase(cmd: String): Boolean {
@@ -860,25 +877,37 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         return success
     }
+    // Determine side from the supplied string. If the string is "other", return
+    // the side different from the last used. Side is always lower case.
+    private fun determineDirection(text: String): Direction {
+        var dir = Direction.UNKNOWN
+        if (text.equals("back", ignoreCase = true)) dir = Direction.BACK
+        else if (text.equals("down", ignoreCase = true)) dir = Direction.DOWN
+        else if (text.equals("front", ignoreCase = true)) dir = Direction.FRONT
+        else if (text.equals("left", ignoreCase = true)) dir = Direction.LEFT
+        else if (text.equals("right", ignoreCase = true)) dir = Direction.RIGHT
+        else if (text.equals("up", ignoreCase = true)) dir = Direction.UP
+        return dir
+    }
     // Determine the specific end effector (appendage) from the body part and side. (Side is not always needed).
     // @param bodyPart - appendage (uppercase)
-    private fun determineEndEffector(appendage: String, side: String): Appendage {
+    private fun determineEndEffector(appendage: String, side: Side): Appendage {
         val bodyPart = appendage.uppercase()
         var result: Appendage = Appendage.NONE
         if (bodyPart.equals("EAR")) {
-            result = if (side.equals("left")) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
+            result = if(side==Side.LEFT) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
         }
         else if (bodyPart.equals("EYE") || bodyPart.equals("EYES")) {
-            result = if (side.equals("left")) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
+            result = if(side==Side.LEFT) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
         }
         else if (bodyPart.equals("FINGER") || bodyPart.equals("HAND")) {
-            result = if (side.equals("left")) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
+            result = if(side==Side.LEFT) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
         }
         else if (bodyPart.equals("FOOT") || bodyPart.equals("TOE")) {
-            result = if (side.equals("left")) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
+            result = if(side==Side.LEFT) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
         }
         else if (bodyPart.equals("HEEL")) {
-            result = if (side.equals("left")) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
+            result = if(side==Side.LEFT) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
         }
         else if (bodyPart.equals("NOSE")) {
             result = Appendage.NOSE
@@ -901,43 +930,37 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // Determine the specific joint from the body part, side and axis. (The latter two are
     // not always needed). Side always lower case.
-    private fun determineJoint(part: String, axs: String, side: String): Joint {
+    private fun determineJoint(part: String, axis: Axis, side: Side): Joint {
         val bodyPart = part.uppercase()
-        var axis = axs.lowercase()
         var result: Joint = Joint.NONE
 
-        // Handle some synonyms
-        if (axis.equals("horizontal")) axis = "z"
-        else if (axis.equals("vertical") || axis.equals("why")) axis = "Y"
-        else if (axis.equals("ex")) axis = "x"
-
         if (bodyPart.equals("ABS") || bodyPart.equals("ABDOMEN") ) {
-                result = if (axis.equals("x"))       Joint.ABS_X
-                         else if (axis.equals("y" )) Joint.ABS_Y
-                         else                        Joint.ABS_Z
+                result = if(axis==Axis.X)       Joint.ABS_X
+                         else if(axis==Axis.Y)  Joint.ABS_Y
+                         else                   Joint.ABS_Z
         }
         else if (bodyPart.equals("ANKLE")) {
-                result = if (side.equals("left")) Joint.LEFT_ANKLE_Y else Joint.RIGHT_ANKLE_Y
+                result = if(side==Side.LEFT) Joint.LEFT_ANKLE_Y else Joint.RIGHT_ANKLE_Y
         }
         else if (bodyPart.equals("BUST") || bodyPart.equals("CHEST")) {
-                result = if (axis.equals("x")) Joint.CHEST_X else Joint.CHEST_Y
+                result = if(axis==Axis.X) Joint.CHEST_X else Joint.CHEST_Y
         }
         else if( bodyPart.equals("IMU") ) {
             result = Joint.IMU
         }
         else if (bodyPart.equals("ELBOW")) {
-            result = if (side.equals("left")) Joint.LEFT_ELBOW_Y else Joint.RIGHT_ELBOW_Y
+            result = if(side==Side.LEFT) Joint.LEFT_ELBOW_Y else Joint.RIGHT_ELBOW_Y
         }
         else if (bodyPart.equals("NECK")) {
-            result = if (axis.equals("y")) Joint.NECK_Y else Joint.NECK_Z
+            result = if(axis==Axis.Y) Joint.NECK_Y else Joint.NECK_Z
         }
         else if (bodyPart.equals("HIP") || bodyPart.equals("THIGH")) {
-                if (side.equals("left")) {
-                    result = if (axis.equals("x"))      Joint.LEFT_HIP_X
-                             else if (axis.equals("y")) Joint.LEFT_HIP_Y
-                             else                       Joint.LEFT_HIP_Z
+                if(side==Side.LEFT) {
+                    result = if(axis==Axis.X)      Joint.LEFT_HIP_X
+                             else if(axis==Axis.Y) Joint.LEFT_HIP_Y
+                             else                  Joint.LEFT_HIP_Z
                 }
-                else if (side.equals("right")) {
+                else if(side==Side.RIGHT) {
                     result = if (axis.equals("x"))     Joint.RIGHT_HIP_X
                             else if (axis.equals("y")) Joint.RIGHT_HIP_Y
                             else Joint.RIGHT_HIP_Z
@@ -947,15 +970,15 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                 result = if (side.equals("left")) Joint.LEFT_KNEE_Y else Joint.RIGHT_KNEE_Y
         }
         else if (bodyPart.equals("SHOULDER") || bodyPart.equals("ARM")) {
-                if (side.equals("left")) {
-                    result = if (axis.equals("x"))      Joint.LEFT_SHOULDER_X
-                             else if (axis.equals("y")) Joint.LEFT_SHOULDER_Y
-                             else                       Joint.LEFT_SHOULDER_Z
+                if (side==Side.LEFT) {
+                    result = if(axis==Axis.X)      Joint.LEFT_SHOULDER_X
+                             else if(axis==Axis.Y) Joint.LEFT_SHOULDER_Y
+                             else                  Joint.LEFT_SHOULDER_Z
                 }
-                else if (side.equals("right")) {
-                    result = if (axis.equals("x"))      Joint.RIGHT_SHOULDER_X
-                             else if (axis.equals("y")) Joint.RIGHT_SHOULDER_Y
-                             else                       Joint.RIGHT_SHOULDER_Z
+                else if(side==Side.RIGHT) {
+                    result = if(axis==Axis.X)      Joint.RIGHT_SHOULDER_X
+                             else if(axis==Axis.Y) Joint.RIGHT_SHOULDER_Y
+                             else                  Joint.RIGHT_SHOULDER_Z
                 }
         }
         if(result==Joint.NONE) {
@@ -968,14 +991,14 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     // Determine the specific limb from the body part and side. Side is not always needed,
     // but is alswys lower case.
     // A limb is a grouping of joints, e.g. "ARM" includes elbow and shoulder.
-    private fun determineLimb(body: String, side: String): Limb {
+    private fun determineLimb(body: String, side: Side): Limb {
         val bodyPart = body.uppercase()
         var result: Limb = Limb.NONE
         if (bodyPart.equals("ARM")) {
-                result = if (side.equals("left")) Limb.LEFT_ARM else Limb.RIGHT_ARM
+                result = if(side==Side.LEFT) Limb.LEFT_ARM else Limb.RIGHT_ARM
         }
         else if (bodyPart.equals("LEG")) {
-                result = if (side.equals("left")) Limb.LEFT_LEG else Limb.RIGHT_LEG
+                result = if(side==Side.LEFT) Limb.LEFT_LEG else Limb.RIGHT_LEG
         }
         else if (bodyPart.equals("BACK") || bodyPart.equals("TORSO")) {
             result = Limb.TORSO
@@ -992,12 +1015,12 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     // Determine side from the supplied string. If the string is "other", return
     // the side different from the last used. Side is always lower case.
-    private fun determineSide(text: String, dict: MutableMap<SharedKey, Any>): String {
-        var side = "right"
-        if (text.equals("left", ignoreCase = true)) side = "left"
+    private fun determineSide(text: String, dict: MutableMap<SharedKey, Any>): Side {
+        var side = Side.RIGHT
+        if (text.equals("left", ignoreCase = true)) side = Side.LEFT
         else if (text.equals("other", ignoreCase = true)) {
-            val former = dict[SharedKey.SIDE].toString()
-            side = if (former.equals("left")) "right" else "left"
+            val former = dict[SharedKey.SIDE]
+            side = if(former==Side.LEFT) Side.RIGHT else Side.LEFT
         }
         return side
     }

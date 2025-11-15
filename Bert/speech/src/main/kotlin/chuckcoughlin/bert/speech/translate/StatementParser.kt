@@ -29,11 +29,12 @@ class StatementParser {
     private fun initialize() {
         dictionary[SharedKey.ASLEEP] = "false"
         dictionary[SharedKey.APPENDAGE] = Appendage.NONE
-        dictionary[SharedKey.AXIS] = "x"
+        dictionary[SharedKey.AXIS] = Axis.UNKNOWN
+        dictionary[SharedKey.DIRECTION] = Direction.UNKNOWN
         dictionary[SharedKey.JOINT] = Joint.NONE
         dictionary[SharedKey.LIMB] = Limb.NONE
         dictionary[SharedKey.POSE] = "home"
-        dictionary[SharedKey.SIDE] = "right"
+        dictionary[SharedKey.SIDE] = Side.UNKNOWN
         dictionary[SharedKey.SPEED] = "normal speed"
         dictionary[SharedKey.IT] = SharedKey.JOINT
     }

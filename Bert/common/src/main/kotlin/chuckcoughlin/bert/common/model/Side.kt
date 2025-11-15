@@ -10,14 +10,14 @@ package chuckcoughlin.bert.common.model
  *    2) Viewing side defines the projection.
  */
 enum class Side {
-    RIGHT,LEFT,FRONT,BACK;
+    RIGHT,LEFT,FRONT,BACK,TOP,BOTTOM,UNKNOWN;
 
     companion object {
         fun fromString(arg: String): Side {
             for (side in Side.values()) {
                 if(side.name.equals(arg, true)) return side
             }
-            return FRONT
+            return UNKNOWN
         }
     }
 }
