@@ -295,14 +295,31 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
 
     // move your left finger 400 mm to the right
     // move your right finger up 200 mm
+    // NOTE: There is some ambiguity in the syntax. Side can modify the appendage
+    //       or be one of the directions.
     override fun visitJogAppendage(ctx: SpeechSyntaxParser.JogAppendageContext): Any? {
         bottle.type = RequestType.PLACE_END_EFFECTOR
         var direction = sharedDictionary[SharedKey.DIRECTION] as Direction
         sharedDictionary[SharedKey.DIRECTION] = direction
-        if (ctx.Direction() != null) direction = determineDirection(ctx.Direction().getText())
+
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE] as Side
-        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        var sides = ctx.Side()
+        // If direction is specified, then side must be for Appendage.
+        if(needsSide(ctx.Appendage().getText())) {
+            if( sides.size>0) side = determineSide(sides[0].text, sharedDictionary)
+            if (ctx.Direction() != null) direction = determineDirection(ctx.Direction().getText())
+            else if(sides.size>1){
+                direction = determineDirection(sides[1].text)
+            }
+        }
+        else {
+            if (ctx.Direction() != null) direction = determineDirection(ctx.Direction().getText())
+            else if(sides.size>0){
+                direction = determineDirection(sides[0].text)
+            }
+        }
+
         sharedDictionary[SharedKey.SIDE] = side
         var appendage: Appendage = Appendage.NONE
         if (ctx.It() != null) {
@@ -1024,7 +1041,25 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         return side
     }
-
+    //@return true if the textual name of the end-effector refers to an Appendage
+    // that needs a side specification.
+    // @param appendage - appendage (uppercase)
+    private fun needsSide(text: String?): Boolean {
+        var needs = false
+        if( text!=null) {
+            val appendageText = text.uppercase()
+            if( appendageText.equals("EAR")  ||
+                appendageText.equals("EYE") ||
+                appendageText.equals("FINGER") ||
+                appendageText.equals("HAND") ||
+                appendageText.equals("FOOT") ||
+                appendageText.equals("TOE")||
+                appendageText.equals("HEEL")  ) {
+                needs = true
+            }
+        }
+        return needs
+    }
     // The poses returned here are expected to exist in the Pose table of the database.
     // Canonical names are: very slow speed,slow speed,normal speed,fast speed,very fast speed
     private fun poseForAdverb(adverb: String): String {

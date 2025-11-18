@@ -104,7 +104,7 @@ class Dispatcher : Controller {
                         // Reply to the original requester when we get a result from the motor controller
                         // Also send a synchronization message to the internal controller freeing it to continue
                         mgcResponseChannel.onReceive {     // Handle a serial response
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: bgcResponseChannel receive %s(%s) from %s",
+                            if(DEBUG) LOGGER.info(String.format("%s.execute: mgcResponseChannel receive %s(%s) from %s",
                                 CLSS, it.type.name,it.text,it.source))
                             toInternalController.send(motorReadyMessage)
                             replyToSource(it)

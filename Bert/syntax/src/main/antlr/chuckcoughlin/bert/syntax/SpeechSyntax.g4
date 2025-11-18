@@ -26,8 +26,8 @@ command:
     | Straighten (It|Article? Side? (Joint|Limb) Axis? )                    # straightenJoint
 	| Salutation? Move (It | Article? Side? Joint Axis?) To? Value Units?    # moveMotor
 	| Salutation? (Move| Place) (It | Article? Side? Appendage) (At|To)? Value Value Value # placeAppendage
-	| Salutation? (Move| Place) (It | Article? Side? Appendage) Direction By? Value Units?               # jogAppendage
-	| Salutation? (Move| Place) (It | Article? Side? Appendage) By? Value Units? To? Article? Direction? # jogAppendage
+	| Salutation? (Move| Place) (It | Article? Side? Appendage) (Side|Direction) By? Value Units?               # jogAppendage
+	| Salutation? (Move| Place) (It | Article? Side? Appendage) By? Value Units? To? Article? (Side?|Direction?) # jogAppendage
 	| Salutation? Move Speed                                                # setSpeed
 	| Salutation? (Hold|Freeze|Relax) Article? Side? (It|Joint|Limb)? Axis?	# enableTorque
     | Salutation? Set Article? Side? Joint? Axis? Property To (Value|On|Off|Speed) Units?		     # setMotorPrpoerty
@@ -113,7 +113,7 @@ Be: 'become'|'be';
 By: 'by';
 Define: 'create'|'define'|'make';
 Describe: 'describe';
-Direction: 'back'|'forward'|Axis|Side;
+Direction: 'back'|'forward'|'up'|'down';
 Do: 'do';
 Download: 'download';
 Dynamic: 'dynamic';
