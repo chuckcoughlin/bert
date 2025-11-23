@@ -66,6 +66,7 @@ object ConfigurationConstants {
     // Error valu
     const val NO_CONTROLLER  = "Not Defined"
     const val NO_DEVICE      = "No Device"
+    const val NO_ID          = -1
     const val NO_NAME        = "No Name"
     const val NO_PATH        = "No Path"
     const val NO_PORT        = "No Port"

@@ -8,7 +8,7 @@ import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.LinkLocation
+import chuckcoughlin.bert.common.model.JointPosition
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.solver.ForwardSolver
 import com.google.gson.Gson
@@ -25,7 +25,7 @@ object LocationMessageHandler  {
     fun getLinkLocations() : MessageBottle {
         val msg = MessageBottle(RequestType.JSON)
         msg.jtype = JsonType.LINK_LOCATIONS
-        msg.text = ForwardSolver.linkLocationsToJSON()
+        msg.text = ForwardSolver.linkPositionsToJSON()
         return msg
     }
     /**
@@ -40,7 +40,7 @@ object LocationMessageHandler  {
 
     fun moveEndEffector(json:String): MessageBottle {
         val msg = MessageBottle(RequestType.PLACE_END_EFFECTOR)
-        val link = gson.fromJson(json, LinkLocation::class.java)
+        val link = gson.fromJson(json, JointPosition::class.java)
         msg.appendage = Appendage.fromString(link.appendage)
         msg.values[0] = link.end.x
         msg.values[1] = link.end.y

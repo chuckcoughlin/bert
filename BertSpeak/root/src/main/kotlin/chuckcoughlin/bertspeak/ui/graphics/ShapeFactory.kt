@@ -4,7 +4,9 @@
  */
 package chuckcoughlin.bertspeak.ui.graphics
 
-import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bert.common.solver.JointTree
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
+import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.data.Point3D
 
@@ -18,30 +20,36 @@ class ShapeFactory () {
 		/**
 		 * If unknown return a red-filled circle. Resolute links are "bones".
 		 */
-		fun drawableForLink(link: LinkLocation,projection:Side): LinkShapeDrawable {
+		fun drawableForLink(tree: JointTree, jp: JointPosition, projection:Side): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
-			val p1 = projectedPoint(link.source,projection)
-			val p2 = projectedPoint(link.end,projection)
-			val side = Side.fromString(link.side)
-			if(!link.joint.equals("NONE", true)) {
-				drawable = BoneDrawable(link.name,p1,p2,side)
-				if(link.joint.contains("ANKLE")) drawable.selectable = true
+
+			val parent = tree.getParent(jp)
+			val p1 = projectedPoint(parent.pos,projection)
+			val p2 = projectedPoint(jp.pos,projection)
+			val side = Side.fromString(jp.side)
+			if(jp.parent == ConfigurationConstants.NO_ID ) {
+				drawable = UnknownDrawable(jp.name,p2,side)
 			}
-			else if(link.appendage.equals("NOSE", true)) {
-				drawable = NoseDrawable(link.name,p1,p2,side)
+			else if(!jp.isAppendage) {
+				drawable = BoneDrawable(jp.name,p1,p2,side)
+				if(jp.name.contains("ANKLE")) drawable.selectable = true
 			}
-			else if(link.appendage.contains("FINGER", true)) {
-				drawable = HandDrawable(link.name,p1,p2,side)
-			}
-			else if(link.appendage.contains("HEEL", true) ||
-				    link.appendage.contains("TOE", true)) {
-				drawable = ToeDrawable(link.name,p1,p2,side)
-			}
-			else if(!link.appendage.equals("NONE", true)) {
-				drawable = AppendageDrawable(link.name,p1,p2,side)
-			}
-			else {
-				drawable = UnknownDrawable(link.name,p1,p2,side)
+			else  {  // Appendage
+				if(jp.name.equals("NOSE", true)) {
+					drawable = NoseDrawable(jp.name,p1,p2,side)
+				}
+				else if(jp.name.contains("FINGER", true)) {
+					drawable = HandDrawable(jp.name, p1, p2, side)
+				}
+				else if(jp.name.contains("HEEL", true) ||
+					    jp.name.contains("TOE", true)) {
+					drawable = ToeDrawable(jp.name,p1,p2,side)
+				}
+				else  {
+					drawable = AppendageDrawable(jp.name,p1,p2,side)
+				}
+				drawable.selectable = true
+
 			}
 			return drawable
 		}

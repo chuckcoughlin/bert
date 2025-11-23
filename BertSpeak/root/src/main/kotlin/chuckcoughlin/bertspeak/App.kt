@@ -7,7 +7,7 @@ package chuckcoughlin.bertspeak
 import android.app.Application
 import android.os.StrictMode
 import android.util.Log
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -24,7 +24,7 @@ class App : Application() {
         super.onCreate()
         Log.i(CLSS,String.format("onCreate"))
         // If we absolutely have to start over again with the database ...
-        deleteDatabase(BertConstants.DB_NAME)
+        deleteDatabase(ConfigurationConstants.DB_NAME)
         // Initialize the database
         DatabaseManager.initialize()
         // Start the comprehensive dispatch connection service

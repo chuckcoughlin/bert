@@ -19,9 +19,8 @@ import chuckcoughlin.bertspeak.data.Point2D
  * except draw()
  */
 
- abstract class LinkShapeDrawable(nam:String,point1: Point2D,point2:Point2D,limbSide:Side): Drawable() {
+ abstract class LinkShapeDrawable(nam:String,point2:Point2D,limbSide:Side): Drawable() {
 	 val name:String
-	 val p1:Point2D
 	 val p2:Point2D
 	 val side:Side
 	 var selected:Boolean
@@ -63,7 +62,6 @@ import chuckcoughlin.bertspeak.data.Point2D
 		name = nam
 		selected = false
 		selectable = false
-		p1 = point1
 		p2 = point2
 		side = limbSide
 		opacity= PixelFormat.OPAQUE

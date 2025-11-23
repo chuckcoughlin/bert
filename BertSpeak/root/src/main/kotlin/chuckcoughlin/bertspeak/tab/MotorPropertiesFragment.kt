@@ -10,15 +10,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.data.JointPropertyHolder
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
-import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
-import chuckcoughlin.bertspeak.data.LinkLocation
-import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.data.MotorData
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusObserver
@@ -26,7 +23,6 @@ import chuckcoughlin.bertspeak.databinding.FragmentPropertiesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
-import chuckcoughlin.bertspeak.ui.adapter.LogDataAdapter
 import chuckcoughlin.bertspeak.ui.adapter.MotorPropertiesDataAdapter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -122,7 +118,7 @@ class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserv
 
     init {
         name = CLSS
-        adapter = MotorPropertiesDataAdapter(FixedSizeList<MotorData>(BertConstants.NUM_MOTORS))
+        adapter = MotorPropertiesDataAdapter(FixedSizeList<MotorData>(ConfigurationConstants.NUM_MOTORS))
         gson = Gson()
     }
 }

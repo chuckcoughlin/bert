@@ -12,7 +12,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 /**
  * Draw the forearm connector, then a hand image
  */
-class HandDrawable(name:String,p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(name,p1,p2,side) {
+class HandDrawable(name:String,val p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(name,p2,side) {
 
 	//
 	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {

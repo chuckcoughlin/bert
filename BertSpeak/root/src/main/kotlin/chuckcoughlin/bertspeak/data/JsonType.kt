@@ -33,13 +33,13 @@ enum class JsonType {
     JOINT_TYPES,      // Motor type for each joint        MutableList<JointAttribute>
     JOINT_VOLTAGES,   // Motor volts for each joint       MutableList<JointValue>
     LIMB_NAMES,       // List of limb names               MutableList<String>
-    LINK_LOCATIONS,   // x,y,z coordinates for each link  MutableList<LinkLocation>
+    LINK_POSITIONS,   // x,y,z coordinates for each link  MutableList<LinkPosition>
     MOTOR_DYNAMIC_PROPERTIES, // Names of dynamic motor properties  MutableList<String>
     MOTOR_STATIC_PROPERTIES,  // Names of static motor properties    MutableList<String>
     MOTOR_GOALS,      // Position goals for a specific joint         MutableList<JointPropertyValue>
     MOTOR_LIMITS,     // Motor limits for a specific joint           MutableList<JointPropertyValue>
     MOTOR_PROPERTIES, // Dynamic properties for all motors           MutableList<JointPropertyHolder>
-    MOVE_END_EFFECTOR,// New appendage position           LinkLocation
+    MOVE_LIMB,        // Command new appendage position              MutableList<LinkPosition>
     POSE_DETAILS,     // Details df named pose                       MutableList<PoseDetail>
     POSE_NAMES,       // Names df defined poses                      MutableList<String>
     UNDEFINED

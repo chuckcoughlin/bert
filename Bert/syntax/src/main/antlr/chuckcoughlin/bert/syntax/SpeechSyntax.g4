@@ -40,7 +40,7 @@ enumeration:
       enumerate Article? (Motors|Limbs|Appendages)                              # listBodyParts
     | enumerate Article? (Actions|Faces|Poses)                                  # listDatabaseElements
     | enumerate Article? (Limits|Goals) Of Article? Side? Joint Axis?    		# listLimits
-    | enumerate Article? (Joint|Limb) Locations 	                            # listLocations
+    | enumerate Article? (Joint|Limb) Positions 	                            # listPositions
     | enumerate Article? (Dynamic|Static) Parameters Of Article? Motors         # listMotorParameters
     | enumerate Article? (Dynamic|Static) Motor? Parameters		                # listMotorParameters
     | enumerate  Article? Properties Of Article? Motors                         # listProperty
@@ -55,12 +55,12 @@ enumeration:
 question:
       Salutation?  How Attribute Are You 						                # attributeQuestion
     | Salutation?  Are You There					                            # personalQuestion
-    | (What Is|Tell Me) Article? (Location|Orientation) Of Article? Side? (Appendage|Joint)	Axis? # jointLocationQuestion
+    | (What Is|Tell Me) Article? (Position|Orientation) Of Article? Side? (Appendage|Joint)	Axis? # jointPositionQuestion
     | (What Is|Tell Me) Article? Axis? Property Of Article? Side? Joint                       # jointPropertyQuestion
     | (What Is|Tell Me) Article? Property (Of|On) Article? Side? Joint Axis?                  # jointPropertyQuestion
     | (What Is|Tell Me) Article? Side? Joint Axis? Property                                   # jointPropertyQuestion
     | (What Is|Tell Me) Article? Metric   				    # metricsQuestion
-    | Where Is Article? Side? (Appendage|Joint) Axis?       # jointLocationQuestion
+    | Where Is Article? Side? (Appendage|Joint) Axis?       # jointPositionQuestion
     | Why Do You Have Mittens								# whyMittens
 	;
 
@@ -138,8 +138,6 @@ Limbs:'limbs';
 Limb: 'arm'|'head'|'leg'|'torso';
 Limits: 'limits';
 List: 'list'|'what are'|'tell me';
-Locations: 'locations';
-Location: 'location';
 Me: 'me';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|Name;
@@ -159,6 +157,8 @@ Parameters: 'properties'|'parameters'|'settings';
 Place: 'place';
 Poses: 'poses';
 Pose: 'pose';
+Positions: 'positions'|'coordinates';
+Position: 'position'|'coordinate';
 Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
 Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'max speed'|'max torque'|'minimum angle'|'maximum angle'|'maximum speed'|'maximum torque'|'angle'|'motor type'|Orientation|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';

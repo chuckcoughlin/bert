@@ -6,16 +6,11 @@ package chuckcoughlin.bertspeak.tab
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
-import android.view.View
-import chuckcoughlin.bertspeak.data.LinkLocation
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
-import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
 import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**

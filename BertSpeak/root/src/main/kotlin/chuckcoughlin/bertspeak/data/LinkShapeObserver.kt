@@ -4,8 +4,7 @@
  */
 package chuckcoughlin.bertspeak.data
 
-import android.graphics.drawable.shapes.Shape
-import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
+import chuckcoughlin.bert.common.solver.JointTree
 
 /**
  * Interface for listeners (specifically the animation fragment) of
@@ -28,5 +27,5 @@ interface LinkShapeObserver {
      * Allow the observer to pick whatever type(s) are appropriate.
      * @param shape to be displayed
      */
-    fun updateGraphics(skeleton:List<LinkLocation>)
+    fun updateGraphics(skeleton: JointTree)
 }

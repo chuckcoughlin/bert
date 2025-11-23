@@ -456,7 +456,7 @@ class Dispatcher : Controller {
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
-                    val xyz: Point3D = ForwardSolver.computeLocation(appendage)
+                    val xyz: Point3D = ForwardSolver.computePosition(appendage)
                     text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
                         appendage.name, xyz.x, xyz.y, xyz.z)
                     request.values[0] = xyz.x
@@ -466,7 +466,7 @@ class Dispatcher : Controller {
                 }
                 else {
                     val joint = request.joint
-                    val xyz: Point3D = ForwardSolver.computeLocation(joint)
+                    val xyz: Point3D = ForwardSolver.computePosition(joint)
                     text = String.format(
                         "My %s joint is at %2.2f %2.2f %2.2f millimeters",
                         Joint.toText(joint), xyz.x, xyz.y, xyz.z)
@@ -506,7 +506,7 @@ class Dispatcher : Controller {
                             JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Appendage.nameList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.nameList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
-                            JsonType.LINK_LOCATIONS -> text = "Locations are " + ForwardSolver.linkLocationsToJSON()
+                            JsonType.LINK_LOCATIONS -> text = "Locations are " + ForwardSolver.linkPositionsToJSON()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
                             else -> {
@@ -621,7 +621,7 @@ class Dispatcher : Controller {
                         text = RobotModel.typesToJSON()
                     }
                     JsonType.LINK_LOCATIONS -> {
-                        text = ForwardSolver.linkLocationsToJSON()
+                        text = ForwardSolver.linkPositionsToJSON()
                     }
                     JsonType.LIMB_NAMES -> {
                         text = RobotModel.limbsToJSON()

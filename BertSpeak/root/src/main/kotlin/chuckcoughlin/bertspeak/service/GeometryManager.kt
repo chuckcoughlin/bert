@@ -4,20 +4,18 @@
  */
 package chuckcoughlin.bertspeak.service
 
-import android.graphics.drawable.shapes.Shape
 import android.util.Log
+import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
-import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
-import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.LinkShapeObserver
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 /**
- * The geometry manager receives link location information from the robot
+ * The geometry manager receives link position information from the robot
  * and converts it into a Shape for display by the animation fragment.
  */
 class GeometryManager (service:DispatchService): CommunicationManager,JsonObserver {
@@ -26,7 +24,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     override val managerType = ManagerType.GEOMETRY
     override var managerState = ManagerState.OFF
     private val shapeObservers: MutableMap<String, LinkShapeObserver>
-    private val skeleton: MutableMap<String,LinkLocation>
+    private val skeleton: JointTree
     private val gson: Gson
     override fun start() {
         dispatcher.log(CLSS, String.format("start ..."))
@@ -41,46 +39,47 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
         DispatchService.unregisterForJson(this)
     }
 
-    fun linkLocationByName(name:String):LinkLocation {
-        return skeleton[name]!!
+    // NOte: This works for appendages also
+    fun jointPositionByName(name:String):JointPosition {
+        return skeleton.getPositionByName(name)
     }
     /**
      * Inform robot of requested new position (from
      * touch screen interaction).
      */
-    fun updateJointPosition(location:LinkLocation) {
-        val json = Gson().toJson(location)
-        DispatchService.reportJsonData(JsonType.MOVE_END_EFFECTOR, json)
+    fun updateJointPosition(pos:JointPosition) {
+        val json = Gson().toJson(pos)
+        DispatchService.reportJsonData(JsonType.MOVE_LIMB, json)
     }
 
     // ================ JsonObserver ======================
     override fun resetItem(map: Map<JsonType, String>) {
-        val json = map[JsonType.LINK_LOCATIONS]
+        val json = map[JsonType.LINK_POSITIONS]
         dispatcher.log(CLSS, String.format("resetItem: %s",json))
         if( json!=null && !json.isEmpty() ) {
             skeleton.clear()
-            val locType = object : TypeToken<List<LinkLocation>>() {}.type
-            val list = gson.fromJson<List<LinkLocation>>(json,locType)
-            for(loc in list) {
-                skeleton[loc.name] = loc
-                Log.i(CLSS, String.format("resetItem: SKeleton added %s",loc.locationToText()))
+            val locType = object : TypeToken<List<JointPosition>>() {}.type
+            val list = gson.fromJson<List<JointPosition>>(json,locType)
+            for(jp in list) {
+                skeleton.addJointPosition(jp)
+                Log.i(CLSS, String.format("resetItem: SKeleton added %s",jp.positionToText()))
             }
-            notifyObservers(skeleton.values.toList())
+            notifyObservers(skeleton)
         }
     }
 
     override fun updateItem(type: JsonType, json: String) {
-        if( type==LINK_LOCATIONS ) {
+        if( type==JsonType.LINK_POSITIONS ) {
             dispatcher.log(CLSS, String.format("updateItem: %s",json))
             if( !json.isEmpty() ) {
                 skeleton.clear()
-                val locType = object : TypeToken<List<LinkLocation>>() {}.type
-                val list = gson.fromJson<List<LinkLocation>>(json,locType)
-                for(loc in list) {
-                    skeleton[loc.name] = loc
-                    Log.i(CLSS, String.format("updateItem: Limb is %s",loc.locationToText()))
+                val locType = object : TypeToken<List<JointPosition>>() {}.type
+                val list = gson.fromJson<List<JointPosition>>(json,locType)
+                for(jp in list) {
+                    skeleton.addJointPosition(jp)
+                    Log.i(CLSS, String.format("updateItem: Limb is %s",jp.positionToText()))
                 }
-                notifyObservers(skeleton.values.toList())
+                notifyObservers(skeleton)
             }
         }
     }
@@ -90,7 +89,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
      */
     fun registerShapeViewer(observer: LinkShapeObserver) {
         shapeObservers[observer.name] = observer
-        observer.updateGraphics(skeleton.values.toList())
+        observer.updateGraphics(skeleton)
     }
 
     fun unregisterShapeViewer(observer: LinkShapeObserver) {
@@ -104,11 +103,11 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
 
     private fun initializeSkeleton() {
         skeleton.clear()
-        val locType = object : TypeToken<List<LinkLocation>>() {}.type
-        val list = gson.fromJson<List<LinkLocation>>(DefaultSkeleton.SKELETON,locType)
-        for(loc in list) {
-            skeleton[loc.name] = loc
-            dispatcher.log(CLSS, String.format("initializeSkeleton: Limb is %s",loc.locationToText()))
+        val locType = object : TypeToken<List<JointPosition>>() {}.type
+        val list = gson.fromJson<List<JointPosition>>(DefaultSkeleton.SKELETON,locType)
+        for(jp in list) {
+            skeleton.addJointPosition(jp)
+            dispatcher.log(CLSS, String.format("initializeSkeleton: Default is %s",jp.positionToText()))
         }
     }
     private fun initializeObservers() {
@@ -120,9 +119,9 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     /**
      * Notify geometry observers regarding receipt of a new message.
      */
-    private fun notifyObservers(locations:List<LinkLocation>) {
+    private fun notifyObservers(tree:JointTree) {
         for (observer in shapeObservers.values) {
-            observer.updateGraphics(locations)
+            observer.updateGraphics(tree)
         }
     }
 
@@ -131,7 +130,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     init {
         name = CLSS
         shapeObservers  = mutableMapOf<String, LinkShapeObserver>()
-        skeleton = mutableMapOf<String,LinkLocation>()
+        skeleton = JointTree()
         gson = Gson()
     }
 }

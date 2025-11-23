@@ -11,7 +11,7 @@ import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
 import androidx.core.content.getSystemService
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.SettingsObserver
@@ -141,7 +141,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 	}
 
 	override fun updateSetting(data: NameValue) {
-		if(data.name == BertConstants.BERT_VOLUME) {
+		if(data.name == ConfigurationConstants.BERT_VOLUME) {
 			setVolume(data.value.toDouble().roundToInt())
 		}
 	}
@@ -186,7 +186,7 @@ class SpeechManager(service:DispatchService): CommunicationManager, SettingsObse
 		textToSpeech = TextToSpeech(dispatcher.context, this)
 		// This is handled the same way in the CoverFragment startup
 		try {
-			vol = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toInt()
+			vol = DatabaseManager.getSetting(ConfigurationConstants.BERT_VOLUME).toInt()
 		}
 		catch(nfe:NumberFormatException) {
 			// Database entry was not a number

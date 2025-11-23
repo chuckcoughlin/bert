@@ -8,7 +8,7 @@ package chuckcoughlin.bertspeak.common
  * This class contains static strings used throughout
  * the application.
  */
-object BertConstants {
+object ConfigurationConstants {
     // Database configuration - must be on a path that exists in Android
     const val DB_FILE_PATH = "/data/data/chuckcoughlin.bertspeak/BertSpeak.db"
     const val DB_NAME = "BertSpeak.db"
@@ -34,6 +34,8 @@ object BertConstants {
 
     // For saved UI state in a bundle
     const val BUNDLE_FROZEN = "Frozen"
+
+    const val ROOT = "ROOT"
 
     // Undefined
     const val NO_DEVICE = "UNDEFINED_DEVICE"

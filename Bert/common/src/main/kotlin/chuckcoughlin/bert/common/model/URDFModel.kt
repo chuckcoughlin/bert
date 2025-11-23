@@ -19,8 +19,8 @@ import java.util.logging.Logger
 object URDFModel {
     val origin: LinkPin
     var document: Document?
-    val linkForAppendage: MutableMap<Appendage, Link>
-    val linkForJoint: MutableMap<Joint, Link>
+    val appendageLinks: MutableMap<Appendage, Link>
+    val jointLinks: MutableMap<Joint, Link>
 
     /**
      * Expand the supplied path as the URDF XML file.
@@ -106,7 +106,7 @@ object URDFModel {
                             link.setCoordinates(xyz[0],xyz[1],xyz[2])
                             link.endPin = pin
                             link.sourcePin = sourcePin
-                            linkForAppendage[appendage] = link
+                            appendageLinks[appendage] = link
                         }
                         else if ("joint".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "name")
@@ -123,7 +123,7 @@ object URDFModel {
                             link.setCoordinates(xyz[0],xyz[1],xyz[2])
                             link.endPin =pin
                             link.sourcePin = sourcePin
-                            linkForJoint[joint] = link
+                            jointLinks[joint] = link
                         }
                         aindex++
                     }
@@ -144,7 +144,7 @@ object URDFModel {
      */
     fun endEffectorNames(): String {
         val names = StringBuffer()
-        for (appendage in linkForAppendage.keys) {
+        for (appendage in appendageLinks.keys) {
             names.append(appendage.name.lowercase())
             names.append(", ")
         }
@@ -157,7 +157,7 @@ object URDFModel {
     fun endEffectorNamesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         val names = mutableListOf<String>()
-        for (appendage in linkForAppendage.keys) {
+        for (appendage in appendageLinks.keys) {
             names.add(appendage.name)
         }
         return gson.toJson(names)
@@ -168,7 +168,7 @@ object URDFModel {
     fun jointsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
-        for (joint in linkForJoint.keys) {
+        for (joint in jointLinks.keys) {
             names.add(joint.name)
         }
         return gson.toJson(names)
@@ -197,8 +197,8 @@ object URDFModel {
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_CONFIGURATION)
         document = null
-        linkForAppendage = mutableMapOf<Appendage, Link>()
-        linkForJoint = mutableMapOf<Joint, Link>()
+        appendageLinks = mutableMapOf<Appendage, Link>()
+        jointLinks = mutableMapOf<Joint, Link>()
         origin = LinkPin(PinType.ORIGIN)
     }
 }

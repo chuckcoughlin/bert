@@ -6,10 +6,9 @@ package chuckcoughlin.bertspeak.service
 
 import android.util.Log
 import chuckcoughlin.bertspeak.network.SocketTextHandler
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.db.DatabaseManager
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import chuckcoughlin.bertspeak.service.ManagerState.ACTIVE
 import chuckcoughlin.bertspeak.service.ManagerState.PENDING
 import kotlinx.coroutines.Deferred
@@ -169,8 +168,8 @@ class SocketManager(service:DispatchService): CommunicationManager {
         running  = false
         socket   = Socket()
         job = Job()
-        host  = DatabaseManager.getSetting(BertConstants.BERT_HOST_IP)
-        port  = DatabaseManager.getSetting(BertConstants.BERT_PORT).toInt()
+        host  = DatabaseManager.getSetting(ConfigurationConstants.BERT_HOST_IP)
+        port  = DatabaseManager.getSetting(ConfigurationConstants.BERT_PORT).toInt()
         writeChannel = Channel<String>()
     }
 }

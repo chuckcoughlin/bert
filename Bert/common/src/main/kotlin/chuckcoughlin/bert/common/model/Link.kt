@@ -9,16 +9,17 @@ import java.util.logging.Logger
 
 /**
  * A link is a skeletal structure connecting a source pin to either a
- * revolute or end effector. The "coordinates" and "rotation" members are
+ * revolute joint or end effector. The "coordinates" and "rotation" members are
  * static and refer to the orientation and position of the end pin with respect
- * to the source pin. The position of the link is the position of the
- * end point. It is a dynamic quantity derived from the quaternion matrix.
+ * to the source pin. The position of the link are the coordinates of the
+ * end point. Positions are dynamic, derived from the quaternion matrix.
  * It represents distances and orientation with respect to the robot
  * inertial frame.
  *
  * If the end pin represents a joint, then the pin is a "revolute", that is
- * rotational only. There is no translation beyond the dimensions of the link.
- * The joint x-axis is always at right angles to a line from the source to end.
+ * rotational only. The only translations are the fixed distances between source
+ * and end pins. The joint x-axis is always at right angles to a line from the
+ * source to end.
  *
  * The end pin may also represent an "extremity" or "end effector". We call it an
  * "appendage". An appendage is not movable, but we can calculate its 3D location

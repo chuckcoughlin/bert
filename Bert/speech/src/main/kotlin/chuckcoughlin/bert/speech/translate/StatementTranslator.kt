@@ -341,45 +341,6 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         bottle.values[0] = ctx.Value().getText().toDouble()
         return null
     }
-    // where is your left ear
-    override fun visitJointLocationQuestion(ctx: SpeechSyntaxParser.JointLocationQuestionContext): Any? {
-        // If axis was set previously, use it as default
-        if(ctx.Orientation()!=null)  bottle.type = RequestType.GET_EXTREMITY_DIRECTION
-        else                         bottle.type = RequestType.GET_EXTREMITY_LOCATION
-        var axis = sharedDictionary[SharedKey.AXIS] as Axis
-        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
-        sharedDictionary[SharedKey.AXIS] = axis
-        // If side was set previously, use it as default
-        var side = sharedDictionary[SharedKey.SIDE] as Side
-        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
-        sharedDictionary[SharedKey.SIDE] = side
-        if (ctx.Appendage() != null) {
-            val appendage = determineEndEffector(ctx.Appendage().getText(), side)
-            bottle.appendage = appendage
-            if( appendage==Appendage.NONE ) {
-                val msg = String.format("I don't have a body part %s, that I know of",
-                        ctx.Appendage().text )
-                bottle.error = msg
-            }
-            else {
-                sharedDictionary[SharedKey.APPENDAGE] = appendage
-            }
-        }
-        else if (ctx.Joint() != null) {
-            var joint: Joint = sharedDictionary[SharedKey.JOINT] as Joint
-            if (ctx.Joint() != null) joint = determineJoint(ctx.Joint().getText(), axis, side)
-            bottle.joint = joint
-            if( joint==Joint.NONE ) {
-                val msg = String.format("I don't have a joint like that")
-                bottle.error = msg
-            }
-            else {
-                sharedDictionary[SharedKey.JOINT] = joint
-                sharedDictionary[SharedKey.IT] = SharedKey.JOINT
-            }
-        }
-        return null
-    }
 
     // what is the id of your left hip y?
     override fun visitJointPropertyQuestion(ctx: SpeechSyntaxParser.JointPropertyQuestionContext): Any? {
@@ -474,11 +435,11 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
     // where are your joints
-    override fun visitListLocations(ctx: SpeechSyntaxParser.ListLocationsContext): Any? {
+    override fun visitListPositions(ctx: SpeechSyntaxParser.ListPositionsContext): Any? {
         var txt = "list"
         if(ctx.enumerate()!=null) txt = visit(ctx.enumerate()).toString()
         determineJsonOrList(txt,bottle)
-        bottle.jtype = JsonType.LINK_LOCATIONS
+        bottle.jtype = JsonType.LINK_POSITIONS
         return null
     }
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.
@@ -813,7 +774,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             bottle.error = msg
         }
         else {
-            val link = URDFModel.linkForJoint[joint]!!
+            val link = URDFModel.jointLinks[joint]!!
             value = link.sourcePin.home
         }
 

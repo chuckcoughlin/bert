@@ -10,7 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.data.LogData
 import chuckcoughlin.bertspeak.data.LogDataObserver
@@ -67,6 +67,6 @@ class PosesFragment(pos:Int) : BasicAssistantFragment(pos), LogDataObserver {
 
     init {
         name = CLSS
-        adapter = LogDataAdapter(FixedSizeList<LogData>(BertConstants.NUM_POSES))
+        adapter = LogDataAdapter(FixedSizeList<LogData>(ConfigurationConstants.NUM_POSES))
     }
 }

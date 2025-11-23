@@ -5,7 +5,7 @@
 package chuckcoughlin.bertspeak.service
 
 import android.util.Log
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.JsonObserver
@@ -223,8 +223,8 @@ class TextManager (service:DispatchService): CommunicationManager {
      */
     init {
         dataMap = mutableMapOf<JsonType, String>()
-        logList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
-        transcriptList = FixedSizeList(BertConstants.NUM_LOG_MESSAGES)
+        logList = FixedSizeList(ConfigurationConstants.NUM_LOG_MESSAGES)
+        transcriptList = FixedSizeList(ConfigurationConstants.NUM_LOG_MESSAGES)
         logObservers        = mutableMapOf<String, LogDataObserver>()
         jsonObservers       = mutableMapOf<String, JsonObserver>()
         transcriptObservers = mutableMapOf<String, LogDataObserver>()

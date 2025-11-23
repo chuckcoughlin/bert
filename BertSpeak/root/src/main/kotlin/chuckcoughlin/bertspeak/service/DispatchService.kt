@@ -1,17 +1,17 @@
 /**
- * Copyright 2022-2024 Charles Coughlin. All rights reserved.
+ * Copyright 2022-2025 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
-import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.data.LogDataObserver
 import chuckcoughlin.bertspeak.data.LinkShapeObserver
@@ -166,9 +166,9 @@ class DispatchService(ctx: Context){
         if(txt.length > 4) {
             Log.i(CLSS, String.format("receiveMessage: (%s)", txt))
             try {
-                val hdr = txt.substring(0, BertConstants.HEADER_LENGTH)
+                val hdr = txt.substring(0, ConfigurationConstants.HEADER_LENGTH)
                 val type = MessageType.valueOf(hdr.uppercase(Locale.getDefault()))
-                txt = txt.substring(BertConstants.HEADER_LENGTH + 1)
+                txt = txt.substring(ConfigurationConstants.HEADER_LENGTH + 1)
                 // # delimiter between JSON type and JSON object
                 if( type==MessageType.JSN) {
                     val index = txt.indexOf("#")
@@ -330,10 +330,10 @@ class DispatchService(ctx: Context){
             instance.speechManager.speak(msg)
         }
 
-        fun linkLocationByName(name:String):LinkLocation {
-            return instance.geometryManager.linkLocationByName(name)
+        fun jointPositionByName(name:String):JointPosition {
+            return instance.geometryManager.jointPositionByName(name)
         }
-        fun updateJointPosition(location: LinkLocation) {
+        fun updateJointPosition(location: JointPosition) {
             instance.geometryManager.updateJointPosition(location)
         }
 

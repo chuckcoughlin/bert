@@ -12,7 +12,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 /**
  * The ankle connector is very short. Draw it and a toe image
  */
-class ToeDrawable(name:String, p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(name,p1,p2,side) {
+class ToeDrawable(name:String, val p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(name,p2,side) {
 
 	//
 	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {

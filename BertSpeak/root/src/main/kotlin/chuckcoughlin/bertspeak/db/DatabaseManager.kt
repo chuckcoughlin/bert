@@ -8,7 +8,7 @@ import android.database.DatabaseErrorHandler
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.NameValue
 import chuckcoughlin.bertspeak.data.SettingsObserver
 
@@ -56,7 +56,7 @@ object DatabaseManager  {
                 SQL.append(")")
                 database.execSQL(SQL.toString())
                 Log.i(CLSS, String.format("initialize: Created settings table in %s \n%s",
-                    BertConstants.DB_NAME, SQL.toString()))
+                    ConfigurationConstants.DB_NAME, SQL.toString()))
             }
             catch (sqle: SQLException) {
                 Log.e(CLSS, String.format("initialize:aborted\n%s\nSQLException (%s)",
@@ -74,32 +74,32 @@ object DatabaseManager  {
             // for development.
             var statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_HOST,
-                    BertConstants.BERT_HOST_HINT,
-                    BertConstants.BERT_HOST_HINT)
+                    ConfigurationConstants.BERT_HOST,
+                    ConfigurationConstants.BERT_HOST_HINT,
+                    ConfigurationConstants.BERT_HOST_HINT)
             execLenient(statement)
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_HOST_IP,
-                    BertConstants.BERT_HOST_IP_HINT,
-                    BertConstants.BERT_HOST_IP_HINT)
+                    ConfigurationConstants.BERT_HOST_IP,
+                    ConfigurationConstants.BERT_HOST_IP_HINT,
+                    ConfigurationConstants.BERT_HOST_IP_HINT)
             execLenient(statement)
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_PORT,
-                    BertConstants.BERT_PORT_HINT,
-                    BertConstants.BERT_PORT_HINT)
+                    ConfigurationConstants.BERT_PORT,
+                    ConfigurationConstants.BERT_PORT_HINT,
+                    ConfigurationConstants.BERT_PORT_HINT)
             execLenient(statement)
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_VERSION,
-                    BertConstants.BERT_VERSION_HINT,
-                    BertConstants.BERT_VERSION_HINT)
+                    ConfigurationConstants.BERT_VERSION,
+                    ConfigurationConstants.BERT_VERSION_HINT,
+                    ConfigurationConstants.BERT_VERSION_HINT)
             execLenient(statement)
             statement =
                 String.format("INSERT INTO Settings(Name,Value,Hint) VALUES(\'%s\',\'%s\',\'%s\')",
-                    BertConstants.BERT_VOLUME, BertConstants.BERT_VOLUME_HINT,
-                    BertConstants.BERT_VOLUME_HINT)
+                    ConfigurationConstants.BERT_VOLUME, ConfigurationConstants.BERT_VOLUME_HINT,
+                    ConfigurationConstants.BERT_VOLUME_HINT)
             execLenient(statement)
         }
     }
@@ -154,7 +154,7 @@ object DatabaseManager  {
     fun updateSetting(nv: NameValue) {
         synchronized(this) {
             // Validate
-            if( nv.name.equals(BertConstants.BERT_VOLUME)) {
+            if( nv.name.equals(ConfigurationConstants.BERT_VOLUME)) {
                 validateVolume(nv)
             }
             Log.i(CLSS, String.format("updateSettings: %s = %s (%s)", nv.name, nv.value, nv.hint))
@@ -180,7 +180,7 @@ object DatabaseManager  {
             var index = 0
             while (index < count) {
                 val nv = items[index]
-                if( nv.name.equals(BertConstants.BERT_VOLUME)) {
+                if( nv.name.equals(ConfigurationConstants.BERT_VOLUME)) {
                     validateVolume(nv)
                 }
                 bindArgs[0] = nv.value
@@ -211,7 +211,7 @@ object DatabaseManager  {
         flags = if( canWrite ) flags or SQLiteDatabase.OPEN_READWRITE
                 else flags or SQLiteDatabase.OPEN_READONLY
         val db = SQLiteDatabase.openDatabase(
-            BertConstants.DB_FILE_PATH, null,flags, errorHandler)
+            ConfigurationConstants.DB_FILE_PATH, null,flags, errorHandler)
 
         db.setForeignKeyConstraintsEnabled(true)
         return db

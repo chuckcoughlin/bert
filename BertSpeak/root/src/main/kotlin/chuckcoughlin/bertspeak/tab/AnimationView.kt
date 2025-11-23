@@ -10,8 +10,9 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
-import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
@@ -57,11 +58,11 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
      */
      abstract fun selectDrawable(point:Point2D):LinkShapeDrawable?
 
-    fun updateDrawables(skeleton:List<LinkLocation>) {
-        for (loc in skeleton) {
+    fun updateDrawables(skeleton: JointTree) {
+        for (jp in skeleton.map.values) {
             // Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
-            val drawable = ShapeFactory.drawableForLink(loc, configuration.projection)
-            drawables[loc.name] = drawable
+            val drawable = ShapeFactory.drawableForLink(skeleton,jp, configuration.projection)
+            drawables[jp.name] = drawable
         }
     }
 
@@ -93,15 +94,15 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
                 performClick()
                 if(selected!=null) {
                     val physical = Point2D((x-configuration.originx)/configuration.scale,(y-configuration.originy)/configuration.scale)
-                    val location = DispatchService.linkLocationByName(selected!!.name)
-                    location.end.z = physical.y
+                    val position = DispatchService.jointPositionByName(selected!!.name)
+                    position.pos.z = physical.y
                     when(configuration.projection) {
-                        BACK  -> location.end.y = -physical.x
-                        FRONT -> location.end.y = physical.x
-                        LEFT  -> location.end.x = -physical.x
-                        RIGHT -> location.end.x = physical.x
+                        BACK  -> position.pos.y = -physical.x
+                        FRONT -> position.pos.y = physical.x
+                        LEFT  -> position.pos.x = -physical.x
+                        RIGHT -> position.pos.x = physical.x
                     }
-                    DispatchService.updateJointPosition(location)
+                    DispatchService.updateJointPosition(position)
                 }
                 selected = null
             }

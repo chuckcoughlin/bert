@@ -17,9 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
-import chuckcoughlin.bertspeak.common.BertConstants
 import chuckcoughlin.bertspeak.databinding.BertspeakMainBinding
-import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.tab.FragmentPageAdapter
 import com.google.android.material.tabs.TabLayout

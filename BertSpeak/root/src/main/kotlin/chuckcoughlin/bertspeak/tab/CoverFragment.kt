@@ -18,7 +18,7 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.lifecycle.Lifecycle
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.NameValue
@@ -87,7 +87,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
         seekBar.isClickable = true
         seekBar.setOnSeekBarChangeListener(this)
         try {
-            val prog = DatabaseManager.getSetting(BertConstants.BERT_VOLUME).toDouble().roundToInt()
+            val prog = DatabaseManager.getSetting(ConfigurationConstants.BERT_VOLUME).toDouble().roundToInt()
             seekBar.progress = prog
         }
         catch(nfe:NumberFormatException) {
@@ -176,7 +176,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
     }
 
     override fun updateSetting(data: NameValue) {
-        if(data.name.equals(data.name.equals(BertConstants.BERT_VOLUME))) {
+        if(data.name.equals(data.name.equals(ConfigurationConstants.BERT_VOLUME))) {
             seekBar.progress = data.value.toInt()
         }
     }
@@ -319,7 +319,7 @@ class CoverFragment (pos:Int): BasicAssistantFragment(pos), SettingsObserver,Sta
 
     override fun onProgressChanged(seekBar: SeekBar, progress: Int,fromUser: Boolean) {
         Log.i(name, String.format("onProgressChanged: seekBar at %d",progress))
-        val vol = NameValue(BertConstants.BERT_VOLUME,progress.toString())
+        val vol = NameValue(ConfigurationConstants.BERT_VOLUME,progress.toString())
         DatabaseManager.updateSetting(vol)
     }
 

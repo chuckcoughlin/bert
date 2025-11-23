@@ -23,12 +23,10 @@ import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JsonType.FACE_NAMES
-import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.databinding.FragmentFacesBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
 import chuckcoughlin.bertspeak.ui.adapter.TextListAdapter

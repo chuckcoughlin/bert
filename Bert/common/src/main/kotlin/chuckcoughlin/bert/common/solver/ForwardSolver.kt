@@ -11,7 +11,7 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.IMU
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.Link
-import chuckcoughlin.bert.common.model.LinkLocation
+import chuckcoughlin.bert.common.model.JointPosition
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.model.URDFModel
@@ -26,7 +26,7 @@ import java.util.logging.Logger
  * A single link object may belong to several chains.
  */
 object ForwardSolver {
-    val model: URDFModel
+    val tree:JointTree
 
     /**
      * Return the orientation of a specified appendage in x,y,z coordinates in meters from the
@@ -53,7 +53,7 @@ object ForwardSolver {
     /**
      * Return a string for debugging use containing both position and direction
      */
-    fun computeLocationDescription(joint: Joint): String {
+    fun computePositionDescription(joint: Joint): String {
         val subchain: List<Link> = Chain.partialChainToJoint(joint)
         val q = computeQuaternionFromChain(subchain)
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
@@ -61,28 +61,28 @@ object ForwardSolver {
     /**
      * Return a string for debugging use containing both position and direction
      */
-    fun computeLocationDescription(appendage: Appendage): String {
+    fun computePositionDescription(appendage: Appendage): String {
         val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
         val q = computeQuaternionFromChain(subchain)
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
     }
     /**
-     * Return the location of a specified appendage in x,y,z coordinates in meters from the
-     * robot origin in the pelvis. The named end effector or appendage is
-     * last in the chain.
+     * Return the coordinated of a specified appendage in meters from the
+     * robot origin in the pelvis in the inertial reference frame.
+     * The named joint is last in the chain.
      */
-    fun computeLocation(appendage: Appendage): Point3D {
+    fun computePosition(appendage: Appendage): Point3D {
         val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
     }
 
     /**
-     * Return the location of a specified joint in x,y,z coordinates in meters from the
-     * robot origin in the pelvis in the inertial reference frame. The named joint is
-     * last in the chain.
+     * Return the coordinated of a specified joint in meters from the
+     * robot origin in the pelvis in the inertial reference frame.
+     * The named joint is last in the chain.
      */
-    fun computeLocation(joint: Joint): Point3D {
+    fun computePosition(joint: Joint): Point3D {
         val subchain: List<Link> = Chain.partialChainToJoint(joint)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
@@ -113,72 +113,13 @@ object ForwardSolver {
         return q
     }
 
-    /**
-     *
-     */
-    fun linkLocationsToJSON():String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val list = mutableListOf<LinkLocation>()
-        fillLocations(list)
-        return gson.toJson(list)
-    }
 
-    fun linkLocationsToList():String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val list = mutableListOf<String>()
-        fillLocationText(list)
-        val txt = TextUtility.createTextForSpeakingFromList(list)
-        return txt
-    }
+    /*
+     * Populate a list of positions for all joints and extremities
+     * from the current joint angles.
+     */
+    private fun fillPositions(tree:JointTree) {
 
-    /**
-     * Populate a list of locations for all joints and extremities
-     * NOTE: There must be a more effecient way of doing this.
-     */
-    private fun fillLocations(list:MutableList<LinkLocation>) {
-        for(link in URDFModel.linkForAppendage.values) {
-            val loc = LinkLocation()
-            loc.updateFromLink(link)
-            var pos = computeLocation(link.sourcePin.joint)
-            loc.updateSource(pos)
-            pos = computeLocation(link.endPin.appendage)
-            loc.updateEnd(pos)
-            if(DEBUG) LOGGER.info(String.format("%s.fillLocations: %s = (%s) ",
-                CLSS,link.endPin.appendage.name, loc.locationToText()))
-            list.add(loc)
-        }
-        for(link in URDFModel.linkForJoint.values) {
-            val loc = LinkLocation()
-            loc.updateFromLink(link)
-            var pos = computeLocation(link.sourcePin.joint)
-            loc.updateSource(pos)
-            pos = computeLocation(link.endPin.joint)
-            loc.updateEnd(pos)
-            list.add(loc)
-        }
-    }
-    /**
-     * Populate a list of location text descriptions for all joints and extremities
-     */
-    private fun fillLocationText(list:MutableList<String>) {
-        for(link in URDFModel.linkForAppendage.values) {
-            val loc = LinkLocation()
-            loc.updateFromLink(link)
-            var pos = computeLocation(link.sourcePin.joint)
-            loc.updateSource(pos)
-            pos = computeLocation(link.endPin.appendage)
-            loc.updateEnd(pos)
-            list.add(loc.locationToText())
-        }
-        for(link in URDFModel.linkForJoint.values) {
-            val loc = LinkLocation()
-            loc.updateFromLink(link)
-            var pos = computeLocation(link.sourcePin.joint)
-            loc.updateSource(pos)
-            pos = computeLocation(link.endPin.joint)
-            loc.updateEnd(pos)
-            list.add(loc.locationToText())
-        }
     }
 
     private const val CLSS = "ForwardSolver"
@@ -190,6 +131,6 @@ object ForwardSolver {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        model = URDFModel
+        tree = JointTree()
     }
 }

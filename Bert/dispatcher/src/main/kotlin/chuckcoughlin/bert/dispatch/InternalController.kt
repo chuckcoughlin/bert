@@ -11,12 +11,10 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.solver.ForwardSolver
-import chuckcoughlin.bert.common.solver.InverseSolver
-import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
+import chuckcoughlin.bert.common.solver.MotionPlanner
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import java.awt.SystemColor.text
 import java.util.logging.Logger
 
 /**
@@ -161,7 +159,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         else if (request.type == RequestType.PLACE_END_EFFECTOR ) {
             // Placing an end-effector involves a series of discrete motions
             // The original request is dispatched last - possibly has error text
-            val messageList = InverseSolver.placementCommands(request)
+            val messageList = MotionPlanner.placementCommands(request)
             for(msg in messageList) {
                 msg.source = ControllerType.BITBUCKET
                 dispatchMessage(msg)   // Control responses will go to the bit bucket
@@ -181,7 +179,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         val msg = MessageBottle(RequestType.JSON)
         msg.jtype = JsonType.LINK_LOCATIONS
         msg.source = ControllerType.COMMAND  // If tablet is connected.
-        msg.text = ForwardSolver.linkLocationsToJSON()
+        msg.text = ForwardSolver.linkPositionsToJSON()
         if(DEBUG) LOGGER.info(String.format("%s.dispatchLocationUpdates Updating limb positions on tablet",
             CLSS))
         dispatchMessage(msg)  // Causes hang at the moment ??

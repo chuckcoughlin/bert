@@ -13,8 +13,7 @@ import chuckcoughlin.bertspeak.data.Point2D
  * Draw a filled rectangle with circles at either end
  * the indicate the joint.
  */
-class BoneDrawable(name:String,p1:Point2D,p2:Point2D,side:Side) : LinkShapeDrawable(name,p1,p2,side) {
-
+class BoneDrawable(name:String,val p1:Point2D, p2:Point2D,side:Side) : LinkShapeDrawable(name,p2,side) {
 	//
 	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {
 		drawConnector(canvas,gc)

@@ -12,7 +12,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import chuckcoughlin.bertspeak.R
-import chuckcoughlin.bertspeak.common.BertConstants
+import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.FixedSizeList
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.data.LogData
@@ -34,7 +34,7 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), LogDataObserver
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,savedInstanceState: Bundle?): View {
         if (savedInstanceState != null) frozen =
-            savedInstanceState.getBoolean(BertConstants.BUNDLE_FROZEN, false)
+            savedInstanceState.getBoolean(ConfigurationConstants.BUNDLE_FROZEN, false)
         val binding = FragmentTranscriptBinding.inflate(inflater,container,false)
         var transcriptView = binding.transcriptRecyclerView
         transcriptView.setHasFixedSize(true) // Refers to the size of the layout.
@@ -69,7 +69,7 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), LogDataObserver
 
     override fun onSaveInstanceState(stateToSave: Bundle) {
         super.onSaveInstanceState(stateToSave)
-        stateToSave.putBoolean(BertConstants.BUNDLE_FROZEN, frozen)
+        stateToSave.putBoolean(ConfigurationConstants.BUNDLE_FROZEN, frozen)
     }
 
     //============================= Button Callbacks ================================
@@ -121,6 +121,6 @@ class TranscriptFragment (pos:Int): BasicAssistantFragment(pos), LogDataObserver
 
     init {
         name = CLSS
-        adapter = LogDataAdapter(FixedSizeList<LogData>(BertConstants.NUM_TRANSCRIPT_MESSAGES))
+        adapter = LogDataAdapter(FixedSizeList<LogData>(ConfigurationConstants.NUM_TRANSCRIPT_MESSAGES))
     }
 }

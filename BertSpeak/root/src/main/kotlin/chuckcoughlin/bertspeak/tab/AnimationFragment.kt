@@ -4,25 +4,22 @@
  */
 package chuckcoughlin.bertspeak.tab
 
-import android.graphics.Canvas
 import android.os.Bundle
-import android.provider.SyncStateContract.Helpers.update
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bertspeak.common.DispatchConstants
-import chuckcoughlin.bertspeak.data.JsonType.LINK_LOCATIONS
-import chuckcoughlin.bertspeak.data.LinkLocation
+import chuckcoughlin.bertspeak.data.JointPosition
+import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.LinkShapeObserver
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.databinding.FragmentAnimationBinding
 import chuckcoughlin.bertspeak.service.DispatchService
-import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import chuckcoughlin.bertspeak.service.ManagerState
 import chuckcoughlin.bertspeak.service.ManagerType
-import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
  * This fragment displays the robot position right/front/left and allows the uesr to
@@ -69,7 +66,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
     }
 
     fun refreshButtonClicked() {
-        DispatchService.sendJsonRequest(LINK_LOCATIONS)
+        DispatchService.sendJsonRequest(JsonType.LINK_POSITIONS)
     }
 
     // ===================== StatusDataObserver =====================
@@ -86,7 +83,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
         Log.i(name, String.format("updateStatus (%s):%s = %s", data.action, data.type, data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             if (data.type == ManagerType.SOCKET && data.state == ManagerState.ACTIVE) {
-                DispatchService.sendJsonRequest(LINK_LOCATIONS)
+                DispatchService.sendJsonRequest(JsonType.LINK_POSITIONS)
             }
         }
     }
@@ -102,8 +99,8 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
     /*
      * Update the skeleton in each of the three panels
      */
-    override fun updateGraphics(skeleton:List<LinkLocation>) {
-        Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.size))
+    override fun updateGraphics(skeleton: JointTree) {
+        Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.map.size))
         leftPanel.updateDrawables(skeleton)
         frontPanel.updateDrawables(skeleton)
         rightPanel.updateDrawables(skeleton)

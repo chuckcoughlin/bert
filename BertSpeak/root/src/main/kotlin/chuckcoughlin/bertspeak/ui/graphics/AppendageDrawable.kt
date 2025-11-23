@@ -11,7 +11,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 /**
  * Draw a red dot if nothing else matches..
  */
-class AppendageDrawable(name:String,p1:Point2D, p2: Point2D, side:Side) : LinkShapeDrawable(name,p1,p2,side) {
+class AppendageDrawable(name:String,val p1:Point2D, p2: Point2D, side:Side) : LinkShapeDrawable(name,p2,side) {
 	val unscaledRadius:Float
 
 	// Error indicator is a red circle
