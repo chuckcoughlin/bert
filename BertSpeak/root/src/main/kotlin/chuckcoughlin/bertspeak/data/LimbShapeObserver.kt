@@ -4,14 +4,13 @@
  */
 package chuckcoughlin.bertspeak.data
 
-import chuckcoughlin.bert.common.solver.JointTree
 
 /**
  * Interface for listeners (specifically the animation fragment) of
  * positional information from the robot converted into shapes
  * for display.
  */
-interface LinkShapeObserver {
+interface LimbShapeObserver {
     /**
      * Allow only one observer of a given name.
      * @return the name of the observer

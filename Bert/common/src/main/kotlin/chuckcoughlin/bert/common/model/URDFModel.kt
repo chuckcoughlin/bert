@@ -4,6 +4,9 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.model.URDFModel.document
+import chuckcoughlin.bert.common.solver.ForwardSolver
+import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -17,10 +20,8 @@ import java.util.logging.Logger
  * A chain has a tree structure with a single root.
  */
 object URDFModel {
-    val origin: LinkPin
-    var document: Document?
-    val appendageLinks: MutableMap<Appendage, Link>
-    val jointLinks: MutableMap<Joint, Link>
+    private var document: Document?
+    private val tree: JointTree
 
     /**
      * Expand the supplied path as the URDF XML file.
@@ -46,18 +47,21 @@ object URDFModel {
      */
     private fun analyzeChain() {
         if (document != null) {
+            var origin = JointPosition()
+            origin.name = Joint.IMU.name
             // ================================== IMU ===============================================
             val imus = document!!.getElementsByTagName("imu")
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
                 val rpy = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "rpy"))
-                IMU.setRpy(rpy[0],rpy[1],rpy[2])
+                origin.setCoordinates(rpy[0],rpy[1],rpy[2])
             }
+            tree.setOrigin(origin)
 
             // ================================== Links ===============================================
             // Links are a connection between joints or from a joint to extremity (appendage). The link
-            // that has no source is the origin and originates from the IMU.
+            // that has no source is the IMU, the root if the tree.
             //
             // Create all the Links and their LinkPins. A LinkPin encompasses the connecting joint.
             // Create a separate link for each resolute joint and end effector.
@@ -72,8 +76,8 @@ object URDFModel {
                 // if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s .
                 // ..",CLSS,name))
                 try {
-                    // The source pin is shared with all sub-links
-                    var sourcePin = LinkPin(PinType.ORIGIN)
+                    // The source is shared with all sub-links
+                    var parent = origin
                     val children = linkNode.childNodes
                     val acount = children.length
                     var aindex = 0
@@ -82,9 +86,7 @@ object URDFModel {
                         // Same source must be applied to all joints/appendages in same link element
                         if ("source".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "joint")
-                            val joint = Joint.fromString(jname)
-                            sourcePin = LinkPin(PinType.REVOLUTE)
-                            sourcePin.joint = joint
+                            parent = tree.getJointPositionByName(jname)
                         }
                         aindex++
                     }
@@ -92,38 +94,22 @@ object URDFModel {
                     aindex = 0
                     while (aindex < acount) {
                         val node = children.item(aindex)
-                        if ("appendage".equals(node.localName)) {
-                            val aname: String = XMLUtility.attributeValue(node, "name")
-                            val link = Link(aname)
-                            val side: String = XMLUtility.attributeValue(linkNode, "side")
-                            link.side = Side.fromString(side)
-                            val appendage: Appendage = Appendage.fromString(aname)
-                            val pin = LinkPin(PinType.END_EFFECTOR)
-                            pin.appendage = appendage
+                        val aname: String = XMLUtility.attributeValue(node, "name")
+                        if ("appendage".equals(node.localName) || "joint".equals(node.localName)) {
+                            val jp = tree.getJointPositionByName(aname)
+                            if("appendage".equals(node.localName) ) {
+                                jp.isAppendage = true
+                            }
+                            else {
+                                jp.home = XMLUtility.attributeValue(linkNode, "home").toDouble()
+                            }
+                            jp.side = XMLUtility.attributeValue(linkNode, "side")
+                            jp.parent = parent.id
+                            var jlink = tree.createJointLink(jp,parent)
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
-                            link.setRpy(rpy[0],rpy[1],rpy[2])
+                            jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                            link.setCoordinates(xyz[0],xyz[1],xyz[2])
-                            link.endPin = pin
-                            link.sourcePin = sourcePin
-                            appendageLinks[appendage] = link
-                        }
-                        else if ("joint".equals(node.localName)) {
-                            val jname: String = XMLUtility.attributeValue(node, "name")
-                            val link = Link(jname)
-                            val side: String = XMLUtility.attributeValue(linkNode, "side")
-                            link.side = Side.fromString(side)
-                            val joint = Joint.fromString(jname)
-                            val pin = LinkPin(PinType.REVOLUTE)
-                            pin.joint = joint
-                            pin.home = XMLUtility.attributeValue(node, "home").toDouble()
-                            val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
-                            link.setRpy(rpy[0],rpy[1],rpy[2])
-                            val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                            link.setCoordinates(xyz[0],xyz[1],xyz[2])
-                            link.endPin =pin
-                            link.sourcePin = sourcePin
-                            jointLinks[joint] = link
+                            jp.setCoordinates(xyz[0],xyz[1],xyz[2])
                         }
                         aindex++
                     }
@@ -138,15 +124,27 @@ object URDFModel {
         }
     }
 
+    /**
+     * Create a JointTree from the existing structure.
+     * Note that all joint positions are (0,0,0).
+     */
+    fun createJointTree() : JointTree {
+        val jtree = tree.clone()
+        return jtree
+    }
+
+
 
     /**
      * @return  a comma-separated string of the names of all extremities.
      */
     fun endEffectorNames(): String {
         val names = StringBuffer()
-        for (appendage in appendageLinks.keys) {
-            names.append(appendage.name.lowercase())
-            names.append(", ")
+        for (jp in tree.listJointPositions()) {
+            if(jp.isAppendage) {
+                names.append(jp.name.lowercase())
+                names.append(", ")
+            }
         }
         if( names.isNotEmpty() ) return names.substring(0, names.length - 2)
         else return "none"
@@ -157,19 +155,24 @@ object URDFModel {
     fun endEffectorNamesToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         val names = mutableListOf<String>()
-        for (appendage in appendageLinks.keys) {
-            names.add(appendage.name)
+        for (jp in tree.listJointPositions()) {
+            if(jp.isAppendage) {
+                names.add(jp.name)
+            }
         }
         return gson.toJson(names)
     }
+
     /**
      * @return  a JSON pretty-printed String array of all property types. Exclude NONE.
      */
     fun jointsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
-        for (joint in jointLinks.keys) {
-            names.add(joint.name)
+        for (jp in tree.listJointPositions()) {
+            if(!jp.isAppendage) {
+                names.add(jp.name)
+            }
         }
         return gson.toJson(names)
     }
@@ -197,8 +200,6 @@ object URDFModel {
     init {
         DEBUG= RobotModel.debug.contains(ConfigurationConstants.DEBUG_CONFIGURATION)
         document = null
-        appendageLinks = mutableMapOf<Appendage, Link>()
-        jointLinks = mutableMapOf<Joint, Link>()
-        origin = LinkPin(PinType.ORIGIN)
+        tree = JointTree()
     }
 }

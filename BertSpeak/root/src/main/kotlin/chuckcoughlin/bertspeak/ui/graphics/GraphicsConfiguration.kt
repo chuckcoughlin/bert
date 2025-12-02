@@ -4,9 +4,7 @@
  */
 package chuckcoughlin.bertspeak.ui.graphics
 
-import android.graphics.Color
 import android.graphics.Paint
-import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
  * Holder parameters that affect the graphical rendering of the

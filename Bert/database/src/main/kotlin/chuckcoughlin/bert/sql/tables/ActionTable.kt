@@ -1,16 +1,14 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
 package chuckcoughlin.bert.sql.tables
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.IMU.name
 import chuckcoughlin.bert.common.model.PoseDefinition
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.TextUtility
-import chuckcoughlin.bert.sql.db.Database
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet

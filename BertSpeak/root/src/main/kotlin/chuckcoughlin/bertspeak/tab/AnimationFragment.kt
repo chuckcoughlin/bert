@@ -9,11 +9,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import chuckcoughlin.bert.common.solver.JointTree
+
 import chuckcoughlin.bertspeak.common.DispatchConstants
-import chuckcoughlin.bertspeak.data.JointPosition
+import chuckcoughlin.bertspeak.data.JointTree
 import chuckcoughlin.bertspeak.data.JsonType
-import chuckcoughlin.bertspeak.data.LinkShapeObserver
+import chuckcoughlin.bertspeak.data.LimbShapeObserver
 import chuckcoughlin.bertspeak.data.StatusData
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.databinding.FragmentAnimationBinding
@@ -26,7 +26,7 @@ import chuckcoughlin.bertspeak.service.ManagerType
  * interactively move the limbs via touch gestures. It listens for robot reports of
  * position changes.
  */
-class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserver,StatusObserver {
+class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserver,StatusObserver {
     // These properties are only valid between onCreateView and onDestroyView
     private lateinit var leftPanel: AnimationView
     private lateinit var frontPanel: AnimationView
@@ -66,7 +66,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
     }
 
     fun refreshButtonClicked() {
-        DispatchService.sendJsonRequest(JsonType.LINK_POSITIONS)
+        DispatchService.sendJsonRequest(JsonType.JOINT_COORDINATES)
     }
 
     // ===================== StatusDataObserver =====================
@@ -83,7 +83,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LinkShapeObserve
         Log.i(name, String.format("updateStatus (%s):%s = %s", data.action, data.type, data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             if (data.type == ManagerType.SOCKET && data.state == ManagerState.ACTIVE) {
-                DispatchService.sendJsonRequest(JsonType.LINK_POSITIONS)
+                DispatchService.sendJsonRequest(JsonType.JOINT_COORDINATES)
             }
         }
     }

@@ -14,7 +14,7 @@ import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.StatusObserver
 import chuckcoughlin.bertspeak.data.LogDataObserver
-import chuckcoughlin.bertspeak.data.LinkShapeObserver
+import chuckcoughlin.bertspeak.data.LimbShapeObserver
 import com.google.mlkit.vision.face.Face
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -281,11 +281,11 @@ class DispatchService(ctx: Context){
             instance.textManager.unregisterLogViewer(obs)
         }
 
-        fun registerForShapes(obs: LinkShapeObserver) {
+        fun registerForShapes(obs: LimbShapeObserver) {
             instance.geometryManager.registerShapeViewer(obs)
         }
 
-        fun unregisterForShapes(obs: LinkShapeObserver) {
+        fun unregisterForShapes(obs: LimbShapeObserver) {
             instance.geometryManager.unregisterShapeViewer(obs)
         }
         fun registerForStatus(obs: StatusObserver) {

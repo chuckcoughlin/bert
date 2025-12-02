@@ -438,13 +438,13 @@ class Dispatcher : Controller {
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
-                    val xyz: DoubleArray = ForwardSolver.computeDirection(appendage)
+                    val xyz: DoubleArray = ForwardSolver.computeDirection(appendage.name)
                     text = String.format("my %s is aimed at %2.2f %2.2f %2.2f",
                         appendage.name, xyz[0], xyz[1], xyz[2])
                 }
                 else {
                     val joint = request.joint
-                    val xyz: DoubleArray = ForwardSolver.computeDirection(joint)
+                    val xyz: DoubleArray = ForwardSolver.computeDirection(joint.name)
                     text = String.format(
                         "My %s is oriented %2.2f and %2.2f degrees from the reference frame x and y axes, respectively",
                         Joint.toText(joint), xyz[0], xyz[1])
@@ -452,11 +452,11 @@ class Dispatcher : Controller {
                 request.text = text
             }
             // The location in physical coordinates from the center of the robot.
-            else if (request.type==RequestType.GET_EXTREMITY_LOCATION) {
+            else if (request.type==RequestType.GET_EXTREMITY_POSITION) {
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.appendage
-                    val xyz: Point3D = ForwardSolver.computePosition(appendage)
+                    val xyz: Point3D = ForwardSolver.computePosition(appendage.name)
                     text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
                         appendage.name, xyz.x, xyz.y, xyz.z)
                     request.values[0] = xyz.x
@@ -466,7 +466,7 @@ class Dispatcher : Controller {
                 }
                 else {
                     val joint = request.joint
-                    val xyz: Point3D = ForwardSolver.computePosition(joint)
+                    val xyz: Point3D = ForwardSolver.computePosition(joint.name)
                     text = String.format(
                         "My %s joint is at %2.2f %2.2f %2.2f millimeters",
                         Joint.toText(joint), xyz.x, xyz.y, xyz.z)
@@ -506,7 +506,7 @@ class Dispatcher : Controller {
                             JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Appendage.nameList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.nameList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
-                            JsonType.LINK_LOCATIONS -> text = "Locations are " + ForwardSolver.linkPositionsToJSON()
+                            JsonType.JOINT_COORDINATES -> text = "Joint positiond are " + ForwardSolver.jointCoordinatesToJson()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
                             else -> {
@@ -593,7 +593,7 @@ class Dispatcher : Controller {
                     JsonType.JOINT_ORIENTATIONS -> {
                         text = RobotModel.orientationsToJSON()
                     }
-                    JsonType.JOINT_POSITIONS -> {
+                    JsonType.JOINT_ANGLES -> {
                         text = RobotModel.anglesToJSON()
                     }
 
@@ -620,8 +620,8 @@ class Dispatcher : Controller {
                     JsonType.JOINT_TYPES -> {
                         text = RobotModel.typesToJSON()
                     }
-                    JsonType.LINK_LOCATIONS -> {
-                        text = ForwardSolver.linkPositionsToJSON()
+                    JsonType.JOINT_COORDINATES -> {
+                        text = ForwardSolver.jointCoordinatesToJson()
                     }
                     JsonType.LIMB_NAMES -> {
                         text = RobotModel.limbsToJSON()
@@ -708,7 +708,7 @@ class Dispatcher : Controller {
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
             request.type==RequestType.GET_EXTREMITY_DIRECTION||
-            request.type==RequestType.GET_EXTREMITY_LOCATION ||
+            request.type==RequestType.GET_EXTREMITY_POSITION ||
             request.type==RequestType.METRIC ||
             request.type==RequestType.HANGUP    ) {
             return true
@@ -828,7 +828,8 @@ class Dispatcher : Controller {
         }
         else if(request.type==RequestType.JSON ) {
             if( request.jtype==JsonType.MOTOR_LIMITS ||
-                request.jtype==JsonType.MOTOR_GOALS ) {
+                request.jtype==JsonType.MOTOR_GOALS ||
+                request.jtype==JsonType.MOVE_JOINTS ) {
                 return true
             }
         }

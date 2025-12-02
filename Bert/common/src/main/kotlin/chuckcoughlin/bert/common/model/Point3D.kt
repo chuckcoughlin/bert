@@ -7,7 +7,7 @@ package chuckcoughlin.bert.common.model
 /**
  * Use our own class of Point to make it easier to serialize and deserialize.
  */
-data class Point3D (val x:Double, val y:Double,val z:Double) {
+data class Point3D (var x:Double, var y:Double,var z:Double) {
 	fun toText():String {
 		return String.format("%3.3f,%3.3f,%3.3f",x,y,z)
 	}

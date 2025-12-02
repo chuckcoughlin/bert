@@ -19,47 +19,27 @@ import java.util.logging.Logger
  * are all handled here.
  */
 object Chain {
-    /**
-     * Work back toward the root from the specified end effector. The chain
-     * is ordered beginning from the root.
-     * @param appendage
-     * @return
-     */
-    fun partialChainToAppendage(appendage: Appendage): List<Link> {
-        val partial: LinkedList<Link> = LinkedList<Link>()
-        var link = URDFModel.appendageLinks[appendage]
-        if( link==null ) LOGGER.warning(String.format("%s.partialChainToAppendage: No link found for %s",CLSS,appendage.name))
-        while (link != null) {
-            partial.addFirst(link)
-            // if(DEBUG) LOGGER.info(String.format("%s.partialChainToAppendage: %s - inserting %s (%s)",CLSS,appendage.name,link.name,link.sourcePin.type))
-            if( link.sourcePin.type==PinType.ORIGIN ) break
-            val joint = link.sourcePin.joint
-            link = URDFModel.jointLinks[joint]
-        }
-        return partial
-    }
 
     /**
-     * Work back toward the root link beginning with the indicated joint.
-     * The chain starts with the root.
-     * @param joint, the source
+     * Work back toward the root link beginning with the indicated joint or
+     * end effector. The chain starts with the root.
+     * @param joint, name of the source.
      * @return
      */
-    fun partialChainToJoint(joint: Joint): List<Link> {
-        val partial: LinkedList<Link> = LinkedList<Link>()
-        var link = URDFModel.jointLinks[joint]
-        while( link != null ) {
-            partial.addFirst(link)
-            // if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s->%s)",
-            //     CLSS,joint.name,link.name,if(link.sourcePin.joint!=Joint.NONE) link.sourcePin.joint.name else "IMU", link.endPin.joint.name))
-            if (link.sourcePin.type.equals(PinType.ORIGIN)) break
-            val j = link.sourcePin.joint
-            link = URDFModel.jointLinks[j]
-        }
+    fun partialChainToJoint(joint: String): List<JointLink> {
+        val partial: LinkedList<JointLink> = LinkedList<JointLink>()
+        val tree=URDFModel.createJointTree()
+        var jp=tree.getJointPositionByName(joint)
+        do {
+            val jlink=tree.getJointLinkById(jp.id)
+            partial.addFirst(jlink)
+            // if (DEBUG) LOGGER.info(String.format("%s.partialChainToJoint: %s - inserting %s (%s)",
+            //     CLSS,joint.name))
+            jp=tree.getParent(jp)
+        } while(jp.parent != ConfigurationConstants.NO_ID)
+
         return partial
     }
-
-
 
     private val CLSS = "Chain"
     private val LOGGER = Logger.getLogger(CLSS)

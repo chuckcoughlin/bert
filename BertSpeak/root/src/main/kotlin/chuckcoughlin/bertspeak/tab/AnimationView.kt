@@ -10,9 +10,8 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
-import chuckcoughlin.bertspeak.data.JointPosition
+import chuckcoughlin.bertspeak.data.JointTree
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration

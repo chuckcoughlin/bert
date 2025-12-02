@@ -5,12 +5,12 @@
 package chuckcoughlin.bertspeak.service
 
 import android.util.Log
-import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JointPosition
-import chuckcoughlin.bertspeak.data.LinkShapeObserver
+import chuckcoughlin.bertspeak.data.JointTree
+import chuckcoughlin.bertspeak.data.LimbShapeObserver
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -23,7 +23,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     private val dispatcher = service
     override val managerType = ManagerType.GEOMETRY
     override var managerState = ManagerState.OFF
-    private val shapeObservers: MutableMap<String, LinkShapeObserver>
+    private val shapeObservers: MutableMap<String, LimbShapeObserver>
     private val skeleton: JointTree
     private val gson: Gson
     override fun start() {
@@ -49,12 +49,12 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
      */
     fun updateJointPosition(pos:JointPosition) {
         val json = Gson().toJson(pos)
-        DispatchService.reportJsonData(JsonType.MOVE_LIMB, json)
+        DispatchService.reportJsonData(JsonType.MOVE_JOINTS, json)
     }
 
     // ================ JsonObserver ======================
     override fun resetItem(map: Map<JsonType, String>) {
-        val json = map[JsonType.LINK_POSITIONS]
+        val json = map[JsonType.JOINT_COORDINATES]
         dispatcher.log(CLSS, String.format("resetItem: %s",json))
         if( json!=null && !json.isEmpty() ) {
             skeleton.clear()
@@ -69,7 +69,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     }
 
     override fun updateItem(type: JsonType, json: String) {
-        if( type==JsonType.LINK_POSITIONS ) {
+        if( type==JsonType.JOINT_COORDINATES ) {
             dispatcher.log(CLSS, String.format("updateItem: %s",json))
             if( !json.isEmpty() ) {
                 skeleton.clear()
@@ -87,12 +87,12 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
      * We keep a map of views that observe Shape changes.
      * @param observer
      */
-    fun registerShapeViewer(observer: LinkShapeObserver) {
+    fun registerShapeViewer(observer: LimbShapeObserver) {
         shapeObservers[observer.name] = observer
         observer.updateGraphics(skeleton)
     }
 
-    fun unregisterShapeViewer(observer: LinkShapeObserver) {
+    fun unregisterShapeViewer(observer: LimbShapeObserver) {
         for( key in shapeObservers.keys ) {
             if( !observer.equals(shapeObservers.get(key)) ) {
                 shapeObservers.remove(key,observer)
@@ -119,7 +119,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     /**
      * Notify geometry observers regarding receipt of a new message.
      */
-    private fun notifyObservers(tree:JointTree) {
+    private fun notifyObservers(tree: JointTree) {
         for (observer in shapeObservers.values) {
             observer.updateGraphics(tree)
         }
@@ -129,7 +129,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
 
     init {
         name = CLSS
-        shapeObservers  = mutableMapOf<String, LinkShapeObserver>()
+        shapeObservers  = mutableMapOf<String, LimbShapeObserver>()
         skeleton = JointTree()
         gson = Gson()
     }

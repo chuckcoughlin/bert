@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
     URDFModel.analyzePath(PathConstants.URDF_PATH)
 
     //solver.setJointPosition(Joint.ABS_Y,90.);
-    val xyz = ForwardSolver.computePosition(Joint.ABS_Y) // Just to top of pelvis
+    val xyz = ForwardSolver.computePosition(Joint.ABS_Y.name) // Just to top of pelvis
     println(String.format("%s (0.2,0,.114): xyz = %.2f,%.2f,%.2f ",
         Joint.ABS_Y.name,xyz.x,xyz.y,xyz.z))
 }

@@ -8,6 +8,7 @@ package chuckcoughlin.bert.common.math
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.solver.JointTree
 import java.util.logging.Logger
 import kotlin.math.cos
 import kotlin.math.sin
@@ -17,7 +18,7 @@ import kotlin.math.sin
  * forward kinematics of the robot end effectors. The data structure
  * is a 4x4 double array. Array order is [row][col]
  */
-open class Quaternion {
+class Quaternion {
     var matrix: Array<DoubleArray>
     var roll: Array<DoubleArray>
     var pitch: Array<DoubleArray>
@@ -70,6 +71,15 @@ open class Quaternion {
         translation[0][3] = x
         translation[1][3] = y
         translation[2][3] = z
+    }
+    // Roll, pitch, yaw are in degrees. Convert to radians.
+    // This refers to the orientation of the link with respect to the
+    // previous link.
+    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+        setRoll(roll)
+        setPitch(pitch)
+        setYaw(yaw)
+        update()
     }
     /**
      * Multiply two matrices (expressed as arrays of double arrays)
@@ -128,6 +138,15 @@ open class Quaternion {
         matrix = multiply(multiply(multiply(translation,roll),pitch),yaw)
     }
 
+    fun clone() : Quaternion {
+        val copy = Quaternion()
+        copy.matrix = matrix.clone()
+        copy.roll   = roll.clone()
+        copy.pitch  = pitch.clone()
+        copy.yaw    = yaw.clone()
+        copy.translation = translation.clone()
+        return copy
+    }
     fun dump() : String {
         val n = matrix.size
         val buf = StringBuffer()

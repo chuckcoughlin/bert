@@ -4,9 +4,9 @@
  */
 package chuckcoughlin.bertspeak.ui.graphics
 
-import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.data.JointPosition
+import chuckcoughlin.bertspeak.data.JointTree
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.data.Point3D
 

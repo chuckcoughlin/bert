@@ -5,6 +5,8 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.solver.ForwardSolver.tree
+import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -426,6 +428,35 @@ object RobotModel {
         }
         return gson.toJson(motorValues)
     }
+    /*
+     * Populate an entire tree with current motor angles
+    */
+    fun refreshChain(chain:List<JointLink>) {
+        for (jlink in chain) {
+            val jp = jlink.end
+            if(!jp.isAppendage) {
+                val joint = Joint.fromString(jp.name)
+                val mc = motorsByJoint.get(joint)!!
+                jlink.updateForMotorAngle(mc.angle)
+                jlink.recalculate()
+            }
+        }
+    }
+    /*
+     * Populate an entire tree with current motor angles
+    */
+    fun refreshTree(tree: JointTree) {
+        for (jlink in tree.linkmap.values) {
+            val jp = jlink.end
+            if(!jp.isAppendage) {
+                val joint = Joint.fromString(jp.name)
+                val mc = motorsByJoint.get(joint)!!
+                jlink.updateForMotorAngle(mc.angle)
+                jlink.recalculate()
+            }
+        }
+    }
+
 
     private val CLSS = "RobotModel"
     private var DEBUG = false

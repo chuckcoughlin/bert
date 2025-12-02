@@ -12,21 +12,22 @@ enum class RequestType {
     EXECUTE_ACTION,          // Execute the poses in an action in sequence
     EXECUTE_POSE,            // Drive robot motors to pre-set values
     GET_EXTREMITY_DIRECTION, // orientation of the named joint or appendage, i.e. end effector
-    GET_EXTREMITY_LOCATION,  // x,y,z location of the center of the named joint or appendage
+    GET_EXTREMITY_POSITION,  // x,y,z location of the center of the named joint or appendage
     GET_MOTOR_PROPERTY,      // Current value of a motor property
     HANGUP,                  // Client has disconnected
     HEARTBEAT,               // An internal message on the TimerQueue
-    INTERNET,                 // Generic request, not robot-related. Send to ChatGPT
+    INTERNET,                // Generic request, not robot-related. Send to ChatGPT
     INITIALIZE_JOINTS,       // Make sure that all joints are in "sane" positions
     JSON,                    // Message is in Json format for computer-computer.
     METRIC,                  // A property of the robot, e.g. name, also a list of properties
     NOTIFICATION,            // Unsolicited message from server or parser
     PARTIAL,                 // Remainder of text has yet to arrive
-    PLACE_END_EFFECTOR,         // Move an appendage to a specified location in space
+    PLACE_END_EFFECTOR,      // Move an appendage to a specified location in space
     READY,                   // Synchronization message for internal controller
     RESET,                   // Reset synchronization for serial response and internal controller
     READ_MOTOR_PROPERTY,     // Read a single property for a motor or all motors and record internally
     SET_LIMB_PROPERTY,       // Torque or speed for motors in a limb
+    SET_JOINT_POSITIONS,     // Payload is a JSON list of JointPosition objects
     SET_MOTOR_PROPERTY,      // For a particular motor
     NONE;
 

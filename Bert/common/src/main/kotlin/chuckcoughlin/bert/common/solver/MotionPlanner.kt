@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.model.Appendage
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.JointPosition
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
 
@@ -39,6 +40,11 @@ object MotionPlanner {
 
         placementMessage.error = error  // Set error, if any, on original request
         return list
+    }
+
+    fun planMotion(current: JointPosition,goal:JointPosition):List<JointPosition> {
+        val movements = mutableListOf<JointPosition>()
+        return movements
     }
 
     private const val CLSS = "MotionPlanner"

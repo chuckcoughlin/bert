@@ -17,15 +17,15 @@ import java.util.logging.Logger
 /**
  * Handle tablet messages dealing with link locations.
  */
-object LocationMessageHandler  {
+object PositionMessageHandler  {
     val gson: Gson
     /**
      *  Send a list of link locations
      */
-    fun getLinkLocations() : MessageBottle {
+    fun getJointCoordinates() : MessageBottle {
         val msg = MessageBottle(RequestType.JSON)
-        msg.jtype = JsonType.LINK_LOCATIONS
-        msg.text = ForwardSolver.linkPositionsToJSON()
+        msg.jtype = JsonType.JOINT_COORDINATES
+        msg.text = ForwardSolver.jointCoordinatesToJson()
         return msg
     }
     /**
@@ -38,13 +38,13 @@ object LocationMessageHandler  {
         return msg
     }
 
-    fun moveEndEffector(json:String): MessageBottle {
+    fun moveJoints(json:String): MessageBottle {
         val msg = MessageBottle(RequestType.PLACE_END_EFFECTOR)
-        val link = gson.fromJson(json, JointPosition::class.java)
-        msg.appendage = Appendage.fromString(link.appendage)
-        msg.values[0] = link.end.x
-        msg.values[1] = link.end.y
-        msg.values[2] = link.end.z
+        val jp = gson.fromJson(json, JointPosition::class.java)
+        msg.appendage = Appendage.fromString(jp.name)
+        msg.values[0] = jp.pos.x
+        msg.values[1] = jp.pos.y
+        msg.values[2] = jp.pos.z
         return msg
     }
 

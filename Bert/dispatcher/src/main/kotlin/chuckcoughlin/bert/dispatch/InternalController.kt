@@ -13,6 +13,7 @@ import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.solver.ForwardSolver
 import chuckcoughlin.bert.common.solver.MotionPlanner
 import chuckcoughlin.bert.sql.db.Database
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.logging.Logger
@@ -115,7 +116,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.source = ControllerType.BITBUCKET
             msg.control.delay = BottleConstants.NO_DELAY
             dispatchMessage(msg)
-            dispatchLocationUpdates()
+            dispatchPositionUpdates()
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
@@ -126,7 +127,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.limb = request.limb
             msg.source = ControllerType.BITBUCKET
             dispatchMessage(msg)
-            dispatchLocationUpdates()
+            dispatchPositionUpdates()
         }
         else if (request.type == RequestType.EXECUTE_POSE ) {
             LOGGER.info(String.format("%s.handleRequest %s pose = %s %2.0f (%s)",
@@ -134,7 +135,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             request.limb = Limb.NONE   // Just used to synchronize
             if( Database.poseExists(request.arg,request.values[0].toInt())) {
                 dispatchMessage(request)
-                dispatchLocationUpdates()
+                dispatchPositionUpdates()
             }
             else {
                 request.error = String.format("pose \"%s %d\" does not exist",request.arg,request.values[0].toInt())
@@ -153,18 +154,32 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 msg.control.delay = BottleConstants.NO_DELAY
                 msg.source = ControllerType.BITBUCKET
                 dispatchMessage(msg)   // All responses will go to the bit bucket
-                dispatchLocationUpdates()
+                dispatchPositionUpdates()
             }
         }
         else if (request.type == RequestType.PLACE_END_EFFECTOR ) {
-            // Placing an end-effector involves a series of discrete motions
-            // The original request is dispatched last - possibly has error text
-            val messageList = MotionPlanner.placementCommands(request)
-            for(msg in messageList) {
-                msg.source = ControllerType.BITBUCKET
-                dispatchMessage(msg)   // Control responses will go to the bit bucket
+            // Moving an end-effector usually involves multiple joints moving at once.
+            // The command becomes a SET_JOINT_POSITIONS message to be sent to the motor controller.
+            request.type = RequestType.SET_JOINT_POSITIONS
+            var tree = ForwardSolver.getCurrentTree()
+            val current = tree.getJointPositionByName(request.appendage.name)
+            val goal = current.copy()
+            val dir = Direction.fromString(request.text)
+            val offset = request.values[0]
+            when(dir) {
+                Direction.RIGHT -> goal.pos.y = goal.pos.y - offset
+                Direction.LEFT  -> goal.pos.y = goal.pos.y + offset
+                Direction.FRONT -> goal.pos.x = goal.pos.x - offset
+                Direction.BACK  -> goal.pos.x = goal.pos.x + offset
+                Direction.UP    -> goal.pos.z = goal.pos.z + offset
+                Direction.DOWN  -> goal.pos.z = goal.pos.z - offset
+                Direction.UNKNOWN -> TODO()
             }
-            dispatchLocationUpdates()
+            val movements:List<JointPosition> = MotionPlanner.planMotion(current,goal)
+            val gson = GsonBuilder().create()
+            val json = gson.toJson(movements)
+            request.text = json
+            dispatchPositionUpdates()
         }
         else if (request.type == RequestType.RESET ) {
             motorQueue.reset()   // Then proceed to reset controllers
@@ -175,12 +190,12 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     }
 
     /** Inform the tablet of a new limb position */
-    private suspend fun dispatchLocationUpdates() {
+    private suspend fun dispatchPositionUpdates() {
         val msg = MessageBottle(RequestType.JSON)
-        msg.jtype = JsonType.LINK_LOCATIONS
+        msg.jtype = JsonType.JOINT_COORDINATES
         msg.source = ControllerType.COMMAND  // If tablet is connected.
-        msg.text = ForwardSolver.linkPositionsToJSON()
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchLocationUpdates Updating limb positions on tablet",
+        msg.text = ForwardSolver.jointCoordinatesToJson()
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchPositionUpdates Updating joint positions on tablet",
             CLSS))
         dispatchMessage(msg)  // Causes hang at the moment ??
     }

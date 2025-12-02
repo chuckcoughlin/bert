@@ -5,91 +5,85 @@
 package chuckcoughlin.bert.common.solver
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bert.common.model.JointLink
 import chuckcoughlin.bert.common.model.JointPosition
-import chuckcoughlin.bert.common.model.URDFModel
-import chuckcoughlin.bert.common.solver.ForwardSolver.tree
-import com.google.gson.GsonBuilder
-import jdk.javadoc.internal.tool.Start
-
 
 /**
- * Parse the URDF file and make its contents available as a chain of links.
- * A chain has a tree structure with a single root.
+ * Retain a tree of linked joint positions. Each joint is
+ * associated with a quaternion for computing 3D co-ordinates.
  */
 class JointTree() {
     val map: MutableMap<Int, JointPosition>
-    val ERROR:JointPosition
-    val IMU:JointPosition
+    val linkmap: MutableMap<Int, JointLink>
+    var IMU:Int
 
-    fun clear() {
-        map.clear()
+    fun createJointLink(jp:JointPosition,source:JointPosition) : JointLink {
+        val jlink = JointLink(jp,source)
+        linkmap.put(jp.id, jlink)
+        return jlink
     }
 
     /**
-     * Populate the tree with current joint positions
-     * based on the URDFModel
+     * Create a new jpoint position. Add it and a
+     * corresponding quaternion to the tree.
      */
-    private fun initialize() {
-        // Start with the end effectors
-        for(link in URDFModel.appendageLinks.values) {
-            val jp = JointPosition()
-            jp.updateFromLink(link)
-            jp.isAppendage = true
-            var pos = ForwardSolver.computePosition(link.sourcePin.joint)
-            jp.updateSource(pos)os)
-            pos = ForwardSolver.computePosition(link.endPin.appendage)
-            jp.updateEnd(p
-            if(ForwardSolver.DEBUG) ForwardSolver.LOGGER.info(String.format("%s.fillLocations: %s = (%s) ",
-                ForwardSolver.CLSS,link.endPin.appendage.name, jp.positionToText()))
-            tree.addJointPosition(jp)
+    fun createJointPosition(name:String) : JointPosition {
+        val jp = JointPosition()
+        jp.name = name.uppercase()
+        map.put(jp.id,jp)
+        return jp
+    }
+
+    fun getJointLinkById(id:Int) : JointLink {
+        val jlink = linkmap.get(id)
+        return jlink!!
+    }
+
+    /**
+     * If the named position does not exist, create one.
+     * The name is case-insensitive.
+     */
+    fun getJointPositionByName(name:String) : JointPosition {
+        for( jp in map.values ) {
+            if( jp.name.equals(name,true)) return jp
         }
-        for(link in URDFModel.jointLinks.values) {
-            val jp = JointPosition()
-            jp.updateFromLink(link)
-            jp.isAppendage = false
-            var pos = ForwardSolver.computePosition(link.sourcePin.joint)
-            loc.updateSource(pos)
-            pos = ForwardSolver.computePosition(link.endPin.joint)
-            loc.updateEnd(pos)
-            tree.addJointPosition(jp)
+        val jp = createJointPosition(name)
+        return jp
+    }
+
+
+
+    fun listJointPositions() : List<JointPosition> {
+        val list = mutableListOf<JointPosition>()
+        for(jp in map.values) {
+            list.add(jp)
+        }
+        return list
+    }
+
+    /**
+     * @return the parent joint position. If the position
+     *         does not exist, return the origin.
+     */
+    fun getParent(jp:JointPosition) : JointPosition {
+        var parent = map.get(jp.parent)
+        if( parent!=null ) return parent
+        else {
+            parent = map.get(IMU)
+            return parent!!
         }
     }
+
+    fun setOrigin(jp:JointPosition) {
+        IMU = jp.id
+
+    }
+
+//--------------------------
+
 
     fun addJointPosition(jp:JointPosition) {
         map.put(jp.id,jp)
-    }
-
-    fun getParent(jp:JointPosition) : JointPosition {
-        val parent = map.get(jp.parent)
-        if( parent!=null ) return parent
-        return ERROR
-    }
-
-    /**
-     * If the named position does not exist, crease one.
-     */
-    fun getPositionByName(name:String) : JointPosition {
-        for( jp in map.values ) {
-            if( jp.name==name) return jp
-        }
-        return ERROR
-    }
-
-    /**
-     *
-     */
-    fun linkPositionsToJSON():String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val tree = JointTree()
-        ForwardSolver.fillPositions(tree)
-        return gson.toJson(tree.map.values)
-    }
-    // @return the IMU to signal the root of a chain.
-    fun nextPosition(position:JointPosition) : JointPosition {
-        var next = map.get(position.id)
-        if(next==null) next = IMU
-        return next
     }
 
     fun populateFromList(positions:List<JointPosition>) {
@@ -97,27 +91,26 @@ class JointTree() {
             map.put(pos.id,pos)
         }
     }
-
-    // This works for joints by name also
-    fun positionForAppendage(name:String) : JointPosition {
-        for(pos in map.values) {
-            if(pos.name.equals(name)) return pos
+    fun clone() : JointTree {
+        val copy = JointTree()
+        for(key in map.keys) {
+            val jp = map.get(key)!!.copy()
+            copy.map.put(key,jp)
         }
-        return ERROR
+        for(key in linkmap.keys) {
+            val jlink = linkmap.get(key)!!.clone()
+            copy.linkmap.put(key,jlink)
+        }
+        copy.IMU =  IMU
+        return copy
+
     }
 
     private val CLSS = "JointTree"
 
     init {
-        initialize()
         map = mutableMapOf<Int, JointPosition>()
-        IMU = JointPosition()
-        IMU.id = ConfigurationConstants.NO_ID
-        IMU.name = Joint.IMU.name
-
-        ERROR = JointPosition()
-        ERROR.id = ConfigurationConstants.NO_ID
-        ERROR.name = Joint.NONE.name
-
+        linkmap = mutableMapOf<Int,JointLink>()
+        IMU = ConfigurationConstants.NO_ID // Temporarily
     }
 }

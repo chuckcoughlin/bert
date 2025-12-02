@@ -70,7 +70,8 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     // Describe your current pose
     override fun visitCurrentPoseDescription(ctx: SpeechSyntaxParser.CurrentPoseDescriptionContext): Any? {
         bottle.type = RequestType.JSON
-        bottle.jtype= JsonType.JOINT_POSITIONS
+        bottle.jtype= JsonType.JOINT_COORDINATES
+        bottle.metric = MetricType.LIST
         return null
     }
 
@@ -338,10 +339,46 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             bottle.appendage = appendage
             bottle.text = direction.name
         }
-        bottle.values[0] = ctx.Value().getText().toDouble()
+        bottle.values[0] = ctx.Value().getText().toDouble()  // mm
         return null
     }
-
+    // where is your left foot
+    override fun visitJointPositionQuestion(ctx: SpeechSyntaxParser.JointPositionQuestionContext): Any? {
+        bottle.type = RequestType.GET_EXTREMITY_POSITION
+        // If side or axis were set previously, use those jointValues as defaults
+        var side = sharedDictionary[SharedKey.SIDE] as Side
+        if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
+        sharedDictionary[SharedKey.SIDE] = side
+        var axis = sharedDictionary[SharedKey.AXIS] as Axis
+        if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
+        sharedDictionary[SharedKey.AXIS] = axis
+        if(ctx.Appendage()!=null) {
+            val appendage = determineEndEffector(ctx.Appendage().getText(),side)
+            bottle.appendage = appendage
+            if(appendage.equals(Appendage.NONE)) {
+                val msg=String.format("I don't have an end effector %s, that I know of", ctx.Appendage().getText())
+                bottle.error=msg
+            }
+            else {
+                bottle.appendage = appendage
+                sharedDictionary[SharedKey.APPENDAGE] = appendage
+                sharedDictionary[SharedKey.IT]=SharedKey.APPENDAGE
+            }
+        }
+        else {
+            val joint: Joint = determineJoint(ctx.Joint().getText(), axis, side)
+            bottle.joint = joint
+            if(joint.equals(Joint.NONE)) {
+                val msg=String.format("I don't have a joint %s, that I know of", ctx.Joint().getText())
+                bottle.error=msg
+            }
+            else {
+                sharedDictionary[SharedKey.JOINT]=joint
+                sharedDictionary[SharedKey.IT]=SharedKey.JOINT
+            }
+        }
+        return null
+    }
     // what is the id of your left hip y?
     override fun visitJointPropertyQuestion(ctx: SpeechSyntaxParser.JointPropertyQuestionContext): Any? {
         bottle.type = RequestType.GET_MOTOR_PROPERTY
@@ -395,6 +432,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         if( ctx.Appendages()!=null ) bottle.jtype = JsonType.END_EFFECTOR_NAMES
         if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
         if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
+        bottle.metric = MetricType.LIST
         return null
     }
 
@@ -405,6 +443,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
         if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
         if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
+        bottle.metric = MetricType.LIST
         return null
     }
 
@@ -439,7 +478,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         var txt = "list"
         if(ctx.enumerate()!=null) txt = visit(ctx.enumerate()).toString()
         determineJsonOrList(txt,bottle)
-        bottle.jtype = JsonType.LINK_POSITIONS
+        bottle.jtype = JsonType.JOINT_COORDINATES
         return null
     }
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.
@@ -449,6 +488,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
         if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
         if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
+        bottle.metric = MetricType.LIST
         return null
     }
     // What poses do you know
@@ -479,7 +519,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             }
             else if (!bottle.jointDynamicProperty.equals(JointDynamicProperty.NONE)) {
                 when (bottle.jointDynamicProperty) {
-                    JointDynamicProperty.ANGLE -> bottle.jtype = JsonType.JOINT_POSITIONS
+                    JointDynamicProperty.ANGLE -> bottle.jtype = JsonType.JOINT_ANGLES
                     JointDynamicProperty.SPEED -> bottle.jtype = JsonType.JOINT_SPEEDS
                     JointDynamicProperty.STATE -> bottle.jtype = JsonType.JOINT_STATES
                     JointDynamicProperty.TORQUE -> bottle.jtype = JsonType.JOINT_TORQUES
@@ -774,8 +814,9 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             bottle.error = msg
         }
         else {
-            val link = URDFModel.jointLinks[joint]!!
-            value = link.sourcePin.home
+            val tree = URDFModel.createJointTree()
+            val jp = tree.getJointPositionByName(joint.name)
+            value = jp.home
         }
 
         bottle.joint = joint

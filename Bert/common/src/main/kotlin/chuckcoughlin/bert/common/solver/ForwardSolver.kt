@@ -5,17 +5,7 @@
 package chuckcoughlin.bert.common.solver
 
 import chuckcoughlin.bert.common.math.Quaternion
-import chuckcoughlin.bert.common.model.Appendage
-import chuckcoughlin.bert.common.model.Chain
-import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.IMU
-import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bert.common.model.Link
-import chuckcoughlin.bert.common.model.JointPosition
-import chuckcoughlin.bert.common.model.Point3D
-import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.model.URDFModel
-import chuckcoughlin.bert.common.util.TextUtility
+import chuckcoughlin.bert.common.model.*
 import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
@@ -23,103 +13,78 @@ import java.util.logging.Logger
  * This class handles forward kinetics calculations.
  *
  * The URDFModel is the tree of links which describes the robot.
- * A single link object may belong to several chains.
+ * A single joint position object may belong to several chains.
  */
 object ForwardSolver {
-    val tree:JointTree
+    val tree:JointTree   // Represents the current actual position.
 
     /**
-     * Return the orientation of a specified appendage in x,y,z coordinates in meters from the
-     * robot origin in the pelvis. The named end effector or appendage is
-     * last in the chain.
+     * Return the orientation of the named joint or appendage in x,y,z coordinates
+     * in meters from the robot origin in the pelvis in the inertial reference frame.
+     * The named joint is last in the chain.
+     * @param name of joint or appendage
      */
-    fun computeDirection(appendage: Appendage): DoubleArray {
-        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
-        val q = computeQuaternionFromChain(subchain)
-        return q.direction()
-    }
-
-    /**
-     * Return the orientation of a specified joint in x,y,z coordinates in meters from the
-     * robot origin in the pelvis in the inertial reference frame. The named joint is
-     * last in the chain.
-     */
-    fun computeDirection(joint: Joint): DoubleArray {
-        val subchain: List<Link> = Chain.partialChainToJoint(joint)
+    fun computeDirection(name: String): DoubleArray {
+        val subchain: List<JointLink> = Chain.partialChainToJoint(name)
         val q = computeQuaternionFromChain(subchain)
         return q.direction()
     }
 
     /**
      * Return a string for debugging use containing both position and direction
+     * @param name of joint or appendage
      */
-    fun computePositionDescription(joint: Joint): String {
-        val subchain: List<Link> = Chain.partialChainToJoint(joint)
+    fun computePositionDescription(name: String): String {
+        val subchain: List<JointLink> = Chain.partialChainToJoint(name)
         val q = computeQuaternionFromChain(subchain)
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
     }
+
     /**
-     * Return a string for debugging use containing both position and direction
-     */
-    fun computePositionDescription(appendage: Appendage): String {
-        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
-        val q = computeQuaternionFromChain(subchain)
-        return String.format("%s [%s]",q.positionToText(),q.directionToText())
-    }
-    /**
-     * Return the coordinated of a specified appendage in meters from the
+     * Return the coordinates of a specified joint in meters from the
      * robot origin in the pelvis in the inertial reference frame.
      * The named joint is last in the chain.
      */
-    fun computePosition(appendage: Appendage): Point3D {
-        val subchain: List<Link> = Chain.partialChainToAppendage(appendage)
+    fun computePosition(name: String): Point3D {
+        val subchain: List<JointLink> = Chain.partialChainToJoint(name)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
     }
 
     /**
-     * Return the coordinated of a specified joint in meters from the
-     * robot origin in the pelvis in the inertial reference frame.
-     * The named joint is last in the chain.
+     * @return a copy of the JointTree updated to the current motor angles.
      */
-    fun computePosition(joint: Joint): Point3D {
-        val subchain: List<Link> = Chain.partialChainToJoint(joint)
-        val q = computeQuaternionFromChain(subchain)
-        return q.position()
+    fun getCurrentTree() : JointTree {
+        val currentTree = tree.clone()
+        RobotModel.refreshTree(currentTree)
+        return currentTree
     }
-
+    fun jointCoordinatesToJson() :String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val list = ForwardSolver.tree.listJointPositions()
+        return gson.toJson(list)
+    }
     /**
      * Update the link coordinates in a chain starting from the IMU, then multiply
      * quaternion matrices to get final position. The final position includes the
      * x,y,z position of the end effector with the orientation of the attached link.
      */
-    private fun computeQuaternionFromChain(subchain: List<Link>):Quaternion {
-        // Start with the IMU (Its orientation is updated externally)
-        IMU.update()
-        var q = IMU.quaternion   // Update for any rotation.
-        if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: IMU = (%s|%s) ",
-            CLSS,q.positionToText(),q.directionToText()))
+    private fun computeQuaternionFromChain(subchain: List<JointLink>):Quaternion {
+        // Update each of the links in the chain for the current joint angles
+        RobotModel.refreshChain(subchain)
+        val origin = subchain.get(0)
+        var q = origin.quaternion
+        if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: IMU = (%s) ",
+                              CLSS,origin.end.pos.toText()))
         // Now continue up the chain
         for(link in subchain) {
-            // if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s source %s = (%s) ",
-            //    CLSS,link.name,if( link.sourcePin.joint==Joint.NONE) "IMU" else link.sourcePin.joint.name,q.position().toText()))
-            link.update()  // In case motor has moved since last use
             //if(DEBUG) LOGGER.info(link.quaternion.dump())
             q = q.postMultiplyBy(link.quaternion)
             if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s|%s) ",
-                CLSS,link.name,link.endPin.joint.name,q.positionToText(),q.directionToText()))
+                CLSS,link.name,link.end.name,q.positionToText(),q.directionToText()))
             //if(DEBUG) LOGGER.info(q.dump())
         }
         return q
-    }
-
-
-    /*
-     * Populate a list of positions for all joints and extremities
-     * from the current joint angles.
-     */
-    private fun fillPositions(tree:JointTree) {
-
     }
 
     private const val CLSS = "ForwardSolver"
@@ -131,6 +96,6 @@ object ForwardSolver {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        tree = JointTree()
+        tree = URDFModel.createJointTree()
     }
 }

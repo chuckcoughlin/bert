@@ -5,26 +5,26 @@
 package chuckcoughlin.bert.common.model
 
 /**
- * Start and end of a link in space.
- * The link is identified by its name and
- * end-effector or resolute joint.
+ * Position of a joint or end-effector in space.
+ * The joint is identified by its name.
  */
 class JointPosition() {
 	var id: Int
+	var home: Double
 	var name: String
 	var parent: Int    // Hashcode of the parent link
 	var pos: Point3D   // Coordinates of joint or end effector
 	var isAppendage:Boolean
-	var side: String   // Link group
+	var side: String   // Side of the robot
 
-	fun positionToText() : String {
+	fun coordinatesToText() : String {
 		return String.format("%s coordinates: %s->%s [%s,%s,%s]",pos.toText(),name,if(isAppendage) "(appendage)" else "",side)
 	}
 
-	fun updateFromLink(link:Link) {
-		name = link.name
-		side = link.side.name
-		isAppendage = (link.endPin.joint==Joint.NONE)
+	fun setCoordinates(x:Double,y:Double,z:Double) {
+		pos.x = x
+		pos.y = y
+		pos.z = z
 	}
 
 	fun copy() : JointPosition {
@@ -43,6 +43,7 @@ class JointPosition() {
 		name = ConfigurationConstants.NO_NAME
 		parent = ConfigurationConstants.NO_ID
 		pos    = Point3D(0.0,0.0,0.0)
+		home = 0.0
 		isAppendage = false
 		side = Side.FRONT.name
 	}

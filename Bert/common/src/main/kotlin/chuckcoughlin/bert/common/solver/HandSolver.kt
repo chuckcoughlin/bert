@@ -40,9 +40,9 @@ object HandSolver {
             shoulder_z = Joint.LEFT_SHOULDER_Z
             elbowJoint = Joint.LEFT_ELBOW_Y
         }
-        val current = ForwardSolver.computePosition(msg.appendage)
-        val elbow = ForwardSolver.computePosition(elbowJoint)
-        val shoulder = ForwardSolver.computePosition(shoulder_z)
+        val current = ForwardSolver.computePosition(msg.appendage.name)
+        val elbow = ForwardSolver.computePosition(elbowJoint.name)
+        val shoulder = ForwardSolver.computePosition(shoulder_z.name)
         val target = Point3D(msg.values[0],msg.values[1],msg.values[2])
 
         val a = distance(shoulder,elbow)   // Upper arm

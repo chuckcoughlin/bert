@@ -47,7 +47,7 @@ enumeration:
     | enumerate Article? Motor? Properties                                      # listProperty
     | What Actions Do You Know													# listActionNames
     | What Poses Do You Know													# listPoseNames
-    | Where Are Article (Motors|Limbs)										    # listLocations
+    | Where Are Article (Motors|Limbs)										    # listPositions
     | Who Do You Know															# listFaceNames
     ;
 
