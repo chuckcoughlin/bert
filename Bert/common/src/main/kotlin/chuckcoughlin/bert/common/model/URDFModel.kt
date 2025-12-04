@@ -49,6 +49,7 @@ object URDFModel {
         if (document != null) {
             var origin = JointPosition()
             origin.name = Joint.IMU.name
+            origin.parent = ConfigurationConstants.NO_ID
             // ================================== IMU ===============================================
             val imus = document!!.getElementsByTagName("imu")
             if (imus.length > 0) {
@@ -58,6 +59,7 @@ object URDFModel {
                 origin.setCoordinates(rpy[0],rpy[1],rpy[2])
             }
             tree.setOrigin(origin)
+            tree.createJointLink(origin,origin)
 
             // ================================== Links ===============================================
             // Links are a connection between joints or from a joint to extremity (appendage). The link
@@ -94,14 +96,14 @@ object URDFModel {
                     aindex = 0
                     while (aindex < acount) {
                         val node = children.item(aindex)
-                        val aname: String = XMLUtility.attributeValue(node, "name")
                         if ("appendage".equals(node.localName) || "joint".equals(node.localName)) {
+                            val aname: String = XMLUtility.attributeValue(node, "name")
                             val jp = tree.getJointPositionByName(aname)
                             if("appendage".equals(node.localName) ) {
                                 jp.isAppendage = true
                             }
-                            else {
-                                jp.home = XMLUtility.attributeValue(linkNode, "home").toDouble()
+                            else  {
+                                jp.home = XMLUtility.attributeValue(node, "home").toDouble()
                             }
                             jp.side = XMLUtility.attributeValue(linkNode, "side")
                             jp.parent = parent.id
@@ -115,8 +117,8 @@ object URDFModel {
                     }
                 }
                 catch (iae: IllegalArgumentException) {
-                    LOGGER.warning(String.format("%s.analyzeChain: link exception on first pass %s, ignored (%s)",
-                        CLSS,name,iae.localizedMessage))
+                    LOGGER.warning(String.format("%s.analyzeChain: exception on link %d, ignored (%s)",
+                        CLSS,index,iae.localizedMessage))
                     iae.printStackTrace()
                 }
                 index++

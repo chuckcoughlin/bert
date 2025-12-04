@@ -8,6 +8,9 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointLink
 import chuckcoughlin.bert.common.model.JointPosition
+import chuckcoughlin.bert.common.model.URDFModel
+import java.awt.SystemColor.text
+import java.util.logging.Logger
 
 /**
  * Retain a tree of linked joint positions. Each joint is
@@ -36,6 +39,7 @@ class JointTree() {
     }
 
     fun getJointLinkById(id:Int) : JointLink {
+        //LOGGER.info(String.format("%s.getJointLinkById: %d",CLSS,id))
         val jlink = linkmap.get(id)
         return jlink!!
     }
@@ -45,6 +49,7 @@ class JointTree() {
      * The name is case-insensitive.
      */
     fun getJointPositionByName(name:String) : JointPosition {
+        LOGGER.info(String.format("%s.getJointPositionByName: %s)",CLSS,name))
         for( jp in map.values ) {
             if( jp.name.equals(name,true)) return jp
         }
@@ -74,6 +79,9 @@ class JointTree() {
 
     fun setOrigin(jp:JointPosition) {
         IMU= jp.id
+        map.put(jp.id,jp)
+        LOGGER.info(String.format("%s.setOrigin: %s = (%d)",
+            CLSS,jp.name,jp.id))
     }
 
 //--------------------------
@@ -103,6 +111,7 @@ class JointTree() {
     }
 
     private val CLSS = "JointTree"
+    private val LOGGER = Logger.getLogger(CLSS)
 
     init {
         map = mutableMapOf<Int, JointPosition>()
