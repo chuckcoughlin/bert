@@ -13,7 +13,6 @@ import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.solver.ForwardSolver
 import chuckcoughlin.bert.common.solver.MotionPlanner
 import chuckcoughlin.bert.sql.db.Database
-import com.google.gson.GsonBuilder
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.logging.Logger
@@ -92,7 +91,6 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     // Preprocess the message. It may result in several precursor requests. Messages with BITBUCKET as the
     // source will not produce a response to the original requester.
     suspend private fun handleRequest(request: MessageBottle) {
-
         // Read joint positions before freezing to update the current motor positions.
         if( request.type==RequestType.SET_MOTOR_PROPERTY &&
             request.jointDynamicProperty == JointDynamicProperty.STATE &&
@@ -160,25 +158,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         else if (request.type == RequestType.PLACE_END_EFFECTOR ) {
             // Moving an end-effector usually involves multiple joints moving at once.
             // The command becomes a SET_JOINT_POSITIONS message to be sent to the motor controller.
-            request.type = RequestType.SET_JOINT_POSITIONS
-            var tree = ForwardSolver.getCurrentTree()
-            val current = tree.getJointPositionByName(request.appendage.name)
-            val goal = current.copy()
-            val dir = Direction.fromString(request.text)
-            val offset = request.values[0]
-            when(dir) {
-                Direction.RIGHT -> goal.pos.y = goal.pos.y - offset
-                Direction.LEFT  -> goal.pos.y = goal.pos.y + offset
-                Direction.FRONT -> goal.pos.x = goal.pos.x - offset
-                Direction.BACK  -> goal.pos.x = goal.pos.x + offset
-                Direction.UP    -> goal.pos.z = goal.pos.z + offset
-                Direction.DOWN  -> goal.pos.z = goal.pos.z - offset
-                Direction.UNKNOWN -> TODO()
-            }
-            val movements:List<JointPosition> = MotionPlanner.planMotion(current,goal)
-            val gson = GsonBuilder().create()
-            val json = gson.toJson(movements)
-            request.text = json
+            MotionPlanner.transformRequest(request)
             dispatchPositionUpdates()
         }
         else if (request.type == RequestType.RESET ) {

@@ -300,8 +300,11 @@ class Dispatcher : Controller {
      */
     private suspend fun dispatchInternalResponse(msg : MessageBottle) {
         if(DEBUG) LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s",CLSS,msg.type.name,msg.source))
-        // "internal" requests are those that need to be queued on the internal controller
-        if(msg.type== RequestType.EXECUTE_ACTION) {
+        // Send any requests with error messages directoy back to the requestor
+        if( !msg.error.equals(BottleConstants.NO_ERROR) ) {
+            replyToSource(msg)
+        }
+        else if(msg.type== RequestType.EXECUTE_ACTION) {
             toInternalController.send(motorReadyMessage)  // Execute Action is just a marker at this point
             replyToSource(msg)
             // If there is a follow-on action, then add it to the queue. Reuse original message
@@ -570,90 +573,28 @@ class Dispatcher : Controller {
                 var text = ""
                 when (jtype) {
                     // List the names of different kinds of motor properties
-                    JsonType.END_EFFECTOR_NAMES -> {
-                        text = URDFModel.endEffectorNamesToJSON()
-                    }
-
-                    JsonType.FACE_NAMES -> {
-                        text = Database.faceNamesToJSON()
-                    }
-
-                    JsonType.JOINT_IDS -> {
-                        text = RobotModel.idsToJSON()
-                    }
-
-                    JsonType.JOINT_NAMES -> {
-                        text = URDFModel.jointsToJSON()
-                    }
-
-                    JsonType.JOINT_OFFSETS -> {
-                        text = RobotModel.offsetsToJSON()
-                    }
-
-                    JsonType.JOINT_ORIENTATIONS -> {
-                        text = RobotModel.orientationsToJSON()
-                    }
-                    JsonType.JOINT_ANGLES -> {
-                        text = RobotModel.anglesToJSON()
-                    }
-
-                    JsonType.JOINT_SPEEDS -> {
-                        text = RobotModel.speedsToJSON()
-                    }
-
-                    JsonType.JOINT_STATES -> {
-                        text = RobotModel.statesToJSON()
-                    }
-
-                    JsonType.JOINT_TEMPERATURES -> {
-                        text = RobotModel.temperaturesToJSON()
-                    }
-
-                    JsonType.JOINT_TORQUES -> {
-                        text = RobotModel.torquesToJSON()
-                    }
-
-                    JsonType.JOINT_VOLTAGES -> {
-                        text = RobotModel.voltagesToJSON()
-                    }
-
-                    JsonType.JOINT_TYPES -> {
-                        text = RobotModel.typesToJSON()
-                    }
-                    JsonType.JOINT_COORDINATES -> {
-                        text = ForwardSolver.jointCoordinatesToJson()
-                    }
-                    JsonType.LIMB_NAMES -> {
-                        text = RobotModel.limbsToJSON()
-                    }
-                    JsonType.MOTOR_DYNAMIC_PROPERTIES -> {
-                        text = JointDynamicProperty.toJSON()
-                    }
-
-                    JsonType.MOTOR_GOALS -> {
-                        text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
-                    }
-
-                    JsonType.MOTOR_LIMITS -> {
-                        text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
-                    }
-
-                    JsonType.MOTOR_PROPERTIES -> {
-                        text = RobotModel.propertiesToJSON()
-                    }
-
-                    JsonType.MOTOR_STATIC_PROPERTIES -> {
-                        text = JointDefinitionProperty.toJSON()
-                    }
-
-                    JsonType.POSE_DETAILS -> {
-                        text = Database.poseDetailsToJSON(request.arg, request.values[0].roundToInt())
-                    }
-
-                    JsonType.POSE_NAMES -> {
-                        text = Database.poseNamesToJSON()
-                    }
-
+                    JsonType.END_EFFECTOR_NAMES -> text = URDFModel.endEffectorNamesToJSON()
+                    JsonType.FACE_NAMES         -> text = Database.faceNamesToJSON()
+                    JsonType.JOINT_IDS          -> text = RobotModel.idsToJSON()
+                    JsonType.JOINT_NAMES        -> text = URDFModel.jointsToJSON()
+                    JsonType.JOINT_OFFSETS      -> text = RobotModel.offsetsToJSON()
+                    JsonType.JOINT_ORIENTATIONS -> text = RobotModel.orientationsToJSON()
+                    JsonType.JOINT_ANGLES       -> text = RobotModel.anglesToJSON()
+                    JsonType.JOINT_SPEEDS       -> text = RobotModel.speedsToJSON()
+                    JsonType.JOINT_STATES       -> text = RobotModel.statesToJSON()
+                    JsonType.JOINT_TEMPERATURES -> text = RobotModel.temperaturesToJSON()
+                    JsonType.JOINT_TORQUES      -> text = RobotModel.torquesToJSON()
+                    JsonType.JOINT_VOLTAGES     -> text = RobotModel.voltagesToJSON()
+                    JsonType.JOINT_TYPES        -> text = RobotModel.typesToJSON()
+                    JsonType.JOINT_COORDINATES  -> text = ForwardSolver.jointCoordinatesToJson()
+                    JsonType.LIMB_NAMES         -> text = RobotModel.limbsToJSON()
+                    JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.toJSON()
+                    JsonType.MOTOR_GOALS         -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
+                    JsonType.MOTOR_LIMITS        -> text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
+                    JsonType.MOTOR_PROPERTIES    -> text = RobotModel.propertiesToJSON()
+                    JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDefinitionProperty.toJSON()
+                    JsonType.POSE_DETAILS        -> text = Database.poseDetailsToJSON(request.arg, request.values[0].roundToInt())
+                    JsonType.POSE_NAMES          -> text = Database.poseNamesToJSON()
                     else -> request.error = String.format("I can't get the names of %s", jtype.name)
                 }
                 request.text = text
@@ -822,8 +763,9 @@ class Dispatcher : Controller {
             request.type==RequestType.PLACE_END_EFFECTOR  ||
             request.type==RequestType.READ_MOTOR_PROPERTY ||
             request.type==RequestType.RESET ||
-            request.type==RequestType.SET_LIMB_PROPERTY ||
-            request.type==RequestType.SET_MOTOR_PROPERTY) {
+            request.type==RequestType.SET_LIMB_PROPERTY  ||
+            request.type==RequestType.SET_MOTOR_PROPERTY ||
+            request.type==RequestType.SET_JOINT_POSITIONS ){
             return true
         }
         else if(request.type==RequestType.JSON ) {

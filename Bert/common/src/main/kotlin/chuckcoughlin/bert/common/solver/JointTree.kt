@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.common.solver
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bert.common.model.JointLink
 import chuckcoughlin.bert.common.model.JointPosition
 
@@ -67,16 +68,12 @@ class JointTree() {
      */
     fun getParent(jp:JointPosition) : JointPosition {
         var parent = map.get(jp.parent)
-        if( parent!=null ) return parent
-        else {
-            parent = map.get(IMU)
-            return parent!!
-        }
+        if( parent==null ) parent = map.get(IMU)
+        return parent!!
     }
 
     fun setOrigin(jp:JointPosition) {
-        IMU = jp.id
-
+        IMU= jp.id
     }
 
 //--------------------------
@@ -101,9 +98,8 @@ class JointTree() {
             val jlink = linkmap.get(key)!!.clone()
             copy.linkmap.put(key,jlink)
         }
-        copy.IMU =  IMU
+        copy.IMU = IMU
         return copy
-
     }
 
     private val CLSS = "JointTree"
@@ -111,6 +107,6 @@ class JointTree() {
     init {
         map = mutableMapOf<Int, JointPosition>()
         linkmap = mutableMapOf<Int,JointLink>()
-        IMU = ConfigurationConstants.NO_ID // Temporarily
+        IMU= ConfigurationConstants.NO_ID // Temporarily
     }
 }
