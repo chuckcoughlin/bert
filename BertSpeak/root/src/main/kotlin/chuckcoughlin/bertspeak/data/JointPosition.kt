@@ -13,6 +13,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side
 class JointPosition() {
 	var id: Int
 	var name: String
+	var home: Double
 	var parent: Int    // Hashcode of the parent link
 	var pos: Point3D   // Coordinates of joint or end effector
 	var isAppendage:Boolean
@@ -26,6 +27,7 @@ class JointPosition() {
 		val copy = JointPosition()
 		copy.id = id
 		copy.name = name
+		copy.home = home
 		copy.parent = parent
 		copy.pos = pos.copy()
 		copy.isAppendage = isAppendage
@@ -38,6 +40,7 @@ class JointPosition() {
 		name = ConfigurationConstants.NO_NAME
 		parent = ConfigurationConstants.NO_ID
 		pos    = Point3D(0.0,0.0,0.0)
+		home = 0.0
 		isAppendage = false
 		side = Side.FRONT.name
 	}

@@ -16,7 +16,7 @@ import java.util.logging.Logger
  * A single joint position object may belong to several chains.
  */
 object ForwardSolver {
-    val tree:JointTree   // Represents the current actual position.
+    val tree: JointTree   // Represents the current actual position.
 
     /**
      * Return the orientation of the named joint or appendage in x,y,z coordinates
@@ -25,19 +25,9 @@ object ForwardSolver {
      * @param name of joint or appendage
      */
     fun computeDirection(name: String): DoubleArray {
-        val subchain: List<JointLink> = Chain.partialChainToJoint(name)
+        val subchain: List<JointLink> = tree.createLinkChain(name)
         val q = computeQuaternionFromChain(subchain)
         return q.direction()
-    }
-
-    /**
-     * Return a string for debugging use containing both position and direction
-     * @param name of joint or appendage
-     */
-    fun computePositionDescription(name: String): String {
-        val subchain: List<JointLink> = Chain.partialChainToJoint(name)
-        val q = computeQuaternionFromChain(subchain)
-        return String.format("%s [%s]",q.positionToText(),q.directionToText())
     }
 
     /**
@@ -46,19 +36,22 @@ object ForwardSolver {
      * The named joint is last in the chain.
      */
     fun computePosition(name: String): Point3D {
-        val subchain: List<JointLink> = Chain.partialChainToJoint(name)
+        val subchain: List<JointLink> = tree.createLinkChain(name)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
     }
-
     /**
-     * @return a copy of the JointTree updated to the current motor angles.
+     * Return a string for debugging use containing both position and direction
+     * @param name of joint or appendage
      */
-    fun getCurrentTree() : JointTree {
-        val currentTree = tree.clone()
-        RobotModel.refreshTree(currentTree)
-        return currentTree
+    fun computePositionDescription(name: String): String {
+        val subchain: List<JointLink> = tree.createLinkChain(name)
+        val q = computeQuaternionFromChain(subchain)
+        if(DEBUG) LOGGER.info(String.format("%s.computePositionDescription: %s = (%s [%s]) ",
+            CLSS,name,q.positionToText(),q.directionToText()))
+        return String.format("%s [%s]",q.positionToText(),q.directionToText())
     }
+
     fun jointCoordinatesToJson() :String {
         val gson = GsonBuilder().setPrettyPrinting().create()
         val list = ForwardSolver.tree.listJointPositions()
@@ -70,19 +63,21 @@ object ForwardSolver {
      * x,y,z position of the end effector with the orientation of the attached link.
      */
     private fun computeQuaternionFromChain(subchain: List<JointLink>):Quaternion {
-        // Update each of the links in the chain for the current joint angles
-        RobotModel.refreshChain(subchain)
-        val origin = subchain.get(0)
-        var q = origin.quaternion
-        if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: IMU = (%s) ",
-                              CLSS,origin.end.pos.toText()))
-        // Now continue up the chain
+        var q = Quaternion.identity()
+        var atOrigin = true
         for(link in subchain) {
-            //if(DEBUG) LOGGER.info(link.quaternion.dump())
-            q = q.postMultiplyBy(link.quaternion)
-            if(DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s|%s) ",
-                CLSS,link.name,link.end.name,q.positionToText(),q.directionToText()))
-            //if(DEBUG) LOGGER.info(q.dump())
+            if( atOrigin ) {
+                atOrigin = false
+                q = link.quaternion.clone()
+                if(DEBUG) LOGGER.info(q.dump("origin"))
+            }
+            else {
+                if (DEBUG) LOGGER.info(link.quaternion.dump("link"))
+                q = q.postMultiplyBy(link.quaternion)
+                if (DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s|%s) ",
+                    CLSS, link.name, link.end.name, q.positionToText(), q.directionToText()))
+                if (DEBUG) LOGGER.info(q.dump("product"))
+            }
         }
         return q
     }

@@ -5,8 +5,6 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.controller.ControllerType
-import chuckcoughlin.bert.common.solver.ForwardSolver.tree
-import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document

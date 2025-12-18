@@ -8,7 +8,6 @@ package chuckcoughlin.bert.common.math
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
-import chuckcoughlin.bert.common.solver.JointTree
 import java.util.logging.Logger
 import kotlin.math.cos
 import kotlin.math.sin
@@ -16,7 +15,8 @@ import kotlin.math.sin
 /**
  * Define a quaternion for the specific purpose of calculating the
  * forward kinematics of the robot end effectors. The data structure
- * is a 4x4 double array. Array order is [row][col]
+ * is a 4x4 double array. Array order is [row][col]. All angles are
+ * expressed in radians.
  */
 class Quaternion {
     var matrix: Array<DoubleArray>
@@ -72,15 +72,7 @@ class Quaternion {
         translation[1][3] = y
         translation[2][3] = z
     }
-    // Roll, pitch, yaw are in degrees. Convert to radians.
-    // This refers to the orientation of the link with respect to the
-    // previous link.
-    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
-        setRoll(roll)
-        setPitch(pitch)
-        setYaw(yaw)
-        update()
-    }
+
     /**
      * Multiply two matrices (expressed as arrays of double arrays)
      * Square matrices, same size.
@@ -103,20 +95,23 @@ class Quaternion {
     }
 
     /**
-     * The current orientation with respect to the reference frame.
-     * @return the magnitude of the axes of the rotation matrix
+     * @return the current orientation with respect to the reference frame ~ radians.
      */
     fun direction(): DoubleArray {
         val theta1 = Math.acos(matrix[0][0])
         val theta2 = Math.acos(matrix[1][1])
         val theta3 = Math.acos(matrix[2][2])
-        return doubleArrayOf(theta1*180.0/Math.PI,theta2*180.0/Math.PI,theta3*180.0/Math.PI)
+        return doubleArrayOf(theta1,theta2,theta3)
     }
 
+    /**
+     * @return a string representation of the current orientation with respect to the reference frame ~ degrees.
+     */
     fun directionToText() : String {
         val dir = direction()
-        return(String.format("%3.0f,%3.0f,%3.0f",dir[0],dir[1],dir[2]))
+        return(String.format("%3.0f,%3.0f,%3.0f",dir[0]*180.0/Math.PI,dir[1]*180.0/Math.PI,dir[2]*180.0/Math.PI))
     }
+
     /**
      * The current position in the parent frame (x,y,z)
      */
@@ -147,9 +142,10 @@ class Quaternion {
         copy.translation = translation.clone()
         return copy
     }
-    fun dump() : String {
+    fun dump(comment:String) : String {
         val n = matrix.size
         val buf = StringBuffer()
+        buf.append(comment)
         buf.append('\n')
         for(row in 0 until n) {
             for( col in 0 until n) {

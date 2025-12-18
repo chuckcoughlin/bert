@@ -6,6 +6,7 @@ package chuckcoughlin.bert.common.model
 
 /**
  * Position of a joint or end-effector in space.
+ * Also record the goal angle to set that position.
  * The joint is identified by its name.
  */
 class JointPosition() {
@@ -31,6 +32,7 @@ class JointPosition() {
 		val copy = JointPosition()
 		copy.id = id
 		copy.name = name
+		copy.home = home
 		copy.parent = parent
 		copy.pos = pos.copy()
 		copy.isAppendage = isAppendage

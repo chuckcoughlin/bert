@@ -4,9 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.model.URDFModel.document
-import chuckcoughlin.bert.common.solver.ForwardSolver
-import chuckcoughlin.bert.common.solver.JointTree
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -59,7 +56,6 @@ object URDFModel {
                 origin.setCoordinates(rpy[0],rpy[1],rpy[2])
             }
             tree.setOrigin(origin)
-            tree.createJointLink(origin,origin)
 
             // ================================== Links ===============================================
             // Links are a connection between joints or from a joint to extremity (appendage). The link
@@ -74,9 +70,6 @@ object URDFModel {
             var index = 0
             while (index < count) {
                 val linkNode = links.item(index)
-                val name: String = XMLUtility.attributeValue(linkNode, "name")
-                // if(DEBUG) LOGGER.info(String.format("%s.analyzeChain: link %s .
-                // ..",CLSS,name))
                 try {
                     // The source is shared with all sub-links
                     var parent = origin
@@ -107,11 +100,11 @@ object URDFModel {
                             }
                             jp.side = XMLUtility.attributeValue(linkNode, "side")
                             jp.parent = parent.id
-                            var jlink = tree.createJointLink(jp,parent)
+                            var jlink = tree.createJointLink(parent,jp)
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                            jp.setCoordinates(xyz[0],xyz[1],xyz[2])
+                            jlink.setCoordinates(xyz[0],xyz[1],xyz[2])
                         }
                         aindex++
                     }

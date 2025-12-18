@@ -344,6 +344,125 @@ object DxlMessage {
     }
 
     /**
+     * The motor configuration objects already have goal positions set.
+     * WARNING: SYNC_WRITE requests, apparently, do not generate responses.
+     * @param motors motor configurations to be changed for the desired limb position
+     * @return 3 byte arrays to drive torques, speeds and finally the positions as required
+     */
+    fun byteArrayListToSetPositions(motors: List<MotorConfiguration>): List<ByteArray> {
+        LOGGER.info(String.format("%s.byteArrayListToSetPositions: CLSS" ))
+        val messages: MutableList<ByteArray> = ArrayList()
+        // First set torques, then speeds, then positions
+        val motorCount = motors.size
+        // Torque
+        if (motorCount > 0) {
+            val len = 3 * motorCount + 8 //  3 bytes per motor + address + byte count + header + checksum
+            val bytes = ByteArray(len)
+            setSyncWriteHeader(bytes)
+            bytes[3] = (len - 4).toByte()
+            bytes[4] = SYNC_WRITE
+            bytes[5] = DxlConversions.addressForPresentProperty(JointDynamicProperty.TORQUE)
+            bytes[6] = 0x2 // 2 bytes
+            var index = 7
+            var changed = false
+            for (mc in motors) {
+                if (Math.abs(mc.goalTorque - mc.torque) > ConfigurationConstants.TORQUE_TOLERANCE) {
+                    val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.TORQUE, mc, mc.goalTorque)
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (dxlValue and 0xFF).toByte()
+                    bytes[index + 2] = (dxlValue shr 8).toByte()
+                    index = index + 3
+                }
+            }
+            if (index > 7) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
+        }
+        // Speed
+        if (motorCount > 0) {
+            val len = 3 * motorCount + 8 //  3 bytes per motor + address + byte count + header + checksum
+            val bytes = ByteArray(len)
+            setSyncWriteHeader(bytes)
+            bytes[3] = (len - 4).toByte()
+            bytes[4] = SYNC_WRITE
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.SPEED)
+            bytes[6] = 0x2 // 2 bytes
+            var index = 7
+            for (mc in motors) {
+                if (Math.abs(mc.goalSpeed - mc.speed) > ConfigurationConstants.SPEED_TOLERANCE) {
+                    val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.SPEED, mc, mc.goalSpeed)
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (dxlValue and 0xFF).toByte()
+                    bytes[index + 2] = (dxlValue shr 8).toByte()
+                    index = index + 3
+                }
+            }
+            if (index > 7) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
+        }
+        // Torque enable - enable torque for any motor about to be moved
+        if (motorCount > 0) {
+            val len = 3 * motorCount + 8 //  6 bytes per motor + address + byte count + header + checksum
+            val bytes = ByteArray(len)
+            setSyncWriteHeader(bytes)
+            bytes[3] = (len - 4).toByte()
+            bytes[4] = SYNC_WRITE
+            bytes[5] = DxlConversions.addressForPresentProperty(JointDynamicProperty.STATE)
+            bytes[6] = 0x2 // 2 bytes
+            var index = 7
+            for (mc in motors) {
+                if (mc.isTorquePending != mc.isTorqueEnabled) {
+                    mc.isTorqueEnabled = mc.isTorquePending
+                    val stateValue: Int = (if (mc.isTorqueEnabled) 1 else 0)
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (stateValue and 0xFF).toByte()
+                    bytes[index + 2] = (stateValue shr 8).toByte()
+                    index = index + 3
+                }
+            }
+            if (index > 7) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
+        }
+        // Positions
+        if (motorCount > 0) {
+            val len = 3 * motorCount + 8 //  6 bytes per motor + address + byte count + header + checksum
+            val bytes = ByteArray(len)
+            setSyncWriteHeader(bytes)
+            bytes[3] = (len - 4).toByte()
+            bytes[4] = SYNC_WRITE
+            bytes[5] = DxlConversions.addressForGoalProperty(JointDynamicProperty.ANGLE)
+            bytes[6] = 0x2 // 2 bytes
+            var index = 7
+            for (mc in motors) {
+                if (Math.abs(mc.goalAngle - mc.angle) > ConfigurationConstants.ANGLE_TOLERANCE) {
+                    LOGGER.info(String.format("%s.byteArrayListToSetPose: position %s from %2.1f to %2.1f",
+                        CLSS, mc.joint.name, mc.angle, mc.goalAngle))
+                    if (mc.goalAngle > mc.maxAngle) {
+                        mc.goalAngle = mc.maxAngle
+                    }
+                    else if (mc.goalAngle < mc.minAngle) {
+                        mc.goalAngle = mc.minAngle
+                    }
+                    val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.goalAngle)
+                    bytes[index] = mc.id.toByte()
+                    bytes[index + 1] = (dxlValue and 0xFF).toByte()
+                    bytes[index + 2] = (dxlValue shr 8).toByte()
+                    index = index + 3
+                }
+            }
+            if (motors.size > 0) {
+                setChecksum(bytes)
+                messages.add(bytes)
+            }
+        }
+        return messages
+    }
+    /**
      * Create a serial message to broadcast a ping request to all motors.
      * This is taken directly from http://emanual.robotis.com/docs/en/dxl/protocol1/
      * @return byte array for message

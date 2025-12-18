@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -34,6 +34,7 @@ class MotorConfiguration(j: Joint, motorType: DynamixelType, motorId: Int, cname
     var load: Double
     // When we move the joint, set a target position.
     // Update the angle only when movement command has been written.
+    // All angles are in degrees.
     var angle : Double
     var goalAngle : Double
     var minAngle : Double

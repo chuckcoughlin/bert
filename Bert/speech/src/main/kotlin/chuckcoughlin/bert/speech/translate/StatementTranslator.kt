@@ -11,6 +11,7 @@ import chuckcoughlin.bert.speech.process.FaceMessageHandler
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.syntax.SpeechSyntaxBaseVisitor
 import chuckcoughlin.bert.syntax.SpeechSyntaxParser
+import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
 
@@ -786,7 +787,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // If the joint is not specified, then straighten the entire body
     // straighten your left elbow.
-    /* TO-DO Handle limbs */
+    // straighten your right leg
     override fun visitStraightenJoint(ctx: SpeechSyntaxParser.StraightenJointContext): Any? {
         // A real joint
         bottle.type = RequestType.SET_MOTOR_PROPERTY
@@ -800,29 +801,53 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         if (ctx.Axis() != null) axis = determineAxis(ctx.Axis().getText())
         sharedDictionary[SharedKey.AXIS] = axis
         var joint: Joint = Joint.NONE
+        var limb: Limb = Limb.NONE
         if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.JOINT) {
             joint = sharedDictionary[SharedKey.JOINT] as Joint
+        }
+        else if (ctx.It() != null && sharedDictionary[SharedKey.IT] == SharedKey.LIMB) {
+            limb = sharedDictionary[SharedKey.LIMB] as Limb
         }
         if (ctx.Joint() != null) {
             joint = determineJoint(ctx.Joint().getText(), axis, side)
             bottle.joint = joint
+            sharedDictionary[SharedKey.JOINT] = joint
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+        }
+        else if (ctx.Limb() != null) {
+            limb = determineLimb(ctx.Limb().getText(), side)
+            bottle.limb = limb
+            sharedDictionary[SharedKey.LIMB] = limb
+            sharedDictionary[SharedKey.IT] = SharedKey.LIMB
         }
 
         var value = 0.0
-        if( joint==Joint.NONE ) {
+        if( joint==Joint.NONE && limb==Limb.NONE ) {
             val msg = "what am i supposed to straighten?"
             bottle.error = msg
         }
-        else {
+        else if( joint!=Joint.NONE ) {  // Single joint
             val tree = URDFModel.createJointTree()
             val jp = tree.getJointPositionByName(joint.name)
             value = jp.home
         }
+        else {  // Move each joint in the limb
+            bottle.type = RequestType.SET_JOINT_POSITIONS
+            val tree = URDFModel.createJointTree()
+            val map = RobotModel.limbsByJoint
+            val jointPositions = mutableListOf<JointPosition>()
+            for( joint in map.keys ) {
+                if( map[joint]==bottle.limb ) {
+                    val pos = tree.getJointPositionByName(joint.name)
+                    jointPositions.add(pos!!)
+                }
+            }
+            val gson= GsonBuilder().create()
+            val json=gson.toJson(jointPositions)
+            bottle.text=json
+        }
 
-        bottle.joint = joint
         bottle.values[0] = value
-        sharedDictionary[SharedKey.JOINT] = joint
-        sharedDictionary[SharedKey.IT] = SharedKey.JOINT
         return null
     }
 

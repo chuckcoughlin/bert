@@ -27,11 +27,12 @@ import java.util.logging.Logger
  *
  * @param name link name - either the appendage or joint name
  */
-class JointLink( val end:JointPosition,val source:JointPosition ) {
+class JointLink( val source:JointPosition,val end:JointPosition ) {
     var quaternion: Quaternion   // Associated with the source joint
     // Current angle was in effect last time Q evaluated.
     // Values are degrees.
     private var currentPitch: Double  // Motor angle
+    private var orientation:DoubleArray
     private var rotation:DoubleArray
     val name = end.name
     val endJoint   = end
@@ -44,35 +45,34 @@ class JointLink( val end:JointPosition,val source:JointPosition ) {
         quaternion.setTranslation(x,y,z)
         quaternion.update()
     }
+    // Roll, pitch, yaw are in degrees. Convert to radians.
+    // This refers to the orientation of the end of the link
+    // with respect to the origin. ~ degrees
+    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+        orientation[0] = roll
+        orientation[1] = pitch
+        orientation[2] = yaw
+    }
 
     /**
-     * Update quaternion to reflect a change in the motor angle
+     * Update quaternion to reflect a change in the source motor angle
      */
     fun updateForMotorAngle(angle:Double) {
+        if(DEBUG) LOGGER.info(String.format("%s.updateForMotorAngle: %s = %2.2f",CLSS,name,angle))
         setPitch(angle)
 
     }
     // ~ degrees
     fun setRoll(angle:Double) {
-        rotation[0] = angle*Math.PI/180.0
+        rotation[0] = angle
     }
     // ~ degrees
     fun setPitch(angle:Double) {
-        rotation[1] = angle*Math.PI/180.0
+        rotation[1] = angle
     }
     // ~ degrees
     fun setYaw(angle:Double) {
-        rotation[2] = angle*Math.PI/180.0
-    }
-
-    // Roll, pitch, yaw are in degrees. Convert to radians.
-    // This refers to the orientation of the link with respect to the
-    // previous link.
-    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
-        setRoll(roll)
-        setPitch(pitch)
-        setYaw(yaw)
-        recalculate()
+        rotation[2] = angle
     }
 
     /** Recalculate quaternion. No need unless angle has changed.
@@ -92,17 +92,17 @@ class JointLink( val end:JointPosition,val source:JointPosition ) {
         if(currentPitch==rotation[1]) return   // Nothing to do
         currentPitch = rotation[1]
 
-        quaternion.setRoll(rotation[0])
-        quaternion.setPitch(currentPitch+rotation[1]-source.home)
-        quaternion.setYaw(rotation[2])
+        quaternion.setRoll((rotation[0]+orientation[0])*Math.PI/180.0)
+        quaternion.setPitch((rotation[1]+orientation[1])*Math.PI/180.0)
+        quaternion.setYaw((rotation[2]+orientation[2])*Math.PI/180.0)
         quaternion.update()
 
-        if(DEBUG) LOGGER.info(String.format("%s.update: %s %2.2f,%2.2f,%2.2f",CLSS,name,
-                rotation[0]*180.0/Math.PI,(currentPitch+rotation[1])*180.0/Math.PI,rotation[2]*180.0/Math.PI))
+        if(DEBUG) LOGGER.info(String.format("%s.recalculate: %s %2.2f,%2.2f,%2.2f",CLSS,name,
+                rotation[0]+orientation[0],rotation[1]+orientation[1],rotation[2]+orientation[2]))
     }
 
     fun clone() : JointLink {
-        val copy = JointLink(endJoint.copy(),sourceJoint.copy())
+        val copy = JointLink(sourceJoint.copy(),endJoint.copy())
         copy.currentPitch = currentPitch
         copy.rotation = rotation.clone()
         copy.quaternion = quaternion.clone()
@@ -119,6 +119,7 @@ class JointLink( val end:JointPosition,val source:JointPosition ) {
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         currentPitch = Double.NaN
+        orientation = doubleArrayOf(0.0,0.0,0.0)
         rotation = doubleArrayOf(0.0,0.0,0.0)
         quaternion = Quaternion()
         side = Side.FRONT

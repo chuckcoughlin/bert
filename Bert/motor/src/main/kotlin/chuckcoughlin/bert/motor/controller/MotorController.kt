@@ -12,8 +12,11 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
+import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.sql.db.SQLConstants
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import jssc.SerialPort
 import jssc.SerialPortException
 import kotlinx.coroutines.*
@@ -46,6 +49,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private var port: SerialPort
     private var running:Boolean
     private var job: Job
+    private val gson: Gson
     private val configurationsByJoint: MutableMap<Joint, MotorConfiguration>
     private var parentRequestChannel = req
     private var parentResponseChannel = rsp
@@ -238,7 +242,8 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
     private fun isSingleWriteRequest(msg: MessageBottle): Boolean {
         if (msg.type==RequestType.EXECUTE_POSE  ||
             msg.type==RequestType.INITIALIZE_JOINTS  ||
-            msg.type==RequestType.READ_MOTOR_PROPERTY  ) {
+            msg.type==RequestType.READ_MOTOR_PROPERTY ||
+            msg.type==RequestType.SET_JOINT_POSITIONS   ) {
                return false
         }
         return true
@@ -482,6 +487,27 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
                 }
             }
         }
+        // Property value must be the same for every joint in limb
+        // Those that don't make sense are trapped by the Dispatcher
+        else if(type.equals(RequestType.SET_JOINT_POSITIONS)) {
+            val propType = object : TypeToken<List<JointPosition>>() {}.type
+            val positions = gson.fromJson<List<JointPosition>>(request.text,propType)
+            val configurations = mutableListOf<MotorConfiguration>()
+            for(pos in positions ) {
+                val joint = Joint.fromString(pos.name)
+                if( joint!=Joint.NONE ) {
+                    val mc = RobotModel.motorsByJoint[joint]
+                    mc!!.angle = pos.home    // This only works for "straighten"
+                    configurations.add(mc)
+                }
+            }
+            if (configurations.size > 0) {
+                LOGGER.info(String.format("%s.messageToByteList (%s): set positions for %d joints",
+                    CLSS, controllerName, configurations.size))
+                list = DxlMessage.byteArrayListToSetPositions(configurations)
+            }
+            request.text=String.format("Positions are set")
+        }
         else {
             LOGGER.severe(String.format("%s.messageToByteList: Unhandled message type %s",
                 CLSS,type.name))
@@ -579,6 +605,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
         timeOfLastWrite = System.currentTimeMillis()
         running = false
         job = Job()
+        gson = Gson()
         LOGGER.info(String.format("%s.init: created %s...", CLSS,name))
     }
 }
