@@ -836,10 +836,10 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             val tree = URDFModel.createJointTree()
             val map = RobotModel.limbsByJoint
             val jointPositions = mutableListOf<JointPosition>()
-            for( joint in map.keys ) {
-                if( map[joint]==bottle.limb ) {
+            for( j in map.keys ) {
+                if( map[j]==bottle.limb ) {
                     val pos = tree.getJointPositionByName(joint.name)
-                    jointPositions.add(pos!!)
+                    jointPositions.add(pos)
                 }
             }
             val gson= GsonBuilder().create()

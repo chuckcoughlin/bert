@@ -66,10 +66,11 @@ object ForwardSolver {
         var q = Quaternion.identity()
         var atOrigin = true
         for(link in subchain) {
+            link.recalculate()
             if( atOrigin ) {
                 atOrigin = false
-                q = link.quaternion.clone()
-                if(DEBUG) LOGGER.info(q.dump("origin"))
+                q = link.quaternion
+                if(DEBUG) q.logdetails("origin")
             }
             else {
                 if (DEBUG) LOGGER.info(link.quaternion.dump("link"))

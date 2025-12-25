@@ -52,8 +52,8 @@ object URDFModel {
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
-                val rpy = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "rpy"))
-                origin.setCoordinates(rpy[0],rpy[1],rpy[2])
+                val xyz = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "xyz"))
+                origin.setCoordinates(xyz[0],xyz[1],xyz[2])
             }
             tree.setOrigin(origin)
 

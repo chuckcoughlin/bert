@@ -55,8 +55,8 @@ class Quaternion {
     fun setPitch(angle:Double) {
         //if(DEBUG) LOGGER.info(String.format("%s.setPitch: %2.2f",CLSS,angle*180.0/Math.PI))
         pitch[0][0] = cos(angle)
-        pitch[0][2] = -sin(angle)
-        pitch[2][0] = sin(angle)
+        pitch[0][2] = sin(angle)
+        pitch[2][0] = -sin(angle)
         pitch[2][2] = cos(angle)
     }
     // Z axis
@@ -130,7 +130,9 @@ class Quaternion {
      * Lengths ~mm, angles ~ radians
      */
     fun update() {
-        matrix = multiply(multiply(multiply(translation,roll),pitch),yaw)
+        matrix = multiply(multiply(multiply(yaw,pitch),roll),translation)
+        //matrix = multiply(multiply(multiply(roll,pitch),yaw),translation)
+
     }
 
     fun clone() : Quaternion {
@@ -142,7 +144,7 @@ class Quaternion {
         copy.translation = translation.clone()
         return copy
     }
-    fun dump(comment:String) : String {
+     fun dump(comment:String) : String {
         val n = matrix.size
         val buf = StringBuffer()
         buf.append(comment)
@@ -150,6 +152,31 @@ class Quaternion {
         for(row in 0 until n) {
             for( col in 0 until n) {
                 val value = matrix[row][col]
+                buf.append(value.toString())
+                buf.append('\t')
+            }
+            buf.append('\n')
+        }
+        return buf.toString()
+    }
+
+    fun logdetails(comment:String) {
+        LOGGER.info(String.format("%s.logdetails =============== %s ==============",CLSS,comment))
+        LOGGER.info(dumpmatrix("roll",roll))
+        LOGGER.info(dumpmatrix("pitch",pitch))
+        LOGGER.info(dumpmatrix("yaw",yaw))
+        LOGGER.info(dumpmatrix("translation",translation))
+        LOGGER.info(dump(comment))
+    }
+
+    private fun dumpmatrix(comment:String,m:Array<DoubleArray>) : String {
+        val n = m.size
+        val buf = StringBuffer()
+        buf.append(comment)
+        buf.append('\n')
+        for(row in 0 until n) {
+            for( col in 0 until n) {
+                val value = m[row][col]
                 buf.append(value.toString())
                 buf.append('\t')
             }

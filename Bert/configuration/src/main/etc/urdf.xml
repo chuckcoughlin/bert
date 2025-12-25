@@ -9,7 +9,7 @@
 	     left/right hip y axis. The orientation of the IMU is with respect to the robot reference frame.
 	     It may be altered by setting IMU quaternion roll,pitch,yaw directly and then updating.
 	-->
-	<imu rpy="0. 0. 0."/>
+	<imu xyz="0. 0. 0."/>
 	<!-- A link is roughly equivalent to a bone. A link connects a source pin (joint)
 	     to a joint or end effector. The parent link is a joint (a REVOLUTE link pin).
 
@@ -96,17 +96,17 @@
 	</link>
 	<link side="FRONT">
 		<joint name="ABS_X"
-			   xyz="0.0 0.0 8.0" rpy="0.0 180.0 90.0" home="180.0"/>
+			   xyz="0.0 0.0 8.0" rpy="0.0 180.0 90.0" home="0.0"/>
 		<source joint="ABS_Y"/>
 	</link>
 	<link side="FRONT">
 		<joint name="ABS_Z"
-			   xyz="0.0 12.0 51.6374742" rpy="90. 90.0 0.0" home="0.0"/>
+			   xyz="12.0 0.0 51.6374742" rpy="0.0 0.0 -90.0" home="0.0"/>
 		<source joint="ABS_X" />
 	</link>
 	<link side="FRONT">
 		<joint name="CHEST_Y"
-			   xyz="-2.8 79.85 0.0"  rpy="-90. 90. 90." home="180.0"/>
+			   xyz="-79.85 2.8 0.0"  rpy="-90. 0. 90." home="180.0"/>
 		<source joint="ABS_Z" />
 	</link>
 	<link side="FRONT">

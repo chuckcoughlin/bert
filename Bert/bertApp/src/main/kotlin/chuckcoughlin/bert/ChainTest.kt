@@ -5,23 +5,16 @@ import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.solver.ForwardSolver
 
 /**
- * A Chain represents a tree of Links starting with the
- * "root" link. The position of links within the chain are
- * all relative to the root link (i.e. origin). The URDF
- * file format doesn't define things in the most convenient
- * order.
+ * Test construction of the chain of robot "limbs" based on the URDF file in
+ * $BERT_HOME/etc.
  *
- * Changes to the "inertial frame" as detected by the IMU
- * are all handled here.
+ * Changes to the "inertial frame" are expressed by the IMU
+ * rotation and are tested also.
  */
 object ChainTest {
 
-    /**
-     * Test construction of the chain of robot "limbs" based on the URDF file in
-     * $BERT_HOME/etc on the development machine.
-     */
     fun execute() {
-        setMotorPositions()
+        // setMotorPositions()
         val tree = ForwardSolver.tree
 
         // Test the links to some extremities
@@ -43,38 +36,33 @@ object ChainTest {
             println(String.format("\t%s ", link.name))
         }
         println("======== Test ABS_Y for IMU orientations (direction should match)")
-        val origin = tree.getJointPositionByName(Joint.IMU.name)
         val IMU = tree.getJointLink(Joint.IMU.name,Joint.ABS_Y.name)
         IMU.setRoll(0.0)
         IMU.setPitch(0.0)
         IMU.setYaw(0.0)
-        IMU.recalculate()
         println(String.format("\tABS-Y  (IMU=0,0,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
-        /**
         IMU.setRoll(90.0)    // 90 deg
         IMU.setPitch(0.0)
         IMU.setYaw(0.0)
-        IMU.recalculate()
         println(String.format("\tABS-Y (IMU=90,0.0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
         IMU.setRoll(0.0)
         IMU.setPitch(90.0)
         IMU.setYaw(0.0)
-        IMU.recalculate()
         println(String.format("\tABS-Y (IMU=0,90,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
         IMU.setRoll(0.0)
         IMU.setPitch(0.0)
         IMU.setYaw(90.0)
-        IMU.recalculate()
         println(String.format("\tABS-Y (IMU=0,0,90) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
         IMU.setRoll(0.0)    // reset IMU
         IMU.setPitch(0.0)
         IMU.setYaw(0.0)
-        IMU.recalculate()
         println(String.format("\tABS-Y  (IMU=0,0,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
-        println("======== Test Joints along back - home pose")
-        println(String.format("\tABS-Y = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
-        println(String.format("\tABS-X = %s ", ForwardSolver.computePositionDescription(Joint.ABS_X.name)))
-        println(String.format("\tABS-Z = %s       (0.0,0.0,121.6)", ForwardSolver.computePositionDescription(Joint.ABS_Z.name)))
+        println("======== Test Joints along back to head - home position")
+        RobotModel.setTreeToHome(tree)
+        println(String.format("\tABS-Y = %s (12.0,0.0,62) [0,0,0]", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
+        println(String.format("\tABS-X = %s (12.0,0.0,70.0) [90,90,0]", ForwardSolver.computePositionDescription(Joint.ABS_X.name)))
+        println("   ######## VERIFIED to here ####################")
+        println(String.format("\tABS-Z = %s      (0.0,0.0,121.6) [0,0,0]", ForwardSolver.computePositionDescription(Joint.ABS_Z.name)))
         println(String.format("\tCHEST_Y = %s     (2.8,0.0,201.5) ", ForwardSolver.computePositionDescription(Joint.CHEST_Y.name)))
         println(String.format("\tCHEST_X = %s     (2.8,0.0,193.5) ", ForwardSolver.computePositionDescription(Joint.CHEST_X.name)))
         println(String.format("\tNECK_Z = %s      (7.8,0.0,277.5)", ForwardSolver.computePositionDescription(Joint.NECK_Z.name)))
@@ -84,6 +72,7 @@ object ChainTest {
         println(String.format("\tRIGHT_EAR = %s ", ForwardSolver.computePositionDescription(Appendage.RIGHT_EAR.name)))
         println(String.format("\tLEFT_EYE  = %s ", ForwardSolver.computePositionDescription(Appendage.LEFT_EYE.name)))
         println(String.format("\tRIGHT_EYE = %s ", ForwardSolver.computePositionDescription(Appendage.RIGHT_EYE.name)))
+        /**
         println("         BACK JOINTS/APPENDAGES VERIFIED ####################")
         println("======== Test Joints along upper body sides - home pose")
         println(String.format("\tRIGHT_SHOULDER_Y = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_SHOULDER_Y.name)))
@@ -97,7 +86,7 @@ object ChainTest {
         println(String.format("\tRIGHT_FINGER = %s ", ForwardSolver.computePositionDescription(Appendage.RIGHT_FINGER.name)))
         println(String.format("\tLEFT_FINGER  = %s ", ForwardSolver.computePositionDescription(Appendage.LEFT_FINGER.name)))
         println("         UPPER JOINTS/APPENDAGES VERIFIED ####################")
-        println("======== Test Joints along lower body sides - home pose")
+        println("======== Test Joints along lower body sides - home position")
         println(String.format("\tRIGHT_HIP_X = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_HIP_X.name)))
         println(String.format("\tLEFT_HIP_X  = %s ", ForwardSolver.computePositionDescription(Joint.LEFT_HIP_X.name)))
         println(String.format("\tRIGHT_HIP_Z = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_HIP_Z.name)))

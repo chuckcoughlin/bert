@@ -29,9 +29,7 @@ import java.util.logging.Logger
  */
 class JointLink( val source:JointPosition,val end:JointPosition ) {
     var quaternion: Quaternion   // Associated with the source joint
-    // Current angle was in effect last time Q evaluated.
     // Values are degrees.
-    private var currentPitch: Double  // Motor angle
     private var orientation:DoubleArray
     private var rotation:DoubleArray
     val name = end.name
@@ -84,14 +82,10 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
      * Refer to "How to Calculate a Robot's Forward Kinematics in 5 Easy Steps"
      * by Alex Owen-Hill, these are the equivalents to our coordinate matrix:
      *
-     * Distances _mm, angle in radians
+     * Distances _mm, angle in degrees
      */
     fun recalculate() {
-        // No work if we haven't moved pitch since last update
-        // (pitch is the only "live" angle)
-        if(currentPitch==rotation[1]) return   // Nothing to do
-        currentPitch = rotation[1]
-
+        // pitch is the only "live" angle
         quaternion.setRoll((rotation[0]+orientation[0])*Math.PI/180.0)
         quaternion.setPitch((rotation[1]+orientation[1])*Math.PI/180.0)
         quaternion.setYaw((rotation[2]+orientation[2])*Math.PI/180.0)
@@ -103,8 +97,8 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
 
     fun clone() : JointLink {
         val copy = JointLink(sourceJoint.copy(),endJoint.copy())
-        copy.currentPitch = currentPitch
         copy.rotation = rotation.clone()
+        copy.orientation = orientation.clone()
         copy.quaternion = quaternion.clone()
         copy.side = side
         return copy
@@ -118,7 +112,6 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        currentPitch = Double.NaN
         orientation = doubleArrayOf(0.0,0.0,0.0)
         rotation = doubleArrayOf(0.0,0.0,0.0)
         quaternion = Quaternion()

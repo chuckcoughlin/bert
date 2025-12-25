@@ -5,6 +5,7 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.solver.ForwardSolver.tree
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -427,8 +428,8 @@ object RobotModel {
         return gson.toJson(motorValues)
     }
     /*
-     * Populate an entire tree with current motor angles
-    */
+     * Populate a chain of joint links with current motor angles.
+     */
     fun refreshChain(chain:List<JointLink>) {
         for (jlink in chain) {
             val jp = jlink.end
@@ -442,7 +443,7 @@ object RobotModel {
     }
     /*
      * Populate an entire tree with current motor angles
-    */
+     */
     fun refreshTree(tree: JointTree) {
         for (jlink in tree.linkmap.values) {
             val jp = jlink.end
@@ -454,7 +455,29 @@ object RobotModel {
             }
         }
     }
-
+    /*
+     * Populate all joint links for a specified limb to their
+     * home angle. This is presuneably the "straight" position.
+     */
+    fun setLimbToHome(tree: JointTree,limb: Limb) {
+        for (jlink in tree.linkmap.values) {
+            val jp = jlink.source
+            val joint = Joint.fromString(jp.name)
+            val jlimb = RobotModel.limbsByJoint[joint]
+            if( jlimb!=null && jlimb!=Limb.NONE && jlimb==limb ) {
+                jlink.setPitch(jlink.source.home)
+            }
+        }
+    }
+    /**
+     * Populate all joint links in the tree to their
+     * home angle. This is presuneably the "straight" position.
+     */
+    fun setTreeToHome(tree: JointTree) {
+        for (jlink in tree.linkmap.values) {
+            jlink.setPitch(jlink.source.home)
+        }
+    }
 
     private val CLSS = "RobotModel"
     private var DEBUG = false
