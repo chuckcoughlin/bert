@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -92,11 +92,13 @@ object URDFModel {
                         if ("appendage".equals(node.localName) || "joint".equals(node.localName)) {
                             val aname: String = XMLUtility.attributeValue(node, "name")
                             val jp = tree.getJointPositionByName(aname)
+                            var home = 0.0
                             if("appendage".equals(node.localName) ) {
                                 jp.isAppendage = true
                             }
                             else  {
-                                jp.home = XMLUtility.attributeValue(node, "home").toDouble()
+                                jp.isAppendage = false
+                                home = XMLUtility.attributeValue(node, "home").toDouble()
                             }
                             jp.side = XMLUtility.attributeValue(linkNode, "side")
                             jp.parent = parent.id
@@ -105,6 +107,7 @@ object URDFModel {
                             jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             jlink.setCoordinates(xyz[0],xyz[1],xyz[2])
+                            jlink.sourceJoint.home = home
                         }
                         aindex++
                     }

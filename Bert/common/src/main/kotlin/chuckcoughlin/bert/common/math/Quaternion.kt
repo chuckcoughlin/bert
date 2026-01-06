@@ -126,12 +126,12 @@ class Quaternion {
 
     /**
      * Update the quaternion matrix from prior settings of
-     * rotation and position.
+     * rotation and position. (Order of multipllication = roll, pitch, yaw).
      * Lengths ~mm, angles ~ radians
      */
     fun update() {
-        matrix = multiply(multiply(multiply(yaw,pitch),roll),translation)
-        //matrix = multiply(multiply(multiply(roll,pitch),yaw),translation)
+        //matrix = multiply(multiply(multiply(yaw,pitch),roll),translation)
+        matrix = multiply(multiply(multiply(roll,pitch),yaw),translation)
 
     }
 
