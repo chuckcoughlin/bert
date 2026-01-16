@@ -37,15 +37,18 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
     val sourceJoint= source
     var side:Side
 
+
+
+    // These are the physical fixed distances between source
+    // and end joint.
     // ~mm
-    fun setCoordinates(x:Double,y:Double,z:Double) {
+    fun setDimensions(x:Double,y:Double,z:Double) {
         if(DEBUG) LOGGER.info(String.format("%s.setCoordinates: (%s) %2.2f,%2.2f,%2.2f",CLSS,name,x,y,z))
         quaternion.setTranslation(x,y,z)
-        quaternion.update()
     }
     // Roll, pitch, yaw are in degrees. Convert to radians.
-    // This refers to the orientation of the end of the link
-    // with respect to the origin. ~ degrees
+    // This refers to the orientation of the origin
+    // with respect to the previous link. ~ degrees
     fun setRpy(roll:Double,pitch:Double,yaw:Double) {
         orientation[0] = roll
         orientation[1] = pitch
@@ -73,9 +76,9 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
         rotation[2] = angle
     }
 
-    /** Recalculate quaternion. No need unless angle has changed.
+    /** Update the quaternion to reflect current angle settings.
      * Note. joint coordinates are with respect robot reference frame
-     *       when straight. "z" is up, "x" is front, "y" is across.
+     *       when straight. "z" is up, "x" is to front, "y" is across.
      *
      * In our robot, adjacent motors (joints) are either aligned with parallel
      * axes or at right angles to each other as defined by the "rotation" angle.
@@ -93,6 +96,19 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
 
         if(DEBUG) LOGGER.info(String.format("%s.recalculate: %s %2.2f,%2.2f,%2.2f",CLSS,name,
                 rotation[0]+orientation[0],rotation[1]+orientation[1],rotation[2]+orientation[2]))
+    }
+
+    /**
+     * Rotate the link around the source joint to the specified orientation. This movement is only
+     * appropriate for the IMU as all other joints are attached to the
+     * preceding link.
+     * @Return the resulting quaternion
+     */
+    fun rotate() {
+        quaternion.setRoll((orientation[0])*Math.PI/180.0)
+        quaternion.setPitch((orientation[1])*Math.PI/180.0)
+        quaternion.setYaw((orientation[2])*Math.PI/180.0)
+        quaternion.rotate()
     }
 
     fun clone() : JointLink {
@@ -113,7 +129,7 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         orientation = doubleArrayOf(0.0,0.0,0.0)
-        rotation = doubleArrayOf(0.0,0.0,0.0)
+        rotation    = doubleArrayOf(0.0,0.0,0.0)
         quaternion = Quaternion()
         side = Side.FRONT
     }

@@ -20,79 +20,10 @@ import kotlin.math.sin
  */
 class Quaternion {
     var matrix: Array<DoubleArray>
-    var roll: Array<DoubleArray>
-    var pitch: Array<DoubleArray>
-    var yaw: Array<DoubleArray>
-    var translation: Array<DoubleArray>
-
-    /**
-     * Multiply the given quaternion by the current
-     * and return the result
-     */
-    fun preMultiplyBy(q: Quaternion): Quaternion {
-        val result = Quaternion()
-        result.matrix = multiply(q.matrix,this.matrix)
-        return result
-    }
-
-    /**
-     * Multiply the current quaternion by a
-     * specified one. Return the result.
-     */
-    fun postMultiplyBy(q: Quaternion): Quaternion {
-        val result = Quaternion()
-        result.matrix = multiply(this.matrix,q.matrix)
-        return result
-    }
-    // X axis
-    fun setRoll(angle:Double) {
-        roll[1][1] = cos(angle)
-        roll[1][2] = -sin(angle)
-        roll[2][1] = sin(angle)
-        roll[2][2] = cos(angle)
-    }
-    // Y axis
-    fun setPitch(angle:Double) {
-        //if(DEBUG) LOGGER.info(String.format("%s.setPitch: %2.2f",CLSS,angle*180.0/Math.PI))
-        pitch[0][0] = cos(angle)
-        pitch[0][2] = sin(angle)
-        pitch[2][0] = -sin(angle)
-        pitch[2][2] = cos(angle)
-    }
-    // Z axis
-    fun setYaw(angle:Double) {
-        yaw[0][0] = cos(angle)
-        yaw[0][1] = -sin(angle)
-        yaw[1][0] = sin(angle)
-        yaw[1][1] = cos(angle)
-    }
-    fun setTranslation(x:Double,y:Double,z:Double) {
-        //if(DEBUG) LOGGER.info(String.format("%s.setTranslation: %2.2f %2.2f %2.2f",CLSS,x,y,z))
-        translation[0][3] = x
-        translation[1][3] = y
-        translation[2][3] = z
-    }
-
-    /**
-     * Multiply two matrices (expressed as arrays of double arrays)
-     * Square matrices, same size.
-     */
-    private fun multiply(a: Array<DoubleArray>,b: Array<DoubleArray>): Array<DoubleArray> {
-        val n = a.size
-        if (n != b.size || b[0].size != n) {
-            throw IllegalArgumentException(String.format("%s:multiplyBy: Matrices cannot be multiplied due to incompatible dimensions (%d vs %d).",
-                CLSS, a.size, b.size))
-        }
-        val result = Array(n) { DoubleArray(n) }
-        for (i in 0 until n) {
-            for (j in 0 until n) {
-                for (k in 0 until n) {
-                    result[i][j] += a[i][k] * b[k][j]
-                }
-            }
-        }
-        return result
-    }
+    var roll:  Rom
+    var pitch: Rom
+    var yaw:   Rom
+    var translation: DoubleArray
 
     /**
      * @return the current orientation with respect to the reference frame ~ radians.
@@ -112,6 +43,38 @@ class Quaternion {
         return(String.format("%3.0f,%3.0f,%3.0f",dir[0]*180.0/Math.PI,dir[1]*180.0/Math.PI,dir[2]*180.0/Math.PI))
     }
 
+
+    /**
+     * Insert a 3x3 rotation matrix into the quaternion matrix.
+     * matrix[row][col]
+     */
+    fun insertRotation(r:Array<DoubleArray>) {
+        matrix[0][0] = r[0][0]
+        matrix[0][1] = r[0][1]
+        matrix[0][2] = r[0][2]
+        matrix[1][0] = r[1][0]
+        matrix[1][1] = r[1][1]
+        matrix[1][2] = r[1][2]
+        matrix[2][0] = r[2][0]
+        matrix[2][1] = r[2][1]
+        matrix[2][2] = r[2][2]
+    }
+
+    fun insertTranslation(t:DoubleArray) {
+        matrix[0][3] = t[0]
+        matrix[1][3] = t[1]
+        matrix[2][3] = t[2]
+    }
+    /**
+     * Multiply the given quaternion by the current
+     * and return the result
+     */
+    fun preMultiplyBy(q: Quaternion): Quaternion {
+        val result = Quaternion()
+        result.matrix = multiply(q.matrix,this.matrix)
+        return result
+    }
+
     /**
      * The current position in the parent frame (x,y,z)
      */
@@ -125,13 +88,115 @@ class Quaternion {
     }
 
     /**
+     * Multiply the current quaternion by a
+     * specified one. Return the result.
+     */
+    fun postMultiplyBy(q: Quaternion): Quaternion {
+        val result = Quaternion()
+        result.matrix = multiply(this.matrix,q.matrix)
+        return result
+    }
+    // X axis
+    fun setRoll(phi:Double) {
+        roll.setRoll(phi)
+    }
+    // Y axis
+    fun setPitch(theta:Double) {
+        pitch.setPitch(theta)
+    }
+    // Z axis
+    fun setYaw(psi:Double) {
+        yaw.setYaw(psi)
+    }
+    fun setTranslation(x:Double,y:Double,z:Double) {
+        translation[0] = x
+        translation[1] = y
+        translation[2] = z
+    }
+
+    /**
+     * Multiply two matrices (expressed as arrays of double arrays)
+     * Square matrices, same size.
+     */
+    private fun multiply(a: Array<DoubleArray>,b: Array<DoubleArray>): Array<DoubleArray> {
+        val n = a.size
+        if (n != b.size || b[0].size != n) {
+            throw IllegalArgumentException(String.format("%s:multiply: Matrices must havee same dimensions (%d vs %d).",
+                CLSS, a.size, b.size))
+        }
+        val result = Array(n) { DoubleArray(n) }
+        for (i in 0 until n) {
+            for (j in 0 until n) {
+                for (k in 0 until n) {
+                    result[i][j] += a[i][k] * b[k][j]
+                }
+            }
+        }
+        return result
+    }
+    /**
+     * Multiply a matrix by a vector
+     * Square matrix, of same size as the vector.
+     */
+    private fun multiply(a: Array<DoubleArray>,v: DoubleArray): Array<DoubleArray> {
+        val n = a.size
+        if (n != v.size ) {
+            throw IllegalArgumentException(String.format("%s:multiply: Matrix and vector must have same sizes (%d vs %d).",
+                CLSS, a.size, v.size))
+        }
+        val result = Array(n) { DoubleArray(n) }
+        for (i in 0 until n) {
+            var sum = 0.0
+            for (j in 0 until n) {
+                for (k in 0 until n) {
+                    sum += a[i][j] * v[j]
+                    result[i][j] = sum
+                }
+            }
+        }
+        return result
+    }
+
+    /**
+     * Multiply a vector by a matrix
+     * Square matrix, of same size as the vector.
+     */
+    private fun multiply(v: DoubleArray,a: Array<DoubleArray>): DoubleArray {
+        val n = a.size
+        if (n != v.size ) {
+            throw IllegalArgumentException(String.format("%s:multiply: Vector and matrix must have same sizes (%d vs %d).",
+                CLSS, a.size, v.size))
+        }
+        val result = DoubleArray(n)
+        for (i in 0 until n) {
+            var sum = 0.0
+            for (j in 0 until n) {
+                for (k in 0 until n) {
+                    sum += v[j] * a[j][i]
+                    result[j] = sum
+                }
+            }
+        }
+        return result
+    }
+    /**
+     * Perform a rotation operation, updating the internal matrix.
+     */
+    fun rotate() {
+        val rotation = multiply(multiply(roll.matrix,pitch.matrix),yaw.matrix)
+        insertRotation(rotation)
+        val t = multiply(translation,matrix)
+        insertTranslation(t)
+    }
+
+    /**
      * Update the quaternion matrix from prior settings of
      * rotation and position. (Order of multipllication = roll, pitch, yaw).
      * Lengths ~mm, angles ~ radians
      */
     fun update() {
-        //matrix = multiply(multiply(multiply(yaw,pitch),roll),translation)
-        matrix = multiply(multiply(multiply(roll,pitch),yaw),translation)
+        val rotation = multiply(multiply(roll.matrix,pitch.matrix),yaw.matrix)
+        insertRotation(rotation)
 
     }
 
@@ -162,10 +227,10 @@ class Quaternion {
 
     fun logdetails(comment:String) {
         LOGGER.info(String.format("%s.logdetails =============== %s ==============",CLSS,comment))
-        LOGGER.info(dumpmatrix("roll",roll))
-        LOGGER.info(dumpmatrix("pitch",pitch))
-        LOGGER.info(dumpmatrix("yaw",yaw))
-        LOGGER.info(dumpmatrix("translation",translation))
+        LOGGER.info(dumpmatrix("roll",roll.matrix))
+        LOGGER.info(dumpmatrix("pitch",pitch.matrix))
+        LOGGER.info(dumpmatrix("yaw",yaw.matrix))
+        LOGGER.info(dumpmatrix("matrix",matrix))
         LOGGER.info(dump(comment))
     }
 
@@ -193,13 +258,17 @@ class Quaternion {
          */
         fun identity(): Quaternion {
             val q = Quaternion()
-            q.matrix = arrayOf(         // Initialize as identity matrix
+            q.matrix = identityMatrix()
+            return q
+        }
+        fun identityMatrix(): Array<DoubleArray> {
+            val m = arrayOf(         // Initialize as identity matrix
                 doubleArrayOf(1.0,0.0,0.0,0.0),
                 doubleArrayOf(0.0,1.0,0.0,0.0),
                 doubleArrayOf(0.0,0.0,1.0,0.0),
                 doubleArrayOf(0.0,0.0,0.0,1.0)
             )
-            return q
+            return m
         }
     }
     private val CLSS = "Quaternion"
@@ -215,29 +284,9 @@ class Quaternion {
             doubleArrayOf(0.0,0.0,0.0,0.0),
             doubleArrayOf(0.0,0.0,0.0,0.0)
         )
-        roll = arrayOf(         // For rotation around x axis
-                doubleArrayOf(1.0,0.0,0.0,0.0),
-                doubleArrayOf(0.0,1.0,0.0,0.0),
-                doubleArrayOf(0.0,0.0,1.0,0.0),
-                doubleArrayOf(0.0,0.0,0.0,1.0)
-        )
-        pitch = arrayOf(         // For rotation around y axis
-                doubleArrayOf(1.0,0.0,0.0,0.0),
-                doubleArrayOf(0.0,1.0,0.0,0.0),
-                doubleArrayOf(0.0,0.0,1.0,0.0),
-                doubleArrayOf(0.0,0.0,0.0,1.0)
-        )
-        yaw = arrayOf(         // For rotation around z axis
-                doubleArrayOf(1.0,0.0,0.0,0.0),
-                doubleArrayOf(0.0,1.0,0.0,0.0),
-                doubleArrayOf(0.0,0.0,1.0,0.0),
-                doubleArrayOf(0.0,0.0,0.0,1.0)
-        )
-        translation = arrayOf(         // Position without rotation
-            doubleArrayOf(1.0,0.0,0.0,0.0),
-            doubleArrayOf(0.0,1.0,0.0,0.0),
-            doubleArrayOf(0.0,0.0,1.0,0.0),
-            doubleArrayOf(0.0,0.0,0.0,1.0)
-        )
+        roll  = Rom()
+        pitch = Rom()
+        yaw   = Rom()
+        translation = doubleArrayOf(0.0,0.0,0.0)
     }
 }

@@ -106,7 +106,7 @@ object URDFModel {
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                            jlink.setCoordinates(xyz[0],xyz[1],xyz[2])
+                            jlink.setDimensions(xyz[0],xyz[1],xyz[2])
                             jlink.sourceJoint.home = home
                         }
                         aindex++

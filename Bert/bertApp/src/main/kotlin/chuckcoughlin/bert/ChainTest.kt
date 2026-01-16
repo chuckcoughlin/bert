@@ -1,6 +1,7 @@
 package chuckcoughlin.bert
 
 
+import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.solver.ForwardSolver
 
@@ -16,6 +17,7 @@ object ChainTest {
     fun execute() {
         // setMotorPositions()
         val tree = ForwardSolver.tree
+        var q : Quaternion
 
         // Test the links to some extremities
         println(String.format("==================== %s ===========================================",CLSS ))
@@ -35,16 +37,19 @@ object ChainTest {
         for (link in chain2) {
             println(String.format("\t%s ", link.name))
         }
-        println("======== Test ABS_Y for IMU orientations (direction should match)")
-        val IMU = tree.getJointLink(Joint.IMU.name,Joint.ABS_Y.name)
+        println("======== Test ABS_Y for IMU orientations (directions should match)")
+        val IMU = tree.getJointLink(Joint.IMU.name,Joint.ABS_Y.name).clone()
         IMU.setRoll(0.0)
         IMU.setPitch(0.0)
         IMU.setYaw(0.0)
-        println(String.format("\tABS-Y  (IMU=0,0,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
+        IMU.rotate()
+        println(String.format("\t(IMU=12,0,62 [0,0,0]) = %s [%s]", IMU.quaternion.positionToText(),q.directionToText()))
         IMU.setRoll(90.0)    // 90 deg
         IMU.setPitch(0.0)
         IMU.setYaw(0.0)
-        println(String.format("\tABS-Y (IMU=90,0.0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
+        q = IMU.rotate()
+        println(String.format("\t(IMU=12,0,62 [90,0,0]) = %s [%s]", IMU.quaternion.positionToText(),q.directionToText()))
+/**
         IMU.setRoll(0.0)
         IMU.setPitch(90.0)
         IMU.setYaw(0.0)
@@ -76,7 +81,6 @@ object ChainTest {
         println("======== Test Joints along upper body sides - home pose")
         println(String.format("\tRIGHT_SHOULDER_Y = %s [0,0,0]", ForwardSolver.computePositionDescription(Joint.RIGHT_SHOULDER_Y.name)))
         println(String.format("\tLEFT_SHOULDER_Y  = %s [0,0,0]", ForwardSolver.computePositionDescription(Joint.LEFT_SHOULDER_Y.name)))
-        /**
         println(String.format("\tRIGHT_SHOULDER_X = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_SHOULDER_X.name)))
         println(String.format("\tLEFT_SHOULDER_X  = %s (6.8, 105.5, 243.5)", ForwardSolver.computePositionDescription(Joint.LEFT_SHOULDER_X.name)))
         println(String.format("\tRIGHT_SHOULDER_Z = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_SHOULDER_Z.name)))
@@ -102,7 +106,7 @@ object ChainTest {
         println(String.format("\tRIGHT_TOE  = %s ", ForwardSolver.computePositionDescription(Appendage.RIGHT_TOE.name)))
         println(String.format("\tLEFT_TOE  = %s ", ForwardSolver.computePositionDescription(Appendage.LEFT_TOE.name)))
         println("         LOWER JOINTS/APPENDAGES VERIFIED ####################")
-        **/
+      */
     }
 
     const val CLSS = "ChainTest"
