@@ -1,5 +1,5 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.solver
@@ -21,12 +21,12 @@ object MotionPlanner {
      */
     fun transformRequest(request:MessageBottle) : MessageBottle {
         request.type = RequestType.SET_JOINT_POSITIONS
-        request.error = checkAppendage(request.appendage)
+        request.error = checkAppendage(request.joint)
         if( request.error==BottleConstants.NO_ERROR ) {
-            val joints = jointsForAppendage(request.appendage)
+            val joints = jointsForAppendage(request.joint)
             val tree = URDFModel.createJointTree()
             RobotModel.refreshTree(tree)
-            val current=tree.getJointPositionByName(request.appendage.name)
+            val current=tree.getOrCreateJointPosition(request.joint)
             val goal=current.copy()
             val dir=Direction.fromString(request.text)
             val offset=request.values[0]
@@ -39,7 +39,7 @@ object MotionPlanner {
                 Direction.DOWN -> goal.pos.z=goal.pos.z - offset
                 Direction.UNKNOWN -> TODO()
             }
-            val movements: List<JointPosition> = planMotion(request.appendage,joints,current, goal)
+            val movements: List<JointPosition> = planMotion(request.joint,joints,current, goal)
             val gson=GsonBuilder().create()
             val json=gson.toJson(movements)
             request.text=json
@@ -49,45 +49,45 @@ object MotionPlanner {
     /**
      * Verify that the appendage is one that we can move.
      */
-    private fun checkAppendage(appendage:Appendage): String {
+    private fun checkAppendage(appendage:Joint): String {
         val error = when (appendage) {
-            Appendage.LEFT_EAR -> "moving the left ear is not supported"
-            Appendage.LEFT_EYE -> "moving the left eye is not supported"
-            Appendage.LEFT_HEEL -> "moving the left heel is not supported"
-            Appendage.NOSE ->      "wiggling my nose is not supported"
-            Appendage.RIGHT_EAR -> "moving the right ear is not supported"
-            Appendage.RIGHT_EYE -> "moving the right eye is not supported"
-            Appendage.RIGHT_HEEL ->"moving the right heel is not supported"
-            Appendage.NONE ->      "moving an unknown end effector is not supported"
+            Joint.LEFT_EAR -> "moving the left ear is not supported"
+            Joint.LEFT_EYE -> "moving the left eye is not supported"
+            Joint.LEFT_HEEL -> "moving the left heel is not supported"
+            Joint.NOSE ->      "wiggling my nose is not supported"
+            Joint.RIGHT_EAR -> "moving the right ear is not supported"
+            Joint.RIGHT_EYE -> "moving the right eye is not supported"
+            Joint.RIGHT_HEEL ->"moving the right heel is not supported"
+            Joint.NONE ->      "moving an unknown end effector is not supported"
             else -> BottleConstants.NO_ERROR
         }
         return error
     }
 
     // Given an appendage, these are the joints to be set.
-    private fun jointsForAppendage(appendage:Appendage) : List<Joint> {
+    private fun jointsForAppendage(appendage:Joint) : List<Joint> {
         val list = mutableListOf<Joint>()
         when(appendage) {
             // Assume elbow and shoulder y are the same
-            Appendage.LEFT_FINGER -> {
+            Joint.LEFT_FINGER -> {
                 list.add(Joint.LEFT_ELBOW_Y)
                 list.add(Joint.LEFT_SHOULDER_X)
                 list.add(Joint.LEFT_SHOULDER_Y)
                 list.add(Joint.LEFT_SHOULDER_Z)
             }
-            Appendage.RIGHT_FINGER -> {
+            Joint.RIGHT_FINGER -> {
                 list.add(Joint.RIGHT_ELBOW_Y)
                 list.add(Joint.RIGHT_SHOULDER_X)
                 list.add(Joint.RIGHT_SHOULDER_Y)
                 list.add(Joint.RIGHT_SHOULDER_Z)
             }
-            Appendage.LEFT_TOE -> {
+            Joint.LEFT_TOE -> {
                 list.add(Joint.LEFT_KNEE_Y)
                 list.add(Joint.LEFT_HIP_X)
                 list.add(Joint.LEFT_HIP_Y)
                 list.add(Joint.LEFT_HIP_Z)
             }
-            Appendage.RIGHT_TOE -> {
+            Joint.RIGHT_TOE -> {
                 list.add(Joint.RIGHT_KNEE_Y)
                 list.add(Joint.RIGHT_HIP_X)
                 list.add(Joint.RIGHT_HIP_Y)
@@ -98,7 +98,7 @@ object MotionPlanner {
         return list
     }
 
-    private fun planMotion(appendage:Appendage,joints:List<Joint>,current: JointPosition,goal:JointPosition):List<JointPosition> {
+    private fun planMotion(appendage:Joint,joints:List<Joint>,current: JointPosition,goal:JointPosition):List<JointPosition> {
         val movements = mutableListOf<JointPosition>()
         return movements
     }

@@ -31,7 +31,6 @@ import java.util.logging.Logger
  *  Sets bottle type. The rest are settable
 */
 data class MessageBottle (var type: RequestType) : Cloneable,Serializable {
-    var appendage: Appendage // Message applies to this appendage (end effector)
     var command : CommandType
     var error : String       // Error message if not blank
     var handler: ControllerType // The subsystem to handle this message
@@ -50,7 +49,6 @@ data class MessageBottle (var type: RequestType) : Cloneable,Serializable {
 
     override public fun clone(): MessageBottle {
         val copy = MessageBottle(type)
-        copy.appendage   = appendage
         copy.command     = command
         copy.error       = error
         copy.handler     = handler
@@ -121,7 +119,6 @@ data class MessageBottle (var type: RequestType) : Cloneable,Serializable {
      * Set initiial values for all message parameters
      */
     init {
-        appendage   = Appendage.NONE
         command     = CommandType.NONE
         error   =  BottleConstants.NO_ERROR   // No error
         handler = ControllerType.UNDEFINED

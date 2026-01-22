@@ -11,6 +11,7 @@ import android.graphics.Paint.Style.STROKE
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 import android.util.Log
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.Point2D
 
 
@@ -19,8 +20,8 @@ import chuckcoughlin.bertspeak.data.Point2D
  * except draw()
  */
 
- abstract class LinkShapeDrawable(nam:String,point2:Point2D,limbSide:Side): Drawable() {
-	 val name:String
+ abstract class LinkShapeDrawable(j: Joint, point2:Point2D, limbSide:Side): Drawable() {
+	 val joint:Joint
 	 val p2:Point2D
 	 val side:Side
 	 var selected:Boolean
@@ -59,7 +60,7 @@ import chuckcoughlin.bertspeak.data.Point2D
 	val TOLERANCE  = 20f // Touch tolerance in screen units
 
 	init {
-		name = nam
+		joint = j
 		selected = false
 		selectable = false
 		p2 = point2

@@ -6,6 +6,7 @@ package chuckcoughlin.bert.common.solver
 
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.solver.ForwardSolver.tree
 import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
@@ -22,10 +23,10 @@ object ForwardSolver {
      * Return the orientation of the named joint or appendage in x,y,z coordinates
      * in meters from the robot origin in the pelvis in the inertial reference frame.
      * The named joint is last in the chain.
-     * @param name of joint or appendage
+     * @param joint or appendage
      */
-    fun computeDirection(name: String): DoubleArray {
-        val subchain: List<JointLink> = tree.createLinkChain(name)
+    fun computeDirection(joint: Joint): DoubleArray {
+        val subchain: List<JointLink> = tree.createLinkChain(joint)
         val q = computeQuaternionFromChain(subchain)
         return q.direction()
     }
@@ -35,20 +36,20 @@ object ForwardSolver {
      * robot origin in the pelvis in the inertial reference frame.
      * The named joint is last in the chain.
      */
-    fun computePosition(name: String): Point3D {
-        val subchain: List<JointLink> = tree.createLinkChain(name)
+    fun computePosition(joint: Joint): Point3D {
+        val subchain: List<JointLink> = tree.createLinkChain(joint)
         val q = computeQuaternionFromChain(subchain)
         return q.position()
     }
     /**
      * Return a string for debugging use containing both position and direction
-     * @param name of joint or appendage
+     * @param joint or appendage
      */
-    fun computePositionDescription(name: String): String {
-        val subchain: List<JointLink> = tree.createLinkChain(name)
+    fun computePositionDescription(joint: Joint): String {
+        val subchain: List<JointLink> = tree.createLinkChain(joint)
         val q = computeQuaternionFromChain(subchain)
         if(DEBUG) LOGGER.info(String.format("%s.computePositionDescription: %s = (%s [%s]) ",
-            CLSS,name,q.positionToText(),q.directionToText()))
+            CLSS,joint.name,q.positionToText(),q.directionToText()))
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
     }
 
@@ -65,6 +66,7 @@ object ForwardSolver {
     private fun computeQuaternionFromChain(subchain: List<JointLink>):Quaternion {
         var q = Quaternion.identity()
         var atOrigin = true
+        /**
         for(link in subchain) {
             link.recalculate()
             if( atOrigin ) {
@@ -79,7 +81,9 @@ object ForwardSolver {
                     CLSS, link.name, link.end.name, q.positionToText(), q.directionToText()))
                 if (DEBUG) LOGGER.info(q.dump("product"))
             }
-        }
+         }
+        **/
+
         return q
     }
 

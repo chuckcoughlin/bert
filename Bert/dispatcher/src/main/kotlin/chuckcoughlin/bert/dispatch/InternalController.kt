@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.dispatch
@@ -55,7 +55,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                         else if( msg.type==RequestType.EXECUTE_POSE)
                             LOGGER.info(String.format("%s.execute received: %s (%s %2.0f)", CLSS, msg.type.name,msg.arg,msg.values[0]))
                         else if( msg.type==RequestType.PLACE_END_EFFECTOR)
-                            LOGGER.info(String.format("%s.execute received: %s (%s)", CLSS, msg.type.name,msg.appendage.name))
+                            LOGGER.info(String.format("%s.execute received: %s (%s)", CLSS, msg.type.name,msg.joint.name))
                         else
                             LOGGER.info(String.format("%s.execute received: %s", CLSS, msg.type.name))
                     }

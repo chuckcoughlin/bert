@@ -14,7 +14,9 @@ enum class Joint {
     LEFT_ANKLE_Y, LEFT_SHOULDER_Z, LEFT_ELBOW_Y, LEFT_HIP_X, LEFT_HIP_Y, LEFT_HIP_Z,
     LEFT_KNEE_Y, LEFT_SHOULDER_X, LEFT_SHOULDER_Y,
     RIGHT_ANKLE_Y, RIGHT_SHOULDER_Z, RIGHT_ELBOW_Y, RIGHT_HIP_X, RIGHT_HIP_Y, RIGHT_HIP_Z,
-    RIGHT_KNEE_Y, RIGHT_SHOULDER_X, RIGHT_SHOULDER_Y, IMU, NONE;
+    RIGHT_KNEE_Y, RIGHT_SHOULDER_X, RIGHT_SHOULDER_Y, IMU,
+    LEFT_EAR, LEFT_EYE, LEFT_FINGER, LEFT_HEEL, LEFT_TOE, NOSE,
+    RIGHT_EAR, RIGHT_EYE, RIGHT_FINGER, RIGHT_HEEL, RIGHT_TOE,NONE;
 
     companion object {
         private val CLSS = "Joint"
@@ -53,9 +55,80 @@ enum class Joint {
                 RIGHT_SHOULDER_X -> text = "right shoulder x"
                 RIGHT_SHOULDER_Y -> text = "right shoulder y"
                 RIGHT_SHOULDER_Z -> text = "right shoulder z"
+                // End effectors
+                LEFT_EAR -> text = "left ear"
+                LEFT_EYE -> text = "left eye"
+                LEFT_FINGER -> text = "left finger"
+                LEFT_HEEL -> text = "left heel"
+                LEFT_TOE -> text = "left toe"
+                NOSE -> text = "nose"
+                RIGHT_EAR -> text = "right ear"
+                RIGHT_EYE -> text = "right eye"
+                RIGHT_FINGER -> text = "right finger"
+                RIGHT_HEEL -> text = "right heel"
+                RIGHT_TOE -> text = "right toe"
                 NONE -> text = "unknown"
             }
             return text
+        }
+
+        /**
+         * @param joint the enumeration
+         * @return true if the joint refers to an end-effector
+         */
+        fun isEndEffector(joint: Joint): Boolean {
+            val ans:Boolean
+            when (joint) {
+                ABS_X -> ans = false
+                ABS_Y -> ans = false
+                ABS_Z -> ans = false
+                CHEST_X -> ans = false
+                CHEST_Y -> ans = false
+                IMU -> ans = false
+                NECK_Y -> ans = false
+                NECK_Z -> ans = false
+                LEFT_ANKLE_Y -> ans = false
+                LEFT_ELBOW_Y -> ans = false
+                LEFT_HIP_X -> ans = false
+                LEFT_HIP_Y -> ans = false
+                LEFT_HIP_Z -> ans = false
+                LEFT_KNEE_Y -> ans = false
+                LEFT_SHOULDER_X -> ans = false
+                LEFT_SHOULDER_Y -> ans = false
+                LEFT_SHOULDER_Z -> ans = false
+                RIGHT_ANKLE_Y -> ans = false
+                RIGHT_ELBOW_Y -> ans = false
+                RIGHT_HIP_X -> ans = false
+                RIGHT_HIP_Y -> ans = false
+                RIGHT_HIP_Z -> ans = false
+                RIGHT_KNEE_Y -> ans = false
+                RIGHT_SHOULDER_X -> ans = false
+                RIGHT_SHOULDER_Y -> ans = false
+                RIGHT_SHOULDER_Z -> ans = false
+                // End effectors
+                LEFT_EAR -> ans = false
+                LEFT_EYE -> ans = false
+                LEFT_FINGER -> ans = false
+                LEFT_HEEL -> ans = false
+                LEFT_TOE -> ans = false
+                NOSE -> ans = false
+                RIGHT_EAR -> ans = false
+                RIGHT_EYE -> ans = false
+                RIGHT_FINGER -> ans = false
+                RIGHT_HEEL -> ans = false
+                RIGHT_TOE -> ans = false
+                NONE -> ans = false
+            }
+            return ans
+        }
+
+        /**
+         * @param joint the enumeration
+         * @return true if the joint is the IMU, the root of any chain
+         */
+        fun isRoot(joint:Joint):Boolean {
+            if(joint==IMU) return true
+            else return false
         }
 
         /** @return  a comma-separated string of all joints

@@ -437,17 +437,17 @@ class Dispatcher : Controller {
             }
             // The following requests simply use the current positions of the motors, whatever they are
             else if (request.type==RequestType.GET_EXTREMITY_DIRECTION) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get direction appendage=%s joint=%s", CLSS, request.appendage.name,request.joint.name))
+                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get direction appendage=%s joint=%s", CLSS, request.joint.name,request.joint.name))
                 var text:String
                 if( request.joint==Joint.NONE ) {
-                    val appendage = request.appendage
-                    val xyz: DoubleArray = ForwardSolver.computeDirection(appendage.name)
+                    val appendage = request.joint
+                    val xyz: DoubleArray = ForwardSolver.computeDirection(appendage)
                     text = String.format("my %s is aimed at %2.2f %2.2f %2.2f",
                         appendage.name, xyz[0], xyz[1], xyz[2])
                 }
                 else {
                     val joint = request.joint
-                    val xyz: DoubleArray = ForwardSolver.computeDirection(joint.name)
+                    val xyz: DoubleArray = ForwardSolver.computeDirection(joint)
                     text = String.format(
                         "My %s is oriented %2.2f and %2.2f degrees from the reference frame x and y axes, respectively",
                         Joint.toText(joint), xyz[0], xyz[1])
@@ -458,18 +458,18 @@ class Dispatcher : Controller {
             else if (request.type==RequestType.GET_EXTREMITY_POSITION) {
                 var text:String
                 if( request.joint==Joint.NONE ) {
-                    val appendage = request.appendage
-                    val xyz: Point3D = ForwardSolver.computePosition(appendage.name)
+                    val appendage = request.joint
+                    val xyz: Point3D = ForwardSolver.computePosition(appendage)
                     text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
                         appendage.name, xyz.x, xyz.y, xyz.z)
                     request.values[0] = xyz.x
                     request.values[1] = xyz.y
                     request.values[2] = xyz.z
-                    if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get appendage %s location = %s", CLSS,request.appendage.name,text))
+                    if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get appendage %s location = %s", CLSS,request.joint.name,text))
                 }
                 else {
                     val joint = request.joint
-                    val xyz: Point3D = ForwardSolver.computePosition(joint.name)
+                    val xyz: Point3D = ForwardSolver.computePosition(joint)
                     text = String.format(
                         "My %s joint is at %2.2f %2.2f %2.2f millimeters",
                         Joint.toText(joint), xyz.x, xyz.y, xyz.z)
@@ -506,8 +506,8 @@ class Dispatcher : Controller {
                             JsonType.FACE_NAMES -> text = "I know " + Database.getFaceNames()
                             JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = "Each joint has " + JointDynamicProperty.names()
                             JsonType.MOTOR_STATIC_PROPERTIES -> text = "Each joint has a " + JointDynamicProperty.names()
-                            JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Appendage.nameList()
-                            JsonType.JOINT_NAMES -> text = "My joints are " + Joint.nameList()
+                            JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Joint.endEffectorList()
+                            JsonType.JOINT_NAMES -> text = "My joints are " + Joint.jointList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
                             JsonType.JOINT_COORDINATES -> text = "Joint positiond are " + ForwardSolver.jointCoordinatesToJson()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()

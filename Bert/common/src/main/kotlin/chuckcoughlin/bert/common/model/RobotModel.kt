@@ -5,6 +5,14 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.controller.ControllerType
+import chuckcoughlin.bert.common.model.RobotModel.jointsByController
+import chuckcoughlin.bert.common.model.RobotModel.limbsByJoint
+import chuckcoughlin.bert.common.model.RobotModel.motorControllerDevices
+import chuckcoughlin.bert.common.model.RobotModel.motorControllerNames
+import chuckcoughlin.bert.common.model.RobotModel.motorsById
+import chuckcoughlin.bert.common.model.RobotModel.motorsByJoint
+import chuckcoughlin.bert.common.model.RobotModel.properties
+import chuckcoughlin.bert.common.model.RobotModel.propertiesByController
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
@@ -431,13 +439,10 @@ object RobotModel {
      */
     fun refreshChain(chain:List<JointLink>) {
         for (jlink in chain) {
-            val jp = jlink.end
-            if(!jp.isAppendage) {
-                val joint = Joint.fromString(jp.name)
-                val mc = motorsByJoint.get(joint)!!
-                jlink.updateForMotorAngle(mc.angle)
-                jlink.recalculate()
-            }
+            val joint = jlink.end
+            val mc = motorsByJoint.get(joint)!!
+            //jlink.updateForMotorAngle(mc.angle)
+            //jlink.recalculate()
         }
     }
     /*
@@ -445,13 +450,10 @@ object RobotModel {
      */
     fun refreshTree(tree: JointTree) {
         for (jlink in tree.linkmap.values) {
-            val jp = jlink.end
-            if(!jp.isAppendage) {
-                val joint = Joint.fromString(jp.name)
-                val mc = motorsByJoint.get(joint)!!
-                jlink.updateForMotorAngle(mc.angle)
-                jlink.recalculate()
-            }
+            val joint = jlink.source
+            val mc = motorsByJoint.get(joint)!!
+            //jlink.updateForMotorAngle(mc.angle)
+            // jlink.recalculate()
         }
     }
     /*
@@ -460,11 +462,10 @@ object RobotModel {
      */
     fun setLimbToHome(tree: JointTree,limb: Limb) {
         for (jlink in tree.linkmap.values) {
-            val jp = jlink.source
-            val joint = Joint.fromString(jp.name)
+            val joint = jlink.source
             val jlimb = RobotModel.limbsByJoint[joint]
             if( jlimb!=null && jlimb!=Limb.NONE && jlimb==limb ) {
-                jlink.setPitch(jlink.source.home)
+                //jlink.setPitch(jlink.source.home)
             }
         }
     }
@@ -474,7 +475,7 @@ object RobotModel {
      */
     fun setTreeToHome(tree: JointTree) {
         for (jlink in tree.linkmap.values) {
-            jlink.setPitch(jlink.source.home)
+            //jlink.setPitch(jlink.source.home)
         }
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023-2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2023-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -8,43 +8,56 @@ import chuckcoughlin.bert.common.math.Quaternion
 import java.util.logging.Logger
 
 /**
- * A joint-link is a skeletal structure connecting a source joint to either a
- * revolute joint or end effector. The "coordinates" and "rotation" members are
- * static and refer to the orientation and position of the end joint with respect
- * to the source joint.
- *
- * If the end represents a joint, then the joint is a "revolute", that is
- * rotational only. The only translations are the fixed distances between source
- * and end joints. The joint x-axis is always at right angles to a line from the
- * source to end.
- *
- * The end "joint" may also represent an "extremity" or "end effector". We call it an
- * "appendage". An appendage is not movable, but we can calculate its 3D location
- * and orientation.
+ * A joint-link is a skeletal structure beginning with a source joint and ending
+ * with either another joint or end effector. Values are static with exception of
+ * the joint angle. The "orientation" refers to the
+ * fixed orientation of tne source joint with respect to the previous link. Thw
+ * "coordinates" refer to the location of the end joint or end-effector with
+ * respect to the source. The axes for these coordinates are always "y" corresponding
+ * to the axis of the joint, "x" is positive forward, "z" is up.
  *
  * Multiple joint-links may have the same source, indicating they are on the same physical
- * skeletal piece.
+ * skeletal piece. A link may be uniquely identified by its end joint/effector.
  *
- * @param name link name - either the appendage or joint name
+ * @param source position of the source joint
+ * @param end position of the end joint or end effector
  */
-class JointLink( val source:JointPosition,val end:JointPosition ) {
-    var quaternion: Quaternion   // Associated with the source joint
+class JointLink( val source:Joint,val end:Joint ) {
     // Values are degrees.
     private var orientation:DoubleArray
-    private var rotation:DoubleArray
-    val name = end.name
-    val endJoint   = end
-    val sourceJoint= source
+    private var position:DoubleArray
+    private var coordinates:DoubleArray
+    var home:Double
+    val endJoint    = end
+    val sourceJoint = source
     var side:Side
 
 
 
     // These are the physical fixed distances between source
-    // and end joint.
+    // and end joint from the URDF file. The joint angle
+    // is in its home position. Initialize position to same.
     // ~mm
-    fun setDimensions(x:Double,y:Double,z:Double) {
-        if(DEBUG) LOGGER.info(String.format("%s.setCoordinates: (%s) %2.2f,%2.2f,%2.2f",CLSS,name,x,y,z))
-        quaternion.setTranslation(x,y,z)
+    fun setCoordinates(x:Double,y:Double,z:Double) {
+        if(DEBUG) LOGGER.info(String.format("%s.setCoordinates: (%s) %2.2f,%2.2f,%2.2f",CLSS,endJoint.name,x,y,z))
+        coordinates[0] = x
+        coordinates[1] = y
+        coordinates[2] = z
+
+        position[0] = x
+        position[1] = y
+        position[2] = z
+    }
+
+    /*
+     * Modify the position, accounting for the joint angle.
+     */
+    fun setJointAngle(theta:Double) {
+        val angle = (theta-home)*Math.PI/180.0
+        if(DEBUG) LOGGER.info(String.format("%s.setJointAngle:(%s) %2.2f",CLSS,endJoint.name,theta))
+        coordinates[0] = coordinates[0]*Math.cos(angle)+ coordinates[2]*Math.sin(angle)
+        position[1]    = coordinates[1]
+        position[2]    = coordinates[0]*Math.sin(angle)+ coordinates[2]*Math.cos(angle)
     }
     // Roll, pitch, yaw are in degrees. Convert to radians.
     // This refers to the orientation of the origin
@@ -54,68 +67,20 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
         orientation[1] = pitch
         orientation[2] = yaw
     }
+    fun setEndPosition(jp1:JointPosition,jp2:JointPosition) {
+        val q = Quaternion.quaternionForJointPosition(jp1)
 
-    /**
-     * Update quaternion to reflect a change in the source motor angle
-     */
-    fun updateForMotorAngle(angle:Double) {
-        if(DEBUG) LOGGER.info(String.format("%s.updateForMotorAngle: %s = %2.2f",CLSS,name,angle))
-        setPitch(angle)
-
-    }
-    // ~ degrees
-    fun setRoll(angle:Double) {
-        rotation[0] = angle
-    }
-    // ~ degrees
-    fun setPitch(angle:Double) {
-        rotation[1] = angle
-    }
-    // ~ degrees
-    fun setYaw(angle:Double) {
-        rotation[2] = angle
-    }
-
-    /** Update the quaternion to reflect current angle settings.
-     * Note. joint coordinates are with respect robot reference frame
-     *       when straight. "z" is up, "x" is to front, "y" is across.
-     *
-     * In our robot, adjacent motors (joints) are either aligned with parallel
-     * axes or at right angles to each other as defined by the "rotation" angle.
-     * Refer to "How to Calculate a Robot's Forward Kinematics in 5 Easy Steps"
-     * by Alex Owen-Hill, these are the equivalents to our coordinate matrix:
-     *
-     * Distances _mm, angle in degrees
-     */
-    fun recalculate() {
-        // pitch is the only "live" angle
-        quaternion.setRoll((rotation[0]+orientation[0])*Math.PI/180.0)
-        quaternion.setPitch((rotation[1]+orientation[1])*Math.PI/180.0)
-        quaternion.setYaw((rotation[2]+orientation[2])*Math.PI/180.0)
-        quaternion.update()
-
-        if(DEBUG) LOGGER.info(String.format("%s.recalculate: %s %2.2f,%2.2f,%2.2f",CLSS,name,
-                rotation[0]+orientation[0],rotation[1]+orientation[1],rotation[2]+orientation[2]))
-    }
-
-    /**
-     * Rotate the link around the source joint to the specified orientation. This movement is only
-     * appropriate for the IMU as all other joints are attached to the
-     * preceding link.
-     * @Return the resulting quaternion
-     */
-    fun rotate() {
-        quaternion.setRoll((orientation[0])*Math.PI/180.0)
-        quaternion.setPitch((orientation[1])*Math.PI/180.0)
-        quaternion.setYaw((orientation[2])*Math.PI/180.0)
-        quaternion.rotate()
+        //q.rotate()
+        //q.translate()
+        //q.updateJointPosition(jp2)
     }
 
     fun clone() : JointLink {
-        val copy = JointLink(sourceJoint.copy(),endJoint.copy())
-        copy.rotation = rotation.clone()
+        val copy = JointLink(sourceJoint,endJoint)
+        copy.coordinates = coordinates.clone()
         copy.orientation = orientation.clone()
-        copy.quaternion = quaternion.clone()
+        copy.position    = position.clone()
+        copy.home = home
         copy.side = side
         return copy
 
@@ -128,9 +93,10 @@ class JointLink( val source:JointPosition,val end:JointPosition ) {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
+        coordinates = doubleArrayOf(0.0,0.0,0.0)  // end referenced to source
         orientation = doubleArrayOf(0.0,0.0,0.0)
-        rotation    = doubleArrayOf(0.0,0.0,0.0)
-        quaternion = Quaternion()
+        position    = doubleArrayOf(0.0,0.0,0.0)  // end accounting for angle
+        home = 0.0
         side = Side.FRONT
     }
 }

@@ -6,6 +6,7 @@ package chuckcoughlin.bertspeak.service
 
 import android.content.Context
 import android.util.Log
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.common.MessageType
 import chuckcoughlin.bertspeak.common.MessageType.LOG
@@ -330,8 +331,8 @@ class DispatchService(ctx: Context){
             instance.speechManager.speak(msg)
         }
 
-        fun jointPositionByName(name:String):JointPosition {
-            return instance.geometryManager.jointPositionByName(name)
+        fun jointPositionByJoint(joint: Joint):JointPosition {
+            return instance.geometryManager.jointPositionByJoint(joint)
         }
         fun updateJointPosition(location: JointPosition) {
             instance.geometryManager.updateJointPosition(location)

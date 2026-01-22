@@ -23,32 +23,32 @@ object ChainTest {
         println(String.format("==================== %s ===========================================",CLSS ))
 
         println("======== Test LEFT_EAR to PELVIS position-chain")
-        var chain1 = tree.createPositionChain(Appendage.LEFT_EAR.name)
-        for (link in chain1) {
-            println(String.format("\t%s ", link.name))
+        var chain = tree.createLinkChain(Joint.LEFT_EAR)
+        for (link in chain) {
+            println(String.format("\t%s ", link.end.name))
         }
         println("======== Test RIGHT_FINGER to PELVIS link-chain")
-        var chain2 = tree.createLinkChain(Appendage.RIGHT_FINGER.name)
-        for (link in chain2) {
-            println(String.format("\t%s ", link.name))
+        chain = tree.createLinkChain(Joint.RIGHT_FINGER)
+        for (link in chain) {
+            println(String.format("\t%s ", link.end.name))
         }
         println("======== Test ABS_X to PELVIS link-chain")
-        chain2 = tree.createLinkChain(Joint.ABS_X.name)
-        for (link in chain2) {
-            println(String.format("\t%s ", link.name))
+        chain = tree.createLinkChain(Joint.ABS_X)
+        for (link in chain) {
+            println(String.format("\t%s ", link.end.name))
         }
         println("======== Test ABS_Y for IMU orientations (directions should match)")
-        val IMU = tree.getJointLink(Joint.IMU.name,Joint.ABS_Y.name).clone()
-        IMU.setRoll(0.0)
-        IMU.setPitch(0.0)
-        IMU.setYaw(0.0)
-        IMU.rotate()
-        println(String.format("\t(IMU=12,0,62 [0,0,0]) = %s [%s]", IMU.quaternion.positionToText(),q.directionToText()))
-        IMU.setRoll(90.0)    // 90 deg
-        IMU.setPitch(0.0)
-        IMU.setYaw(0.0)
-        q = IMU.rotate()
-        println(String.format("\t(IMU=12,0,62 [90,0,0]) = %s [%s]", IMU.quaternion.positionToText(),q.directionToText()))
+        val link1 = tree.getJointLink(Joint.ABS_Y)  // Link from IMU to ABS_Y
+        val root = tree.getOrCreateJointPosition(link1.sourceJoint)  // IMU
+        val absy = tree.getOrCreateJointPosition(link1.endJoint)     // ABS_Y
+        link1.setJointAngle(link1.home)
+        link1.setRpy(0.0,0.0,0.0)
+        q = link1.quaternionForSource(root)
+        q = Quaternion.computeEnd(link1,q)
+        absy.updateFromQuaternion(q)
+        println(String.format("\t(IMU=12,0,62 [0,0,0]) = %s [%s]", Joint.IMU.quaternion.positionToText(),q.directionToText()))
+        link1.setRpy(90.0,0.0,0.0)
+        println(String.format("\t(IMU=12,0,62 [90,0,0]) = %s [%s]", Joint.IMU.quaternion.positionToText(),q.directionToText()))
 /**
         IMU.setRoll(0.0)
         IMU.setPitch(90.0)

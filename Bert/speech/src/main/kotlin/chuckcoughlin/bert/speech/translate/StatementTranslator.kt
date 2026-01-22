@@ -323,21 +323,21 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
 
         sharedDictionary[SharedKey.SIDE] = side
-        var appendage: Appendage = Appendage.NONE
+        var appendage: Joint = Joint.NONE
         if (ctx.It() != null) {
-            appendage = sharedDictionary[SharedKey.APPENDAGE] as Appendage
+            appendage = sharedDictionary[SharedKey.JOINT] as Joint
         }
         else if (ctx.Appendage() != null) {
             appendage = determineEndEffector(ctx.Appendage().getText(), side)
         }
-        if (appendage.equals(Appendage.NONE)) {
+        if (appendage.equals(Joint.NONE)) {
             val msg = String.format("I don't have an extremity like that")
             bottle.error = msg
         }
         else {
-            sharedDictionary[SharedKey.APPENDAGE] = appendage
-            sharedDictionary[SharedKey.IT] = SharedKey.APPENDAGE
-            bottle.appendage = appendage
+            sharedDictionary[SharedKey.JOINT] = appendage
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+            bottle.joint = appendage
             bottle.text = direction.name
         }
         bottle.values[0] = ctx.Value().getText().toDouble()  // mm
@@ -355,15 +355,15 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         sharedDictionary[SharedKey.AXIS] = axis
         if(ctx.Appendage()!=null) {
             val appendage = determineEndEffector(ctx.Appendage().getText(),side)
-            bottle.appendage = appendage
-            if(appendage.equals(Appendage.NONE)) {
+            bottle.joint = appendage
+            if(appendage.equals(Joint.NONE)) {
                 val msg=String.format("I don't have an end effector %s, that I know of", ctx.Appendage().getText())
                 bottle.error=msg
             }
             else {
-                bottle.appendage = appendage
-                sharedDictionary[SharedKey.APPENDAGE] = appendage
-                sharedDictionary[SharedKey.IT]=SharedKey.APPENDAGE
+                bottle.joint = appendage
+                sharedDictionary[SharedKey.JOINT] = appendage
+                sharedDictionary[SharedKey.IT]=SharedKey.JOINT
             }
         }
         else {
@@ -618,21 +618,21 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
         sharedDictionary[SharedKey.SIDE] = side
-        var appendage: Appendage = Appendage.NONE
+        var appendage = Joint.NONE
         if (ctx.It() != null) {
-            appendage = sharedDictionary[SharedKey.APPENDAGE] as Appendage
+            appendage = sharedDictionary[SharedKey.JOINT] as Joint
         }
         else if (ctx.Appendage() != null) {
             appendage = determineEndEffector(ctx.Appendage().getText(),side)
         }
-        if (appendage.equals(Appendage.NONE)) {
+        if (appendage.equals(Joint.NONE)) {
             val msg = String.format("I don't have an end effector like that")
             bottle.error = msg
         }
         else {
-            sharedDictionary[SharedKey.APPENDAGE] = appendage
-            sharedDictionary[SharedKey.IT] = SharedKey.APPENDAGE
-            bottle.appendage = appendage
+            sharedDictionary[SharedKey.JOINT] = appendage
+            sharedDictionary[SharedKey.IT] = SharedKey.JOINT
+            bottle.joint = appendage
         }
         // Property is fixed as position
         bottle.values[0] = ctx.Value(0).getText().toDouble()
@@ -828,8 +828,8 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         else if( joint!=Joint.NONE ) {  // Single joint
             val tree = URDFModel.createJointTree()
-            val jp = tree.getJointPositionByName(joint.name)
-            value = jp.home
+            val jp = tree.getOrCreateJointPosition(joint)
+            // value = jp.home
         }
         else {  // Move each joint in the limb
             bottle.type = RequestType.SET_JOINT_POSITIONS
@@ -838,7 +838,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             val jointPositions = mutableListOf<JointPosition>()
             for( j in map.keys ) {
                 if( map[j]==bottle.limb ) {
-                    val pos = tree.getJointPositionByName(joint.name)
+                    val pos = tree.getOrCreateJointPosition(joint)
                     jointPositions.add(pos)
                 }
             }
@@ -935,28 +935,28 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // Determine the specific end effector (appendage) from the body part and side. (Side is not always needed).
     // @param bodyPart - appendage (uppercase)
-    private fun determineEndEffector(appendage: String, side: Side): Appendage {
+    private fun determineEndEffector(appendage: String, side: Side): Joint {
         val bodyPart = appendage.uppercase()
-        var result: Appendage = Appendage.NONE
+        var result: Joint = Joint.NONE
         if (bodyPart.equals("EAR")) {
-            result = if(side==Side.LEFT) Appendage.LEFT_EAR else Appendage.RIGHT_EAR
+            result = if(side==Side.LEFT) Joint.LEFT_EAR else Joint.RIGHT_EAR
         }
         else if (bodyPart.equals("EYE") || bodyPart.equals("EYES")) {
-            result = if(side==Side.LEFT) Appendage.LEFT_EYE else Appendage.RIGHT_EYE
+            result = if(side==Side.LEFT) Joint.LEFT_EYE else Joint.RIGHT_EYE
         }
         else if (bodyPart.equals("FINGER") || bodyPart.equals("HAND")) {
-            result = if(side==Side.LEFT) Appendage.LEFT_FINGER else Appendage.RIGHT_FINGER
+            result = if(side==Side.LEFT) Joint.LEFT_FINGER else Joint.RIGHT_FINGER
         }
         else if (bodyPart.equals("FOOT") || bodyPart.equals("TOE")) {
-            result = if(side==Side.LEFT) Appendage.LEFT_TOE else Appendage.RIGHT_TOE
+            result = if(side==Side.LEFT) Joint.LEFT_TOE else Joint.RIGHT_TOE
         }
         else if (bodyPart.equals("HEEL")) {
-            result = if(side==Side.LEFT) Appendage.LEFT_HEEL else Appendage.RIGHT_HEEL
+            result = if(side==Side.LEFT) Joint.LEFT_HEEL else Joint.RIGHT_HEEL
         }
         else if (bodyPart.equals("NOSE")) {
-            result = Appendage.NOSE
+            result = Joint.NOSE
         }
-        if( result==Appendage.NONE ) {
+        if( result==Joint.NONE ) {
             LOGGER.info(String.format("WARNING: StatementTranslator.determineEndEffector did not find a match for %s",
                     bodyPart ))
         }

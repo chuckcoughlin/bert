@@ -1,5 +1,5 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -13,26 +13,24 @@ import java.util.logging.Logger
  * associated with a quaternion for computing 3D co-ordinates.
  */
 class JointTree() {
-    val map: MutableMap<Int, JointPosition>
-    val linkmap: MutableMap<String, JointLink>  // Key = SOURCE:END
-    var IMU:Int
+    val posmap: MutableMap<Joint, JointPosition>
+    val linkmap: MutableMap<Joint, JointLink>  // Key = endJoint
 
-    fun createJointLink(source:JointPosition,jp:JointPosition) : JointLink {
+    fun createJointLink(source:Joint,jp:Joint) : JointLink {
         LOGGER.info(String.format("%s.createJointLink: %s to %s",CLSS,source.name,jp.name))
         val jlink = JointLink(source,jp)
-        val key = makeKey(source,jp)
-        linkmap.put(key, jlink)
+        linkmap.put(jp, jlink)
         return jlink
     }
 
     /**
-     * Create a new jpoint position. Add it and a
-     * corresponding quaternion to the tree.
+     * Create a new joint position. Add it to the tree.
      */
-    fun createJointPosition(name:String) : JointPosition {
+    fun createJointPosition(joint:Joint,parent:JointPosition) : JointPosition {
         val jp = JointPosition()
-        jp.name = name.uppercase()
-        map.put(jp.id,jp)
+        jp.joint = joint
+        jp.parent = parent
+        posmap.put(joint,jp)
         return jp
     }
     /**
@@ -42,16 +40,16 @@ class JointTree() {
      * @param joint, name of the source.
      * @return a linked list of JointLinks
      */
-    fun createLinkChain(joint: String): List<JointLink> {
+    fun createLinkChain(joint: Joint): List<JointLink> {
         val chain: LinkedList<JointLink> = LinkedList<JointLink>()
-        var jp= getJointPositionByName(joint)
+        var jp= getOrCreateJointPosition(joint)
         do {
             val parent=tree.getParent(jp)
-            val jlink= getJointLink(parent.name,jp.name)
+            val jlink= getJointLink(jp.joint)
             chain.addFirst(jlink)
             // if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserting %s (%s)",CLSS,joint.name))
             jp = parent
-        } while(jp.parent != ConfigurationConstants.NO_ID)
+        } while(jp.parent != JointPosition.NONE)
 
         return chain
     }
@@ -62,54 +60,58 @@ class JointTree() {
      * @param joint, name of the source.
      * @return a linked list of joint positions
      */
-    fun createPositionChain(joint: String): List<JointPosition> {
+    fun createPositionChain(joint: Joint): List<JointPosition> {
         val chain: LinkedList<JointPosition> = LinkedList<JointPosition>()
-        var jp= getJointPositionByName(joint)
+        var jp= getOrCreateJointPosition(joint)
         chain.addFirst(jp)
         // if (DEBUG) LOGGER.info(String.format("%s.createPositionChain: %s - chain to %s (%s)",CLSS,joint.name))
         do {
             jp= getParent(jp)
             chain.addFirst(jp)
             // if (DEBUG) LOGGER.info(String.format("%s.createPositionChain: %s - inserting %s (%s)",CLSS,joint.name))
-        } while(jp.parent != ConfigurationConstants.NO_ID)
+        } while(jp.parent != JointPosition.NONE)
 
         return chain
     }
 
-    fun getJointLink(source:String,end:String) : JointLink {
+    fun getJointLink(end:Joint) : JointLink {
         //LOGGER.info(String.format("%s.getJointLink: %d",CLSS,id))
-        val key = makeKey(source,end)
-        val jlink = linkmap.get(key)
-        if(jlink==null ) {
-            LOGGER.warning((String.format("%s.getJointLink: No link found for %s - created",CLSS,key)))
-            return JointLink(getJointPositionByName(source),getJointPositionByName(end))
+        val jlink = linkmap.get(end)
+        if( jlink==null ) {
+            LOGGER.warning(String.format("%s.getJointLink: No link found for endJoint %s - created",CLSS,end.name))
+            val jp = posmap.get(end)
+            if(jp!=null) {
+                val parent = jp.parent.joint
+                return JointLink(getOrCreateJointPosition(parent).joint,end)
+            }
+            return JointLink(Joint.IMU,end)
         }
         return jlink
     }
 
     /**
-     * If the named position does not exist, create one.
-     * The name is case-insensitive.
+     * If the referenced position does not exist, create one.
+     * The result parent must be updated if "NONE" is inappropriate.
      */
-    fun getJointPositionByName(name:String) : JointPosition {
+    fun getOrCreateJointPosition(joint:Joint) : JointPosition {
         // LOGGER.info(String.format("%s.getJointPositionByName: %s",CLSS,name))
-        for( jp in map.values ) {
-            if( jp.name.equals(name,true)) return jp
+        var jp = posmap.get(joint)
+        if(jp==null) {
+            jp = createJointPosition(joint,JointPosition.NONE)
         }
-        val jp = createJointPosition(name)
         return jp
     }
 
     fun listJointPositions() : List<JointPosition> {
         val list = mutableListOf<JointPosition>()
-        for(jp in map.values) {
+        for(jp in posmap.values) {
             list.add(jp)
         }
         return list
     }
 
     fun getOrigin():JointPosition {
-        val origin = map.get(IMU)!!
+        val origin = posmap.get(Joint.IMU)!!
         return origin
     }
 
@@ -119,59 +121,46 @@ class JointTree() {
      *         does not exist, return the origin.
      */
     fun getParent(jp:JointPosition) : JointPosition {
-        var parent = map.get(jp.parent)
-        if( parent==null ) parent = map.get(IMU)
-        return parent!!
+        var parent = jp.parent
+        return parent
     }
 
     fun setOrigin(jp:JointPosition) {
-        IMU= jp.id
-        map.put(jp.id,jp)
-        LOGGER.info(String.format("%s.setOrigin: %s = (%d)",
-            CLSS,jp.name,jp.id))
+        jp.joint = Joint.IMU
+        jp.parent= JointPosition.NONE
+        posmap.put(jp.joint,jp)
+        LOGGER.info(String.format("%s.setOrigin: %s",
+            CLSS,jp.joint.name))
     }
 
 //--------------------------
-
-
     fun addJointPosition(jp:JointPosition) {
-        map.put(jp.id,jp)
+        posmap.put(jp.joint,jp)
     }
 
     fun populateFromList(positions:List<JointPosition>) {
         for(pos in positions) {
-            map.put(pos.id,pos)
+            posmap.put(pos.joint,pos)
         }
     }
     fun clone() : JointTree {
         val copy = JointTree()
-        for(key in map.keys) {
-            val jp = map.get(key)!!.copy()
-            copy.map.put(key,jp)
+        for(key in posmap.keys) {
+            val jp = posmap.get(key)!!.copy()
+            copy.posmap.put(key,jp)
         }
         for(key in linkmap.keys) {
             val jlink = linkmap.get(key)!!.clone()
             copy.linkmap.put(key,jlink)
         }
-        copy.IMU = IMU
         return copy
-    }
-
-    private fun makeKey(source:String,end:String) :String {
-        val key = source+":"+end
-        return key
-    }
-    private fun makeKey(source:JointPosition,end:JointPosition) :String {
-        val key = source.name+":"+end.name
-        return key
     }
 
     private val CLSS = "JointTree"
     private val LOGGER = Logger.getLogger(CLSS)
 
     init {
-        map = mutableMapOf<Int, JointPosition>()
-        linkmap = mutableMapOf<String,JointLink>()
-        IMU = ConfigurationConstants.NO_ID // Temporarily
+        posmap = mutableMapOf<Joint, JointPosition>()
+        linkmap= mutableMapOf<Joint,JointLink>()
     }
 }

@@ -6,6 +6,7 @@
 package chuckcoughlin.bert.common.math
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.JointPosition
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
@@ -269,6 +270,10 @@ class Quaternion {
                 doubleArrayOf(0.0,0.0,0.0,1.0)
             )
             return m
+        }
+        fun quaternionForJointPosition(jp: JointPosition) {
+            jp.setPosition(0.0,0.0,0.0)
+
         }
     }
     private val CLSS = "Quaternion"

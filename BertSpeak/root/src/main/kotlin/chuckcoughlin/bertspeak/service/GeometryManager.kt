@@ -5,6 +5,7 @@
 package chuckcoughlin.bertspeak.service
 
 import android.util.Log
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
@@ -40,8 +41,8 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     }
 
     // NOte: This works for appendages also
-    fun jointPositionByName(name:String):JointPosition {
-        return skeleton.getPositionByName(name)
+    fun jointPositionByJoint(joint: Joint):JointPosition {
+        return skeleton.getPositionByJoint(joint)
     }
     /**
      * Inform robot of requested new position (from

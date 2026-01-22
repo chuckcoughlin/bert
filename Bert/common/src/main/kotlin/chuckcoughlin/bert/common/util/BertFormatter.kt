@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023. Charles Coughlin. All Rights Reserved.
+ * Copyright 2022-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  * Configures a java.util.logging Logger to use our log directory.
  */

@@ -6,12 +6,13 @@ package chuckcoughlin.bertspeak.ui.graphics
 
 import android.graphics.Canvas
 import android.graphics.Paint
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.Point2D
 
 /**
  * Draw a red dot if nothing else matches..
  */
-class UnknownDrawable(name:String,p2: Point2D,side:Side) : LinkShapeDrawable(name,p2,side) {
+class UnknownDrawable(joint: Joint, p2: Point2D, side:Side) : LinkShapeDrawable(joint,p2,side) {
 	val unscaledRadius:Float
 
 	// Error indicator is a red circle

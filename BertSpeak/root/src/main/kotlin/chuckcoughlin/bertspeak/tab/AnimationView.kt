@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Charles Coughlin. All rights reserved.
+ * Copyright 2025-2026 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.JointTree
 import chuckcoughlin.bertspeak.data.Point2D
@@ -30,8 +31,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
                     : View(context,attrs), View.OnTouchListener {
     var canvas:Canvas
     var configuration: GraphicsConfiguration
-    val drawables: MutableMap<String,LinkShapeDrawable>
-    private var name: String
+    val drawables: MutableMap<Joint,LinkShapeDrawable>
     private var selected: LinkShapeDrawable? // Have we selected a joint or appendage
 
     fun clear() {
@@ -60,8 +60,8 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
     fun updateDrawables(skeleton: JointTree) {
         for (jp in skeleton.map.values) {
             // Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
-            val drawable = ShapeFactory.drawableForLink(skeleton,jp, configuration.projection)
-            drawables[jp.name] = drawable
+            val drawable = ShapeFactory.drawableForLink(jp, configuration.projection)
+            drawables[jp.joint] = drawable
         }
     }
 
@@ -78,7 +78,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
             MotionEvent.ACTION_DOWN -> {
                 selected = selectDrawable(screenCoordinates)
                 if( selected!=null) {
-                    Log.i(CLSS, String.format("%s.onTouchEvent DOWN %dx%d selected %s",configuration.projection.name,x,y,selected!!.name))
+                    Log.i(CLSS, String.format("%s.onTouchEvent DOWN %dx%d selected %s",configuration.projection.name,x,y,selected!!.joint.name))
                 }
             }
             MotionEvent.ACTION_MOVE -> {
@@ -93,7 +93,7 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
                 performClick()
                 if(selected!=null) {
                     val physical = Point2D((x-configuration.originx)/configuration.scale,(y-configuration.originy)/configuration.scale)
-                    val position = DispatchService.jointPositionByName(selected!!.name)
+                    val position = DispatchService.jointPositionByJoint(selected!!.joint)
                     position.pos.z = physical.y
                     when(configuration.projection) {
                         BACK  -> position.pos.y = -physical.x
@@ -116,10 +116,9 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
     val PAINT_WIDTH = 8f
 
     init {
-        name = CLSS
         canvas = Canvas()
         configuration = GraphicsConfiguration()
-        drawables = mutableMapOf<String,LinkShapeDrawable>()
+        drawables = mutableMapOf<Joint,LinkShapeDrawable>()
         selected = null
     }
 }

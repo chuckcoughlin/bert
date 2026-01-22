@@ -7,12 +7,13 @@ package chuckcoughlin.bertspeak.ui.graphics
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.Point2D
 
 /**
  * The ankle connector is very short. Draw it and a toe image
  */
-class ToeDrawable(name:String, val p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(name,p2,side) {
+class ToeDrawable(joint: Joint, val p1:Point2D, p2:Point2D, side:Side) : LinkShapeDrawable(joint,p2,side) {
 
 	//
 	override fun draw(canvas: Canvas,gc:GraphicsConfiguration) {

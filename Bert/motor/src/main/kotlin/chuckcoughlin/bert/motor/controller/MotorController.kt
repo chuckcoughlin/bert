@@ -494,11 +494,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val positions = gson.fromJson<List<JointPosition>>(request.text,propType)
             val configurations = mutableListOf<MotorConfiguration>()
             for(pos in positions ) {
-                val joint = Joint.fromString(pos.name)
+                val joint = pos.joint
                 if( joint!=Joint.NONE ) {
                     val mc = RobotModel.motorsByJoint[joint]
-                    mc!!.angle = pos.home    // This only works for "straighten"
-                    configurations.add(mc)
+                    //mc!!.angle = pos.home    // This only works for "straighten"
+                    //configurations.add(mc)
                 }
             }
             if (configurations.size > 0) {

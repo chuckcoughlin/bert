@@ -1,47 +1,44 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bertspeak.data
 
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.common.ConfigurationConstants
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import chuckcoughlin.bertspeak.ui.graphics.Side
+import java.util.logging.Logger
 
 /**
- * Coordinates of a joint or end-effector in space..
+ * Coordinates of a joint or end-effector in space.
  */
 class JointPosition() {
-	var id: Int
-	var name: String
-	var home: Double
-	var parent: Int    // Hashcode of the parent link
+	var joint: Joint
+	var parent: JointPosition    // Hashcode of the parent link
 	var pos: Point3D   // Coordinates of joint or end effector
-	var isAppendage:Boolean
 	var side: String   // Link group
 
 	fun positionToText() : String {
-		return String.format("%s coordinates: %s->%s [%s,%s,%s]",pos.toText(),name,if(isAppendage) "(appendage)" else "",side)
+		return String.format("%s coordinates: %s->%s [%s,%s,%s]",pos.toText(),joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",side)
 	}
 
 	fun copy() : JointPosition {
 		val copy = JointPosition()
-		copy.id = id
-		copy.name = name
-		copy.home = home
+		copy.joint = joint
 		copy.parent = parent
 		copy.pos = pos.copy()
-		copy.isAppendage = isAppendage
 		copy.side = side
 		return copy
 	}
+	companion object {
+		val NONE = JointPosition()
+	}
 
 	init {
-		id = hashCode()
-		name = ConfigurationConstants.NO_NAME
-		parent = ConfigurationConstants.NO_ID
+		joint = Joint.NONE
+		parent = JointPosition()
 		pos    = Point3D(0.0,0.0,0.0)
-		home = 0.0
-		isAppendage = false
 		side = Side.FRONT.name
 	}
 }

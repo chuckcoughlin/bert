@@ -1,28 +1,30 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
 
 /**
- * Position of a joint or end-effector in space.
- * Also record the goal angle to set that position.
- * The joint is identified by its name.
+ * Current position and orientation of a joint or end-effector in 3 space.
+ * Orientation is with respect to the robot inertial coordinate system.
+ * Each JointTree has a complete and separate set of these objects.
  */
 class JointPosition() {
-	var id: Int
-	var home: Double
-	var name: String
-	var parent: Int    // Hashcode of the parent link
+	var joint: Joint
+	var parent: JointPosition    // Hashcode of the parent link
+	var orientation: DoubleArray // Angles with respect to system normal
 	var pos: Point3D   // Coordinates of joint or end effector
-	var isAppendage:Boolean
-	var side: String   // Side of the robot
+	var side: String   // Link group
 
-	fun coordinatesToText() : String {
-		return String.format("%s coordinates: %s->%s [%s,%s,%s]",pos.toText(),name,if(isAppendage) "(appendage)" else "",side)
+	fun positionToText() : String {
+		return String.format("%s coordinates: %s->%s [%s,%s,%s]",pos.toText(),joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",side)
 	}
 
-	fun setCoordinates(x:Double,y:Double,z:Double) {
+	fun setOrientation(phi:Double,theta:Double,psi:Double) {
+		orientation = doubleArrayOf(phi,theta,psi)
+	}
+
+	fun setPosition(x:Double,y:Double,z:Double) {
 		pos.x = x
 		pos.y = y
 		pos.z = z
@@ -30,23 +32,22 @@ class JointPosition() {
 
 	fun copy() : JointPosition {
 		val copy = JointPosition()
-		copy.id = id
-		copy.name = name
-		copy.home = home
+		copy.joint = joint
 		copy.parent = parent
 		copy.pos = pos.copy()
-		copy.isAppendage = isAppendage
 		copy.side = side
 		return copy
 	}
 
+	companion object {
+		val NONE = JointPosition()
+	}
+
 	init {
-		id = hashCode()
-		name = ConfigurationConstants.NO_NAME
-		parent = ConfigurationConstants.NO_ID
+		joint = Joint.NONE
+		parent = JointPosition()
+		orientation = doubleArrayOf(0.0,0.0,0.0)
 		pos    = Point3D(0.0,0.0,0.0)
-		home = 0.0
-		isAppendage = false
 		side = Side.FRONT.name
 	}
 }

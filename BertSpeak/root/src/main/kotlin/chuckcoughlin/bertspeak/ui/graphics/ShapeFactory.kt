@@ -1,9 +1,10 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bertspeak.ui.graphics
 
+import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.JointTree
@@ -12,7 +13,7 @@ import chuckcoughlin.bertspeak.data.Point3D
 
 /**
  * Create Shape objects appropriate for links
- * and appendages.
+ * and end effectors.
  */
 class ShapeFactory () {
 
@@ -20,33 +21,33 @@ class ShapeFactory () {
 		/**
 		 * If unknown return a red-filled circle. Resolute links are "bones".
 		 */
-		fun drawableForLink(tree: JointTree, jp: JointPosition, projection:Side): LinkShapeDrawable {
+		fun drawableForLink(jp: JointPosition, projection:Side): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
 
-			val parent = tree.getParent(jp)
+			val parent = jp.parent
 			val p1 = projectedPoint(parent.pos,projection)
 			val p2 = projectedPoint(jp.pos,projection)
 			val side = Side.fromString(jp.side)
-			if(jp.parent == ConfigurationConstants.NO_ID ) {
-				drawable = UnknownDrawable(jp.name,p2,side)
+			if(parent.joint == Joint.NONE) {
+				drawable = UnknownDrawable(jp.joint,p2,side)
 			}
-			else if(!jp.isAppendage) {
-				drawable = BoneDrawable(jp.name,p1,p2,side)
-				if(jp.name.contains("ANKLE")) drawable.selectable = true
+			else if(!Joint.isEndEffector(jp.joint)) {
+				drawable = BoneDrawable(jp.joint,p1,p2,side)
+				if(jp.joint.name.contains("ANKLE")) drawable.selectable = true
 			}
 			else  {  // Appendage
-				if(jp.name.equals("NOSE", true)) {
-					drawable = NoseDrawable(jp.name,p1,p2,side)
+				if(jp.joint==Joint.NOSE) {
+					drawable = NoseDrawable(jp.joint,p1,p2,side)
 				}
-				else if(jp.name.contains("FINGER", true)) {
-					drawable = HandDrawable(jp.name, p1, p2, side)
+				else if(jp.joint.name.contains("FINGER", true)) {
+					drawable = HandDrawable(jp.joint, p1, p2, side)
 				}
-				else if(jp.name.contains("HEEL", true) ||
-					    jp.name.contains("TOE", true)) {
-					drawable = ToeDrawable(jp.name,p1,p2,side)
+				else if(jp.joint.name.contains("HEEL", true) ||
+					    jp.joint.name.contains("TOE", true)) {
+					drawable = ToeDrawable(jp.joint,p1,p2,side)
 				}
 				else  {
-					drawable = AppendageDrawable(jp.name,p1,p2,side)
+					drawable = EndEffectorDrawable(jp.joint,p1,p2,side)
 				}
 				drawable.selectable = true
 

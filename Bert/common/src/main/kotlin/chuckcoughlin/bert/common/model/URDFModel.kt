@@ -19,7 +19,6 @@ import java.util.logging.Logger
 object URDFModel {
     private var document: Document?
     private val tree: JointTree
-
     /**
      * Expand the supplied path as the URDF XML file.
      * @return the geometry, an XML document.
@@ -45,15 +44,18 @@ object URDFModel {
     private fun analyzeChain() {
         if (document != null) {
             var origin = JointPosition()
-            origin.name = Joint.IMU.name
-            origin.parent = ConfigurationConstants.NO_ID
+            origin.joint = Joint.IMU
+            origin.parent = JointPosition()
+            origin.parent.joint = Joint.NONE
+            origin.setPosition(0.0,0.0,0.0)
+            origin.setOrientation(0.0,0.0,0.0)
             // ================================== IMU ===============================================
             val imus = document!!.getElementsByTagName("imu")
             if (imus.length > 0) {
                 LOGGER.info(String.format("%s.analyzeChain: IMU ...",CLSS))
                 val imuNode = imus.item(0) // Should only be one
                 val xyz = doubleArrayFromString(XMLUtility.attributeValue(imuNode, "xyz"))
-                origin.setCoordinates(xyz[0],xyz[1],xyz[2])
+                origin.setPosition(xyz[0],xyz[1],xyz[2])
             }
             tree.setOrigin(origin)
 
@@ -81,7 +83,8 @@ object URDFModel {
                         // Same source must be applied to all joints/appendages in same link element
                         if ("source".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "joint")
-                            parent = tree.getJointPositionByName(jname)
+                            val joint = Joint.fromString(jname)
+                            parent = tree.getOrCreateJointPosition(joint)
                         }
                         aindex++
                     }
@@ -91,23 +94,21 @@ object URDFModel {
                         val node = children.item(aindex)
                         if ("appendage".equals(node.localName) || "joint".equals(node.localName)) {
                             val aname: String = XMLUtility.attributeValue(node, "name")
-                            val jp = tree.getJointPositionByName(aname)
+                            val joint = Joint.fromString(aname)
+                            val jp = tree.getOrCreateJointPosition(joint)
+                            jp.parent = parent
                             var home = 0.0
-                            if("appendage".equals(node.localName) ) {
-                                jp.isAppendage = true
-                            }
-                            else  {
-                                jp.isAppendage = false
+                            if(!"appendage".equals(node.localName) ) {
                                 home = XMLUtility.attributeValue(node, "home").toDouble()
                             }
                             jp.side = XMLUtility.attributeValue(linkNode, "side")
-                            jp.parent = parent.id
-                            var jlink = tree.createJointLink(parent,jp)
+
+                            var jlink = tree.createJointLink(parent.joint,jp.joint)
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
-                            jlink.setDimensions(xyz[0],xyz[1],xyz[2])
-                            jlink.sourceJoint.home = home
+                            jlink.setCoordinates(xyz[0],xyz[1],xyz[2])
+                            jlink.home = home
                         }
                         aindex++
                     }
@@ -139,8 +140,8 @@ object URDFModel {
     fun endEffectorNames(): String {
         val names = StringBuffer()
         for (jp in tree.listJointPositions()) {
-            if(jp.isAppendage) {
-                names.append(jp.name.lowercase())
+            if(Joint.isEndEffector(jp.joint) ) {
+                names.append(jp.joint.name.lowercase())
                 names.append(", ")
             }
         }
@@ -154,8 +155,8 @@ object URDFModel {
         val gson = GsonBuilder().setPrettyPrinting().create()
         val names = mutableListOf<String>()
         for (jp in tree.listJointPositions()) {
-            if(jp.isAppendage) {
-                names.add(jp.name)
+            if(Joint.isEndEffector(jp.joint) ) {
+                names.add(jp.joint.name)
             }
         }
         return gson.toJson(names)
@@ -168,8 +169,8 @@ object URDFModel {
         val gson = GsonBuilder().setPrettyPrinting().create()
         var names = mutableListOf<String>()
         for (jp in tree.listJointPositions()) {
-            if(!jp.isAppendage) {
-                names.add(jp.name)
+            if(!Joint.isEndEffector(jp.joint) ) {
+                names.add(jp.joint.name)
             }
         }
         return gson.toJson(names)
