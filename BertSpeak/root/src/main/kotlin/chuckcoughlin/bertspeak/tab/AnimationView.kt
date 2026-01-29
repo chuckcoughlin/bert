@@ -12,7 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
-import chuckcoughlin.bertspeak.data.JointTree
+import chuckcoughlin.bertspeak.data.Skeleton
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
@@ -57,11 +57,15 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
      */
      abstract fun selectDrawable(point:Point2D):LinkShapeDrawable?
 
-    fun updateDrawables(skeleton: JointTree) {
-        for (jp in skeleton.map.values) {
+    fun updateDrawables(skeleton: Skeleton) {
+        for (jp1 in skeleton.map.values) {
+            val jp2 = skeleton.map.get(jp1.parent)
             // Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
-            val drawable = ShapeFactory.drawableForLink(jp, configuration.projection)
-            drawables[jp.joint] = drawable
+            if(jp2!=null) {
+                val drawable = ShapeFactory.drawableForLink(jp1,jp2,configuration.projection)
+                drawables[jp1.joint] = drawable
+            }
+
         }
     }
 

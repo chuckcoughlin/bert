@@ -26,5 +26,5 @@ interface LimbShapeObserver {
      * Allow the observer to pick whatever type(s) are appropriate.
      * @param shape to be displayed
      */
-    fun updateGraphics(skeleton: JointTree)
+    fun updateGraphics(skeleton: Skeleton)
 }

@@ -6,12 +6,12 @@ package chuckcoughlin.bert.common.model
 
 /**
  * Current position and orientation of a joint or end-effector in 3 space.
- * Orientation is with respect to the robot inertial coordinate system.
+ * with respect to the root of the robot inertial coordinate system.
  * Each JointTree has a complete and separate set of these objects.
  */
 class JointPosition() {
 	var joint: Joint
-	var parent: JointPosition    // Hashcode of the parent link
+	var parent: Joint    //
 	var orientation: DoubleArray // Angles with respect to system normal
 	var pos: Point3D   // Coordinates of joint or end effector
 	var side: String   // Link group
@@ -45,7 +45,7 @@ class JointPosition() {
 
 	init {
 		joint = Joint.NONE
-		parent = JointPosition()
+		parent = Joint.NONE
 		orientation = doubleArrayOf(0.0,0.0,0.0)
 		pos    = Point3D(0.0,0.0,0.0)
 		side = Side.FRONT.name

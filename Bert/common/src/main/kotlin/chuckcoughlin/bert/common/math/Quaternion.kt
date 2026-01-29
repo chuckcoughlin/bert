@@ -186,8 +186,7 @@ class Quaternion {
     fun rotate() {
         val rotation = multiply(multiply(roll.matrix,pitch.matrix),yaw.matrix)
         insertRotation(rotation)
-        val t = multiply(translation,matrix)
-        insertTranslation(t)
+
     }
 
     /**
@@ -198,6 +197,8 @@ class Quaternion {
     fun update() {
         val rotation = multiply(multiply(roll.matrix,pitch.matrix),yaw.matrix)
         insertRotation(rotation)
+        val t = multiply(translation,matrix)
+        insertTranslation(t)
 
     }
 
@@ -270,10 +271,6 @@ class Quaternion {
                 doubleArrayOf(0.0,0.0,0.0,1.0)
             )
             return m
-        }
-        fun quaternionForJointPosition(jp: JointPosition) {
-            jp.setPosition(0.0,0.0,0.0)
-
         }
     }
     private val CLSS = "Quaternion"

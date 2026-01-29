@@ -7,10 +7,10 @@ package chuckcoughlin.bertspeak.data
 import chuckcoughlin.bert.common.model.Joint
 
 /**
- * This is an abbreviated version of a class of the same name
+ * This is an abbreviated version of a JointTree
  * in the main app.
  */
-class JointTree() {
+class Skeleton() {
     val map: MutableMap<Joint, JointPosition>
 
     fun clear() {
@@ -32,7 +32,7 @@ class JointTree() {
         }
     }
 
-    private val CLSS = "JointTree"
+    private val CLSS = "Skeleton"
 
     init {
         map = mutableMapOf<Joint, JointPosition>()

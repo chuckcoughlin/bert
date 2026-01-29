@@ -11,7 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 
 import chuckcoughlin.bertspeak.common.DispatchConstants
-import chuckcoughlin.bertspeak.data.JointTree
+import chuckcoughlin.bertspeak.data.Skeleton
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.LimbShapeObserver
 import chuckcoughlin.bertspeak.data.StatusData
@@ -99,7 +99,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
     /*
      * Update the skeleton in each of the three panels
      */
-    override fun updateGraphics(skeleton: JointTree) {
+    override fun updateGraphics(skeleton: Skeleton) {
         Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.map.size))
         leftPanel.updateDrawables(skeleton)
         frontPanel.updateDrawables(skeleton)

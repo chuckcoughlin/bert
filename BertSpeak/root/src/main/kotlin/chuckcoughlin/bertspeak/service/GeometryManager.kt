@@ -10,7 +10,7 @@ import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JointPosition
-import chuckcoughlin.bertspeak.data.JointTree
+import chuckcoughlin.bertspeak.data.Skeleton
 import chuckcoughlin.bertspeak.data.LimbShapeObserver
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -25,7 +25,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     override val managerType = ManagerType.GEOMETRY
     override var managerState = ManagerState.OFF
     private val shapeObservers: MutableMap<String, LimbShapeObserver>
-    private val skeleton: JointTree
+    private val skeleton: Skeleton
     private val gson: Gson
     override fun start() {
         dispatcher.log(CLSS, String.format("start ..."))
@@ -120,7 +120,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     /**
      * Notify geometry observers regarding receipt of a new message.
      */
-    private fun notifyObservers(tree: JointTree) {
+    private fun notifyObservers(tree: Skeleton) {
         for (observer in shapeObservers.values) {
             observer.updateGraphics(tree)
         }
@@ -131,7 +131,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     init {
         name = CLSS
         shapeObservers  = mutableMapOf<String, LimbShapeObserver>()
-        skeleton = JointTree()
+        skeleton = Skeleton()
         gson = Gson()
     }
 }
