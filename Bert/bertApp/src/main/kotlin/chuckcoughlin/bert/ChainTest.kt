@@ -41,14 +41,17 @@ object ChainTest {
         val link1 = tree.getJointLink(Joint.ABS_Y)  // Link from IMU to ABS_Y
         val root = tree.getOrCreateJointPosition(link1.sourceJoint)  // IMU
         val absy = tree.getOrCreateJointPosition(link1.endJoint)     // ABS_Y
-        link1.setJointAngle(link1.home)
+        root.setJointAngle(link1.home)
+        q = root.quaternionToRotate()
         link1.setRpy(0.0,0.0,0.0)
-        q = link1.quaternionForSource(root)
-        q = Quaternion.computeEnd(link1,q)
+        q = link1.applyTransform(q)
         absy.updateFromQuaternion(q)
-        println(String.format("\t(IMU=12,0,62 [0,0,0]) = %s [%s]", Joint.IMU.quaternion.positionToText(),q.directionToText()))
+        println(String.format("\t(IMU=12,0,62 [0,0,0]) = %s [%s]", absy.positionToText(),q.directionToText()))
+        q = root.quaternionToRotate()
+        q = link1.applyTransform(q)
+        absy.updateFromQuaternion(q)
         link1.setRpy(90.0,0.0,0.0)
-        println(String.format("\t(IMU=12,0,62 [90,0,0]) = %s [%s]", Joint.IMU.quaternion.positionToText(),q.directionToText()))
+        println(String.format("\t(IMU=12,0,62 [90,0,0]) = %s [%s]", absy.positionToText(),q.directionToText()))
 /**
         IMU.setRoll(0.0)
         IMU.setPitch(90.0)
@@ -145,7 +148,9 @@ object ChainTest {
                 Joint.RIGHT_SHOULDER_X -> mc!!.angle = 180.0
                 Joint.RIGHT_SHOULDER_Y -> mc!!.angle = 180.0
                 Joint.NONE -> mc!!.angle = 0.0
-                Joint.IMU -> {}
+                else ->  {
+                   // Not a joint
+                }
             }
         }
     }

@@ -4,6 +4,9 @@
  */
 package chuckcoughlin.bert.common.model
 
+import chuckcoughlin.bert.common.math.Quaternion
+import chuckcoughlin.bert.common.math.Rom
+
 /**
  * Current position and orientation of a joint or end-effector in 3 space.
  * with respect to the root of the robot inertial coordinate system.
@@ -17,7 +20,21 @@ class JointPosition() {
 	var side: String   // Link group
 
 	fun positionToText() : String {
-		return String.format("%s coordinates: %s->%s [%s,%s,%s]",pos.toText(),joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",side)
+		return String.format("%s%s coordinates: [%s]",joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",pos.toText(),)
+	}
+
+	/**
+	 * Create a quaternion that handles rotation only, no translation
+	 */
+	fun quaternionToRotate(): Quaternion {
+		val rom = Rom()
+		rom.setRoll(orientation[0])
+		rom.setPitch(orientation[1])
+		rom.setYaw(orientation[2])
+		return Quaternion.quaternionFromRotationMatrix(rom)
+	}
+	fun setJointAngle(theta:Double) {
+		orientation[1] = theta
 	}
 
 	fun setOrientation(phi:Double,theta:Double,psi:Double) {
@@ -37,6 +54,15 @@ class JointPosition() {
 		copy.pos = pos.copy()
 		copy.side = side
 		return copy
+	}
+
+	fun updateFromQuaternion(q:Quaternion) {
+		orientation[0] = q.direction()[0]
+		orientation[1] = q.direction()[1]
+		orientation[3] = q.direction()[2]
+		pos.x = q.position().x
+		pos.y = q.position().y
+		pos.z = q.position().z
 	}
 
 	companion object {

@@ -23,7 +23,7 @@ class JointPosition() {
 	var side: String   // Link group
 
 	fun positionToText() : String {
-		return String.format("%s coordinates: %s->%s [%s,%s,%s]",pos.toText(),joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",side)
+		return String.format("%s%s coordinates: [%s]",joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",pos.toText())
 	}
 
 	fun setOrientation(phi:Double,theta:Double,psi:Double) {

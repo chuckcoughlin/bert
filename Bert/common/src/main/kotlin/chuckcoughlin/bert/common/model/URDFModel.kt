@@ -45,8 +45,7 @@ object URDFModel {
         if (document != null) {
             var origin = JointPosition()
             origin.joint = Joint.IMU
-            origin.parent = JointPosition()
-            origin.parent.joint = Joint.NONE
+            origin.parent = Joint.NONE
             origin.setPosition(0.0,0.0,0.0)
             origin.setOrientation(0.0,0.0,0.0)
             // ================================== IMU ===============================================
@@ -74,7 +73,7 @@ object URDFModel {
                 val linkNode = links.item(index)
                 try {
                     // The source is shared with all sub-links
-                    var parent = origin
+                    var source = origin
                     val children = linkNode.childNodes
                     val acount = children.length
                     var aindex = 0
@@ -84,7 +83,7 @@ object URDFModel {
                         if ("source".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "joint")
                             val joint = Joint.fromString(jname)
-                            parent = tree.getOrCreateJointPosition(joint)
+                            source = tree.getOrCreateJointPosition(joint)
                         }
                         aindex++
                     }
@@ -96,14 +95,14 @@ object URDFModel {
                             val aname: String = XMLUtility.attributeValue(node, "name")
                             val joint = Joint.fromString(aname)
                             val jp = tree.getOrCreateJointPosition(joint)
-                            jp.parent = parent
+                            jp.parent = source.parent
                             var home = 0.0
                             if(!"appendage".equals(node.localName) ) {
                                 home = XMLUtility.attributeValue(node, "home").toDouble()
                             }
                             jp.side = XMLUtility.attributeValue(linkNode, "side")
 
-                            var jlink = tree.createJointLink(parent.joint,jp.joint)
+                            var jlink = tree.createJointLink(source.joint,jp.joint)
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))

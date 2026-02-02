@@ -25,7 +25,7 @@ import java.util.logging.Logger
  */
 class JointLink( val source:Joint,val end:Joint ) {
     // Values are degrees.
-    private var transform: Quaternion
+    var transform: Quaternion
     private var orientation:DoubleArray
     private var coordinates:DoubleArray
     var home:Double
@@ -33,6 +33,10 @@ class JointLink( val source:Joint,val end:Joint ) {
     val sourceJoint = source
     var side:Side
 
+    fun applyTransform(q:Quaternion) : Quaternion {
+        val end = q.postMultiplyBy(transform)
+        return end
+    }
     // These are the physical fixed distances between source
     // and end joint from the URDF file. The joint angle
     // is in its home position. Initialize position to same.

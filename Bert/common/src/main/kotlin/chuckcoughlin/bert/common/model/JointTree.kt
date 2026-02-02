@@ -26,7 +26,7 @@ class JointTree() {
     /**
      * Create a new joint position. Add it to the tree.
      */
-    fun createJointPosition(joint:Joint,parent:JointPosition) : JointPosition {
+    fun createJointPosition(joint:Joint,parent:Joint) : JointPosition {
         val jp = JointPosition()
         jp.joint = joint
         jp.parent = parent
@@ -49,7 +49,7 @@ class JointTree() {
             chain.addFirst(jlink)
             // if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserting %s (%s)",CLSS,joint.name))
             jp = parent
-        } while(jp.parent != JointPosition.NONE)
+        } while(jp.parent != Joint.NONE)
 
         return chain
     }
@@ -69,7 +69,7 @@ class JointTree() {
             jp= getParent(jp)
             chain.addFirst(jp)
             // if (DEBUG) LOGGER.info(String.format("%s.createPositionChain: %s - inserting %s (%s)",CLSS,joint.name))
-        } while(jp.parent != JointPosition.NONE)
+        } while(jp.parent != Joint.NONE)
 
         return chain
     }
@@ -81,7 +81,7 @@ class JointTree() {
             LOGGER.warning(String.format("%s.getJointLink: No link found for endJoint %s - created",CLSS,end.name))
             val jp = posmap.get(end)
             if(jp!=null) {
-                val parent = jp.parent.joint
+                val parent = jp.parent
                 return JointLink(getOrCreateJointPosition(parent).joint,end)
             }
             return JointLink(Joint.IMU,end)
@@ -97,7 +97,7 @@ class JointTree() {
         // LOGGER.info(String.format("%s.getJointPositionByName: %s",CLSS,name))
         var jp = posmap.get(joint)
         if(jp==null) {
-            jp = createJointPosition(joint,JointPosition.NONE)
+            jp = createJointPosition(joint,Joint.NONE)
         }
         return jp
     }
@@ -121,13 +121,12 @@ class JointTree() {
      *         does not exist, return the origin.
      */
     fun getParent(jp:JointPosition) : JointPosition {
-        var parent = jp.parent
-        return parent
+        return getOrCreateJointPosition(jp.parent)
     }
 
     fun setOrigin(jp:JointPosition) {
         jp.joint = Joint.IMU
-        jp.parent= JointPosition.NONE
+        jp.parent= Joint.NONE
         posmap.put(jp.joint,jp)
         LOGGER.info(String.format("%s.setOrigin: %s",
             CLSS,jp.joint.name))

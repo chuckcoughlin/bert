@@ -272,6 +272,15 @@ class Quaternion {
             )
             return m
         }
+        fun quaternionFromRotationMatrix(rom:Rom): Quaternion {
+            val q = identity()
+            for(col in 1..3) {
+                for( row in 1..3 ) {
+                    q.matrix[row][col] = rom.matrix[row][col]
+                }
+            }
+            return q
+        }
     }
     private val CLSS = "Quaternion"
     val LOGGER = Logger.getLogger(CLSS)
