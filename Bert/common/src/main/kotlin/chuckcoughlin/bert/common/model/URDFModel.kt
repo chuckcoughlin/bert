@@ -45,7 +45,6 @@ object URDFModel {
         if (document != null) {
             var origin = JointPosition()
             origin.joint = Joint.IMU
-            origin.parent = Joint.NONE
             origin.setPosition(0.0,0.0,0.0)
             origin.setOrientation(0.0,0.0,0.0)
             // ================================== IMU ===============================================
@@ -57,6 +56,7 @@ object URDFModel {
                 origin.setPosition(xyz[0],xyz[1],xyz[2])
             }
             tree.setOrigin(origin)
+            tree.createJointLink(Joint.NONE,Joint.IMU)
 
             // ================================== Links ===============================================
             // Links are a connection between joints or from a joint to extremity (appendage). The link
@@ -95,7 +95,6 @@ object URDFModel {
                             val aname: String = XMLUtility.attributeValue(node, "name")
                             val joint = Joint.fromString(aname)
                             val jp = tree.getOrCreateJointPosition(joint)
-                            jp.parent = source.parent
                             var home = 0.0
                             if(!"appendage".equals(node.localName) ) {
                                 home = XMLUtility.attributeValue(node, "home").toDouble()
@@ -104,7 +103,7 @@ object URDFModel {
 
                             var jlink = tree.createJointLink(source.joint,jp.joint)
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
-                            jlink.setRpy(rpy[0],rpy[1],rpy[2])
+                            jlink.basic.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             jlink.setCoordinates(xyz[0],xyz[1],xyz[2])
                             jlink.home = home

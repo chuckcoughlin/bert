@@ -24,7 +24,7 @@ object PositionMessageHandler  {
     fun getJointCoordinates() : MessageBottle {
         val msg = MessageBottle(RequestType.JSON)
         msg.jtype = JsonType.JOINT_COORDINATES
-        msg.text = ForwardSolver.jointCoordinatesToJson()
+        msg.text = ForwardSolver.tree.jointCoordinatesToJson()
         return msg
     }
     /**

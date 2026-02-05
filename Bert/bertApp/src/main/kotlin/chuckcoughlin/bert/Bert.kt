@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.PathConstants
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.model.URDFModel
+import chuckcoughlin.bert.common.solver.ForwardSolver
 import chuckcoughlin.bert.common.util.LoggerUtility
 import chuckcoughlin.bert.common.util.ShutdownHook
 import chuckcoughlin.bert.dispatch.Dispatcher
@@ -95,6 +96,7 @@ fun main(args: Array<String>) {
 
     Database.startup(PathConstants.DB_PATH)
     URDFModel.analyzePath(PathConstants.URDF_PATH)
+    ForwardSolver.initialize()
     if( testSequence.isEmpty() ) {     // Not-a-test
         val dispatcher = Dispatcher()
         Runtime.getRuntime().addShutdownHook(Thread(ShutdownHook(dispatcher)))

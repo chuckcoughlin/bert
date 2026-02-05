@@ -4,7 +4,7 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.solver.ForwardSolver.tree
+import com.google.gson.GsonBuilder
 import java.util.*
 import java.util.logging.Logger
 
@@ -18,7 +18,8 @@ class JointTree() {
 
     fun createJointLink(source:Joint,jp:Joint) : JointLink {
         LOGGER.info(String.format("%s.createJointLink: %s to %s",CLSS,source.name,jp.name))
-        val jlink = JointLink(source,jp)
+        //val jlink = JointLink(source,jp)
+        val jlink = JointLink()
         linkmap.put(jp, jlink)
         return jlink
     }
@@ -26,10 +27,9 @@ class JointTree() {
     /**
      * Create a new joint position. Add it to the tree.
      */
-    fun createJointPosition(joint:Joint,parent:Joint) : JointPosition {
+    fun createJointPosition(joint:Joint) : JointPosition {
         val jp = JointPosition()
         jp.joint = joint
-        jp.parent = parent
         posmap.put(joint,jp)
         return jp
     }
@@ -40,16 +40,15 @@ class JointTree() {
      * @param joint, name of the source.
      * @return a linked list of JointLinks
      */
-    fun createLinkChain(joint: Joint): List<JointLink> {
+    fun createLinkChain(j: Joint): List<JointLink> {
         val chain: LinkedList<JointLink> = LinkedList<JointLink>()
-        var jp= getOrCreateJointPosition(joint)
+        var joint = j
         do {
-            val parent=tree.getParent(jp)
-            val jlink= getJointLink(jp.joint)
+            val jlink= getOrCreateJointLink(joint)
             chain.addFirst(jlink)
             // if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserting %s (%s)",CLSS,joint.name))
-            jp = parent
-        } while(jp.parent != Joint.NONE)
+            //joint = jlink.basic.sourceJoint
+        } while(joint!=Joint.NONE)
 
         return chain
     }
@@ -69,22 +68,25 @@ class JointTree() {
             jp= getParent(jp)
             chain.addFirst(jp)
             // if (DEBUG) LOGGER.info(String.format("%s.createPositionChain: %s - inserting %s (%s)",CLSS,joint.name))
-        } while(jp.parent != Joint.NONE)
+        } while(jp.joint != Joint.NONE)
 
         return chain
     }
 
-    fun getJointLink(end:Joint) : JointLink {
+    fun getOrCreateJointLink(end:Joint) : JointLink {
         //LOGGER.info(String.format("%s.getJointLink: %d",CLSS,id))
-        val jlink = linkmap.get(end)
-        if( jlink==null ) {
+        var jlink = linkmap.get(end)
+        if( jlink ==null ) {
             LOGGER.warning(String.format("%s.getJointLink: No link found for endJoint %s - created",CLSS,end.name))
             val jp = posmap.get(end)
             if(jp!=null) {
-                val parent = jp.parent
-                return JointLink(getOrCreateJointPosition(parent).joint,end)
+                //jlink = JointLink(Joint.IMU,end)
+                jlink = JointLink()
             }
-            return JointLink(Joint.IMU,end)
+            else {
+                //jlink = JointLink(Joint.NONE, end)
+                jlink = JointLink()
+            }
         }
         return jlink
     }
@@ -97,11 +99,42 @@ class JointTree() {
         // LOGGER.info(String.format("%s.getJointPositionByName: %s",CLSS,name))
         var jp = posmap.get(joint)
         if(jp==null) {
-            jp = createJointPosition(joint,Joint.NONE)
+            jp = createJointPosition(joint)
         }
         return jp
     }
 
+    /**
+     * @return the parent joint position. If the position
+     *         does not exist, return the origin.
+     */
+    fun getParent(jp:JointPosition) : JointPosition {
+        val jlink = getOrCreateJointLink(jp.joint)
+        //return getOrCreateJointPosition(jlink.basic.sourceJoint)
+        return getOrCreateJointPosition(jp.joint)
+    }
+
+
+    fun jointCoordinatesToJson() :String {
+        val gson = GsonBuilder().create()
+        return gson.toJson(listJointPositions())
+    }
+
+    /**
+     * The skeleton is simply an unordered list of basic joint links.
+     * Use the BasicLink to ensure serializable.
+     */
+    fun listJointLinks() : List<BasicLink> {
+        val list = mutableListOf<BasicLink>()
+        /*
+        for(link in linkmap.values ) {
+            list.add(link.basic)
+            break
+        }
+        */
+        list.add(BasicLink())
+        return list
+    }
     fun listJointPositions() : List<JointPosition> {
         val list = mutableListOf<JointPosition>()
         for(jp in posmap.values) {
@@ -110,26 +143,15 @@ class JointTree() {
         return list
     }
 
-    fun getOrigin():JointPosition {
-        val origin = posmap.get(Joint.IMU)!!
-        return origin
-    }
-
-
-    /**
-     * @return the parent joint position. If the position
-     *         does not exist, return the origin.
-     */
-    fun getParent(jp:JointPosition) : JointPosition {
-        return getOrCreateJointPosition(jp.parent)
-    }
-
     fun setOrigin(jp:JointPosition) {
         jp.joint = Joint.IMU
-        jp.parent= Joint.NONE
         posmap.put(jp.joint,jp)
         LOGGER.info(String.format("%s.setOrigin: %s",
             CLSS,jp.joint.name))
+    }
+    fun skeletonToJson() :String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        return gson.toJson(listJointLinks())
     }
 
 //--------------------------

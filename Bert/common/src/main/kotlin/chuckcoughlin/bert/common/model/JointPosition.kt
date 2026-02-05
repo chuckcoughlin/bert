@@ -14,7 +14,6 @@ import chuckcoughlin.bert.common.math.Rom
  */
 class JointPosition() {
 	var joint: Joint
-	var parent: Joint    //
 	var orientation: DoubleArray // Angles with respect to system normal
 	var pos: Point3D   // Coordinates of joint or end effector
 	var side: String   // Link group
@@ -50,7 +49,6 @@ class JointPosition() {
 	fun copy() : JointPosition {
 		val copy = JointPosition()
 		copy.joint = joint
-		copy.parent = parent
 		copy.pos = pos.copy()
 		copy.side = side
 		return copy
@@ -59,7 +57,7 @@ class JointPosition() {
 	fun updateFromQuaternion(q:Quaternion) {
 		orientation[0] = q.direction()[0]
 		orientation[1] = q.direction()[1]
-		orientation[3] = q.direction()[2]
+		orientation[2] = q.direction()[2]
 		pos.x = q.position().x
 		pos.y = q.position().y
 		pos.z = q.position().z
@@ -71,7 +69,6 @@ class JointPosition() {
 
 	init {
 		joint = Joint.NONE
-		parent = Joint.NONE
 		orientation = doubleArrayOf(0.0,0.0,0.0)
 		pos    = Point3D(0.0,0.0,0.0)
 		side = Side.FRONT.name

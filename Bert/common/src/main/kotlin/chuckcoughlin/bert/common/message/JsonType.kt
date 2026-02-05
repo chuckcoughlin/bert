@@ -1,5 +1,5 @@
 /**
- * Copyright 2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2024-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  * This class should be identical in both Linux and Android worlds.
  */
@@ -42,6 +42,7 @@ enum class JsonType {
     MOVE_JOINTS,      // Command new appendage position              MutableList<JointPosition>
     POSE_DETAILS,     // Details df named pose                       MutableList<PoseDetail>
     POSE_NAMES,       // Names df defined poses                      MutableList<String>
+    SKELETON,         // Structure of the robot                      MutableList<BasicLink>
     UNDEFINED
     ;
 

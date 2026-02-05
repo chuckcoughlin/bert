@@ -17,7 +17,7 @@ import java.util.logging.Logger
  * A single joint position object may belong to several chains.
  */
 object ForwardSolver {
-    val tree: JointTree   // Represents the current actual position.
+    var tree: JointTree   // Represents the current actual position.
 
     /**
      * Return the orientation of the named joint or appendage in x,y,z coordinates
@@ -53,11 +53,10 @@ object ForwardSolver {
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
     }
 
-    fun jointCoordinatesToJson() :String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val list = ForwardSolver.tree.listJointPositions()
-        return gson.toJson(list)
+    fun initialize() {
+        tree = URDFModel.createJointTree()
     }
+
     /**
      * Update the link coordinates in a chain starting from the IMU, then multiply
      * quaternion matrices to get final position. The final position includes the
@@ -66,24 +65,24 @@ object ForwardSolver {
     private fun computeQuaternionFromChain(subchain: List<JointLink>):Quaternion {
         var q = Quaternion.identity()
         var atOrigin = true
-        /**
+        val joint = Joint.NONE
         for(link in subchain) {
-            link.recalculate()
+            //val jp = tree.getOrCreateJointPosition(link.basic.sourceJoint)
+            val jp = tree.getOrCreateJointPosition(joint)
             if( atOrigin ) {
                 atOrigin = false
-                q = link.quaternion
+                q = link.transform
                 if(DEBUG) q.logdetails("origin")
             }
             else {
-                if (DEBUG) LOGGER.info(link.quaternion.dump("link"))
-                q = q.postMultiplyBy(link.quaternion)
+                if (DEBUG) LOGGER.info(link.transform.dump("link"))
+                q = q.postMultiplyBy(link.transform)
                 if (DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s|%s) ",
-                    CLSS, link.name, link.end.name, q.positionToText(), q.directionToText()))
+                    CLSS, joint.name, joint.name, q.positionToText(), q.directionToText()))
+                    //CLSS, link.basic.sourceJoint.name, link.basic.endJoint.name, q.positionToText(), q.directionToText()))
                 if (DEBUG) LOGGER.info(q.dump("product"))
             }
          }
-        **/
-
         return q
     }
 
@@ -96,6 +95,6 @@ object ForwardSolver {
      */
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        tree = URDFModel.createJointTree()
+        tree = JointTree()
     }
 }

@@ -439,7 +439,8 @@ object RobotModel {
      */
     fun refreshChain(chain:List<JointLink>) {
         for (jlink in chain) {
-            val joint = jlink.end
+            //val joint = jlink.basic.endJoint
+            val joint = Joint.NONE
             val mc = motorsByJoint.get(joint)!!
             //jlink.updateForMotorAngle(mc.angle)
             //jlink.recalculate()
@@ -450,7 +451,8 @@ object RobotModel {
      */
     fun refreshTree(tree: JointTree) {
         for (jlink in tree.linkmap.values) {
-            val joint = jlink.source
+            //val joint = jlink.basic.sourceJoint
+            val joint = Joint.NONE
             val mc = motorsByJoint.get(joint)!!
             //jlink.updateForMotorAngle(mc.angle)
             // jlink.recalculate()
@@ -462,7 +464,8 @@ object RobotModel {
      */
     fun setLimbToHome(tree: JointTree,limb: Limb) {
         for (jlink in tree.linkmap.values) {
-            val joint = jlink.source
+            //val joint = jlink.basic.sourceJoint
+            val joint = Joint.NONE
             val jlimb = RobotModel.limbsByJoint[joint]
             if( jlimb!=null && jlimb!=Limb.NONE && jlimb==limb ) {
                 //jlink.setPitch(jlink.source.home)
@@ -475,7 +478,9 @@ object RobotModel {
      */
     fun setTreeToHome(tree: JointTree) {
         for (jlink in tree.linkmap.values) {
-            //jlink.setPitch(jlink.source.home)
+            //val jp = tree.getOrCreateJointPosition(jlink.basic.sourceJoint)
+            val jp = tree.getOrCreateJointPosition(Joint.NONE)
+            jp.setJointAngle(jlink.home)
         }
     }
 

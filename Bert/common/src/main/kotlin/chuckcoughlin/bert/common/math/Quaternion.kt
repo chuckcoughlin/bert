@@ -274,8 +274,8 @@ class Quaternion {
         }
         fun quaternionFromRotationMatrix(rom:Rom): Quaternion {
             val q = identity()
-            for(col in 1..3) {
-                for( row in 1..3 ) {
+            for(col in 0..2) {
+                for( row in 0..2 ) {
                     q.matrix[row][col] = rom.matrix[row][col]
                 }
             }

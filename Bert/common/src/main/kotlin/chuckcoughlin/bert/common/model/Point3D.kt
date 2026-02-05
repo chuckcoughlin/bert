@@ -1,5 +1,5 @@
 /**
- * Copyright 2024-2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2024-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bert.common.model
@@ -9,6 +9,6 @@ package chuckcoughlin.bert.common.model
  */
 data class Point3D (var x:Double, var y:Double,var z:Double) {
 	fun toText():String {
-		return String.format("%3.3f,%3.3f,%3.3f",x,y,z)
+		return String.format("%3.2f,%3.2f,%3.2f",x,y,z)
 	}
 }

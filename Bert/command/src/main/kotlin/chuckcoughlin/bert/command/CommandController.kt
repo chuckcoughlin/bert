@@ -13,6 +13,8 @@ import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
+import chuckcoughlin.bert.common.model.URDFModel
+import chuckcoughlin.bert.common.solver.ForwardSolver
 import chuckcoughlin.bert.speech.translate.MessageTranslator
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -26,6 +28,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import java.awt.SystemColor.text
 import java.net.ServerSocket
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -243,7 +246,11 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
 
     /** Send a startup message directly to the socket **/
     fun sendStartupMessage(handler:CommandMessageHandler) {
-        val text = String.format("%s:%s",MessageType.ANS.name,startMessage)
+        var text = String.format("%s:%s",MessageType.ANS.name,startMessage)
+        handler.sendText(text)
+        // Transmit the skeletal structure
+        val skeleton = ForwardSolver.tree.skeletonToJson()
+        text = String.format("%s:%s",MessageType.ANS.name,skeleton)
         handler.sendText(text)
     }
 

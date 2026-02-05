@@ -1,0 +1,58 @@
+/**
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
+ * MIT License.
+ */
+package chuckcoughlin.bert.common.model
+
+import chuckcoughlin.bert.common.math.Quaternion
+import chuckcoughlin.bert.common.math.Rom
+
+/**
+ * A link is a skeletal structure beginning with a source joint and ending
+ * with either another joint or end effector. Values are static. The joint in the
+ * source is modelled as rotation the entire link structure as a unit. The
+ * "orientation" refers to the fixed orientation of tne source joint to the
+ * previous limb when the joint angle is at zero with respect to the previous link. The
+ * "coordinates" refer to the location of the end joint or end-effector with
+ * respect to the source. The axes for these coordinates are always "y" corresponding
+ * to the axis of the source joint, "x" is positive forward, "z" is up.
+ *
+ * Multiple joint-links may have the same source, indicating they are on the same physical
+ * skeletal piece. A link may be uniquely identified by its end joint/effector.
+ *
+ * @param source the source joint
+ * @param end the end joint or end effector
+ */
+open class BasicLink() {
+	// Values are degrees.
+	var orientation:DoubleArray
+	var coordinates:DoubleArray
+	val endJoint:Joint
+	val sourceJoint:Joint
+
+	// These are the physical fixed distances between source
+	// and end joint from the URDF file. The joint angle
+	// is in its home position. Initialize position to same.
+	// ~mm
+	fun setCoordinates(x:Double,y:Double,z:Double) {
+		coordinates[0] = x
+		coordinates[1] = y
+		coordinates[2] = z
+	}
+
+	// Roll, pitch, yaw are in degrees. Convert to radians.
+	// This refers to the orientation of the origin
+	// with respect to the previous link. ~ degrees
+	fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+		orientation[0] = roll
+		orientation[1] = pitch
+		orientation[2] = yaw
+	}
+	private val CLSS = "BasicLink"
+	init {
+		sourceJoint = Joint.NONE
+		endJoint    = Joint.NONE
+		coordinates = doubleArrayOf(0.0,0.0,0.0)  // end referenced to source
+		orientation = doubleArrayOf(0.0,0.0,0.0)
+	}
+}

@@ -174,7 +174,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
         val msg = MessageBottle(RequestType.JSON)
         msg.jtype = JsonType.JOINT_COORDINATES
         msg.source = ControllerType.COMMAND  // If tablet is connected.
-        msg.text = ForwardSolver.jointCoordinatesToJson()
+        msg.text = ForwardSolver.tree.jointCoordinatesToJson()
         if(DEBUG) LOGGER.info(String.format("%s.dispatchPositionUpdates Updating joint positions on tablet",
             CLSS))
         dispatchMessage(msg)  // Causes hang at the moment ??

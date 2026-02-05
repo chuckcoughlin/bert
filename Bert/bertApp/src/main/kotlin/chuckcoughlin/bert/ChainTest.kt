@@ -19,45 +19,60 @@ object ChainTest {
         val tree = ForwardSolver.tree
         var q : Quaternion
 
+        RobotModel.setTreeToHome(tree)
+        // Print some JSON
+        println("======== joints ========")
+        var json = tree.jointCoordinatesToJson()
+        println(json)
+        println("======== links =======")
+        json = tree.skeletonToJson()
+        println(json)
+        println("======== end =======")
+
         // Test the links to some extremities
         println(String.format("==================== %s ===========================================",CLSS ))
 
         println("======== Test LEFT_EAR to PELVIS position-chain")
         var chain = tree.createLinkChain(Joint.LEFT_EAR)
         for (link in chain) {
-            println(String.format("\t%s ", link.end.name))
+            //println(String.format("\t%s ", link.basic.endJoint.name))
         }
         println("======== Test RIGHT_FINGER to PELVIS link-chain")
         chain = tree.createLinkChain(Joint.RIGHT_FINGER)
         for (link in chain) {
-            println(String.format("\t%s ", link.end.name))
+            //println(String.format("\t%s ", link.basic.endJoint.name))
         }
         println("======== Test ABS_X to PELVIS link-chain")
         chain = tree.createLinkChain(Joint.ABS_X)
         for (link in chain) {
-            println(String.format("\t%s ", link.end.name))
+            //println(String.format("\t%s ", link.basic.endJoint.name))
         }
         println("======== Test ABS_Y for IMU orientations (directions should match)")
-        val link1 = tree.getJointLink(Joint.ABS_Y)  // Link from IMU to ABS_Y
-        val root = tree.getOrCreateJointPosition(link1.sourceJoint)  // IMU
-        val absy = tree.getOrCreateJointPosition(link1.endJoint)     // ABS_Y
+        val link1   = tree.getOrCreateJointLink(Joint.ABS_Y)  // Link from IMU to ABS_Y
+        //val root = tree.getOrCreateJointPosition(link1.basic.sourceJoint)  // IMU
+        //val absy = tree.getOrCreateJointPosition(link1.basic.endJoint)     // ABS_Y
+        val root = tree.getOrCreateJointPosition(Joint.NONE)  // IMU
+        val absy = tree.getOrCreateJointPosition(Joint.NONE)     // ABS_Y
         root.setJointAngle(link1.home)
         q = root.quaternionToRotate()
-        link1.setRpy(0.0,0.0,0.0)
+        println(q.dump("Root rotation matrix"))
+        link1.basic.setRpy(0.0,0.0,0.0)
         q = link1.applyTransform(q)
+        println(q.dump("ABS_Y transform matrix"))
         absy.updateFromQuaternion(q)
-        println(String.format("\t(IMU=12,0,62 [0,0,0]) = %s [%s]", absy.positionToText(),q.directionToText()))
+        println(String.format("\t(IMU=12,0,62 [0,0,0])  = %s [%s]", absy.positionToText(),q.directionToText()))
+        /**
         q = root.quaternionToRotate()
         q = link1.applyTransform(q)
         absy.updateFromQuaternion(q)
         link1.setRpy(90.0,0.0,0.0)
         println(String.format("\t(IMU=12,0,62 [90,0,0]) = %s [%s]", absy.positionToText(),q.directionToText()))
-/**
-        IMU.setRoll(0.0)
-        IMU.setPitch(90.0)
-        IMU.setYaw(0.0)
+
+        Joint.IMU.setRoll(0.0)
+        Joint.IMU.setPitch(90.0)
+        Joint.IMU.setYaw(0.0)
         println(String.format("\tABS-Y (IMU=0,90,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
-        IMU.setRoll(0.0)
+        Joint.IMU.setRoll(0.0)
         IMU.setPitch(0.0)
         IMU.setYaw(90.0)
         println(String.format("\tABS-Y (IMU=0,0,90) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
