@@ -19,7 +19,7 @@ object ChainTest {
         val tree = ForwardSolver.tree
         var q : Quaternion
 
-        RobotModel.setTreeToHome(tree)
+        //RobotModel.setTreeToHome(tree)
         // Print some JSON
         println("======== joints ========")
         var json = tree.jointCoordinatesToJson()
@@ -35,17 +35,17 @@ object ChainTest {
         println("======== Test LEFT_EAR to PELVIS position-chain")
         var chain = tree.createLinkChain(Joint.LEFT_EAR)
         for (link in chain) {
-            //println(String.format("\t%s ", link.basic.endJoint.name))
+            println(String.format("\t%s ", link.endJoint.name))
         }
         println("======== Test RIGHT_FINGER to PELVIS link-chain")
         chain = tree.createLinkChain(Joint.RIGHT_FINGER)
         for (link in chain) {
-            //println(String.format("\t%s ", link.basic.endJoint.name))
+            println(String.format("\t%s ", link.endJoint.name))
         }
         println("======== Test ABS_X to PELVIS link-chain")
         chain = tree.createLinkChain(Joint.ABS_X)
         for (link in chain) {
-            //println(String.format("\t%s ", link.basic.endJoint.name))
+            println(String.format("\t%s ", link.endJoint.name))
         }
         println("======== Test ABS_Y for IMU orientations (directions should match)")
         val link1   = tree.getOrCreateJointLink(Joint.ABS_Y)  // Link from IMU to ABS_Y
@@ -56,7 +56,7 @@ object ChainTest {
         root.setJointAngle(link1.home)
         q = root.quaternionToRotate()
         println(q.dump("Root rotation matrix"))
-        link1.basic.setRpy(0.0,0.0,0.0)
+        link1.setRpy(0.0,0.0,0.0)
         q = link1.applyTransform(q)
         println(q.dump("ABS_Y transform matrix"))
         absy.updateFromQuaternion(q)

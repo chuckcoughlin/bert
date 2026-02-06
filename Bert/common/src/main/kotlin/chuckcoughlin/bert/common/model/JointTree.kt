@@ -16,11 +16,12 @@ class JointTree() {
     val posmap: MutableMap<Joint, JointPosition>
     val linkmap: MutableMap<Joint, JointLink>  // Key = endJoint
 
-    fun createJointLink(source:Joint,jp:Joint) : JointLink {
-        LOGGER.info(String.format("%s.createJointLink: %s to %s",CLSS,source.name,jp.name))
-        //val jlink = JointLink(source,jp)
+    fun createJointLink(source:Joint,joint:Joint) : JointLink {
+        LOGGER.info(String.format("%s.createJointLink: %s to %s",CLSS,source.name,joint.name))
         val jlink = JointLink()
-        linkmap.put(jp, jlink)
+        jlink.sourceJoint = source
+        jlink.endJoint = joint
+        linkmap.put(joint, jlink)
         return jlink
     }
 
@@ -47,7 +48,7 @@ class JointTree() {
             val jlink= getOrCreateJointLink(joint)
             chain.addFirst(jlink)
             // if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserting %s (%s)",CLSS,joint.name))
-            //joint = jlink.basic.sourceJoint
+            joint = jlink.sourceJoint
         } while(joint!=Joint.NONE)
 
         return chain
@@ -74,18 +75,20 @@ class JointTree() {
     }
 
     fun getOrCreateJointLink(end:Joint) : JointLink {
-        //LOGGER.info(String.format("%s.getJointLink: %d",CLSS,id))
+        //LOGGER.info(String.format("%s.getJointLink: %s",CLSS,end.name))
         var jlink = linkmap.get(end)
         if( jlink ==null ) {
             LOGGER.warning(String.format("%s.getJointLink: No link found for endJoint %s - created",CLSS,end.name))
             val jp = posmap.get(end)
             if(jp!=null) {
-                //jlink = JointLink(Joint.IMU,end)
                 jlink = JointLink()
+                jlink.sourceJoint = Joint.IMU
+                jlink.endJoint     = end
             }
             else {
-                //jlink = JointLink(Joint.NONE, end)
                 jlink = JointLink()
+                jlink.sourceJoint = Joint.NONE
+                jlink.endJoint     = end
             }
         }
         return jlink
@@ -122,16 +125,18 @@ class JointTree() {
 
     /**
      * The skeleton is simply an unordered list of basic joint links.
-     * Use the BasicLink to ensure serializable.
+     * Use the BasicLink to ensure serializable on tablet.
      */
     fun listJointLinks() : List<BasicLink> {
         val list = mutableListOf<BasicLink>()
-        /*
         for(link in linkmap.values ) {
-            list.add(link.basic)
-            break
+            val bl = BasicLink()
+            bl.sourceJoint = link.sourceJoint
+            bl.endJoint    = link.endJoint
+            bl.coordinates = link.coordinates.clone()
+            bl.orientation = link.orientation.clone()
+            list.add(bl)
         }
-        */
         list.add(BasicLink())
         return list
     }
@@ -149,8 +154,10 @@ class JointTree() {
         LOGGER.info(String.format("%s.setOrigin: %s",
             CLSS,jp.joint.name))
     }
+
+    // NOTE: It appears that classes with LOGGERs cannot be serialized.
     fun skeletonToJson() :String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
+        val gson = GsonBuilder().create()
         return gson.toJson(listJointLinks())
     }
 

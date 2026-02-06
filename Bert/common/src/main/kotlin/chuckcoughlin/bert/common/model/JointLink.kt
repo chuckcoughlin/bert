@@ -8,25 +8,28 @@ import chuckcoughlin.bert.common.math.Quaternion
 import java.util.logging.Logger
 
 /**
- * A JointLink encapsulates a BasicLink to add a transform quaternion.
- * Note: We had trouble with Json when we tried a straightforward extension.
- *
- * @param sourceJoint the source joint
- * @param endJoint the end joint or end effector
+ * A JointLink extends a BasicLink to add a transform quaternion.
  */
-class JointLink( )  {
+class JointLink() : BasicLink()  {
     // Values are degrees.
     var transform: Quaternion
     var home:Double
-    val basic: BasicLink
 
     fun applyTransform(q:Quaternion) : Quaternion {
         val end = q.postMultiplyBy(transform)
         return end
     }
-     fun setCoordinates(x:Double,y:Double,z:Double) {
-        if (DEBUG) LOGGER.info(String.format("%s.setCoordinates: (%s) %2.2f,%2.2f,%2.2f", CLSS, Joint.NONE.name, x, y, z))
-        basic.setCoordinates(x, y, z)
+
+    override fun setCoordinates(x: Double, y: Double, z: Double) {
+        super.setCoordinates(x, y, z)
+        if(DEBUG) LOGGER.info(String.format("%s.setCoordinates: %s [%3.2f,%3.2f,%3.2f]",CLSS,endJoint.name,
+                                        coordinates[0],coordinates[1],coordinates[2]))
+    }
+
+    override fun setRpy(roll: Double, pitch: Double, yaw: Double) {
+        super.setRpy(roll, pitch, yaw)
+        if(DEBUG) LOGGER.info(String.format("%s.setRpy: %s [%3.2f,%3.2f,%3.2f]",CLSS,endJoint.name,
+                                        orientation[0],orientation[1],orientation[2]))
     }
 
     /*
@@ -34,17 +37,21 @@ class JointLink( )  {
      * and orientation are set.
      */
     fun update(theta:Double) {
-        //transform.setRoll(basic.orientation[0])
-        //transform.setPitch(basic.orientation[1])
-        //transform.setYaw(basic.orientation[2])
-        //transform.setTranslation(basic.coordinates[0],basic.coordinates[1],basic.coordinates[2])
-        //transform.update()
+        transform.setRoll(orientation[0])
+        transform.setPitch(orientation[1])
+        transform.setYaw(orientation[2])
+        transform.setTranslation(coordinates[0],coordinates[1],coordinates[2])
+        transform.update()
     }
 
     fun clone() : JointLink {
         val copy = JointLink()
         copy.transform    = transform.clone()
         copy.home = home
+        copy.sourceJoint  = sourceJoint
+        copy.endJoint     = endJoint
+        copy.setCoordinates(coordinates[0],coordinates[1],coordinates[2])
+        copy.setRpy(orientation[0],orientation[1],orientation[2])
         return copy
     }
 
@@ -57,6 +64,5 @@ class JointLink( )  {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         transform    = Quaternion()
         home = 0.0
-        basic = SimpleLink()
     }
 }

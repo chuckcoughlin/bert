@@ -100,10 +100,9 @@ object URDFModel {
                                 home = XMLUtility.attributeValue(node, "home").toDouble()
                             }
                             jp.side = XMLUtility.attributeValue(linkNode, "side")
-
                             var jlink = tree.createJointLink(source.joint,jp.joint)
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
-                            jlink.basic.setRpy(rpy[0],rpy[1],rpy[2])
+                            jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             jlink.setCoordinates(xyz[0],xyz[1],xyz[2])
                             jlink.home = home

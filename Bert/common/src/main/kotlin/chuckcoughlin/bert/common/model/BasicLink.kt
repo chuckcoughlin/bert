@@ -27,14 +27,14 @@ open class BasicLink() {
 	// Values are degrees.
 	var orientation:DoubleArray
 	var coordinates:DoubleArray
-	val endJoint:Joint
-	val sourceJoint:Joint
+	var endJoint:Joint
+	var sourceJoint:Joint
 
 	// These are the physical fixed distances between source
 	// and end joint from the URDF file. The joint angle
 	// is in its home position. Initialize position to same.
 	// ~mm
-	fun setCoordinates(x:Double,y:Double,z:Double) {
+	open fun setCoordinates(x:Double,y:Double,z:Double) {
 		coordinates[0] = x
 		coordinates[1] = y
 		coordinates[2] = z
@@ -43,12 +43,12 @@ open class BasicLink() {
 	// Roll, pitch, yaw are in degrees. Convert to radians.
 	// This refers to the orientation of the origin
 	// with respect to the previous link. ~ degrees
-	fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+	open fun setRpy(roll:Double,pitch:Double,yaw:Double) {
 		orientation[0] = roll
 		orientation[1] = pitch
 		orientation[2] = yaw
 	}
-	private val CLSS = "BasicLink"
+
 	init {
 		sourceJoint = Joint.NONE
 		endJoint    = Joint.NONE
