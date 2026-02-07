@@ -10,7 +10,7 @@ import java.util.logging.Logger
 /**
  * A JointLink extends a BasicLink to add a transform quaternion.
  */
-class JointLink() : BasicLink()  {
+class JointLink(source:Joint,end:Joint) : BasicLink(source,end)  {
     // Values are degrees.
     var transform: Quaternion
     var home:Double
@@ -45,11 +45,9 @@ class JointLink() : BasicLink()  {
     }
 
     fun clone() : JointLink {
-        val copy = JointLink()
+        val copy = JointLink(sourceJoint,endJoint)
         copy.transform    = transform.clone()
         copy.home = home
-        copy.sourceJoint  = sourceJoint
-        copy.endJoint     = endJoint
         copy.setCoordinates(coordinates[0],coordinates[1],coordinates[2])
         copy.setRpy(orientation[0],orientation[1],orientation[2])
         return copy

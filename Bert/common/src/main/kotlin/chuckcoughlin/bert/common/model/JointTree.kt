@@ -18,9 +18,7 @@ class JointTree() {
 
     fun createJointLink(source:Joint,joint:Joint) : JointLink {
         LOGGER.info(String.format("%s.createJointLink: %s to %s",CLSS,source.name,joint.name))
-        val jlink = JointLink()
-        jlink.sourceJoint = source
-        jlink.endJoint = joint
+        val jlink = JointLink(source,joint)
         linkmap.put(joint, jlink)
         return jlink
     }
@@ -81,14 +79,10 @@ class JointTree() {
             LOGGER.warning(String.format("%s.getJointLink: No link found for endJoint %s - created",CLSS,end.name))
             val jp = posmap.get(end)
             if(jp!=null) {
-                jlink = JointLink()
-                jlink.sourceJoint = Joint.IMU
-                jlink.endJoint     = end
+                jlink = JointLink(Joint.IMU,end)
             }
             else {
-                jlink = JointLink()
-                jlink.sourceJoint = Joint.NONE
-                jlink.endJoint     = end
+                jlink = JointLink(Joint.NONE,end)
             }
         }
         return jlink
@@ -130,14 +124,11 @@ class JointTree() {
     fun listJointLinks() : List<BasicLink> {
         val list = mutableListOf<BasicLink>()
         for(link in linkmap.values ) {
-            val bl = BasicLink()
-            bl.sourceJoint = link.sourceJoint
-            bl.endJoint    = link.endJoint
+            val bl = BasicLink(link.sourceJoint,link.endJoint)
             bl.coordinates = link.coordinates.clone()
             bl.orientation = link.orientation.clone()
             list.add(bl)
         }
-        list.add(BasicLink())
         return list
     }
     fun listJointPositions() : List<JointPosition> {

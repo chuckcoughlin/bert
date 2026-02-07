@@ -23,12 +23,12 @@ import chuckcoughlin.bert.common.math.Rom
  * @param source the source joint
  * @param end the end joint or end effector
  */
-open class BasicLink() {
+open class BasicLink(source:Joint,end:Joint) {
 	// Values are degrees.
 	var orientation:DoubleArray
 	var coordinates:DoubleArray
-	var endJoint:Joint
-	var sourceJoint:Joint
+	val endJoint:Joint
+	val sourceJoint:Joint
 
 	// These are the physical fixed distances between source
 	// and end joint from the URDF file. The joint angle
@@ -50,8 +50,8 @@ open class BasicLink() {
 	}
 
 	init {
-		sourceJoint = Joint.NONE
-		endJoint    = Joint.NONE
+		sourceJoint = source
+		endJoint    = end
 		coordinates = doubleArrayOf(0.0,0.0,0.0)  // end referenced to source
 		orientation = doubleArrayOf(0.0,0.0,0.0)
 	}
