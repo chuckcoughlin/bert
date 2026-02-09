@@ -1,17 +1,14 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  * @See: https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps
  */
 package chuckcoughlin.bert.common.math
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
-import chuckcoughlin.bert.common.model.JointPosition
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * Define a quaternion for the specific purpose of calculating the

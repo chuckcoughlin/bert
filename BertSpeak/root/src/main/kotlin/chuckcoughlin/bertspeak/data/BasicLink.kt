@@ -6,6 +6,7 @@
 package chuckcoughlin.bertspeak.data
 
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bertspeak.ui.graphics.Side
 import java.util.logging.Logger
 
 /**
@@ -24,12 +25,13 @@ import java.util.logging.Logger
  * @param source the source joint
  * @param end the end joint or end effector
  */
-open class BasicLink(val source: Joint, val end:Joint ) {
+open class BasicLink(source:Joint,end:Joint) {
     // Values are degrees.
     var orientation:DoubleArray
     var coordinates:DoubleArray
-    val endJoint    = end
-    val sourceJoint = source
+    val endJoint:Joint
+    val sourceJoint:Joint
+    var side:String
 
     // These are the physical fixed distances between source
     // and end joint from the URDF file. The joint angle
@@ -44,25 +46,17 @@ open class BasicLink(val source: Joint, val end:Joint ) {
     // Roll, pitch, yaw are in degrees. Convert to radians.
     // This refers to the orientation of the origin
     // with respect to the previous link. ~ degrees
-    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+    open fun setRpy(roll:Double,pitch:Double,yaw:Double) {
         orientation[0] = roll
         orientation[1] = pitch
         orientation[2] = yaw
     }
 
-    open fun clone() : BasicLink {
-        val copy = BasicLink(sourceJoint,endJoint)
-        copy.coordinates = coordinates.clone()
-        copy.orientation = orientation.clone()
-        return copy
-    }
-
-    private val CLSS = "JointLink"
-    private val LOGGER = Logger.getLogger(CLSS)
-    /**
-     */
     init {
-        coordinates = doubleArrayOf(0.0, 0.0, 0.0)  // end referenced to source
-        orientation = doubleArrayOf(0.0, 0.0, 0.0)
+        sourceJoint = source
+        endJoint    = end
+        coordinates = doubleArrayOf(0.0,0.0,0.0)  // end referenced to source
+        orientation = doubleArrayOf(0.0,0.0,0.0)
+        side = Side.FRONT.name
     }
 }

@@ -29,6 +29,7 @@ open class BasicLink(source:Joint,end:Joint) {
 	var coordinates:DoubleArray
 	val endJoint:Joint
 	val sourceJoint:Joint
+	var side:String
 
 	// These are the physical fixed distances between source
 	// and end joint from the URDF file. The joint angle
@@ -54,5 +55,6 @@ open class BasicLink(source:Joint,end:Joint) {
 		endJoint    = end
 		coordinates = doubleArrayOf(0.0,0.0,0.0)  // end referenced to source
 		orientation = doubleArrayOf(0.0,0.0,0.0)
+		side = Side.FRONT.name
 	}
 }

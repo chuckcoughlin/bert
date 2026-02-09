@@ -27,7 +27,10 @@ object ChainTest {
         println("======== links =======")
         json = tree.skeletonToJson()
         println(json)
-        println("======== end =======")
+        println("======== LinkSequence =======")
+        for(link in ForwardSolver.linkSequence) {
+            println(String.format("\t%s ", link.endJoint.name))
+        }
 
         // Test the links to some extremities
         println(String.format("==================== %s ===========================================",CLSS ))

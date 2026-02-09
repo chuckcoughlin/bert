@@ -58,11 +58,13 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
      abstract fun selectDrawable(point:Point2D):LinkShapeDrawable?
 
     fun updateDrawables(skeleton: Skeleton) {
-        for (jp1 in skeleton.map.values) {
-            val jp2 = skeleton.map.get(jp1.parent)
+        for (jp1 in skeleton.positionMap.values) {
+            val jlink = skeleton.linkMap.get(jp1.joint)
+            if(jlink==null) continue
+            val jp2 = skeleton.positionMap.get(jlink.sourceJoint)
             // Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
             if(jp2!=null) {
-                val drawable = ShapeFactory.drawableForLink(jp1,jp2,configuration.projection)
+                val drawable = ShapeFactory.drawableForLink(jlink,jp1,jp2,configuration.projection)
                 drawables[jp1.joint] = drawable
             }
 

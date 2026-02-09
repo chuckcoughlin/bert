@@ -19,6 +19,10 @@ class Skeleton() {
         positionMap.clear()
     }
 
+    fun addJointLink(jl:BasicLink) {
+        linkMap.put(jl.endJoint,jl)
+    }
+
     fun addJointPosition(jp:JointPosition) {
         positionMap.put(jp.joint,jp)
     }

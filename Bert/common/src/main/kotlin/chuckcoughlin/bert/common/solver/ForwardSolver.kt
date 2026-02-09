@@ -18,6 +18,7 @@ import java.util.logging.Logger
  */
 object ForwardSolver {
     var tree: JointTree   // Represents the current actual position.
+    val linkSequence: MutableList<JointLink>
 
     /**
      * Return the orientation of the named joint or appendage in x,y,z coordinates
@@ -55,6 +56,24 @@ object ForwardSolver {
 
     fun initialize() {
         tree = URDFModel.createJointTree()
+        createLinkSequence()
+    }
+
+    /**
+     * Assuming each of the joint angles has been set,
+     * compute joint positions everywhere in the tree.
+     */
+    fun populateSequence() {
+        for(link in linkSequence) {
+            if(link.endJoint==Joint.IMU) {
+
+            }
+            else {
+
+            }
+
+        }
+
     }
 
     /**
@@ -86,6 +105,38 @@ object ForwardSolver {
         return q
     }
 
+    /**
+     * Create a sequence of JointLinks where earlier joints
+     * in the sequence are not dependent on later ones.
+     */
+    private fun createLinkSequence() {
+        var imu = tree.getOrCreateJointLink(Joint.IMU)
+        var list = mutableListOf<JointLink>()
+        list.add(imu)
+        while(list.size>0) {
+            addLinksToSequence(list)
+            list = subsequentLinks(list)
+        }
+    }
+
+    private fun addLinksToSequence(list:List<JointLink>) {
+        for(jlink in list) {
+            linkSequence.add(jlink)
+        }
+    }
+    private fun subsequentLinks(links:List<JointLink>):MutableList<JointLink> {
+        val list = mutableListOf<JointLink>()
+        for(link in links) {
+            if(Joint.isEndEffector(link.endJoint) ) continue
+            for(jlink in tree.linkmap.values ) {
+                if(jlink.sourceJoint==link.endJoint) {
+                    list.add(jlink)
+                }
+            }
+        }
+        return list
+    }
+
     private const val CLSS = "ForwardSolver"
     private val LOGGER = Logger.getLogger(CLSS)
     private val DEBUG: Boolean
@@ -96,5 +147,6 @@ object ForwardSolver {
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         tree = JointTree()
+        linkSequence = mutableListOf<JointLink>()
     }
 }

@@ -33,7 +33,7 @@ class JointLink(source:Joint,end:Joint) : BasicLink(source,end)  {
     }
 
     /*
-     * Compute the transform quaternion once the corrdinates
+     * Compute the transform quaternion once the coordinates
      * and orientation are set.
      */
     fun update(theta:Double) {
@@ -48,6 +48,7 @@ class JointLink(source:Joint,end:Joint) : BasicLink(source,end)  {
         val copy = JointLink(sourceJoint,endJoint)
         copy.transform    = transform.clone()
         copy.home = home
+        copy.side = side
         copy.setCoordinates(coordinates[0],coordinates[1],coordinates[2])
         copy.setRpy(orientation[0],orientation[1],orientation[2])
         return copy

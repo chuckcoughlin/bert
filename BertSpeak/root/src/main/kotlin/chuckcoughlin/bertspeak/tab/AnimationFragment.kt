@@ -100,7 +100,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
      * Update the skeleton in each of the three panels
      */
     override fun updateGraphics(skeleton: Skeleton) {
-        Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.map.size))
+        Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.positionMap.size))
         leftPanel.updateDrawables(skeleton)
         frontPanel.updateDrawables(skeleton)
         rightPanel.updateDrawables(skeleton)

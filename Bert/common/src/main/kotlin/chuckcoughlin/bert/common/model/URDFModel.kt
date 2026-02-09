@@ -99,8 +99,9 @@ object URDFModel {
                             if(!"appendage".equals(node.localName) ) {
                                 home = XMLUtility.attributeValue(node, "home").toDouble()
                             }
-                            jp.side = XMLUtility.attributeValue(linkNode, "side")
+
                             var jlink = tree.createJointLink(source.joint,jp.joint)
+                            jlink.side = XMLUtility.attributeValue(linkNode, "side")
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))

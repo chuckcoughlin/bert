@@ -5,6 +5,7 @@
 package chuckcoughlin.bertspeak.ui.graphics
 
 import chuckcoughlin.bert.common.model.Joint
+import chuckcoughlin.bertspeak.data.BasicLink
 import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.data.Point3D
@@ -19,13 +20,13 @@ class ShapeFactory () {
 		/**
 		 * If unknown return a red-filled circle. Resolute links are "bones".
 		 */
-		fun drawableForLink(jp1: JointPosition,jp2:JointPosition, projection:Side): LinkShapeDrawable {
+		fun drawableForLink(jlink: BasicLink,jp1 : JointPosition, jp2:JointPosition, projection:Side): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
 
 			val p1 = projectedPoint(jp1.pos,projection)
 			val p2 = projectedPoint(jp2.pos,projection)
-			val side = Side.fromString(jp1.side)
-			if(jp2.parent == Joint.NONE) {
+			val side = Side.fromString(jlink.side)
+			if(jp2.joint == Joint.NONE) {
 				drawable = UnknownDrawable(jp1.joint,p2,side)
 			}
 			else if(!Joint.isEndEffector(jp1.joint)) {
