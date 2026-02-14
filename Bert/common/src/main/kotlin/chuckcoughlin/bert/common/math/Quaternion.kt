@@ -6,6 +6,8 @@
 package chuckcoughlin.bert.common.math
 
 import chuckcoughlin.bert.common.model.ConfigurationConstants
+import chuckcoughlin.bert.common.model.JointLink
+import chuckcoughlin.bert.common.model.JointPosition
 import chuckcoughlin.bert.common.model.Point3D
 import chuckcoughlin.bert.common.model.RobotModel
 import java.util.logging.Logger
@@ -16,7 +18,7 @@ import java.util.logging.Logger
  * is a 4x4 double array. Array order is [row][col]. All angles are
  * expressed in radians.
  */
-class Quaternion {
+class Quaternion () {
     var matrix: Array<DoubleArray>
     var roll:  Rom
     var pitch: Rom
@@ -42,27 +44,6 @@ class Quaternion {
     }
 
 
-    /**
-     * Insert a 3x3 rotation matrix into the quaternion matrix.
-     * matrix[row][col]
-     */
-    fun insertRotation(r:Array<DoubleArray>) {
-        matrix[0][0] = r[0][0]
-        matrix[0][1] = r[0][1]
-        matrix[0][2] = r[0][2]
-        matrix[1][0] = r[1][0]
-        matrix[1][1] = r[1][1]
-        matrix[1][2] = r[1][2]
-        matrix[2][0] = r[2][0]
-        matrix[2][1] = r[2][1]
-        matrix[2][2] = r[2][2]
-    }
-
-    fun insertTranslation(t:DoubleArray) {
-        matrix[0][3] = t[0]
-        matrix[1][3] = t[1]
-        matrix[2][3] = t[2]
-    }
     /**
      * Multiply the given quaternion by the current
      * and return the result
@@ -110,6 +91,28 @@ class Quaternion {
         translation[0] = x
         translation[1] = y
         translation[2] = z
+    }
+
+    /**
+     * Insert a 3x3 rotation matrix into the quaternion matrix.
+     * matrix[row][col]
+     */
+    private fun insertRotation(r:Array<DoubleArray>) {
+        matrix[0][0] = r[0][0]
+        matrix[0][1] = r[0][1]
+        matrix[0][2] = r[0][2]
+        matrix[1][0] = r[1][0]
+        matrix[1][1] = r[1][1]
+        matrix[1][2] = r[1][2]
+        matrix[2][0] = r[2][0]
+        matrix[2][1] = r[2][1]
+        matrix[2][2] = r[2][2]
+    }
+
+    private fun insertTranslation(t:DoubleArray) {
+        matrix[0][3] = t[0]
+        matrix[1][3] = t[1]
+        matrix[2][3] = t[2]
     }
 
     /**
@@ -178,15 +181,6 @@ class Quaternion {
         return result
     }
     /**
-     * Perform a rotation operation, updating the internal matrix.
-     */
-    fun rotate() {
-        val rotation = multiply(multiply(roll.matrix,pitch.matrix),yaw.matrix)
-        insertRotation(rotation)
-
-    }
-
-    /**
      * Update the quaternion matrix from prior settings of
      * rotation and position. (Order of multipllication = roll, pitch, yaw).
      * Lengths ~mm, angles ~ radians
@@ -198,6 +192,22 @@ class Quaternion {
         insertTranslation(t)
 
     }
+
+    // ====================== Operations on JointPositions =========================
+    /**
+     * Populate parameters in the JointPosition from values
+     * in the Quaternion
+     */
+    fun populatePosition(jp:JointPosition) {
+        val dir = direction()
+        jp.orientation[0] = dir[0]
+        jp.orientation[1] = dir[1]
+        jp.orientation[2] = dir[2]
+        jp.pos.x = matrix[0][3]
+        jp.pos.y = matrix[1][3]
+        jp.pos.z = matrix[2][3]
+    }
+
 
     fun clone() : Quaternion {
         val copy = Quaternion()
@@ -269,8 +279,16 @@ class Quaternion {
             )
             return m
         }
-        fun quaternionFromRotationMatrix(rom:Rom): Quaternion {
+        /**
+         * @return a quaternion for a simple rotation.
+         * This is especially applicable to the root joint
+         */
+        fun rotationQuaternion(jp: JointPosition) : Quaternion {
             val q = identity()
+            val rom = Rom()
+            rom.setRoll(jp.orientation[0])
+            rom.setPitch(jp.orientation[1]+jp.theta)
+            rom.setYaw(jp.orientation[2])
             for(col in 0..2) {
                 for( row in 0..2 ) {
                     q.matrix[row][col] = rom.matrix[row][col]
@@ -278,7 +296,17 @@ class Quaternion {
             }
             return q
         }
+        /**
+         * @return a quaternion for a simple rotation.
+         * This is especially applicable to the root joint
+         */
+        fun translationQuaternion(jlink: JointLink) : Quaternion {
+            val q = identity()
+            q.insertTranslation(jlink.coordinates)
+            return q
+        }
     }
+
     private val CLSS = "Quaternion"
     val LOGGER = Logger.getLogger(CLSS)
     val DEBUG: Boolean

@@ -127,6 +127,7 @@ object URDFModel {
      */
     fun createJointTree() : JointTree {
         val jtree = tree.clone()
+        jtree.createLinkSequence()
         return jtree
     }
 

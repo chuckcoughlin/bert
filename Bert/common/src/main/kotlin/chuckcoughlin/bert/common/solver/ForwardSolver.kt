@@ -6,19 +6,18 @@ package chuckcoughlin.bert.common.solver
 
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.common.solver.ForwardSolver.tree
-import com.google.gson.GsonBuilder
 import java.util.logging.Logger
 
 /**
  * This class handles forward kinetics calculations.
  *
- * The URDFModel is the tree of links which describes the robot.
- * A single joint position object may belong to several chains.
+ * The URDFModel defines the tree of links which make up the robot
+ * skeleton. A link has a source joint and an end joint. The end joint
+ * is the unique key to the link. A single source joint may belong to several
+ * links.
  */
 object ForwardSolver {
     var tree: JointTree   // Represents the current actual position.
-    val linkSequence: MutableList<JointLink>
 
     /**
      * Return the orientation of the named joint or appendage in x,y,z coordinates
@@ -26,20 +25,18 @@ object ForwardSolver {
      * The named joint is last in the chain.
      * @param joint or appendage
      */
-    fun computeDirection(joint: Joint): DoubleArray {
-        val subchain: List<JointLink> = tree.createLinkChain(joint)
-        val q = computeQuaternionFromChain(subchain)
+    fun directionForJoint(joint: Joint): DoubleArray {
+        val q = computeQuaternionForJoint(joint)
         return q.direction()
     }
 
     /**
-     * Return the coordinates of a specified joint in meters from the
+     * Return the coordinates of the specified joint in meters from the
      * robot origin in the pelvis in the inertial reference frame.
      * The named joint is last in the chain.
      */
-    fun computePosition(joint: Joint): Point3D {
-        val subchain: List<JointLink> = tree.createLinkChain(joint)
-        val q = computeQuaternionFromChain(subchain)
+    fun positionForJoint(joint: Joint): Point3D {
+        val q = computeQuaternionForJoint(joint)
         return q.position()
     }
     /**
@@ -47,8 +44,7 @@ object ForwardSolver {
      * @param joint or appendage
      */
     fun computePositionDescription(joint: Joint): String {
-        val subchain: List<JointLink> = tree.createLinkChain(joint)
-        val q = computeQuaternionFromChain(subchain)
+        val q = computeQuaternionForJoint(joint)
         if(DEBUG) LOGGER.info(String.format("%s.computePositionDescription: %s = (%s [%s]) ",
             CLSS,joint.name,q.positionToText(),q.directionToText()))
         return String.format("%s [%s]",q.positionToText(),q.directionToText())
@@ -56,85 +52,50 @@ object ForwardSolver {
 
     fun initialize() {
         tree = URDFModel.createJointTree()
-        createLinkSequence()
     }
 
-    /**
-     * Assuming each of the joint angles has been set,
-     * compute joint positions everywhere in the tree.
-     */
-    fun populateSequence() {
-        for(link in linkSequence) {
-            if(link.endJoint==Joint.IMU) {
-
-            }
-            else {
-
-            }
-
-        }
-
-    }
 
     /**
      * Update the link coordinates in a chain starting from the IMU, then multiply
      * quaternion matrices to get final position. The final position includes the
      * x,y,z position of the end effector with the orientation of the attached link.
      */
-    private fun computeQuaternionFromChain(subchain: List<JointLink>):Quaternion {
+    private fun computeQuaternionForJoint(joint: Joint):Quaternion {
+        val subchain: List<JointLink> = tree.createLinkChain(joint)
+        updateJointAngles(subchain)
         var q = Quaternion.identity()
-        var atOrigin = true
-        val joint = Joint.NONE
         for(link in subchain) {
-            //val jp = tree.getOrCreateJointPosition(link.basic.sourceJoint)
-            val jp = tree.getOrCreateJointPosition(joint)
-            if( atOrigin ) {
-                atOrigin = false
-                q = link.transform
-                if(DEBUG) q.logdetails("origin")
+            val jp1 = tree.getOrCreateJointPosition(link.sourceJoint)
+            val jp2  = tree.getOrCreateJointPosition(link.endJoint)
+            if(jp2.joint==Joint.IMU) {
+                q = Quaternion.rotationQuaternion(jp2)
             }
             else {
-                if (DEBUG) LOGGER.info(link.transform.dump("link"))
-                q = q.postMultiplyBy(link.transform)
-                if (DEBUG) LOGGER.info(String.format("%s.computeQuaternionFromChain: %s end    %s = (%s|%s) ",
+                val mc = RobotModel.motorsByJoint[link.sourceJoint]!!
+                jp1.setJointAngle(mc.angle)
+                val q1 = Quaternion.rotationQuaternion(jp1)
+                val q2 = Quaternion.translationQuaternion(link)
+                q = q.postMultiplyBy(q1).postMultiplyBy(q2)
+                q.populatePosition(jp2)
+            }
+            if (DEBUG) {
+                LOGGER.info(String.format("%s.computeQuaternionForJoint: %s end    %s = (%s|%s) ",
                     CLSS, joint.name, joint.name, q.positionToText(), q.directionToText()))
                     //CLSS, link.basic.sourceJoint.name, link.basic.endJoint.name, q.positionToText(), q.directionToText()))
-                if (DEBUG) LOGGER.info(q.dump("product"))
+                LOGGER.info(q.dump("product"))
             }
          }
         return q
     }
 
     /**
-     * Create a sequence of JointLinks where earlier joints
-     * in the sequence are not dependent on later ones.
+     * Populate joints in the chain to their current angles.
      */
-    private fun createLinkSequence() {
-        var imu = tree.getOrCreateJointLink(Joint.IMU)
-        var list = mutableListOf<JointLink>()
-        list.add(imu)
-        while(list.size>0) {
-            addLinksToSequence(list)
-            list = subsequentLinks(list)
-        }
-    }
+    private fun updateJointAngles(chain:List<JointLink>) {
+        for (jlink in chain) {
+            if( jlink.sourceJoint==Joint.IMU ) continue
 
-    private fun addLinksToSequence(list:List<JointLink>) {
-        for(jlink in list) {
-            linkSequence.add(jlink)
         }
-    }
-    private fun subsequentLinks(links:List<JointLink>):MutableList<JointLink> {
-        val list = mutableListOf<JointLink>()
-        for(link in links) {
-            if(Joint.isEndEffector(link.endJoint) ) continue
-            for(jlink in tree.linkmap.values ) {
-                if(jlink.sourceJoint==link.endJoint) {
-                    list.add(jlink)
-                }
-            }
-        }
-        return list
     }
 
     private const val CLSS = "ForwardSolver"
@@ -147,6 +108,5 @@ object ForwardSolver {
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
         tree = JointTree()
-        linkSequence = mutableListOf<JointLink>()
     }
 }

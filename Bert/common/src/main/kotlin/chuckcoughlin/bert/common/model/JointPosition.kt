@@ -16,23 +16,15 @@ class JointPosition() {
 	var joint: Joint
 	var orientation: DoubleArray // Angles with respect to system normal
 	var pos: Point3D   // Coordinates of joint or end effector
+	var theta: Double
+
 
 	fun positionToText() : String {
 		return String.format("%s%s coordinates: [%s]",joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",pos.toText())
 	}
 
-	/**
-	 * Create a quaternion that handles rotation only, no translation
-	 */
-	fun quaternionToRotate(): Quaternion {
-		val rom = Rom()
-		rom.setRoll(orientation[0])
-		rom.setPitch(orientation[1])
-		rom.setYaw(orientation[2])
-		return Quaternion.quaternionFromRotationMatrix(rom)
-	}
-	fun setJointAngle(theta:Double) {
-		orientation[1] = theta
+	fun setJointAngle(angle:Double) {
+		theta = angle
 	}
 
 	fun setOrientation(phi:Double,theta:Double,psi:Double) {
@@ -69,5 +61,6 @@ class JointPosition() {
 		joint = Joint.NONE
 		orientation = doubleArrayOf(0.0,0.0,0.0)
 		pos    = Point3D(0.0,0.0,0.0)
+		theta = 0.0
 	}
 }

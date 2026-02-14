@@ -458,31 +458,6 @@ object RobotModel {
             // jlink.recalculate()
         }
     }
-    /*
-     * Populate all joint links for a specified limb to their
-     * home angle. This is presuneably the "straight" position.
-     */
-    fun setLimbToHome(tree: JointTree,limb: Limb) {
-        for (jlink in tree.linkmap.values) {
-            //val joint = jlink.basic.sourceJoint
-            val joint = Joint.NONE
-            val jlimb = RobotModel.limbsByJoint[joint]
-            if( jlimb!=null && jlimb!=Limb.NONE && jlimb==limb ) {
-                //jlink.setPitch(jlink.source.home)
-            }
-        }
-    }
-    /**
-     * Populate all joint links in the tree to their
-     * home angle. This is presuneably the "straight" position.
-     */
-    fun setTreeToHome(tree: JointTree) {
-        for (jlink in tree.linkmap.values) {
-            //val jp = tree.getOrCreateJointPosition(jlink.basic.sourceJoint)
-            val jp = tree.getOrCreateJointPosition(Joint.NONE)
-            jp.setJointAngle(jlink.home)
-        }
-    }
 
     private val CLSS = "RobotModel"
     private var DEBUG = false

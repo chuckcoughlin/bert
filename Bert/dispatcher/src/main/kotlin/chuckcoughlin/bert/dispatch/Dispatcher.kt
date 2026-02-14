@@ -441,13 +441,13 @@ class Dispatcher : Controller {
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.joint
-                    val xyz: DoubleArray = ForwardSolver.computeDirection(appendage)
+                    val xyz: DoubleArray = ForwardSolver.directionForJoint(appendage)
                     text = String.format("my %s is aimed at %2.2f %2.2f %2.2f",
                         appendage.name, xyz[0], xyz[1], xyz[2])
                 }
                 else {
                     val joint = request.joint
-                    val xyz: DoubleArray = ForwardSolver.computeDirection(joint)
+                    val xyz: DoubleArray = ForwardSolver.directionForJoint(joint)
                     text = String.format(
                         "My %s is oriented %2.2f and %2.2f degrees from the reference frame x and y axes, respectively",
                         Joint.toText(joint), xyz[0], xyz[1])
@@ -459,7 +459,7 @@ class Dispatcher : Controller {
                 var text:String
                 if( request.joint==Joint.NONE ) {
                     val appendage = request.joint
-                    val xyz: Point3D = ForwardSolver.computePosition(appendage)
+                    val xyz: Point3D = ForwardSolver.positionForJoint(appendage)
                     text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
                         appendage.name, xyz.x, xyz.y, xyz.z)
                     request.values[0] = xyz.x
@@ -469,7 +469,7 @@ class Dispatcher : Controller {
                 }
                 else {
                     val joint = request.joint
-                    val xyz: Point3D = ForwardSolver.computePosition(joint)
+                    val xyz: Point3D = ForwardSolver.positionForJoint(joint)
                     text = String.format(
                         "My %s joint is at %2.2f %2.2f %2.2f millimeters",
                         Joint.toText(joint), xyz.x, xyz.y, xyz.z)

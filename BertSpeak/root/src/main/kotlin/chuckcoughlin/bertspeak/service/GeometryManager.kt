@@ -6,7 +6,7 @@ package chuckcoughlin.bertspeak.service
 
 import android.util.Log
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bertspeak.data.BasicLink
+import chuckcoughlin.bertspeak.data.JointLink
 import chuckcoughlin.bertspeak.data.DefaultSkeleton
 import chuckcoughlin.bertspeak.data.JsonObserver
 import chuckcoughlin.bertspeak.data.JsonType
@@ -111,8 +111,8 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
             skeleton.addJointPosition(jp)
             dispatcher.log(CLSS, String.format("initializeSkeleton: Default is %s",jp.positionToText()))
         }
-        locType = object : TypeToken<List<BasicLink>>() {}.type
-        val jlist = gson.fromJson<List<BasicLink>>(DefaultSkeleton.LINKS,locType)
+        locType = object : TypeToken<List<JointLink>>() {}.type
+        val jlist = gson.fromJson<List<JointLink>>(DefaultSkeleton.LINKS,locType)
         for(jlink in jlist) {
             skeleton.addJointLink(jlink)
             dispatcher.log(CLSS, String.format("initializeSkeleton: Default is %s",jlink.endJoint.name))

@@ -42,7 +42,7 @@ enum class JsonType {
     MOVE_JOINTS,       // Command new appendage position              MutableList<JointPosition>
     POSE_DETAILS,     // Details df named pose                       MutableList<PoseDetail>
     POSE_NAMES,       // Names df defined poses                      MutableList<String>
-    SKELETON,         // Structure of the robot                      MutableList<BasicLink>
+    SKELETON,         // Structure of the robot                      MutableList<ointLink>
     UNDEFINED
     ;
 

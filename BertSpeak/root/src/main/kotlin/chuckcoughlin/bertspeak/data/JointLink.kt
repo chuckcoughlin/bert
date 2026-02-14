@@ -7,7 +7,6 @@ package chuckcoughlin.bertspeak.data
 
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.ui.graphics.Side
-import java.util.logging.Logger
 
 /**
  * A link is a skeletal structure beginning with a source joint and ending
@@ -25,7 +24,7 @@ import java.util.logging.Logger
  * @param source the source joint
  * @param end the end joint or end effector
  */
-open class BasicLink(source:Joint,end:Joint) {
+class JointLink(source:Joint, end:Joint) {
     // Values are degrees.
     var orientation:DoubleArray
     var coordinates:DoubleArray
@@ -37,7 +36,7 @@ open class BasicLink(source:Joint,end:Joint) {
     // and end joint from the URDF file. The joint angle
     // is in its home position. Initialize position to same.
     // ~mm
-    open fun setCoordinates(x:Double,y:Double,z:Double) {
+    fun setCoordinates(x:Double,y:Double,z:Double) {
         coordinates[0] = x
         coordinates[1] = y
         coordinates[2] = z
@@ -46,7 +45,7 @@ open class BasicLink(source:Joint,end:Joint) {
     // Roll, pitch, yaw are in degrees. Convert to radians.
     // This refers to the orientation of the origin
     // with respect to the previous link. ~ degrees
-    open fun setRpy(roll:Double,pitch:Double,yaw:Double) {
+    fun setRpy(roll:Double,pitch:Double,yaw:Double) {
         orientation[0] = roll
         orientation[1] = pitch
         orientation[2] = yaw

@@ -12,14 +12,14 @@ import chuckcoughlin.bert.common.model.Joint
  */
 class Skeleton() {
     val positionMap: MutableMap<Joint, JointPosition>
-    val linkMap: MutableMap<Joint, BasicLink>
+    val linkMap: MutableMap<Joint, JointLink>
 
     fun clear() {
         linkMap.clear()
         positionMap.clear()
     }
 
-    fun addJointLink(jl:BasicLink) {
+    fun addJointLink(jl:JointLink) {
         linkMap.put(jl.endJoint,jl)
     }
 
@@ -42,6 +42,6 @@ class Skeleton() {
 
     init {
         positionMap = mutableMapOf<Joint, JointPosition>()
-        linkMap = mutableMapOf<Joint, BasicLink>()
+        linkMap = mutableMapOf<Joint, JointLink>()
     }
 }

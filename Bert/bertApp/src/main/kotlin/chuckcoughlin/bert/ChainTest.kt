@@ -15,11 +15,11 @@ import chuckcoughlin.bert.common.solver.ForwardSolver
 object ChainTest {
 
     fun execute() {
-        // setMotorPositions()
         val tree = ForwardSolver.tree
+        tree.setJointsToHome()
+        tree.computeJointPositions()
         var q : Quaternion
 
-        //RobotModel.setTreeToHome(tree)
         // Print some JSON
         println("======== joints ========")
         var json = tree.jointCoordinatesToJson()
@@ -27,10 +27,12 @@ object ChainTest {
         println("======== links =======")
         json = tree.skeletonToJson()
         println(json)
-        println("======== LinkSequence =======")
+        /*
+        println("======== LinkSequence (verified) =======")
         for(link in ForwardSolver.linkSequence) {
             println(String.format("\t%s ", link.endJoint.name))
         }
+        */
 
         // Test the links to some extremities
         println(String.format("==================== %s ===========================================",CLSS ))
@@ -51,20 +53,25 @@ object ChainTest {
             println(String.format("\t%s ", link.endJoint.name))
         }
         println("======== Test ABS_Y for IMU orientations (directions should match)")
-        val link1   = tree.getOrCreateJointLink(Joint.ABS_Y)  // Link from IMU to ABS_Y
-        //val root = tree.getOrCreateJointPosition(link1.basic.sourceJoint)  // IMU
-        //val absy = tree.getOrCreateJointPosition(link1.basic.endJoint)     // ABS_Y
-        val root = tree.getOrCreateJointPosition(Joint.NONE)  // IMU
-        val absy = tree.getOrCreateJointPosition(Joint.NONE)     // ABS_Y
-        root.setJointAngle(link1.home)
-        q = root.quaternionToRotate()
-        println(q.dump("Root rotation matrix"))
+        val link1   = tree.getOrCreateJointLink(Joint.ABS_Y)     // Link from IMU to ABS_Y
+        val root = tree.getOrCreateJointPosition(Joint.IMU)   // IMU
+        val absy = tree.getOrCreateJointPosition(Joint.ABS_Y) // ABS_Y
+        root.setOrientation(0.0,0.0,0.0)
+        q = Quaternion.rotationQuaternion(root)
+        println(q.dump("Root rotation matrix [0,0,0]"))
+        root.setOrientation(90.0,90.0,0.0)
+        q = Quaternion.rotationQuaternion(root)
+        println(q.dump("Root rotation matrix [90,90,0]"))
+
+        root.setOrientation(0.0,0.0,0.0)
+
+        /**
         link1.setRpy(0.0,0.0,0.0)
-        q = link1.applyTransform(q)
+        //q = link1.applyTransform(q)
         println(q.dump("ABS_Y transform matrix"))
         absy.updateFromQuaternion(q)
         println(String.format("\t(IMU=12,0,62 [0,0,0])  = %s [%s]", absy.positionToText(),q.directionToText()))
-        /**
+
         q = root.quaternionToRotate()
         q = link1.applyTransform(q)
         absy.updateFromQuaternion(q)
@@ -76,7 +83,7 @@ object ChainTest {
         Joint.IMU.setYaw(0.0)
         println(String.format("\tABS-Y (IMU=0,90,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
         Joint.IMU.setRoll(0.0)
-        IMU.setPitch(0.0)
+        Joint.IMU.setPitch(0.0)
         IMU.setYaw(90.0)
         println(String.format("\tABS-Y (IMU=0,0,90) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
         IMU.setRoll(0.0)    // reset IMU
