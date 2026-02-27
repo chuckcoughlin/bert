@@ -1,5 +1,5 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  * @See: https://blog.robotiq.com/how-to-calculate-a-robots-forward-kinematics-in-5-easy-steps
  */
@@ -14,6 +14,7 @@ import kotlin.math.sin
 
 /**
  * Convert Euler angles into 3x3 rotation matrices.
+ * All angles in radians.
  * matrix[row][col]
  */
 class Rom {

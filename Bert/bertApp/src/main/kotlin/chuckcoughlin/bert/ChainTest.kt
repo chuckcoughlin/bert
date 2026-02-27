@@ -4,6 +4,7 @@ package chuckcoughlin.bert
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.common.solver.ForwardSolver
+import chuckcoughlin.bert.common.solver.ForwardSolver.tree
 
 /**
  * Test construction of the chain of robot "limbs" based on the URDF file in
@@ -15,7 +16,7 @@ import chuckcoughlin.bert.common.solver.ForwardSolver
 object ChainTest {
 
     fun execute() {
-        val tree = ForwardSolver.tree
+        val tree = URDFModel.createJointTree()
         tree.setJointsToHome()
         tree.computeJointPositions()
         var q : Quaternion
@@ -29,7 +30,7 @@ object ChainTest {
         println(json)
         /*
         println("======== LinkSequence (verified) =======")
-        for(link in ForwardSolver.linkSequence) {
+        for(link in tree.linkSequence) {
             println(String.format("\t%s ", link.endJoint.name))
         }
         */
@@ -53,15 +54,15 @@ object ChainTest {
             println(String.format("\t%s ", link.endJoint.name))
         }
         println("======== Test ABS_Y for IMU orientations (directions should match)")
-        val link1   = tree.getOrCreateJointLink(Joint.ABS_Y)     // Link from IMU to ABS_Y
         val root = tree.getOrCreateJointPosition(Joint.IMU)   // IMU
-        val absy = tree.getOrCreateJointPosition(Joint.ABS_Y) // ABS_Y
         root.setOrientation(0.0,0.0,0.0)
-        q = Quaternion.rotationQuaternion(root)
-        println(q.dump("Root rotation matrix [0,0,0]"))
-        root.setOrientation(90.0,90.0,0.0)
-        q = Quaternion.rotationQuaternion(root)
-        println(q.dump("Root rotation matrix [90,90,0]"))
+        var jp = tree.updateJointPosition(Joint.ABS_Y)
+        var orientation = jp.orientation
+        println(String.format("Root rotation matrix [0,0,0] : ABSY = [%02f,%02f,%02f]",orientation[0],orientation[1],orientation[2]))
+        root.setOrientation(89.0,89.0,0.0)
+        jp = tree.updateJointPosition(Joint.ABS_Y)
+        orientation = jp.orientation
+        println(String.format("Root rotation matrix [90,90,0] : ABSY = [%02f,%02f,%02f]",orientation[0],orientation[1],orientation[2]))
 
         root.setOrientation(0.0,0.0,0.0)
 

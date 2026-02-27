@@ -11,6 +11,7 @@ import chuckcoughlin.bert.common.math.Rom
  * Current position and orientation of a joint or end-effector in 3 space.
  * with respect to the root of the robot inertial coordinate system.
  * Each JointTree has a complete and separate set of these objects.
+ * All angles in degrees
  */
 class JointPosition() {
 	var joint: Joint
@@ -28,6 +29,9 @@ class JointPosition() {
 	}
 
 	fun setOrientation(phi:Double,theta:Double,psi:Double) {
+		//if(phi.isNaN()) throw NullPointerException()
+		//if(theta.isNaN()) throw NullPointerException()
+		//if(psi.isNaN()) throw NullPointerException()
 		orientation = doubleArrayOf(phi,theta,psi)
 	}
 
@@ -45,9 +49,9 @@ class JointPosition() {
 	}
 
 	fun updateFromQuaternion(q:Quaternion) {
-		orientation[0] = q.direction()[0]
-		orientation[1] = q.direction()[1]
-		orientation[2] = q.direction()[2]
+		orientation[0] = q.direction()[0] * 180.0/Math.PI
+		orientation[1] = q.direction()[1] * 180.0/Math.PI
+		orientation[2] = q.direction()[2]*  180.0/Math.PI
 		pos.x = q.position().x
 		pos.y = q.position().y
 		pos.z = q.position().z

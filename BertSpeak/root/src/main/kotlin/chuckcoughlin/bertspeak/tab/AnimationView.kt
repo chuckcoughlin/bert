@@ -79,17 +79,17 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
         val x = event.x.toDouble()
         val y = event.y.toDouble()
         val screenCoordinates = Point2D(x,y)
-        Log.i(CLSS, String.format("%s.onTouchEvent --------------------- %dx%d",configuration.projection.name,x,y))
+        Log.i(CLSS, String.format("%s.onTouchEvent --------------------- %02.0fx%02.0f",configuration.projection.name,x,y))
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 selected = selectDrawable(screenCoordinates)
                 if( selected!=null) {
-                    Log.i(CLSS, String.format("%s.onTouchEvent DOWN %dx%d selected %s",configuration.projection.name,x,y,selected!!.joint.name))
+                    Log.i(CLSS, String.format("%s.onTouchEvent DOWN %02.0fx%02.0f selected %s",configuration.projection.name,x,y,selected!!.joint.name))
                 }
             }
             MotionEvent.ACTION_MOVE -> {
                 if(selected!=null) {
-                    Log.i(CLSS, String.format("%s.onTouchEvent MOVE %dx%d", configuration.projection.name, x, y))
+                    Log.i(CLSS, String.format("%s.onTouchEvent MOVE %02.0fx%02.0f", configuration.projection.name, x, y))
                     selected!!.draw(canvas,configuration)
                     invalidate()
                 }
