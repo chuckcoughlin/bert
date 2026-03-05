@@ -115,83 +115,8 @@ class Quaternion () {
         matrix[2][3] = t[2]
     }
 
-    /**
-     * Multiply two matrices (expressed as arrays of double arrays)
-     * Square matrices, same size.
-     */
-    private fun multiply(a: Array<DoubleArray>,b: Array<DoubleArray>): Array<DoubleArray> {
-        val n = a.size
-        if (n != b.size || b[0].size != n) {
-            throw IllegalArgumentException(String.format("%s:multiply: Matrices must havee same dimensions (%d vs %d).",
-                CLSS, a.size, b.size))
-        }
-        val result = Array(n) { DoubleArray(n) }
-        for (i in 0 until n) {
-            for (j in 0 until n) {
-                for (k in 0 until n) {
-                    result[i][j] += a[i][k] * b[k][j]
-                }
-            }
-        }
-        return result
-    }
-    /**
-     * Multiply a matrix by a vector
-     * Square matrix, of same size as the vector.
-     */
-    private fun multiply(a: Array<DoubleArray>,v: DoubleArray): Array<DoubleArray> {
-        val n = a.size
-        if (n != v.size ) {
-            throw IllegalArgumentException(String.format("%s:multiply: Matrix and vector must have same sizes (%d vs %d).",
-                CLSS, a.size, v.size))
-        }
-        val result = Array(n) { DoubleArray(n) }
-        for (i in 0 until n) {
-            var sum = 0.0
-            for (j in 0 until n) {
-                for (k in 0 until n) {
-                    sum += a[i][j] * v[j]
-                    result[i][j] = sum
-                }
-            }
-        }
-        return result
-    }
 
-    /**
-     * Multiply a vector by a matrix
-     * Square matrix, of same size as the vector.
-     */
-    private fun multiply(v: DoubleArray,a: Array<DoubleArray>): DoubleArray {
-        val n = a.size
-        if (n != v.size ) {
-            throw IllegalArgumentException(String.format("%s:multiply: Vector and matrix must have same sizes (%d vs %d).",
-                CLSS, a.size, v.size))
-        }
-        val result = DoubleArray(n)
-        for (i in 0 until n) {
-            var sum = 0.0
-            for (j in 0 until n) {
-                for (k in 0 until n) {
-                    sum += v[j] * a[j][i]
-                    result[j] = sum
-                }
-            }
-        }
-        return result
-    }
-    /**
-     * Update the quaternion matrix from prior settings of
-     * rotation and position. (Order of multipllication = roll, pitch, yaw).
-     * Lengths ~mm, angles ~ radians
-     */
-    fun update() {
-        val rotation = multiply(multiply(roll.matrix,pitch.matrix),yaw.matrix)
-        insertRotation(rotation)
-        val t = multiply(translation,matrix)
-        insertTranslation(t)
 
-    }
 
     fun clone() : Quaternion {
         val copy = Quaternion()
@@ -218,11 +143,11 @@ class Quaternion () {
         return buf.toString()
     }
 
-    fun logdetails(comment:String) {
+    fun logdetails(rom:Rom,comment:String) {
         LOGGER.info(String.format("%s.logdetails =============== %s ==============",CLSS,comment))
-        LOGGER.info(dumpmatrix("roll",roll.matrix))
-        LOGGER.info(dumpmatrix("pitch",pitch.matrix))
-        LOGGER.info(dumpmatrix("yaw",yaw.matrix))
+        LOGGER.info(dumpmatrix("roll",rom.roll))
+        LOGGER.info(dumpmatrix("pitch",rom.pitch))
+        LOGGER.info(dumpmatrix("yaw",rom.yaw))
         LOGGER.info(dumpmatrix("matrix",matrix))
         LOGGER.info(dump(comment))
     }
@@ -273,9 +198,10 @@ class Quaternion () {
             rom.setRoll(jp.orientation[0]*Math.PI/180.0)
             rom.setPitch((jp.orientation[1]+jp.theta)*Math.PI/180.0)
             rom.setYaw(jp.orientation[2]*Math.PI/180.0)
+            val rotation = multiply(multiply(rom.roll,rom.pitch),rom.yaw)
             for(col in 0..2) {
                 for( row in 0..2 ) {
-                    q.matrix[row][col] = rom.matrix[row][col]
+                    q.matrix[row][col] = rotation[row][col]
                 }
             }
             return q
@@ -289,9 +215,76 @@ class Quaternion () {
             q.insertTranslation(jlink.coordinates)
             return q
         }
+        /**
+         * Multiply two matrices (expressed as arrays of double arrays)
+         * Square matrices, same size.
+         */
+        private fun multiply(a: Array<DoubleArray>,b: Array<DoubleArray>): Array<DoubleArray> {
+            val n = a.size
+            if (n != b.size || b[0].size != n) {
+                throw IllegalArgumentException(String.format("%s:multiply: Matrices must havee same dimensions (%d vs %d).",
+                    CLSS, a.size, b.size))
+            }
+            val result = Array(n) { DoubleArray(n) }
+            for (i in 0 until n) {
+                for (j in 0 until n) {
+                    for (k in 0 until n) {
+                        result[i][j] += a[i][k] * b[k][j]
+                    }
+                }
+            }
+            return result
+        }
+        /**
+         * Multiply a matrix by a vector
+         * Square matrix, of same size as the vector.
+         */
+        private fun multiply(a: Array<DoubleArray>,v: DoubleArray): Array<DoubleArray> {
+            val n = a.size
+            if (n != v.size ) {
+                throw IllegalArgumentException(String.format("%s:multiply: Matrix and vector must have same sizes (%d vs %d).",
+                    CLSS, a.size, v.size))
+            }
+            val result = Array(n) { DoubleArray(n) }
+            for (i in 0 until n) {
+                var sum = 0.0
+                for (j in 0 until n) {
+                    for (k in 0 until n) {
+                        sum += a[i][j] * v[j]
+                        result[i][j] = sum
+                    }
+                }
+            }
+            return result
+        }
+
+        /**
+         * Multiply a vector by a matrix
+         * Square matrix, of same size as the vector.
+         */
+        private fun multiply(v: DoubleArray,a: Array<DoubleArray>): DoubleArray {
+            val n = a.size
+            if (n != v.size ) {
+                throw IllegalArgumentException(String.format("%s:multiply: Vector and matrix must have same sizes (%d vs %d).",
+                    CLSS, a.size, v.size))
+            }
+            val result = DoubleArray(n)
+            for (i in 0 until n) {
+                var sum = 0.0
+                for (j in 0 until n) {
+                    for (k in 0 until n) {
+                        sum += v[j] * a[j][i]
+                        result[j] = sum
+                    }
+                }
+            }
+            return result
+        }
+
+        private val CLSS = "Quaternion"
     }
 
-    private val CLSS = "Quaternion"
+
     val LOGGER = Logger.getLogger(CLSS)
     val DEBUG: Boolean
 

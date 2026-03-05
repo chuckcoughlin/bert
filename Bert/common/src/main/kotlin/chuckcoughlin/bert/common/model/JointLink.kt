@@ -68,17 +68,4 @@ class JointLink(source:Joint,end:Joint)  {
         home = 0.0
         side = Side.FRONT.name
     }
-    /*
-     * Compute the transform quaternion once the coordinates
-     * and orientation are set.
-     */
-    fun update(theta:Double) {
-        /*
-        transform.setRoll(orientation[0])
-        transform.setPitch(orientation[1])
-        transform.setYaw(orientation[2])
-        transform.setTranslation(coordinates[0],coordinates[1],coordinates[2])
-        transform.update()
-         */
-    }
 }

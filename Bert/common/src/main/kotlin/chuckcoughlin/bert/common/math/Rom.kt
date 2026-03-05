@@ -18,64 +18,84 @@ import kotlin.math.sin
  * matrix[row][col]
  */
 class Rom {
-    var matrix: Array<DoubleArray>
+    var roll: Array<DoubleArray>
+    var pitch: Array<DoubleArray>
+    var yaw: Array<DoubleArray>
     // X axis
     fun setRoll(phi:Double) {
-        matrix[0][0] = 1.0
-        matrix[0][1] = 0.0
-        matrix[0][2] = 0.0
-        matrix[1][0] = 0.0
-        matrix[1][1] = cos(phi)
-        matrix[1][2] = -sin(phi)
-        matrix[2][0] = 0.0
-        matrix[2][1] = sin(phi)
-        matrix[2][2] = cos(phi)
+        roll[0][0] = 1.0
+        roll[0][1] = 0.0
+        roll[0][2] = 0.0
+        roll[1][0] = 0.0
+        roll[1][1] = cos(phi)
+        roll[1][2] = -sin(phi)
+        roll[2][0] = 0.0
+        roll[2][1] = sin(phi)
+        roll[2][2] = cos(phi)
     }
 
     // y axis
     fun setPitch(theta:Double) {
-        matrix[0][0] = cos(theta)
-        matrix[0][1] = 0.0
-        matrix[0][2] =sin(theta)
-        matrix[1][0] = 0.0
-        matrix[1][1] = 1.0
-        matrix[1][2] = 0.0
-        matrix[2][0] = -sin(theta)
-        matrix[2][1] = 0.0
-        matrix[2][2] = cos(theta)
+        pitch[0][0] = cos(theta)
+        pitch[0][1] = 0.0
+        pitch[0][2] =sin(theta)
+        pitch[1][0] = 0.0
+        pitch[1][1] = 1.0
+        pitch[1][2] = 0.0
+        pitch[2][0] = -sin(theta)
+        pitch[2][1] = 0.0
+        pitch[2][2] = cos(theta)
     }
 
     // z axis
     fun setYaw(psi:Double) {
-        matrix[0][0] = cos(psi)
-        matrix[0][1] = sin(psi)
-        matrix[0][2] = 0.0
-        matrix[1][0] = sin(psi)
-        matrix[1][1] = cos(psi)
-        matrix[1][2] = 0.0
-        matrix[2][0] = 0.0
-        matrix[2][1] = 0.0
-        matrix[2][2] = 1.0
+        yaw[0][0] = cos(psi)
+        yaw[0][1] = sin(psi)
+        yaw[0][2] = 0.0
+        yaw[1][0] = sin(psi)
+        yaw[1][1] = cos(psi)
+        yaw[1][2] = 0.0
+        yaw[2][0] = 0.0
+        yaw[2][1] = 0.0
+        yaw[2][2] = 1.0
     }
 
     fun clone() : Rom {
         val copy = Rom()
-        copy.matrix = matrix.clone()
+        copy.roll = roll.clone()
+        copy.pitch = pitch.clone()
+        copy.yaw = yaw.clone()
         return copy
     }
      fun dump(comment:String) : String {
-        val n = matrix.size
+        val n = roll.size
         val buf = StringBuffer()
         buf.append(comment)
         buf.append('\n')
         for(row in 0 until n) {
             for( col in 0 until n) {
-                val value = matrix[row][col]
+                val value = roll[row][col]
                 buf.append(value.toString())
                 buf.append('\t')
             }
             buf.append('\n')
         }
+         for(row in 0 until n) {
+             for( col in 0 until n) {
+                 val value = pitch[row][col]
+                 buf.append(value.toString())
+                 buf.append('\t')
+             }
+             buf.append('\n')
+         }
+         for(row in 0 until n) {
+             for( col in 0 until n) {
+                 val value = yaw[row][col]
+                 buf.append(value.toString())
+                 buf.append('\t')
+             }
+             buf.append('\n')
+         }
         return buf.toString()
     }
 
@@ -86,10 +106,23 @@ class Rom {
 
     init {
         DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_SOLVER)
-        matrix = arrayOf(         // Initialize as an empty matrix
+        roll = arrayOf(         // Initialize as an empty matrix
             doubleArrayOf(0.0,0.0,0.0),
             doubleArrayOf(0.0,0.0,0.0),
             doubleArrayOf(0.0,0.0,0.0)
         )
+        pitch = arrayOf(         // Initialize as an empty matrix
+            doubleArrayOf(0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0)
+        )
+        yaw = arrayOf(         // Initialize as an empty matrix
+            doubleArrayOf(0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0),
+            doubleArrayOf(0.0,0.0,0.0)
+        )
+        setRoll(0.0)
+        setPitch(0.0)
+        setYaw(0.0)
     }
 }

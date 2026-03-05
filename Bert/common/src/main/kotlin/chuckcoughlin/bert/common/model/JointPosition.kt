@@ -5,7 +5,6 @@
 package chuckcoughlin.bert.common.model
 
 import chuckcoughlin.bert.common.math.Quaternion
-import chuckcoughlin.bert.common.math.Rom
 
 /**
  * Current position and orientation of a joint or end-effector in 3 space.
@@ -16,22 +15,21 @@ import chuckcoughlin.bert.common.math.Rom
 class JointPosition() {
 	var joint: Joint
 	var orientation: DoubleArray // Angles with respect to system normal
-	var pos: Point3D   // Coordinates of joint or end effector
+	var pos: Point3D             // Coordinates of joint or end effector
 	var theta: Double
 
 
 	fun positionToText() : String {
-		return String.format("%s%s coordinates: [%s]",joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",pos.toText())
+		return(String.format("%3.1f,%3.1f,%3.1f",pos.x,pos.y,pos.z))
 	}
-
+	fun orientationToText() : String {
+		return(String.format("%3.0f,%3.0f,%3.0f",orientation[0],orientation[1],orientation[2]))
+	}
 	fun setJointAngle(angle:Double) {
 		theta = angle
 	}
 
 	fun setOrientation(phi:Double,theta:Double,psi:Double) {
-		//if(phi.isNaN()) throw NullPointerException()
-		//if(theta.isNaN()) throw NullPointerException()
-		//if(psi.isNaN()) throw NullPointerException()
 		orientation = doubleArrayOf(phi,theta,psi)
 	}
 

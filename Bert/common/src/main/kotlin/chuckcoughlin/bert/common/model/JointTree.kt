@@ -172,16 +172,13 @@ class JointTree() {
             if(jp2.joint==Joint.IMU) {
                 q = Quaternion.rotationQuaternion(jp2)
                 if (DEBUG) {
-                    LOGGER.info(String.format("%s.updateJointsInChain: jp2  -  %s = %2.0f,%2.0f,%2.0f",CLSS,jp2.joint.name,
-                        jp2.orientation[0],jp2.orientation[1],jp2.orientation[2]))
-                    LOGGER.info(String.format("%s.updateJointsInChain: %s -  %s = (%s|%s) ",
-                        CLSS, jp1.joint.name, jp2.joint.name, q.positionToText(), q.directionToText()))
+                    LOGGER.info(String.format("%s.updateJointsInChain: ROOT -  %s = (%s|%s) ",
+                        CLSS, jp2.joint.name, q.positionToText(), q.directionToText()))
                     LOGGER.info(q.dump("IMU"))
                 }
             }
             else {
-                LOGGER.info(q.dump("q"))
-                val q1 = Quaternion.rotationQuaternion(jp1)
+                val q1 = Quaternion.rotationQuaternion(jp2)
                 LOGGER.info(q1.dump("q1"))
                 val q2 = Quaternion.translationQuaternion(link)
                 LOGGER.info(q2.dump("q2"))
@@ -190,7 +187,7 @@ class JointTree() {
                 if (DEBUG) {
                     LOGGER.info(String.format("%s.updateJointsInChain: %s -  %s = (%s|%s) ",
                         CLSS, jp1.joint.name, jp2.joint.name, q.positionToText(), q.directionToText()))
-                    LOGGER.info(q.dump("result"))
+                    LOGGER.info(q.dump("jp2.joint.name"))
                 }
             }
 

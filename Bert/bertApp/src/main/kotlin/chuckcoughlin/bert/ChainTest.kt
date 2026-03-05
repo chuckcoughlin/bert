@@ -3,8 +3,6 @@ package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.common.solver.ForwardSolver
-import chuckcoughlin.bert.common.solver.ForwardSolver.tree
 
 /**
  * Test construction of the chain of robot "limbs" based on the URDF file in
@@ -57,16 +55,13 @@ object ChainTest {
         val root = tree.getOrCreateJointPosition(Joint.IMU)   // IMU
         root.setOrientation(0.0,0.0,0.0)
         var jp = tree.updateJointPosition(Joint.ABS_Y)
-        var orientation = jp.orientation
-        println(String.format("Root rotation matrix [0,0,0] : ABSY = [%02f,%02f,%02f]",orientation[0],orientation[1],orientation[2]))
-        root.setOrientation(89.0,89.0,0.0)
+        println(String.format("Root oriention [0,0,0]    : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
+        root.setOrientation(90.0,0.0,0.0)
         jp = tree.updateJointPosition(Joint.ABS_Y)
-        orientation = jp.orientation
-        println(String.format("Root rotation matrix [90,90,0] : ABSY = [%02f,%02f,%02f]",orientation[0],orientation[1],orientation[2]))
-
-        root.setOrientation(0.0,0.0,0.0)
+        println(String.format("Root oriention [90,0,0]   : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
 
         /**
+        root.setOrientation(0.0,0.0,0.0)
         link1.setRpy(0.0,0.0,0.0)
         //q = link1.applyTransform(q)
         println(q.dump("ABS_Y transform matrix"))
