@@ -3,6 +3,7 @@ package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.solver.ForwardSolver
 
 /**
  * Test construction of the chain of robot "limbs" based on the URDF file in
@@ -58,37 +59,24 @@ object ChainTest {
         println(String.format("Root oriention [0,0,0]    : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
         root.setOrientation(90.0,0.0,0.0)
         jp = tree.updateJointPosition(Joint.ABS_Y)
+        // ans: 12,-62, 0 | 0,90,90  VERIFIED
         println(String.format("Root oriention [90,0,0]   : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
+        root.setOrientation(0.0,90.0,0.0)
+        jp = tree.updateJointPosition(Joint.ABS_Y)
+        // ans: 12,-62,0 | 0,90,90
+        println(String.format("Root oriention [0,90,0]   : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
+        root.setOrientation(0.0,0.0,90.0)
+        jp = tree.updateJointPosition(Joint.ABS_Y)
+        // ans: 12,-62,0 | 0,90,90
+        println(String.format("Root oriention [0,0,90]   : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
+
+        println("======== Test Joints along back to head - home position")
+        tree.setJointsToHome()
+        root.setOrientation(0.0,0.0,0.0)
+        jp = tree.updateJointPosition(Joint.ABS_Y)
+        println(String.format("  %s (12.0,0.0,62 | 0,0,0]   : (%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
 
         /**
-        root.setOrientation(0.0,0.0,0.0)
-        link1.setRpy(0.0,0.0,0.0)
-        //q = link1.applyTransform(q)
-        println(q.dump("ABS_Y transform matrix"))
-        absy.updateFromQuaternion(q)
-        println(String.format("\t(IMU=12,0,62 [0,0,0])  = %s [%s]", absy.positionToText(),q.directionToText()))
-
-        q = root.quaternionToRotate()
-        q = link1.applyTransform(q)
-        absy.updateFromQuaternion(q)
-        link1.setRpy(90.0,0.0,0.0)
-        println(String.format("\t(IMU=12,0,62 [90,0,0]) = %s [%s]", absy.positionToText(),q.directionToText()))
-
-        Joint.IMU.setRoll(0.0)
-        Joint.IMU.setPitch(90.0)
-        Joint.IMU.setYaw(0.0)
-        println(String.format("\tABS-Y (IMU=0,90,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
-        Joint.IMU.setRoll(0.0)
-        Joint.IMU.setPitch(0.0)
-        IMU.setYaw(90.0)
-        println(String.format("\tABS-Y (IMU=0,0,90) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
-        IMU.setRoll(0.0)    // reset IMU
-        IMU.setPitch(0.0)
-        IMU.setYaw(0.0)
-        println(String.format("\tABS-Y  (IMU=0,0,0) = %s ", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
-        println("======== Test Joints along back to head - home position")
-        RobotModel.setTreeToHome(tree)
-        println(String.format("\tABS-Y = %s (12.0,0.0,62) [0,0,0]", ForwardSolver.computePositionDescription(Joint.ABS_Y.name)))
         println(String.format("\tABS-X = %s (12.0,0.0,70.0) [90,90,0]", ForwardSolver.computePositionDescription(Joint.ABS_X.name)))
         println(String.format("\tABS-Z = %s (0.0,0.0,121.6) [0,90,90]", ForwardSolver.computePositionDescription(Joint.ABS_Z.name)))
         println(String.format("\tCHEST_Y = %s (2.8,0.0,201.5) [0,0,0]", ForwardSolver.computePositionDescription(Joint.CHEST_Y.name)))

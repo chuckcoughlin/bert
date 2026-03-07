@@ -20,10 +20,6 @@ import java.util.logging.Logger
  */
 class Quaternion () {
     var matrix: Array<DoubleArray>
-    var roll:  Rom
-    var pitch: Rom
-    var yaw:   Rom
-    var translation: DoubleArray
 
     /**
      * @return the current orientation with respect to the reference frame ~ radians.
@@ -75,23 +71,6 @@ class Quaternion () {
         result.matrix = multiply(this.matrix,q.matrix)
         return result
     }
-    // X axis
-    fun setRoll(phi:Double) {
-        roll.setRoll(phi)
-    }
-    // Y axis
-    fun setPitch(theta:Double) {
-        pitch.setPitch(theta)
-    }
-    // Z axis
-    fun setYaw(psi:Double) {
-        yaw.setYaw(psi)
-    }
-    fun setTranslation(x:Double,y:Double,z:Double) {
-        translation[0] = x
-        translation[1] = y
-        translation[2] = z
-    }
 
     /**
      * Insert a 3x3 rotation matrix into the quaternion matrix.
@@ -115,16 +94,9 @@ class Quaternion () {
         matrix[2][3] = t[2]
     }
 
-
-
-
     fun clone() : Quaternion {
         val copy = Quaternion()
         copy.matrix = matrix.clone()
-        copy.roll   = roll.clone()
-        copy.pitch  = pitch.clone()
-        copy.yaw    = yaw.clone()
-        copy.translation = translation.clone()
         return copy
     }
      fun dump(comment:String) : String {
@@ -189,26 +161,50 @@ class Quaternion () {
             return m
         }
         /**
-         * @return a quaternion for a simple rotation.
-         * This is especially applicable to the root joint
+         * @return a quaternion for a simple rotation around the
+         * specified joint.
          */
         fun rotationQuaternion(jp: JointPosition) : Quaternion {
             val q = identity()
             val rom = Rom()
             rom.setRoll(jp.orientation[0]*Math.PI/180.0)
-            rom.setPitch((jp.orientation[1]+jp.theta)*Math.PI/180.0)
+            rom.setPitch(jp.orientation[1]*Math.PI/180.0)
             rom.setYaw(jp.orientation[2]*Math.PI/180.0)
             val rotation = multiply(multiply(rom.roll,rom.pitch),rom.yaw)
+            q.insertRotation(rotation)
+            /*
             for(col in 0..2) {
                 for( row in 0..2 ) {
                     q.matrix[row][col] = rotation[row][col]
                 }
             }
+    */
             return q
         }
         /**
-         * @return a quaternion for a simple rotation.
-         * This is especially applicable to the root joint
+         * @return a quaternion for a simple rotation around the
+         * root joint of a link, taking into account the current joint angle.
+         */
+        fun rotationQuaternion(jlink: JointLink) : Quaternion {
+            val q = identity()
+            val rom = Rom()
+            rom.setRoll(jlink.orientation[0]*Math.PI/180.0)
+            rom.setPitch((jlink.orientation[1]+jlink.theta)*Math.PI/180.0)
+            rom.setYaw(jlink.orientation[2]*Math.PI/180.0)
+            val rotation = multiply(multiply(rom.roll,rom.pitch),rom.yaw)
+            q.insertRotation(rotation)
+            /*
+            for(col in 0..2) {
+                for( row in 0..2 ) {
+                    q.matrix[row][col] = rotation[row][col]
+                }
+            }
+    */
+            return q
+        }
+        /**
+         * @return a quaternion for a translation from the source
+         * joint to the end joint.
          */
         fun translationQuaternion(jlink: JointLink) : Quaternion {
             val q = identity()
@@ -297,9 +293,5 @@ class Quaternion () {
             doubleArrayOf(0.0,0.0,0.0,0.0),
             doubleArrayOf(0.0,0.0,0.0,0.0)
         )
-        roll  = Rom()
-        pitch = Rom()
-        yaw   = Rom()
-        translation = doubleArrayOf(0.0,0.0,0.0)
     }
 }

@@ -26,17 +26,11 @@ class JointTree() {
     fun computeJointPositions() {
         var q = Quaternion.identity()
         for(link in linkSequence) {
-            val jp1 = posmap.get(link.sourceJoint)!!
             val jp2 = posmap.get(link.endJoint)!!
-            if(link.endJoint==Joint.IMU) {
-                q = Quaternion.rotationQuaternion(jp2)
-            }
-            else {
-                val q1 = Quaternion.rotationQuaternion(jp1)
-                val q2 = Quaternion.translationQuaternion(link)
-                q = q.postMultiplyBy(q1).postMultiplyBy(q2)
-                jp2.updateFromQuaternion(q)
-            }
+            val q1 = Quaternion.rotationQuaternion(link)
+            val q2 = Quaternion.translationQuaternion(link)
+            q = q.postMultiplyBy(q1).postMultiplyBy(q2)
+            jp2.updateFromQuaternion(q)
         }
     }
 
@@ -60,15 +54,16 @@ class JointTree() {
         while(joint!=Joint.NONE) {
             val jlink= getOrCreateJointLink(joint)
             chain.addFirst(jlink)
-            //if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserted %s",CLSS,j.name,joint.name))
+            if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserted %s",CLSS,j.name,joint.name))
             joint = jlink.sourceJoint
         }
 
         return chain
     }
 
+    // The URDFModel carefully creates links in order so that
+    // no links are actually created here.
     fun getOrCreateJointLink(end:Joint) : JointLink {
-        //LOGGER.info(String.format("%s.getJointLink: %s",CLSS,end.name))
         var jlink = linkmap.get(end)
         if( jlink ==null ) {
             LOGGER.warning(String.format("%s.getJointLink: No link found for endJoint %s - created",CLSS,end.name))
@@ -165,32 +160,22 @@ class JointTree() {
      * x,y,z position of the end effector with the orientation of the attached link.
      */
     private fun updateJointsInChain(subchain: List<JointLink>) {
-        var q = Quaternion.identity()
+        // Start with any oriention of the IMU
+        var root = getOrCreateJointPosition(Joint.IMU)
+        var q = Quaternion.rotationQuaternion(root)
         for(link in subchain) {
             val jp1 = getOrCreateJointPosition(link.sourceJoint)
             val jp2 = getOrCreateJointPosition(link.endJoint)
-            if(jp2.joint==Joint.IMU) {
-                q = Quaternion.rotationQuaternion(jp2)
-                if (DEBUG) {
-                    LOGGER.info(String.format("%s.updateJointsInChain: ROOT -  %s = (%s|%s) ",
-                        CLSS, jp2.joint.name, q.positionToText(), q.directionToText()))
-                    LOGGER.info(q.dump("IMU"))
-                }
-            }
-            else {
-                val q1 = Quaternion.rotationQuaternion(jp2)
-                LOGGER.info(q1.dump("q1"))
-                val q2 = Quaternion.translationQuaternion(link)
-                LOGGER.info(q2.dump("q2"))
-                q = q.postMultiplyBy(q1).postMultiplyBy(q2)
-                jp2.updateFromQuaternion(q)
-                if (DEBUG) {
-                    LOGGER.info(String.format("%s.updateJointsInChain: %s -  %s = (%s|%s) ",
+            // Rotate around the source, then translate to the end joint
+            val q1 = Quaternion.rotationQuaternion(link)
+            val q2 = Quaternion.translationQuaternion(link)
+            q = q.postMultiplyBy(q1).postMultiplyBy(q2)
+            jp2.updateFromQuaternion(q)
+            if (DEBUG) {
+                LOGGER.info(String.format("%s.updateJointsInChain: %s -  %s = (%s|%s) ",
                         CLSS, jp1.joint.name, jp2.joint.name, q.positionToText(), q.directionToText()))
-                    LOGGER.info(q.dump("jp2.joint.name"))
-                }
+                LOGGER.info(q.dump(jp2.joint.name))
             }
-
         }
     }
     /*
@@ -203,7 +188,7 @@ class JointTree() {
             val jlimb = RobotModel.limbsByJoint[joint]
             if( jlimb!=null && jlimb!=Limb.NONE && jlimb==limb ) {
                 val jp = posmap.get(joint)
-                if(jp!=null) jp.setJointAngle(jlink.home)
+                if(jp!=null) jlink.setJointAngle(jlink.home)
             }
         }
     }
@@ -213,8 +198,7 @@ class JointTree() {
      */
     fun setJointsToHome() {
         for (jlink in linkmap.values) {
-            val jp = getOrCreateJointPosition(jlink.sourceJoint)
-            jp.setJointAngle(jlink.home)
+            jlink.setJointAngle(jlink.home)
         }
     }
     fun clone() : JointTree {

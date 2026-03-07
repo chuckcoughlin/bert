@@ -16,7 +16,6 @@ class JointPosition() {
 	var joint: Joint
 	var orientation: DoubleArray // Angles with respect to system normal
 	var pos: Point3D             // Coordinates of joint or end effector
-	var theta: Double
 
 
 	fun positionToText() : String {
@@ -25,9 +24,7 @@ class JointPosition() {
 	fun orientationToText() : String {
 		return(String.format("%3.0f,%3.0f,%3.0f",orientation[0],orientation[1],orientation[2]))
 	}
-	fun setJointAngle(angle:Double) {
-		theta = angle
-	}
+
 
 	fun setOrientation(phi:Double,theta:Double,psi:Double) {
 		orientation = doubleArrayOf(phi,theta,psi)
@@ -63,6 +60,5 @@ class JointPosition() {
 		joint = Joint.NONE
 		orientation = doubleArrayOf(0.0,0.0,0.0)
 		pos    = Point3D(0.0,0.0,0.0)
-		theta = 0.0
 	}
 }

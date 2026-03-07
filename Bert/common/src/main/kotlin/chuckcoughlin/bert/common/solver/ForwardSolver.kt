@@ -55,9 +55,8 @@ object ForwardSolver {
         for (link in chain) {
             if( link.sourceJoint==Joint.IMU ) continue
             if( link.sourceJoint==Joint.NONE ) continue
-            val jp = tree.getOrCreateJointPosition(link.sourceJoint)
             val mc = RobotModel.motorsByJoint[link.sourceJoint]!!
-            jp.setJointAngle(mc.angle)
+            link.setJointAngle(mc.angle)
         }
     }
 
