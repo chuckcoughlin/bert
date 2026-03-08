@@ -52,6 +52,7 @@ object ChainTest {
         for (link in chain) {
             println(String.format("\t%s ", link.endJoint.name))
         }
+        // Right-handed coordinate system: x positive to front, y positive to right, z positive up
         println("======== Test ABS_Y for IMU orientations (directions should match)")
         val root = tree.getOrCreateJointPosition(Joint.IMU)   // IMU
         root.setOrientation(0.0,0.0,0.0)
@@ -63,23 +64,25 @@ object ChainTest {
         println(String.format("Root oriention [90,0,0]   : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
         root.setOrientation(0.0,90.0,0.0)
         jp = tree.updateJointPosition(Joint.ABS_Y)
-        // ans: 12,-62,0 | 0,90,90
+        // ans:  62, 0,-12 | 90,0,90 VERIFIED
         println(String.format("Root oriention [0,90,0]   : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
         root.setOrientation(0.0,0.0,90.0)
         jp = tree.updateJointPosition(Joint.ABS_Y)
-        // ans: 12,-62,0 | 0,90,90
+        // ans: 0, 12,62 | 90,90,0 VERIFIED
         println(String.format("Root oriention [0,0,90]   : ABSY = (%s|%s)",jp.positionToText(),jp.orientationToText()))
 
         println("======== Test Joints along back to head - home position")
         tree.setJointsToHome()
-        root.setOrientation(0.0,0.0,0.0)
         jp = tree.updateJointPosition(Joint.ABS_Y)
-        println(String.format("  %s (12.0,0.0,62 | 0,0,0]   : (%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s (12.0,0.0,62 | 0,0,0]     : (%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        jp = tree.updateJointPosition(Joint.ABS_X)
+        println(String.format("\t%s (12.0,0.0,70.0) [90,90,0] : (%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        jp = tree.updateJointPosition(Joint.ABS_Z)
+        println(String.format("\t%s (0.0,0.0,121.6) [0,90,90] : (%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        jp = tree.updateJointPosition(Joint.CHEST_Y)
+        println(String.format("\t%s (2.8,0.0,201.5) [0,0,0] : (%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
 
         /**
-        println(String.format("\tABS-X = %s (12.0,0.0,70.0) [90,90,0]", ForwardSolver.computePositionDescription(Joint.ABS_X.name)))
-        println(String.format("\tABS-Z = %s (0.0,0.0,121.6) [0,90,90]", ForwardSolver.computePositionDescription(Joint.ABS_Z.name)))
-        println(String.format("\tCHEST_Y = %s (2.8,0.0,201.5) [0,0,0]", ForwardSolver.computePositionDescription(Joint.CHEST_Y.name)))
         println(String.format("\tCHEST_X = %s (2.8,0.0,193.5) [90,90,0]", ForwardSolver.computePositionDescription(Joint.CHEST_X.name)))
         println(String.format("\tNECK_Z = %s  (7.8,0.0,277.5) [0,90,90]", ForwardSolver.computePositionDescription(Joint.NECK_Z.name)))
         println(String.format("\tNECK_Y = %s (27.8,0.0,297.5) [0,0,0]", ForwardSolver.computePositionDescription(Joint.NECK_Y.name)))

@@ -21,9 +21,11 @@ class JointTree() {
     /**
      * Iterate through all joints in the tree and compute orientation
      * and positions for a preset configuration. Assume each of the joint angles
-     * has been set. The IMU joint is left at (0,0)
+     * has been set. The IMU joint is set to (0,0,0)
      */
     fun computeJointPositions() {
+        val root = getOrCreateJointPosition(Joint.IMU)
+        root.setOrientation(0.0,0.0,0.0)
         var q = Quaternion.identity()
         for(link in linkSequence) {
             val jp2 = posmap.get(link.endJoint)!!
@@ -117,6 +119,18 @@ class JointTree() {
         return list
     }
 
+    /**
+     * Populate all joints in the tree to their
+     * home angle. This is presuneably the "straight" position.
+     * Initialize the root position.
+     */
+    fun setJointsToHome() {
+        val root = getOrCreateJointPosition(Joint.IMU)
+        root.setOrientation(0.0,0.0,0.0)
+        for (jlink in linkmap.values) {
+            jlink.setJointAngle(jlink.home)
+        }
+    }
     fun setOrigin(jp:JointPosition) {
         jp.joint = Joint.IMU
         posmap.put(jp.joint,jp)
@@ -192,15 +206,7 @@ class JointTree() {
             }
         }
     }
-    /**
-     * Populate all joints in the tree to their
-     * home angle. This is presuneably the "straight" position.
-     */
-    fun setJointsToHome() {
-        for (jlink in linkmap.values) {
-            jlink.setJointAngle(jlink.home)
-        }
-    }
+
     fun clone() : JointTree {
         val copy = JointTree()
         for(key in posmap.keys) {
