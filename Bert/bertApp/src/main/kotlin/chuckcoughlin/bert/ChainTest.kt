@@ -105,13 +105,16 @@ object ChainTest {
         jp = tree.updateJointPosition(Joint.LEFT_SHOULDER_Y)
         println(String.format("\t%s  (6.8,-77.1,243.5) [0,0,0]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.RIGHT_SHOULDER_X)
-        println(String.format("\t%s (6.8, 105.5,243.5) [0,0,0]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s(6.8, 105.5,243.5) [90,90,180]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.LEFT_SHOULDER_X)
-        println(String.format("\t%s  (6.8,-105.5,243.5) [0,0,0]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s (6.8,-105.5,243.5) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+
+        jp = tree.updateJointPosition(Joint.RIGHT_SHOULDER_Z)
+        println(String.format("\t%s(6.8, 105.5,225.0) [90,90,180]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        jp = tree.updateJointPosition(Joint.LEFT_SHOULDER_Z)
+        println(String.format("\t%s (6.8,-105.5,225.0) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
 
         /**
-        println(String.format("\tRIGHT_SHOULDER_X = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_SHOULDER_X.name)))
-        println(String.format("\tLEFT_SHOULDER_X  = %s (6.8, 105.5, 243.5)", ForwardSolver.computePositionDescription(Joint.LEFT_SHOULDER_X.name)))
         println(String.format("\tRIGHT_SHOULDER_Z = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_SHOULDER_Z.name)))
         println(String.format("\tLEFT_SHOULDER_Z  = %s ", ForwardSolver.computePositionDescription(Joint.LEFT_SHOULDER_Z.name)))
         println(String.format("\tRIGHT_ELBOW_Y    = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_ELBOW_Y.name)))
