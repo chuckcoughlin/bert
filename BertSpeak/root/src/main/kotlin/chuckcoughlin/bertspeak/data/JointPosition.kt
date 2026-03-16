@@ -19,17 +19,16 @@ class JointPosition() {
 	var joint: Joint
 	var orientation: DoubleArray // Angles with respect to system normal
 	var pos: Point3D   // Coordinates of joint or end effector
-	var theta: Double
 
 	fun positionToText() : String {
-		return String.format("%s%s coordinates: [%s]",joint.name,if(Joint.isEndEffector(joint)) "(end effector)" else "",pos.toText())
+		return(String.format("%2.1f,%2.1f,%2.1f",pos.x,pos.y,pos.z))
+	}
+	fun orientationToText() : String {
+		return(String.format("%2.0f,%2.0f,%2.0f",orientation[0],orientation[1],orientation[2]))
 	}
 
 	fun setOrientation(phi:Double,theta:Double,psi:Double) {
 		orientation = doubleArrayOf(phi,theta,psi)
-	}
-	fun setJointAngle(angle:Double) {
-		theta = angle
 	}
 	fun setPosition(x:Double,y:Double,z:Double) {
 		pos.x = x
@@ -40,7 +39,6 @@ class JointPosition() {
 	fun copy() : JointPosition {
 		val copy = JointPosition()
 		copy.joint = joint
-		//copy.parent = parent
 		copy.pos = pos.copy()
 		return copy
 	}
@@ -53,6 +51,5 @@ class JointPosition() {
 		joint = Joint.NONE
 		orientation = doubleArrayOf(0.0,0.0,0.0)
 		pos    = Point3D(0.0,0.0,0.0)
-		theta  = 0.0
 	}
 }

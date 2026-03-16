@@ -3,6 +3,7 @@ package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
+import chuckcoughlin.bert.common.solver.ForwardSolver
 
 
 /**
@@ -98,7 +99,6 @@ object ChainTest {
         jp = tree.updateJointPosition(Joint.RIGHT_EYE)
         println(String.format("\t%s (27.8,-32.0,352.5) [0,0,0]   : (%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         println("        BACK JOINTS/APPENDAGES VERIFIED ####################")
-        //         ######## VERIFIED to here ############
         println("======== Test Joints along upper body sides - home pose")
         jp = tree.updateJointPosition(Joint.RIGHT_SHOULDER_Y)
         println(String.format("\t%s(6.8, 77.1,243.5) [0,0,180]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
@@ -108,30 +108,26 @@ object ChainTest {
         println(String.format("\t%s(6.8, 105.5,243.5) [90,90,180]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.LEFT_SHOULDER_X)
         println(String.format("\t%s (6.8,-105.5,243.5) [90,90,180]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
-        println("==========================================================")
-
         jp = tree.updateJointPosition(Joint.RIGHT_SHOULDER_Z)
-        println(String.format("\t%s(6.8, 105.5,225.0) [90,90,180]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s(-11.7, 105.5,160.5) [0,90,90]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.LEFT_SHOULDER_Z)
-        println(String.format("\t%s (6.8,-105.5,225.0) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s (-11.7,-105.5,160.5) [0,90,90]:(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.RIGHT_ELBOW_Y)
-        println(String.format("\t%s (-3.2,105.5,143.8) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s (-21.7,105.5,79.3) [0,0,180]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.LEFT_ELBOW_Y)
-        println(String.format("\t%s (-3.2,-105.5,143.8) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s (-21.7,-105.5,79.3) [0,0,180]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.RIGHT_FINGER)
-        println(String.format("\t%s (-3.2,105.5,143.8) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println(String.format("\t%s (-28.6,100.5,-41.7) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.LEFT_FINGER)
-        println(String.format("\t%s (-3.2,-105.5,143.8) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
-
-        /**
-        println(String.format("\tRIGHT_ELBOW_Y    = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_ELBOW_Y.name)))
-        println(String.format("\tLEFT_ELBOW_Y     = %s (-3.2, 141.8, 143.8)", ForwardSolver.computePositionDescription(Joint.LEFT_ELBOW_Y.name)))
-        println(String.format("\tRIGHT_FINGER = %s ", ForwardSolver.computePositionDescription(Appendage.RIGHT_FINGER.name)))
-        println(String.format("\tLEFT_FINGER  = %s ", ForwardSolver.computePositionDescription(Appendage.LEFT_FINGER.name)))
+        println(String.format("\t%s (-28.6,-100.5,-41.7) [90,90,180] :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         println("         UPPER JOINTS/APPENDAGES VERIFIED ####################")
         println("======== Test Joints along lower body sides - home position")
-        println(String.format("\tRIGHT_HIP_X = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_HIP_X.name)))
-        println(String.format("\tLEFT_HIP_X  = %s ", ForwardSolver.computePositionDescription(Joint.LEFT_HIP_X.name)))
+        jp = tree.updateJointPosition(Joint.RIGHT_HIP_X)
+        println(String.format("\t%s (-28.6,100.5,-41.7) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        jp = tree.updateJointPosition(Joint.LEFT_HIP_X)
+        println(String.format("\t%s (-28.6,-100.5,-41.7) [90,90,180] :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
+        println("==========================================================")
+        /**
         println(String.format("\tRIGHT_HIP_Z = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_HIP_Z.name)))
         println(String.format("\tLEFT_HIP_Z  = %s ", ForwardSolver.computePositionDescription(Joint.LEFT_HIP_Z.name)))
         println(String.format("\tRIGHT_HIP_Y = %s ", ForwardSolver.computePositionDescription(Joint.RIGHT_HIP_Y.name)))

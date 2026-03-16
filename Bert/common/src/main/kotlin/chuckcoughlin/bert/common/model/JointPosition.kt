@@ -19,10 +19,10 @@ class JointPosition() {
 
 
 	fun positionToText() : String {
-		return(String.format("%3.1f,%3.1f,%3.1f",pos.x,pos.y,pos.z))
+		return(String.format("%2.1f,%2.1f,%2.1f",pos.x,pos.y,pos.z))
 	}
 	fun orientationToText() : String {
-		return(String.format("%3.0f,%3.0f,%3.0f",orientation[0],orientation[1],orientation[2]))
+		return(String.format("%2.0f,%2.0f,%2.0f",orientation[0],orientation[1],orientation[2]))
 	}
 
 
