@@ -120,7 +120,7 @@ object ChainTest {
         println(String.format("\t%s (-28.6,100.5,-41.7) [90,90,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.LEFT_FINGER)
         println(String.format("\t%s (-28.6,-100.5,-41.7) [90,90,180] :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
-        println("         UPPER JOINTS/APPENDAGES VERIFIED ####################")
+        println("        UPPER JOINTS/APPENDAGES VERIFIED ####################")
         println("======== Test Joints along lower body sides - home position")
         jp = tree.updateJointPosition(Joint.RIGHT_HIP_X)
         println(String.format("\t%s (0.0,22.5,0.0) [90,90,180]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
@@ -150,7 +150,7 @@ object ChainTest {
         println(String.format("\t%s (95.0,51.5,-416.5) [0,0,0]  :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
         jp = tree.updateJointPosition(Joint.LEFT_TOE)
         println(String.format("\t%s (95.0,-51.5,-416.5) [0,0,0] :(%s|%s)",jp.joint.name,jp.positionToText(),jp.orientationToText()))
-        println("         LOWER JOINTS/APPENDAGES VERIFIED ####################")
+        println("        LOWER JOINTS/APPENDAGES VERIFIED ####################")
         //println("==========================================================")
     }
 
