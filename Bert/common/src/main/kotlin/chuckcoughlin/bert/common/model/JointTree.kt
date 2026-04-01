@@ -18,24 +18,6 @@ class JointTree() {
     val linkmap: MutableMap<Joint, JointLink>  // Key = endJoint
     val linkSequence: MutableList<JointLink>
 
-    /**
-     * Iterate through all joints in the tree and compute orientation
-     * and positions for a preset configuration. Assume each of the joint angles
-     * has been set. The IMU joint is set to (0,0,0)
-     */
-    fun computeJointPositions() {
-        val root = getOrCreateJointPosition(Joint.IMU)
-        root.setOrientation(0.0,0.0,0.0)
-        var q = Quaternion.identity()
-        for(link in linkSequence) {
-            val jp2 = posmap.get(link.endJoint)!!
-            val q1 = Quaternion.rotationQuaternion(link)
-            val q2 = Quaternion.translationQuaternion(link)
-            q = q.postMultiplyBy(q1).postMultiplyBy(q2)
-            jp2.updateFromQuaternion(q)
-        }
-    }
-
     fun createJointLink(source:Joint,joint:Joint) : JointLink {
         LOGGER.info(String.format("%s.createJointLink: %s to %s",CLSS,source.name,joint.name))
         val jlink = JointLink(source,joint)
@@ -159,6 +141,17 @@ class JointTree() {
         return getOrCreateJointPosition(link.endJoint)!!
     }
 
+    /**
+     * Iterate through all joints in the tree and compute orientation
+     * and positions for the current configuration of joint angles.
+     */
+    fun updateAllJointPositions() {
+        // By processing the endeffectors, all positions are updated
+        val list = listJointPositions()
+        for(jp in list) {
+            updateJointPosition(jp.joint)
+        }
+    }
     /**
      * Update the position and orientation of every joint position in the chain.
      * This assumes that the joint angles are preset appropriat4ely.

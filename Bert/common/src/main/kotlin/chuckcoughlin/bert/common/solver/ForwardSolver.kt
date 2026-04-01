@@ -21,7 +21,7 @@ object ForwardSolver {
     fun directionForJoint(joint:Joint) : DoubleArray {
         val chain = tree.createLinkChain(joint)
         updateJointAngles(chain)
-        tree.computeJointPositions()
+        tree.updateAllJointPositions()
         val jp = chain.get(chain.lastIndex)
         return jp.orientation
     }
@@ -29,7 +29,7 @@ object ForwardSolver {
     fun positionForJoint(joint:Joint) : Point3D {
         val chain = tree.createLinkChain(joint)
         updateJointAngles(chain)
-        tree.computeJointPositions()
+        tree.updateAllJointPositions()
         val jp = chain.get(chain.lastIndex)
         return Point3D(jp.coordinates[0],jp.coordinates[1],jp.coordinates[2])
     }

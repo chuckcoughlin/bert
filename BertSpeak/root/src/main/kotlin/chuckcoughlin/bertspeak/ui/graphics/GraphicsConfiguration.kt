@@ -1,5 +1,5 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bertspeak.ui.graphics
@@ -7,8 +7,7 @@ package chuckcoughlin.bertspeak.ui.graphics
 import android.graphics.Paint
 
 /**
- * Holder parameters that affect the graphical rendering of the
- * robot's links.
+ * Hold static graphics parameters
  */
 class GraphicsConfiguration () {
 	var backgroundColor: Paint

@@ -3,7 +3,6 @@ package chuckcoughlin.bert
 
 import chuckcoughlin.bert.common.math.Quaternion
 import chuckcoughlin.bert.common.model.*
-import chuckcoughlin.bert.common.solver.ForwardSolver
 
 
 /**
@@ -18,7 +17,7 @@ object ChainTest {
     fun execute() {
         val tree = URDFModel.createJointTree()
         tree.setJointsToHome()
-        tree.computeJointPositions()
+        tree.updateAllJointPositions()
         var q : Quaternion
 
         // Print some JSON

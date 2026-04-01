@@ -7,6 +7,7 @@ package chuckcoughlin.bertspeak.ui.graphics
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.util.Log
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.Point2D
 
@@ -42,12 +43,18 @@ class BoneDrawable(joint: Joint, val p1:Point2D, p2:Point2D, side:Side) : LinkSh
 
 		var paint = if(selected) Paint(gc.selectedColor)
 					else if (selectable) Paint(gc.selectableColor)
+					else if (side==Side.RIGHT) Paint(gc.insideColor)
+					else if (side==Side.LEFT) Paint(gc.outsideColor)
 					else Paint(gc.topColor)
 		paint.strokeWidth = connectorWidth
 		canvas.drawLine(x1,y1,x2,y2,paint)
+		// Origin = (462,561),  scale = 1.4
+		Log.i(CLSS, String.format("%s.drawConnector: %s (%02.0f,%02.0f)->(%02.0f,%02.0f) [%02f,%02f]",CLSS,joint.name,
+			x1,y1,x2,y2,p1.x,p1.y))
 	}
 
 	val beginningRadius= 10f
 	val endRadius = 10f
 	val connectorWidth= 10f
+	override val CLSS = "BoneDrawable"
 }

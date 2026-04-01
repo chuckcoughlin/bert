@@ -22,15 +22,16 @@ class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
     private val name: String
 
     override fun draw(canvas:Canvas,gc:GraphicsConfiguration) {
-        Log.i(name, String.format("onDraw ...."))
+        Log.i(name, String.format("onDraw FRONT ...."))
         canvas.drawPaint(configuration.backgroundColor)
         canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.topColor)
         drawLinks(canvas,configuration)
     }
 
-    // Select front first
+    //
     override fun selectDrawable(point: Point2D): LinkShapeDrawable? {
         var drawable: LinkShapeDrawable? = null
+
         for(d in drawables.values) {
             if(d.selectable && d.isTouched(point)) {
                 drawable = d

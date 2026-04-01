@@ -109,13 +109,13 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
         val plist = gson.fromJson<List<JointPosition>>(DefaultSkeleton.POSITIONS,locType)
         for(jp in plist) {
             skeleton.addJointPosition(jp)
-            dispatcher.log(CLSS, String.format("initializeSkeleton: Default is %s",jp.positionToText()))
+            dispatcher.log(CLSS, String.format("initializeSkeleton: %s at %s",jp.joint.name,jp.positionToText()))
         }
         locType = object : TypeToken<List<JointLink>>() {}.type
         val jlist = gson.fromJson<List<JointLink>>(DefaultSkeleton.LINKS,locType)
         for(jlink in jlist) {
             skeleton.addJointLink(jlink)
-            dispatcher.log(CLSS, String.format("initializeSkeleton: Default is %s",jlink.endJoint.name))
+            dispatcher.log(CLSS, String.format("initializeSkeleton: link %s -> %s",jlink.sourceJoint.name,jlink.endJoint.name))
         }
     }
     private fun initializeObservers() {

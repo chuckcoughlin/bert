@@ -1,5 +1,5 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bertspeak.ui.graphics
@@ -22,13 +22,14 @@ import chuckcoughlin.bertspeak.data.Point2D
 
  abstract class LinkShapeDrawable(j: Joint, point2:Point2D, limbSide:Side): Drawable() {
 	 val joint:Joint
+	 val isInside: Boolean
+	 val isTop:Boolean
 	 val p2:Point2D
 	 val side:Side
 	 var selected:Boolean
-	var selectable:Boolean
+	 var selectable:Boolean
 	 private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 	 private val opacity: Int
-
 
 	@Deprecated("Proper drawable not found")
 	override fun getOpacity(): Int {
@@ -56,11 +57,13 @@ import chuckcoughlin.bertspeak.data.Point2D
 		return touched
 	}
 
-	val CLSS = "LinkShapeDrawable"
+	open val CLSS = "LinkShapeDrawable"
 	val TOLERANCE  = 20f // Touch tolerance in screen units
 
 	init {
 		joint = j
+		isTop = true
+		isInside = false
 		selected = false
 		selectable = false
 		p2 = point2

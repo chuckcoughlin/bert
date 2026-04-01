@@ -55,8 +55,8 @@ class ShapeFactory () {
 
 		fun projectedPoint(loc: Point3D,projection:Side): Point2D {
 			var pos: Point2D = when(projection) {
-				Side.FRONT-> {Point2D(loc.y,-loc.z)}
-				Side.BACK -> {Point2D(-loc.y,-loc.z)}
+				Side.FRONT-> {Point2D(-loc.y,-loc.z)}
+				Side.BACK -> {Point2D(loc.y,-loc.z)}
 				Side.LEFT-> {Point2D(loc.x,-loc.z)}
 				Side.RIGHT-> {Point2D(-loc.x,-loc.z)}
 			}

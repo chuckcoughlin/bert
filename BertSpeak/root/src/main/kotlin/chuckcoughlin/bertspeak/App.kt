@@ -5,19 +5,16 @@
 package chuckcoughlin.bertspeak
 
 import android.app.Application
-import android.os.StrictMode
 import android.util.Log
 import chuckcoughlin.bertspeak.common.ConfigurationConstants
 import chuckcoughlin.bertspeak.db.DatabaseManager
 import chuckcoughlin.bertspeak.service.DispatchService
 import kotlinx.coroutines.DelicateCoroutinesApi
+import java.util.logging.Logger
 
 
 class App : Application() {
     lateinit var dispatcher: DispatchService
-    fun App() {
-        StrictMode.enableDefaults()  // Helps with dangling resource detection
-    }
 
     @DelicateCoroutinesApi
     override fun onCreate() {
@@ -42,4 +39,7 @@ class App : Application() {
     }
 
     val CLSS = "App"
+
+    init {
+    }
 }

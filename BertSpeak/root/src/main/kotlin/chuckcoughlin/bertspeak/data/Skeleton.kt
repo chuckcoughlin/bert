@@ -28,7 +28,7 @@ class Skeleton() {
     }
     fun getPositionByJoint(joint:Joint) : JointPosition {
         val jp = positionMap.get(joint)
-            if( jp==null) return JointPosition.NONE
+        if( jp==null) return JointPosition.NONE
         return jp
     }
 
