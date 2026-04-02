@@ -6,7 +6,7 @@
 <robot name="bert">
 	<!-- The Internal Measurement Unit (IMU) is the world-frame origin. Its position is always (0,0,0).
 	     This origin is located in the pelvis midway between the hip sockets and back to align with the
-	     left/right hip y axis. The orientation of the IMU is with respect to the robot reference frame.
+	     left/right hip y-axis. The orientation of the IMU is with respect to the robot reference frame.
 	     It may be altered by setting IMU quaternion roll,pitch,yaw directly and then updating.
 	-->
 	<imu xyz="0. 0. 0."/>
@@ -24,7 +24,7 @@
 		The "rpy" settings (roll, pitch, yaw) define the orientation of the motor or end-effector with respect to
 		the source pin. The order of rotations is: roll, pitch, yaw. The "rpy" settings do not affect the location
 		of the end-pin, only its orientation. Use right-hand rule to determine direction.
-		     roll  - rotation about the x axis
+		     roll  - rotation about the x-axis
 		     pitch - rotation about the y-axis
 		     yaw   - rotation about the z-axis
 
@@ -130,19 +130,19 @@
 	</link>
 	<link side="LEFT">
 		<appendage name="LEFT_EAR"
-				   xyz="62.0 30.0 55.0" rpy="0. 0. 90."/>
+				   xyz="62.0 -30.0 55.0" rpy="0. 0. 90."/>
 		<source joint="NECK_Y"  />
 	</link>
 	<link side="RIGHT">
 		<appendage name="RIGHT_EAR"
-				   xyz="-62.0 -30.0 -55.0" rpy="0. 180. 90."/>
+				   xyz="-62.0 30.0 -55.0" rpy="0. 180. 90."/>
 		<source joint="NECK_Y"  />
 	</link>
 	<link side="FRONT">
 		<appendage name="LEFT_EYE"
-				   xyz="0.0 32.0 55.0" rpy="0. 0. 0."/>
+				   xyz="0.0 -32.0 55.0" rpy="0. 0. 0."/>
 		<appendage name="RIGHT_EYE"
-				   xyz="0.0 -32.0 55.0"  rpy="0. 0. 0."/>
+				   xyz="0.0 32.0 55.0"  rpy="0. 0. 0."/>
 		<appendage name="NOSE"
 				   xyz="15.0 0.0 40.0" rpy="0. 0. 0."/>
 		<source joint="NECK_Y"  />
