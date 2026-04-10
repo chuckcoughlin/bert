@@ -9,7 +9,6 @@ import chuckcoughlin.bert.common.message.*
 import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.util.TextUtility
-import chuckcoughlin.bert.speech.process.JsonMessageHandler
 import chuckcoughlin.bert.speech.translate.MessageTranslator
 import chuckcoughlin.bert.speech.translate.StatementParser
 import kotlinx.coroutines.sync.Mutex
@@ -48,7 +47,7 @@ class CommandMessageHandler(sock: Socket)  {
         var mtype = MessageType.ANS
         if( response.type.equals(RequestType.JSON) ) {
             mtype = MessageType.JSN
-            text = TextUtility.stripNewLines(text)
+            text = String.format("%s#%s", response.jtype.name, TextUtility.stripNewLines(text))
         }
         try {
             val msgtxt = String.format("%s:%s", mtype.name, text)
@@ -71,7 +70,7 @@ class CommandMessageHandler(sock: Socket)  {
      */
 
     suspend fun receiveNetworkInput(): MessageBottle {
-        val request: MessageBottle
+        val response: MessageBottle
         var text:String? = null
         try {
             text = readCommand()
@@ -84,17 +83,17 @@ class CommandMessageHandler(sock: Socket)  {
         // re-connect.
         if(text == null ) {
             //request = MessageBottle(RequestType.NONE)
-            request=MessageBottle(RequestType.HANGUP)
-            request.source=ControllerType.COMMAND
+            response=MessageBottle(RequestType.HANGUP)
+            response.source=ControllerType.COMMAND
         }
         else if( text.equals(CommandType.HALT.name, true)) {
-            request=MessageBottle(RequestType.HANGUP)
-            request.source=ControllerType.COMMAND
+            response=MessageBottle(RequestType.HANGUP)
+            response.source=ControllerType.COMMAND
         }
         else {
-            request=processRequest(text)
+            response=processRequest(text)
         }
-        return request
+        return response
     }
 
     /**
@@ -124,18 +123,13 @@ class CommandMessageHandler(sock: Socket)  {
                 }
             }
             // NOTE: An empty json string implies a request of the specified type
+            //       The JSON is filled in by the dispatcher.
             else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
                 val index = text.indexOf("#")
                 if( index>0 ) {
                     val type = text.substring(0,index)
                     val jtype = JsonType.fromString(type)
-                    if( jtype!=JsonType.UNDEFINED) {
-                        LOGGER.info(String.format(" parsing JSN: %s", text))
-                        var json = ""
-                        if(txt.length>index+1) json = txt.substring(index+1)
-                        msg = JsonMessageHandler.handleJson(jtype,json)
-                    }
-                    else {
+                    if( jtype==JsonType.UNDEFINED) {
                         msg.error = String.format("JSON message from the tablet was of unknown type - %s",type)
                     }
                 }

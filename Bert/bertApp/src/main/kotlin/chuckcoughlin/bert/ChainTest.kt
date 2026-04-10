@@ -18,7 +18,6 @@ object ChainTest {
         val tree = URDFModel.createJointTree()
         tree.setJointsToHome()
         tree.updateAllJointPositions()
-        var q : Quaternion
 
         // Print some JSON
         println("======== joints ========")

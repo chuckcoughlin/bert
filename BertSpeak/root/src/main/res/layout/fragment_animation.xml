@@ -133,5 +133,14 @@
             android:background="@drawable/rounded_button"
             android:text="@string/buttonRefresh"
             android:layout_marginEnd="145dp"/>
+        <Button
+            android:id="@+id/animationLockButton"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="145dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center"
+            android:background="@drawable/rounded_button"
+            android:text="@string/buttonLock"
+            android:layout_marginEnd="145dp"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

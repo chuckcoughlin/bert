@@ -51,28 +51,20 @@ class AnimationViewLeft(context: Context, attrs: AttributeSet? = null)
 
     // Draw limbs so right is on bottom, left on top
     private fun drawLinks(canvas:Canvas,gc:GraphicsConfiguration) {
-        var count = 0
-        var MAX_LIMBS = 6
         for(drawable in drawables.values) {
-            if(count>MAX_LIMBS) break
             if( drawable.side==Side.RIGHT) {
                 drawable.draw(canvas,gc)
-                count++
             }
 
         }
         for(drawable in drawables.values) {
-            if(count>MAX_LIMBS) break
             if( drawable.side==Side.FRONT) {
                 drawable.draw(canvas,gc)
-                count++
             }
         }
         for(drawable in drawables.values) {
-            if(count>MAX_LIMBS) break
             if( drawable.side==Side.LEFT) {
                 drawable.draw(canvas,gc)
-                count++
             }
         }
     }

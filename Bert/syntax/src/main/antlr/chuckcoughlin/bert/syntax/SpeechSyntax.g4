@@ -40,7 +40,7 @@ enumeration:
       enumerate Article? (Motors|Limbs|Appendages)                              # listBodyParts
     | enumerate Article? (Actions|Faces|Poses)                                  # listDatabaseElements
     | enumerate Article? (Limits|Goals) Of Article? Side? Joint Axis?    		# listLimits
-    | enumerate Article? (Joint|Limb) Positions 	                            # listPositions
+    | enumerate Article? (Motor|'limb') Positions 	                            # listPositions
     | enumerate Article? (Dynamic|Static) Parameters Of Article? Motors         # listMotorParameters
     | enumerate Article? (Dynamic|Static) Motor? Parameters		                # listMotorParameters
     | enumerate  Article? Properties Of Article? Motors                         # listProperty
@@ -48,7 +48,7 @@ enumeration:
     | What Actions Do You Know													# listActionNames
     | What Poses Do You Know													# listPoseNames
     | Where Are Article (Motors|Limbs)										    # listPositions
-    | Who Do You Know															# listFaceNames
+    | Who Do You Know													 		# listFaceNames
     ;
 
 // Request for information
@@ -83,8 +83,9 @@ declaration:
 	| Stop phrase				                        # stopAction
 	;
 
-// Commands to obtain attributes. Of these 'list' returns a JSON string. Otherwise values are comma-separated
-enumerate: (Download|List|What Are|Tell Me|Name) (Article Names Of)?;
+// Commands to obtain attributes. Of these 'download' returns a JSON string. Otherwise values are comma-separated
+enumerate: (Download|List|What Are|Tell Me|Name) (Article Names Of)?  # enumerationAction
+	;
 
 // Arbitrary string of words - inclue some key words. Digits are allowed only as a suffix to a word
 phrase: (NAME|Appendage|Are|As|Article|Axis|Freeze|Hold|It|Joint|Move|Of|Relax|Reset|Set|Side|Straighten|Take|To)+    # wordList
@@ -122,7 +123,7 @@ Face: 'face';
 Follow: 'follow';
 From: 'from';
 Forget: 'forget'|'delete';
-Goals: 'goals'|'target positions'|'targets';
+Goals: 'goals'|'targets';
 Greeting: 'hello'|'high'|'hi'|'hey';
 Have: 'have'|'wear';
 Hold: 'hold';
@@ -137,7 +138,7 @@ Limbs:'limbs';
 // Note legs and arms must be modified by a side
 Limb: 'arm'|'head'|'leg'|'torso';
 Limits: 'limits';
-List: 'list'|'what are'|'tell me';
+List: 'list';
 Me: 'me';
 Means: 'means';
 Metric: 'age'|'cadence'|'cycles'|'cycle count'|'cycle time'|'duty cycle'|'height'|Name;
@@ -159,8 +160,8 @@ Poses: 'poses';
 Pose: 'pose';
 Positions: 'positions'|'coordinates';
 Position: 'position'|'coordinate';
-Properties: 'ids'|'positions'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
-Property: 'id'|'position'|'offset'|'min angle'|'max angle'|'max speed'|'max torque'|'minimum angle'|'maximum angle'|'maximum speed'|'maximum torque'|'angle'|'motor type'|Orientation|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
+Properties: 'ids'|'offsets'|'minimum angles'|'maximum angles'|'angles'|'motor types'|'orientations'|'ranges'|'speeds'|'states'|'torques'|'loads'|'temperatures'|'temps'|'voltages'|'velocities';
+Property: 'id'|'offset'|'min angle'|'max angle'|'max speed'|'max torque'|'minimum angle'|'maximum angle'|'maximum speed'|'maximum torque'|'angle'|'motor type'|Orientation|'range'|'speed'|'state'|'torque'|'load'|'temperature'|'temp'|'voltage'|'velocity';
 Reset: 'reset';
 Salutation:'bert'|'burt'|'now'|'please'|'wake up'|'isaid';
 Save: 'save'|'record';

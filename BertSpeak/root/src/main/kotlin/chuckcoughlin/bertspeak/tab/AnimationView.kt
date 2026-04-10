@@ -117,7 +117,6 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
     override fun performClick():Boolean {
         return true  // Consume the event
     }
-
     private val CLSS = "AnimationView"
     val PAINT_WIDTH = 8f
 

@@ -9,6 +9,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import chuckcoughlin.bertspeak.R
 
 import chuckcoughlin.bertspeak.common.DispatchConstants
 import chuckcoughlin.bertspeak.data.Skeleton
@@ -31,6 +33,8 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
     private lateinit var leftPanel: AnimationView
     private lateinit var frontPanel: AnimationView
     private lateinit var rightPanel: AnimationView
+    var locked: Boolean
+    private lateinit var lockButton: Button
     override val name : String
 
     // Inflate the view. It holds three AnimationView panels
@@ -43,9 +47,11 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
         frontPanel.setOnTouchListener(frontPanel)
         leftPanel.setOnTouchListener(leftPanel)
         rightPanel.setOnTouchListener(rightPanel)
-
-        var button = binding.animationRefreshButton
-        button.setOnClickListener { refreshButtonClicked() }
+        lockButton = binding.animationLockButton
+        lockButton.setOnClickListener { lockButtonClicked() }
+        var refreshButton = binding.animationRefreshButton
+        refreshButton.setOnClickListener { refreshButtonClicked() }
+        updateUI()
         return binding.root
     }
 
@@ -63,6 +69,11 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
         super.onStop()
         DispatchService.unregisterForStatus(this)
         DispatchService.unregisterForShapes(this)
+    }
+
+    // Before moving limbs we need to stop the tab from allowing drags
+    fun lockButtonClicked() {
+        updateUI()
     }
 
     fun refreshButtonClicked() {
@@ -112,9 +123,19 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
         }
     }
 
+    private fun updateUI() {
+        if (locked) {
+            lockButton.setText(R.string.buttonUnlock)
+        }
+        else {
+            lockButton.setText(R.string.buttonLock)
+        }
+    }
+
     val CLSS = "AnimationFragment"
 
     init {
         name = CLSS
+        locked = false
     }
 }

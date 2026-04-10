@@ -8,6 +8,7 @@ import chuckcoughlin.bert.common.controller.Controller
 import chuckcoughlin.bert.common.controller.ControllerType
 import chuckcoughlin.bert.common.message.BottleConstants
 import chuckcoughlin.bert.common.message.CommandType
+import chuckcoughlin.bert.common.message.JsonType
 import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.MessageType
 import chuckcoughlin.bert.common.message.RequestType
@@ -15,6 +16,7 @@ import chuckcoughlin.bert.common.model.ConfigurationConstants
 import chuckcoughlin.bert.common.model.RobotModel
 import chuckcoughlin.bert.common.model.URDFModel
 import chuckcoughlin.bert.common.solver.ForwardSolver
+import chuckcoughlin.bert.common.util.TextUtility
 import chuckcoughlin.bert.speech.translate.MessageTranslator
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -175,7 +177,7 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
         }
 
     // This must be synched with isLocalRequest(). Take care of requests that
-    // can be handled locally/immediately
+    // can be handled locally/immediately without sending to dispatcher.
     private fun handleLocalRequest(handler:CommandMessageHandler,request: MessageBottle) {
         if( !request.error.equals(BottleConstants.NO_ERROR)) {
             sendResponse(handler,request.error)
@@ -249,8 +251,8 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
         var text = String.format("%s:%s",MessageType.ANS.name,startMessage)
         handler.sendText(text)
         // Transmit the skeletal structure
-        val skeleton = ForwardSolver.tree.skeletonToJson()
-        text = String.format("%s:%s",MessageType.ANS.name,skeleton)
+        val skeleton = TextUtility.stripNewLines(ForwardSolver.tree.skeletonToJson())
+        text = String.format("%s:%s#%s",MessageType.JSN.name,JsonType.JOINT_COORDINATES.name,skeleton)
         handler.sendText(text)
     }
 

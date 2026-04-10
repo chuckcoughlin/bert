@@ -135,8 +135,6 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
             }
         }
         else if (msg.type==RequestType.SET_LIMB_PROPERTY) {
-            val prop = msg.jointDynamicProperty
-            var value = msg.values[0]
             for (mc in RobotModel.motorsByJoint.values) {
                 if( msg.limb==Limb.NONE ||  mc.limb==msg.limb ) {
                     val tt = computeTravelTime(mc)
@@ -145,8 +143,6 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
             }
         }
         else if (msg.type==RequestType.SET_MOTOR_PROPERTY) {
-            val prop = msg.jointDynamicProperty
-            var value = msg.values[0]
             for (mc in RobotModel.motorsByJoint.values) {
                 if( msg.joint==Joint.NONE ||  mc.joint==msg.joint ) {
                     val tt = computeTravelTime(mc)

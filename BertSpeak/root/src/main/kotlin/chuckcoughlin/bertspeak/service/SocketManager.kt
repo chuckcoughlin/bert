@@ -94,7 +94,6 @@ class SocketManager(service:DispatchService): CommunicationManager {
                         }
                     }  // End select
                 }
-                if( !socket.isClosed ) socket.close()
             }
             // On error we retry. Perhaps robot not ready.
             catch(ex:Throwable) {
@@ -104,6 +103,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
                 }
                 catch(ie:InterruptedException) {}
             }
+            if( !socket.isClosed ) socket.close()
         }
     }
 

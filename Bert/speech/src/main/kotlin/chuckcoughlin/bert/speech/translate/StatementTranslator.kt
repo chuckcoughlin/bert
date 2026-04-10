@@ -12,6 +12,7 @@ import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.syntax.SpeechSyntaxBaseVisitor
 import chuckcoughlin.bert.syntax.SpeechSyntaxParser
 import com.google.gson.GsonBuilder
+import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 
@@ -242,6 +243,19 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         return null
     }
 
+    // Determine the message type based on the enumeration verb
+    // METRIC unless verb is "download"
+    override fun visitEnumerationAction(ctx: SpeechSyntaxParser.EnumerationActionContext): Any? {
+        bottle.type = RequestType.METRIC
+        bottle.metric = MetricType.LIST
+        for (token in ctx.children) {
+            if (token == null) continue
+            if (token.getText().equals("download", ignoreCase = true)) {
+                bottle.type = RequestType.JSON
+            }
+        }
+        return null
+    }
     // Handle a (possible) multi-word command. The actual action may depend on context. In order ...
     //    1) Check for several "well-known" commands
     //    2) Execute an action, if it exists.
@@ -424,33 +438,36 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         bottle.type = RequestType.METRIC
         bottle.metric = MetricType.LIST
         bottle.jtype = JsonType.FACE_NAMES
+        if(DEBUG) LOGGER.info(String.format("%s.visitListFaceNames ... %s %s (%s)",CLSS,bottle.type.name,bottle.metric.name,bottle.jtype.name))
         return null
     }
 
     // What are the name of your joints
     override fun visitListBodyParts(ctx: SpeechSyntaxParser.ListBodyPartsContext): Any? {
-        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        visit(ctx.enumerate())
         if( ctx.Appendages()!=null ) bottle.jtype = JsonType.END_EFFECTOR_NAMES
         if( ctx.Motors()!=null  )    bottle.jtype = JsonType.JOINT_NAMES
         if( ctx.Limbs()!=null  )     bottle.jtype = JsonType.LIMB_NAMES
         bottle.metric = MetricType.LIST
+        if(DEBUG) LOGGER.info(String.format("%s.visitListBodyParts ... %s %s (%s)",CLSS,bottle.type.name,bottle.metric.name,bottle.jtype.name))
         return null
     }
 
     // List values from the database
     // List your poses
     override fun visitListDatabaseElements(ctx: SpeechSyntaxParser.ListDatabaseElementsContext): Any? {
-        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        visit(ctx.enumerate())
         if( ctx.Faces()!=null )     bottle.jtype = JsonType.FACE_NAMES
         if( ctx.Poses()!=null  )    bottle.jtype = JsonType.POSE_NAMES
         if( ctx.Actions()!=null  )  bottle.jtype = JsonType.ACTION_NAMES
         bottle.metric = MetricType.LIST
+        if(DEBUG) LOGGER.info(String.format("%s.visitListDatabaseElements ... %s %s (%s)",CLSS,bottle.type.name,bottle.metric.name,bottle.jtype.name))
         return null
     }
 
     // what are the limits of your left hip y? (same logic as "handleBulkPropertyQuestion)
     override fun visitListLimits(ctx: SpeechSyntaxParser.ListLimitsContext): Any? {
-        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        visit(ctx.enumerate())
         if (ctx.Limits() != null) bottle.jtype = JsonType.MOTOR_LIMITS
         else                      bottle.jtype = JsonType.MOTOR_GOALS
 
@@ -476,17 +493,16 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     }
     // where are your joints
     override fun visitListPositions(ctx: SpeechSyntaxParser.ListPositionsContext): Any? {
-        var txt = "list"
-        if(ctx.enumerate()!=null) txt = visit(ctx.enumerate()).toString()
-        determineJsonOrList(txt,bottle)
+        visit(ctx.enumerate())
         bottle.jtype = JsonType.JOINT_COORDINATES
+        if(DEBUG) LOGGER.info(String.format("%s.visitListPositions ... %s %s (%s)",CLSS,bottle.type.name,bottle.metric.name,bottle.jtype.name))
         return null
     }
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.
     // List your static motor parameters
     // List the dynamic properties of your motors
     override fun visitListMotorParameters(ctx: SpeechSyntaxParser.ListMotorParametersContext): Any? {
-        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        visit(ctx.enumerate())
         if( ctx.Dynamic()!=null ) bottle.jtype = JsonType.MOTOR_DYNAMIC_PROPERTIES
         if( ctx.Static()!=null  ) bottle.jtype = JsonType.MOTOR_STATIC_PROPERTIES
         bottle.metric = MetricType.LIST
@@ -502,7 +518,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     // List a specified property for all joints
     // tell me your motor speeds
     override fun visitListProperty(ctx: SpeechSyntaxParser.ListPropertyContext): Any? {
-        determineJsonOrList(visit(ctx.enumerate()).toString(),bottle)
+        visit(ctx.enumerate())
         if (ctx.Properties() != null) {
             val pname: String = ctx.Properties().getText() // plural
             setJointPropertyInMessage(bottle, pname)
@@ -962,16 +978,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         return result
     }
-    // Set the request type for an enumeration
-    private fun determineJsonOrList(text: String, msg: MessageBottle) {
-        if (text.equals("download", ignoreCase = true))  {
-            msg.type = RequestType.JSON
-        }
-        else {
-            msg.type = RequestType.METRIC
-            msg.metric = MetricType.LIST
-        }
-    }
+
     // Determine the specific joint from the body part, side and axis. (The latter two are
     // not always needed). Side always lower case.
     private fun determineJoint(part: String, axis: Axis, side: Side): Joint {

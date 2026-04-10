@@ -481,7 +481,8 @@ class Dispatcher : Controller {
                 request.text = text
             }
             else if (request.type.equals(RequestType.METRIC)) {
-                if(DEBUG)LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS, request.metric))
+                if(DEBUG)LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS,
+                    if(request.metric==MetricType.LIST) String.format("%s (%s)",request.metric,request.jtype) else request.metric))
                 val metric: MetricType = request.metric
                 var text = ""
                 when (metric) {
@@ -500,7 +501,7 @@ class Dispatcher : Controller {
                     MetricType.HEIGHT -> text = "My height when standing is 83 centimeters"
                     MetricType.MITTENS -> text = selectRandomText(mittenPhrases)
                     MetricType.NAME -> text = "My name is $name"
-                    // LIST implies we look at the JsonType and return a comma-separated list of names
+                    // LIST implies we look at the JsonType and return a comma-separated list of values
                     MetricType.LIST -> {
                         when (request.jtype) {
                             JsonType.FACE_NAMES -> text = "I know " + Database.getFaceNames()
@@ -509,7 +510,7 @@ class Dispatcher : Controller {
                             JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Joint.endEffectorList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.jointList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
-                            JsonType.JOINT_COORDINATES -> text = "Joint positiond are " + ForwardSolver.tree.jointCoordinatesToJson()
+                            JsonType.JOINT_COORDINATES -> text = "Joint positions are " + ForwardSolver.tree.jointCoordinatesToJson()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
                             else -> {
@@ -518,7 +519,6 @@ class Dispatcher : Controller {
                             }
                         }
                     }
-
                     else -> request.error = String.format("I can't get the value of %s", metric.name)
                 }
                 request.text = text

@@ -44,10 +44,12 @@
     <string name="buttonClear">Clear</string>
     <string name="buttonDelete">Delete</string>
     <string name="buttonFreeze">Freeze</string>
+    <string name="buttonLock">Lock</string>
     <string name="buttonOK">OK</string>
     <string name="buttonRefresh">Refresh</string>
     <string name="buttonSave">Save</string>
     <string name="buttonThaw">Unfreeze</string>
+    <string name="buttonUnlock">Unlock</string>
     <!-- Notification Button Labels -->
     <string name="notificationLabel">Speech Processing via network connection to main robot.</string>
     <string name="notificationDescription">Generally spoken text processing is automatic and runs continuously. It can, however, be turned on and off via the buttons below </string>
