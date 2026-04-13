@@ -26,6 +26,13 @@ object ForwardSolver {
         return jp.orientation
     }
 
+    /**
+     * Generate a Json description of the current joint positions
+     */
+    fun jointCoordinatesToJson():String {
+        tree.updateAllJointPositions()
+        return tree.jointCoordinatesToJson()
+    }
     fun positionForJoint(joint:Joint) : Point3D {
         val chain = tree.createLinkChain(joint)
         updateJointAngles(chain)

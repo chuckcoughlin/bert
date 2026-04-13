@@ -74,14 +74,22 @@ Typical requests:
     download your poses
     download your face names
 ```
-* ![yellow](/images/ball_yellow.png) ``Name Lists`` -
+* ![green](/images/ball_green.png) ``Name Lists`` -
 Each of the parameter sets listed above can be displayed
 in a space-separated list simply by using the verb
 `list` or one of several synonyms.  The space-separated list which makes them pronounceable by the tablet.
+Using the verb `download` results in the same information, but expressed in JSON.
+This matches the message format for communication with the tablet.
 Typical requests:
 ```
+    download your joints
     list your motor ids
+    list your joint positions
+    tell me the llimits of your left elbow y
     tell me your static motor parameters
+    list the angles of your joints
+    list the torque of your motors
+    list the speeds of your motors
     what are the dynamic properties of your joints
     what are the names of your joints
     what are the names of your limbs
@@ -306,13 +314,13 @@ An end effector is simply a protuberance somewhere on a limb. In our setting, it
 The 'URDF' file defines legal names.
 In addition to validating that the syntax works, check numeric results for the following:
   - [x] ABS_Y: this is the first joint, at the top of the Pelvis. Its position should never change.
-  - [ ] ABS_X: connected on top of ABS_Y, verify its position as ABS_Y is moved.
-  - [ ] ... and so on. Follow the joints in order until reaching the left finger (an end effector).
-  - [ ] ... likewise, follow the joints in order until reaching the right finger.
-  - [ ] RIGHT_HIP_X: this is the first joint in a sub-chain. Its position should never change.
-  - [ ] ... as before, follow this chain of joints to the right toe.
-  - [ ] ... likewise, follow the left hip sub-chain to the left toe.
-  - [ ] NOSE: make sure that the HEAD calculations are correct.
+  - [x] ABS_X: connected on top of ABS_Y, verify its position as ABS_Y is moved.
+  - [x] ... and so on. Follow the joints in order until reaching the left finger (an end effector).
+  - [x] ... likewise, follow the joints in order until reaching the right finger.
+  - [x] RIGHT_HIP_X: this is the first joint in a sub-chain. Its position should never change.
+  - [x] ... as before, follow this chain of joints to the right toe.
+  - [x] ... likewise, follow the left hip sub-chain to the left toe.
+  - [x] NOSE: make sure that the HEAD calculations are correct.
 
 ### h - Static Parameters <a id="parameters"></a>
 [toc](#table-of-contents)<br/>

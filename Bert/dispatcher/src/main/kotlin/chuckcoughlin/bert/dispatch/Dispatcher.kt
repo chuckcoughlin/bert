@@ -513,8 +513,22 @@ class Dispatcher : Controller {
                             JsonType.JOINT_COORDINATES -> text = "Joint positions are " + ForwardSolver.tree.jointCoordinatesToJson()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
+                            JsonType.JOINT_IDS          -> text = RobotModel.idsToJSON()
+                            JsonType.JOINT_OFFSETS      -> text = RobotModel.offsetsToJSON()
+                            JsonType.JOINT_ORIENTATIONS -> text = RobotModel.orientationsToJSON()
+                            JsonType.JOINT_ANGLES       -> text = RobotModel.anglesToJSON()
+                            JsonType.JOINT_SPEEDS       -> text = RobotModel.speedsToJSON()
+                            JsonType.JOINT_STATES       -> text = RobotModel.statesToJSON()
+                            JsonType.JOINT_TEMPERATURES -> text = RobotModel.temperaturesToJSON()
+                            JsonType.JOINT_TORQUES      -> text = RobotModel.torquesToJSON()
+                            JsonType.JOINT_VOLTAGES     -> text = RobotModel.voltagesToJSON()
+                            JsonType.JOINT_TYPES        -> text = RobotModel.typesToJSON()
+                            JsonType.MOTOR_GOALS         -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
+                            JsonType.MOTOR_LIMITS        -> text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
+                            JsonType.MOTOR_PROPERTIES    -> text = RobotModel.propertiesToJSON()
+                            JsonType.POSE_DETAILS        -> text = Database.poseDetailsToJSON(request.arg, request.values[0].roundToInt())
                             else -> {
-                                request.error = "badly formed metric list request"
+                                request.error = String.format("unrecognized metric in list request (%s)",request.jtype.name)
                                 text = ""
                             }
                         }
@@ -586,7 +600,7 @@ class Dispatcher : Controller {
                     JsonType.JOINT_TORQUES      -> text = RobotModel.torquesToJSON()
                     JsonType.JOINT_VOLTAGES     -> text = RobotModel.voltagesToJSON()
                     JsonType.JOINT_TYPES        -> text = RobotModel.typesToJSON()
-                    JsonType.JOINT_COORDINATES  -> text = ForwardSolver.tree.jointCoordinatesToJson()
+                    JsonType.JOINT_COORDINATES  -> text = ForwardSolver.jointCoordinatesToJson()
                     JsonType.LIMB_NAMES         -> text = RobotModel.limbsToJSON()
                     JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.toJSON()
                     JsonType.MOTOR_GOALS         -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"

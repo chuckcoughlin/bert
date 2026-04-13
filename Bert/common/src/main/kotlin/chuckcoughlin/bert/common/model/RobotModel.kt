@@ -311,7 +311,7 @@ object RobotModel {
     /** @return  a JSON pretty-printed String array of ids for all joints.*/
     fun idsToJSON(): String {
         val gson = GsonBuilder().setPrettyPrinting().create()
-        var motorValues = mutableListOf<JointAttribute>()
+        val motorValues = mutableListOf<JointAttribute>()
         for (mc in motorsById.values) {
             val jAttribute = JointAttribute(mc.joint,mc.id.toString())
             motorValues.add(jAttribute)
