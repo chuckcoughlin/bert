@@ -77,7 +77,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
     }
 
     fun refreshButtonClicked() {
-        DispatchService.sendJsonRequest(JsonType.JOINT_COORDINATES)
+        DispatchService.sendJsonRequest(JsonType.JOINT_LINKS)
     }
 
     // ===================== StatusDataObserver =====================
@@ -94,7 +94,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
         Log.i(name, String.format("updateStatus (%s):%s = %s", data.action, data.type, data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             if (data.type == ManagerType.SOCKET && data.state == ManagerState.ACTIVE) {
-                DispatchService.sendJsonRequest(JsonType.JOINT_COORDINATES)
+                DispatchService.sendJsonRequest(JsonType.JOINT_LINKS)
             }
         }
     }
@@ -111,7 +111,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
      * Update the skeleton in each of the three panels
      */
     override fun updateGraphics(skeleton: Skeleton) {
-        Log.i(name, String.format("updateGraphics %d elements in skeleton",skeleton.positionMap.size))
+        Log.i(name, String.format("updateGraphics %d links in skeleton",skeleton.linkMap.size))
         leftPanel.updateDrawables(skeleton)
         frontPanel.updateDrawables(skeleton)
         rightPanel.updateDrawables(skeleton)

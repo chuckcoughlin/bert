@@ -43,15 +43,6 @@ class JointPosition() {
 		return copy
 	}
 
-	fun updateFromQuaternion(q:Quaternion) {
-		orientation[0] = q.direction()[0] * 180.0/Math.PI
-		orientation[1] = q.direction()[1] * 180.0/Math.PI
-		orientation[2] = q.direction()[2]*  180.0/Math.PI
-		pos.x = q.position().x
-		pos.y = q.position().y
-		pos.z = q.position().z
-	}
-
 	companion object {
 		val NONE = JointPosition()
 	}

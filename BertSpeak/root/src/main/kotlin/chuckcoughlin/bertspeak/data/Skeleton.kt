@@ -11,6 +11,7 @@ import chuckcoughlin.bert.common.model.Joint
  * in the main app.
  */
 class Skeleton() {
+    val sideMap: MutableMap<Joint,Side>
     val positionMap: MutableMap<Joint, JointPosition>
     val linkMap: MutableMap<Joint, JointLink>
 
@@ -21,15 +22,22 @@ class Skeleton() {
 
     fun addJointLink(jl:JointLink) {
         linkMap.put(jl.endJoint,jl)
+        sideMap.put(jl.endJoint,Side.fromString(jl.side))
     }
 
     fun addJointPosition(jp:JointPosition) {
         positionMap.put(jp.joint,jp)
     }
-    fun getPositionByJoint(joint:Joint) : JointPosition {
+    fun positionForJoint(joint:Joint) : JointPosition {
         val jp = positionMap.get(joint)
         if( jp==null) return JointPosition.NONE
         return jp
+    }
+
+    fun sideForJoint(joint:Joint) : Side {
+        val side =  sideMap.get(joint)
+        if( side==null) return Side.FRONT
+        return side
     }
 
     fun populateFromList(positions:List<JointPosition>) {
@@ -41,6 +49,7 @@ class Skeleton() {
     private val CLSS = "Skeleton"
 
     init {
+        sideMap = mutableMapOf<Joint, Side>()
         positionMap = mutableMapOf<Joint, JointPosition>()
         linkMap = mutableMapOf<Joint, JointLink>()
     }

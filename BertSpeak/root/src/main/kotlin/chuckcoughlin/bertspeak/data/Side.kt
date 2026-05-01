@@ -2,7 +2,7 @@
  * (c) 2025  Charles Coughlin. All rights reserved.
  * (MIT License)
  */
-package chuckcoughlin.bertspeak.ui.graphics
+package chuckcoughlin.bertspeak.data
 
 /**
  * Side has multiple uses:

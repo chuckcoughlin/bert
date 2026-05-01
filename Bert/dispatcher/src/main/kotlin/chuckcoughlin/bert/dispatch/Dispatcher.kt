@@ -510,7 +510,8 @@ class Dispatcher : Controller {
                             JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Joint.endEffectorList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.jointList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
-                            JsonType.JOINT_COORDINATES -> text = "Joint positions are " + ForwardSolver.tree.jointCoordinatesToJson()
+                            JsonType.JOINT_COORDINATES -> text = "Joint positions are " + ForwardSolver.jointCoordinatesToJson()
+                            JsonType.JOINT_LINKS -> text = "Joint links are " + ForwardSolver.skeletonToJson()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
                             JsonType.JOINT_IDS          -> text = RobotModel.idsToJSON()
@@ -601,6 +602,7 @@ class Dispatcher : Controller {
                     JsonType.JOINT_VOLTAGES     -> text = RobotModel.voltagesToJSON()
                     JsonType.JOINT_TYPES        -> text = RobotModel.typesToJSON()
                     JsonType.JOINT_COORDINATES  -> text = ForwardSolver.jointCoordinatesToJson()
+                    JsonType.JOINT_LINKS        -> text = ForwardSolver.skeletonToJson()
                     JsonType.LIMB_NAMES         -> text = RobotModel.limbsToJSON()
                     JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.toJSON()
                     JsonType.MOTOR_GOALS         -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"

@@ -9,6 +9,7 @@ import chuckcoughlin.bertspeak.data.JointLink
 import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.data.Point3D
+import chuckcoughlin.bertspeak.data.Side
 
 /**
  * Create Shape objects appropriate for links
@@ -20,7 +21,7 @@ class ShapeFactory () {
 		/**
 		 * If unknown return a red-filled circle. Resolute links are "bones".
 		 */
-		fun drawableForLink(jlink: JointLink, jp1 : JointPosition, jp2:JointPosition, projection:Side): LinkShapeDrawable {
+		fun drawableForLink(jlink: JointLink, jp1 : JointPosition, jp2:JointPosition, projection: Side): LinkShapeDrawable {
 			val drawable: LinkShapeDrawable
 
 			val p1 = projectedPoint(jp1.pos,projection)
@@ -53,7 +54,7 @@ class ShapeFactory () {
 			return drawable
 		}
 
-		fun projectedPoint(loc: Point3D,projection:Side): Point2D {
+		fun projectedPoint(loc: Point3D,projection: Side): Point2D {
 			var pos: Point2D = when(projection) {
 				Side.FRONT-> {Point2D(-loc.y,-loc.z)}
 				Side.BACK -> {Point2D(loc.y,-loc.z)}

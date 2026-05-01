@@ -11,7 +11,7 @@ import android.util.Log
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
-import chuckcoughlin.bertspeak.ui.graphics.Side
+import chuckcoughlin.bertspeak.data.Side
 
 /**
  * View robot skeleton from the right.
@@ -31,7 +31,7 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
     override fun selectDrawable(point: Point2D): LinkShapeDrawable? {
         var drawable: LinkShapeDrawable? = null
         for(d in drawables.values) {
-            if(d.selectable && d.side==Side.RIGHT && d.isTouched(point)) {
+            if(d.selectable && d.side== Side.RIGHT && d.isTouched(point)) {
                 drawable = d
                 drawable.selected = true
                 break
@@ -52,17 +52,17 @@ class AnimationViewRight(context: Context, attrs: AttributeSet? = null)
     // Draw limbs so left is on bottom, right on top
     private fun drawLinks(canvas:Canvas,gc:GraphicsConfiguration) {
         for(drawable in drawables.values) {
-            if( drawable.side==Side.LEFT) {
+            if( drawable.side== Side.LEFT) {
                 drawable.draw(canvas,gc)
             }
         }
         for(drawable in drawables.values) {
-            if( drawable.side==Side.FRONT) {
+            if( drawable.side== Side.FRONT) {
                 drawable.draw(canvas,gc)
             }
         }
         for(drawable in drawables.values) {
-            if( drawable.side==Side.RIGHT) {
+            if( drawable.side== Side.RIGHT) {
                 drawable.draw(canvas,gc)
             }
         }

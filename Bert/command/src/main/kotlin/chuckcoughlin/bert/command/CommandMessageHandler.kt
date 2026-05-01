@@ -125,13 +125,15 @@ class CommandMessageHandler(sock: Socket)  {
             // NOTE: An empty json string implies a request of the specified type
             //       The JSON is filled in by the dispatcher.
             else if (hdr.equals(MessageType.JSN.name, ignoreCase = true)) {
+                msg = MessageBottle(RequestType.JSON)
                 val index = text.indexOf("#")
                 if( index>0 ) {
                     val type = text.substring(0,index)
-                    val jtype = JsonType.fromString(type)
-                    if( jtype==JsonType.UNDEFINED) {
+                    msg.jtype = JsonType.fromString(type)
+                    if( msg.jtype==JsonType.UNDEFINED) {
                         msg.error = String.format("JSON message from the tablet was of unknown type - %s",type)
                     }
+                    if(text.length>index) msg.text = text.substring(index+1)
                 }
                 else {
                     msg.error = String.format("JSON message from the tablet was illformed")

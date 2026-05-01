@@ -73,6 +73,18 @@ class Quaternion () {
     }
 
     /**
+     * Update a joint position from the quaternion
+     */
+    fun updatePosition(jp:JointPosition) {
+        jp.orientation[0] = direction()[0] * 180.0/Math.PI
+        jp.orientation[1] = direction()[1] * 180.0/Math.PI
+        jp.orientation[2] = direction()[2]*  180.0/Math.PI
+        jp.pos.x = position().x
+        jp.pos.y = position().y
+        jp.pos.z = position().z
+    }
+
+    /**
      * Insert a 3x3 rotation matrix into the quaternion matrix.
      * matrix[row][col]
      */
@@ -211,6 +223,7 @@ class Quaternion () {
             q.insertTranslation(jlink.coordinates)
             return q
         }
+
         /**
          * Multiply two matrices (expressed as arrays of double arrays)
          * Square matrices, same size.

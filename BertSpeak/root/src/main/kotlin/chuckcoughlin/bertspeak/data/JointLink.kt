@@ -6,7 +6,6 @@
 package chuckcoughlin.bertspeak.data
 
 import chuckcoughlin.bert.common.model.Joint
-import chuckcoughlin.bertspeak.ui.graphics.Side
 
 /**
  * A link is a skeletal structure beginning with a source joint and ending

@@ -491,13 +491,6 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         return null
     }
-    // where are your joints
-    override fun visitListPositions(ctx: SpeechSyntaxParser.ListPositionsContext): Any? {
-        visit(ctx.enumerate())
-        bottle.jtype = JsonType.JOINT_COORDINATES
-        if(DEBUG) LOGGER.info(String.format("%s.visitListPositions ... %s %s (%s)",CLSS,bottle.type.name,bottle.metric.name,bottle.jtype.name))
-        return null
-    }
     // Get a list of either static or dynamic motor parameters. The return is in JSON format.
     // List your static motor parameters
     // List the dynamic properties of your motors
@@ -515,6 +508,17 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         bottle.jtype = JsonType.POSE_NAMES
         return null
     }
+    // where are your motors
+    // where are your limbs  (not implemented)
+    override fun visitListPositions(ctx: SpeechSyntaxParser.ListPositionsContext): Any? {
+        if(ctx.enumerate()!=null ) visit(ctx.enumerate())
+        else bottle.type = RequestType.METRIC
+        bottle.metric = MetricType.LIST
+        bottle.jtype = JsonType.JOINT_COORDINATES
+        if(DEBUG) LOGGER.info(String.format("%s.visitListPositions ... %s %s (%s)",CLSS,bottle.type.name,bottle.metric.name,bottle.jtype.name))
+        return null
+    }
+
     // List a specified property for all joints
     // tell me your motor speeds
     override fun visitListProperty(ctx: SpeechSyntaxParser.ListPropertyContext): Any? {

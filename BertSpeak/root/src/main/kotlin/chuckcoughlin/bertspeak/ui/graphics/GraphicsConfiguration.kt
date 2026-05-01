@@ -5,6 +5,7 @@
 package chuckcoughlin.bertspeak.ui.graphics
 
 import android.graphics.Paint
+import chuckcoughlin.bertspeak.data.Side
 
 /**
  * Hold static graphics parameters

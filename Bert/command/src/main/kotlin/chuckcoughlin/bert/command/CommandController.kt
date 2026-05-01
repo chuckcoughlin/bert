@@ -251,8 +251,8 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
         var text = String.format("%s:%s",MessageType.ANS.name,startMessage)
         handler.sendText(text)
         // Transmit the skeletal structure
-        val skeleton = TextUtility.stripNewLines(ForwardSolver.tree.skeletonToJson())
-        text = String.format("%s:%s#%s",MessageType.JSN.name,JsonType.JOINT_COORDINATES.name,skeleton)
+        val skeleton = TextUtility.stripNewLines(ForwardSolver.tree.skeletonToJson() )
+        text = String.format("%s:%s#%s",MessageType.JSN.name,JsonType.JOINT_LINKS.name,skeleton)
         handler.sendText(text)
     }
 

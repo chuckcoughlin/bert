@@ -18,10 +18,10 @@ import chuckcoughlin.bertspeak.service.DispatchService
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
 import chuckcoughlin.bertspeak.ui.graphics.ShapeFactory
-import chuckcoughlin.bertspeak.ui.graphics.Side.BACK
-import chuckcoughlin.bertspeak.ui.graphics.Side.FRONT
-import chuckcoughlin.bertspeak.ui.graphics.Side.LEFT
-import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
+import chuckcoughlin.bertspeak.data.Side.BACK
+import chuckcoughlin.bertspeak.data.Side.FRONT
+import chuckcoughlin.bertspeak.data.Side.LEFT
+import chuckcoughlin.bertspeak.data.Side.RIGHT
 
 /**
  * A canvas for displaying an entire skeleton in one of
@@ -60,9 +60,12 @@ import chuckcoughlin.bertspeak.ui.graphics.Side.RIGHT
     fun updateDrawables(skeleton: Skeleton) {
         for (jp1 in skeleton.positionMap.values) {
             val jlink = skeleton.linkMap.get(jp1.joint)
-            if(jlink==null) continue
+            if(jlink==null) {
+                Log.w(CLSS, String.format("%s.updateDrawables no %s link in skeleton", configuration.projection.name, jp1.joint.name))
+                continue
+            }
             val jp2 = skeleton.positionMap.get(jlink.sourceJoint)
-            // Log.i(CLSS, String.format("%s.updateDrawable %s", configuration.projection.name, loc.name))
+            Log.i(CLSS, String.format("%s.updateDrawables %s", configuration.projection.name, jlink.endJoint.name))
             if(jp2!=null) {
                 val drawable = ShapeFactory.drawableForLink(jlink,jp1,jp2,configuration.projection)
                 drawables[jp1.joint] = drawable

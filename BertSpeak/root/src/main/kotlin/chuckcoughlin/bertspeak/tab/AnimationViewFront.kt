@@ -1,18 +1,17 @@
 /**
- * Copyright 2025 Charles Coughlin. All rights reserved.
+ * Copyright 2025-2026 Charles Coughlin. All rights reserved.
  * (MIT License)
  */
 package chuckcoughlin.bertspeak.tab
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.ui.graphics.GraphicsConfiguration
 import chuckcoughlin.bertspeak.ui.graphics.LinkShapeDrawable
-import chuckcoughlin.bertspeak.ui.graphics.Side
+import chuckcoughlin.bertspeak.data.Side
 
 /**
  * View the robot skeleton looking straight on.
@@ -22,7 +21,7 @@ class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
     private val name: String
 
     override fun draw(canvas:Canvas,gc:GraphicsConfiguration) {
-        Log.i(name, String.format("onDraw FRONT ...."))
+        Log.i(name, String.format("onDraw FRONT .... %d links",drawables.size))
         canvas.drawPaint(configuration.backgroundColor)
         canvas.drawCircle(measuredWidth/2f,measuredHeight/2f,measuredWidth/5f,configuration.topColor)
         drawLinks(canvas,configuration)
@@ -44,6 +43,7 @@ class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
     // Draw from back to front
      private fun drawLinks(canvas:Canvas,gc:GraphicsConfiguration) {
          for(drawable in drawables.values) {
+             Log.i(name, String.format("drawLinks FRONT ....%s (%f2.0,%f2.0)",drawable.joint,drawable.p2.x,drawable.p2.y))
              if( drawable.p2.x<0.0 ) {
                  drawable.draw(canvas,gc)
              }

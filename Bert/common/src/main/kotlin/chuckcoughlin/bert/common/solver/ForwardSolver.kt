@@ -27,11 +27,11 @@ object ForwardSolver {
     }
 
     /**
-     * Generate a Json description of the current joint positions
+     * Generate a Json description of the current joint links
      */
-    fun jointCoordinatesToJson():String {
+    fun skeletonToJson():String {
         tree.updateAllJointPositions()
-        return tree.jointCoordinatesToJson()
+        return tree.skeletonToJson()
     }
     fun positionForJoint(joint:Joint) : Point3D {
         val chain = tree.createLinkChain(joint)
@@ -39,6 +39,14 @@ object ForwardSolver {
         tree.updateAllJointPositions()
         val jp = chain.get(chain.lastIndex)
         return Point3D(jp.coordinates[0],jp.coordinates[1],jp.coordinates[2])
+    }
+
+    /**
+     * Generate a Json description of the current joint positions
+     */
+    fun jointCoordinatesToJson():String {
+        tree.updateAllJointPositions()
+        return tree.jointCoordinatesToJson()
     }
 
     /**

@@ -41,9 +41,9 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
         DispatchService.unregisterForJson(this)
     }
 
-    // NOte: This works for appendages also
+    // Note: This works for appendages also
     fun jointPositionByJoint(joint: Joint):JointPosition {
-        return skeleton.getPositionByJoint(joint)
+        return skeleton.positionForJoint(joint)
     }
     /**
      * Inform robot of requested new position (from
@@ -56,30 +56,28 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
 
     // ================ JsonObserver ======================
     override fun resetItem(map: Map<JsonType, String>) {
-        val json = map[JsonType.JOINT_COORDINATES]
+        val json = map[JsonType.JOINT_LINKS]
         dispatcher.log(CLSS, String.format("resetItem: %s",json))
         if( json!=null && !json.isEmpty() ) {
-            skeleton.clear()
-            val locType = object : TypeToken<List<JointPosition>>() {}.type
-            val list = gson.fromJson<List<JointPosition>>(json,locType)
-            for(jp in list) {
-                skeleton.addJointPosition(jp)
-                Log.i(CLSS, String.format("resetItem: SKeleton added %s",jp.positionToText()))
+            val locType = object : TypeToken<List<JointLink>>() {}.type
+            val list = gson.fromJson<List<JointLink>>(json,locType)
+            for(jl in list) {
+                skeleton.addJointLink(jl)
+                Log.i(CLSS, String.format("resetItem: Skeleton added %s->%s",jl.sourceJoint.name,jl.endJoint.name))
             }
             notifyObservers(skeleton)
         }
     }
 
     override fun updateItem(type: JsonType, json: String) {
-        if( type==JsonType.JOINT_COORDINATES ) {
-            dispatcher.log(CLSS, String.format("updateItem: %s",json))
-            if( !json.isEmpty() ) {
-                skeleton.clear()
-                val locType = object : TypeToken<List<JointPosition>>() {}.type
-                val list = gson.fromJson<List<JointPosition>>(json,locType)
-                for(jp in list) {
-                    skeleton.addJointPosition(jp)
-                    Log.i(CLSS, String.format("updateItem: Limb is %s",jp.positionToText()))
+        if( type==JsonType.JOINT_LINKS ) {
+            if( !json.isBlank() ) {
+                dispatcher.log(CLSS, String.format("updateItem: %s",json))
+                val locType = object : TypeToken<List<JointLink>>() {}.type
+                val list = gson.fromJson<List<JointLink>>(json,locType)
+                for(jl in list) {
+                    skeleton.addJointLink(jl)
+                    Log.i(CLSS, String.format("updateItem: %s is %f2.1,%f2.1,%f2.1",jl.endJoint.name,jl.coordinates[0],jl.coordinates[1],jl.coordinates[2]))
                 }
                 notifyObservers(skeleton)
             }

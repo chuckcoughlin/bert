@@ -172,10 +172,10 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
     /** Inform the tablet of a new limb position */
     private suspend fun dispatchPositionUpdates() {
         val msg = MessageBottle(RequestType.JSON)
-        msg.jtype = JsonType.JOINT_COORDINATES
+        msg.jtype = JsonType.JOINT_LINKS
         msg.source = ControllerType.COMMAND  // If tablet is connected.
-        msg.text = ForwardSolver.tree.jointCoordinatesToJson()
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchPositionUpdates Updating joint positions on tablet",
+        msg.text = ForwardSolver.skeletonToJson()
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchPositionUpdates Updating joint links on tablet",
             CLSS))
         dispatchMessage(msg)  // Causes hang at the moment ??
     }

@@ -8,11 +8,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.Point2D
+import chuckcoughlin.bertspeak.data.Side
 
 /**
  * Draw a blue circle for a nose..
  */
-class NoseDrawable(joint: Joint, val p1:Point2D, p2: Point2D, side:Side) : LinkShapeDrawable(joint,p2,side) {
+class NoseDrawable(joint: Joint, val p1:Point2D, p2: Point2D, side: Side) : LinkShapeDrawable(joint,p2,side) {
 	val unscaledRadius:Float
 	val bluePaint: Paint
 

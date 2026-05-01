@@ -104,6 +104,7 @@ class MotorPropertiesFragment(pos:Int) : BasicAssistantFragment(pos), JsonObserv
             Log.i(name, String.format("update: data = %s", json))
             val properties = mutableListOf<MotorData>()
             val propType = object : TypeToken<List<JointPropertyHolder>>() {}.type
+            //val list = gson.fromJson<List<JointPropertyHolder>>(json,propType)
             val list = gson.fromJson<List<JointPropertyHolder>>(json,propType)
             for(holder in list) {
                 val data = holder.toMotorData()

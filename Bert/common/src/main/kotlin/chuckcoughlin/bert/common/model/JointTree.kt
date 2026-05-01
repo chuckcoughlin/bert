@@ -82,7 +82,7 @@ class JointTree() {
      *         does not exist, return the origin.
      */
     fun getParent(jp:JointPosition) : JointPosition {
-        val jlink = getOrCreateJointLink(jp.joint)
+        // val jlink = getOrCreateJointLink(jp.joint)
         //return getOrCreateJointPosition(jlink.basic.sourceJoint)
         return getOrCreateJointPosition(jp.joint)
     }
@@ -96,7 +96,7 @@ class JointTree() {
     fun listJointPositions() : List<JointPosition> {
         val list = mutableListOf<JointPosition>()
         for(jp in posmap.values) {
-            list.add(jp)
+            if(jp.joint!=Joint.NONE) list.add(jp)
         }
         return list
     }
@@ -136,9 +136,17 @@ class JointTree() {
      */
     fun updateJointPosition(joint:Joint) : JointPosition {
         val chain = createLinkChain(joint)
-        updateJointsInChain(chain)
-        val link = chain[chain.lastIndex]
-        return getOrCreateJointPosition(link.endJoint)!!
+        var jp = JointPosition()
+        if(chain.lastIndex>=0 ) {
+            updateJointsInChain(chain)
+            val link = chain[chain.lastIndex]
+            jp = getOrCreateJointPosition(link.endJoint)
+        }
+        else {
+            LOGGER.warning(String.format("%s.updateJointPosition: %s has no joints in chain",
+                CLSS, joint.name))
+        }
+        return jp
     }
 
     /**
@@ -177,7 +185,7 @@ class JointTree() {
             val q1 = Quaternion.rotationQuaternion(link)
             val q2 = Quaternion.translationQuaternion(link)
             q = q.postMultiplyBy(q1).postMultiplyBy(q2)
-            jp2.updateFromQuaternion(q)
+            q.updatePosition(jp2)
             if (DEBUG) {
                 LOGGER.info(String.format("%s.updateJointsInChain: %s -  %s = (%s|%s) ",
                         CLSS, jp1.joint.name, jp2.joint.name, q.positionToText(), q.directionToText()))

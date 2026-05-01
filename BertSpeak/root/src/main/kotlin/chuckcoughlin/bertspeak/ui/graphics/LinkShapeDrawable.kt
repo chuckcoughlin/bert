@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.Point2D
+import chuckcoughlin.bertspeak.data.Side
 
 
 /**
@@ -20,12 +21,12 @@ import chuckcoughlin.bertspeak.data.Point2D
  * except draw()
  */
 
- abstract class LinkShapeDrawable(j: Joint, point2:Point2D, limbSide:Side): Drawable() {
+ abstract class LinkShapeDrawable(j: Joint, point2:Point2D, limbSide: Side): Drawable() {
 	 val joint:Joint
 	 val isInside: Boolean
 	 val isTop:Boolean
 	 val p2:Point2D
-	 val side:Side
+	 val side: Side
 	 var selected:Boolean
 	 var selectable:Boolean
 	 private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG)

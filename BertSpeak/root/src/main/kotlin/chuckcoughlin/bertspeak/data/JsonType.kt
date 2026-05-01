@@ -23,6 +23,7 @@ enum class JsonType {
     FACE_NAMES,       // Names df people whom we know     MutableList<String>
     JOINT_COORDINATES,// x,y,z coordinates for each link  MutableList<JointPosition>
     JOINT_IDS,        // Motor id for each joint          MutableList<JointAttribute>
+    JOINT_LINKS,      // List of links in the skeleton   MutableList<JointLink>
     JOINT_NAMES,      // List of joint names              MutableList<String>
     JOINT_OFFSETS,    // Motor offset for each joint      MutableList<JointAttribute>
     JOINT_ORIENTATIONS, // Motor orientation for each joint MutableList<JointAttribute>
