@@ -83,7 +83,7 @@ object URDFModel {
                         if ("source".equals(node.localName)) {
                             val jname: String = XMLUtility.attributeValue(node, "joint")
                             val joint = Joint.fromString(jname)
-                            source = tree.getOrCreateJointPosition(joint)
+                            source = tree.getJointPosition(joint)
                         }
                         aindex++
                     }
@@ -94,7 +94,7 @@ object URDFModel {
                         if ("appendage".equals(node.localName) || "joint".equals(node.localName)) {
                             val aname: String = XMLUtility.attributeValue(node, "name")
                             val joint = Joint.fromString(aname)
-                            val jp = tree.getOrCreateJointPosition(joint)
+                            val jp = tree.getJointPosition(joint)
                             var home = 0.0
                             if(!"appendage".equals(node.localName) ) {
                                 home = XMLUtility.attributeValue(node, "home").toDouble()

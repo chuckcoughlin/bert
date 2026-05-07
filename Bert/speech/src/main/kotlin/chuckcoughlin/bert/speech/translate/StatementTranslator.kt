@@ -12,7 +12,6 @@ import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.syntax.SpeechSyntaxBaseVisitor
 import chuckcoughlin.bert.syntax.SpeechSyntaxParser
 import com.google.gson.GsonBuilder
-import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 
@@ -360,6 +359,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
     // where is your left foot
     override fun visitJointPositionQuestion(ctx: SpeechSyntaxParser.JointPositionQuestionContext): Any? {
         bottle.type = RequestType.GET_EXTREMITY_POSITION
+        if( ctx.Orientation()!=null) bottle.type = RequestType.GET_EXTREMITY_DIRECTION
         // If side or axis were set previously, use those jointValues as defaults
         var side = sharedDictionary[SharedKey.SIDE] as Side
         if (ctx.Side() != null) side = determineSide(ctx.Side().getText(), sharedDictionary)
@@ -514,7 +514,10 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         if(ctx.enumerate()!=null ) visit(ctx.enumerate())
         else bottle.type = RequestType.METRIC
         bottle.metric = MetricType.LIST
-        bottle.jtype = JsonType.JOINT_COORDINATES
+        if(ctx.Motor()!=null || ctx.Motors()!=null )
+            bottle.jtype = JsonType.JOINT_COORDINATES
+        else
+            bottle.jtype = JsonType.JOINT_LINKS
         if(DEBUG) LOGGER.info(String.format("%s.visitListPositions ... %s %s (%s)",CLSS,bottle.type.name,bottle.metric.name,bottle.jtype.name))
         return null
     }
@@ -848,8 +851,8 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
         }
         else if( joint!=Joint.NONE ) {  // Single joint
             val tree = URDFModel.createJointTree()
-            val jp = tree.getOrCreateJointPosition(joint)
-            // value = jp.home
+            val jp = tree.getJointPosition(joint)
+            //value = jp.
         }
         else {  // Move each joint in the limb
             bottle.type = RequestType.SET_JOINT_POSITIONS
@@ -858,7 +861,7 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
             val jointPositions = mutableListOf<JointPosition>()
             for( j in map.keys ) {
                 if( map[j]==bottle.limb ) {
-                    val pos = tree.getOrCreateJointPosition(joint)
+                    val pos = tree.getJointPosition(joint)
                     jointPositions.add(pos)
                 }
             }

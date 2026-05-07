@@ -37,7 +37,7 @@
 		<joint name="LEFT_HIP_X"
 			   xyz="22.5417390633466 0.0 0.0" rpy="0. 0. -90." home="180.0"/>
 		<joint name="ABS_Y"
-			   xyz="12.0 0.0 62.0"             rpy="0. 0. 0." home="0.0"/>
+			   xyz="-12.0 0.0 -62.0"             rpy="0. 0. 0." home="180.0"/>
 		<source joint="IMU" />
 	</link>
 	<link side="RIGHT">
@@ -96,7 +96,7 @@
 	</link>
 	<link side="FRONT">
 		<joint name="ABS_X"
-			   xyz="0.0 0.0 8.0" rpy="0.0 0.0 90.0" home="0.0"/>
+			   xyz="0.0 0.0 8.0" rpy="0.0 0.0 90.0" home="180.0"/>
 		<source joint="ABS_Y"/>
 	</link>
 	<link side="FRONT">
@@ -179,7 +179,7 @@
 	</link>
 	<link side="RIGHT">
 		<joint name="RIGHT_ELBOW_Y"
-			   xyz="-10.0 0.0 81.175" rpy="-90. 0. 0." home="0.0"/>
+			   xyz="10.0 0.0 -81.175" rpy="-90. 0. 0." home="180.0"/>
 		<source joint="RIGHT_SHOULDER_Z"/>
 	</link>
 	<link side="RIGHT" >

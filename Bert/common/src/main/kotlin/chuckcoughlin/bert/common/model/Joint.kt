@@ -106,17 +106,18 @@ enum class Joint {
                 RIGHT_SHOULDER_Y -> ans = false
                 RIGHT_SHOULDER_Z -> ans = false
                 // End effectors
-                LEFT_EAR -> ans = false
-                LEFT_EYE -> ans = false
-                LEFT_FINGER -> ans = false
-                LEFT_HEEL -> ans = false
-                LEFT_TOE -> ans = false
-                NOSE -> ans = false
-                RIGHT_EAR -> ans = false
-                RIGHT_EYE -> ans = false
-                RIGHT_FINGER -> ans = false
-                RIGHT_HEEL -> ans = false
-                RIGHT_TOE -> ans = false
+                LEFT_EAR -> ans = true
+                LEFT_EYE -> ans = true
+                LEFT_FINGER -> ans = true
+                LEFT_HEEL -> ans = true
+                LEFT_TOE -> ans = true
+                NOSE -> ans = true
+                RIGHT_EAR -> ans = true
+                RIGHT_EYE -> ans = true
+                RIGHT_FINGER -> ans = true
+                RIGHT_HEEL -> ans = true
+                RIGHT_TOE -> ans = true
+                //
                 NONE -> ans = false
             }
             return ans

@@ -26,7 +26,7 @@ object MotionPlanner {
             val joints = jointsForAppendage(request.joint)
             val tree = URDFModel.createJointTree()
             RobotModel.refreshTree(tree)
-            val current=tree.getOrCreateJointPosition(request.joint)
+            val current=tree.getJointPosition(request.joint)
             val goal=current.copy()
             val dir=Direction.fromString(request.text)
             val offset=request.values[0]

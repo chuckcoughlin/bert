@@ -37,30 +37,31 @@ import kotlin.system.exitProcess
 @DelicateCoroutinesApi
 class Dispatcher : Controller {
     // Communication channels
-    private val aiRequestChannel            : Channel<MessageBottle>    // Requests for internet
-    private val aiResponseChannel           : Channel<MessageBottle>    // Responses from internet
-    private val commandRequestChannel      : Channel<MessageBottle>    // Commands from network (Wi-Fi)
-    private val commandResponseChannel     : Channel<MessageBottle>    // Response to network (Wi-Fi)
-    private val fromInternalController     : Channel<MessageBottle>    // Internal (i.e. local)  controller
-    private val toInternalController       : Channel<MessageBottle>
-    private val mgcRequestChannel          : Channel<MessageBottle>    // Motor group controller
-    private val mgcResponseChannel         : Channel<MessageBottle>
-    private val stdinChannel               : Channel<MessageBottle>    // Requests from stdin
-    private val stdoutChannel              : Channel<MessageBottle>    // Responses to stdout
+    private val aiRequestChannel: Channel<MessageBottle>    // Requests for internet
+    private val aiResponseChannel: Channel<MessageBottle>    // Responses from internet
+    private val commandRequestChannel: Channel<MessageBottle>    // Commands from network (Wi-Fi)
+    private val commandResponseChannel: Channel<MessageBottle>    // Response to network (Wi-Fi)
+    private val fromInternalController: Channel<MessageBottle>    // Internal (i.e. local)  controller
+    private val toInternalController: Channel<MessageBottle>
+    private val mgcRequestChannel: Channel<MessageBottle>    // Motor group controller
+    private val mgcResponseChannel: Channel<MessageBottle>
+    private val stdinChannel: Channel<MessageBottle>    // Requests from stdin
+    private val stdoutChannel: Channel<MessageBottle>    // Responses to stdout
+
     // Controllers
-    private val aiController        : InternetController
-    private val commandController   : CommandController
-    private var internalController  : InternalController
+    private val aiController: InternetController
+    private val commandController: CommandController
+    private var internalController: InternalController
     private val motorGroupController: MotorGroupController
-    private var terminalController  : TerminalController
+    private var terminalController: TerminalController
 
     private val scope = GlobalScope // For long-running coroutines
     private val motorReadyMessage: MessageBottle
     private val internetReadyMessage: MessageBottle
-    private var running:Boolean
+    private var running: Boolean
     private val name: String
     private var cadence = 1000 // msecs
-    private var cycleCount= 0   // messages processed
+    private var cycleCount = 0   // messages processed
     private var cycleTime = 0.0 // msecs,    EWMA
     private var dutyCycle = 0.0 // fraction, EWMA
 
@@ -69,15 +70,15 @@ class Dispatcher : Controller {
      * The init{} block takes care of controller creation, but we start them here.
      */
     @DelicateCoroutinesApi
-    override suspend fun execute()  {
-        if(DEBUG) LOGGER.info(String.format("%s.execute: startup ...", CLSS))
-        if( !running ) {
+    override suspend fun execute() {
+        if (DEBUG) LOGGER.info(String.format("%s.execute: startup ...", CLSS))
+        if (!running) {
             running = true
-            if( RobotModel.useNetwork) {
+            if (RobotModel.useNetwork) {
                 commandController.execute()
                 aiController.execute()
             }
-            if( RobotModel.useTerminal) {
+            if (RobotModel.useTerminal) {
                 terminalController.execute()
             }
             internalController.execute()
@@ -85,7 +86,7 @@ class Dispatcher : Controller {
 
             // =================== Dispatch incoming messages and send to proper receivers =========================
             // Initiate the startup sequence. Obtain current positions and guarantee a sane state.
-            if(DEBUG) LOGGER.info(String.format("%s.execute: Launching startup sequence ...", CLSS))
+            if (DEBUG) LOGGER.info(String.format("%s.execute: Launching startup sequence ...", CLSS))
             scope.launch(Dispatchers.IO) {
                 withContext(Dispatchers.Default) {
                     initialize()
@@ -96,51 +97,53 @@ class Dispatcher : Controller {
             }
             // Loop forever handling command requests -----------
             runBlocking {
-                if(DEBUG) LOGGER.info(String.format("%s.execute: Launching receive message co-routine ...", CLSS))
+                if (DEBUG) LOGGER.info(String.format("%s.execute: Launching receive message co-routine ...", CLSS))
                 while (running) {
                     val startCycle = System.currentTimeMillis()
-                    if(DEBUG) LOGGER.info(String.format("%s.execute: Entering select for cycle %d ...", CLSS, cycleCount))
+                    if (DEBUG) LOGGER.info(String.format("%s.execute: Entering select for cycle %d ...",
+                        CLSS,
+                        cycleCount))
                     select<Unit> {
                         // Reply to the original requester when we get a result from the motor controller
                         // Also send a synchronization message to the internal controller freeing it to continue
                         mgcResponseChannel.onReceive {     // Handle a serial response
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: mgcResponseChannel receive %s(%s) from %s",
-                                CLSS, it.type.name,it.text,it.source))
+                            if (DEBUG) LOGGER.info(String.format("%s.execute: mgcResponseChannel receive %s(%s) from %s",
+                                CLSS, it.type.name, it.text, it.source))
                             toInternalController.send(motorReadyMessage)
                             replyToSource(it)
                         }
                         // When we get a response from the internal controller, dispatch the original request.
                         fromInternalController.onReceive { // The internal controller has completed
-                            if(DEBUG) {
-                                if(it.type==RequestType.EXECUTE_POSE) {
+                            if (DEBUG) {
+                                if (it.type == RequestType.EXECUTE_POSE) {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s(%s %2.0f) from %s",
-                                        CLSS, it.type.name,it.arg,it.values[0],it.source))
+                                        CLSS, it.type.name, it.arg, it.values[0], it.source))
                                 }
-                                else if(it.type==RequestType.INTERNET) {
+                                else if (it.type == RequestType.INTERNET) {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s (%s [%s])",
-                                        CLSS, it.type.name,it.text,it.error))
+                                        CLSS, it.type.name, it.text, it.error))
                                 }
-                                else if(it.type==RequestType.JSON) {
+                                else if (it.type == RequestType.JSON) {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s (%s)",
-                                        CLSS, it.type.name,it.jtype.name,it.error))
+                                        CLSS, it.type.name, it.jtype.name, it.error))
                                 }
                                 else {
                                     LOGGER.info(String.format("%s.execute: fromInternalController receive %s (%s) from %s",
-                                        CLSS, it.type.name,it.text,it.source))
+                                        CLSS, it.type.name, it.text, it.source))
                                 }
                             }
                             dispatchInternalResponse(it)
                         }
                         // A response has arrived from Chat GPT.
                         aiResponseChannel.onReceive {
-                            if(DEBUG) LOGGER.info(String.format("%s.execute: aiResponseChannel receive %s(%s) from %s",
-                                CLSS, it.type.name,it.text,it.source))
+                            if (DEBUG) LOGGER.info(String.format("%s.execute: aiResponseChannel receive %s(%s) from %s",
+                                CLSS, it.type.name, it.text, it.source))
                             toInternalController.send(internetReadyMessage)
                             replyToSource(it)
                         }
                         // The Command request channel contains requests that originate on the connected app (tablet)
                         commandRequestChannel.onReceive {
-                            if(DEBUG) {
+                            if (DEBUG) {
                                 if (it.type == RequestType.JSON)
                                     LOGGER.info(String.format("%s.execute: commandRequestChannel receive %s(%s) from %s",
                                         CLSS, it.type.name, it.jtype.name, it.source))
@@ -153,24 +156,28 @@ class Dispatcher : Controller {
                         }
                         // The Terminal stdin channel contains requests typed at the terminal
                         stdinChannel.onReceive {
-                            if(DEBUG) {
-                                if(it.type==RequestType.EXECUTE_POSE) {
+                            if (DEBUG) {
+                                if (it.type==RequestType.EXECUTE_POSE) {
                                     LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s %2.0f) from %s",
-                                        CLSS, it.type.name,it.arg,it.values[0],it.source))
+                                        CLSS, it.type.name, it.arg, it.values[0], it.source))
+                                }
+                                else if (it.type==RequestType.GET_EXTREMITY_DIRECTION || it.type==RequestType.GET_EXTREMITY_POSITION) {
+                                    LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
+                                        CLSS, it.type.name, it.joint.name, it.source))
                                 }
                                 else {
                                     LOGGER.info(String.format("%s.execute: stdinChannel receive %s(%s) from %s",
-                                        CLSS, it.type.name,it.text,it.source))
+                                        CLSS, it.type.name, it.text, it.source))
                                 }
                             }
                             dispatchCommandResponse(it)
                         }
                     }
                     cycleCount += 1
-                    val endCycle=System.currentTimeMillis()
-                    val elapsed=endCycle - startCycle
-                    cycleTime=exponentiallyWeightedMovingAverage(cycleTime, elapsed.toDouble())
-                    dutyCycle=exponentiallyWeightedMovingAverage(dutyCycle, elapsed.toDouble() / cadence)
+                    val endCycle = System.currentTimeMillis()
+                    val elapsed = endCycle - startCycle
+                    cycleTime = exponentiallyWeightedMovingAverage(cycleTime, elapsed.toDouble())
+                    dutyCycle = exponentiallyWeightedMovingAverage(dutyCycle, elapsed.toDouble() / cadence)
                 }
                 LOGGER.info(String.format("%s.execute: execution complete.", CLSS))
             }
@@ -183,9 +190,9 @@ class Dispatcher : Controller {
     // Send preliminary messages to ensure a sane starting configuration
     // When setting multiple joints at once, the value is the fraction of max
     private suspend fun initialize() {
-        if(DEBUG) LOGGER.info(String.format("%s.initialize: sending messages to establish sanity", CLSS))
+        if (DEBUG) LOGGER.info(String.format("%s.initialize: sending messages to establish sanity", CLSS))
         // Set the speed to "normal" rate.
-        var msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
+        var msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.SPEED
         msg.joint = Joint.NONE
         msg.values[0] = ConfigurationConstants.HALF_SPEED
@@ -193,7 +200,7 @@ class Dispatcher : Controller {
         toInternalController.send(msg)
 
         // Set the torque to maximum for all joints
-        msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
+        msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.TORQUE
         msg.joint = Joint.NONE
         msg.values[0] = ConfigurationConstants.FULL_TORQUE
@@ -201,7 +208,7 @@ class Dispatcher : Controller {
         toInternalController.send(msg)
 
         // Make sure that all motors are engaged
-        msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY )
+        msg = MessageBottle(RequestType.SET_MOTOR_PROPERTY)
         msg.jointDynamicProperty = JointDynamicProperty.STATE
         msg.joint = Joint.NONE
         msg.values[0] = ConfigurationConstants.ON_VALUE
@@ -234,18 +241,18 @@ class Dispatcher : Controller {
      *       even though we test for already closed before calling close.
      */
     override suspend fun shutdown() {
-        if(DEBUG) println(String.format("%s.shutdown: running = %s.", CLSS,if(running) "TRUE" else "FALSE"))
-        if( running ) {
+        if (DEBUG) println(String.format("%s.shutdown: running = %s.", CLSS, if (running) "TRUE" else "FALSE"))
+        if (running) {
             try {
                 motorGroupController.shutdown()
-                if(DEBUG) println(String.format("%s.shutdown: motors ...", CLSS))
+                if (DEBUG) println(String.format("%s.shutdown: motors ...", CLSS))
                 aiController.shutdown()
                 commandController.shutdown()
-                if(DEBUG) println(String.format("%s.shutdown: network connection ...", CLSS))
+                if (DEBUG) println(String.format("%s.shutdown: network connection ...", CLSS))
                 terminalController.shutdown()
-                if(DEBUG) println(String.format("%s.shutdown: terminal ...", CLSS))
+                if (DEBUG) println(String.format("%s.shutdown: terminal ...", CLSS))
                 internalController.shutdown()
-                if(DEBUG) println(String.format("%s.shutdown: internal controller ...", CLSS))
+                if (DEBUG) println(String.format("%s.shutdown: internal controller ...", CLSS))
                 Database.shutdown()
             }
             catch (e: Exception) {
@@ -256,39 +263,42 @@ class Dispatcher : Controller {
         }
         println(String.format("%s.shutdown: complete.", CLSS))
     }
+
     // ========================================= Helper Methods =======================================
     /**
      * Analyze an incoming message from the command (Wi-Fi) or terminal channels. Some requests
      * are handled immediately. Any motor requests are first passed to the internal controller to
      * handle delay or conflict issues.
      */
-    private suspend fun dispatchCommandResponse(msg : MessageBottle) {
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s",CLSS,msg.type.name,msg.source))
-        if(isLocalRequest(msg)) {
+    private suspend fun dispatchCommandResponse(msg: MessageBottle) {
+        if (DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s", CLSS, msg.type.name, msg.source))
+        if (isLocalRequest(msg)) {
             // Handle local request -create response unless type set to NONE
             //if(DEBUG) LOGGER.info(String.format("%s.dispatchCommandResponse %s is local (%s %s)",
             //        CLSS,msg.type.name,msg.jointDefinitionProperty.name,msg.jointDynamicProperty.name))
             val response: MessageBottle = handleLocalRequest(msg)
-            if( response.type!=RequestType.NONE &&
-                response.type!=RequestType.HANGUP  ) replyToSource(response)
+            if (response.type != RequestType.NONE &&
+                response.type != RequestType.HANGUP) replyToSource(response)
         }
         // Queue all internet requests
-        else if( msg.type== RequestType.INTERNET) {
+        else if (msg.type == RequestType.INTERNET) {
             toInternalController.send(msg)
         }
         // "motor" requests are those that need to be queued on the internal controller
         // and, perhaps preprocessed into multiple messages (by limb, for example)
         // before sending on to the MotorGroupController
-        else if( isMotorRequest(msg) ) {
+        else if (isMotorRequest(msg)) {
             toInternalController.send(msg)
         }
         else {
             LOGGER.info(String.format("%s.dispatchCommandResponse %s from %s is unhandled",
-                                        CLSS,msg.type.name,msg.source))
-            if( msg.type==RequestType.JSON)
-                msg.error = String.format("internal error, %s (%s) message is unhandled in dispatcher",msg.type.name,msg.jtype.name)
+                CLSS, msg.type.name, msg.source))
+            if (msg.type == RequestType.JSON)
+                msg.error = String.format("internal error, %s (%s) message is unhandled in dispatcher",
+                    msg.type.name,
+                    msg.jtype.name)
             else
-                msg.error = String.format("internal error, %s message is unhandled in dispatcher",msg.type.name)
+                msg.error = String.format("internal error, %s message is unhandled in dispatcher", msg.type.name)
             replyToSource(msg)
         }
     }
@@ -298,52 +308,51 @@ class Dispatcher : Controller {
      * resolved. Forward messages on to the motor controller. The source, presumeably has not been
      * altered from the command requests.
      */
-    private suspend fun dispatchInternalResponse(msg : MessageBottle) {
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s",CLSS,msg.type.name,msg.source))
+    private suspend fun dispatchInternalResponse(msg: MessageBottle) {
+        if (DEBUG) LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s", CLSS, msg.type.name, msg.source))
         // Send any requests with error messages directoy back to the requestor
-        if( !msg.error.equals(BottleConstants.NO_ERROR) ) {
+        if (!msg.error.equals(BottleConstants.NO_ERROR)) {
             replyToSource(msg)
         }
-        else if(msg.type== RequestType.EXECUTE_ACTION) {
+        else if (msg.type == RequestType.EXECUTE_ACTION) {
             toInternalController.send(motorReadyMessage)  // Execute Action is just a marker at this point
             replyToSource(msg)
             // If there is a follow-on action, then add it to the queue. Reuse original message
             val nextAction = Database.getFollowOnAction(msg.arg)
-            if(nextAction!=null) {
+            if (nextAction != null) {
                 msg.arg = nextAction
                 toInternalController.send(msg)
             }
         }
-        else if(isMotorRequest(msg)) {
+        else if (isMotorRequest(msg)) {
             mgcRequestChannel.send(msg)
         }
-        else if(msg.type==RequestType.INTERNET) {
+        else if (msg.type == RequestType.INTERNET) {
             aiRequestChannel.send(msg)
         }
-        else if(msg.type==RequestType.HEARTBEAT) {
+        else if (msg.type == RequestType.HEARTBEAT) {
             // Do nothing
         }
-        else if(msg.type==RequestType.JSON) {
-            if(commandController.connected) replyToSource(msg)  // Update animation
+        else if (msg.type == RequestType.JSON) {
+            if (commandController.connected) replyToSource(msg)  // Update animation
             toInternalController.send(motorReadyMessage)
         }
         else {
             LOGGER.info(String.format("%s.dispatchInternalResponse %s from %s is unhandled",
-                    CLSS,msg.type.name,msg.source))
-            msg.error = String.format("internal error, %s message was not handled by the dispatcher",msg.type.name)
+                CLSS, msg.type.name, msg.source))
+            msg.error = String.format("internal error, %s message was not handled by the dispatcher", msg.type.name)
             replyToSource(msg)
         }
     }
-
 
     // Create a response for a request that can be handled immediately, that is without
     // reference to the motors. The response is simply the original request
     // with altered text to return to the user.
     private fun handleLocalRequest(request: MessageBottle): MessageBottle {
-        if( request.error==BottleConstants.NO_ERROR) {
+        if (request.error == BottleConstants.NO_ERROR) {
             if (request.type == RequestType.COMMAND) {
                 val command = request.command
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
+                if (DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: command=%s", CLSS, command.name))
                 if (command == CommandType.CREATE_ACTION) {
                     val actName: String = request.arg.lowercase()
                     val series = request.text.lowercase()
@@ -353,9 +362,9 @@ class Dispatcher : Controller {
                 else if (command == CommandType.CREATE_NEXT_ACTION) {
                     val actName: String = request.arg.lowercase()
                     val followon = request.text.lowercase()
-                    if( Database.actionExists(actName) && Database.actionExists(followon)) {
+                    if (Database.actionExists(actName) && Database.actionExists(followon)) {
                         Database.defineNextAction(actName, followon)
-                        request.text=String.format("After %s run %s", actName, followon)
+                        request.text = String.format("After %s run %s", actName, followon)
                     }
                     else {
                         request.error = "Both actions $actName and $followon must exist in order to define a follow on"
@@ -372,13 +381,13 @@ class Dispatcher : Controller {
                     val name = request.arg
                     if (Database.actionExists(name)) {
                         val poses = Database.getPosesForAction(name)
-                        for( def in poses ) {
-                            Database.deletePose(def.name,def.index)
+                        for (def in poses) {
+                            Database.deletePose(def.name, def.index)
                         }
                         Database.deleteAction(name)
                         request.text = "I deleted action $name"
                     }
-                    else  {
+                    else {
                         request.error = "Action $name doesn't exist"
                     }
                 }
@@ -395,7 +404,7 @@ class Dispatcher : Controller {
                 // If the index is missing, delete all poses of the given name
                 else if (command == CommandType.DELETE_POSE) {
                     val name = request.arg
-                    if( request.values.size==0 ) {
+                    if (request.values.size == 0) {
                         Database.deletePose(name)
                     }
                     else {
@@ -407,11 +416,11 @@ class Dispatcher : Controller {
                 }
                 else if (command == CommandType.STOP_ACTION) {
                     val actName: String = request.arg.lowercase()
-                    if(Database.actionExists(actName) || Database.actionSeriesExists(actName)) {
+                    if (Database.actionExists(actName) || Database.actionSeriesExists(actName)) {
                         Database.stopAction(actName)
-                        request.text=String.format("Stop action %s", actName)
+                        request.text = String.format("Stop action %s", actName)
                     }
-                    else  {
+                    else {
                         request.error = "Action $actName doesn't exist"
                     }
                 }
@@ -435,54 +444,35 @@ class Dispatcher : Controller {
                         CLSS, request.command.name))
                 }
             }
-            // The following requests simply use the current positions of the motors, whatever they are
-            else if (request.type==RequestType.GET_EXTREMITY_DIRECTION) {
-                if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get direction appendage=%s joint=%s", CLSS, request.joint.name,request.joint.name))
-                var text:String
-                if( request.joint==Joint.NONE ) {
-                    val appendage = request.joint
-                    val xyz: DoubleArray = ForwardSolver.directionForJoint(appendage)
-                    text = String.format("my %s is aimed at %2.2f %2.2f %2.2f",
-                        appendage.name, xyz[0], xyz[1], xyz[2])
-                }
-                else {
-                    val joint = request.joint
-                    val xyz: DoubleArray = ForwardSolver.directionForJoint(joint)
-                    text = String.format(
-                        "My %s is oriented %2.2f and %2.2f degrees from the reference frame x and y axes, respectively",
-                        Joint.toText(joint), xyz[0], xyz[1])
-                }
-                request.text = text
+            // The orientation in degrees relative to the reference frame.
+            else if (request.type == RequestType.GET_EXTREMITY_DIRECTION) {
+                if (DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get direction joint=%s",
+                    CLSS, request.joint.name))
+                val appendage = request.joint
+                val direction: DoubleArray = ForwardSolver.currentDirectionForJoint(appendage)
+                request.text = String.format("my %s faces %2.2f %2.2f %2.2f degrees",
+                    appendage.name, direction[0], direction[1], direction[2])
+                request.values[0] = direction[0]
+                request.values[1] = direction[1]
+                request.values[2] = direction[2]
             }
-            // The location in physical coordinates from the center of the robot.
-            else if (request.type==RequestType.GET_EXTREMITY_POSITION) {
-                var text:String
-                if( request.joint==Joint.NONE ) {
-                    val appendage = request.joint
-                    val xyz: Point3D = ForwardSolver.positionForJoint(appendage)
-                    text = String.format("my %s is located at %2.2f %2.2f %2.2f millimeters",
-                        appendage.name, xyz.x, xyz.y, xyz.z)
-                    request.values[0] = xyz.x
-                    request.values[1] = xyz.y
-                    request.values[2] = xyz.z
-                    if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get appendage %s location = %s", CLSS,request.joint.name,text))
-                }
-                else {
-                    val joint = request.joint
-                    val xyz: Point3D = ForwardSolver.positionForJoint(joint)
-                    text = String.format(
-                        "My %s joint is at %2.2f %2.2f %2.2f millimeters",
-                        Joint.toText(joint), xyz.x, xyz.y, xyz.z)
-                    request.values[0] = xyz.x
-                    request.values[1] = xyz.y
-                    request.values[2] = xyz.z
-                    if(DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get joint %s location = %s", CLSS,request.joint.name,text))
-                }
+            else if (request.type == RequestType.GET_EXTREMITY_POSITION) {
+                val joint = request.joint
+                val xyz: Point3D = ForwardSolver.currentPositionForJoint(joint)
+                val text = String.format("My %s %s is at %2.2f %2.2f %2.2f millimeters",
+                    Joint.toText(joint), if (Joint.isEndEffector(joint)) "" else "joint", xyz.x, xyz.y, xyz.z)
+                request.values[0] = xyz.x
+                request.values[1] = xyz.y
+                request.values[2] = xyz.z
+                if (DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: get joint %s location = %s",
+                    CLSS, request.joint.name,text))
                 request.text = text
             }
             else if (request.type.equals(RequestType.METRIC)) {
-                if(DEBUG)LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS,
-                    if(request.metric==MetricType.LIST) String.format("%s (%s)",request.metric,request.jtype) else request.metric))
+                if (DEBUG) LOGGER.info(String.format("%s.handleLocalRequest: metric=%s", CLSS,
+                    if (request.metric == MetricType.LIST) String.format("%s (%s)",
+                        request.metric, request.jtype)
+                    else request.metric))
                 val metric: MetricType = request.metric
                 var text = ""
                 when (metric) {
@@ -510,30 +500,34 @@ class Dispatcher : Controller {
                             JsonType.END_EFFECTOR_NAMES -> text = "I have these end effectors:  " + Joint.endEffectorList()
                             JsonType.JOINT_NAMES -> text = "My joints are " + Joint.jointList()
                             JsonType.LIMB_NAMES -> text = "My limbs are " + Limb.nameList()
-                            JsonType.JOINT_COORDINATES -> text = "Joint positions are " + ForwardSolver.jointCoordinatesToJson()
+                            JsonType.JOINT_COORDINATES -> text = "Joint positions are " + ForwardSolver.currentJointCoordinatesToJson()
                             JsonType.JOINT_LINKS -> text = "Joint links are " + ForwardSolver.skeletonToJson()
                             JsonType.POSE_NAMES -> text = "I know poses " + Database.getPoseNames()
                             JsonType.ACTION_NAMES -> text = "I can " + Database.getActionNames()
-                            JsonType.JOINT_IDS          -> text = RobotModel.idsToJSON()
-                            JsonType.JOINT_OFFSETS      -> text = RobotModel.offsetsToJSON()
+                            JsonType.JOINT_IDS -> text = RobotModel.idsToJSON()
+                            JsonType.JOINT_OFFSETS -> text = RobotModel.offsetsToJSON()
                             JsonType.JOINT_ORIENTATIONS -> text = RobotModel.orientationsToJSON()
-                            JsonType.JOINT_ANGLES       -> text = RobotModel.anglesToJSON()
-                            JsonType.JOINT_SPEEDS       -> text = RobotModel.speedsToJSON()
-                            JsonType.JOINT_STATES       -> text = RobotModel.statesToJSON()
+                            JsonType.JOINT_ANGLES -> text = RobotModel.anglesToJSON()
+                            JsonType.JOINT_SPEEDS -> text = RobotModel.speedsToJSON()
+                            JsonType.JOINT_STATES -> text = RobotModel.statesToJSON()
                             JsonType.JOINT_TEMPERATURES -> text = RobotModel.temperaturesToJSON()
-                            JsonType.JOINT_TORQUES      -> text = RobotModel.torquesToJSON()
-                            JsonType.JOINT_VOLTAGES     -> text = RobotModel.voltagesToJSON()
-                            JsonType.JOINT_TYPES        -> text = RobotModel.typesToJSON()
-                            JsonType.MOTOR_GOALS         -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
-                            JsonType.MOTOR_LIMITS        -> text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
-                            JsonType.MOTOR_PROPERTIES    -> text = RobotModel.propertiesToJSON()
-                            JsonType.POSE_DETAILS        -> text = Database.poseDetailsToJSON(request.arg, request.values[0].roundToInt())
+                            JsonType.JOINT_TORQUES -> text = RobotModel.torquesToJSON()
+                            JsonType.JOINT_VOLTAGES -> text = RobotModel.voltagesToJSON()
+                            JsonType.JOINT_TYPES -> text = RobotModel.typesToJSON()
+                            JsonType.MOTOR_GOALS -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
+                            JsonType.MOTOR_LIMITS -> text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
+                            JsonType.MOTOR_PROPERTIES -> text = RobotModel.propertiesToJSON()
+                            JsonType.POSE_DETAILS -> text = Database.poseDetailsToJSON(request.arg,
+                                request.values[0].roundToInt())
+
                             else -> {
-                                request.error = String.format("unrecognized metric in list request (%s)",request.jtype.name)
+                                request.error = String.format("unrecognized metric in list request (%s)",
+                                    request.jtype.name)
                                 text = ""
                             }
                         }
                     }
+
                     else -> request.error = String.format("I can't get the value of %s", metric.name)
                 }
                 request.text = text
@@ -570,47 +564,49 @@ class Dispatcher : Controller {
                 }
                 else if (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMSPEED) {
                     request.text = String.format("The maximum speed of my %s is %2.0f degrees per second",
-                            Joint.toText(joint), mc.maxSpeed)
+                        Joint.toText(joint), mc.maxSpeed)
                 }
                 else if (request.jointDynamicProperty == JointDynamicProperty.MAXIMUMTORQUE) {
                     request.text = String.format("The maximum torque of my %s is %2.2f newton meters",
-                            Joint.toText(joint), mc.maxTorque)
+                        Joint.toText(joint), mc.maxTorque)
                 }
                 else if (request.jointDynamicProperty == JointDynamicProperty.RANGE) {
                     request.text = String.format("I can move my %s from %2.0f to %2.0f",
-                        Joint.toText(joint),mc.minAngle,mc.maxAngle)
+                        Joint.toText(joint), mc.minAngle, mc.maxAngle)
                 }
             }
             // List various entities
-            else if (request.type.equals(RequestType.JSON)) {
+            else if (request.type == RequestType.JSON) {
                 LOGGER.info(String.format("%s.handleLocalRequest: JSON type=%s", CLSS, request.jtype.name))
                 val jtype: JsonType = request.jtype
                 var text = ""
                 when (jtype) {
                     // List the names of different kinds of motor properties
                     JsonType.END_EFFECTOR_NAMES -> text = URDFModel.endEffectorNamesToJSON()
-                    JsonType.FACE_NAMES         -> text = Database.faceNamesToJSON()
-                    JsonType.JOINT_IDS          -> text = RobotModel.idsToJSON()
-                    JsonType.JOINT_NAMES        -> text = URDFModel.jointsToJSON()
-                    JsonType.JOINT_OFFSETS      -> text = RobotModel.offsetsToJSON()
+                    JsonType.FACE_NAMES -> text = Database.faceNamesToJSON()
+                    JsonType.JOINT_IDS -> text = RobotModel.idsToJSON()
+                    JsonType.JOINT_NAMES -> text = URDFModel.jointsToJSON()
+                    JsonType.JOINT_OFFSETS -> text = RobotModel.offsetsToJSON()
                     JsonType.JOINT_ORIENTATIONS -> text = RobotModel.orientationsToJSON()
-                    JsonType.JOINT_ANGLES       -> text = RobotModel.anglesToJSON()
-                    JsonType.JOINT_SPEEDS       -> text = RobotModel.speedsToJSON()
-                    JsonType.JOINT_STATES       -> text = RobotModel.statesToJSON()
+                    JsonType.JOINT_ANGLES -> text = RobotModel.anglesToJSON()
+                    JsonType.JOINT_SPEEDS -> text = RobotModel.speedsToJSON()
+                    JsonType.JOINT_STATES -> text = RobotModel.statesToJSON()
                     JsonType.JOINT_TEMPERATURES -> text = RobotModel.temperaturesToJSON()
-                    JsonType.JOINT_TORQUES      -> text = RobotModel.torquesToJSON()
-                    JsonType.JOINT_VOLTAGES     -> text = RobotModel.voltagesToJSON()
-                    JsonType.JOINT_TYPES        -> text = RobotModel.typesToJSON()
-                    JsonType.JOINT_COORDINATES  -> text = ForwardSolver.jointCoordinatesToJson()
-                    JsonType.JOINT_LINKS        -> text = ForwardSolver.skeletonToJson()
-                    JsonType.LIMB_NAMES         -> text = RobotModel.limbsToJSON()
+                    JsonType.JOINT_TORQUES -> text = RobotModel.torquesToJSON()
+                    JsonType.JOINT_VOLTAGES -> text = RobotModel.voltagesToJSON()
+                    JsonType.JOINT_TYPES -> text = RobotModel.typesToJSON()
+                    JsonType.JOINT_COORDINATES -> text = ForwardSolver.currentJointCoordinatesToJson()
+                    JsonType.JOINT_LINKS -> text = ForwardSolver.skeletonToJson()
+                    JsonType.LIMB_NAMES -> text = RobotModel.limbsToJSON()
                     JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.toJSON()
-                    JsonType.MOTOR_GOALS         -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
-                    JsonType.MOTOR_LIMITS        -> text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
-                    JsonType.MOTOR_PROPERTIES    -> text = RobotModel.propertiesToJSON()
+                    JsonType.MOTOR_GOALS -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
+                    JsonType.MOTOR_LIMITS -> text = "Dispatcher: error - resolve MOTOR_LIMITS in motor controller"
+                    JsonType.MOTOR_PROPERTIES -> text = RobotModel.propertiesToJSON()
                     JsonType.MOTOR_STATIC_PROPERTIES -> text = JointDefinitionProperty.toJSON()
-                    JsonType.POSE_DETAILS        -> text = Database.poseDetailsToJSON(request.arg, request.values[0].roundToInt())
-                    JsonType.POSE_NAMES          -> text = Database.poseNamesToJSON()
+                    JsonType.POSE_DETAILS -> text = Database.poseDetailsToJSON(request.arg,
+                        request.values[0].roundToInt())
+
+                    JsonType.POSE_NAMES -> text = Database.poseNamesToJSON()
                     else -> request.error = String.format("I can't get the names of %s", jtype.name)
                 }
                 request.text = text
@@ -638,7 +634,7 @@ class Dispatcher : Controller {
                 val mc = RobotModel.motorsByJoint[joint]!!
                 if (request.values[0] > mc.maxSpeed) {
                     request.error = String.format("I can only move my %s %2.0f degrees per second",
-                        Joint.toText(joint),mc.maxSpeed)
+                        Joint.toText(joint), mc.maxSpeed)
                 }
             }
             else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
@@ -646,8 +642,8 @@ class Dispatcher : Controller {
                 val joint = request.joint
                 val mc = RobotModel.motorsByJoint[joint]!!
                 if (request.values[0] > mc.maxTorque) {
-                    request.error = String.format("%s torque cannot exceed %2.0f newton meters ",Joint.toText(joint),
-                                                                        mc.maxTorque)
+                    request.error = String.format("%s torque cannot exceed %2.0f newton meters ", Joint.toText(joint),
+                        mc.maxTorque)
                 }
             }
             else if (request.type == RequestType.SET_MOTOR_PROPERTY &&
@@ -655,13 +651,15 @@ class Dispatcher : Controller {
                 request.error = String.format("load is a read only property")
             }
         }
+        else { // Error
+            LOGGER.info(String.format("%s.handleLocalRequest: %s error=%s", CLSS, request.type.name,request.error))
+        }
         return request
     }
 
-
     // Local requests are those that can be handled immediately
     // without forwarding to the motor controllers. This includes
-    // database queries, and some error conditions.
+    // database queries, solver requests and some error conditions.
     private fun isLocalRequest(request: MessageBottle): Boolean {
         if (request.type==RequestType.COMMAND ||
             request.type==RequestType.GET_EXTREMITY_DIRECTION||
