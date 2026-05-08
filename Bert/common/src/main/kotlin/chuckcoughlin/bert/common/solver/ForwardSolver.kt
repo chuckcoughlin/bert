@@ -45,13 +45,13 @@ object ForwardSolver {
     }
 
     fun directionForJoint(joint:Joint) : DoubleArray {
-        val jp = tree.getJointPosition(joint)
+        val jp = tree.computeJointPosition(joint)
         return jp.orientation
     }
 
 
     fun positionForJoint(joint:Joint) : Point3D {
-        val jp = tree.getJointPosition(joint)
+        val jp = tree.computeJointPosition(joint)
         return jp.pos
     }
 
