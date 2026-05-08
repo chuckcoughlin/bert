@@ -4,9 +4,6 @@
  */
 package chuckcoughlin.bert.common.model
 
-import chuckcoughlin.bert.common.math.Quaternion
-import java.util.logging.Logger
-
 /**
  * A link is a skeletal structure beginning with a source joint and ending
  * with either another joint or end effector. Values are static (except for theta).
@@ -44,7 +41,7 @@ class JointLink(source:Joint,end:Joint)  {
         coordinates[2] = z
     }
 
-    fun setJointAngle(angle:Double) {
+    fun updateJointAngle(angle:Double) {
         theta = angle
     }
 

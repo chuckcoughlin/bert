@@ -9,8 +9,9 @@ import java.util.logging.Logger
 
 /**
  * This class handles forward kinetics calculations for the robot.
- * The calculations always apply to the current physical position
- * of the motors.
+ * Methods are supplied that apply to the current physical position
+ * of the motors. Otherwise, lower-level access allows the user to
+ * configure the tree position separately.
  *
  * The URDFModel has defined the tree of links which make up the robot
  * skeleton. A link has a source joint and an end joint.
@@ -27,37 +28,45 @@ object ForwardSolver {
         tree.setJointsToCurrent()
         return positionForJoint(joint)
     }
+    /**
+     * Generate a Json description of the current joint positions
+     */
+    fun currentJointCoordinatesToJson():String {
+        tree.setJointsToCurrent()
+        return jointCoordinatesToJson()
+    }
+
+    /**
+     * Generate a Json description of the current joint links
+     */
+    fun currentJointLinksToJson():String {
+        tree.setJointsToCurrent()
+        return jointLinksToJson()
+    }
 
     fun directionForJoint(joint:Joint) : DoubleArray {
-        tree.updateJointPositions()
-
         val jp = tree.getJointPosition(joint)
         return jp.orientation
     }
 
 
     fun positionForJoint(joint:Joint) : Point3D {
-        tree.updateJointPositions()
         val jp = tree.getJointPosition(joint)
         return jp.pos
     }
 
     /**
-     * Generate a Json description of the current joint positions
+     * Generate a Json description joint positions in the tree
      */
     fun jointCoordinatesToJson():String {
-        tree.updateJointPositions()
-        tree.refreshTree()
         return tree.jointCoordinatesToJson()
     }
 
     /**
-     * Generate a Json description of the current joint links
+     * Generate a Json description of the tree skeleton
      */
     fun jointLinksToJson():String {
-        tree.updateJointPositions()
-        tree.refreshTree()
-        return tree.treeToJson()
+        return tree.jointLinksToJson()
     }
 
 

@@ -7,7 +7,7 @@ package chuckcoughlin.bert.common.model
 import chuckcoughlin.bert.common.math.Quaternion
 
 /**
- * Current position and orientation of a joint or end-effector in 3 space.
+ * Position and orientation of a joint or end-effector in 3 space
  * with respect to the root of the robot inertial coordinate system.
  * Each JointTree has a complete and separate set of these objects.
  * All angles in degrees

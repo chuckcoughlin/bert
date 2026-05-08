@@ -25,7 +25,7 @@ object MotionPlanner {
         if( request.error==BottleConstants.NO_ERROR ) {
             val joints = jointsForAppendage(request.joint)
             val tree = URDFModel.createJointTree()
-            RobotModel.refreshTree(tree)
+            tree.setJointsToCurrent()
             val current=tree.getJointPosition(request.joint)
             val goal=current.copy()
             val dir=Direction.fromString(request.text)

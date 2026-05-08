@@ -434,30 +434,6 @@ object RobotModel {
         }
         return gson.toJson(motorValues)
     }
-    /*
-     * Populate a chain of joint links with current motor angles.
-     */
-    fun refreshChain(chain:List<JointLink>) {
-        for (jlink in chain) {
-            //val joint = jlink.basic.endJoint
-            val joint = Joint.NONE
-            val mc = motorsByJoint.get(joint)!!
-            //jlink.updateForMotorAngle(mc.angle)
-            //jlink.recalculate()
-        }
-    }
-    /*
-     * Populate an entire tree with current motor angles
-     */
-    fun refreshTree(tree: JointTree) {
-        for (jlink in tree.linkmap.values) {
-            //val joint = jlink.basic.sourceJoint
-            val joint = Joint.NONE
-            val mc = motorsByJoint.get(joint)!!
-            //jlink.updateForMotorAngle(mc.angle)
-            // jlink.recalculate()
-        }
-    }
 
     private val CLSS = "RobotModel"
     private var DEBUG = false

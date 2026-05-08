@@ -13,29 +13,92 @@ import java.util.logging.Logger
  * Retain a tree of linked joint positions. Each joint is
  * associated with a quaternion for computing 3D co-ordinates.
  *
- * Recalculate -> recompute joint positions in 3D space
- * Refresh     -> update the joint angle
+ * Calculate    -> recompute joint positions in 3D space
+ * Update       -> refresh the joint angle
  */
 class JointTree() {
     val posmap: MutableMap<Joint, JointPosition>
     val linkmap: MutableMap<Joint, JointLink>  // Key = endJoint
     val linkSequence: MutableList<JointLink>
 
+    /**
+     * Update the position and orientation of a joint and all
+     * prior joints in the chain from the IMU. We assume that the joint angles for
+     * every joint from the specified joint to the root have been preset
+     */
+    fun computeJointPosition(joint:Joint) : JointPosition {
+        val chain = createLinkChain(joint)
+        var jp = JointPosition()
+        if(chain.lastIndex>=0 ) {
+            computeJointPositionsInChain(chain)
+            val link = chain[chain.lastIndex]
+            jp = getJointPosition(link.endJoint)
+        }
+        else {
+            LOGGER.warning(String.format("%s.computeJointPosition: %s has no joints in chain",
+                    CLSS, joint.name))
+        }
+        return jp
+    }
+    /**
+     * Iterate over all end-effectors, creating link chains.
+     * In doing so we include all joints in at least one chain.
+     */
+    fun computeJointPositions() {
+        if (DEBUG) LOGGER.info(String.format("%s.updateJointPositions ...",CLSS))
+        val joints = mutableListOf<Joint>()
+        for (joint in posmap.keys) {
+            joints.add(joint)
+        }
+        for(joint in joints) {
+            if(Joint.isEndEffector(joint) ) {
+                if (DEBUG) LOGGER.info(String.format("%s.updateJointPositions at %s",CLSS,joint))
+                val chain = createLinkChain(joint)
+                for( link in chain ) {
+                    computeJointPositionsInChain(chain)
+                }
+            }
+        }
+    }
+    /**
+     * Update the link coordinates and orientation in the supplied chain.  Multiply
+     * quaternion matrices to get final position. The final position includes the
+     * x,y,z position of the end effector with the orientation of the attached link.
+     * This also updates the joint position corresponding to the end joint.
+     */
+    fun computeJointPositionsInChain(subchain: List<JointLink>) {
+        // Start with any oriention of the IMU
+        var root = getJointPosition(Joint.IMU)
+        var q = Quaternion.rotationQuaternion(root)
+        for(link in subchain) {
+            val jp1 = getJointPosition(link.sourceJoint)
+            val jp2 = getJointPosition(link.endJoint)
+            // Rotate around the source, then translate to the end joint
+            val q1 = Quaternion.rotationQuaternion(link)
+            val q2 = Quaternion.translationQuaternion(link)
+            q = q.postMultiplyBy(q1).postMultiplyBy(q2)
+            q.updatePosition(jp2)
+            if (DEBUG) {
+                LOGGER.info(String.format("%s.computeJointPositionsInChain: %s -  %s = (%s|%s) ",
+                        CLSS, jp1.joint.name, jp2.joint.name, q.positionToText(), q.directionToText()))
+                //LOGGER.info(q.dump(jp2.joint.name))
+            }
+        }
+    }
     fun createJointLink(source:Joint,joint:Joint) : JointLink {
         LOGGER.info(String.format("%s.createJointLink: %s to %s",CLSS,source.name,joint.name))
         val jlink = JointLink(source,joint)
         linkmap.put(joint, jlink)
         return jlink
     }
-
     /**
      * Work back toward the root link beginning with the indicated joint or
      * end effector. The chain starts with the link from root to next joint.
      *
-     * @param joint, name of the source.
+     * @param j, name of the source joint.
      * @return a linked list of JointLinks
      */
-    fun createLinkChain(j: Joint): List<JointLink> {
+     fun createLinkChain(j: Joint): List<JointLink> {
         val chain: LinkedList<JointLink> = LinkedList<JointLink>()
         var joint = j
         while(joint!=Joint.NONE) {
@@ -44,7 +107,6 @@ class JointTree() {
             if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserted %s",CLSS,j.name,joint.name))
             joint = jlink.sourceJoint
         }
-
         return chain
     }
     /**
@@ -61,9 +123,8 @@ class JointTree() {
             list = subsequentLinks(list)
         }
     }
-
-    // The URDFModel carefully creates links in order so that
-    // no links are actually created here.
+    // The URDFModel carefully creates a link for each joint.
+    // No links should be created here.
     fun getJointLink(end:Joint) : JointLink {
         var jlink = linkmap.get(end)
         if( jlink ==null ) {
@@ -84,7 +145,7 @@ class JointTree() {
      * The result parent must be updated if "NONE" is inappropriate.
      */
     fun getJointPosition(joint:Joint) : JointPosition {
-        // LOGGER.info(String.format("%s.getJointPositionByName: %s",CLSS,name))
+        // LOGGER.info(String.format("%s.getJointPosition: %s",CLSS,name))
         var jp = posmap.get(joint)
         if(jp==null) {
             jp = JointPosition()
@@ -110,6 +171,14 @@ class JointTree() {
         return gson.toJson(listJointPositions())
     }
 
+    /**
+     * The tree is simply an unordered list of basic joint links.
+     * NOTE: It appears that classes with LOGGERs cannot be serialized.
+     */
+    fun jointLinksToJson() :String {
+        val gson = GsonBuilder().create()
+        return gson.toJson(linkSequence)
+    }
     fun listJointPositions() : List<JointPosition> {
         val list = mutableListOf<JointPosition>()
         for(jp in posmap.values) {
@@ -119,36 +188,7 @@ class JointTree() {
     }
 
     /**
-     * Update the position and orientation of all joints in the tree
-     */
-    fun refreshTree()  {
-        // Update chains to every end effector. This will cover the
-        // entire tree, with come overlap
-        for (joint in posmap.keys) {
-            if (Joint.isEndEffector(joint)) refreshJointPosition(joint)
-        }
-    }
-    /**
-     * Update the position and orientation of a joint and all
-     * prior joints in the chain from the IMU. We assume that the joint angles for
-     * every joint from the specified joint to the root have been preset
-     */
-    fun refreshJointPosition(joint:Joint) : JointPosition {
-        val chain = createLinkChain(joint)
-        var jp = JointPosition()
-        if(chain.lastIndex>=0 ) {
-            updateJointsInChain(chain)
-            val link = chain[chain.lastIndex]
-            jp = getJointPosition(link.endJoint)
-        }
-        else {
-            LOGGER.warning(String.format("%s.refreshJointPosition: %s has no joints in chain",
-                CLSS, joint.name))
-        }
-        return jp
-    }
-    /**
-     * Populate all joints in the tree to their
+     * Populate all links in the tree to their
      * current physical angle.
      */
     fun setJointsToCurrent() {
@@ -156,13 +196,12 @@ class JointTree() {
             if( link.sourceJoint==Joint.IMU ) continue
             if( link.sourceJoint==Joint.NONE ) continue
             val mc = RobotModel.motorsByJoint[link.sourceJoint]!!
-            link.setJointAngle(mc.angle)
+            link.updateJointAngle(mc.angle)
             if (DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s = %f2.0",CLSS,link.endJoint.name,mc.angle))
         }
     }
-
     /**
-     * Populate all joints in the tree to their
+     * Populate all links in the tree to their
      * home angle. This is presumably the "straight" position.
      * Initialize the root position.
      */
@@ -170,7 +209,7 @@ class JointTree() {
         val root = getJointPosition(Joint.IMU)
         root.setOrientation(0.0,0.0,0.0)
         for (jlink in linkmap.values) {
-            jlink.setJointAngle(jlink.home)
+            jlink.updateJointAngle(jlink.home)
         }
     }
 
@@ -182,63 +221,9 @@ class JointTree() {
             CLSS,jp.joint.name))
     }
 
-    /**
-     * The tree is simply an unordered list of basic joint links.
-     * NOTE: It appears that classes with LOGGERs cannot be serialized.
-     */
-    fun treeToJson() :String {
-        val gson = GsonBuilder().create()
-        return gson.toJson(linkSequence)
-    }
 
 
 
-    /**
-     * Update the link coordinates and orientation in the supplied chain.  Multiply
-     * quaternion matrices to get final position. The final position includes the
-     * x,y,z position of the end effector with the orientation of the attached link.
-     * This also updates the joint position corresponding to the end joint.
-     */
-    fun updateJointsInChain(subchain: List<JointLink>) {
-        // Start with any oriention of the IMU
-        var root = getJointPosition(Joint.IMU)
-        var q = Quaternion.rotationQuaternion(root)
-        for(link in subchain) {
-            val jp1 = getJointPosition(link.sourceJoint)
-            val jp2 = getJointPosition(link.endJoint)
-            // Rotate around the source, then translate to the end joint
-            val q1 = Quaternion.rotationQuaternion(link)
-            val q2 = Quaternion.translationQuaternion(link)
-            q = q.postMultiplyBy(q1).postMultiplyBy(q2)
-            q.updatePosition(jp2)
-            if (DEBUG) {
-                LOGGER.info(String.format("%s.updateJointsInChain: %s -  %s = (%s|%s) ",
-                        CLSS, jp1.joint.name, jp2.joint.name, q.positionToText(), q.directionToText()))
-                //LOGGER.info(q.dump(jp2.joint.name))
-            }
-        }
-    }
-
-    /**
-     * Iterate over all end-effectors, creating link chains.
-     * In doing so we include all joints in at least one chain.
-     */
-    fun updateJointPositions() {
-        if (DEBUG) LOGGER.info(String.format("%s.updateJointPositions ...",CLSS))
-        val joints = mutableListOf<Joint>()
-        for (joint in posmap.keys) {
-            joints.add(joint)
-        }
-        for(joint in joints) {
-            if(Joint.isEndEffector(joint) ) {
-                if (DEBUG) LOGGER.info(String.format("%s.updateJointPositions at %s",CLSS,joint))
-                val chain = createLinkChain(joint)
-                for( link in chain ) {
-                    updateJointsInChain(chain)
-                }
-            }
-        }
-    }
     /*
      * Populate all joint links for a specified limb to their
      * home angle. This is presuneably the "straight" position.
@@ -249,7 +234,7 @@ class JointTree() {
             val jlimb = RobotModel.limbsByJoint[joint]
             if( jlimb!=null && jlimb!=Limb.NONE && jlimb==limb ) {
                 val jp = posmap.get(joint)
-                if(jp!=null) jlink.setJointAngle(jlink.home)
+                if(jp!=null) jlink.updateJointAngle(jlink.home)
             }
         }
     }
@@ -268,12 +253,15 @@ class JointTree() {
         return copy
     }
 
-    //--------------------------
+    //-------------------------------------------------------------------
     private fun addLinksToSequence(list:List<JointLink>) {
         for(jlink in list) {
             linkSequence.add(jlink)
         }
     }
+
+
+
     private fun subsequentLinks(links:List<JointLink>):MutableList<JointLink> {
         val list = mutableListOf<JointLink>()
         for(link in links) {

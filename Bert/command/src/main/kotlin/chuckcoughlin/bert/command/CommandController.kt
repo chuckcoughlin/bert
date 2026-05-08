@@ -249,7 +249,7 @@ class CommandController(req : Channel<MessageBottle>,rsp: Channel<MessageBottle>
         var text = String.format("%s:%s",MessageType.ANS.name,startMessage)
         handler.sendText(text)
         // Transmit the skeletal structure
-        val skeleton = TextUtility.stripNewLines(ForwardSolver.tree.treeToJson() )
+        val skeleton = TextUtility.stripNewLines(ForwardSolver.currentJointLinksToJson() )
         text = String.format("%s:%s#%s",MessageType.JSN.name,JsonType.JOINT_LINKS.name,skeleton)
         handler.sendText(text)
     }
