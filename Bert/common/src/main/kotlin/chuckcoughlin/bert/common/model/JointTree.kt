@@ -53,10 +53,7 @@ class JointTree() {
         for(joint in joints) {
             if(Joint.isEndEffector(joint) ) {
                 if (DEBUG) LOGGER.info(String.format("%s.updateJointPositions at %s",CLSS,joint))
-                val chain = createLinkChain(joint)
-                for( link in chain ) {
-                    computeJointPositionsInChain(chain)
-                }
+                computeJointPosition(joint)
             }
         }
     }
@@ -189,15 +186,20 @@ class JointTree() {
 
     /**
      * Populate all links in the tree to their
-     * current physical angle.
+     * current physical angle. The angle refers to the angle of the source joint
+     * to position the end joint.
      */
     fun setJointsToCurrent() {
         for (link in linkmap.values) {
-            if( link.sourceJoint==Joint.IMU ) continue
             if( link.sourceJoint==Joint.NONE ) continue
-            val mc = RobotModel.motorsByJoint[link.sourceJoint]!!
-            link.updateJointAngle(mc.angle)
-            if (DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s = %f2.0",CLSS,link.endJoint.name,mc.angle))
+            val mc = RobotModel.motorsByJoint[link.endJoint]
+            if( mc==null ) {   // Will be missing for endEffectors
+                LOGGER.info(String.format("%s.setJointsToCurrent: Missing link %s -> %s ...",CLSS,link.sourceJoint.name,link.endJoint.name))
+            }
+            else {
+                link.updateJointAngle(mc.angle)
+                if (DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = %f2.0", CLSS,link.sourceJoint.name,link.endJoint.name, mc.angle))
+            }
         }
     }
     /**

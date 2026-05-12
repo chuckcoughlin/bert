@@ -29,7 +29,7 @@ class JointLink(source:Joint,end:Joint)  {
     val sourceJoint:Joint
     var home:Double
     var side:String
-    var theta:Double
+    var theta:Double  // Angle of source joint
 
     // These are the physical fixed distances between source
     // and end joint from the URDF file. The joint angle

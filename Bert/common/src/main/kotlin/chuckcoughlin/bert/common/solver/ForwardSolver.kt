@@ -33,6 +33,7 @@ object ForwardSolver {
      */
     fun currentJointCoordinatesToJson():String {
         tree.setJointsToCurrent()
+        tree.computeJointPositions()
         return jointCoordinatesToJson()
     }
 
@@ -41,6 +42,7 @@ object ForwardSolver {
      */
     fun currentJointLinksToJson():String {
         tree.setJointsToCurrent()
+        tree.computeJointPositions()
         return jointLinksToJson()
     }
 
