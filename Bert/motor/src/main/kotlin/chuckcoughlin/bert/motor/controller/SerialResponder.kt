@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2024. Charles Coughlin. All Rights Reserved.
+ * Copyright 2019-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  *
  */
@@ -90,6 +90,7 @@ class SerialResponder(nam:String,req: Channel<MessageBottle>,rsp:Channel<Message
                             CLSS, name, joint.name, responseCount, param) )
                     }
                 }
+                // The request doesn't return status. We assumed success when we issued the command.
                 else {
                     responseCount = runBlocking{request.control.decrementResponseCountForController(name)}
                 }

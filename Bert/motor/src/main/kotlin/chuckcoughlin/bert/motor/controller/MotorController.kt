@@ -12,7 +12,6 @@ import chuckcoughlin.bert.common.message.MessageBottle
 import chuckcoughlin.bert.common.message.RequestType
 import chuckcoughlin.bert.common.model.*
 import chuckcoughlin.bert.motor.dynamixel.DxlMessage
-import chuckcoughlin.bert.motor.dynamixel.DxlMessage.LOGGER
 import chuckcoughlin.bert.sql.db.Database
 import chuckcoughlin.bert.sql.db.SQLConstants
 import com.google.gson.Gson
@@ -37,6 +36,7 @@ import java.util.logging.Logger
  *
  * Since the same request object is processed in parallel by multiple MotorControl
  * and SerialResponder objects, it is imperative that any object updates be synchronized.
+ * We must also make sure the MotorController values are updated with each change.
  *
  * @param p - the serial port shared by the motors under control
  * @param req - channel for requests from the parent (motor manager)
@@ -304,10 +304,11 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             val configs=configurationsForLimb(limb)
 
             for (mc in configs.values) {
-                mc.setDynamicProperty(prop, value)
+                mc.setDynamicPropertyGoal(prop, value)
+                mc.setDynamicProperty(prop, value)      // Assume success of motor reaching target
             }
+            // ASYNC WRITE, no response. Let source set text
             bytes=DxlMessage.byteArrayToSetProperty(configs, prop) // Returns null if limb not on this controller
-            // ASYNC WRITE, no response. Let source set text.
             var enabled=true
             if(value < ConfigurationConstants.ON_VALUE) enabled=false
             request.text=String.format("My %s is %s", Limb.toText(limb),
@@ -342,6 +343,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.text = String.format("all motion will be %2.0f percent of maximum speed", 100.0*value)
             for (mc in configurationsByJoint.values) {
                 mc.goalSpeed = mc.maxSpeed*value
+                mc.speed = mc.goalSpeed
             }
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.SPEED)
         }
@@ -356,6 +358,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             request.text = String.format("All motors are set to %2.0f percent of maximum torque", 100.0*value)
             for (mc in configurationsByJoint.values) {
                 mc.goalTorque = mc.maxTorque*value
+                mc.torque = mc.goalTorque
             }
             bytes = DxlMessage.byteArrayToSetProperty(configurationsByJoint,JointDynamicProperty.TORQUE)
         }
@@ -372,10 +375,12 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             // Note that this text is over-ridden with the response to the request.
             if (prop.equals(JointDynamicProperty.ANGLE) ) {
                 mc.goalAngle = value
+                mc.angle = mc.goalAngle
                 request.text = String.format("Setting my %s to %.0f degrees", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.SPEED) ) {
                 mc.goalSpeed = value
+                mc.speed = mc.goalSpeed
                 request.text = String.format("Setting my %s speed to %2.0f degrees per second", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.STATE) ) {
@@ -387,6 +392,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             }
             else if (prop.equals(JointDynamicProperty.TORQUE) ) {
                 mc.goalTorque = value
+                mc.torque = mc.goalTorque
                 request.text = String.format("Setting my %s torque to %2.2f newton meters", Joint.toText(mc.joint),value)
             }
             else if (prop.equals(JointDynamicProperty.RANGE) ) {
@@ -440,6 +446,7 @@ class MotorController(name:String,p:SerialPort,req: Channel<MessageBottle>,rsp:C
             list = DxlMessage.byteArrayListToInitializePositions(configurationsByJoint)
             for (mc in configurationsByJoint.values) {
                 mc.goalTorque = ConfigurationConstants.FULL_TORQUE*mc.maxTorque
+                mc.torque = mc.goalTorque
             }
         }
         // One motor, all motors or all on a limb - one response per motor

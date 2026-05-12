@@ -92,12 +92,14 @@ object DxlMessage {
             var index = 7
             for (mc in outliers) {
                 LOGGER.info(String.format("%s.byteArrayListToInitializePositions: set position for %s to %2.1f",
-                        CLSS,mc.joint.name,mc.angle))
+                        CLSS,mc.joint.name,mc.goalAngle))
                 val dxlValue = DxlConversions.dxlValueForProperty(JointDynamicProperty.ANGLE, mc, mc.goalAngle)
                 bytes[index] = mc.id.toByte()
                 bytes[index + 1] = (dxlValue and 0xFF).toByte()
                 bytes[index + 2] = (dxlValue shr 8).toByte()
                 index = index + 3
+
+                mc.angle = mc.goalAngle
             }
             setChecksum(bytes)
             messages.add(bytes)
@@ -244,6 +246,8 @@ object DxlMessage {
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                     index = index + 3
+
+                    mc.torque = mc.goalTorque
                 }
             }
             if( index>7 ) {
@@ -270,6 +274,8 @@ object DxlMessage {
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                     index = index + 3
+
+                    mc.speed = mc.goalSpeed
                 }
             }
             if( index>7 ) {
@@ -333,6 +339,8 @@ object DxlMessage {
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                     index = index + 3
+
+                    mc.angle = mc.goalAngle
                 }
             }
             if( motors.size>0 ) {
@@ -372,6 +380,8 @@ object DxlMessage {
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                     index = index + 3
+
+                    mc.torque = mc.goalTorque
                 }
             }
             if (index > 7) {
@@ -396,6 +406,8 @@ object DxlMessage {
                     bytes[index + 1] = (dxlValue and 0xFF).toByte()
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                     index = index + 3
+
+                    mc.speed = mc.goalSpeed
                 }
             }
             if (index > 7) {
@@ -454,6 +466,7 @@ object DxlMessage {
                     bytes[index + 2] = (dxlValue shr 8).toByte()
                     index = index + 3
                 }
+                mc.angle = mc.goalAngle
             }
             if (motors.size > 0) {
                 setChecksum(bytes)
