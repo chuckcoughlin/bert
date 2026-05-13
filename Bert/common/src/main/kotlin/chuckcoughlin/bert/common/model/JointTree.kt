@@ -191,14 +191,21 @@ class JointTree() {
      */
     fun setJointsToCurrent() {
         for (link in linkmap.values) {
-            if( link.sourceJoint==Joint.NONE ) continue
-            val mc = RobotModel.motorsByJoint[link.endJoint]
-            if( mc==null ) {   // Will be missing for endEffectors
-                LOGGER.info(String.format("%s.setJointsToCurrent: Missing link %s -> %s ...",CLSS,link.sourceJoint.name,link.endJoint.name))
+            if( link.sourceJoint==Joint.IMU ) {
+                // IMU angle is fixed at 180
+                link.updateJointAngle(180.0)
             }
-            else {
-                link.updateJointAngle(mc.angle)
-                if (DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = %f2.0", CLSS,link.sourceJoint.name,link.endJoint.name, mc.angle))
+            else if(link.sourceJoint!=Joint.NONE) {
+                val mc = RobotModel.motorsByJoint[link.endJoint]
+                if (mc == null) {   // Will be missing for endEffectors
+                    LOGGER.info(String.format("%s.setJointsToCurrent: Missing link %s -> %s ...",CLSS,
+                        link.sourceJoint.name, link.endJoint.name))
+                }
+                else {
+                    link.updateJointAngle(mc.angle)
+                    if (DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = %f2.0", CLSS,
+                        link.sourceJoint.name, link.endJoint.name, mc.angle))
+                }
             }
         }
     }
