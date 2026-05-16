@@ -43,8 +43,7 @@ object URDFModel {
      */
     private fun analyzeChain() {
         if (document != null) {
-            var origin = JointPosition()
-            origin.joint = Joint.IMU
+            var origin = tree.getJointPosition(Joint.IMU)
             origin.setPosition(0.0,0.0,0.0)
             origin.setOrientation(0.0,0.0,0.0)
             // ================================== IMU ===============================================

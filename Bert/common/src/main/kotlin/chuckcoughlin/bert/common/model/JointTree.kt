@@ -152,16 +152,6 @@ class JointTree() {
         return jp
     }
 
-    /**
-     * @return the parent joint position. If the position
-     *         does not exist, return the origin.
-     */
-    fun getParent(jp:JointPosition) : JointPosition {
-        // val jlink = getOrCreateJointLink(jp.joint)
-        //return getOrCreateJointPosition(jlink.basic.sourceJoint)
-        return getJointPosition(jp.joint)
-    }
-
 
     fun jointCoordinatesToJson() :String {
         val gson = GsonBuilder().create()
@@ -197,7 +187,7 @@ class JointTree() {
             }
             else if(link.sourceJoint!=Joint.NONE) {
                 val mc = RobotModel.motorsByJoint[link.endJoint]
-                if (mc == null) {   // Will be missing for endEffectors
+                if (mc == null) {
                     LOGGER.info(String.format("%s.setJointsToCurrent: Missing link %s -> %s ...",CLSS,
                         link.sourceJoint.name, link.endJoint.name))
                 }
@@ -229,9 +219,6 @@ class JointTree() {
         LOGGER.info(String.format("%s.setOrigin: %s",
             CLSS,jp.joint.name))
     }
-
-
-
 
     /*
      * Populate all joint links for a specified limb to their
