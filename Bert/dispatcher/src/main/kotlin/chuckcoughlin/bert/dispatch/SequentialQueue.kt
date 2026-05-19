@@ -12,6 +12,7 @@ import chuckcoughlin.bert.motor.dynamixel.DxlConversions.velocity
 import chuckcoughlin.bert.sql.db.Database
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import java.awt.SystemColor.text
 import java.util.*
 import java.util.logging.Logger
 
@@ -66,6 +67,7 @@ class SequentialQueue(sender:Channel<MessageBottle>) : LinkedList<MessageBottle>
         }
         else {
             super.addLast(msg)
+            if(DEBUG) LOGGER.info(String.format("%s.addLast: queued %s.", CLSS,msg.type.name))
         }
     }
 

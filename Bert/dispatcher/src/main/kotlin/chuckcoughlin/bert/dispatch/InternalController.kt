@@ -196,8 +196,8 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                                                         CLSS, msg.type.name,msg.text))
             else if( msg.type==RequestType.JSON ) LOGGER.info(String.format("%s.dispatchMessage: %s (%s)",
                                                         CLSS, msg.type.name,msg.jtype.name))
-            else           LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s = %2.2f", CLSS, msg.type.name,msg.jointDynamicProperty,msg.joint,msg.limb,
-                                                        (if(msg.values.size>0) msg.values[0] else 0.0) ))
+            else  LOGGER.info(String.format("%s.dispatchMessage: %s - %s %s %s = %2.2f", CLSS, msg.type.name,msg.jointDynamicProperty,
+                                    msg.joint,msg.limb,(if(msg.values.size>0) msg.values[0] else 0.0) ))
         }
         if(msg.type==RequestType.INTERNET) {
             internetQueue.addLast(msg)

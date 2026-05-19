@@ -180,12 +180,17 @@ class JointTree() {
      * to position the end joint.
      */
     fun setJointsToCurrent() {
+        val root = getJointPosition(Joint.IMU)
+        root.setOrientation(0.0,0.0,0.0)
         for (link in linkmap.values) {
             if( link.sourceJoint==Joint.IMU ) {
                 // IMU angle is fixed at 180
                 link.updateJointAngle(180.0)
+                if(DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = 180.0 (home=%2.0f)", CLSS,
+                    link.sourceJoint.name, link.endJoint.name,link.home))
             }
             else if(link.sourceJoint!=Joint.NONE) {
+                // Gives the right answer - wrong reason?
                 val mc = RobotModel.motorsByJoint[link.endJoint]
                 if (mc == null) {
                     LOGGER.info(String.format("%s.setJointsToCurrent: Missing link %s -> %s ...",CLSS,
@@ -193,8 +198,8 @@ class JointTree() {
                 }
                 else {
                     link.updateJointAngle(mc.angle)
-                    if (DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = %f2.0", CLSS,
-                        link.sourceJoint.name, link.endJoint.name, mc.angle))
+                    if(DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = %2.0f (home=%2.0f)", CLSS,
+                        link.sourceJoint.name, link.endJoint.name, mc.angle,link.home))
                 }
             }
         }
