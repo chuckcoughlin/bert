@@ -7,6 +7,7 @@ package chuckcoughlin.bert.common.model
 import chuckcoughlin.bert.common.util.XMLUtility
 import com.google.gson.GsonBuilder
 import org.w3c.dom.Document
+import java.awt.SystemColor.text
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -93,19 +94,21 @@ object URDFModel {
                         if ("appendage".equals(node.localName) || "joint".equals(node.localName)) {
                             val aname: String = XMLUtility.attributeValue(node, "name")
                             val joint = Joint.fromString(aname)
-                            val jp = tree.getJointPosition(joint)
+
                             var home = 0.0
                             if(!"appendage".equals(node.localName) ) {
                                 home = XMLUtility.attributeValue(node, "home").toDouble()
                             }
 
-                            var jlink = tree.createJointLink(source.joint,jp.joint)
+                            var jlink = tree.createJointLink(source.joint,joint)
                             jlink.side = XMLUtility.attributeValue(linkNode, "side")
                             val rpy = doubleArrayFromString(XMLUtility.attributeValue(node, "rpy"))
                             jlink.setRpy(rpy[0],rpy[1],rpy[2])
                             val xyz = doubleArrayFromString(XMLUtility.attributeValue(node, "xyz"))
                             jlink.setCoordinates(xyz[0],xyz[1],xyz[2])
-                            jlink.home = home
+                            val jp = tree.getJointPosition(joint)
+                            jp.home = home
+                            LOGGER.info(String.format("%s.analyzeChain: %s home = %.2f",CLSS,jp.joint.name,home))
                         }
                         aindex++
                     }

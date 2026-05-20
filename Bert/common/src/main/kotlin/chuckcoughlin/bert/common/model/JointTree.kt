@@ -71,7 +71,7 @@ class JointTree() {
             val jp1 = getJointPosition(link.sourceJoint)
             val jp2 = getJointPosition(link.endJoint)
             // Rotate around the source, then translate to the end joint
-            val q1 = Quaternion.rotationQuaternion(link)
+            val q1 = Quaternion.rotationQuaternion(link,jp1.theta)
             val q2 = Quaternion.translationQuaternion(link)
             q = q.postMultiplyBy(q1).postMultiplyBy(q2)
             q.updatePosition(jp2)
@@ -182,25 +182,13 @@ class JointTree() {
     fun setJointsToCurrent() {
         val root = getJointPosition(Joint.IMU)
         root.setOrientation(0.0,0.0,0.0)
-        for (link in linkmap.values) {
-            if( link.sourceJoint==Joint.IMU ) {
-                // IMU angle is fixed at 180
-                link.updateJointAngle(180.0)
-                if(DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = 180.0 (home=%2.0f)", CLSS,
-                    link.sourceJoint.name, link.endJoint.name,link.home))
-            }
-            else if(link.sourceJoint!=Joint.NONE) {
-                // Gives the right answer - wrong reason?
-                val mc = RobotModel.motorsByJoint[link.endJoint]
-                if (mc == null) {
-                    LOGGER.info(String.format("%s.setJointsToCurrent: Missing link %s -> %s ...",CLSS,
-                        link.sourceJoint.name, link.endJoint.name))
-                }
-                else {
-                    link.updateJointAngle(mc.angle)
-                    if(DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s -> %s = %2.0f (home=%2.0f)", CLSS,
-                        link.sourceJoint.name, link.endJoint.name, mc.angle,link.home))
-                }
+        for (jp in posmap.values) {
+            // Gives the right answer - wrong reason?
+            val mc = RobotModel.motorsByJoint[jp.joint]
+            if (mc != null) {
+                jp.theta = mc.angle
+                if(DEBUG) LOGGER.info(String.format("%s.setJointsToCurrent: %s = %2.0f (home=%2.0f)", CLSS,
+                    jp.joint.name, mc.angle,jp.home))
             }
         }
     }
@@ -212,32 +200,19 @@ class JointTree() {
     fun setJointsToHome() {
         val root = getJointPosition(Joint.IMU)
         root.setOrientation(0.0,0.0,0.0)
-        for (jlink in linkmap.values) {
-            jlink.updateJointAngle(jlink.home)
+        for (jp in posmap.values) {
+            jp.theta = jp.home
         }
     }
 
 
     fun setOrigin(jp:JointPosition) {
         jp.joint = Joint.IMU
+        jp.theta = 180.0
+        jp.home  = 180.0
         posmap.put(jp.joint,jp)
         LOGGER.info(String.format("%s.setOrigin: %s",
             CLSS,jp.joint.name))
-    }
-
-    /*
-     * Populate all joint links for a specified limb to their
-     * home angle. This is presuneably the "straight" position.
-     */
-    fun setLimbToHome(limb: Limb) {
-        for (jlink in linkSequence) {
-            val joint = jlink.sourceJoint
-            val jlimb = RobotModel.limbsByJoint[joint]
-            if( jlimb!=null && jlimb!=Limb.NONE && jlimb==limb ) {
-                val jp = posmap.get(joint)
-                if(jp!=null) jlink.updateJointAngle(jlink.home)
-            }
-        }
     }
 
     fun clone() : JointTree {
@@ -260,8 +235,6 @@ class JointTree() {
             linkSequence.add(jlink)
         }
     }
-
-
 
     private fun subsequentLinks(links:List<JointLink>):MutableList<JointLink> {
         val list = mutableListOf<JointLink>()

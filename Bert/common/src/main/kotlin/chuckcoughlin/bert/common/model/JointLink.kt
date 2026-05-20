@@ -27,9 +27,8 @@ class JointLink(source:Joint,end:Joint)  {
     var coordinates:DoubleArray
     val endJoint:Joint
     val sourceJoint:Joint
-    var home:Double
     var side:String
-    var theta:Double  // Angle of source joint
+
 
     // These are the physical fixed distances between source
     // and end joint from the URDF file. The joint angle
@@ -39,10 +38,6 @@ class JointLink(source:Joint,end:Joint)  {
         coordinates[0] = x
         coordinates[1] = y
         coordinates[2] = z
-    }
-
-    fun updateJointAngle(angle:Double) {
-        theta = angle
     }
 
     // Roll, pitch, yaw are in degrees.
@@ -56,12 +51,9 @@ class JointLink(source:Joint,end:Joint)  {
 
     fun clone() : JointLink {
         val copy = JointLink(sourceJoint,endJoint)
-        //copy.transform    = transform.clone()
-        copy.home = home
         copy.side = side
         copy.setCoordinates(coordinates[0],coordinates[1],coordinates[2])
         copy.setRpy(orientation[0],orientation[1],orientation[2])
-        copy.theta = theta
         return copy
     }
     init {
@@ -69,8 +61,6 @@ class JointLink(source:Joint,end:Joint)  {
         endJoint    = end
         coordinates = doubleArrayOf(0.0,0.0,0.0)  // end referenced to source
         orientation = doubleArrayOf(0.0,0.0,0.0)
-        home = 0.0
         side = Side.FRONT.name
-        theta = 0.0
     }
 }

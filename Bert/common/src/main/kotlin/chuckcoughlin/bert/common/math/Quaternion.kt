@@ -197,11 +197,11 @@ class Quaternion () {
          * @return a quaternion for a simple rotation around the
          * root joint of a link, taking into account the current joint angle.
          */
-        fun rotationQuaternion(jlink: JointLink) : Quaternion {
+        fun rotationQuaternion(jlink: JointLink,theta:Double) : Quaternion {
             val q = identity()
             val rom = Rom()
             rom.setRoll(jlink.orientation[0]*Math.PI/180.0)
-            rom.setPitch((jlink.orientation[1]+jlink.theta)*Math.PI/180.0)
+            rom.setPitch((jlink.orientation[1]+theta)*Math.PI/180.0)
             rom.setYaw(jlink.orientation[2]*Math.PI/180.0)
             val rotation = multiply(multiply(rom.roll,rom.pitch),rom.yaw)
             q.insertRotation(rotation)
