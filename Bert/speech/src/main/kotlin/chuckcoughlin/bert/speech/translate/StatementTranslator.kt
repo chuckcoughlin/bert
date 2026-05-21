@@ -1019,16 +1019,16 @@ class StatementTranslator(bot: MessageBottle, private val sharedDictionary: Muta
                              else                  Joint.LEFT_HIP_Z
                 }
                 else if(side==Side.RIGHT) {
-                    result = if (axis.equals("x"))     Joint.RIGHT_HIP_X
-                            else if (axis.equals("y")) Joint.RIGHT_HIP_Y
+                    result = if (axis==Axis.X)     Joint.RIGHT_HIP_X
+                            else if (axis==Axis.Y) Joint.RIGHT_HIP_Y
                             else Joint.RIGHT_HIP_Z
                 }
         }
         else if (bodyPart.equals("KNEE")) {
-                result = if (side.equals("left")) Joint.LEFT_KNEE_Y else Joint.RIGHT_KNEE_Y
+                result = if (side==Side.LEFT) Joint.LEFT_KNEE_Y else Joint.RIGHT_KNEE_Y
         }
         else if (bodyPart.equals("SHOULDER") || bodyPart.equals("ARM")) {
-                if (side==Side.LEFT) {
+                if(side==Side.LEFT) {
                     result = if(axis==Axis.X)      Joint.LEFT_SHOULDER_X
                              else if(axis==Axis.Y) Joint.LEFT_SHOULDER_Y
                              else                  Joint.LEFT_SHOULDER_Z
