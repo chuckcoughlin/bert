@@ -37,15 +37,6 @@ object ForwardSolver {
         return jointCoordinatesToJson()
     }
 
-    /**
-     * Generate a Json description of the current joint links
-     */
-    fun currentJointLinksToJson():String {
-        tree.setJointsToCurrent()
-        tree.computeJointPositions()
-        return jointLinksToJson()
-    }
-
     fun directionForJoint(joint:Joint) : DoubleArray {
         val jp = tree.computeJointPosition(joint)
         return jp.orientation
@@ -65,7 +56,8 @@ object ForwardSolver {
     }
 
     /**
-     * Generate a Json description of the tree skeleton
+     * Generate a Json description of the tree skeleton.
+     * This is a static configuration.
      */
     fun jointLinksToJson():String {
         return tree.jointLinksToJson()

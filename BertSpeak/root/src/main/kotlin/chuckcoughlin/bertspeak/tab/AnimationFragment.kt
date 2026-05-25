@@ -77,7 +77,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
     }
 
     fun refreshButtonClicked() {
-        DispatchService.sendJsonRequest(JsonType.JOINT_LINKS)
+        DispatchService.sendJsonRequest(JsonType.JOINT_COORDINATES)
     }
 
     // ===================== StatusDataObserver =====================
@@ -94,7 +94,7 @@ class AnimationFragment (pos:Int): BasicAssistantFragment(pos), LimbShapeObserve
         Log.i(name, String.format("updateStatus (%s):%s = %s", data.action, data.type, data.state))
         if (data.action.equals(DispatchConstants.ACTION_MANAGER_STATE)) {
             if (data.type == ManagerType.SOCKET && data.state == ManagerState.ACTIVE) {
-                DispatchService.sendJsonRequest(JsonType.JOINT_LINKS)
+                DispatchService.sendJsonRequest(JsonType.JOINT_COORDINATES)
             }
         }
     }

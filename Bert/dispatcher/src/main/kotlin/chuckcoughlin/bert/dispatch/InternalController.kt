@@ -103,6 +103,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.source = ControllerType.BITBUCKET
             msg.control.delay = BottleConstants.NO_DELAY
             dispatchMessage(msg)
+            dispatchMessage(request)
         }
         // Make sure the motor is engaged before moving
         else if(request.type==RequestType.SET_MOTOR_PROPERTY &&
@@ -115,6 +116,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.control.delay = BottleConstants.NO_DELAY
             dispatchMessage(msg)
             dispatchPositionUpdates()
+            dispatchMessage(request)
         }
         else if (request.type.equals(RequestType.SET_LIMB_PROPERTY) &&
             request.jointDynamicProperty.equals(JointDynamicProperty.STATE)  &&
@@ -126,6 +128,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             msg.source = ControllerType.BITBUCKET
             dispatchMessage(msg)
             dispatchPositionUpdates()
+            dispatchMessage(request)
         }
         else if (request.type == RequestType.EXECUTE_POSE ) {
             LOGGER.info(String.format("%s.handleRequest %s pose = %s %2.0f (%s)",
@@ -137,6 +140,7 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             }
             else {
                 request.error = String.format("pose \"%s %d\" does not exist",request.arg,request.values[0].toInt())
+                dispatchMessage(request)
             }
         }
         else if (request.type == RequestType.EXECUTE_ACTION ) {
@@ -154,30 +158,32 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
                 dispatchMessage(msg)   // All responses will go to the bit bucket
                 dispatchPositionUpdates()
             }
+            // Finally dispatch the original request
+            dispatchMessage(request)
         }
         else if (request.type == RequestType.PLACE_END_EFFECTOR ) {
             // Moving an end-effector usually involves multiple joints moving at once.
-            // The command becomes a SET_JOINT_POSITIONS message to be sent to the motor controller.
+            // The command becomes a JOINT_COORDINATES message to be sent to the motor controller.
             MotionPlanner.transformRequest(request)
+            dispatchMessage(request)
             dispatchPositionUpdates()
         }
         else if (request.type == RequestType.RESET ) {
             motorQueue.reset()   // Then proceed to reset controllers
             internetQueue.reset()
+            dispatchMessage(request)
         }
-        // Finally process the original message
-        dispatchMessage(request)
     }
 
     /** Inform the tablet of a new limb position */
     private suspend fun dispatchPositionUpdates() {
         val msg = MessageBottle(RequestType.JSON)
-        msg.jtype = JsonType.JOINT_LINKS
+        msg.jtype = JsonType.JOINT_COORDINATES
         msg.source = ControllerType.COMMAND  // If tablet is connected.
-        msg.text = ForwardSolver.currentJointLinksToJson()
+        msg.text = ForwardSolver.currentJointCoordinatesToJson()
         if(DEBUG) LOGGER.info(String.format("%s.dispatchPositionUpdates Updating joint links on tablet",
             CLSS))
-        dispatchMessage(msg)  // Causes hang at the moment ??
+        dispatchMessage(msg)
     }
 
     /**

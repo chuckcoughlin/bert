@@ -70,14 +70,26 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     }
 
     override fun updateItem(type: JsonType, json: String) {
-        if( type==JsonType.JOINT_LINKS ) {
+        if( type==JsonType.JOINT_COORDINATES ) {
+            if( !json.isBlank() ) {
+                dispatcher.log(CLSS, String.format("updateItem: %s",json))
+                val locType = object : TypeToken<List<JointPosition>>() {}.type
+                val list = gson.fromJson<List<JointPosition>>(json,locType)
+                for(jp in list) {
+                    skeleton.addJointPosition(jp)
+                    Log.i(CLSS, String.format("updateItem: Pos %s is %02f,%02f,%02f",jp.joint.name,jp.pos.x,jp.pos.y,jp.pos.z))
+                }
+                notifyObservers(skeleton)
+            }
+        }
+        else if( type==JsonType.JOINT_LINKS ) {
             if( !json.isBlank() ) {
                 dispatcher.log(CLSS, String.format("updateItem: %s",json))
                 val locType = object : TypeToken<List<JointLink>>() {}.type
                 val list = gson.fromJson<List<JointLink>>(json,locType)
                 for(jl in list) {
                     skeleton.addJointLink(jl)
-                    Log.i(CLSS, String.format("updateItem: %s is %02f,%02f,%02f",jl.endJoint.name,jl.coordinates[0],jl.coordinates[1],jl.coordinates[2]))
+                    Log.i(CLSS, String.format("updateItem: Link %s -> %s",jl.sourceJoint.name,jl.endJoint.name))
                 }
                 notifyObservers(skeleton)
             }
@@ -114,11 +126,6 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
         for(jlink in jlist) {
             skeleton.addJointLink(jlink)
             dispatcher.log(CLSS, String.format("initializeSkeleton: link %s -> %s",jlink.sourceJoint.name,jlink.endJoint.name))
-        }
-    }
-    private fun initializeObservers() {
-        for (observer in shapeObservers.values) {
-            observer.resetGraphics()
         }
     }
 
