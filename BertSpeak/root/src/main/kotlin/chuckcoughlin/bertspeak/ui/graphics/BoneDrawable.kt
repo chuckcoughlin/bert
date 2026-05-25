@@ -1,5 +1,5 @@
 /**
- * Copyright 2025. Charles Coughlin. All Rights Reserved.
+ * Copyright 2025-2026. Charles Coughlin. All Rights Reserved.
  * MIT License.
  */
 package chuckcoughlin.bertspeak.ui.graphics
@@ -49,8 +49,8 @@ class BoneDrawable(joint: Joint, val p1:Point2D, p2:Point2D, side: Side) : LinkS
 		paint.strokeWidth = connectorWidth
 		canvas.drawLine(x1,y1,x2,y2,paint)
 		// Origin = (462,561),  scale = 1.4
-		Log.i(CLSS, String.format("%s.drawConnector: %s (%02.0f,%02.0f)->(%02.0f,%02.0f) [%02f,%02f]",CLSS,joint.name,
-			x1,y1,x2,y2,p1.x,p1.y))
+		//Log.i(CLSS, String.format("%s.drawConnector: %s (%02.0f,%02.0f)->(%02.0f,%02.0f) [%02f,%02f]",CLSS,joint.name,
+		//	x1,y1,x2,y2,p1.x,p1.y))
 	}
 
 	val beginningRadius= 10f

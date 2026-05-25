@@ -65,12 +65,11 @@ import chuckcoughlin.bertspeak.data.Side.RIGHT
                 continue
             }
             val jp2 = skeleton.positionMap.get(jlink.sourceJoint)
-            Log.i(CLSS, String.format("%s.updateDrawables %s", configuration.projection.name, jlink.endJoint.name))
+            //Log.i(CLSS, String.format("%s.updateDrawables %s", configuration.projection.name, jlink.endJoint.name))
             if(jp2!=null) {
                 val drawable = ShapeFactory.drawableForLink(jlink,jp1,jp2,configuration.projection)
                 drawables[jp1.joint] = drawable
             }
-
         }
     }
 

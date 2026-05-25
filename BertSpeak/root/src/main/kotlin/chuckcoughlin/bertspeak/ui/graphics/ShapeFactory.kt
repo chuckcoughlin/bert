@@ -4,12 +4,14 @@
  */
 package chuckcoughlin.bertspeak.ui.graphics
 
+import android.util.Log
 import chuckcoughlin.bert.common.model.Joint
 import chuckcoughlin.bertspeak.data.JointLink
 import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.Point2D
 import chuckcoughlin.bertspeak.data.Point3D
 import chuckcoughlin.bertspeak.data.Side
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 
 /**
  * Create Shape objects appropriate for links
@@ -30,20 +32,21 @@ class ShapeFactory () {
 			if(jp2.joint == Joint.NONE) {
 				drawable = UnknownDrawable(jp1.joint,p2,side)
 			}
-			else if(!Joint.isEndEffector(jp1.joint)) {
+			else if(!Joint.isEndEffector(jp2.joint)) {
 				drawable = BoneDrawable(jp1.joint,p1,p2,side)
 				if(jp1.joint.name.contains("ANKLE")) drawable.selectable = true
 			}
 			else  {  // Appendage
-				if(jp1.joint==Joint.NOSE) {
-					drawable = NoseDrawable(jp1.joint,p1,p2,side)
+				Log.i(CLSS, String.format("drawableForLink end = %s (%02f %02f %02f)",jp2.joint.name,jp2.pos.x,jp2.pos.y,jp2.pos.z))
+				if(jp2.joint==Joint.NOSE) {
+					drawable = NoseDrawable(jp2.joint,p1,p2,side)
 				}
-				else if(jp1.joint.name.contains("FINGER", true)) {
-					drawable = HandDrawable(jp1.joint, p1, p2, side)
+				else if(jp2.joint.name.contains("FINGER", true)) {
+					drawable = HandDrawable(jp2.joint, p1, p2, side)
 				}
-				else if(jp1.joint.name.contains("HEEL", true) ||
-					    jp1.joint.name.contains("TOE", true)) {
-					drawable = ToeDrawable(jp1.joint,p1,p2,side)
+				else if(jp2.joint.name.contains("HEEL", true) ||
+					    jp2.joint.name.contains("TOE", true)) {
+					drawable = ToeDrawable(jp2.joint,p1,p2,side)
 				}
 				else  {
 					drawable = EndEffectorDrawable(jp1.joint,p1,p2,side)
@@ -63,5 +66,6 @@ class ShapeFactory () {
 			}
 			return pos
 		}
+		private val CLSS = "ShapeFactory"
 	}
 }

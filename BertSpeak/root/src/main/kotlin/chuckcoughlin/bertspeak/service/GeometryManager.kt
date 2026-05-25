@@ -57,7 +57,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
     // ================ JsonObserver ======================
     override fun resetItem(map: Map<JsonType, String>) {
         val json = map[JsonType.JOINT_LINKS]
-        dispatcher.log(CLSS, String.format("resetItem: %s",json))
+        //dispatcher.log(CLSS, String.format("resetItem: %s",json))
         if( json!=null && !json.isEmpty() ) {
             val locType = object : TypeToken<List<JointLink>>() {}.type
             val list = gson.fromJson<List<JointLink>>(json,locType)
@@ -77,7 +77,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
                 val list = gson.fromJson<List<JointLink>>(json,locType)
                 for(jl in list) {
                     skeleton.addJointLink(jl)
-                    Log.i(CLSS, String.format("updateItem: %s is %f2.1,%f2.1,%f2.1",jl.endJoint.name,jl.coordinates[0],jl.coordinates[1],jl.coordinates[2]))
+                    Log.i(CLSS, String.format("updateItem: %s is %02f,%02f,%02f",jl.endJoint.name,jl.coordinates[0],jl.coordinates[1],jl.coordinates[2]))
                 }
                 notifyObservers(skeleton)
             }

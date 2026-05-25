@@ -43,7 +43,7 @@ class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
     // Draw from back to front
      private fun drawLinks(canvas:Canvas,gc:GraphicsConfiguration) {
          for(drawable in drawables.values) {
-             Log.i(name, String.format("drawLinks FRONT ....%s (%f2.0,%f2.0)",drawable.joint,drawable.p2.x,drawable.p2.y))
+             Log.i(name, String.format("  drawLinks FRONT ....%s (%f2.0,%f2.0)",drawable.joint,drawable.p2.x,drawable.p2.y))
              if( drawable.p2.x<0.0 ) {
                  drawable.draw(canvas,gc)
              }

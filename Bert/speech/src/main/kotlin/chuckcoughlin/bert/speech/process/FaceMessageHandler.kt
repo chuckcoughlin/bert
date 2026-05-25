@@ -33,7 +33,7 @@ object FaceMessageHandler  {
         }
         else {
             result = false
-            LOGGER.warning(String.format("%s.associateNameWithFace: Tried to assign %s a face, but no details pending",CLSS,name))
+            //LOGGER.warning(String.format("%s.associateNameWithFace: Tried to assign %s a face, but no details pending",CLSS,name))
         }
         return result
     }

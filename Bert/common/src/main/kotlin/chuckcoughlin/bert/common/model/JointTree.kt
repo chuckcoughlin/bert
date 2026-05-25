@@ -19,7 +19,7 @@ import java.util.logging.Logger
 class JointTree() {
     val posmap: MutableMap<Joint, JointPosition>
     val linkmap: MutableMap<Joint, JointLink>  // Key = endJoint
-    val linkSequence: MutableList<JointLink>
+    private val linkSequence: MutableList<JointLink>
 
     /**
      * Update the position and orientation of a joint and all
@@ -170,6 +170,13 @@ class JointTree() {
         val list = mutableListOf<JointPosition>()
         for(jp in posmap.values) {
             if(jp.joint!=Joint.NONE) list.add(jp)
+        }
+        return list
+    }
+    fun listLinks() : List<JointLink> {
+        val list = mutableListOf<JointLink>()
+        for(jlink in linkmap.values) {
+            list.add(jlink)
         }
         return list
     }
