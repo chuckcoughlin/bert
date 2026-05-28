@@ -7,20 +7,22 @@ package chuckcoughlin.bertspeak.data
 import chuckcoughlin.bert.common.model.Joint
 
 /**
- * Current position and orientation of a joint or end-effector in 3 space.
+ * Position and orientation of a joint or end-effector in 3 space
  * with respect to the root of the robot inertial coordinate system.
  * Each JointTree has a complete and separate set of these objects.
+ * All angles in degrees
  */
 class JointPosition() {
 	var joint: Joint
 	var orientation: DoubleArray // Angles with respect to system normal
 	var pos: Point3D             // Coordinates of joint or end effector
+	var home:Double              // Angle when "straight"
+	var theta:Double             // Target position
 
 
 	fun positionToText() : String {
 		return(String.format("%2.1f,%2.1f,%2.1f",pos.x,pos.y,pos.z))
 	}
-
 	fun orientationToText() : String {
 		return(String.format("%2.0f,%2.0f,%2.0f",orientation[0],orientation[1],orientation[2]))
 	}
@@ -40,6 +42,8 @@ class JointPosition() {
 		val copy = JointPosition()
 		copy.joint = joint
 		copy.pos = pos.copy()
+		copy.home = home
+		copy.theta = theta
 		return copy
 	}
 
@@ -47,10 +51,11 @@ class JointPosition() {
 		val NONE = JointPosition()
 	}
 
-
 	init {
 		joint = Joint.NONE
 		orientation = doubleArrayOf(0.0,0.0,0.0)
 		pos    = Point3D(0.0,0.0,0.0)
+		home = 0.0
+		theta = 0.0
 	}
 }

@@ -101,7 +101,7 @@ class JointTree() {
         while(joint!=Joint.NONE) {
             val jlink= getJointLink(joint)
             chain.addFirst(jlink)
-            if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserted %s",CLSS,j.name,joint.name))
+            //if (DEBUG) LOGGER.info(String.format("%s.createLinkChain: %s - inserted %s",CLSS,j.name,joint.name))
             joint = jlink.sourceJoint
         }
         return chain

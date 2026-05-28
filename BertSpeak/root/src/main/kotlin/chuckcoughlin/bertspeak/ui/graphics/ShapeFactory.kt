@@ -41,18 +41,25 @@ class ShapeFactory () {
 				if(jp2.joint==Joint.NOSE) {
 					drawable = NoseDrawable(jp2.joint,p1,p2,side)
 				}
+				else if(jp2.joint.name.contains("EAR", true)) {
+					drawable = EarDrawable(jp2.joint, p1, p2, side)
+				}
+				else if(jp2.joint.name.contains("EYE", true)) {
+					drawable = EyeDrawable(jp2.joint, p1, p2, side)
+				}
 				else if(jp2.joint.name.contains("FINGER", true)) {
 					drawable = HandDrawable(jp2.joint, p1, p2, side)
+					drawable.selectable = true
 				}
 				else if(jp2.joint.name.contains("HEEL", true) ||
 					    jp2.joint.name.contains("TOE", true)) {
 					drawable = ToeDrawable(jp2.joint,p1,p2,side)
+					drawable.selectable = true
 				}
 				else  {
 					drawable = EndEffectorDrawable(jp1.joint,p1,p2,side)
+					drawable.selectable = true
 				}
-				drawable.selectable = true
-
 			}
 			return drawable
 		}

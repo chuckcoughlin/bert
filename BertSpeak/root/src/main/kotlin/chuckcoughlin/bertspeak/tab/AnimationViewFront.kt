@@ -40,20 +40,30 @@ class AnimationViewFront(context: Context, attrs: AttributeSet? = null)
         }
         return drawable
     }
-    // Draw from back to front
+    // Draw from back to front. Nose/head is first
      private fun drawLinks(canvas:Canvas,gc:GraphicsConfiguration) {
          for(drawable in drawables.values) {
-             Log.i(name, String.format("  drawLinks FRONT ....%s (%f2.0,%f2.0)",drawable.joint,drawable.p2.x,drawable.p2.y))
-             if( drawable.p2.x<0.0 ) {
+             Log.i(
+                 name, String.format(
+                     "  drawLinks FRONT ....%s (%f2.0,%f2.0)", drawable.joint, drawable.p2.x, drawable.p2.y
+                 )
+             )
+             if (drawable.CLSS.equals("NoseDrawable")) drawable.draw(canvas, gc)
+         }
+        for(drawable in drawables.values) {
+            if(drawable.CLSS.equals("NoseDrawable")) continue
+            if( drawable.p2.x<0.0 ) {
                  drawable.draw(canvas,gc)
              }
          }
         for(drawable in drawables.values) {
+            if(drawable.CLSS.equals("NoseDrawable")) continue
             if( drawable.p2.x.equals(0.0)) {
                 drawable.draw(canvas,gc)
             }
         }
         for(drawable in drawables.values) {
+            if(drawable.CLSS.equals("NoseDrawable")) continue
             if( drawable.p2.x>0.0 ) {
                 drawable.draw(canvas,gc)
             }

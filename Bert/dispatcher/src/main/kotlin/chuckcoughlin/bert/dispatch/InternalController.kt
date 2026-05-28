@@ -173,15 +173,18 @@ class InternalController(req: Channel<MessageBottle>,rsp: Channel<MessageBottle>
             internetQueue.reset()
             dispatchMessage(request)
         }
+        else {
+            dispatchMessage(request)
+        }
     }
 
     /** Inform the tablet of a new limb position */
     private suspend fun dispatchPositionUpdates() {
         val msg = MessageBottle(RequestType.JSON)
         msg.jtype = JsonType.JOINT_COORDINATES
-        msg.source = ControllerType.COMMAND  // If tablet is connected.
+        msg.source = ControllerType.COMMAND  // If tablet is connected
         msg.text = ForwardSolver.currentJointCoordinatesToJson()
-        if(DEBUG) LOGGER.info(String.format("%s.dispatchPositionUpdates Updating joint links on tablet",
+        if(DEBUG) LOGGER.info(String.format("%s.dispatchPositionUpdates Updating joint coordinates on tablet",
             CLSS))
         dispatchMessage(msg)
     }

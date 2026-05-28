@@ -42,12 +42,12 @@ class CommandMessageHandler(sock: Socket)  {
      */
     fun sendResponse(response: MessageBottle) :Boolean {
         var success = true
-        var text: String = translator.messageToText(response)
+        var text: String = translator.messageToText(response) // Prepends jtype
         text = text.trim { it <= ' ' }
         var mtype = MessageType.ANS
         if( response.type.equals(RequestType.JSON) ) {
             mtype = MessageType.JSN
-            text = String.format("%s#%s", response.jtype.name, TextUtility.stripNewLines(text))
+            text = TextUtility.stripNewLines(text)
         }
         try {
             val msgtxt = String.format("%s:%s", mtype.name, text)
@@ -109,7 +109,7 @@ class CommandMessageHandler(sock: Socket)  {
         if( txt!=null && txt.length > BottleConstants.HEADER_LENGTH ) {
             val hdr  = txt.substring(0, BottleConstants.HEADER_LENGTH - 1)
             val text = txt.substring(BottleConstants.HEADER_LENGTH)  // Possibly empty
-            LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
+            if(DEBUG) LOGGER.info(String.format("TABLET READ: %s:%s.", hdr,text))
             // We've stripped the header now analyze the rest.
             if (hdr.equals(MessageType.MSG.name, ignoreCase = true)) {
                 try {
@@ -141,13 +141,13 @@ class CommandMessageHandler(sock: Socket)  {
             }
             // For now simply log responses from the tablet.
             else if (hdr.equals(MessageType.ANS.name, ignoreCase = true)) {
-                LOGGER.info(String.format("Tablet ANS: %s",text))
+                if(DEBUG) LOGGER.info(String.format("Tablet ANS: %s",text))
                 msg = parser.parseStatement(text)
             }
             // Simply send log messages from tablet to our logger
             else if (hdr.equals(MessageType.LOG.name, ignoreCase = true)) {
                 msg.type = RequestType.NONE
-                LOGGER.info(String.format("TABLET LOG: %s", text))
+                if(DEBUG) LOGGER.info(String.format("TABLET LOG: %s", text))
             }
             else {
                 msg = MessageBottle(RequestType.NOTIFICATION)
@@ -160,7 +160,7 @@ class CommandMessageHandler(sock: Socket)  {
         }
         msg.source = ControllerType.COMMAND
         // In past iterations, there was the concept of suppressing consecutive similar errors.
-        // We've abandoned that idea/
+        // We've abandoned that idea.
         if(!msg.error.equals(BottleConstants.NO_ERROR)) {
             LOGGER.info(String.format("%s.processRequest: ERROR %s (%s)", CLSS, msg.type,msg.error))
         }
@@ -184,7 +184,7 @@ class CommandMessageHandler(sock: Socket)  {
                 else if (ch == NL || ch == CR) {
                     break
                 }
-                if (DEBUG) LOGGER.info(String.format("%s.readCommand: %c (%d)", CLSS, ch.toChar(), ch))
+                //if (DEBUG) LOGGER.info(String.format("%s.readCommand: %c (%d)", CLSS, ch.toChar(), ch))
                 text.append(ch.toChar())
             }
         }
@@ -209,7 +209,7 @@ class CommandMessageHandler(sock: Socket)  {
 
     init {
         translator = MessageTranslator()
-        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_MESSAGE)
+        DEBUG = RobotModel.debug.contains(ConfigurationConstants.DEBUG_COMMAND)
         input = BufferedReader(InputStreamReader(socket.getInputStream()))
         LOGGER.info(String.format("%s.startup: opened socket for read",CLSS))
         output = PrintWriter(socket.getOutputStream(), true)

@@ -97,7 +97,7 @@ class SocketManager(service:DispatchService): CommunicationManager {
             }
             // On error we retry. Perhaps robot not ready.
             catch(ex:Throwable) {
-                Log.w(CLSS, String.format("execute: error creating socket %s %d (%s)",host,port,ex.localizedMessage))
+                Log.w(CLSS, String.format("execute: socket error %s on %d (%s)",host,port,ex.localizedMessage))
                 try {
                     Thread.sleep(SOCKET_RETRY_INTERVAL)
                 }

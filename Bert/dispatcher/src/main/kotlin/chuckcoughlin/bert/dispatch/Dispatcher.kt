@@ -295,12 +295,13 @@ class Dispatcher : Controller {
                 CLSS, msg.type.name, msg.source))
             if (msg.type == RequestType.JSON)
                 msg.error = String.format("internal error, %s (%s) message is unhandled in dispatcher",
-                    msg.type.name,
-                    msg.jtype.name)
+                    msg.type.name,msg.jtype.name)
             else
                 msg.error = String.format("internal error, %s message is unhandled in dispatcher", msg.type.name)
+
             replyToSource(msg)
         }
+
     }
 
     /**
@@ -596,7 +597,7 @@ class Dispatcher : Controller {
                     JsonType.JOINT_VOLTAGES -> text = RobotModel.voltagesToJSON()
                     JsonType.JOINT_TYPES -> text = RobotModel.typesToJSON()
                     JsonType.JOINT_COORDINATES -> text = ForwardSolver.currentJointCoordinatesToJson()
-                    JsonType.JOINT_LINKS -> text = ForwardSolver.currentJointLinksToJson()
+                    JsonType.JOINT_LINKS -> text = ForwardSolver.jointLinksToJson()
                     JsonType.LIMB_NAMES -> text = RobotModel.limbsToJSON()
                     JsonType.MOTOR_DYNAMIC_PROPERTIES -> text = JointDynamicProperty.toJSON()
                     JsonType.MOTOR_GOALS -> text = "Dispatcher: error - resolve MOTOR_GOALS in motor controller"
@@ -799,8 +800,8 @@ class Dispatcher : Controller {
     private suspend fun replyToSource(response: MessageBottle) {
         val source = response.source
         if(response.type==RequestType.JSON ) {
-            LOGGER.info(String.format("%s.replyToSource: Forwarding %s (%s) to %s",
-                CLSS, response.type.name, response.jtype.name, source))
+            LOGGER.info(String.format("%s.replyToSource: Forwarding %s(%s)to %s = (%s)",
+                CLSS, response.type.name, response.jtype.name,source,response.text ))
         }
         else {
             LOGGER.info(String.format("%s.replyToSource: Forwarding %s (%s) to %s",

@@ -13,6 +13,7 @@ import chuckcoughlin.bertspeak.data.JsonType
 import chuckcoughlin.bertspeak.data.JointPosition
 import chuckcoughlin.bertspeak.data.Skeleton
 import chuckcoughlin.bertspeak.data.LimbShapeObserver
+import chuckcoughlin.bertspeak.service.DispatchService.Companion.CLSS
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -84,7 +85,8 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
         }
         else if( type==JsonType.JOINT_LINKS ) {
             if( !json.isBlank() ) {
-                dispatcher.log(CLSS, String.format("updateItem: %s",json))
+                dispatcher.log(CLSS, String.format("updateItem: IGNORING %s",type.name))
+                /**
                 val locType = object : TypeToken<List<JointLink>>() {}.type
                 val list = gson.fromJson<List<JointLink>>(json,locType)
                 for(jl in list) {
@@ -92,6 +94,7 @@ class GeometryManager (service:DispatchService): CommunicationManager,JsonObserv
                     Log.i(CLSS, String.format("updateItem: Link %s -> %s",jl.sourceJoint.name,jl.endJoint.name))
                 }
                 notifyObservers(skeleton)
+                **/
             }
         }
     }
