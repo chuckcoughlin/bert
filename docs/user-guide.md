@@ -138,7 +138,30 @@ Additionally, under Settings->General Management, choose the preferred text-spee
   ![BertSpeak](/images/bertspeak_cover.png)
  ```                        BertSpeak - Cover Page ```</br>
   The **cover** panel shows the current state of connection with the main robot
-  processor.   
+  processor.
+
+  ********************************************************
+   ![BertSpeak](/images/bertspeak_animation.png)
+ ```                        BertSpeak - Animation Page ```</br>
+    The animation page shows a stick-figure representataion of the robot in three projections.
+    The figures update in real-time to show the actional
+    robot position. Planned updates will allow the user to drag limbs of the stick-figure and effect actual
+    robot positioning.
+
+  ********************************************************
+   ![BertSpeak](/images/bertspeak_settings.png)
+ ```                        BertSpeak - Facial Recognition Page ```</br>
+    It is important that the settings be filled in before attempting to use the tablet
+    for robot control. The **Settings** page should show the following values:
+
+  ```
+  ********************************************************
+   ![BertSpeak](/images/bertspeak_settings.png)
+ ```                        BertSpeak - Log Page ```</br>
+    It is important that the settings be filled in before attempting to use the tablet
+    for robot control. The **Settings** page should show the following values:
+
+  ```
   ********************************************************
    ![BertSpeak](/images/bertspeak_settings.png)
  ```                        BertSpeak - Settings Page ```</br>
@@ -148,4 +171,12 @@ Additionally, under Settings->General Management, choose the preferred text-spee
   ```
     Paired Device         bert_humanoid
     Simulated Connection  false  (true is used with the Android simulator during development)
+  ```
+  ********************************************************
+  ```
+   ![BertSpeak](/images/bertspeak_settings.png)
+ ```                        BertSpeak - Transcript Page ```</br>
+    It is important that the settings be filled in before attempting to use the tablet
+    for robot control. The **Settings** page should show the following values:
+
   ```

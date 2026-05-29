@@ -24,7 +24,10 @@ class NoseDrawable(joint: Joint, val p1:Point2D, p2: Point2D, side: Side) : Link
 		var radius = gc.scale*headRadius
 		val x = gc.originx + p2.x.toFloat()*gc.scale
 		val y = gc.originy + p2.y.toFloat()*gc.scale
-		canvas.drawCircle(x,y,radius,blackPaint)
+		var headX = x
+		if( gc.projection==Side.LEFT )      headX -= radius
+		else if(gc.projection==Side.RIGHT ) headX += radius
+		canvas.drawCircle(headX,y,radius,blackPaint)
 		radius = gc.scale*unscaledRadius
 		canvas.drawCircle(x,y,radius,bluePaint)
 	}
