@@ -130,38 +130,36 @@ The control application is called ***BertSpeak***, and, while it must be running
 there is no necessary interactive control other than speech. The screens shown
 below provide some minimal troubleshooting capabilities.
 
-Make sure that the application is configured in the Settings with Permission for Microphone and Storage.
+Make sure that the application is configured in the Settings with Permission for Microphone, Camera and Storage.
 Additionally, under Settings->General Management, choose the preferred text-speech engine.
 (I chose Samsung over Google). Install voice data (I chose a British male).
 
 *********************************************************
   ![BertSpeak](/images/bertspeak_cover.png)
  ```                        BertSpeak - Cover Page ```</br>
-  The **cover** panel shows the current state of connection with the main robot
-  processor.
+  The **cover** panel shows the current status of the application, including state of connection with the main robot processor and the most recent text command or response. There are also buttons which turn speech and hearing capabilities on or off. There is also a button to stop the entire application.
 
   ********************************************************
    ![BertSpeak](/images/bertspeak_animation.png)
  ```                        BertSpeak - Animation Page ```</br>
-    The animation page shows a stick-figure representataion of the robot in three projections.
-    The figures update in real-time to show the actional
+    The **animation** page shows a stick-figure representataion of the robot in three projections.
+    The figures update in real-time to show the current
     robot position. Planned updates will allow the user to drag limbs of the stick-figure and effect actual
     robot positioning.
 
   ********************************************************
-   ![BertSpeak](/images/bertspeak_settings.png)
+   ![BertSpeak](/images/bertspeak_facerec.png)
  ```                        BertSpeak - Facial Recognition Page ```</br>
-    It is important that the settings be filled in before attempting to use the tablet
-    for robot control. The **Settings** page should show the following values:
+    The **facial recognition** page allows a name to be associated with the face of a user. When the user is positioned in front
+    of the tablet, the **Analyze** button will either create
+    a face entry associated with the name, or will issue a
+    presonalized greeting if the facial image is recognized.
 
-  ```
   ********************************************************
-   ![BertSpeak](/images/bertspeak_settings.png)
+   ![BertSpeak](/images/bertspeak_logs.png)
  ```                        BertSpeak - Log Page ```</br>
-    It is important that the settings be filled in before attempting to use the tablet
-    for robot control. The **Settings** page should show the following values:
+    This page displays log messages that may originate either from the application or the robot.
 
-  ```
   ********************************************************
    ![BertSpeak](/images/bertspeak_settings.png)
  ```                        BertSpeak - Settings Page ```</br>
@@ -170,13 +168,12 @@ Additionally, under Settings->General Management, choose the preferred text-spee
 
   ```
     Paired Device         bert_humanoid
-    Simulated Connection  false  (true is used with the Android simulator during development)
+    Simulated Connection  false
   ```
+   Setting the simulator "true" turns off several features incompatible the Android simulator and is used only during
+   development.
   ********************************************************
-  ```
-   ![BertSpeak](/images/bertspeak_settings.png)
- ```                        BertSpeak - Transcript Page ```</br>
-    It is important that the settings be filled in before attempting to use the tablet
-    for robot control. The **Settings** page should show the following values:
 
-  ```
+   ![BertSpeak](/images/bertspeak_transcript.png)
+ ```                        BertSpeak - Transcript Page ```</br>
+    The **transcript** view records all messages between the robot and applicaion. Outgoing commands are rendered in black, responses from the robot in blue.
